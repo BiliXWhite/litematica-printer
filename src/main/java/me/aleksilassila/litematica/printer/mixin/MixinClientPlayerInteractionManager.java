@@ -1,6 +1,8 @@
 package me.aleksilassila.litematica.printer.mixin;
 
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
+import me.aleksilassila.litematica.printer.printer.PlacementGuide;
+import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
@@ -45,5 +47,12 @@ public abstract class MixinClientPlayerInteractionManager implements IClientPlay
 //	@Inject(at = @At("HEAD"), method = "interactBlock")
 //	public void interactBlock(ClientPlayerEntity player, ClientWorld world, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir) {
 //		System.out.println("Player interactBlock: pos: (" + hitResult.getBlockPos().toShortString() + "), side: " + hitResult.getSide().getName() + ", vector: " + hitResult.getPos().toString());
+//		PlacementGuide.Action a = Printer.getPrinter().guide.getAction(hitResult.getBlockPos());
+//		if (a == null) return;
+//		for (Direction side : a.getSides().keySet()) {
+//			System.out.println("Side: " + side + ", " + a.getSides().get(side).toString());
+//		}
+//		System.out.println("Valid: " + a.getValidSide(world, hitResult.getBlockPos()));
+//		System.out.println("Look: " + a.getLookDirection());
 //	}
 }

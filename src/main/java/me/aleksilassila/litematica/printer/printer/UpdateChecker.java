@@ -9,7 +9,7 @@ import java.net.URL;
 import java.util.Scanner;
 
 public class UpdateChecker {
-    public static final String version = "v2.2";
+    public static final String version = "v2.4";
 
     public static String getPrinterVersion() {
         try (InputStream inputStream = new URL("https://api.github.com/repos/aleksilassila/litematica-printer/tags").openStream(); Scanner scanner = new Scanner(inputStream)) {

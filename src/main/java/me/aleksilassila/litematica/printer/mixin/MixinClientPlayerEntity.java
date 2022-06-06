@@ -28,29 +28,26 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
     @Shadow
 	protected MinecraftClient client;
 
-	protected Printer printer;
-
-	@Inject(at = @At("HEAD"), method = "tick")
+	@Inject(at = @At("TAIL"), method = "tick")
 	public void tick(CallbackInfo ci) {
-		if (!didCheckForUpdates) {
-			didCheckForUpdates = true;
+//		if (!didCheckForUpdates) {
+//			didCheckForUpdates = true;
+//
+//			checkForUpdates();
+//		}
+		
+		if (Printer.getPrinter() == null) {
+			Printer.init(client);
+			return;
+		}
 
+		if (!(LitematicaMixinMod.PRINT_MODE.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed()))
+			return;
+		if(Printer.up){
 			checkForUpdates();
+			Printer.up = false;
 		}
-
-		if (printer == null) {
-			if (client != null && client.player != null && client.world != null) {
-				printer = new Printer(client, client.player, client.world);
-			}
-
-			return;
-		}
-
-		if (SchematicWorldHandler.getSchematicWorld() == null ||
-				!(LitematicaMixinMod.PRINT_MODE.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed()))
-			return;
-
-		printer.onTick();
+		Printer.getPrinter().tick();
 	}
 
 	public void checkForUpdates() {
@@ -60,7 +57,9 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 
             if (!version.equals(newVersion)) {
                 client.inGameHud.addChatMessage(MessageType.SYSTEM,
-                        new LiteralText("New version of Litematica Printer available in https://github.com/aleksilassila/litematica-printer/releases"),
+                        new LiteralText("Printer: 此版本为宅闲鱼二改最初版BV号：BV1q44y1T7hE\n" +
+								"投影打印机原作 https://github.com/aleksilassila/litematica-printer/releases\n" +
+								"破基岩作者视频BV号: BV1q44y1T7hE"),
                         null);
             }
         }).start();

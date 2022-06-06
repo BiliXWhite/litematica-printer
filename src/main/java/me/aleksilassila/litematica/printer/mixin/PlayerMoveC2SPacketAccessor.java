@@ -15,6 +15,9 @@ public interface PlayerMoveC2SPacketAccessor {
     @Accessor("z")
     public double getZ();
 
+    @Accessor("yaw")
+    public float getYaw();
+
     @Accessor("onGround")
     public boolean getOnGround();
 
