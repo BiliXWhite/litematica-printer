@@ -148,28 +148,28 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setSides((Direction) getPropertyByName(requiredState, "FACING"));
                 }
                 case LEVER:
-                case BUTTON: {
-                    Direction side;
-                    switch ((WallMountLocation) getPropertyByName(requiredState, "FACE")) {
-                        case FLOOR: {
-                            side = Direction.DOWN;
-                            break;
-                        }
-                        case CEILING: {
-                            side = Direction.UP;
-                            break;
-                        }
-                        default: {
-                            side = ((Direction) getPropertyByName(requiredState, "FACING")).getOpposite();
-                            break;
-                        }
-                    }
-
-                    Direction look = getPropertyByName(requiredState, "FACE") == WallMountLocation.WALL ?
-                            null : (Direction) getPropertyByName(requiredState, "FACING");
-
-                    return new Action().setSides(side).setLookDirection(look).setRequiresSupport();
-                }
+//                case BUTTON: {
+//                    Direction side;
+//                    switch ((WallMountLocation) getPropertyByName(requiredState, "FACE")) {
+//                        case FLOOR: {
+//                            side = Direction.DOWN;
+//                            break;
+//                        }
+//                        case CEILING: {
+//                            side = Direction.UP;
+//                            break;
+//                        }
+//                        default: {
+//                            side = ((Direction) getPropertyByName(requiredState, "FACING")).getOpposite();
+//                            break;
+//                        }
+//                    }
+//
+//                    Direction look = getPropertyByName(requiredState, "FACE") == WallMountLocation.WALL ?
+//                            null : (Direction) getPropertyByName(requiredState, "FACING");
+//
+//                    return new Action().setSides(side).setLookDirection(look).setRequiresSupport();
+//                }
     //            case GRINDSTONE -> { // Tese are broken
     //                Direction side = switch ((WallMountLocation) getPropertyByName(requiredState, "FACE")) {
     //                    case FLOOR -> Direction.DOWN;
@@ -601,7 +601,7 @@ public class PlacementGuide extends PrinterUtils {
         }
 
         public void queueAction(Printer.Queue queue, BlockPos center, Direction side, boolean useShift, boolean didSendLook) {
-            System.out.println("Queued click?: " + center.offset(side).toString() + ", side: " + side.getOpposite());
+//            System.out.println("Queued click?: " + center.offset(side).toString() + ", side: " + side.getOpposite());
 
             if (LitematicaMixinMod.shouldPrintInAir && !this.requiresSupport) {
                 queue.queueClick(center, side.getOpposite(), getSides().get(side),
@@ -610,13 +610,14 @@ public class PlacementGuide extends PrinterUtils {
                 queue.queueClick(center.offset(side), side.getOpposite(), getSides().get(side),
                         useShift, didSendLook);
             }
+
         }
     }
 
     public static class ClickAction extends Action {
         @Override
         public void queueAction(Printer.Queue queue, BlockPos center, Direction side, boolean useShift, boolean didSendLook) {
-            System.out.println("Queued click?: " + center.toString() + ", side: " + side);
+//            System.out.println("Queued click?: " + center.toString() + ", side: " + side);
             queue.queueClick(center, side, getSides().get(side), false, false);
         }
 
@@ -647,7 +648,7 @@ public class PlacementGuide extends PrinterUtils {
         ANVIL(AnvilBlock.class),
         HOPPER(HopperBlock.class),
         //    GRINDSTONE(GrindstoneBlock.class),
-        BUTTON(AbstractButtonBlock.class),
+//        BUTTON(AbstractButtonBlock.class),
         CAMPFIRE(CampfireBlock.class),
         SHULKER(ShulkerBoxBlock.class),
         BED(BedBlock.class),
@@ -676,7 +677,7 @@ public class PlacementGuide extends PrinterUtils {
         // Other
         FARMLAND(FarmlandBlock.class),
         DIRT_PATH(DirtPathBlock.class),
-        SKIP(SkullBlock.class, GrindstoneBlock.class, SignBlock.class, Implementation.NewBlocks.LICHEN.clazz, VineBlock.class),
+        SKIP(SkullBlock.class, GrindstoneBlock.class, SignBlock.class, /*Implementation.NewBlocks.LICHEN.clazz,*/ VineBlock.class),
         DEFAULT;
 
         private final Class<?>[] classes;

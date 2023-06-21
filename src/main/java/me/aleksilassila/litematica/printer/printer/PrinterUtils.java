@@ -1,15 +1,24 @@
 package me.aleksilassila.litematica.printer.printer;
 
+import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
+import me.aleksilassila.litematica.printer.printer.memory.Memory;
+import me.aleksilassila.litematica.printer.printer.memory.MemoryDatabase;
+import me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.BlockHalf;
 import net.minecraft.block.enums.SlabType;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.screen.ScreenHandler;
 import net.minecraft.state.property.Property;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -17,8 +26,14 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.World;
 
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import static me.aleksilassila.litematica.printer.printer.Printer.isOpenHandler;
+import static me.aleksilassila.litematica.printer.printer.Printer.items2;
+import static me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket.openIng;
 
 public class PrinterUtils {
 	public static Direction[] horizontalDirections = new Direction[]{Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
@@ -32,16 +47,16 @@ public class PrinterUtils {
 		if (Implementation.getAbilities(playerEntity).creativeMode) return true;
 		else {
 			Inventory inv = Implementation.getInventory(playerEntity);
-
 			for (Item item : items) {
 				for (int i = 0; i < inv.size(); i++) {
-					if (inv.getStack(i).getItem() == item && inv.getStack(i).getCount() > 0)
-						return true;
+					if (inv.getStack(i).getItem() == item && inv.getStack(i).getCount() > 0) {
+                        return true;
+                    }
 				}
-			}
+                Printer.items2.add(item);
+            }
 		}
-
-		return false;
+        return false;
 	}
 
     protected static boolean isDoubleSlab(BlockState state) {

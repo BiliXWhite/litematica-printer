@@ -19,6 +19,10 @@ public class ClientPlayNetworkHandlerMixin {
     @Shadow
     private MinecraftClient client;
 
+    /**
+     * @author 6
+     * @reason 6
+     */
     @Overwrite
     public void sendPacket(Packet<?> packet) {
         if (Printer.getPrinter() == null) {
@@ -30,7 +34,6 @@ public class ClientPlayNetworkHandlerMixin {
 
         if (direction != null && Implementation.isLookAndMovePacket(packet)) {
             Packet<?> fixedPacket = Implementation.getFixedLookPacket(client.player, packet, direction);
-
             if (fixedPacket != null) {
                 this.connection.send(fixedPacket);
             }

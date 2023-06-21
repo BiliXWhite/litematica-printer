@@ -100,7 +100,7 @@ public class Implementation {
     }
 
     public enum NewBlocks {
-        LICHEN(AbstractLichenBlock.class),
+//        LICHEN(AbstractLichenBlock.class),
         ROD(RodBlock.class),
         CANDLES(CandleBlock.class),
         AMETHYST(AmethystClusterBlock.class);
@@ -114,7 +114,7 @@ public class Implementation {
 
     public static Class<?>[] interactiveBlocks = {
             ChestBlock.class, AbstractFurnaceBlock.class, CraftingTableBlock.class,
-            AbstractButtonBlock.class, LeverBlock.class, DoorBlock.class, TrapdoorBlock.class,
+            LeverBlock.class, DoorBlock.class, TrapdoorBlock.class,
             BedBlock.class, RedstoneWireBlock.class, ScaffoldingBlock.class, HopperBlock.class,
             EnchantingTableBlock.class, NoteBlock.class, JukeboxBlock.class, CakeBlock.class,
             FenceGateBlock.class, BrewingStandBlock.class, DragonEggBlock.class, CommandBlock.class,

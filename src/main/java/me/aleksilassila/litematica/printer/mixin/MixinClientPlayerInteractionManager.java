@@ -1,8 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin;
 
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
-import me.aleksilassila.litematica.printer.printer.PlacementGuide;
-import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
@@ -29,21 +27,26 @@ public abstract class MixinClientPlayerInteractionManager implements IClientPlay
     @Override
 	public void rightClickBlock(BlockPos pos, Direction side, Vec3d hitVec)
 	{
-		interactBlock(client.player, client.world, Hand.MAIN_HAND,
+		interactBlock(client.player,  Hand.MAIN_HAND,
 			new BlockHitResult(hitVec, side, pos, false));
-		interactItem(client.player, client.world, Hand.MAIN_HAND);
+		interactItem(client.player, Hand.MAIN_HAND);
 //		System.out.println("Printer interactBlock: pos: (" + pos.toShortString() + "), side: " + side.getName() + ", vector: " + hitVec.toString());
 	}
+	@Inject(at = @At("HEAD"), method = "interactBlock")
+	public void interactBlock(ClientPlayerEntity player, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir){
+
+	}
+
+
 
 	@Shadow
 	public abstract ActionResult interactBlock(
-            ClientPlayerEntity clientPlayerEntity_1, ClientWorld clientWorld_1,
+            ClientPlayerEntity clientPlayerEntity_1,
             Hand hand_1, BlockHitResult blockHitResult_1);
 
 	@Shadow
 	public abstract ActionResult interactItem(PlayerEntity playerEntity_1,
-                                              World world_1, Hand hand_1);
-
+                                               Hand hand_1);
 //	@Inject(at = @At("HEAD"), method = "interactBlock")
 //	public void interactBlock(ClientPlayerEntity player, ClientWorld world, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir) {
 //		System.out.println("Player interactBlock: pos: (" + hitResult.getBlockPos().toShortString() + "), side: " + hitResult.getSide().getName() + ", vector: " + hitResult.getPos().toString());

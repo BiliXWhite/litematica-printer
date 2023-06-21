@@ -7,6 +7,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
+import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.util.Hand;
@@ -16,14 +17,22 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 
 public class BlockPlacer {
-    public static void simpleBlockPlacement(BlockPos pos, ItemConvertible item) {
+    public static void simpleBlockPlacement(TargetBlock tar, BlockPos pos, ItemConvertible item) {
+
         MinecraftClient minecraftClient = MinecraftClient.getInstance();
 
         InventoryManager.switchToItem(item);
+//        if(item.equals(Blocks.REDSTONE_TORCH) && minecraftClient.world.getBlockState(pos.down()).isOf(Blocks.AIR)){
+////            System.out.println(minecraftClient.world.getBlockState(pos.down()));
+//            return;
+//        }
+        tar.temppos.add(pos);
         BlockHitResult hitResult = new BlockHitResult(new Vec3d(pos.getX(), pos.getY(), pos.getZ()), Direction.UP, pos, false);
 //        minecraftClient.interactionManager.interactBlock(minecraftClient.player, minecraftClient.world, Hand.MAIN_HAND, hitResult);
         placeBlockWithoutInteractingBlock(minecraftClient, hitResult);
     }
+
+
 
     public static void pistonPlacement(BlockPos pos, Direction direction) {
         MinecraftClient minecraftClient = MinecraftClient.getInstance();
@@ -64,7 +73,7 @@ public class BlockPlacer {
         ClientPlayerEntity player = minecraftClient.player;
         ItemStack itemStack = player.getStackInHand(Hand.MAIN_HAND);
 
-        minecraftClient.getNetworkHandler().sendPacket(new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND, hitResult));
+        minecraftClient.getNetworkHandler().sendPacket(new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND, hitResult,0));
 
         if (!itemStack.isEmpty() && !player.getItemCooldownManager().isCoolingDown(itemStack.getItem())) {
             ItemUsageContext itemUsageContext = new ItemUsageContext(player, Hand.MAIN_HAND, hitResult);

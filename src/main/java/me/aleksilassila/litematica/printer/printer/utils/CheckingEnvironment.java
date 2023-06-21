@@ -12,13 +12,14 @@ import static net.minecraft.block.Block.sideCoversSmallSquare;
 public class CheckingEnvironment {
 
     public static BlockPos findNearbyFlatBlockToPlaceRedstoneTorch(ClientWorld world, BlockPos blockPos) {
-        if ((sideCoversSmallSquare(world, blockPos.east(), Direction.UP) && (world.getBlockState(blockPos.east().up()).getMaterial().isReplaceable()) || world.getBlockState(blockPos.east().up()).isOf(Blocks.REDSTONE_TORCH))) {
+
+        if ((sideCoversSmallSquare(world, blockPos.east(), Direction.UP) && (world.getBlockState(blockPos.east().up()).getMaterial().isReplaceable()) || world.getBlockState(blockPos.east().up()).isOf(Blocks.REDSTONE_TORCH) && !world.getBlockState(blockPos.east()).isOf(Blocks.AIR))) {
             return blockPos.east();
-        } else if ((sideCoversSmallSquare(world, blockPos.west(), Direction.UP) && (world.getBlockState(blockPos.west().up()).getMaterial().isReplaceable()) || world.getBlockState(blockPos.west().up()).isOf(Blocks.REDSTONE_TORCH))) {
+        } else if ((sideCoversSmallSquare(world, blockPos.west(), Direction.UP) && (world.getBlockState(blockPos.west().up()).getMaterial().isReplaceable()) || world.getBlockState(blockPos.west().up()).isOf(Blocks.REDSTONE_TORCH) && !world.getBlockState(blockPos.west()).isOf(Blocks.AIR))) {
             return blockPos.west();
-        } else if ((sideCoversSmallSquare(world, blockPos.north(), Direction.UP) && (world.getBlockState(blockPos.north().up()).getMaterial().isReplaceable()) || world.getBlockState(blockPos.north().up()).isOf(Blocks.REDSTONE_TORCH))) {
+        } else if ((sideCoversSmallSquare(world, blockPos.north(), Direction.UP) && (world.getBlockState(blockPos.north().up()).getMaterial().isReplaceable())  || world.getBlockState(blockPos.north().up()).isOf(Blocks.REDSTONE_TORCH) && !world.getBlockState(blockPos.north()).isOf(Blocks.AIR))) {
             return blockPos.north();
-        } else if ((sideCoversSmallSquare(world, blockPos.south(), Direction.UP) && (world.getBlockState(blockPos.south().up()).getMaterial().isReplaceable()) || world.getBlockState(blockPos.south().up()).isOf(Blocks.REDSTONE_TORCH))) {
+        } else if ((sideCoversSmallSquare(world, blockPos.south(), Direction.UP) && (world.getBlockState(blockPos.south().up()).getMaterial().isReplaceable())  || world.getBlockState(blockPos.south().up()).isOf(Blocks.REDSTONE_TORCH) && !world.getBlockState(blockPos.south()).isOf(Blocks.AIR))) {
             return blockPos.south();
         }
         return null;
@@ -46,6 +47,34 @@ public class CheckingEnvironment {
 
     public static ArrayList<BlockPos> findNearbyRedstoneTorch(ClientWorld world, BlockPos pistonBlockPos) {
         ArrayList<BlockPos> list = new ArrayList<>();
+        if (world.getBlockState(pistonBlockPos.east()).isOf(Blocks.REDSTONE_TORCH)) {
+            list.add(pistonBlockPos.east());
+        }
+        if (world.getBlockState(pistonBlockPos.west()).isOf(Blocks.REDSTONE_TORCH)) {
+            list.add(pistonBlockPos.west());
+        }
+        if (world.getBlockState(pistonBlockPos.south()).isOf(Blocks.REDSTONE_TORCH)) {
+            list.add(pistonBlockPos.south());
+        }
+        if (world.getBlockState(pistonBlockPos.north()).isOf(Blocks.REDSTONE_TORCH)) {
+            list.add(pistonBlockPos.north());
+        }
+
+        pistonBlockPos = pistonBlockPos.up();
+        if (world.getBlockState(pistonBlockPos.east()).isOf(Blocks.REDSTONE_TORCH)) {
+            list.add(pistonBlockPos.east());
+        }
+        if (world.getBlockState(pistonBlockPos.west()).isOf(Blocks.REDSTONE_TORCH)) {
+            list.add(pistonBlockPos.west());
+        }
+        if (world.getBlockState(pistonBlockPos.south()).isOf(Blocks.REDSTONE_TORCH)) {
+            list.add(pistonBlockPos.south());
+        }
+        if (world.getBlockState(pistonBlockPos.north()).isOf(Blocks.REDSTONE_TORCH)) {
+            list.add(pistonBlockPos.north());
+        }
+
+        pistonBlockPos = pistonBlockPos.down(2);
         if (world.getBlockState(pistonBlockPos.east()).isOf(Blocks.REDSTONE_TORCH)) {
             list.add(pistonBlockPos.east());
         }

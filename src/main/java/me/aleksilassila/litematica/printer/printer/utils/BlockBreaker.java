@@ -15,7 +15,8 @@ import net.minecraft.util.math.Direction;
 public class BlockBreaker {
     public static void breakBlock(ClientWorld world, BlockPos pos) {
         InventoryManager.switchToItem(Items.DIAMOND_PICKAXE);
-        MinecraftClient.getInstance().interactionManager.attackBlock(pos, Direction.UP);
+        MinecraftClient.getInstance().interactionManager.attackBlock(pos, Direction.DOWN);
+//        upBreakBlock(world,pos);
     }
     public static void upBreakBlock(ClientWorld world, BlockPos pos) {
         MinecraftClient.getInstance().interactionManager.updateBlockBreakingProgress(pos, Direction.UP);

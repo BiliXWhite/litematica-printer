@@ -4,16 +4,27 @@
   "package": "me.aleksilassila.litematica.printer.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
+    "openinv.MixinWCardPanel"
   ],
   "client": [
-    "ConfigsMixin",
-    "GuiConfigsMixin",
-	"InputHandlerMixin",
-	"MixinClientPlayerEntity",
-	"MixinClientPlayerInteractionManager",
     "ClientPlayNetworkHandlerMixin",
+    "ConfigsMixin",
+    "FlowerPotBlockAccessor",
+    "GuiConfigsMixin",
+    "InputHandlerMixin",
+    "MixinClientPlayerEntity",
+    "MixinClientPlayerInteractionManager",
+    "MixinClientPlayNetworkHandler",
+    "MixinHandledScreen",
     "PlayerMoveC2SPacketAccessor",
-    "FlowerPotBlockAccessor"
+    "openinv.MemoryUtilsMixin",
+    "openinv.MixinBlock",
+    "openinv.MixinChestTracker",
+    "openinv.MixinClientConnection",
+    "openinv.MixinMemoryDatabase",
+    "openinv.MixinMinecraftClient",
+    "openinv.MixinRealmsMainScreen",
+    "openinv.WItemListPanelMixin"
   ],
   "injectors": {
     "defaultRequire": 1
