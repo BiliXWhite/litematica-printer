@@ -522,7 +522,7 @@ public class PlacementGuide extends PrinterUtils {
                     }
 
                     if (canBeClicked(world, pos.offset(side)) && // Handle unclickable grass for example
-                            !world.getBlockState(pos.offset(side)).getMaterial().isReplaceable())
+                            !world.getBlockState(pos.offset(side)).isReplaceable())
                         validSides.add(side);
                 }
             }
