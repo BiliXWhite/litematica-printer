@@ -269,7 +269,6 @@ public class Printer extends PrinterUtils {
             return Verify.getVerify().tick(address);
         }
     }
-
     public int range;
     int tickRate;
     boolean isFacing = false;
