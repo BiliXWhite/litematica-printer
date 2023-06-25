@@ -253,16 +253,12 @@ public class Printer extends PrinterUtils {
             }
         }
     }
-
-    boolean singleplayer = false;
-
     public boolean verify() {
-        if (singleplayer) return true;
+        if (MinecraftClient.getInstance().isInSingleplayer()) return true;
         String address = null;
         try {
             address = client.getCurrentServerEntry().address.split(":")[0];
         } catch (Exception e) {
-            singleplayer = true;
             e.printStackTrace();
             return true;
         }

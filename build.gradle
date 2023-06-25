@@ -46,7 +46,7 @@ dependencies {// To change the versions see the gradle.properties file
 	modImplementation "curse.maven:carpet-${project.carpet_projectid}:${project.carpet_fileid}"
 	//quickshulker
 	modImplementation "curse.maven:quick-shulker-${project.quickshulker_projectid}:${project.quickshulker_fileid}"
-	modImplementation ("net.kyrptonaught:kyrptconfig:1.5.0-1.19") { exclude group: "net.fabricmc.fabric-api" }
+	modImplementation ("net.kyrptonaught:kyrptconfig:1.5.4-1.20") { exclude group: "net.fabricmc.fabric-api" }
 	modImplementation 'net.kyrptonaught:shulkerutils:1.0.4-1.19'
 	//chest-tracker
 	modImplementation("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}")

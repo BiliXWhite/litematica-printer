@@ -12,6 +12,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.entity.mob.ShulkerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
@@ -51,7 +52,6 @@ public class ZxyUtils {
     public static boolean adding = false;
     public static boolean qw = false;
     public static int currWorldId = 0;
-
     public static void addInv() {
         if (adding && !openIng) {
             if (invBlockList.size() == 0) {
