@@ -1,0 +1,46 @@
+{
+  "minecraft:overworld": [
+    [
+      [
+        10,
+        77,
+        10
+      ],
+      {
+        "position": [
+          10,
+          77,
+          10
+        ],
+        "items": [
+          {
+            "id": "minecraft:acacia_log",
+            "count": 1728
+          }
+        ],
+        "manualTitle": false
+      }
+    ],
+    [
+      [
+        10,
+        77,
+        11
+      ],
+      {
+        "position": [
+          10,
+          77,
+          11
+        ],
+        "items": [
+          {
+            "id": "minecraft:white_wool",
+            "count": 1728
+          }
+        ],
+        "manualTitle": false
+      }
+    ]
+  ]
+}
