@@ -58,7 +58,6 @@ public class OpenInventoryPacket{
     }
 
     public static void openInv(MinecraftServer server, ServerPlayerEntity player, BlockPos pos, RegistryKey<World> key){
-        System.out.println("===========");
         ServerWorld world = server.getWorld(key);
         BlockState blockState = world.getBlockState(pos);
         if(blockState==null){

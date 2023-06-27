@@ -179,7 +179,7 @@ public class Printer extends PrinterUtils {
                             } catch (Exception e) {
                             }
                         }
-                        switchToItems(data.player, items2.toArray(new Item[item2.length]));
+                        switchToItems(data.player, items2.toArray(new Item[items2.size()]));
                         Item item = Implementation.getInventory(data.player).getMainHandStack().getItem();
                         String itemid = Registries.ITEM.getId(item).toString();
                         if(!blocklist.stream().anyMatch(b -> itemid.contains(b) || item.getName().toString().contains(b))) return;

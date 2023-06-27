@@ -23,6 +23,8 @@ public class MixinLootableContainerBlockEntity extends BlockEntity {
     @Inject(at = @At("HEAD"),method = "canPlayerUse" , cancellable = true)
     public void canPlayerUse(PlayerEntity player, CallbackInfoReturnable<Boolean> cir) {
         for (ServerPlayerEntity player1 : OpenInventoryPacket.playerlist) {
+//            System.out.println("1 "+player1.getEntityName());
+//            System.out.println("2 "+player.getEntityName());
             if(player.equals(player1)) cir.setReturnValue(true);
         }
     }

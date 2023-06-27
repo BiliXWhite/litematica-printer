@@ -17,7 +17,6 @@
     "MixinClientPlayerEntity",
     "MixinClientPlayerInteractionManager",
     "MixinClientPlayNetworkHandler",
-    "MixinHandledScreen",
     "PlayerMoveC2SPacketAccessor",
     "openinv.MemoryUtilsMixin",
     "openinv.MixinBlock",
