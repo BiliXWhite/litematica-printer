@@ -42,6 +42,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -274,7 +275,7 @@ public class Printer extends PrinterUtils {
     boolean isFacing = false;
     Item[] item2 = null;
     List<String> blocklist;
-    public static LinkedList<Item> items2 = new LinkedList<>();
+    public static HashSet<Item> items2 = new HashSet<>();
     static LinkedList<TempPos> tempList = new LinkedList<>();
     class TempPos{
         public TempPos(BlockPos pos, int tick) {
@@ -325,7 +326,7 @@ public class Printer extends PrinterUtils {
                         }
                     }
                 }
-                items2 = new LinkedList<>();
+                items2 = new HashSet<>();
                 isOpenHandler = false;
             }
         }
@@ -519,7 +520,7 @@ public class Printer extends PrinterUtils {
                             player.getInventory().selectedSlot = c;
                             player.closeHandledScreen();
                             isOpenHandler = false;
-                            items2 = new LinkedList<>();
+                            items2 = new HashSet<>();
                             return;
                         } catch (Exception e) {
                             System.out.println("切换物品异常");
@@ -528,13 +529,13 @@ public class Printer extends PrinterUtils {
                 }
             }
         }
-        items2 = new LinkedList<>();
+        items2 = new HashSet<>();
         isOpenHandler = false;
         player.closeHandledScreen();
 
     }
 
-    boolean openShulker(LinkedList<Item> items){
+    boolean openShulker(HashSet<Item> items){
         for (Item item : items) {
             ScreenHandler sc = MinecraftClient.getInstance().player.playerScreenHandler;
 //            if(!MinecraftClient.getInstance().player.currentScreenHandler.equals(sc))return false;
