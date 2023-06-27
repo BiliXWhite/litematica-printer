@@ -37,16 +37,6 @@ import static me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacke
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
 
 public class ZxyUtils {
-    public  static Class  clas;
-
-    static {
-        try {
-            clas = Class.forName("net.kyrptonaught.quickshulker.client.ClientUtil");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public static MinecraftClient client = MinecraftClient.getInstance();
     public static LinkedList<BlockPos> invBlockList = new LinkedList<>();
     public static boolean adding = false;
