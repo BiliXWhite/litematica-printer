@@ -5,6 +5,7 @@
 
 package me.aleksilassila.litematica.printer.mixin.openinv;
 
+import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Verify;
 import me.aleksilassila.litematica.printer.printer.memory.MemoryDatabase;
 import me.aleksilassila.litematica.printer.printer.utils.BreakingFlowController;
@@ -33,6 +34,7 @@ public abstract class MixinClientConnection {
     public void chestTracker$onDisconnectHandler(Text ignored, CallbackInfo ci) {
         BreakingFlowController.poslist = new ArrayList<>();
         Verify.verify = null;
+        if(!LitematicaMixinMod.INVENTORY.getBooleanValue()) return;
         MemoryDatabase database = MemoryDatabase.getCurrent();
         if (database != null) {
             MemoryDatabase.clearCurrent();

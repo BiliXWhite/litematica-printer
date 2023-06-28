@@ -175,14 +175,17 @@ public class Printer extends PrinterUtils {
                         for(int i = 0;i<blocklist.size();i++){
                             try {
                                 Item item = Registries.ITEM.get(new Identifier(blocklist.get(i)));
-                                items2.add(item);
+                                fluidList.add(item);
                             } catch (Exception e) {
                             }
                         }
-                        switchToItems(data.player, items2.toArray(new Item[items2.size()]));
+                        switchToItems(data.player, fluidList.toArray(new Item[fluidList.size()]));
                         Item item = Implementation.getInventory(data.player).getMainHandStack().getItem();
                         String itemid = Registries.ITEM.getId(item).toString();
-                        if(!blocklist.stream().anyMatch(b -> itemid.contains(b) || item.getName().toString().contains(b))) return;
+                        if(!blocklist.stream().anyMatch(b -> itemid.contains(b) || item.getName().toString().contains(b))) {
+                            items2.addAll(fluidList);
+                            return;
+                        }
 //                        sendClick(pos, Vec3d.ofCenter(pos));
                         ((IClientPlayerInteractionManager) client.interactionManager).rightClickBlock(pos, Direction.UP, Vec3d.ofCenter(pos));
                         if (tickRate == 0) {
@@ -276,6 +279,7 @@ public class Printer extends PrinterUtils {
     Item[] item2 = null;
     List<String> blocklist;
     public static HashSet<Item> items2 = new HashSet<>();
+    public static HashSet<Item> fluidList = new HashSet<>();
     static LinkedList<TempPos> tempList = new LinkedList<>();
     class TempPos{
         public TempPos(BlockPos pos, int tick) {
