@@ -51,7 +51,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 
 	@Inject(at = @At("HEAD"), method = "closeScreen")
 	public void closeScreen(CallbackInfo ci) {
-		if((LitematicaMixinMod.PRINT_MODE.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed() || adding) && !qw){
+		if(LitematicaMixinMod.INVENTORY.getBooleanValue() && (LitematicaMixinMod.PRINT_MODE.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed() || adding) && !qw){
 			if(!client.player.currentScreenHandler.equals(client.player.playerScreenHandler)){
 				handleItemsFromScreen(client.player.currentScreenHandler);
 			}
