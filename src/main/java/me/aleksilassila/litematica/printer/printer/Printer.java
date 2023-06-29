@@ -203,6 +203,7 @@ public class Printer extends PrinterUtils {
             for (int x = -range; x < range + 1; x++) {
                 for (int z = -range; z < range + 1; z++) {
                     BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
+                    if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
 //                    if (requiredState.isOf(Blocks.GLASS) && !currentState.isOf(Blocks.AIR) && !currentState.isOf(Blocks.BEDROCK)) {
                     if (TempData.xuanQuFanWeiNei(pos) && waJue(pos)) return;
                 }
