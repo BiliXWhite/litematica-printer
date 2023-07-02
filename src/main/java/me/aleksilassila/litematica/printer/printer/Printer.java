@@ -473,7 +473,7 @@ public class Printer extends PrinterUtils {
         ArrayList<BlockPos> blocks = new ArrayList<>();
         AreaSelection i = DataManager.getSelectionManager().getCurrentSelection();
         List<Box> box;
-        if (i == null) return null;
+        if (i == null) return blocks;
         box = i.getAllSubRegionBoxes();
         for (int index = 0; index < box.size(); index++) {
             TempData.comparePos(box.get(index), null);
@@ -481,7 +481,10 @@ public class Printer extends PrinterUtils {
                 for (int y = min[1]; y <= max[1]; y++) {
                     for (int z = min[2]; z <= max[2]; z++) {
                         BlockPos pos = new BlockPos(new BlockPos(x, y, z));
-                        BlockState state = client.world.getBlockState(pos);
+                        BlockState state = null;
+                        if (client.world != null) {
+                            state = client.world.getBlockState(pos);
+                        }
                         Block block = state.getBlock();
                         if (Registries.BLOCK.getId(block).toString().contains(blockName)) {
                             blocks.add(pos);
