@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.printer;
 
-import com.mojang.brigadier.StringReader;
 import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
@@ -18,18 +17,22 @@ import me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.ChestType;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.ingame.HandledScreens;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.command.argument.ItemStringReader;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.NetworkThreadUtils;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
+import net.minecraft.network.packet.s2c.play.OpenScreenS2CPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -502,7 +505,10 @@ public class Printer extends PrinterUtils {
     }
 
     public static boolean isOpenHandler = false;
+    public static OpenScreenS2CPacket packet = null;
     public void switchInv(){
+//        if(true) return;
+
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         ScreenHandler sc = player.currentScreenHandler;
         if(sc.equals(player.playerScreenHandler)){

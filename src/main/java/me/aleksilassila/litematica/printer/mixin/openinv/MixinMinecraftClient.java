@@ -27,26 +27,12 @@ import static me.aleksilassila.litematica.printer.printer.zxy.ZxyUtils.*;
 @Environment(EnvType.CLIENT)
 @Mixin({MinecraftClient.class})
 public abstract class MixinMinecraftClient {
-    @Shadow
-    public @Nullable Screen currentScreen;
-
     public MixinMinecraftClient() {
     }
-
-    @Inject(
-            method = {"setScreen"},
-            at = {@At(
-                    value = "HEAD",
-                    target = "Lnet/minecraft/client/gui/screen/Screen;removed()V"
-            )}
-    )
-    public void chestTracker$countItemsBeforeClose(@Nullable Screen newScreen, CallbackInfo ci) {
-//        openIng = false;
-    }
-    @Inject(method = {"setScreen"}, at = {@At(value = "TAIL")})
+    @Inject(method = {"setScreen"}, at = {@At(value = "HEAD")})
     public void setScreen(@Nullable Screen newScreen, CallbackInfo ci) {
         if(isOpenHandler || num == 2 || num == 3 || adding){
-            currentScreen = null;
+            newScreen = null;
         }
     }
 }
