@@ -65,7 +65,6 @@ public class OpenInventoryPacket{
         }
         playerlist.add(player);
         tickmap.put(player,new TickList(blockState.getBlock(),world,pos,blockState));
-
         BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity instanceof ShulkerBoxBlockEntity entity &&
                 !world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
