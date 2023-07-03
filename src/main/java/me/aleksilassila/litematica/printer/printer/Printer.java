@@ -262,7 +262,7 @@ public class Printer extends PrinterUtils {
         }
     }
     public boolean verify() {
-        if (client.isInSingleplayer()) return true;
+        if (client.isInSingleplayer() && client.isRealmsEnabled()) return true;
         String address = null;
         try {
             address = client.getCurrentServerEntry().address.split(":")[0];
