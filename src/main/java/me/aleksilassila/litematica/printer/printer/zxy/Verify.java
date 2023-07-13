@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.printer;
+package me.aleksilassila.litematica.printer.printer.zxy;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;

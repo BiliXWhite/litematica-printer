@@ -6,7 +6,7 @@
 package me.aleksilassila.litematica.printer.mixin.openinv;
 
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
-import me.aleksilassila.litematica.printer.printer.Verify;
+import me.aleksilassila.litematica.printer.printer.zxy.Verify;
 import me.aleksilassila.litematica.printer.printer.memory.MemoryDatabase;
 import me.aleksilassila.litematica.printer.printer.utils.BreakingFlowController;
 import net.fabricmc.api.EnvType;

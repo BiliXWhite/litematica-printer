@@ -14,25 +14,23 @@ import me.aleksilassila.litematica.printer.printer.memory.Memory;
 import me.aleksilassila.litematica.printer.printer.memory.MemoryDatabase;
 import me.aleksilassila.litematica.printer.printer.utils.BreakingFlowController;
 import me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.Verify;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.ChestType;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ingame.HandledScreens;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.NetworkThreadUtils;
+import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.network.packet.s2c.play.OpenScreenS2CPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -250,6 +248,10 @@ public class Printer extends PrinterUtils {
 //                    if (requiredState.isOf(Blocks.GLASS) && currentState.isOf(Blocks.BEDROCK)) {
                     if (currentState.isOf(Blocks.PISTON) && !data.world.getBlockState(pos.down()).isOf(Blocks.BEDROCK)) {
                         BreakingFlowController.poslist.add(pos);
+                    }else if(currentState.isOf(Blocks.PISTON_HEAD)){
+                        switchToItems(client.player,new Item[]{Items.AIR,Items.DIAMOND_PICKAXE});
+                        ((IClientPlayerInteractionManager) client.interactionManager)
+                                .rightClickBlock(pos,Direction.UP, Vec3d.ofCenter(pos));
                     }
 
                     if (TempData.xuanQuFanWeiNei(pos) && currentState.isOf(Blocks.BEDROCK) && pos.down().isWithinDistance(data.player.getPos(), 4f) && !client.world.getBlockState(pos.up()).isOf(Blocks.BEDROCK)) {
@@ -501,7 +503,6 @@ public class Printer extends PrinterUtils {
     private void sendPlacementPreparation(ClientPlayerEntity player, Item[] requiredItems, Direction lookDir) {
         switchToItems(player, requiredItems);
         sendLook(player, lookDir);
-
     }
 
     public static boolean isOpenHandler = false;
