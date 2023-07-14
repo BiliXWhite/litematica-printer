@@ -55,7 +55,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacke
 public class Printer extends PrinterUtils {
     public static boolean up = true;
 
-    public class TempData {
+    public static class TempData {
         public static int[] min;
         public static int[] max;
         public static boolean xuanQuFanWeiNei(BlockPos pos) {
@@ -287,7 +287,7 @@ public class Printer extends PrinterUtils {
     public static HashSet<Item> items2 = new HashSet<>();
     public static HashSet<Item> fluidList = new HashSet<>();
     static LinkedList<TempPos> tempList = new LinkedList<>();
-    class TempPos{
+    static class TempPos{
         public TempPos(BlockPos pos, int tick) {
             this.pos = pos;
             this.tick = tick;
@@ -464,7 +464,7 @@ public class Printer extends PrinterUtils {
                                 }
 
                             }
-                            tempList.add(new TempPos(this.queue.target,0));
+                            tempList.add(new TempPos(this.queue.target, 0));
                             queue.sendQueue(pEntity);
                             continue;
                         }

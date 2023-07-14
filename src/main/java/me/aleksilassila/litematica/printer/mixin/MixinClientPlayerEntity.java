@@ -10,6 +10,7 @@ import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.text.Text;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,13 +23,12 @@ import static me.aleksilassila.litematica.printer.printer.zxy.ZxyUtils.*;
 
 @Mixin(ClientPlayerEntity.class)
 public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
-	boolean didCheckForUpdates = false;
-
     public MixinClientPlayerEntity(ClientWorld world, GameProfile profile) {
         super(world, profile);
 	}
 
-    @Shadow
+    @Final
+	@Shadow
 	protected MinecraftClient client;
 //	@Inject(at = @At("HEAD"), method = "collideWithEntity")
 
