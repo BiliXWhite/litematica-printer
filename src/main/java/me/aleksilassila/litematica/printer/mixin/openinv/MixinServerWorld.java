@@ -18,6 +18,7 @@ public class MixinServerWorld {
     public void tick(CallbackInfo ci){
         for (ServerPlayerEntity s : playerlist) {
             TickList list = OpenInventoryPacket.tickmap.get(s);
+
             list.block.scheduledTick(list.state,list.world,list.pos,list.world.random);
             BlockState state =  list.state;
             BlockState state2 = list.world.getBlockState(list.pos);
