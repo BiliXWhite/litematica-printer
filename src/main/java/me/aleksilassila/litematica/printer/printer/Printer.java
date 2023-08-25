@@ -474,8 +474,8 @@ public class Printer extends PrinterUtils {
             }
         }
     }
-    public ArrayList<BlockPos> siftBlock(String blockName) {
-        ArrayList<BlockPos> blocks = new ArrayList<>();
+    public LinkedList<BlockPos> siftBlock(String blockName) {
+        LinkedList<BlockPos> blocks = new LinkedList<>();
         AreaSelection i = DataManager.getSelectionManager().getCurrentSelection();
         List<Box> box;
         if (i == null) return blocks;

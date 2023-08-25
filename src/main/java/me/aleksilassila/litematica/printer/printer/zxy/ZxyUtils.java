@@ -44,7 +44,7 @@ public class ZxyUtils {
     public static int currWorldId = 0;
     public static void addInv() {
         if (adding && !openIng) {
-            if (invBlockList.size() == 0) {
+            if (invBlockList.isEmpty()) {
                 adding = false;
                 client.inGameHud.setOverlayMessage(Text.literal("打印机库存添加完成"), false);
                 return;
