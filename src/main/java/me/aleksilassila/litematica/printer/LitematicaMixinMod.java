@@ -18,8 +18,8 @@ import java.util.List;
 public class LitematicaMixinMod implements ModInitializer {
 
 	// Config settings
-	public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger( "printInterval", 4,   0, 20, "Print interval in game ticks. Lower values mean faster printing speed.\nIf the printer creates \"ghost blocks\", raise this value.");
-	public static final ConfigInteger PRINTING_RANGE = new ConfigInteger("printingRange", 5,     1,   20,   "Printing block place range\nLower values are recommended for servers.");
+	public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger( "printInterval", 0,   0, 20, "Print interval in game ticks. Lower values mean faster printing speed.\nIf the printer creates \"ghost blocks\", raise this value.");
+	public static final ConfigInteger PRINTING_RANGE = new ConfigInteger("printingRange", 3,     1,   20,   "Printing block place range\nLower values are recommended for servers.");
 	//    public static final ConfigBoolean PRINT_WATER    = new ConfigBoolean("printWater",    false, "Whether or not the printer should place water\n source blocks or make blocks waterlogged.");
 	public static final ConfigBoolean PRINT_IN_AIR = new ConfigBoolean("printInAir",    true, "Whether or not the printer should place blocks without anything to build on.\nBe aware that some anti-cheat plugins might notice this.");
 	public static final ConfigBoolean PRINT_MODE 	 = new ConfigBoolean("printingMode",  false, "Autobuild / print loaded selection.\nBe aware that some servers and anticheat plugins do not allow printing.");
@@ -33,7 +33,7 @@ public class LitematicaMixinMod implements ModInitializer {
 	public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList("排流体方块名单", ImmutableList.of("minecraft:sand"), "");
 	public static final ConfigBoolean SKIP = new ConfigBoolean("是否放置侦测器和红石块", true, "关闭后会跳过侦测器和红石块的放置");
 	//	public static final ConfigBoolean NO_FACING = new ConfigBoolean("忽略朝向", false, "会忽略朝向放置 建造间隔拉到0会有更快的速度");
-	public static final ConfigBoolean FLUID = new ConfigBoolean("排流体", false, "在岩浆源、水源处放沙子");
+	public static final ConfigBoolean FLUID = new ConfigBoolean("排流体", false, "在岩浆源、水源处放方块默认是沙子");
 	public static final ConfigBoolean QUICKSHULKER = new ConfigBoolean("快捷潜影盒", false, "在有快捷潜影盒mod的情况下可以直接从背包内的潜影盒取出物品\n替换的位置为投影的预设位置,如果所有预设位置都有濳影盒则不会替换。");
 	public static final ConfigBoolean INVENTORY = new ConfigBoolean("远程交互容器", false, "在服务器有远程交互容器mod的情况下可以远程交互\n替换的位置为投影的预设位置。");
 	public static final ConfigStringList INVENTORY_LIST = new ConfigStringList("库存白名单", ImmutableList.of("minecraft:chest"), "");

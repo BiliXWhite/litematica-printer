@@ -1,19 +1,15 @@
-package me.aleksilassila.litematica.printer.printer.utils;
+package me.aleksilassila.litematica.printer.printer.bedrockUtils;
 
 import net.minecraft.block.Blocks;
-import net.minecraft.block.FacingBlock;
 import net.minecraft.block.PistonBlock;
 import net.minecraft.client.world.ClientWorld;
 //import net.minecraft.item.ItemStack;
-import net.minecraft.datafixer.fix.ChunkPalettedStorageFix;
-import net.minecraft.item.Items;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
 import java.util.ArrayList;
 
-import static me.aleksilassila.litematica.printer.printer.utils.BreakingFlowController.poslist;
-import static net.minecraft.block.Block.sideCoversSmallSquare;
+import static me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController.poslist;
 //import net.minecraft.world.World;
 
 public class TargetBlock {

@@ -3,21 +3,24 @@ package me.aleksilassila.litematica.printer.mixin;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.client.network.ClientCommonNetworkHandler;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.util.math.Direction;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
-@Mixin(ClientPlayNetworkHandler.class)
+@Mixin(ClientCommonNetworkHandler.class)
 public class ClientPlayNetworkHandlerMixin {
+    @Final
     @Shadow
-    private ClientConnection connection;
+    protected ClientConnection connection;
 
+    @Final
     @Shadow
-    private MinecraftClient client;
+    protected MinecraftClient client;
 
     /**
      * @author 6

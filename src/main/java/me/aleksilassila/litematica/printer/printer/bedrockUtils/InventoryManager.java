@@ -1,10 +1,8 @@
-package me.aleksilassila.litematica.printer.printer.utils;
+package me.aleksilassila.litematica.printer.printer.bedrockUtils;
 
 //import net.fabricmc.fabric.api.event.client.player.ClientPickBlockCallback;
 //import net.minecraft.client.MinecraftClient;
 
-import me.aleksilassila.litematica.printer.printer.Printer;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -15,10 +13,8 @@ import net.minecraft.entity.effect.StatusEffectUtil;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.screen.slot.SlotActionType;

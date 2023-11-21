@@ -1,10 +1,8 @@
-package me.aleksilassila.litematica.printer.printer.utils;
+package me.aleksilassila.litematica.printer.printer.bedrockUtils;
 
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
-
-import java.util.UUID;
 
 public class Messager {
     public static void actionBar(String message){

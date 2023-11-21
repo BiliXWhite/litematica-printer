@@ -10,10 +10,7 @@ import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
-import me.aleksilassila.litematica.printer.printer.memory.Memory;
-import me.aleksilassila.litematica.printer.printer.memory.MemoryDatabase;
-import me.aleksilassila.litematica.printer.printer.utils.BreakingFlowController;
-import me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;;
 import me.aleksilassila.litematica.printer.printer.zxy.Verify;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.ChestType;
@@ -28,8 +25,6 @@ import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.network.packet.s2c.play.OpenScreenS2CPacket;
 import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
@@ -42,7 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -325,16 +319,16 @@ public class Printer extends PrinterUtils {
                 return;
             }else if(LitematicaMixinMod.INVENTORY.getBooleanValue()){
                 for (Item item : items2) {
-                    MemoryDatabase database = MemoryDatabase.getCurrent();
-                    if (database != null) {
-                        for (Identifier dimension : database.getDimensions()) {
-                            for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
-                                OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
-                                isOpenHandler = true;
-                                return;
-                            }
-                        }
-                    }
+//                    MemoryDatabase database = MemoryDatabase.getCurrent();
+//                    if (database != null) {
+//                        for (Identifier dimension : database.getDimensions()) {
+//                            for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
+//                                OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
+//                                isOpenHandler = true;
+//                                return;
+//                            }
+//                        }
+//                    }
                 }
                 items2 = new HashSet<>();
                 isOpenHandler = false;

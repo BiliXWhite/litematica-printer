@@ -17,7 +17,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.printer.memory.MemoryUtils.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.ZxyUtils.*;
 
@@ -36,11 +35,11 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 
 	@Inject(at = @At("HEAD"), method = "closeScreen")
 	public void closeScreen(CallbackInfo ci) {
-		if(LitematicaMixinMod.INVENTORY.getBooleanValue() && (LitematicaMixinMod.PRINT_MODE.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed() || adding) && !qw){
-			if(!client.player.currentScreenHandler.equals(client.player.playerScreenHandler)){
-				handleItemsFromScreen(client.player.currentScreenHandler);
-			}
-		}
+//		if(LitematicaMixinMod.INVENTORY.getBooleanValue() && (LitematicaMixinMod.PRINT_MODE.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed() || adding) && !qw){
+//			if(!client.player.currentScreenHandler.equals(client.player.playerScreenHandler)){
+//				handleItemsFromScreen(client.player.currentScreenHandler);
+//			}
+//		}
 	}
 	@Inject(at = @At("TAIL"), method = "closeScreen")
 	public void close(CallbackInfo ci) {

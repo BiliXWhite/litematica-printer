@@ -3,22 +3,15 @@ package me.aleksilassila.litematica.printer.printer.zxy;
 import fi.dy.masa.malilib.util.ItemType;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
-import me.aleksilassila.litematica.printer.printer.memory.MemoryDatabase;
-import me.aleksilassila.litematica.printer.printer.memory.MemoryUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.entity.mob.ShulkerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
@@ -26,9 +19,6 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.shape.VoxelShapes;
-import red.jackf.whereisit.client.PositionData;
-import red.jackf.whereisit.client.RenderUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -52,7 +42,7 @@ public class ZxyUtils {
             client.inGameHud.setOverlayMessage(Text.literal("添加库存中"), false);
             for (BlockPos pos : invBlockList) {
                 if (client.world != null) {
-                    MemoryUtils.setLatestPos(pos);
+//                    MemoryUtils.setLatestPos(pos);
                     OpenInventoryPacket.sendOpenInventory(pos, client.world.getRegistryKey());
 //                    ((IClientPlayerInteractionManager) client.interactionManager)
 //                            .rightClickBlock(pos,Direction.UP ,new Vec3d(pos.getX(), pos.getY(), pos.getZ()) );
@@ -208,17 +198,17 @@ public class ZxyUtils {
 
     public static void tick() {
         if (LitematicaMixinMod.REVISION_PRINT.getKeybind().isKeybindHeld()) {
-            MemoryDatabase database = MemoryDatabase.getCurrent();
-            if (database != null) {
-                for (Identifier dimension : database.getDimensions()) {
-                    database.clearDimension(dimension);
-                }
-            }
+//            MemoryDatabase database = MemoryDatabase.getCurrent();
+//            if (database != null) {
+//                for (Identifier dimension : database.getDimensions()) {
+//                    database.clearDimension(dimension);
+//                }
+//            }
             client.inGameHud.setOverlayMessage(Text.literal("打印机库存已清空"), false);
 
         }
         for (BlockPos pos : syncPosList) {
-            RenderUtils.FOUND_ITEM_POSITIONS.put(pos, new PositionData(pos, client.world.getTime(), VoxelShapes.fullCube(), 10, 10, 6, null));
+//            RenderUtils.FOUND_ITEM_POSITIONS.put(pos, new PositionData(pos, client.world.getTime(), VoxelShapes.fullCube(), 10, 10, 6, null));
         }
     }
 }

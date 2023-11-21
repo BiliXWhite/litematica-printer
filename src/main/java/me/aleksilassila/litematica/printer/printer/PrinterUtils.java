@@ -2,8 +2,6 @@ package me.aleksilassila.litematica.printer.printer;
 
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
-import me.aleksilassila.litematica.printer.printer.memory.Memory;
-import me.aleksilassila.litematica.printer.printer.memory.MemoryDatabase;
 import me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
@@ -36,6 +34,7 @@ import static me.aleksilassila.litematica.printer.printer.Printer.items2;
 import static me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket.openIng;
 
 public class PrinterUtils {
+
 	public static Direction[] horizontalDirections = new Direction[]{Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
 
 	public static boolean playerHasAccessToItem(ClientPlayerEntity playerEntity, Item item) {
@@ -75,7 +74,6 @@ public class PrinterUtils {
         for (Direction direction : Direction.values()) {
             if (direction.getAxis() == axis) return direction;
         }
-
         return Direction.DOWN;
     }
 

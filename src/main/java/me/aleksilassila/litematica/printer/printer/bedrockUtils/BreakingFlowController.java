@@ -1,6 +1,5 @@
-package me.aleksilassila.litematica.printer.printer.utils;
+package me.aleksilassila.litematica.printer.printer.bedrockUtils;
 
-import fi.dy.masa.litematica.data.DataManager;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;

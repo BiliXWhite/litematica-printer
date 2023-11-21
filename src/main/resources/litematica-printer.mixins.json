@@ -18,15 +18,7 @@
     "MixinClientPlayerInteractionManager",
     "MixinClientPlayNetworkHandler",
     "PlayerMoveC2SPacketAccessor",
-    "openinv.MemoryUtilsMixin",
-    "openinv.MixinBlock",
-    "openinv.MixinChestTracker",
-    "openinv.MixinClientConnection",
-    "openinv.MixinMemoryDatabase",
-    "openinv.MixinMinecraftClient",
-    "openinv.MixinRealmsMainScreen",
-    "openinv.MixinWCardPanel",
-    "openinv.WItemListPanelMixin"
+    "openinv.MixinMinecraftClient"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -26,7 +26,6 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import red.jackf.chesttracker.memory.MemoryDatabase;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -98,8 +97,8 @@ public class OpenInventoryPacket{
 
     public static void openFail(){
         System.out.println("fail");
-        MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
-        me.aleksilassila.litematica.printer.printer.memory.MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
+//        MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
+//        me.aleksilassila.litematica.printer.printer.memory.MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
         MinecraftClient.getInstance().player.closeHandledScreen();
         openIng = false;
         isOpenHandler = false;
