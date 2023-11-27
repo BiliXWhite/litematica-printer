@@ -72,7 +72,7 @@ dependencies {// To change the versions see the gradle.properties file
 	modImplementation ("net.kyrptonaught:kyrptconfig:1.5.4-1.20") { exclude group: "net.fabricmc.fabric-api" }
 	modImplementation 'net.kyrptonaught:shulkerutils:1.0.4-1.19'
 	//chest-tracker
-	modImplementation("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}")
+//	modImplementation("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}")
 	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 	modImplementation "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}"
 
