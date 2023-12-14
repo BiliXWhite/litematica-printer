@@ -4,7 +4,6 @@
   "package": "me.aleksilassila.litematica.printer.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "jackf.NameCriterionMixin",
     "openinv.MixinLootableContainerBlockEntity",
     "openinv.MixinServerPlayerEntity",
     "openinv.MixinServerWorld"
@@ -20,6 +19,7 @@
     "MixinClientPlayNetworkHandler",
     "PlayerMoveC2SPacketAccessor",
     "jackf.ChestTrackerScreenMixin",
+    "jackf.SearchablesUtilMixin",
     "openinv.MixinMinecraftClient"
   ],
   "injectors": {

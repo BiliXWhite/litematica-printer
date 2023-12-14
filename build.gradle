@@ -73,8 +73,7 @@ dependencies {// To change the versions see the gradle.properties file
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	//拼音搜索
-	implementation include(group: 'com.belerweb', name: 'pinyin4j', version: '2.5.1')
+
 	//masa
 	modImplementation "fi.dy.masa.malilib:malilib-fabric-${project.malilib_version}"
 	modImplementation "curse.maven:litematica-${project.litematica_projectid}:${project.litematica_fileid}"
@@ -93,9 +92,13 @@ dependencies {// To change the versions see the gradle.properties file
 
 //	modImplementation "red.jackf.jackfredlib:jackfredlib:0.5.16+1.20.2"
 	modImplementation("red.jackf:whereisit:${project.where_is_it_version}")
-	modImplementation "maven.modrinth:chest-tracker:${project.chesttracker_version}"
+	modImplementation "red.jackf:chesttracker:${project.chesttracker_version}"
+//	modImplementation "maven.modrinth:chest-tracker:${project.chesttracker_version}"
 
 	modImplementation("com.blamejared.searchables:Searchables-fabric-${project.searchables_version}")
+
+	//拼音搜索
+	implementation include(group: 'com.belerweb', name: 'pinyin4j', version: '2.5.1')
 }
 
 processResources {
