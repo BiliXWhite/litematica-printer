@@ -52,7 +52,7 @@ public class Printer extends PrinterUtils {
     public static class TempData {
         public static int[] min;
         public static int[] max;
-        public static boolean xuanQuFanWeiNei(BlockPos pos) {
+        public static boolean xuanQuFanWeiNei_p(BlockPos pos) {
             AreaSelection i = DataManager.getSelectionManager().getCurrentSelection();
             if (i == null) return false;
             if (DataManager.getSelectionManager().getSelectionMode() == NORMAL) {
@@ -163,7 +163,7 @@ public class Printer extends PrinterUtils {
                 for (int z = -range; z < range + 1; z++) {
                     BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
                     BlockState currentState = data.world.getBlockState(pos);
-                    if (!TempData.xuanQuFanWeiNei(pos)) continue;
+                    if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
                     if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
                     if (currentState.getFluidState().isOf(Fluids.LAVA) || currentState.getFluidState().isOf(Fluids.WATER)) {
                         blocklist = LitematicaMixinMod.FLUID_BLOCK_LIST.getStrings();
@@ -200,7 +200,7 @@ public class Printer extends PrinterUtils {
                     BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
                     if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
 //                    if (requiredState.isOf(Blocks.GLASS) && !currentState.isOf(Blocks.AIR) && !currentState.isOf(Blocks.BEDROCK)) {
-                    if (TempData.xuanQuFanWeiNei(pos) && waJue(pos)) return;
+                    if (TempData.xuanQuFanWeiNei_p(pos) && waJue(pos)) return;
                 }
             }
         }
@@ -248,7 +248,7 @@ public class Printer extends PrinterUtils {
                                 .rightClickBlock(pos,Direction.UP, Vec3d.ofCenter(pos));
                     }
 
-                    if (TempData.xuanQuFanWeiNei(pos) && currentState.isOf(Blocks.BEDROCK) && pos.down().isWithinDistance(data.player.getPos(), 4f) && !client.world.getBlockState(pos.up()).isOf(Blocks.BEDROCK)) {
+                    if (TempData.xuanQuFanWeiNei_p(pos) && currentState.isOf(Blocks.BEDROCK) && pos.down().isWithinDistance(data.player.getPos(), 4f) && !client.world.getBlockState(pos.up()).isOf(Blocks.BEDROCK)) {
                         if (maxy == -9999) maxy = y;
                         if (y < maxy) return;
                         BreakingFlowController.addBlockPosToList(pos);
