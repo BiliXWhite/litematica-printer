@@ -29,7 +29,7 @@ public class LitematicaMixinMod implements ModInitializer {
 	public static boolean shouldReplaceFluids = REPLACE_FLUIDS.getBooleanValue();
 
 	public static final ConfigBoolean BEDROCK = new ConfigBoolean("破基岩模式", false, "啊吧啊吧");
-	public static final ConfigBoolean EXCAVATE = new ConfigBoolean("挖掘", false, "挖掘所选区的方块");
+	public static final ConfigBoolean EXCAVATE = new ConfigBoolean("挖掘", false, "挖掘所选区内的方块");
 	public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList("排流体方块名单", ImmutableList.of("minecraft:sand"), "");
 	public static final ConfigBoolean SKIP = new ConfigBoolean("是否放置侦测器和红石块", true, "关闭后会跳过侦测器和红石块的放置");
 	//	public static final ConfigBoolean NO_FACING = new ConfigBoolean("忽略朝向", false, "会忽略朝向放置 建造间隔拉到0会有更快的速度");

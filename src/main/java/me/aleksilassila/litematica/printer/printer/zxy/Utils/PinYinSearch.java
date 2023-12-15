@@ -12,7 +12,7 @@ import java.util.ArrayList;
 
 public class PinYinSearch {
     public static void main(String[] args){
-        getPinYin("曾0长0");
+        System.out.println(getPinYin("曾0长0"));
     }
     static ArrayList<String[]> pinyin = new ArrayList<>();
     public static ArrayList<String> getPinYin(String str){
@@ -26,13 +26,16 @@ public class PinYinSearch {
         try {
             pinyin = new ArrayList<>();
             for (char c : ch) {
-                if(c<=128)pinyin.add(new String[]{""+c});
+                if(c<128)pinyin.add(new String[]{""+c});
                 else pinyin.add(PinyinHelper.toHanyuPinyinStringArray(c, gs));
             }
         } catch (BadHanyuPinyinOutputFormatCombination e) {
             throw new RuntimeException(e);
         }
         return getStrings();
+    }
+    public static boolean hasPinYin(String zh,String py){
+        return getPinYin(zh).stream().anyMatch(s->s.contains(py));
     }
 
     @NotNull
