@@ -2,21 +2,11 @@ package me.aleksilassila.litematica.printer.mixin.jackf;
 
 import fi.dy.masa.malilib.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.PinYinSearch;
-import me.aleksilassila.litematica.printer.printer.zxy.ZxyUtils;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
-import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import red.jackf.chesttracker.config.ChestTrackerConfig;
 import red.jackf.chesttracker.gui.screen.ChestTrackerScreen;
 import red.jackf.chesttracker.gui.util.SearchablesUtil;
@@ -24,10 +14,8 @@ import red.jackf.chesttracker.gui.widget.ItemListWidget;
 import red.jackf.chesttracker.gui.widget.VerticalScrollWidget;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Mixin(ChestTrackerScreen.class)
 public class ChestTrackerScreenMixin {
