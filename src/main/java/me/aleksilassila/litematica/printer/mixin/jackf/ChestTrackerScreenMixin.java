@@ -1,12 +1,21 @@
 package me.aleksilassila.litematica.printer.mixin.jackf;
 
+import com.blamejared.searchables.api.autcomplete.AutoCompletingEditBox;
 import fi.dy.masa.malilib.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.PinYinSearch;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
+import net.minecraft.text.Text;
+import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import red.jackf.chesttracker.config.ChestTrackerConfig;
 import red.jackf.chesttracker.gui.screen.ChestTrackerScreen;
 import red.jackf.chesttracker.gui.util.SearchablesUtil;
@@ -18,10 +27,15 @@ import java.util.Collections;
 import java.util.List;
 
 @Mixin(ChestTrackerScreen.class)
-public class ChestTrackerScreenMixin {
+public abstract class ChestTrackerScreenMixin extends Screen {
     @Shadow(remap = false) private ItemListWidget itemList;
     @Shadow(remap = false) private VerticalScrollWidget scroll;
     @Shadow(remap = false) private List<ItemStack> items = Collections.emptyList();
+
+    protected ChestTrackerScreenMixin(Text title) {
+        super(title);
+    }
+
     /**
      * @author
      * @reason
@@ -73,5 +87,15 @@ public class ChestTrackerScreenMixin {
         this.itemList.setItems(filtered);
         ChestTrackerConfig.Gui guiConfig = ((ChestTrackerConfig)ChestTrackerConfig.INSTANCE.instance()).gui;
         this.scroll.setDisabled(filtered.size() <= guiConfig.gridWidth * guiConfig.gridHeight);
+    }
+
+    @Shadow public abstract void close();
+
+    @Inject(at = @At("HEAD"),method = "keyPressed", cancellable = true)
+    public void keyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+        if (MinecraftClient.getInstance().options.inventoryKey.matchesKey(keyCode, scanCode) && !(this.getFocused() instanceof TextFieldWidget)) {
+            this.close();
+            cir.setReturnValue(true);
+        }
     }
 }
