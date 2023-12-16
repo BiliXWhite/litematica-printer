@@ -13,15 +13,8 @@ import java.util.Arrays;
 
 public class PinYinSearch {
     public static void main(String[] args){
-        System.out.println((char) 122);
-        char c = 123;
-//        System.out.println(getPinYin("曾0长0"));
-        System.out.println(getPinYin(c+"曾"));
-        try {
-            System.out.println(Arrays.toString(PinyinHelper.toHanyuPinyinStringArray((char) 123)));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        System.out.println(getPinYin("曾0长0"));
+
     }
     static ArrayList<String[]> pinyin = new ArrayList<>();
     public static ArrayList<String> getPinYin(String str){
@@ -35,7 +28,7 @@ public class PinYinSearch {
         try {
             pinyin = new ArrayList<>();
             for (char c : ch) {
-                if(c<=123)pinyin.add(new String[]{""+c});
+                if(c<128)pinyin.add(new String[]{""+c});
                 else pinyin.add(PinyinHelper.toHanyuPinyinStringArray(c, gs));
             }
         } catch (BadHanyuPinyinOutputFormatCombination e) {

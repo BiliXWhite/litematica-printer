@@ -37,7 +37,7 @@ public class SearchablesUtilMixin {
                 .anyMatch(ench -> {
                     if (testLang(ench.getTranslationKey(), filter)) return true;
                     var resloc = Registries.ENCHANTMENT.getKey(ench);
-                    return resloc != null && PinYinSearch.getPinYin(resloc.toString()).stream().anyMatch(s -> s.contains(filter));
+                    return resloc != null && PinYinSearch.hasPinYin(resloc.toString(),filter);
                 })
         )
             cir.setReturnValue(true);
@@ -54,7 +54,7 @@ public class SearchablesUtilMixin {
             if (testLang(langKey, filter)) return;
             var resloc = Registries.POTION.getKey(potion);
             //noinspection ConstantValue
-            if (resloc != null && PinYinSearch.getPinYin(resloc.toString()).stream().anyMatch(s -> s.contains(filter))) cir.setReturnValue(true);
+            if (resloc != null && PinYinSearch.hasPinYin(resloc.toString(),filter)) cir.setReturnValue(true);
         }
         // specific effects
         var effects = PotionUtil.getPotionEffects(stack);
@@ -62,13 +62,13 @@ public class SearchablesUtilMixin {
             var langKey = effect.getTranslationKey();
             if (testLang(langKey, filter)) return;
             var resloc = Registries.STATUS_EFFECT.getKey(effect.getEffectType());
-            if (resloc != null && PinYinSearch.getPinYin(resloc.toString()).stream().anyMatch(s -> s.contains(filter))) cir.setReturnValue(true);
+            if (resloc != null && PinYinSearch.hasPinYin(resloc.toString(),filter)) cir.setReturnValue(true);
         }
     }
     @Inject(at = @At("HEAD"),method = "stackTagFilter", cancellable = true)
     private static void stackTagFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir){
         if(stack.getRegistryEntry().streamTags().anyMatch(tag ->
-                PinYinSearch.getPinYin(tag.id().getPath()).stream().anyMatch(s -> s.contains(filter))))
+                PinYinSearch.hasPinYin(tag.id().getPath(),filter)))
             cir.setReturnValue(true);
     }
     @Inject(at = @At("HEAD"),method = "stackTooltipFilter", cancellable = true)
@@ -83,12 +83,12 @@ public class SearchablesUtilMixin {
     @Inject(at = @At("HEAD"),method = "testLang", cancellable = true,remap = false)
     private static void testLang(String key, String filter, CallbackInfoReturnable<Boolean> cir){
         if(Language.getInstance().hasTranslation(key) &&
-            PinYinSearch.getPinYin(Language.getInstance().get(key).toLowerCase()).stream().anyMatch(s -> s.contains(filter)))
+            PinYinSearch.hasPinYin(Language.getInstance().get(key).toLowerCase(),filter))
             cir.setReturnValue(true);
     }
     @Inject(at = @At("HEAD"),method = "stackNameFilter", cancellable = true)
     private static void stackNameFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir){
-        boolean b = PinYinSearch.getPinYin(stack.getName().getString()).stream().anyMatch(s -> s.contains(filter));
+        boolean b = PinYinSearch.hasPinYin(stack.getName().getString(),filter);
         if(b) cir.setReturnValue(true);
     }
     @Inject(at = @At("HEAD"),method = "anyTextFilter", cancellable = true)

@@ -1,6 +1,9 @@
 package me.aleksilassila.litematica.printer.mixin.jackf;
 
 import carpet.script.language.Sys;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.*;
@@ -25,9 +28,19 @@ public abstract class MemoryBankMixin {
     public MemoryBankMixin(Map<Identifier, Map<BlockPos, Memory>> memories) {
         this.memories = memories;
     }
-    @Inject(at = @At("HEAD"),method = "getPositions")
+    @Unique
+    boolean search = true;
+    @Unique
+    public void search(Identifier key){
+        search = false;
+        MinecraftClient client = MinecraftClient.getInstance();
+
+    }
+    @Inject(at = @At("RETURN"),method = "getPositions")
     private void getPositions(Identifier key, SearchRequest request, CallbackInfoReturnable<List<SearchResult>> cir){
         System.out.println("key= "+key);
         memories.keySet().forEach(e -> System.out.println(e.toString()));
+
+        List<SearchResult> returnValue = cir.getReturnValue();
     }
 }

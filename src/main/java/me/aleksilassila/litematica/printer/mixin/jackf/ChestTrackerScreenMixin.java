@@ -25,6 +25,7 @@ import red.jackf.chesttracker.gui.widget.VerticalScrollWidget;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Mixin(ChestTrackerScreen.class)
 public abstract class ChestTrackerScreenMixin extends Screen {
@@ -51,10 +52,10 @@ public abstract class ChestTrackerScreenMixin extends Screen {
                         stack2.hasCustomName() && stack2.getItem().getName(stack2).getString().toLowerCase().contains(filter) ||
                         stack2.getNbt() != null && stack2.getNbt().toString().toLowerCase().contains(filter) ||
 
-                        PinYinSearch.getPinYin(stack2.getName().getString().toLowerCase()).stream().anyMatch(s -> s.contains(filter)) ||
-                        stack2.hasCustomName() && PinYinSearch.getPinYin(stack2.getItem().getName(stack2).getString().toLowerCase()).stream().anyMatch(s -> s.contains(filter)) ||
+                        PinYinSearch.hasPinYin(stack2.getName().getString().toLowerCase(),filter)||
+                        stack2.hasCustomName() && PinYinSearch.hasPinYin(stack2.getItem().getName(stack2).getString().toLowerCase(),filter)||
                         Registries.ITEM.getId(stack.getItem()).toString().contains(filter) ||
-                        stack2.getNbt() != null && PinYinSearch.getPinYin(stack2.getNbt().toString().toLowerCase()).stream().anyMatch(s -> s.contains(filter));
+                        stack2.getNbt() != null && PinYinSearch.hasPinYin(stack2.getNbt().toString().toLowerCase(),filter);
             });
         }).toList());
 
@@ -84,6 +85,7 @@ public abstract class ChestTrackerScreenMixin extends Screen {
 //        if(!nbtList.isEmpty()) filtered.addAll(nbtList);
 
         filtered.addAll(SearchablesUtil.ITEM_STACK.filterEntries(this.items, filter.toLowerCase()));
+        filtered = filtered.stream().distinct().toList();
         this.itemList.setItems(filtered);
         ChestTrackerConfig.Gui guiConfig = ((ChestTrackerConfig)ChestTrackerConfig.INSTANCE.instance()).gui;
         this.scroll.setDisabled(filtered.size() <= guiConfig.gridWidth * guiConfig.gridHeight);
