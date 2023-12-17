@@ -21,6 +21,8 @@
     "jackf.ChestTrackerScreenMixin",
     "jackf.MemoryBankMixin",
     "jackf.SearchablesUtilMixin",
+    "jackf.SearchInvokerMixin",
+    "jackf.SearchRequestPopulatorMixin",
     "openinv.MixinMinecraftClient"
   ],
   "injectors": {

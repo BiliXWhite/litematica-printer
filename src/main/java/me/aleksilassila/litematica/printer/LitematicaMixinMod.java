@@ -37,6 +37,7 @@ public class LitematicaMixinMod implements ModInitializer {
 	public static final ConfigBoolean QUICKSHULKER = new ConfigBoolean("快捷潜影盒", false, "在有快捷潜影盒mod的情况下可以直接从背包内的潜影盒取出物品\n替换的位置为投影的预设位置,如果所有预设位置都有濳影盒则不会替换。");
 	public static final ConfigBoolean INVENTORY = new ConfigBoolean("远程交互容器", false, "在服务器有远程交互容器mod的情况下可以远程交互\n替换的位置为投影的预设位置。");
 	public static final ConfigStringList INVENTORY_LIST = new ConfigStringList("库存白名单", ImmutableList.of("minecraft:chest"), "");
+	public static final ConfigHotkey TEST = new ConfigHotkey("test", "V", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "");
 
 //	public static final ConfigStringList BLOCKS = new ConfigStringList("排流体的方块",ImmutableList.of("minecraft:sand"), "先择排流体的方块");
 
@@ -54,6 +55,7 @@ public class LitematicaMixinMod implements ModInitializer {
 		list.add(EXCAVATE);
 		list.add(FLUID_BLOCK_LIST);
 		list.add(INVENTORY_LIST);
+		list.add(TEST);
 //		list.add(BLOCKS);
 		list.add(0, SKIP);
 //		list.add(0,NO_FACING);
@@ -85,6 +87,7 @@ public class LitematicaMixinMod implements ModInitializer {
 		list.add(PRINTER_INVENTORY);
 		list.add(SYNC_INVENTORY);
 		list.add(REVISION_PRINT);
+		list.add(TEST);
 
 		return ImmutableList.copyOf(list);
 	}

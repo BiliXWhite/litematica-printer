@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.printer.zxy;
 
+import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.malilib.util.ItemType;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
@@ -210,6 +211,12 @@ public class ZxyUtils {
         }
         for (BlockPos pos : syncPosList) {
 //            RenderUtils.FOUND_ITEM_POSITIONS.put(pos, new PositionData(pos, client.world.getTime(), VoxelShapes.fullCube(), 10, 10, 6, null));
+        }
+        test();
+    }
+    public static void test(){
+        if (LitematicaMixinMod.TEST.getKeybind().isKeybindHeld()) {
+            OpenInventoryPacket.sendOpenInventory(DataManager.getSelectionManager().getCurrentSelection().getSubRegionBox(DataManager.getSimpleArea().getName()).getPos1(),MinecraftClient.getInstance().world.getRegistryKey());
         }
     }
 }

@@ -35,7 +35,7 @@ import static net.minecraft.block.ShulkerBoxBlock.FACING;
 public class OpenInventoryPacket{
     private static final ChunkTicketType<ChunkPos> OPEN_TICKET =
             ChunkTicketType.create("ender_pearl", Comparator.comparingLong(ChunkPos::toLong), 2);
-    public static HashMap<ServerPlayerEntity,TickList> tickmap = new HashMap<>();
+    public static HashMap<ServerPlayerEntity,TickList> tickMap = new HashMap<>();
     public static boolean openIng = false;
     public static RegistryKey<World> key = null;
     public static BlockPos pos = null;
@@ -63,7 +63,7 @@ public class OpenInventoryPacket{
             world.getChunkManager().addTicket(OPEN_TICKET,new ChunkPos(pos),2,new ChunkPos(pos));
         }
         playerlist.add(player);
-        tickmap.put(player,new TickList(blockState.getBlock(),world,pos,blockState));
+        tickMap.put(player,new TickList(blockState.getBlock(),world,pos,blockState));
         BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity instanceof ShulkerBoxBlockEntity entity &&
                 !world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&

@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.mixin.jackf;
 
 import com.blamejared.searchables.api.autcomplete.AutoCompletingEditBox;
 import fi.dy.masa.malilib.util.InventoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.PinYinSearch;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
@@ -9,12 +10,14 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import red.jackf.chesttracker.config.ChestTrackerConfig;
 import red.jackf.chesttracker.gui.screen.ChestTrackerScreen;
@@ -89,6 +92,12 @@ public abstract class ChestTrackerScreenMixin extends Screen {
         this.itemList.setItems(filtered);
         ChestTrackerConfig.Gui guiConfig = ((ChestTrackerConfig)ChestTrackerConfig.INSTANCE.instance()).gui;
         this.scroll.setDisabled(filtered.size() <= guiConfig.gridWidth * guiConfig.gridHeight);
+    }
+    @Shadow(remap = false) private Identifier currentMemoryKey;
+
+    @Inject(at = @At("HEAD"), method = "updateItems",remap = false)
+    private void upDateItems(CallbackInfo ci) {
+        Statistics.currentMemoryKey = currentMemoryKey;
     }
 
     @Shadow public abstract void close();
