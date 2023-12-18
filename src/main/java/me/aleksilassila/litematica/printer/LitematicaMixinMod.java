@@ -11,6 +11,7 @@ import fi.dy.masa.malilib.config.options.ConfigStringList;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import net.fabricmc.api.ModInitializer;
 
 import java.util.List;
@@ -95,6 +96,7 @@ public class LitematicaMixinMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		OpenInventoryPacket.registerReceivePacket();
+		MemoryUtils.setup();
 		TOGGLE_PRINTING_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(PRINT_MODE));
 		BEDROCK_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(BEDROCK));
 		EXE_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(EXCAVATE));

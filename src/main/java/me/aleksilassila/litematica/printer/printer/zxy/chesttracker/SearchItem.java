@@ -3,15 +3,12 @@ package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 import fi.dy.masa.malilib.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Statistics;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import red.jackf.chesttracker.memory.Memory;
 import red.jackf.chesttracker.memory.MemoryBank;
-import red.jackf.chesttracker.provider.InteractionTrackerImpl;
-import red.jackf.chesttracker.util.CachedClientBlockSource;
 import red.jackf.whereisit.api.SearchRequest;
 import red.jackf.whereisit.client.api.events.SearchRequestPopulator;
 
@@ -47,7 +44,6 @@ public class SearchItem {
 //                    if (MinecraftClient.getInstance().world != null) {
 //                        InteractionTrackerImpl.INSTANCE.setLastBlockSource(new CachedClientBlockSource(MinecraftClient.getInstance().world, v.pos()));
 //                    }
-                            InteractionTrackerImpl.INSTANCE.setLastBlockSource(new CachedClientBlockSource(MinecraftClient.getInstance().world, v.pos()));
                             OpenInventoryPacket.sendOpenInventory(v.pos(), RegistryKey.of(RegistryKeys.WORLD, key));
                             hasItem.set(true);
                         }

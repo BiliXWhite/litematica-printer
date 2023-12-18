@@ -1,5 +1,7 @@
 package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import red.jackf.chesttracker.api.events.AfterPlayerDestroyBlock;
 import red.jackf.chesttracker.memory.MemoryBank;
 import red.jackf.chesttracker.provider.ProviderHandler;
@@ -22,6 +24,14 @@ public class MemoryUtils {
                     PRINTER_MEMORY.removeMemory(currentKey, cbs.pos());
 //                    LOGGER.debug("Player Destroy Block: Removing {}@{}", cbs.pos().toShortString(), currentKey);
                 }
+            }
+        });
+
+        ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
+            if (screen instanceof HandledScreen<?>) {
+                ScreenEvents.remove(screen).register(screen1 -> {
+                    SaveMemory.save((HandledScreen<?>) screen1);
+                });
             }
         });
     }

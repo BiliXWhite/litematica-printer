@@ -111,9 +111,10 @@ public class OpenInventoryPacket{
             MinecraftClient.getInstance().player.closeHandledScreen();
             openIng = false;
             isOpenHandler = false;
+            key = null;
+            pos = null;
         }
-        key = null;
-        pos = null;
+        
     }
     public static void openReturn(ServerPlayerEntity player, BlockState state, boolean open){
         InventoryPacket buf = new InventoryPacket(Unpooled.buffer());

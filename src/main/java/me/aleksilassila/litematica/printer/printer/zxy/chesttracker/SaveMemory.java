@@ -18,6 +18,10 @@ public class SaveMemory {
                 .inContainer(Statistics.blockState.getBlock())
                 .toEntry(OpenInventoryPacket.key.getValue(), OpenInventoryPacket.pos)
         );
-        MemoryBank.INSTANCE.addMemory(value.get());
+        if (MemoryBank.INSTANCE != null) {
+            MemoryBank.INSTANCE.addMemory(value.get());
+        }
+        OpenInventoryPacket.key = null;
+        OpenInventoryPacket.pos = null;
     }
 }
