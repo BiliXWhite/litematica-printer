@@ -3,11 +3,9 @@ package me.aleksilassila.litematica.printer.mixin.openinv;
 import me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.TickList;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.ChunkPos;
-import org.spongepowered.asm.mixin.FabricUtil;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -28,7 +26,7 @@ public class MixinServerWorld {
             BlockState state =  list.state;
             BlockState state2 = list.world.getBlockState(list.pos);
             if(!state.equals(state2)){
-                OpenInventoryPacket.openFail(s);
+                OpenInventoryPacket.openReturn(s,state2,false);
             }
         }
 

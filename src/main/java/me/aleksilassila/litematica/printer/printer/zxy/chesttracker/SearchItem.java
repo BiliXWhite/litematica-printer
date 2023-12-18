@@ -38,7 +38,7 @@ public class SearchItem {
     }
 
     private static void memoriesSearch(Identifier key) {
-        if (MemoryBank.INSTANCE != null) {
+        if (MemoryBank.INSTANCE != null && !key.equals(MemoryBank.ENDER_CHEST_KEY)) {
             SearchRequest searchRequest = new SearchRequest();
             SearchRequestPopulator.addItemStack(searchRequest, Statistics.itemStack, SearchRequestPopulator.Context.FAVOURITE);
             MemoryBank.INSTANCE.getPositions(key, searchRequest).
@@ -47,7 +47,7 @@ public class SearchItem {
 //                    if (MinecraftClient.getInstance().world != null) {
 //                        InteractionTrackerImpl.INSTANCE.setLastBlockSource(new CachedClientBlockSource(MinecraftClient.getInstance().world, v.pos()));
 //                    }
-//                            InteractionTrackerImpl.INSTANCE.setLastBlockSource(new CachedClientBlockSource(,v.pos()));
+                            InteractionTrackerImpl.INSTANCE.setLastBlockSource(new CachedClientBlockSource(MinecraftClient.getInstance().world, v.pos()));
                             OpenInventoryPacket.sendOpenInventory(v.pos(), RegistryKey.of(RegistryKeys.WORLD, key));
                             hasItem.set(true);
                         }

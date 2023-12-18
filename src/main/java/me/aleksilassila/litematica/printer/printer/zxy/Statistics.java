@@ -1,9 +1,7 @@
 package me.aleksilassila.litematica.printer.printer.zxy;
 
-import net.fabricmc.fabric.api.resource.ResourceReloadListenerKeys;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
-import net.minecraft.resource.Resource;
 import net.minecraft.util.Identifier;
 
 public class Statistics {
@@ -13,4 +11,6 @@ public class Statistics {
     public static ItemStack itemStack = null;
     //箱子追踪当前打开的维度
     public static Identifier currentMemoryKey = null;
+    //远程取物返回包中的方块数据
+    public static BlockState blockState = null;
 }
