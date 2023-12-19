@@ -24,13 +24,9 @@ public abstract class MixinMinecraftClient {
     }
     @Inject(method = {"setScreen"}, at = {@At(value = "HEAD")}, cancellable = true)
     public void setScreen(@Nullable Screen screen, CallbackInfo ci) {
-//        if(isOpenHandler){
-//            screen = null;
-//        }
         if(closeScreen > 0 && screen != null){
             closeScreen--;
             ci.cancel();
-            screen = null;
         }
     }
 }

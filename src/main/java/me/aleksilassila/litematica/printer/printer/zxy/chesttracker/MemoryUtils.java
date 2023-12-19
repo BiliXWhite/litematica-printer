@@ -7,11 +7,13 @@ import me.aleksilassila.litematica.printer.printer.zxy.ZxyUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.slot.Slot;
 import net.minecraft.util.math.BlockPos;
 import red.jackf.chesttracker.api.events.AfterPlayerDestroyBlock;
 import red.jackf.chesttracker.api.provider.MemoryBuilder;
-import red.jackf.chesttracker.api.provider.ProviderUtils;
 import red.jackf.chesttracker.memory.MemoryBank;
 import red.jackf.chesttracker.memory.metadata.Metadata;
 import red.jackf.chesttracker.provider.ProviderHandler;
@@ -56,11 +58,14 @@ public class MemoryUtils {
 
         //关闭屏幕后保存
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-            if (screen instanceof HandledScreen<?>) {
+            if (screen instanceof HandledScreen<?> sc) {
                 ScreenEvents.remove(screen).register(screen1 -> {
                     if(printerMemoryAdding && PRINTER_MEMORY != null)
-                        save((HandledScreen<?>) screen1, PRINTER_MEMORY);
-                    else save((HandledScreen<?>) screen1, MemoryBank.INSTANCE);
+                        save(sc.getScreenHandler() , PRINTER_MEMORY);
+                    else save(sc.getScreenHandler() , MemoryBank.INSTANCE);
+
+                    OpenInventoryPacket.key = null;
+                    OpenInventoryPacket.pos = null;
                 });
             }
         });
@@ -104,14 +109,20 @@ public class MemoryUtils {
         Storage.save(PRINTER_MEMORY);
     }
 
-    public static void save(HandledScreen<?> screen, MemoryBank memoryBank) {
+    public static void save(ScreenHandler screen , MemoryBank memoryBank) {
         if (memoryBank == null || OpenInventoryPacket.key == null || Statistics.blockState == null || !LitematicaMixinMod.INVENTORY.getBooleanValue()) return;
         List<BlockPos> connected;
         if (ZxyUtils.printerMemoryAdding && client.world != null) {
             connected = ConnectedBlocksGrabber.getConnected(client.world, client.world.getBlockState(OpenInventoryPacket.pos), OpenInventoryPacket.pos);
         } else connected = null;
+        List<ItemStack> items;
+        if (screen !=null)
+            items = screen.slots.stream()
+                    .filter(slot -> !(slot.inventory instanceof PlayerInventory))
+                    .map(Slot::getStack)
+                    .toList();
+        else return;
 
-        List<ItemStack> items = ProviderUtils.getNonPlayerStacksAsList(screen);
         ResultHolder<MemoryBuilder.Entry> value = ResultHolder.value(MemoryBuilder.create(items)
                 .inContainer(Statistics.blockState.getBlock())
                 .otherPositions(connected != null ? connected.stream()
@@ -125,7 +136,5 @@ public class MemoryUtils {
         if (memoryBank != null) {
             memoryBank.addMemory(value.get());
         }
-        OpenInventoryPacket.key = null;
-        OpenInventoryPacket.pos = null;
     }
 }

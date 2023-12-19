@@ -9,7 +9,7 @@
     "openinv.MixinServerWorld"
   ],
   "client": [
-    "ClientPlayNetworkHandlerMixin",
+    "ClientCommonNetworkHandlerMixin",
     "ConfigsMixin",
     "FlowerPotBlockAccessor",
     "GuiConfigsMixin",
@@ -23,6 +23,7 @@
     "jackf.SearchablesUtilMixin",
     "jackf.SearchInvokerMixin",
     "jackf.SearchRequestPopulatorMixin",
+    "jackf.StorageMixin",
     "openinv.MixinMinecraftClient"
   ],
   "injectors": {

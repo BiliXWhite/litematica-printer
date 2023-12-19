@@ -107,8 +107,11 @@ public class OpenInventoryPacket{
         if(open){
             Statistics.blockState = state;
             if(printerMemoryAdding && client.player != null){
-                client.player.closeHandledScreen();
                 save(client.player.currentScreenHandler,PRINTER_MEMORY);
+                client.player.closeHandledScreen();
+
+                OpenInventoryPacket.key = null;
+                OpenInventoryPacket.pos = null;
             }
             if(num>1) ZxyUtils.syncInv();
         }else {
