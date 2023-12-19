@@ -11,7 +11,9 @@ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
+import me.aleksilassila.litematica.printer.printer.zxy.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.Verify;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.ChestType;
 import net.minecraft.client.MinecraftClient;
@@ -44,6 +46,7 @@ import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.max;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.min;
 import static me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket.openIng;
+import static me.aleksilassila.litematica.printer.printer.zxy.Statistics.closeScreen;
 
 ;
 
@@ -315,11 +318,15 @@ public class Printer extends PrinterUtils {
             isFacing = false;
         }
 
-        if(items2.size() != 0 && !isOpenHandler && !openIng){
+        if(!items2.isEmpty() && !isOpenHandler && !openIng){
             if(LitematicaMixinMod.QUICKSHULKER.getBooleanValue() && openShulker(items2)){
                 return;
             }else if(LitematicaMixinMod.INVENTORY.getBooleanValue()){
                 for (Item item : items2) {
+                    Statistics.currentMemoryKey = client.world.getDimensionKey().getValue();
+                    Statistics.itemStack = new ItemStack(item);
+                    SearchItem.search(true);
+                    closeScreen++;
 //                    MemoryDatabase database = MemoryDatabase.getCurrent();
 //                    if (database != null) {
 //                        for (Identifier dimension : database.getDimensions()) {
@@ -564,6 +571,7 @@ public class Printer extends PrinterUtils {
                             Method checkAndSend = quickShulker.getDeclaredMethod("CheckAndSend",ItemStack.class,int.class);
                             if(i<9) i+=36;
                             checkAndSend.invoke(checkAndSend,stack,i);
+                            closeScreen++;
                             isOpenHandler = true;
                             //                                    System.out.println("open "+b);
                             return true;

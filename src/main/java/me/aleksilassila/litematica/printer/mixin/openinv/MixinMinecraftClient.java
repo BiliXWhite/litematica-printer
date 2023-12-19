@@ -4,6 +4,7 @@
 //
 
 package me.aleksilassila.litematica.printer.mixin.openinv;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -15,17 +16,22 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static me.aleksilassila.litematica.printer.printer.Printer.isOpenHandler;
-import static me.aleksilassila.litematica.printer.printer.zxy.ZxyUtils.*;
+import static me.aleksilassila.litematica.printer.printer.zxy.Statistics.closeScreen;
 
 @Environment(EnvType.CLIENT)
 @Mixin({MinecraftClient.class})
 public abstract class MixinMinecraftClient {
     public MixinMinecraftClient() {
     }
-    @Inject(method = {"setScreen"}, at = {@At(value = "HEAD")})
-    public void setScreen(@Nullable Screen newScreen, CallbackInfo ci) {
-        if(isOpenHandler || num == 2 || num == 3 || adding){
-            newScreen = null;
+    @Inject(method = {"setScreen"}, at = {@At(value = "HEAD")}, cancellable = true)
+    public void setScreen(@Nullable Screen screen, CallbackInfo ci) {
+        if(isOpenHandler){
+            screen = null;
+        }
+        if(closeScreen > 0 && screen != null){
+//            System.out.println(screen.getClass());
+            closeScreen--;
+            ci.cancel();
         }
     }
 }

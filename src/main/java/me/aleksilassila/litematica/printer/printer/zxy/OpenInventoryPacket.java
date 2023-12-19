@@ -47,7 +47,6 @@ public class OpenInventoryPacket{
     public static void registerReceivePacket(){
         ClientPlayNetworking.registerGlobalReceiver(OPEN_RETURN,(client,playNetworkHandler,packetByteBuf,packetSender)->{
             if(packetByteBuf instanceof InventoryPacket buf){
-                System.out.println(buf.readBlockState().getBlock());
                 client.execute(() -> openReturn(buf.readBoolean(),buf.readBlockState()));
             }
         });

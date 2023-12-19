@@ -85,14 +85,14 @@ dependencies {// To change the versions see the gradle.properties file
 	modImplementation 'net.kyrptonaught:shulkerutils:1.0.4-1.19'
 	//chest-tracker
 //	modImplementation("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}")
-	modImplementation include("com.terraformersmc:modmenu:${project.modmenu_version}")
+	modImplementation ("com.terraformersmc:modmenu:${project.modmenu_version}")
 //	modImplementation include("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}")
 	modImplementation include("dev.isxander.yacl:yet-another-config-lib-fabric:${project.yacl_version}")
-	modImplementation include("red.jackf:whereisit:${project.where_is_it_version}")
+	modImplementation ("red.jackf:whereisit:${project.where_is_it_version}")
 	modImplementation include("red.jackf:chesttracker:${project.chesttracker_version}")
 //	modImplementation "maven.modrinth:chest-tracker:${project.chesttracker_version}"
 
-	modImplementation include("com.blamejared.searchables:Searchables-fabric-${project.searchables_version}")
+	modImplementation ("com.blamejared.searchables:Searchables-fabric-${project.searchables_version}")
 
 	//拼音搜索
 	implementation include(group: 'com.belerweb', name: 'pinyin4j', version: '2.5.1')

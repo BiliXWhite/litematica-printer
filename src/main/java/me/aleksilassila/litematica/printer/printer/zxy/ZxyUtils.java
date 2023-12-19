@@ -24,16 +24,17 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket.openIng;
+import static me.aleksilassila.litematica.printer.printer.zxy.Statistics.closeScreen;
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
 
 public class ZxyUtils {
     public static MinecraftClient client = MinecraftClient.getInstance();
     public static LinkedList<BlockPos> invBlockList = new LinkedList<>();
-    public static boolean adding = false;
+    public static boolean printerMemoryAdding = false;
     public static void addInv() {
-        if (adding && !openIng) {
+        if (printerMemoryAdding && !openIng && OpenInventoryPacket.key == null) {
             if (invBlockList.isEmpty()) {
-                adding = false;
+                printerMemoryAdding = false;
                 client.inGameHud.setOverlayMessage(Text.literal("打印机库存添加完成"), false);
                 return;
             }
@@ -41,6 +42,7 @@ public class ZxyUtils {
             for (BlockPos pos : invBlockList) {
                 if (client.world != null) {
 //                    MemoryUtils.setLatestPos(pos);
+                    closeScreen++;
                     OpenInventoryPacket.sendOpenInventory(pos, client.world.getRegistryKey());
 //                    ((IClientPlayerInteractionManager) client.interactionManager)
 //                            .rightClickBlock(pos,Direction.UP ,new Vec3d(pos.getX(), pos.getY(), pos.getZ()) );
@@ -48,13 +50,10 @@ public class ZxyUtils {
                 invBlockList.remove(pos);
                 break;
             }
-        } else if (LitematicaMixinMod.PRINTER_INVENTORY.getKeybind().isKeybindHeld() && !adding) {
-            adding = true;
+        } else if (LitematicaMixinMod.PRINTER_INVENTORY.getKeybind().isKeybindHeld() && LitematicaMixinMod.INVENTORY.getBooleanValue() && !printerMemoryAdding) {
+            printerMemoryAdding = true;
             for (String string : LitematicaMixinMod.INVENTORY_LIST.getStrings()) {
                 if (Printer.getPrinter() != null) {
-                    invBlockList.stream().anyMatch(blockPos -> {
-                       client.world.getBlockState(blockPos).co
-                    });
                     invBlockList.addAll(Printer.getPrinter().siftBlock(string));
                 }
             }
@@ -95,12 +94,14 @@ public class ZxyUtils {
                     }
                     if (syncPosList.size() != 0) {
                         OpenInventoryPacket.sendOpenInventory(pos, client.world.getRegistryKey());
+                        closeScreen++;
                         num = 2;
                     }
                 }
             }
             case 2 -> {
                 targetBlockInv = new ArrayList<>();
+                closeScreen++;
                 if (client.player != null && openIng && !client.player.currentScreenHandler.equals(client.player.playerScreenHandler)) {
                     for (int i = 0; i < client.player.currentScreenHandler.slots.get(0).inventory.size(); i++) {
 //                        System.out.println(i+" itemStack:  "+client.player.currentScreenHandler.slots.get(i).getStack());
@@ -115,8 +116,9 @@ public class ZxyUtils {
                 }
             }
             case 3 -> {
-                if (!openIng) {
+                if (!openIng && OpenInventoryPacket.key == null) {
                     for (BlockPos pos : syncPosList) {
+                        closeScreen++;
                         OpenInventoryPacket.sendOpenInventory(pos, client.world.getRegistryKey());
                         blockPos = pos;
                         break;
@@ -139,7 +141,7 @@ public class ZxyUtils {
                         for (int i = 0; i < size; i++) {
                             ItemStack item1 = sc.slots.get(i).getStack();
                             ItemStack item2 = targetBlockInv.get(i).copy();
-                            System.out.println(item2);
+//                            System.out.println(item2);
                             int currNum = item1.getCount();
                             int tarNum = item2.getCount();
                             boolean same = new ItemType(item1).equals(new ItemType(item2.copy()));

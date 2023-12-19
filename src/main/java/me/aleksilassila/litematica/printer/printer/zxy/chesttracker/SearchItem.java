@@ -16,16 +16,18 @@ import red.jackf.whereisit.client.api.events.SearchRequestPopulator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.PRINTER_MEMORY;
+
 public class SearchItem {
     static AtomicBoolean hasItem = new AtomicBoolean(false);
 
-    public static void search() {
-        MemoryBank memoryBank = MemoryBank.INSTANCE;
+    public static void search(boolean isPrinterMemory) {
+        MemoryBank memoryBank = isPrinterMemory ? PRINTER_MEMORY : MemoryBank.INSTANCE;
         if (memoryBank != null) {
             Map<Identifier, Map<BlockPos, Memory>> memories = memoryBank.getMemories();
-            if (MemoryBank.INSTANCE != null && Statistics.currentMemoryKey != null) {
+            if (Statistics.currentMemoryKey != null) {
                 //搜索当前选中的维度
-                memoriesSearch(Statistics.currentMemoryKey,Statistics.itemStack,MemoryBank.INSTANCE);
+                memoriesSearch(Statistics.currentMemoryKey,Statistics.itemStack,memoryBank);
                 //搜索全部维度
                 memories.keySet().forEach(key -> {
                     if (!hasItem.get() && !key.equals(Statistics.currentMemoryKey)) memoriesSearch(key,Statistics.itemStack,memoryBank);
@@ -35,7 +37,7 @@ public class SearchItem {
         }
     }
 
-    private static void memoriesSearch(Identifier key, ItemStack itemStack,MemoryBank memoryBank) {
+    public static void memoriesSearch(Identifier key, ItemStack itemStack,MemoryBank memoryBank) {
         if (key == null || itemStack == null) return;
         if (memoryBank != null && !MemoryBank.ENDER_CHEST_KEY.equals(key)) {
             SearchRequest searchRequest = new SearchRequest();

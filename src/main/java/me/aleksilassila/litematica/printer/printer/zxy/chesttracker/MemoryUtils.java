@@ -1,11 +1,14 @@
 package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 
+import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Statistics;
+import me.aleksilassila.litematica.printer.printer.zxy.ZxyUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.BlockPos;
 import red.jackf.chesttracker.api.events.AfterPlayerDestroyBlock;
 import red.jackf.chesttracker.api.provider.MemoryBuilder;
 import red.jackf.chesttracker.api.provider.ProviderUtils;
@@ -16,15 +19,20 @@ import red.jackf.chesttracker.storage.ConnectionSettings;
 import red.jackf.chesttracker.storage.Storage;
 import red.jackf.jackfredlib.api.base.ResultHolder;
 import red.jackf.jackfredlib.client.api.gps.Coordinate;
+import red.jackf.whereisit.api.search.ConnectedBlocksGrabber;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+import static me.aleksilassila.litematica.printer.printer.zxy.ZxyUtils.client;
+import static me.aleksilassila.litematica.printer.printer.zxy.ZxyUtils.printerMemoryAdding;
+
 public class MemoryUtils {
     public static MemoryBank PRINTER_MEMORY = null;
-    public void deleteCurrentStorage(){
-        if(MemoryBank.INSTANCE !=null) Storage.delete(MemoryBank.INSTANCE.getId());
+
+    public void deleteCurrentStorage() {
+        if (MemoryBank.INSTANCE != null) Storage.delete(MemoryBank.INSTANCE.getId());
     }
 
     public static void setup() {
@@ -45,8 +53,9 @@ public class MemoryUtils {
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             if (screen instanceof HandledScreen<?>) {
                 ScreenEvents.remove(screen).register(screen1 -> {
-                    save((HandledScreen<?>) screen1,MemoryBank.INSTANCE);
-                    save((HandledScreen<?>) screen1,PRINTER_MEMORY);
+                    save((HandledScreen<?>) screen1, MemoryBank.INSTANCE);
+                    if(printerMemoryAdding && PRINTER_MEMORY != null)
+                        save((HandledScreen<?>) screen1, PRINTER_MEMORY);
                 });
             }
         });
@@ -56,14 +65,14 @@ public class MemoryUtils {
             Optional<Coordinate> current = Coordinate.getCurrent();
             if (current.isPresent()) {
                 Coordinate coordinate = current.get();
-                String s1 = coordinate.id()+ "-printer";
+                String s1 = coordinate.id() + "-printer";
 
                 ConnectionSettings orCreate = ConnectionSettings.getOrCreate(s1);
                 String s = orCreate.memoryBankIdOverride().orElse(s1);
 
                 unLoad();
                 PRINTER_MEMORY = Storage.load(s).orElseGet(() -> {
-                    var bank = new MemoryBank(Metadata.blankWithName(coordinate.userFriendlyName()+"-printer"), new HashMap<>());
+                    var bank = new MemoryBank(Metadata.blankWithName(coordinate.userFriendlyName() + "-printer"), new HashMap<>());
                     bank.setId(s1);
                     return bank;
                 });
@@ -76,21 +85,34 @@ public class MemoryUtils {
             unLoad();
         });
     }
-    public static void unLoad(){
-        if(PRINTER_MEMORY != null){
+
+    public static void unLoad() {
+        if (PRINTER_MEMORY != null) {
             save();
         }
         PRINTER_MEMORY = null;
     }
-    public static void save(){
+
+    public static void save() {
         Storage.save(PRINTER_MEMORY);
     }
 
-    public static void save(HandledScreen<?> screen,MemoryBank memoryBank){
-        if(OpenInventoryPacket.key == null) return;
+    public static void save(HandledScreen<?> screen, MemoryBank memoryBank) {
+        if (OpenInventoryPacket.key == null || Statistics.blockState == null || !LitematicaMixinMod.INVENTORY.getBooleanValue()) return;
+        List<BlockPos> connected;
+        if (ZxyUtils.printerMemoryAdding && client.world != null) {
+            connected = ConnectedBlocksGrabber.getConnected(client.world, client.world.getBlockState(OpenInventoryPacket.pos), OpenInventoryPacket.pos);
+        } else connected = null;
+
         List<ItemStack> items = ProviderUtils.getNonPlayerStacksAsList(screen);
         ResultHolder<MemoryBuilder.Entry> value = ResultHolder.value(MemoryBuilder.create(items)
                 .inContainer(Statistics.blockState.getBlock())
+                .otherPositions(connected != null ? connected.stream()
+                        .filter(pos -> {
+                            return connected.isEmpty() || !pos.equals(connected.get(0));
+                        })
+                        .toList() : List.of(OpenInventoryPacket.pos)
+                )
                 .toEntry(OpenInventoryPacket.key.getValue(), OpenInventoryPacket.pos)
         );
         if (memoryBank != null) {
