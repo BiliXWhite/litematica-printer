@@ -4,6 +4,7 @@ import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.malilib.util.ItemType;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
@@ -207,8 +208,8 @@ public class ZxyUtils {
 //                    database.clearDimension(dimension);
 //                }
 //            }
+            MemoryUtils.deletePrinterMemory();
             client.inGameHud.setOverlayMessage(Text.literal("打印机库存已清空"), false);
-
         }
         for (BlockPos pos : syncPosList) {
 //            RenderUtils.FOUND_ITEM_POSITIONS.put(pos, new PositionData(pos, client.world.getTime(), VoxelShapes.fullCube(), 10, 10, 6, null));

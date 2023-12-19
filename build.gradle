@@ -47,12 +47,8 @@ repositories {
 		}
 	}
 	maven {
-		name = "Xander Snapshot Maven"
-		url = uri("https://maven.isxander.dev/snapshots")
-		content {
-			includeGroup("dev.isxander.yacl")
-			includeGroupAndSubgroups("org.quiltmc")
-		}
+		name = 'Xander Maven'
+		url = 'https://maven.isxander.dev/releases'
 	}
 	//拼音搜索
 	maven { url = "https://mvnrepository.com/artifact/com.belerweb/pinyin4j" }

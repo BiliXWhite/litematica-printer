@@ -32,6 +32,9 @@ import java.util.Comparator;
 import java.util.HashMap;
 
 import static me.aleksilassila.litematica.printer.printer.Printer.isOpenHandler;
+import static me.aleksilassila.litematica.printer.printer.zxy.ZxyUtils.*;
+import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.PRINTER_MEMORY;
+import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.save;
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
 
 public class OpenInventoryPacket{
@@ -103,6 +106,11 @@ public class OpenInventoryPacket{
     public static void openReturn(boolean open, BlockState state){
         if(open){
             Statistics.blockState = state;
+            if(printerMemoryAdding && client.player != null){
+                client.player.closeHandledScreen();
+                save(client.player.currentScreenHandler,PRINTER_MEMORY);
+            }
+            if(num>1) ZxyUtils.syncInv();
         }else {
             System.out.println("fail");
 //        MemoryDatabase.getCurrent().removePos(key.getValue() , pos);

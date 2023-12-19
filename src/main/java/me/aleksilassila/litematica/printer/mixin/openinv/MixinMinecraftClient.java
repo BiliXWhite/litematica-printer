@@ -15,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.printer.Printer.isOpenHandler;
 import static me.aleksilassila.litematica.printer.printer.zxy.Statistics.closeScreen;
 
 @Environment(EnvType.CLIENT)
@@ -25,13 +24,13 @@ public abstract class MixinMinecraftClient {
     }
     @Inject(method = {"setScreen"}, at = {@At(value = "HEAD")}, cancellable = true)
     public void setScreen(@Nullable Screen screen, CallbackInfo ci) {
-        if(isOpenHandler){
-            screen = null;
-        }
+//        if(isOpenHandler){
+//            screen = null;
+//        }
         if(closeScreen > 0 && screen != null){
-//            System.out.println(screen.getClass());
             closeScreen--;
             ci.cancel();
+            screen = null;
         }
     }
 }

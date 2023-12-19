@@ -31,8 +31,13 @@ import static me.aleksilassila.litematica.printer.printer.zxy.ZxyUtils.printerMe
 public class MemoryUtils {
     public static MemoryBank PRINTER_MEMORY = null;
 
-    public void deleteCurrentStorage() {
-        if (MemoryBank.INSTANCE != null) Storage.delete(MemoryBank.INSTANCE.getId());
+    public static void deletePrinterMemory() {
+        if (PRINTER_MEMORY != null) {
+            String id = PRINTER_MEMORY.getId();
+            unLoad();
+            Storage.delete(id);
+            createPrinterMemory();
+        }
     }
 
     public static void setup() {
@@ -53,37 +58,39 @@ public class MemoryUtils {
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             if (screen instanceof HandledScreen<?>) {
                 ScreenEvents.remove(screen).register(screen1 -> {
-                    save((HandledScreen<?>) screen1, MemoryBank.INSTANCE);
                     if(printerMemoryAdding && PRINTER_MEMORY != null)
                         save((HandledScreen<?>) screen1, PRINTER_MEMORY);
+                    else save((HandledScreen<?>) screen1, MemoryBank.INSTANCE);
                 });
             }
         });
 
         //加载打印机库存
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> client.execute(() -> {
-            Optional<Coordinate> current = Coordinate.getCurrent();
-            if (current.isPresent()) {
-                Coordinate coordinate = current.get();
-                String s1 = coordinate.id() + "-printer";
-
-                ConnectionSettings orCreate = ConnectionSettings.getOrCreate(s1);
-                String s = orCreate.memoryBankIdOverride().orElse(s1);
-
-                unLoad();
-                PRINTER_MEMORY = Storage.load(s).orElseGet(() -> {
-                    var bank = new MemoryBank(Metadata.blankWithName(coordinate.userFriendlyName() + "-printer"), new HashMap<>());
-                    bank.setId(s1);
-                    return bank;
-                });
-                save();
-            }
-
+            createPrinterMemory();
         }));
         //保存打印机库存
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             unLoad();
         });
+    }
+    public static void createPrinterMemory(){
+        Optional<Coordinate> current = Coordinate.getCurrent();
+        if (current.isPresent()) {
+            Coordinate coordinate = current.get();
+            String s1 = coordinate.id() + "-printer";
+
+            ConnectionSettings orCreate = ConnectionSettings.getOrCreate(s1);
+            String s = orCreate.memoryBankIdOverride().orElse(s1);
+
+            unLoad();
+            PRINTER_MEMORY = Storage.load(s).orElseGet(() -> {
+                var bank = new MemoryBank(Metadata.blankWithName(coordinate.userFriendlyName() + "-printer"), new HashMap<>());
+                bank.setId(s1);
+                return bank;
+            });
+            save();
+        }
     }
 
     public static void unLoad() {
@@ -98,7 +105,7 @@ public class MemoryUtils {
     }
 
     public static void save(HandledScreen<?> screen, MemoryBank memoryBank) {
-        if (OpenInventoryPacket.key == null || Statistics.blockState == null || !LitematicaMixinMod.INVENTORY.getBooleanValue()) return;
+        if (memoryBank == null || OpenInventoryPacket.key == null || Statistics.blockState == null || !LitematicaMixinMod.INVENTORY.getBooleanValue()) return;
         List<BlockPos> connected;
         if (ZxyUtils.printerMemoryAdding && client.world != null) {
             connected = ConnectedBlocksGrabber.getConnected(client.world, client.world.getBlockState(OpenInventoryPacket.pos), OpenInventoryPacket.pos);
