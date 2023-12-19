@@ -10,7 +10,7 @@ import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
-import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;;
+import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
 import me.aleksilassila.litematica.printer.printer.zxy.Verify;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.ChestType;
@@ -23,7 +23,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
-import net.minecraft.network.packet.s2c.play.OpenScreenS2CPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
@@ -45,6 +44,8 @@ import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.max;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.min;
 import static me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket.openIng;
+
+;
 
 public class Printer extends PrinterUtils {
     public static boolean up = true;
@@ -500,7 +501,6 @@ public class Printer extends PrinterUtils {
     }
 
     public static boolean isOpenHandler = false;
-    public static OpenScreenS2CPacket packet = null;
     public void switchInv(){
 //        if(true) return;
 

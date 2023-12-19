@@ -16,13 +16,11 @@ import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedList;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket.openIng;
@@ -32,8 +30,6 @@ public class ZxyUtils {
     public static MinecraftClient client = MinecraftClient.getInstance();
     public static LinkedList<BlockPos> invBlockList = new LinkedList<>();
     public static boolean adding = false;
-    public static boolean qw = false;
-    public static int currWorldId = 0;
     public static void addInv() {
         if (adding && !openIng) {
             if (invBlockList.isEmpty()) {
@@ -56,6 +52,9 @@ public class ZxyUtils {
             adding = true;
             for (String string : LitematicaMixinMod.INVENTORY_LIST.getStrings()) {
                 if (Printer.getPrinter() != null) {
+                    invBlockList.stream().anyMatch(blockPos -> {
+                       client.world.getBlockState(blockPos).co
+                    });
                     invBlockList.addAll(Printer.getPrinter().siftBlock(string));
                 }
             }
@@ -190,7 +189,7 @@ public class ZxyUtils {
                         num = 1;
                         return;
                     }
-                    if (syncPosList.size() == 0) {
+                    if (syncPosList.isEmpty()) {
                         num = 1;
                     }
                 }
