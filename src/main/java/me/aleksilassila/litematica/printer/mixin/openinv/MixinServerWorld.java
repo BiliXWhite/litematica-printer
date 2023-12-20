@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.openinv;
 
-import me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.printer.zxy.TickList;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.TickList;
 import net.minecraft.block.BlockState;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -11,8 +11,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket.playerlist;
-import static me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket.tickMap;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.playerlist;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.tickMap;
 
 @Mixin(ServerWorld.class)
 public class MixinServerWorld {

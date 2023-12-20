@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.Statistics.closeScreen;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 
 @Environment(EnvType.CLIENT)
 @Mixin({MinecraftClient.class})

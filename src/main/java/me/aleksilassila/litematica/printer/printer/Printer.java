@@ -11,8 +11,8 @@ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
-import me.aleksilassila.litematica.printer.printer.zxy.Statistics;
-import me.aleksilassila.litematica.printer.printer.zxy.Verify;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.ChestType;
@@ -45,8 +45,8 @@ import java.util.List;
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.max;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.min;
-import static me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket.openIng;
-import static me.aleksilassila.litematica.printer.printer.zxy.Statistics.closeScreen;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 
 ;
 
@@ -285,6 +285,7 @@ public class Printer extends PrinterUtils {
     public static HashSet<Item> items2 = new HashSet<>();
     public static HashSet<Item> fluidList = new HashSet<>();
     static LinkedList<TempPos> tempList = new LinkedList<>();
+    public static boolean printerMemorySync = false;
     static class TempPos{
         public TempPos(BlockPos pos, int tick) {
             this.pos = pos;
@@ -325,8 +326,11 @@ public class Printer extends PrinterUtils {
                 for (Item item : items2) {
                     Statistics.currentMemoryKey = client.world.getDimensionKey().getValue();
                     Statistics.itemStack = new ItemStack(item);
-                    SearchItem.search(true);
-                    closeScreen++;
+                    if (SearchItem.search(true)) {
+                        isOpenHandler = true;
+                        printerMemorySync = true;
+                        return;
+                    }
 //                    MemoryDatabase database = MemoryDatabase.getCurrent();
 //                    if (database != null) {
 //                        for (Identifier dimension : database.getDimensions()) {

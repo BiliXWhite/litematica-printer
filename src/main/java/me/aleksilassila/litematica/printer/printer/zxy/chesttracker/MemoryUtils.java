@@ -1,9 +1,10 @@
 package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
-import me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.printer.zxy.Statistics;
-import me.aleksilassila.litematica.printer.printer.zxy.ZxyUtils;
+import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
@@ -27,8 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.ZxyUtils.client;
-import static me.aleksilassila.litematica.printer.printer.zxy.ZxyUtils.printerMemoryAdding;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.printerMemoryAdding;
 
 public class MemoryUtils {
     public static MemoryBank PRINTER_MEMORY = null;
@@ -60,12 +61,7 @@ public class MemoryUtils {
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             if (screen instanceof HandledScreen<?> sc) {
                 ScreenEvents.remove(screen).register(screen1 -> {
-                    if(printerMemoryAdding && PRINTER_MEMORY != null)
-                        save(sc.getScreenHandler() , PRINTER_MEMORY);
-                    else save(sc.getScreenHandler() , MemoryBank.INSTANCE);
-
-                    OpenInventoryPacket.key = null;
-                    OpenInventoryPacket.pos = null;
+                    saveMemory(sc.getScreenHandler());
                 });
             }
         });
@@ -78,6 +74,17 @@ public class MemoryUtils {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             unLoad();
         });
+    }
+    public static void saveMemory(ScreenHandler sc){
+        if(PRINTER_MEMORY != null && printerMemoryAdding || Printer.printerMemorySync)
+            save(sc , PRINTER_MEMORY);
+        if(MemoryBank.INSTANCE != null && OpenInventoryPacket.key != null &&
+                //在当前选择库存为打印机库存的情况下避免重复保存，
+                !MemoryBank.INSTANCE.equals(PRINTER_MEMORY) && (printerMemoryAdding || Printer.printerMemorySync))
+            save(sc , MemoryBank.INSTANCE);
+        Printer.printerMemorySync = false;
+        OpenInventoryPacket.key = null;
+        OpenInventoryPacket.pos = null;
     }
     public static void createPrinterMemory(){
         Optional<Coordinate> current = Coordinate.getCurrent();
@@ -126,9 +133,7 @@ public class MemoryUtils {
         ResultHolder<MemoryBuilder.Entry> value = ResultHolder.value(MemoryBuilder.create(items)
                 .inContainer(Statistics.blockState.getBlock())
                 .otherPositions(connected != null ? connected.stream()
-                        .filter(pos -> {
-                            return connected.isEmpty() || !pos.equals(connected.get(0));
-                        })
+                        .filter(pos -> !pos.equals(connected.get(0)))
                         .toList() : List.of(OpenInventoryPacket.pos)
                 )
                 .toEntry(OpenInventoryPacket.key.getValue(), OpenInventoryPacket.pos)

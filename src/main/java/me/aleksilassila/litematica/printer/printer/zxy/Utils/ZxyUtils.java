@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.printer.zxy;
+package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.malilib.util.ItemType;
@@ -24,8 +24,8 @@ import net.minecraft.util.math.BlockPos;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket.openIng;
-import static me.aleksilassila.litematica.printer.printer.zxy.Statistics.closeScreen;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
 
 public class ZxyUtils {

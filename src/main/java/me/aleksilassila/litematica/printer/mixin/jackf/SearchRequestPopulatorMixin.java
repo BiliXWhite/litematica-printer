@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.jackf;
 
-import me.aleksilassila.litematica.printer.printer.zxy.Statistics;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

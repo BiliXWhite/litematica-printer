@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.openinv;
 
 
-import me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.*;
 import net.minecraft.entity.player.PlayerEntity;

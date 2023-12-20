@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.printer.zxy;
+package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -32,9 +32,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 
 import static me.aleksilassila.litematica.printer.printer.Printer.isOpenHandler;
-import static me.aleksilassila.litematica.printer.printer.zxy.ZxyUtils.*;
-import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.PRINTER_MEMORY;
-import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.save;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
 
 public class OpenInventoryPacket{
@@ -94,6 +92,7 @@ public class OpenInventoryPacket{
     }
     public static void sendOpenInventory(BlockPos pos, RegistryKey<World> key){
         openIng = true;
+        if (client.player != null && !client.player.currentScreenHandler.equals(client.player.playerScreenHandler)) client.player.closeHandledScreen();
         OpenInventoryPacket.pos = pos;
         OpenInventoryPacket.key = key;
 //        System.out.println(pos+"   key: "+key);
@@ -106,12 +105,8 @@ public class OpenInventoryPacket{
     public static void openReturn(boolean open, BlockState state){
         if(open){
             Statistics.blockState = state;
-            if(printerMemoryAdding && client.player != null){
-                save(client.player.currentScreenHandler,PRINTER_MEMORY);
+            if (client.player != null && printerMemoryAdding) {
                 client.player.closeHandledScreen();
-
-                OpenInventoryPacket.key = null;
-                OpenInventoryPacket.pos = null;
             }
             if(num>1) ZxyUtils.syncInv();
         }else {

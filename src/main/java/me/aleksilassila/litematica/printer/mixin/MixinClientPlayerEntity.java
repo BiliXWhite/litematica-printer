@@ -4,7 +4,7 @@ import com.mojang.authlib.GameProfile;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
-import me.aleksilassila.litematica.printer.printer.zxy.ZxyUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -18,8 +18,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket.*;
-import static me.aleksilassila.litematica.printer.printer.zxy.ZxyUtils.*;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.num;
+import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.saveMemory;
 
 @Mixin(ClientPlayerEntity.class)
 public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
@@ -30,6 +31,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
     @Final
 	@Shadow
 	protected MinecraftClient client;
+
 //	@Inject(at = @At("HEAD"), method = "collideWithEntity")
 
 
@@ -43,8 +45,11 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 //			}
 //		}
 	}
-	@Inject(at = @At("TAIL"), method = "closeScreen")
+	@Inject(at = @At("HEAD"), method = "closeScreen")
 	public void close(CallbackInfo ci) {
+		if (client.player != null) {
+			saveMemory(client.player.currentScreenHandler);
+		}
 		openIng = false;
 	}
 	@Inject(at = @At("TAIL"), method = "tick")

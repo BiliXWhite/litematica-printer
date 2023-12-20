@@ -1,8 +1,8 @@
 package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 
 import fi.dy.masa.malilib.util.InventoryUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.printer.zxy.Statistics;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -21,7 +21,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.Memor
 public class SearchItem {
     static AtomicBoolean hasItem = new AtomicBoolean(false);
 
-    public static void search(boolean isPrinterMemory) {
+    public static boolean search(boolean isPrinterMemory) {
         MemoryBank memoryBank = isPrinterMemory ? PRINTER_MEMORY : MemoryBank.INSTANCE;
         if (memoryBank != null) {
             Map<Identifier, Map<BlockPos, Memory>> memories = memoryBank.getMemories();
@@ -33,8 +33,14 @@ public class SearchItem {
                     if (!hasItem.get() && !key.equals(Statistics.currentMemoryKey)) memoriesSearch(key,Statistics.itemStack,memoryBank);
                 });
             }
+            if(hasItem.get()) {
+                if(isPrinterMemory) Statistics.closeScreen++;
+                hasItem.set(false);
+                return true;
+            }
             hasItem.set(false);
         }
+        return false;
     }
 
     public static void memoriesSearch(Identifier key, ItemStack itemStack,MemoryBank memoryBank) {

@@ -1,9 +1,8 @@
 package me.aleksilassila.litematica.printer.mixin.jackf;
 
-import com.blamejared.searchables.api.autcomplete.AutoCompletingEditBox;
 import fi.dy.masa.malilib.util.InventoryUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.PinYinSearch;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
@@ -11,7 +10,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -28,7 +26,6 @@ import red.jackf.chesttracker.gui.widget.VerticalScrollWidget;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Stream;
 
 @Mixin(ChestTrackerScreen.class)
 public abstract class ChestTrackerScreenMixin extends Screen {
