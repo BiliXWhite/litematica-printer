@@ -11,12 +11,15 @@ import net.minecraft.block.BlockWithEntity;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.mob.ShulkerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
@@ -29,6 +32,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.c
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
 
 public class ZxyUtils {
+
     public static MinecraftClient client = MinecraftClient.getInstance();
     public static LinkedList<BlockPos> invBlockList = new LinkedList<>();
     public static boolean printerMemoryAdding = false;
@@ -219,6 +223,19 @@ public class ZxyUtils {
     public static void test(){
         if (LitematicaMixinMod.TEST.getKeybind().isKeybindHeld()) {
             OpenInventoryPacket.sendOpenInventory(DataManager.getSelectionManager().getCurrentSelection().getSubRegionBox(DataManager.getSimpleArea().getName()).getPos1(),MinecraftClient.getInstance().world.getRegistryKey());
+        }
+    }
+    public static void switchAir(int slot){
+        if(client.player == null )return;
+        ClientPlayerEntity player = client.player;
+        ScreenHandler sc = player.currentScreenHandler;
+        DefaultedList<Slot> slots = sc.slots;
+        for (int i = 9; i < slots.size(); i++) {
+            if (slots.get(i).getStack().isEmpty()) {
+                client.interactionManager.clickSlot(sc.syncId,slot,0, SlotActionType.PICKUP,player);
+                client.interactionManager.clickSlot(sc.syncId,i,0, SlotActionType.PICKUP,player);
+                client.interactionManager.clickSlot(sc.syncId,-999,0, SlotActionType.PICKUP,player);
+            }
         }
     }
 }
