@@ -11,7 +11,10 @@ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.*;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.ChestType;
@@ -311,18 +314,17 @@ public class Printer extends PrinterUtils {
             }
             queue.sendQueue(data.player);
         }
-
         if (isFacing) {
             switchToItems(pEntity, item2);
             queue.sendQueue(data.player);
             isFacing = false;
         }
 
-        if(!items2.isEmpty() && !isOpenHandler && !openIng && !SwitchItem.switchIng){
+        if(!items2.isEmpty() && !isOpenHandler && !openIng){
             ClientPlayerEntity player = client.player;
             ScreenHandler sc = player.currentScreenHandler;
             if(!player.currentScreenHandler.equals(player.playerScreenHandler)) player.closeHandledScreen();
-            if (sc.slots.stream().skip(9).noneMatch(slot -> slot.getStack().isEmpty())) {
+            if (sc.slots.stream().skip(9).limit(sc.slots.size()-10).noneMatch(slot -> slot.getStack().isEmpty())) {
                 SwitchItem.checkItems();
                 return;
             }
@@ -547,7 +549,6 @@ public class Printer extends PrinterUtils {
                                 SwitchItem.newItem(sc.slots.get(y).getStack(), OpenInventoryPacket.pos,OpenInventoryPacket.key.getRegistry(),y,shulkerBox);
                             }else SwitchItem.newItem(sc.slots.get(y).getStack(), null,null,y,shulkerBox);
                             shulkerBox = null;
-                            ZxyUtils.switchAir(c+36);
                             fi.dy.masa.malilib.util.InventoryUtils.swapSlots(sc, y, c);
                             player.getInventory().selectedSlot = c;
                             player.closeHandledScreen();
@@ -564,7 +565,6 @@ public class Printer extends PrinterUtils {
         items2 = new HashSet<>();
         isOpenHandler = false;
         player.closeHandledScreen();
-
     }
     static ItemStack shulkerBox = null;
 
@@ -579,7 +579,7 @@ public class Printer extends PrinterUtils {
                     DefaultedList<ItemStack> items1 = fi.dy.masa.malilib.util.InventoryUtils.getStoredItems(stack, -1);
                     if(items1.stream().anyMatch(s1 -> s1.getItem().equals(item))){
                         try {
-                            shulkerBox = sc.slots.get(i).getStack();
+                            shulkerBox = stack;
                             Class quickShulker = Class.forName("net.kyrptonaught.quickshulker.client.ClientUtil");
                             Method checkAndSend = quickShulker.getDeclaredMethod("CheckAndSend",ItemStack.class,int.class);
                             checkAndSend.invoke(checkAndSend,stack,i);
