@@ -10,11 +10,9 @@ import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
+import me.aleksilassila.litematica.printer.mixin.masa.Litematica_InventoryUtilsMixin;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.*;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.ChestType;
@@ -540,7 +538,7 @@ public class Printer extends PrinterUtils {
                         try {
                             int c = Integer.parseInt(s) - 1;
                             if (Registries.ITEM.getId(player.getInventory().getStack(c).getItem()).toString().contains("shulker_box") && LitematicaMixinMod.QUICKSHULKER.getBooleanValue()) {
-                                MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of("无可替换的槽位，请将预选位的濳影盒换个位置"),false);
+                                MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of("没有可替换的槽位，请将预选位的濳影盒换个位置"),false);
                                 continue;
                             }
 //                            System.out.println(y);
@@ -549,6 +547,11 @@ public class Printer extends PrinterUtils {
                                 SwitchItem.newItem(sc.slots.get(y).getStack(), OpenInventoryPacket.pos,OpenInventoryPacket.key.getRegistry(),y,shulkerBox);
                             }else SwitchItem.newItem(sc.slots.get(y).getStack(), null,null,y,shulkerBox);
                             shulkerBox = null;
+                            int a = Litematica_InventoryUtilsMixin.getEmptyPickBlockableHotbarSlot(player.getInventory()) == -1 ?
+                                    Litematica_InventoryUtilsMixin.getPickBlockTargetSlot(player) :
+                                    Litematica_InventoryUtilsMixin.getEmptyPickBlockableHotbarSlot(player.getInventory());
+                            c = a == -1 ? c : a;
+                            ZxyUtils.switchPlayerInvToHotbarAir(c);
                             fi.dy.masa.malilib.util.InventoryUtils.swapSlots(sc, y, c);
                             player.getInventory().selectedSlot = c;
                             player.closeHandledScreen();

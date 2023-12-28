@@ -4,6 +4,7 @@ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
@@ -73,6 +74,8 @@ public class MemoryUtils {
         //保存打印机库存
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             unLoad();
+            //重置物品复原，
+            SwitchItem.reSet();
         });
     }
     public static void saveMemory(ScreenHandler sc){

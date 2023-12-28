@@ -13,6 +13,7 @@ import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.mob.ShulkerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
@@ -55,7 +56,7 @@ public class ZxyUtils {
                 invBlockList.remove(pos);
                 break;
             }
-        } else if (LitematicaMixinMod.PRINTER_INVENTORY.getKeybind().isKeybindHeld() && LitematicaMixinMod.INVENTORY.getBooleanValue() && !printerMemoryAdding) {
+        } else if (LitematicaMixinMod.PRINTER_INVENTORY.getKeybind().isPressed() && LitematicaMixinMod.INVENTORY.getBooleanValue() && !printerMemoryAdding) {
             printerMemoryAdding = true;
             for (String string : LitematicaMixinMod.INVENTORY_LIST.getStrings()) {
                 if (Printer.getPrinter() != null) {
@@ -74,7 +75,7 @@ public class ZxyUtils {
     public static void syncInv() {
         switch (num) {
             case 1 -> {
-                if (LitematicaMixinMod.SYNC_INVENTORY.getKeybind().isKeybindHeld() && client.crosshairTarget != null && client.crosshairTarget.getType() == HitResult.Type.BLOCK) {
+                if (LitematicaMixinMod.SYNC_INVENTORY.getKeybind().isPressed() && client.crosshairTarget != null && client.crosshairTarget.getType() == HitResult.Type.BLOCK) {
                     BlockPos pos = ((BlockHitResult) client.crosshairTarget).getBlockPos();
                     BlockState blockState = client.world.getBlockState(pos);
                     Block block = null;
@@ -190,7 +191,7 @@ public class ZxyUtils {
                         client.player.closeHandledScreen();
                     }
                     client.inGameHud.setOverlayMessage(Text.literal("剩余 "+syncPosList.size()+" 个容器. 再次按下快捷键取消同步"), false);
-                    if(LitematicaMixinMod.SYNC_INVENTORY.getKeybind().isKeybindHeld()){
+                    if(LitematicaMixinMod.SYNC_INVENTORY.getKeybind().isPressed()){
                         syncPosList = new LinkedList<>();
                         client.player.closeHandledScreen();
                         num = 1;
@@ -205,7 +206,7 @@ public class ZxyUtils {
     }
 
     public static void tick() {
-        if (LitematicaMixinMod.REVISION_PRINT.getKeybind().isKeybindHeld()) {
+        if (LitematicaMixinMod.REVISION_PRINT.getKeybind().isPressed()) {
 //            MemoryDatabase database = MemoryDatabase.getCurrent();
 //            if (database != null) {
 //                for (Identifier dimension : database.getDimensions()) {
@@ -221,20 +222,20 @@ public class ZxyUtils {
         test();
     }
     public static void test(){
-        if (LitematicaMixinMod.TEST.getKeybind().isKeybindHeld()) {
+        if (LitematicaMixinMod.TEST.getKeybind().isPressed()) {
             OpenInventoryPacket.sendOpenInventory(DataManager.getSelectionManager().getCurrentSelection().getSubRegionBox(DataManager.getSimpleArea().getName()).getPos1(),MinecraftClient.getInstance().world.getRegistryKey());
         }
     }
-    public static void switchAir(int slot){
+    public static void switchPlayerInvToHotbarAir(int slot){
         if(client.player == null )return;
         ClientPlayerEntity player = client.player;
         ScreenHandler sc = player.currentScreenHandler;
         DefaultedList<Slot> slots = sc.slots;
-        for (int i = 9; i < slots.size(); i++) {
-            if (slots.get(i).getStack().isEmpty()) {
-                client.interactionManager.clickSlot(sc.syncId,slot,0, SlotActionType.PICKUP,player);
-                client.interactionManager.clickSlot(sc.syncId,i,0, SlotActionType.PICKUP,player);
-                client.interactionManager.clickSlot(sc.syncId,-999,0, SlotActionType.PICKUP,player);
+        int i = sc.equals(player.playerScreenHandler) ? 9 : 0;
+        for (; i < slots.size(); i++) {
+            if (slots.get(i).getStack().isEmpty() && slots.get(i).inventory instanceof PlayerInventory) {
+                fi.dy.masa.malilib.util.InventoryUtils.swapSlots(sc, i, slot);
+                return;
             }
         }
     }
