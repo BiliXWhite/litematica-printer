@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.mixin.jackf;
 
 import fi.dy.masa.malilib.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.PinYinSearch;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
@@ -94,7 +94,7 @@ public abstract class ChestTrackerScreenMixin extends Screen {
 
     @Inject(at = @At("HEAD"), method = "updateItems",remap = false)
     private void upDateItems(CallbackInfo ci) {
-        Statistics.currentMemoryKey = currentMemoryKey;
+        MemoryUtils.currentMemoryKey = currentMemoryKey;
     }
 
     @Shadow public abstract void close();

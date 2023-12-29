@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 
-import fi.dy.masa.litematica.data.DataManager;
+import fi.dy.masa.malilib.util.InventoryUtils;
 import fi.dy.masa.malilib.util.ItemType;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
@@ -24,6 +24,7 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -33,7 +34,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.c
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
 
 public class ZxyUtils {
-
+    @NotNull
     public static MinecraftClient client = MinecraftClient.getInstance();
     public static LinkedList<BlockPos> invBlockList = new LinkedList<>();
     public static boolean printerMemoryAdding = false;
@@ -221,9 +222,15 @@ public class ZxyUtils {
         }
         test();
     }
+    static ItemStack itemStack;
     public static void test(){
         if (LitematicaMixinMod.TEST.getKeybind().isPressed()) {
-            OpenInventoryPacket.sendOpenInventory(DataManager.getSelectionManager().getCurrentSelection().getSubRegionBox(DataManager.getSimpleArea().getName()).getPos1(),MinecraftClient.getInstance().world.getRegistryKey());
+            if(itemStack == null) itemStack = client.player.getInventory().getMainHandStack();
+            if(!InventoryUtils.areStacksEqual(client.player.getInventory().getMainHandStack(),itemStack)){
+                itemStack = client.player.getInventory().getMainHandStack();
+                System.out.println("=======");
+            }
+//            OpenInventoryPacket.sendOpenInventory(DataManager.getSelectionManager().getCurrentSelection().getSubRegionBox(DataManager.getSimpleArea().getName()).getPos1(),MinecraftClient.getInstance().world.getRegistryKey());
         }
     }
     public static void switchPlayerInvToHotbarAir(int slot){

@@ -56,7 +56,7 @@ public class LitematicaMixinMod implements ModInitializer {
 		list.add(EXCAVATE);
 		list.add(FLUID_BLOCK_LIST);
 		list.add(INVENTORY_LIST);
-//		list.add(TEST);
+		list.add(TEST);
 //		list.add(BLOCKS);
 		list.add(0, SKIP);
 //		list.add(0,NO_FACING);
@@ -88,7 +88,7 @@ public class LitematicaMixinMod implements ModInitializer {
 		list.add(PRINTER_INVENTORY);
 		list.add(SYNC_INVENTORY);
 		list.add(REVISION_PRINT);
-//		list.add(TEST);
+		list.add(TEST);
 
 		return ImmutableList.copyOf(list);
 	}

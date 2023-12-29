@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 
 import io.netty.buffer.Unpooled;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.BlockState;
@@ -104,7 +105,7 @@ public class OpenInventoryPacket{
 
     public static void openReturn(boolean open, BlockState state){
         if(open){
-            Statistics.blockState = state;
+            MemoryUtils.blockState = state;
             if (client.player != null && printerMemoryAdding) {
                 client.player.closeHandledScreen();
             }

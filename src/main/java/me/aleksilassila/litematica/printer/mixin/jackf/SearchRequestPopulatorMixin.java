@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.jackf;
 
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -15,6 +15,6 @@ import java.util.function.Consumer;
 public interface SearchRequestPopulatorMixin {
     @Inject(at = @At("HEAD"), method = "addItemStack")
     private static void addItemStack(Consumer<Criterion> consumer, ItemStack stack, SearchRequestPopulator.Context context, CallbackInfo ci) {
-        Statistics.itemStack = stack;
+        MemoryUtils.itemStack = stack;
     }
 }

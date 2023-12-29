@@ -33,11 +33,11 @@ public class SwitchItem {
         ItemStatistics itemStatistics = itemStacks.get(itemStack);
         if(itemStatistics !=null) itemStatistics.syncUseTime();
     }
-    public static void newItem(ItemStack itemStack,BlockPos pos,Identifier key,int slot,ItemStack shulkerBox){
+    public static void newItem(ItemStack itemStack,BlockPos pos,Identifier key,int slot,int shulkerBox){
         itemStacks.put(itemStack,new ItemStatistics(key,pos,slot,shulkerBox));
     }
     public static void openInv(ItemStack itemStack){
-        if(!client.player.currentScreenHandler.equals(client.player.playerScreenHandler)){
+        if(!client.player.currentScreenHandler.equals(client.player.playerScreenHandler) || Statistics.closeScreen > 0){
             return;
         }
         ScreenHandler sc1 = client.player.currentScreenHandler;
@@ -51,22 +51,25 @@ public class SwitchItem {
         if(itemStatistics != null){
             if (itemStatistics.key != null) {
                 OpenInventoryPacket.sendOpenInventory(itemStatistics.pos,RegistryKey.of(RegistryKeys.WORLD,itemStatistics.key));
+                Statistics.closeScreen++;
             }else if (client.player != null) {
                 ScreenHandler sc = client.player.currentScreenHandler;
-                ItemStack shulkerBox = itemStatistics.shulkerBox;
-                for (int i = 9; i < sc.slots.size(); i++) {
+                for (int i = 9; i < sc.slots.size() && itemStatistics.shulkerBoxSlot != -1; i++) {
                     ItemStack stack = sc.slots.get(i).getStack();
-                    if (stack.getItem().equals(shulkerBox.getItem()) && stack.getName().equals(shulkerBox.getName()) &&
-                            InventoryUtils.getStoredItems(stack,-1).stream().anyMatch(stack1 -> stack1.isEmpty() ||
+                    if (InventoryUtils.getStoredItems(stack,-1).stream().anyMatch(stack1 -> stack1.isEmpty() ||
                             (InventoryUtils.areStacksEqual(stack1,reSwitchItem) && stack1.getCount() < stack1.getMaxCount()))
                     ) {
                         try {
                             Class quickShulker = Class.forName("net.kyrptonaught.quickshulker.client.ClientUtil");
                             Method checkAndSend = quickShulker.getDeclaredMethod("CheckAndSend",ItemStack.class,int.class);
-                            checkAndSend.invoke(checkAndSend,shulkerBox,i);
+                            checkAndSend.invoke(checkAndSend,sc.slots.get(itemStatistics.shulkerBoxSlot).getStack(),i);
+                            Statistics.closeScreen++;
+                            return;
                         } catch (Exception ignored){}
                     }
                 }
+                removeItem(reSwitchItem);
+                reSwitchItem = null;
             }
         }
     }
@@ -87,7 +90,7 @@ public class SwitchItem {
         }else client.inGameHud.setOverlayMessage(Text.of("背包已满，请先清理"),false);
     }
     public static void reSwitchItem(){
-        if(client == null || client.player == null || reSwitchItem == null) return;
+        if(client.player == null || reSwitchItem == null) return;
         ClientPlayerEntity player = client.player;
         ScreenHandler sc = player.currentScreenHandler;
         if (sc.equals(player.playerScreenHandler)) return;
@@ -98,16 +101,14 @@ public class SwitchItem {
                     InventoryUtils.areStacksEqual(reSwitchItem,slot.getStack()) &&
                     slot.getStack().getCount() < slot.getStack().getMaxCount()
             ) sameItem.add(i);
-
             if(slot.inventory instanceof PlayerInventory && client.interactionManager != null && InventoryUtils.areStacksEqual(slot.getStack(),reSwitchItem)){
                 int slot1 = itemStacks.get(reSwitchItem).slot;
+                boolean reInv = false;
                 //检查记录的槽位是否有物品
                 if(sc.slots.get(slot1).getStack().isEmpty()){
                     client.interactionManager.clickSlot(sc.syncId, i, 0, SlotActionType.PICKUP, client.player);
                     client.interactionManager.clickSlot(sc.syncId, slot1, 0, SlotActionType.PICKUP, client.player);
-                    player.closeHandledScreen();
-                    reSwitchItem = null;
-                    return;
+                    reInv = true;
                 } else {
                     int count = reSwitchItem.getCount();
                     client.interactionManager.clickSlot(sc.syncId, i, 0, SlotActionType.PICKUP, client.player);
@@ -117,15 +118,14 @@ public class SwitchItem {
                         int i1 = maxCount - count1;
                         count -= i1;
                         client.interactionManager.clickSlot(sc.syncId, integer, 0, SlotActionType.PICKUP, client.player);
-                        if (count<=0){
-                            player.closeHandledScreen();
-                            reSwitchItem = null;
-                            return;
-                        }
+                        if (count<=0) reInv = true;
                     }
-                    client.inGameHud.setOverlayMessage(Text.of("复原库存物品失败"),false);
-                    client.interactionManager.clickSlot(sc.syncId, i, 0, SlotActionType.PICKUP, client.player);
                 }
+                removeItem(reSwitchItem);
+                reSwitchItem = null;
+                if(!reInv) client.inGameHud.setOverlayMessage(Text.of("复原库存物品失败"),false);
+                client.interactionManager.clickSlot(sc.syncId, i, 0, SlotActionType.PICKUP, client.player);
+                return;
             }
         }
     }
@@ -137,13 +137,13 @@ public class SwitchItem {
         public Identifier key;
         public BlockPos pos;
         public int slot;
-        public ItemStack shulkerBox;
+        public int shulkerBoxSlot;
         public long useTime = System.currentTimeMillis();
-        public ItemStatistics(Identifier key, BlockPos pos, int slot, ItemStack shulkerBox) {
+        public ItemStatistics(Identifier key, BlockPos pos, int slot, int shulkerBox) {
             this.key = key;
             this.pos = pos;
             this.slot = slot;
-            this.shulkerBox = shulkerBox;
+            this.shulkerBoxSlot = shulkerBox;
         }
         public void syncUseTime(){
             this.useTime = System.currentTimeMillis();

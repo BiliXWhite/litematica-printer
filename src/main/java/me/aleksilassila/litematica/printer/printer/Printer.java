@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.printer;
 
+import com.mojang.brigadier.StringReader;
 import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
@@ -12,13 +13,18 @@ import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionMa
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.mixin.masa.Litematica_InventoryUtilsMixin;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.*;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.ChestType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.command.argument.ItemStringReader;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Item;
@@ -27,9 +33,9 @@ import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -47,6 +53,7 @@ import static me.aleksilassila.litematica.printer.printer.Printer.TempData.max;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.min;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem.reSwitchItem;
 
 ;
 
@@ -173,8 +180,9 @@ public class Printer extends PrinterUtils {
                         blocklist = LitematicaMixinMod.FLUID_BLOCK_LIST.getStrings();
                         for(int i = 0;i<blocklist.size();i++){
                             try {
-                                Item item = Registries.ITEM.get(new Identifier(blocklist.get(i)));
-                                fluidList.add(item);
+                                ItemStringReader.ItemResult itemResult = ItemStringReader.item(Registries.ITEM.getReadOnlyWrapper(), new StringReader(blocklist.get(i)));
+                                Item item = itemResult.item().value();
+                                if(item != null) fluidList.add(item);
                             } catch (Exception e) {
                             }
                         }
@@ -295,6 +303,45 @@ public class Printer extends PrinterUtils {
         public BlockPos pos;
         public int tick;
     }
+    public boolean switchItem(){
+        if(!items2.isEmpty() && !isOpenHandler && !openIng){
+            ClientPlayerEntity player = client.player;
+            ScreenHandler sc = player.currentScreenHandler;
+            if(!player.currentScreenHandler.equals(player.playerScreenHandler)) player.closeHandledScreen();
+            if (sc.slots.stream().skip(9).limit(sc.slots.size()-10).noneMatch(slot -> slot.getStack().isEmpty())) {
+                SwitchItem.checkItems();
+                return true;
+            }
+            if(LitematicaMixinMod.QUICKSHULKER.getBooleanValue() && openShulker(items2)){
+                return true;
+            }else if(LitematicaMixinMod.INVENTORY.getBooleanValue()){
+                for (Item item : items2) {
+                    MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
+                    MemoryUtils.itemStack = new ItemStack(item);
+                    if (SearchItem.search(true)) {
+                        isOpenHandler = true;
+                        printerMemorySync = true;
+                        return true;
+                    }
+//                    MemoryDatabase database = MemoryDatabase.getCurrent();
+//                    if (database != null) {
+//                        for (Identifier dimension : database.getDimensions()) {
+//                            for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
+//                                OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
+//                                isOpenHandler = true;
+//                                return;
+//                            }
+//                        }
+//                    }
+                }
+                items2 = new HashSet<>();
+                isOpenHandler = false;
+            }
+        }
+        return false;
+    }
+
+
     public void tick() {
         if (!verify()) return;
         TempData data = new TempData(client.player, client.world, SchematicWorldHandler.getSchematicWorld());
@@ -318,43 +365,8 @@ public class Printer extends PrinterUtils {
             isFacing = false;
         }
 
-        if(!items2.isEmpty() && !isOpenHandler && !openIng){
-            ClientPlayerEntity player = client.player;
-            ScreenHandler sc = player.currentScreenHandler;
-            if(!player.currentScreenHandler.equals(player.playerScreenHandler)) player.closeHandledScreen();
-            if (sc.slots.stream().skip(9).limit(sc.slots.size()-10).noneMatch(slot -> slot.getStack().isEmpty())) {
-                SwitchItem.checkItems();
-                return;
-            }
-            if(LitematicaMixinMod.QUICKSHULKER.getBooleanValue() && openShulker(items2)){
-                return;
-            }else if(LitematicaMixinMod.INVENTORY.getBooleanValue()){
-                for (Item item : items2) {
-                    Statistics.currentMemoryKey = client.world.getDimensionKey().getValue();
-                    Statistics.itemStack = new ItemStack(item);
-                    if (SearchItem.search(true)) {
-                        isOpenHandler = true;
-                        printerMemorySync = true;
-                        return;
-                    }
-//                    MemoryDatabase database = MemoryDatabase.getCurrent();
-//                    if (database != null) {
-//                        for (Identifier dimension : database.getDimensions()) {
-//                            for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
-//                                OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
-//                                isOpenHandler = true;
-//                                return;
-//                            }
-//                        }
-//                    }
-                }
-                items2 = new HashSet<>();
-                isOpenHandler = false;
-            }
-        }
-
-
         if(isOpenHandler)return;
+        if(switchItem())return;
 
         if (LitematicaMixinMod.BEDROCK.getBooleanValue()) {
             jymod(data);
@@ -526,10 +538,11 @@ public class Printer extends PrinterUtils {
         if(sc.equals(player.playerScreenHandler)){
             return;
         }
+        DefaultedList<Slot> slots = sc.slots;
         for(Item item : items2) {
 //            System.out.println(Arrays.toString(items2));
-            for (int y = 0; y < sc.slots.get(0).inventory.size(); y++) {
-                if (sc.slots.get(y).getStack().getItem().equals(item)) {
+            for (int y = 0; y < slots.get(0).inventory.size(); y++) {
+                if (slots.get(y).getStack().getItem().equals(item)) {
 
                     String[] str = Configs.Generic.PICK_BLOCKABLE_SLOTS.getStringValue().split(",");
                     if(str.length==0) return;
@@ -537,16 +550,28 @@ public class Printer extends PrinterUtils {
                         if (s == null) break;
                         try {
                             int c = Integer.parseInt(s) - 1;
-                            if (Registries.ITEM.getId(player.getInventory().getStack(c).getItem()).toString().contains("shulker_box") && LitematicaMixinMod.QUICKSHULKER.getBooleanValue()) {
+                            if (Registries.ITEM.getId(player.getInventory().getStack(c).getItem()).toString().contains("shulker_box") &&
+                                    LitematicaMixinMod.QUICKSHULKER.getBooleanValue()) {
                                 MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of("没有可替换的槽位，请将预选位的濳影盒换个位置"),false);
                                 continue;
                             }
 //                            System.out.println(y);
 //                            System.out.println(c);
+//                            int shulkerSlot = -1;
+//                            for (int i = slots.get(0).inventory.size(); i < slots.size(); i++) {
+//                                if(!(slots.get(i).inventory instanceof PlayerInventory)) continue;
+//                                ItemStack stack = slots.get(i).getStack();
+////                                if (SwitchItem.shulkerBoxCompare(stack,shulkerBox,-1)){
+//                                if (fi.dy.masa.malilib.util.InventoryUtils.areStacksEqual(stack,shulkerBox)){
+//                                    shulkerSlot = i;
+//                                    break;
+//                                }
+//                            }
+//                            shulkerBox = shulkerSlot == -1? null : slots.get(shulkerSlot).getStack();
                             if (OpenInventoryPacket.key != null) {
-                                SwitchItem.newItem(sc.slots.get(y).getStack(), OpenInventoryPacket.pos,OpenInventoryPacket.key.getRegistry(),y,shulkerBox);
-                            }else SwitchItem.newItem(sc.slots.get(y).getStack(), null,null,y,shulkerBox);
-                            shulkerBox = null;
+                                SwitchItem.newItem(slots.get(y).getStack(), OpenInventoryPacket.pos,OpenInventoryPacket.key.getRegistry(),y, shulkerBoxSlot);
+                            }else SwitchItem.newItem(slots.get(y).getStack(), null,null,y, shulkerBoxSlot);
+                            shulkerBoxSlot = -1;
                             int a = Litematica_InventoryUtilsMixin.getEmptyPickBlockableHotbarSlot(player.getInventory()) == -1 ?
                                     Litematica_InventoryUtilsMixin.getPickBlockTargetSlot(player) :
                                     Litematica_InventoryUtilsMixin.getEmptyPickBlockableHotbarSlot(player.getInventory());
@@ -565,11 +590,12 @@ public class Printer extends PrinterUtils {
                 }
             }
         }
+        shulkerBoxSlot = -1;
         items2 = new HashSet<>();
         isOpenHandler = false;
         player.closeHandledScreen();
     }
-    static ItemStack shulkerBox = null;
+    static int shulkerBoxSlot = -1;
 
     boolean openShulker(HashSet<Item> items){
         for (Item item : items) {
@@ -582,7 +608,8 @@ public class Printer extends PrinterUtils {
                     DefaultedList<ItemStack> items1 = fi.dy.masa.malilib.util.InventoryUtils.getStoredItems(stack, -1);
                     if(items1.stream().anyMatch(s1 -> s1.getItem().equals(item))){
                         try {
-                            shulkerBox = stack;
+                            if(reSwitchItem == null) shulkerBoxSlot = i;
+//                            ClientUtil.CheckAndSend(stack,i);
                             Class quickShulker = Class.forName("net.kyrptonaught.quickshulker.client.ClientUtil");
                             Method checkAndSend = quickShulker.getDeclaredMethod("CheckAndSend",ItemStack.class,int.class);
                             checkAndSend.invoke(checkAndSend,stack,i);

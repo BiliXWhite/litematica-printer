@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.PRINTER_MEMORY;
+import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.currentMemoryKey;
 
 public class SearchItem {
     static AtomicBoolean hasItem = new AtomicBoolean(false);
@@ -25,12 +26,12 @@ public class SearchItem {
         MemoryBank memoryBank = isPrinterMemory ? PRINTER_MEMORY : MemoryBank.INSTANCE;
         if (memoryBank != null) {
             Map<Identifier, Map<BlockPos, Memory>> memories = memoryBank.getMemories();
-            if (Statistics.currentMemoryKey != null) {
+            if (currentMemoryKey != null) {
                 //搜索当前选中的维度
-                memoriesSearch(Statistics.currentMemoryKey,Statistics.itemStack,memoryBank);
+                memoriesSearch(currentMemoryKey,MemoryUtils.itemStack,memoryBank);
                 //搜索全部维度
                 memories.keySet().forEach(key -> {
-                    if (!hasItem.get() && !key.equals(Statistics.currentMemoryKey)) memoriesSearch(key,Statistics.itemStack,memoryBank);
+                    if (!hasItem.get() && !key.equals(currentMemoryKey)) memoriesSearch(key,MemoryUtils.itemStack,memoryBank);
                 });
             }
             if(hasItem.get()) {

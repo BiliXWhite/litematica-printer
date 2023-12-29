@@ -3,16 +3,17 @@ package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import red.jackf.chesttracker.api.events.AfterPlayerDestroyBlock;
 import red.jackf.chesttracker.api.provider.MemoryBuilder;
@@ -34,6 +35,13 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.pri
 
 public class MemoryUtils {
     public static MemoryBank PRINTER_MEMORY = null;
+
+    //点击的物品
+    public static ItemStack itemStack = null;
+    //当前打开的维度
+    public static Identifier currentMemoryKey = null;
+    //远程取物返回包中的方块数据
+    public static BlockState blockState = null;
 
     public static void deletePrinterMemory() {
         if (PRINTER_MEMORY != null) {
@@ -120,7 +128,7 @@ public class MemoryUtils {
     }
 
     public static void save(ScreenHandler screen , MemoryBank memoryBank) {
-        if (memoryBank == null || OpenInventoryPacket.key == null || Statistics.blockState == null || !LitematicaMixinMod.INVENTORY.getBooleanValue()) return;
+        if (memoryBank == null || OpenInventoryPacket.key == null || blockState == null || !LitematicaMixinMod.INVENTORY.getBooleanValue()) return;
         List<BlockPos> connected;
         if (ZxyUtils.printerMemoryAdding && client.world != null) {
             connected = ConnectedBlocksGrabber.getConnected(client.world, client.world.getBlockState(OpenInventoryPacket.pos), OpenInventoryPacket.pos);
@@ -134,7 +142,7 @@ public class MemoryUtils {
         else return;
 
         ResultHolder<MemoryBuilder.Entry> value = ResultHolder.value(MemoryBuilder.create(items)
-                .inContainer(Statistics.blockState.getBlock())
+                .inContainer(blockState.getBlock())
                 .otherPositions(connected != null ? connected.stream()
                         .filter(pos -> !pos.equals(connected.get(0)))
                         .toList() : List.of(OpenInventoryPacket.pos)

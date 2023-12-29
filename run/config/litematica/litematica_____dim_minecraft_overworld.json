@@ -7,7 +7,7 @@
   "operation_mode": "AREA_SELECTION",
   "render_range": {
     "mode": "ALL",
-    "axis": "Y",
+    "axis": "y",
     "layer_single": 0,
     "layer_above": 0,
     "layer_below": 0,
