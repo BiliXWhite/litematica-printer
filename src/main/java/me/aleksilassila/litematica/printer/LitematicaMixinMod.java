@@ -75,7 +75,7 @@ public class LitematicaMixinMod implements ModInitializer {
 	public static final ConfigHotkey EXE_MODE= new ConfigHotkey("挖掘模式", "K", "挖掘所选区的方块");
 	public static final ConfigHotkey SYNC_INVENTORY = new ConfigHotkey("容器同步", "Y", "对准你想要达成的容器方块。按下热键将开始同步投影所选区域内的所选容器");
 	public static final ConfigHotkey PRINTER_INVENTORY= new ConfigHotkey("打印机库存", "G", "如果远程取物的目标是未加载的区块将会增加取物品的时间，用投影选区后按下热键\n" +
-			"打印机工作时将会优先使用该库存内的物品\n" +
+			"打印机工作时将会使用该库存内的物品\n" +
 			"建议库存区域内放置假人来常加载区块");
 	public static final ConfigHotkey REVISION_PRINT= new ConfigHotkey("清空打印机库存", "C,G", "清空打印机库存");
 

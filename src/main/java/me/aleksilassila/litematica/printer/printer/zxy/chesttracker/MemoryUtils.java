@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem;
@@ -30,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+import static me.aleksilassila.litematica.printer.LitematicaMixinMod.INVENTORY;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.printerMemoryAdding;
 
@@ -91,7 +91,7 @@ public class MemoryUtils {
             save(sc , PRINTER_MEMORY);
         if(MemoryBank.INSTANCE != null && OpenInventoryPacket.key != null &&
                 //在当前选择库存为打印机库存的情况下避免重复保存，
-                !MemoryBank.INSTANCE.equals(PRINTER_MEMORY) && (printerMemoryAdding || Printer.printerMemorySync))
+                !MemoryBank.INSTANCE.equals(PRINTER_MEMORY))
             save(sc , MemoryBank.INSTANCE);
         Printer.printerMemorySync = false;
         OpenInventoryPacket.key = null;
@@ -128,7 +128,10 @@ public class MemoryUtils {
     }
 
     public static void save(ScreenHandler screen , MemoryBank memoryBank) {
-        if (memoryBank == null || OpenInventoryPacket.key == null || blockState == null || !LitematicaMixinMod.INVENTORY.getBooleanValue()) return;
+//        if(blockState == null){
+//            client.player.sendMessage(Text.of("blockState == null"));
+//        }
+        if (memoryBank == null || OpenInventoryPacket.key == null || blockState == null || !INVENTORY.getBooleanValue()) return;
         List<BlockPos> connected;
         if (ZxyUtils.printerMemoryAdding && client.world != null) {
             connected = ConnectedBlocksGrabber.getConnected(client.world, client.world.getBlockState(OpenInventoryPacket.pos), OpenInventoryPacket.pos);

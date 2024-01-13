@@ -125,7 +125,7 @@ public class Printer extends PrinterUtils {
         }
     }
 
-    private static Printer INSTANCE;
+    private static Printer INSTANCE = null;
     @NotNull
     private final MinecraftClient client;
     public final PlacementGuide guide;
@@ -540,7 +540,6 @@ public class Printer extends PrinterUtils {
         }
         DefaultedList<Slot> slots = sc.slots;
         for(Item item : items2) {
-//            System.out.println(Arrays.toString(items2));
             for (int y = 0; y < slots.get(0).inventory.size(); y++) {
                 if (slots.get(y).getStack().getItem().equals(item)) {
 
@@ -569,7 +568,7 @@ public class Printer extends PrinterUtils {
 //                            }
 //                            shulkerBox = shulkerSlot == -1? null : slots.get(shulkerSlot).getStack();
                             if (OpenInventoryPacket.key != null) {
-                                SwitchItem.newItem(slots.get(y).getStack(), OpenInventoryPacket.pos,OpenInventoryPacket.key.getRegistry(),y, shulkerBoxSlot);
+                                SwitchItem.newItem(slots.get(y).getStack(), OpenInventoryPacket.pos,OpenInventoryPacket.key,y, shulkerBoxSlot);
                             }else SwitchItem.newItem(slots.get(y).getStack(), null,null,y, shulkerBoxSlot);
                             shulkerBoxSlot = -1;
                             int a = Litematica_InventoryUtilsMixin.getEmptyPickBlockableHotbarSlot(player.getInventory()) == -1 ?

@@ -33,7 +33,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 
 import static me.aleksilassila.litematica.printer.printer.Printer.isOpenHandler;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
 
 public class OpenInventoryPacket{
@@ -46,13 +46,15 @@ public class OpenInventoryPacket{
     private static final Identifier OPEN_INVENTORY = new Identifier("remoteinventory", "open_inventory");
     private static final Identifier OPEN_RETURN = new Identifier("openreturn", "open_return");
     public static ArrayList<ServerPlayerEntity> playerlist = new ArrayList<>();
-    public static void registerReceivePacket(){
+    public static void registerClientReceivePacket(){
         ClientPlayNetworking.registerGlobalReceiver(OPEN_RETURN,(client,playNetworkHandler,packetByteBuf,packetSender)->{
+            //build后无法识别为InventoryPacket类
             if(packetByteBuf instanceof InventoryPacket buf){
                 client.execute(() -> openReturn(buf.readBoolean(),buf.readBlockState()));
             }
         });
-
+    }
+    public static void registerReceivePacket(){
         ServerPlayNetworking.registerGlobalReceiver(OPEN_INVENTORY, (server, player, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
             BlockPos pos = packetByteBuf.readBlockPos();
             RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, packetByteBuf.readIdentifier());
@@ -106,12 +108,9 @@ public class OpenInventoryPacket{
     public static void openReturn(boolean open, BlockState state){
         if(open){
             MemoryUtils.blockState = state;
-            if (client.player != null && printerMemoryAdding) {
-                client.player.closeHandledScreen();
-            }
-            if(num>1) ZxyUtils.syncInv();
+//            client.player.sendMessage(Text.of("return "+state.toString()));
         }else {
-            System.out.println("fail");
+//            System.out.println("fail");
 //        MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
 //        me.aleksilassila.litematica.printer.printer.memory.MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
             MinecraftClient.getInstance().player.closeHandledScreen();
@@ -120,7 +119,6 @@ public class OpenInventoryPacket{
             key = null;
             pos = null;
         }
-        
     }
     public static void openReturn(ServerPlayerEntity player, BlockState state, boolean open){
         InventoryPacket buf = new InventoryPacket(Unpooled.buffer());

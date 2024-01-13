@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_16",
   "mixins": [
     "masa.Litematica_InventoryUtilsMixin",
+    "masa.MixinInventoryUtils",
     "openinv.MixinLootableContainerBlockEntity",
     "openinv.MixinServerPlayerEntity",
     "openinv.MixinServerWorld"

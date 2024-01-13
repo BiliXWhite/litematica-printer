@@ -5,13 +5,12 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -33,7 +32,7 @@ public class SwitchItem {
         ItemStatistics itemStatistics = itemStacks.get(itemStack);
         if(itemStatistics !=null) itemStatistics.syncUseTime();
     }
-    public static void newItem(ItemStack itemStack,BlockPos pos,Identifier key,int slot,int shulkerBox){
+    public static void newItem(ItemStack itemStack, BlockPos pos, RegistryKey<World> key, int slot, int shulkerBox){
         itemStacks.put(itemStack,new ItemStatistics(key,pos,slot,shulkerBox));
     }
     public static void openInv(ItemStack itemStack){
@@ -50,9 +49,9 @@ public class SwitchItem {
         ItemStatistics itemStatistics = itemStacks.get(itemStack);
         if(itemStatistics != null){
             if (itemStatistics.key != null) {
-                OpenInventoryPacket.sendOpenInventory(itemStatistics.pos,RegistryKey.of(RegistryKeys.WORLD,itemStatistics.key));
+                OpenInventoryPacket.sendOpenInventory(itemStatistics.pos,itemStatistics.key);
                 Statistics.closeScreen++;
-            }else if (client.player != null) {
+            }else {
                 ScreenHandler sc = client.player.currentScreenHandler;
                 for (int i = 9; i < sc.slots.size() && itemStatistics.shulkerBoxSlot != -1; i++) {
                     ItemStack stack = sc.slots.get(i).getStack();
@@ -123,6 +122,7 @@ public class SwitchItem {
                 }
                 removeItem(reSwitchItem);
                 reSwitchItem = null;
+                player.closeHandledScreen();
                 if(!reInv) client.inGameHud.setOverlayMessage(Text.of("复原库存物品失败"),false);
                 client.interactionManager.clickSlot(sc.syncId, i, 0, SlotActionType.PICKUP, client.player);
                 return;
@@ -134,12 +134,12 @@ public class SwitchItem {
         itemStacks = new HashMap<>();
     }
     public static class ItemStatistics {
-        public Identifier key;
+        public RegistryKey<World> key;
         public BlockPos pos;
         public int slot;
         public int shulkerBoxSlot;
         public long useTime = System.currentTimeMillis();
-        public ItemStatistics(Identifier key, BlockPos pos, int slot, int shulkerBox) {
+        public ItemStatistics(RegistryKey<World> key, BlockPos pos, int slot, int shulkerBox) {
             this.key = key;
             this.pos = pos;
             this.slot = slot;

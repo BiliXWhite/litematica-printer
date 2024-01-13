@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.mixin;
 
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.InventoryS2CPacket;
@@ -12,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static me.aleksilassila.litematica.printer.printer.Printer.isOpenHandler;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem.reSwitchItem;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 
 
 @Mixin(ClientPlayNetworkHandler.class)
@@ -26,5 +28,10 @@ public abstract class MixinClientPlayNetworkHandler {
         if(reSwitchItem != null ){
             SwitchItem.reSwitchItem();
         }
+
+        if (client.player != null && printerMemoryAdding) {
+            client.player.closeHandledScreen();
+        }
+        if(num>1) ZxyUtils.syncInv();
      }
 }

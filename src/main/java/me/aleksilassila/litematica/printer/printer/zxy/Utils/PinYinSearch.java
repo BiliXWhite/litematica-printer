@@ -9,12 +9,10 @@ import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombi
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class PinYinSearch {
     public static void main(String[] args){
         System.out.println(getPinYin("曾0长0"));
-
     }
     static ArrayList<String[]> pinyin = new ArrayList<>();
     public static ArrayList<String> getPinYin(String str){
