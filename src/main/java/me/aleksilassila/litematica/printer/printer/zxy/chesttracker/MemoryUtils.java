@@ -23,6 +23,7 @@ import red.jackf.chesttracker.storage.ConnectionSettings;
 import red.jackf.chesttracker.storage.Storage;
 import red.jackf.jackfredlib.api.base.ResultHolder;
 import red.jackf.jackfredlib.client.api.gps.Coordinate;
+import red.jackf.whereisit.api.SearchRequest;
 import red.jackf.whereisit.api.search.ConnectedBlocksGrabber;
 
 import java.util.HashMap;
@@ -42,6 +43,8 @@ public class MemoryUtils {
     public static Identifier currentMemoryKey = null;
     //远程取物返回包中的方块数据
     public static BlockState blockState = null;
+    //箱子追踪搜索请求
+    public static SearchRequest request = null;
 
     public static void deletePrinterMemory() {
         if (PRINTER_MEMORY != null) {
@@ -128,9 +131,6 @@ public class MemoryUtils {
     }
 
     public static void save(ScreenHandler screen , MemoryBank memoryBank) {
-//        if(blockState == null){
-//            client.player.sendMessage(Text.of("blockState == null"));
-//        }
         if (memoryBank == null || OpenInventoryPacket.key == null || blockState == null || !INVENTORY.getBooleanValue()) return;
         List<BlockPos> connected;
         if (ZxyUtils.printerMemoryAdding && client.world != null) {

@@ -1,13 +1,14 @@
 package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 
-import fi.dy.masa.malilib.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import org.jetbrains.annotations.NotNull;
 import red.jackf.chesttracker.memory.Memory;
 import red.jackf.chesttracker.memory.MemoryBank;
 import red.jackf.whereisit.api.SearchRequest;
@@ -16,11 +17,11 @@ import red.jackf.whereisit.client.api.events.SearchRequestPopulator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.PRINTER_MEMORY;
-import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.currentMemoryKey;
+import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.*;
 
 public class SearchItem {
     static AtomicBoolean hasItem = new AtomicBoolean(false);
+    static NbtCompound nbt = new NbtCompound();
 
     public static boolean search(boolean isPrinterMemory) {
         MemoryBank memoryBank = isPrinterMemory ? PRINTER_MEMORY : MemoryBank.INSTANCE;
@@ -51,11 +52,20 @@ public class SearchItem {
             SearchRequestPopulator.addItemStack(searchRequest, itemStack, SearchRequestPopulator.Context.FAVOURITE);
             memoryBank.getPositions(key, searchRequest).
                     forEach(v -> {
-                        if (v.item() != null && InventoryUtils.areStacksEqual(itemStack, v.item()) && !hasItem.get()) {
+                        if (v.item() != null &&
+                                areStacksEquivalent(itemStack, v.item()) &&
+                                SearchRequest.check(v.item(),request) &&
+                                !hasItem.get()) {
                             OpenInventoryPacket.sendOpenInventory(v.pos(), RegistryKey.of(RegistryKeys.WORLD, key));
                             hasItem.set(true);
                         }
                     });
         }
+    }
+    public static boolean areStacksEquivalent(@NotNull ItemStack stack1, @NotNull ItemStack stack2) {
+        return
+//                stack1.getItem() == stack2.getItem() &&
+                stack1.getName().getString().equals(stack2.getName().getString());
+//                && (ignoreNbt || !stack1.hasNbt() && !stack2.hasNbt() || Objects.equals(stack1.getNbt(), stack2.getNbt()));
     }
 }

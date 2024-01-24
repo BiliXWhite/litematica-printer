@@ -8,6 +8,7 @@ import fi.dy.masa.litematica.selection.Box;
 import fi.dy.masa.litematica.util.InventoryUtils;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
+import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
@@ -19,6 +20,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.ChestType;
 import net.minecraft.client.MinecraftClient;
@@ -49,6 +51,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
+import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST;
+import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
+import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.max;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.min;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
@@ -228,15 +233,34 @@ public class Printer extends PrinterUtils {
                 !currentState.isOf(Blocks.AIR) &&
                 !currentState.isOf(Blocks.CAVE_AIR) &&
                 !currentState.isOf(Blocks.VOID_AIR) &&
-                currentState.getBlock().getHardness() != -1 &&
+                !(currentState.getBlock().getHardness() == -1) &&
                 !(currentState.getBlock() instanceof FluidBlock) &&
-                !client.player.isBlockBreakingRestricted(client.world, pos, client.interactionManager.getCurrentGameMode())
+                !client.player.isBlockBreakingRestricted(client.world, pos, client.interactionManager.getCurrentGameMode()) &&
+                        twBreakRestriction(currentState)
         ) {
             client.interactionManager.updateBlockBreakingProgress(pos, Direction.DOWN);
             client.interactionManager.cancelBlockBreaking();
             return !world.getBlockState(pos).isOf(Blocks.AIR);
         }
         return false;
+    }
+    static boolean twBreakRestriction(BlockState blockState){
+        if(!FabricLoader.getInstance().isModLoaded("tweakeroo")) return true;
+        UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
+        if (listType == UsageRestriction.ListType.BLACKLIST)
+        {
+            return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
+                    .noneMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
+        }
+        else if (listType == UsageRestriction.ListType.WHITELIST)
+        {
+            return BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
+                    .anyMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
+        }
+        else
+        {
+            return true;
+        }
     }
 
 

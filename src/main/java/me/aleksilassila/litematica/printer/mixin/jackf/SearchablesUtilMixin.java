@@ -19,15 +19,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import red.jackf.chesttracker.gui.util.SearchablesUtil;
 
-import java.awt.*;
-
 import static net.minecraft.client.item.TooltipContext.ADVANCED;
 
 @Mixin(SearchablesUtil.class)
 public class SearchablesUtilMixin {
-
-
-
     @Inject(at = @At(value = "INVOKE",target = "Ljava/util/stream/Stream;anyMatch(Ljava/util/function/Predicate;)Z"),method = "stackEnchantmentFilter", cancellable = true)
     private static void stackEnchantmentFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir){
         var enchantments = EnchantmentHelper.get(stack);
@@ -37,7 +32,7 @@ public class SearchablesUtilMixin {
                 .anyMatch(ench -> {
                     if (testLang(ench.getTranslationKey(), filter)) return true;
                     var resloc = Registries.ENCHANTMENT.getKey(ench);
-                    return resloc != null && PinYinSearch.hasPinYin(resloc.toString(),filter);
+                    return resloc.isPresent() && PinYinSearch.hasPinYin(resloc.toString(),filter);
                 })
         )
             cir.setReturnValue(true);
@@ -54,7 +49,7 @@ public class SearchablesUtilMixin {
             if (testLang(langKey, filter)) return;
             var resloc = Registries.POTION.getKey(potion);
             //noinspection ConstantValue
-            if (resloc != null && PinYinSearch.hasPinYin(resloc.toString(),filter)) cir.setReturnValue(true);
+            if (resloc.isPresent() && PinYinSearch.hasPinYin(resloc.toString(),filter)) cir.setReturnValue(true);
         }
         // specific effects
         var effects = PotionUtil.getPotionEffects(stack);
@@ -62,7 +57,7 @@ public class SearchablesUtilMixin {
             var langKey = effect.getTranslationKey();
             if (testLang(langKey, filter)) return;
             var resloc = Registries.STATUS_EFFECT.getKey(effect.getEffectType());
-            if (resloc != null && PinYinSearch.hasPinYin(resloc.toString(),filter)) cir.setReturnValue(true);
+            if (resloc.isPresent() && PinYinSearch.hasPinYin(resloc.toString(),filter)) cir.setReturnValue(true);
         }
     }
     @Inject(at = @At("HEAD"),method = "stackTagFilter", cancellable = true)
@@ -77,7 +72,8 @@ public class SearchablesUtilMixin {
         if (player == null) cir.setReturnValue(false);
         var advanced = MinecraftClient.getInstance().options.advancedItemTooltips ?  ADVANCED : TooltipContext.BASIC;
         for (Text line : stack.getTooltip(player, advanced)) {
-            if (line.getString().toLowerCase().contains(filter)) cir.setReturnValue(true);
+//            if (line.getString().toLowerCase().contains(filter)) cir.setReturnValue(true);
+            if (PinYinSearch.hasPinYin(line.getString(),filter)) cir.setReturnValue(true);
         }
     }
     @Inject(at = @At("HEAD"),method = "testLang", cancellable = true,remap = false)

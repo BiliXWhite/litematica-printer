@@ -6,6 +6,7 @@
   "mixins": [
     "masa.Litematica_InventoryUtilsMixin",
     "masa.MixinInventoryUtils",
+    "openinv.MixinGenericContainerScreenHandler",
     "openinv.MixinLootableContainerBlockEntity",
     "openinv.MixinServerPlayerEntity",
     "openinv.MixinServerWorld"
@@ -26,7 +27,8 @@
     "jackf.SearchInvokerMixin",
     "jackf.SearchRequestPopulatorMixin",
     "jackf.StorageMixin",
-    "openinv.MixinMinecraftClient"
+    "openinv.MixinMinecraftClient",
+    "verify.MixinClientConnection"
   ],
   "injectors": {
     "defaultRequire": 1

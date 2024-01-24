@@ -23,9 +23,9 @@ public class MixinServerWorld {
             if (!list.world.isChunkLoaded(ChunkPos.toLong(list.pos))) {
                 list.world.shouldTick(list.pos);
             }
-            BlockState state =  list.state;
+//            BlockState state =  list.state;
             BlockState state2 = list.world.getBlockState(list.pos);
-            if(!state.equals(state2)){
+            if(state2.isAir()){
                 OpenInventoryPacket.openReturn(s,state2,false);
             }
         }

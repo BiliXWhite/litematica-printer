@@ -18,6 +18,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -33,6 +34,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 
 import static me.aleksilassila.litematica.printer.printer.Printer.isOpenHandler;
+import static me.aleksilassila.litematica.printer.printer.Printer.printerMemorySync;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
 
@@ -48,13 +50,22 @@ public class OpenInventoryPacket{
     public static ArrayList<ServerPlayerEntity> playerlist = new ArrayList<>();
     public static void registerClientReceivePacket(){
         ClientPlayNetworking.registerGlobalReceiver(OPEN_RETURN,(client,playNetworkHandler,packetByteBuf,packetSender)->{
-            //build后无法识别为InventoryPacket类
-            if(packetByteBuf instanceof InventoryPacket buf){
-                client.execute(() -> openReturn(buf.readBoolean(),buf.readBlockState()));
+            //无法识别为InventoryPacket类 原因：fabricApi 91.2+版本所导致的; 似乎只能单机使用。。。
+//            if(packetByteBuf instanceof InventoryPacket buf){
+//                client.execute(() -> openReturn(buf.readBoolean(),buf.readBlockState()));
+//            }else
+                try {
+                MyPacket packet = MyPacket.decode(packetByteBuf);
+                client.execute(() -> {
+                    client.execute(() -> openReturn(packet.getIsOpen(),packet.getBlockState()));
+                });
+            }catch (Exception ignored){
+                client.inGameHud.setOverlayMessage(Text.of("服务端回复异常，箱子追踪库存无法更新"),false);
             }
         });
     }
     public static void registerReceivePacket(){
+
         ServerPlayNetworking.registerGlobalReceiver(OPEN_INVENTORY, (server, player, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
             BlockPos pos = packetByteBuf.readBlockPos();
             RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, packetByteBuf.readIdentifier());
@@ -113,17 +124,23 @@ public class OpenInventoryPacket{
 //            System.out.println("fail");
 //        MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
 //        me.aleksilassila.litematica.printer.printer.memory.MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
-            MinecraftClient.getInstance().player.closeHandledScreen();
+            if(key!=null){
+                MemoryUtils.PRINTER_MEMORY.removeMemory(key.getValue(),pos);
+            }
+
+            if (MinecraftClient.getInstance().player != null) {
+                MinecraftClient.getInstance().player.closeHandledScreen();
+            }
             openIng = false;
             isOpenHandler = false;
+            printerMemorySync = false;
             key = null;
             pos = null;
         }
     }
     public static void openReturn(ServerPlayerEntity player, BlockState state, boolean open){
-        InventoryPacket buf = new InventoryPacket(Unpooled.buffer());
-        buf.writeBlockState(state);
-        buf.writeBoolean(open);
+        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        MyPacket.encode(new MyPacket(state,open),buf);
         ServerPlayNetworking.send(player,OPEN_RETURN,buf);
     }
 }
