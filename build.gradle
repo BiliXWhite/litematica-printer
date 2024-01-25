@@ -71,7 +71,6 @@ dependencies {// To change the versions see the gradle.properties file
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 	//masa
 	modImplementation "fi.dy.masa.malilib:malilib-fabric-${project.malilib_version}"
