@@ -17,13 +17,13 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import red.jackf.chesttracker.gui.util.SearchablesUtil;
+import red.jackf.chesttracker.util.ItemStackUtil;
 
 import static net.minecraft.client.item.TooltipContext.ADVANCED;
 
-@Mixin(SearchablesUtil.class)
+@Mixin(ItemStackUtil.class)
 public class SearchablesUtilMixin {
-    @Inject(at = @At(value = "INVOKE",target = "Ljava/util/stream/Stream;anyMatch(Ljava/util/function/Predicate;)Z"),method = "stackEnchantmentFilter", cancellable = true)
+    @Inject(at = @At(value = "INVOKE",target = "Ljava/util/stream/Stream;anyMatch(Ljava/util/function/Predicate;)Z"),method = "enchantmentPredicate", cancellable = true)
     private static void stackEnchantmentFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir){
         var enchantments = EnchantmentHelper.get(stack);
         if (enchantments.isEmpty()) return ;
@@ -41,7 +41,7 @@ public class SearchablesUtilMixin {
         return false;
     }
 
-    @Inject(at = @At(value = "INVOKE",target = "Ljava/lang/String;contains(Ljava/lang/CharSequence;)Z"),method = "stackPotionFilter", cancellable = true)
+    @Inject(at = @At(value = "INVOKE",target = "Ljava/lang/String;contains(Ljava/lang/CharSequence;)Z"),method = "potionOrEffectPredicate", cancellable = true)
     private static void stackPotionFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir){
         Potion potion = PotionUtil.getPotion(stack);
         if (potion != Potions.EMPTY) {
@@ -60,13 +60,13 @@ public class SearchablesUtilMixin {
             if (resloc.isPresent() && PinYinSearch.hasPinYin(resloc.toString(),filter)) cir.setReturnValue(true);
         }
     }
-    @Inject(at = @At("HEAD"),method = "stackTagFilter", cancellable = true)
+    @Inject(at = @At("HEAD"),method = "tagPredicate", cancellable = true)
     private static void stackTagFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir){
         if(stack.getRegistryEntry().streamTags().anyMatch(tag ->
                 PinYinSearch.hasPinYin(tag.id().getPath(),filter)))
             cir.setReturnValue(true);
     }
-    @Inject(at = @At("HEAD"),method = "stackTooltipFilter", cancellable = true)
+    @Inject(at = @At("HEAD"),method = "tooltipPredicate", cancellable = true)
     private static void stackTooltipFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir){
         var player = MinecraftClient.getInstance().player;
         if (player == null) cir.setReturnValue(false);
@@ -82,14 +82,14 @@ public class SearchablesUtilMixin {
             PinYinSearch.hasPinYin(Language.getInstance().get(key).toLowerCase(),filter))
             cir.setReturnValue(true);
     }
-    @Inject(at = @At("HEAD"),method = "stackNameFilter", cancellable = true)
+    @Inject(at = @At("HEAD"),method = "namePredicate", cancellable = true)
     private static void stackNameFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir){
         boolean b = PinYinSearch.hasPinYin(stack.getName().getString(),filter);
         if(b) cir.setReturnValue(true);
     }
-    @Inject(at = @At("HEAD"),method = "anyTextFilter", cancellable = true)
-    private static void anyTextFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir){
-//        System.out.println(filter);
-//        cir.setReturnValue(true);
-    }
+//    @Inject(at = @At("HEAD"),method = "anyTextFilter", cancellable = true)
+//    private static void anyTextFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir){
+////        System.out.println(filter);
+////        cir.setReturnValue(true);
+//    }
 }

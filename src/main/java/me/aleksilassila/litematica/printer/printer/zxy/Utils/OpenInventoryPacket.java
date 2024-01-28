@@ -124,6 +124,8 @@ public class OpenInventoryPacket{
 //            System.out.println("fail");
 //        MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
 //        me.aleksilassila.litematica.printer.printer.memory.MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
+//            client.inGameHud.setOverlayMessage(Text.of("打开容器失败1"),false);
+            if (client.player != null) client.player.sendMessage(Text.of("打开容器失败."));
             if(key!=null){
                 MemoryUtils.PRINTER_MEMORY.removeMemory(key.getValue(),pos);
             }
@@ -131,6 +133,7 @@ public class OpenInventoryPacket{
             if (MinecraftClient.getInstance().player != null) {
                 MinecraftClient.getInstance().player.closeHandledScreen();
             }
+            Statistics.closeScreen--;
             openIng = false;
             isOpenHandler = false;
             printerMemorySync = false;

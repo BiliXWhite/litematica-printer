@@ -20,8 +20,6 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.c
 @Environment(EnvType.CLIENT)
 @Mixin({MinecraftClient.class})
 public abstract class MixinMinecraftClient {
-    public MixinMinecraftClient() {
-    }
     @Inject(method = {"setScreen"}, at = {@At(value = "HEAD")}, cancellable = true)
     public void setScreen(@Nullable Screen screen, CallbackInfo ci) {
         if(closeScreen > 0 && screen != null){
