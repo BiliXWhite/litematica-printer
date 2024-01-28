@@ -22,7 +22,7 @@ import red.jackf.chesttracker.util.ItemStackUtil;
 import static net.minecraft.client.item.TooltipContext.ADVANCED;
 
 @Mixin(ItemStackUtil.class)
-public class SearchablesUtilMixin {
+public class ItemStackUtilMixin {
     @Inject(at = @At(value = "INVOKE",target = "Ljava/util/stream/Stream;anyMatch(Ljava/util/function/Predicate;)Z"),method = "enchantmentPredicate", cancellable = true)
     private static void stackEnchantmentFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir){
         var enchantments = EnchantmentHelper.get(stack);
