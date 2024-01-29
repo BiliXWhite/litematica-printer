@@ -6,7 +6,10 @@ import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.mixin.FlowerPotBlockAccessor;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.block.*;
-import net.minecraft.block.enums.*;
+import net.minecraft.block.enums.Attachment;
+import net.minecraft.block.enums.BedPart;
+import net.minecraft.block.enums.DoorHinge;
+import net.minecraft.block.enums.SlabType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
@@ -34,7 +37,7 @@ public class PlacementGuide extends PrinterUtils {
     public @Nullable Action getAction(World world, WorldSchematic worldSchematic, BlockPos pos) {
         for (ClassHook hook : ClassHook.values()) {
             for (Class<?> clazz : hook.classes) {
-                if (clazz != null && clazz.isInstance(worldSchematic.getBlockState(pos).getBlock())) {
+                if (clazz != null  && clazz.isInstance(worldSchematic.getBlockState(pos).getBlock())) {
                     return buildAction(world, worldSchematic, pos, hook);
                 }
             }
