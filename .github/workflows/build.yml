@@ -11,9 +11,6 @@ env:
   CURSEFORGE_TOKEN: ${{ secrets.PUBLISH_CURSEFORGE_TOKEN }}
   GITHUB_TOKEN: ${{ secrets.PUBLISH_GITHUB_TOKEN }}
 
-permissions:
-  contents: write
-
 jobs:
   build:
     # ...
