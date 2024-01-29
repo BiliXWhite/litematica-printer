@@ -22,7 +22,6 @@
       "me.aleksilassila.litematica.printer.LitematicaMixinMod"
     ],
     "client": [
-      "me.aleksilassila.litematica.printer.ClientRegister"
     ]
   },
   "mixins": [
