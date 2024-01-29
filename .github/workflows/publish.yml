@@ -1,0 +1,61 @@
+name: Publish on GitHub, CurseForge & Modrinth
+
+on: [ pull_request, workflow_dispatch ]
+
+env:
+  MINECRAFT_VERSION: ${minecraft_version}
+  JAVA_VERSION: 17
+  VERSION: ${project.mod_version}+${minecraft_version}
+  RELEASE_NAME: litematica-printer
+  MODRINTH_TOKEN: ${{ secrets.PUBLISH_MODRINTH_TOKEN }}
+  CURSEFORGE_TOKEN: ${{ secrets.PUBLISH_CURSEFORGE_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.PUBLISH_GITHUB_TOKEN }}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Environment Variables
+        run: env
+
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: "temurin"
+          java-version: 17
+
+      - name: Make Gradle Wrapper Executable
+        if: ${{ runner.os != 'Windows' }}
+        run: chmod +x ./gradlew
+
+      - name: Build
+        run: ./gradlew clean build
+
+      - name: Publish (CurseForge/Modrinth/GitHub)
+        uses: Kir-Antipov/mc-publish@v3.2
+        with:
+#          curseforge-id: 123456
+#          curseforge-token: "${{env.CURSEFORGE_TOKEN}}"
+#
+#          modrinth-id: 1q2w3e4r
+#          modrinth-token: "${{env.MODRINTH_TOKEN}}"
+          
+          github-tag: "v${{env.VERSION}}"
+          github-token: "${{env.GITHUB_TOKEN}}"
+
+          name: "${{env.RELEASE_NAME}}"
+          version: "${{env.VERSION}}"
+          version-type: release
+          changelog-file: CHANGELOG.md
+
+          loaders: fabric
+          game-versions: "${{env.MINECRAFT_VERSION}}"
+          java: "${{env.JAVA_VERSION}}"

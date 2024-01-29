@@ -52,7 +52,6 @@ repositories {
 	}
 	//拼音搜索
 	maven { url = "https://mvnrepository.com/artifact/com.belerweb/pinyin4j" }
-
 //	flatDir{
 //		dirs "C:\\game\\Minecraft\\MyMod\\remote-inventory-01\\build\\libs"
 //	}
@@ -78,7 +77,7 @@ dependencies {// To change the versions see the gradle.properties file
 	modImplementation "curse.maven:tweakeroo-${project.tweakeroo_projectid}:${project.tweakeroo_fileid}"
 	modImplementation "curse.maven:carpet-${project.carpet_projectid}:${project.carpet_fileid}"
 	//quickshulker
-	modImplementation include("curse.maven:quick-shulker-${project.quickshulker_projectid}:${project.quickshulker_fileid}")
+	modImplementation ("curse.maven:quick-shulker-${project.quickshulker_projectid}:${project.quickshulker_fileid}")
 	modImplementation ("net.kyrptonaught:kyrptconfig:1.5.4-1.20") { exclude group: "net.fabricmc.fabric-api" }
 	modImplementation 'net.kyrptonaught:shulkerutils:1.0.4-1.19'
 	//chest-tracker
@@ -134,17 +133,72 @@ tasks.withType(JavaCompile).configureEach {
 }
 // configure the maven publication
 publishing {
+	// 发布的配置
 	publications {
-		mavenJava(MavenPublication) {
+		// 发布的名称，可以修改为自己的命名
+		maven(MavenPublication) {
 			from components.java
+			// 发布的groupId
+//			groupId 'com.zxy'
+//			// 发布的artifactId
+//			artifactId 'litematica_printer'
+//			// 发布的版本号
+//			version project.mod_version
+//
+//			artifact("$buildDir/libs/${archivesBaseName}"+"-"+project.mod_version+".jar"){
+//				classifier 'repackaged'
+//			}
+//
+//			// 发布的Pom文件
+//			pom {
+//				name = 'litematica_printer'
+//				description = ''
+//				// 当前项目网站
+//				url = 'https://example.com'
+//				// 发布的开源协议（也可以不添加）
+//				licenses {
+//					license {
+//						name = 'Apache-2.0'
+//						url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+//					}
+//				}
+//				// 项目的开发者信息
+//				developers {
+//					developer {
+//						id = 'litematica_printer'
+//						name = 'litematica_printer'
+//						email = 'developer@example.com'
+//					}
+//				}
+//			}
 		}
 	}
 
 	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+//	repositories {
+//		// Add repositories to publish to here.
+//		// Notice: This block does NOT have the same function as the block in the top level.
+//		// The repositories here will be used for publishing your artifact, not for
+//		// retrieving dependencies.
+//	}
+
+	// 发布的仓库
 	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
+		// 发布到本地 Maven 仓库，可用于在本地测试发布
+//		maven {
+//			name = 'local'
+//			url = uri("$buildDir/repo")
+//		}
+//		// 发布到 Github Releases
+//		maven {
+//			name = 'github'
+//			// Github API 地址
+//			url = uri('https://maven.pkg.github.com/zhaixianyu/litematica-printer')
+//			// 认证信息，通过 Github Personal Access Token 进行认证
+//			credentials {
+//				username = project.findProperty('gpr.user') ?: System.getenv('GITHUB_ACTOR')
+//				password = project.findProperty('gpr.key') ?: System.getenv('GITHUB_TOKEN')
+//			}
+//		}
 	}
 }

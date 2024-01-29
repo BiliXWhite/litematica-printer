@@ -50,10 +50,6 @@ public class OpenInventoryPacket{
     public static ArrayList<ServerPlayerEntity> playerlist = new ArrayList<>();
     public static void registerClientReceivePacket(){
         ClientPlayNetworking.registerGlobalReceiver(OPEN_RETURN,(client,playNetworkHandler,packetByteBuf,packetSender)->{
-            //无法识别为InventoryPacket类 原因：fabricApi 91.2+版本所导致的; 似乎只能单机使用。。。
-//            if(packetByteBuf instanceof InventoryPacket buf){
-//                client.execute(() -> openReturn(buf.readBoolean(),buf.readBlockState()));
-//            }else
                 try {
                 MyPacket packet = MyPacket.decode(packetByteBuf);
                 client.execute(() -> {
@@ -65,7 +61,6 @@ public class OpenInventoryPacket{
         });
     }
     public static void registerReceivePacket(){
-
         ServerPlayNetworking.registerGlobalReceiver(OPEN_INVENTORY, (server, player, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
             BlockPos pos = packetByteBuf.readBlockPos();
             RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, packetByteBuf.readIdentifier());

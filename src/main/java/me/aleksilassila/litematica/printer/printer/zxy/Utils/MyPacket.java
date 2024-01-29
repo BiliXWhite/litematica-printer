@@ -5,11 +5,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.network.PacketByteBuf;
 
 public class MyPacket {
-    /**
-     * Creates a packet byte buf that delegates its operations to the {@code
-     * parent} buf.
-     * parent the parent, or delegate, buf
-     */
     private final BlockState blockState;
     private final boolean isOpen;
     public MyPacket(BlockState blockState, boolean isOpen) {

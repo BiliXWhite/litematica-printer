@@ -11,6 +11,7 @@ import fi.dy.masa.malilib.config.options.ConfigStringList;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import net.fabricmc.api.ModInitializer;
 
@@ -23,7 +24,7 @@ public class LitematicaMixinMod implements ModInitializer {
 	public static final ConfigInteger PRINTING_RANGE = new ConfigInteger("printingRange", 3,     1,   20,   "Printing block place range\nLower values are recommended for servers.");
 	//    public static final ConfigBoolean PRINT_WATER    = new ConfigBoolean("printWater",    false, "Whether or not the printer should place water\n source blocks or make blocks waterlogged.");
 	public static final ConfigBoolean PRINT_IN_AIR = new ConfigBoolean("printInAir",    true, "Whether or not the printer should place blocks without anything to build on.\nBe aware that some anti-cheat plugins might notice this.");
-	public static final ConfigBoolean PRINT_MODE 	 = new ConfigBoolean("printingMode",  false, "Autobuild / print loaded selection.\nBe aware that some servers and anticheat plugins do not allow printing.");
+	public static final ConfigBoolean PRINT_MODE = new ConfigBoolean("printingMode",  false, "Autobuild / print loaded selection.\nBe aware that some servers and anticheat plugins do not allow printing.");
 	public static final ConfigBoolean REPLACE_FLUIDS = new ConfigBoolean("replaceFluids", false, "Whether or not fluid source blocks should be replaced by the printer.");
 	public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean("stripLogs", false, "Whether or not the printer should use normal logs if stripped\nversions are not available and then strip them with an axe.");
 	public static boolean shouldPrintInAir = PRINT_IN_AIR.getBooleanValue();
@@ -40,9 +41,6 @@ public class LitematicaMixinMod implements ModInitializer {
 	public static final ConfigStringList INVENTORY_LIST = new ConfigStringList("库存白名单", ImmutableList.of("minecraft:chest"), "");
 	public static final ConfigHotkey TEST = new ConfigHotkey("test", "V", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "");
 
-//	public static final ConfigStringList BLOCKS = new ConfigStringList("排流体的方块",ImmutableList.of("minecraft:sand"), "先择排流体的方块");
-
-
 	public static ImmutableList<IConfigBase> getConfigList() {
 		List<IConfigBase> list = new java.util.ArrayList<>(Configs.Generic.OPTIONS);
 		list.add(PRINT_MODE);
@@ -55,14 +53,13 @@ public class LitematicaMixinMod implements ModInitializer {
 		list.add(BEDROCK);
 		list.add(EXCAVATE);
 		list.add(FLUID_BLOCK_LIST);
-		list.add(INVENTORY_LIST);
+		if(Statistics.loadChestTracker) list.add(INVENTORY_LIST);
 		list.add(TEST);
-//		list.add(BLOCKS);
 		list.add(0, SKIP);
-//		list.add(0,NO_FACING);
 		list.add(0, FLUID);
-		list.add(0, QUICKSHULKER);
-		list.add(0, INVENTORY);
+
+		if(Statistics.loadQuickShulker) list.add(0, QUICKSHULKER);
+		if(Statistics.loadChestTracker) list.add(0, INVENTORY);
 
 		return ImmutableList.copyOf(list);
 	}
@@ -85,9 +82,9 @@ public class LitematicaMixinMod implements ModInitializer {
 		list.add(TOGGLE_PRINTING_MODE);
 		list.add(BEDROCK_MODE);
 		list.add(EXE_MODE);
-		list.add(PRINTER_INVENTORY);
+		if(Statistics.loadChestTracker) list.add(PRINTER_INVENTORY);
 		list.add(SYNC_INVENTORY);
-		list.add(REVISION_PRINT);
+		if(Statistics.loadChestTracker) list.add(REVISION_PRINT);
 		list.add(TEST);
 
 		return ImmutableList.copyOf(list);
@@ -96,6 +93,7 @@ public class LitematicaMixinMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		OpenInventoryPacket.registerReceivePacket();
+		OpenInventoryPacket.registerClientReceivePacket();
 		MemoryUtils.setup();
 		TOGGLE_PRINTING_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(PRINT_MODE));
 		BEDROCK_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(BEDROCK));

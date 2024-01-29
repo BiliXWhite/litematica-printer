@@ -5,6 +5,7 @@ import fi.dy.masa.malilib.util.ItemType;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
@@ -245,5 +246,8 @@ public class ZxyUtils {
                 return;
             }
         }
+    }
+    public static boolean isLoadMod(String modId){
+        return FabricLoader.getInstance().isModLoaded(modId);
     }
 }
