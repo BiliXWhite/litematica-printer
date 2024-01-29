@@ -138,6 +138,14 @@ publishing {
 		// 发布的名称，可以修改为自己的命名
 		maven(MavenPublication) {
 			from components.java
+
+			// add all the jars that should be included when publishing to maven
+			artifact(remapJar) {
+				builtBy remapJar
+			}
+			artifact(sourcesJar) {
+				builtBy remapSourcesJar
+			}
 			// 发布的groupId
 //			groupId 'com.zxy'
 //			// 发布的artifactId
