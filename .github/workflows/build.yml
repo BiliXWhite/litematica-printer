@@ -16,7 +16,7 @@ jobs:
     # ...
     permissions:
       contents: write
-    runs-on:
+    runs-on: ubuntu-latest
     steps:
       - uses: Kir-Antipov/mc-publish@v3.3
         with:
