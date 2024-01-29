@@ -40,7 +40,7 @@ jobs:
         run: ./gradlew clean build
 
       - name: Publish (CurseForge/Modrinth/GitHub)
-        uses: Kir-Antipov/mc-publish
+        uses: Kir-Antipov/mc-publish@3.3.0
         with:
 #          curseforge-id: 123456
 #          curseforge-token: "${{env.CURSEFORGE_TOKEN}}"
