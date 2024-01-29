@@ -48,7 +48,7 @@ jobs:
 #          modrinth-id: 1q2w3e4r
 #          modrinth-token: "${{env.MODRINTH_TOKEN}}"
 
-#          github-tag: "v${{env.VERSION}}"
+          github-tag: "v${{env.VERSION}}"
           github-token: "${{env.GITHUB_TOKEN}}"
 
           name: "${{env.RELEASE_NAME}}"
