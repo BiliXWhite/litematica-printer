@@ -1,8 +1,0 @@
-v1	named	intermediary
-FIELD	me/aleksilassila/litematica/printer/mixin/ClientPlayNetworkHandlerMixin	Lnet/minecraft/network/ClientConnection;	connection	field_3689
-FIELD	me/aleksilassila/litematica/printer/mixin/ClientPlayNetworkHandlerMixin	Lnet/minecraft/client/MinecraftClient;	client	field_3690
-FIELD	me/aleksilassila/litematica/printer/mixin/MixinClientPlayerEntity	Lnet/minecraft/client/MinecraftClient;	client	field_3937
-FIELD	me/aleksilassila/litematica/printer/mixin/MixinClientPlayerInteractionManager	Lnet/minecraft/client/MinecraftClient;	client	field_3712
-METHOD	me/aleksilassila/litematica/printer/mixin/ClientPlayNetworkHandlerMixin	(Lnet/minecraft/network/Packet;)V	sendPacket	method_2883
-METHOD	me/aleksilassila/litematica/printer/mixin/MixinClientPlayerInteractionManager	(Lnet/minecraft/client/network/ClientPlayerEntity;Lnet/minecraft/client/world/ClientWorld;Lnet/minecraft/util/Hand;Lnet/minecraft/util/hit/BlockHitResult;)Lnet/minecraft/util/ActionResult;	interactBlock	method_2896
-METHOD	me/aleksilassila/litematica/printer/mixin/MixinClientPlayerInteractionManager	(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/world/World;Lnet/minecraft/util/Hand;)Lnet/minecraft/util/ActionResult;	interactItem	method_2919
