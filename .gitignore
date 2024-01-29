@@ -10,3 +10,4 @@ build.number
 .idea/
 .DS_Store
 /run/
+/build/

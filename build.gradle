@@ -1,6 +1,7 @@
 plugins {
 	id 'fabric-loom' version '1.5-SNAPSHOT'
 	id 'maven-publish'
+	id 'java'
 }
 
 version = project.mod_version
@@ -109,14 +110,14 @@ processResources {
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 17
 }
-
+var date = project.minecraft_version +"-"+new Date().format("yyyyMMdd", TimeZone.getTimeZone("GMT+08:00"))
 java {
 	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
 	// if it is present.
 	// If you remove this line, sources will not be generated.
 	// 不能带中文 可恶啊
 //	archivesBaseName = "[投影打印机_宅闲鱼二改版]"+project.archives_base_name+new Date().format("yyyyMMdd", TimeZone.getTimeZone("GMT+08:00"))
-	archivesBaseName = project.archives_base_name+"-"+ project.minecraft_version +"-"+new Date().format("yyyyMMdd", TimeZone.getTimeZone("GMT+08:00"))
+	archivesBaseName = project.archives_base_name+"-"+ date
 	withSourcesJar()
 
 	sourceCompatibility = JavaVersion.VERSION_17
@@ -140,45 +141,39 @@ publishing {
 			from components.java
 
 			// add all the jars that should be included when publishing to maven
-			artifact(remapJar) {
-				builtBy remapJar
-			}
-			artifact(sourcesJar) {
-				builtBy remapSourcesJar
-			}
+
 			// 发布的groupId
-//			groupId 'com.zxy'
-//			// 发布的artifactId
-//			artifactId 'litematica_printer'
-//			// 发布的版本号
-//			version project.mod_version
-//
-//			artifact("$buildDir/libs/${archivesBaseName}"+"-"+project.mod_version+".jar"){
-//				classifier 'repackaged'
-//			}
-//
-//			// 发布的Pom文件
-//			pom {
-//				name = 'litematica_printer'
-//				description = ''
-//				// 当前项目网站
-//				url = 'https://example.com'
-//				// 发布的开源协议（也可以不添加）
-//				licenses {
-//					license {
-//						name = 'Apache-2.0'
-//						url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-//					}
-//				}
-//				// 项目的开发者信息
-//				developers {
-//					developer {
-//						id = 'litematica_printer'
-//						name = 'litematica_printer'
-//						email = 'developer@example.com'
-//					}
-//				}
-//			}
+			groupId 'com.zxy'
+			// 发布的artifactId
+			artifactId 'litematica_printer'
+			// 发布的版本号
+			version date-project.mod_version
+			artifact("$buildDir/libs/${archivesBaseName}"+"-"+project.mod_version+".jar"){
+				classifier 'repackaged'
+			}
+
+			// 发布的Pom文件
+			pom {
+				name = 'litematica_printer'
+				description = ''
+				// 当前项目网站
+				url = ''
+				// 发布的开源协议（也可以不添加）
+				licenses {
+					license {
+						name = 'Apache-2.0'
+						url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+					}
+				}
+				// 项目的开发者信息
+				developers {
+					developer {
+						id = 'litematica_printer'
+						name = 'litematica_printer'
+						email = 'developer@example.com'
+					}
+				}
+			}
 		}
 	}
 
@@ -192,21 +187,21 @@ publishing {
 
 	// 发布的仓库
 	repositories {
-		// 发布到本地 Maven 仓库，可用于在本地测试发布
-//		maven {
-//			name = 'local'
-//			url = uri("$buildDir/repo")
-//		}
-//		// 发布到 Github Releases
-//		maven {
-//			name = 'github'
-//			// Github API 地址
-//			url = uri('https://maven.pkg.github.com/zhaixianyu/litematica-printer')
-//			// 认证信息，通过 Github Personal Access Token 进行认证
-//			credentials {
-//				username = project.findProperty('gpr.user') ?: System.getenv('GITHUB_ACTOR')
-//				password = project.findProperty('gpr.key') ?: System.getenv('GITHUB_TOKEN')
-//			}
-//		}
+//		 发布到本地 Maven 仓库，可用于在本地测试发布
+		maven {
+			name = 'local'
+			url = uri("$buildDir/repo")
+		}
+		// 发布到 Github Releases
+		maven {
+			name = 'github'
+			// Github API 地址
+			url = uri('https://maven.pkg.github.com/zhaixianyu/litematica-printer')
+			// 认证信息，通过 Github Personal Access Token 进行认证
+			credentials {
+				username = project.findProperty('gpr.user') ?: System.getenv('GITHUB_ACTOR')
+				password = project.findProperty('gpr.key') ?: System.getenv('GITHUB_TOKEN')
+			}
+		}
 	}
 }
