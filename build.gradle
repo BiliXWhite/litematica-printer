@@ -1,10 +1,11 @@
+import groovy.json.JsonSlurper
+
 plugins {
 	id 'fabric-loom' version '1.5-SNAPSHOT'
 	id 'maven-publish'
 	id 'java'
 }
-
-version = project.mod_version
+version = project.minecraft_version+"-"+project.mod_version+"+"+ new Date().format("yyyyMMdd", TimeZone.getTimeZone("GMT+08:00"))
 group = project.maven_group
 
 base {
@@ -51,11 +52,11 @@ repositories {
 		name = 'Xander Maven'
 		url = 'https://maven.isxander.dev/releases'
 	}
+//	maven{
+//		url = uri"https://maven.pkg.github.com/zhaixianyu/litematica-printer"
+//	}
 	//拼音搜索
 	maven { url = "https://mvnrepository.com/artifact/com.belerweb/pinyin4j" }
-//	flatDir{
-//		dirs "C:\\game\\Minecraft\\MyMod\\remote-inventory-01\\build\\libs"
-//	}
 	// Add repositories to retrieve artifacts from in here.
 	// You should only use this when depending on other mods because
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
@@ -91,33 +92,33 @@ dependencies {// To change the versions see the gradle.properties file
 //	modImplementation "maven.modrinth:chest-tracker:${project.chesttracker_version}"
 
 	modImplementation ("com.blamejared.searchables:Searchables-fabric-${project.searchables_version}")
+	//test
+//	modImplementation ("com.github.YingChengxi:YChengxi:1.18.2-0.0.5-2")
 
-//	modImplementation ("C:\\game\\Minecraft\\MyMod\\remote-inventory-01\\build\\libs\\remote-inventory-1.20.2-1.2.jar")
-//	modImplementation include("libs:remote-inventory:1.20.2-1.2")
+
 
 	//拼音搜索
 	implementation include(group: 'com.belerweb', name: 'pinyin4j', version: '2.5.1')
 }
 
 processResources {
-	inputs.property "version", project.version
+	inputs.property "version", version
 
 	filesMatching("fabric.mod.json") {
-		expand "version": project.version
+		expand "version": version
 	}
 }
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 17
 }
-var date = project.minecraft_version +"-"+new Date().format("yyyyMMdd", TimeZone.getTimeZone("GMT+08:00"))
+var jarName
 java {
 	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
 	// if it is present.
 	// If you remove this line, sources will not be generated.
-	// 不能带中文 可恶啊
-//	archivesBaseName = "[投影打印机_宅闲鱼二改版]"+project.archives_base_name+new Date().format("yyyyMMdd", TimeZone.getTimeZone("GMT+08:00"))
-	archivesBaseName = project.archives_base_name+"-"+ date
+	archivesBaseName = project.archives_base_name
+	jarName = archivesBaseName+"-"+version
 	withSourcesJar()
 
 	sourceCompatibility = JavaVersion.VERSION_17
@@ -138,23 +139,21 @@ publishing {
 	publications {
 		// 发布的名称，可以修改为自己的命名
 		maven(MavenPublication) {
-			from components.java
 
 			// add all the jars that should be included when publishing to maven
-
 			// 发布的groupId
 			groupId 'com.zxy'
 			// 发布的artifactId
 			artifactId 'litematica_printer'
 			// 发布的版本号
-			version date-project.mod_version
-			artifact("$buildDir/libs/${archivesBaseName}"+"-"+project.mod_version+".jar"){
+			version version
+			artifact("$buildDir/libs/${archivesBaseName}"+"-"+version+".jar"){
 				classifier 'repackaged'
 			}
-
+			from components.java
 			// 发布的Pom文件
 			pom {
-				name = 'litematica_printer'
+				name = 'litematica-printer'
 				description = ''
 				// 当前项目网站
 				url = ''
@@ -176,15 +175,6 @@ publishing {
 			}
 		}
 	}
-
-	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-//	repositories {
-//		// Add repositories to publish to here.
-//		// Notice: This block does NOT have the same function as the block in the top level.
-//		// The repositories here will be used for publishing your artifact, not for
-//		// retrieving dependencies.
-//	}
-
 	// 发布的仓库
 	repositories {
 //		 发布到本地 Maven 仓库，可用于在本地测试发布
@@ -192,7 +182,7 @@ publishing {
 			name = 'local'
 			url = uri("$buildDir/repo")
 		}
-		// 发布到 Github Releases
+
 		maven {
 			name = 'github'
 			// Github API 地址
@@ -203,5 +193,83 @@ publishing {
 				password = project.findProperty('gpr.key') ?: System.getenv('GITHUB_TOKEN')
 			}
 		}
+	}
+}
+
+task writeReleaseNotes {
+	doLast {
+		// 将 release notes 写到文件中
+		def notes = 'RELEASE NOTES'
+		file('releaseNotes.txt').write(notes)
+
+	}
+}
+
+def releaseVersion = version // 这里使用版本号作为 release 的 tag 名称
+// 发布到 Github Releases
+task createGitHubRelease(type: Exec/*, dependsOn: ['publish', 'writeReleaseNotes']*/) {
+	if (System.getenv("GITHUB_TOKEN") == null) {
+		logger.error("No GITHUB_TOKEN defined!")
+		logger.error("You can define GITHUB_TOKEN in the project environment variables or run with `GITHUB_TOKEN=xxx ./gradlew task`")
+		throw new StopExecutionException("No GITHUB_TOKEN defined")
+	}
+	def releaseUrl = "https://api.github.com/repos/zhaixianyu/litematica-printer/releases"
+	def releaseNotes = new File("$project.projectDir/releaseNotes.txt").text.trim()
+
+//	commandLine 'curl', '-H', 'Authorization: token ' + System.getenv('GITHUB_TOKEN'), '-H', 'Content-Type: application/json', '-d', "{\\\"tag_name\\\": \\\"$releaseVersion\\\",\\\"name\\\": \\\"$releaseVersion\\\",\\\"body\\\": \\\"${releaseNotes.replaceAll("\n", "\\\\n")}\\\"}", releaseUrl
+	commandLine 'curl', '--insecure', '-H', 'Authorization: token ' + System.getenv('GITHUB_TOKEN'), '-H', 'Content-Type: application/json', '-d', "{\\\"tag_name\\\": \\\"$releaseVersion\\\",\\\"name\\\": \\\"$releaseVersion\\\",\\\"body\\\": \\\"${releaseNotes.replaceAll("\n", "\\\\n")}\\\"}", releaseUrl
+}
+
+task uploadGitHubReleaseAsset(/*dependsOn: ['createGitHubRelease']*/) {
+	doLast {
+		if (System.getenv("GITHUB_TOKEN") == null) {
+			throw new GradleException("No GITHUB_TOKEN defined")
+		}
+
+		def tagName = "v$version" // 这里假定您知道想要上传到的 Release 的标签
+		def releaseId = getReleaseIdByTag(tagName)
+		if (releaseId == null) {
+			println("Failed to obtain Release ID for tag: $tagName")
+			return
+		}
+
+		def jarPath = "$project.buildDir/libs/$jarName"+".jar"
+		def jarName01 = jarPath.split("/").last()
+		println "==================="
+		def uploadUrl = "https://uploads.github.com/repos/zhaixianyu/litematica-printer/releases/$releaseId/assets?name=${jarName}"
+		def adjustedUploadUrl = uploadUrl.replace("$version", "$version").replace("{?name,label}", "?name=$jarName01")
+
+		def command = "curl -H \"Authorization: token ${System.getenv('GITHUB_TOKEN')}\" -H \"Content-Type: application/octet-stream\" --data-binary @\"${jarPath}\" \"${adjustedUploadUrl}\""
+		println command // 打印命令以供检查
+		command.execute().text.trim()
+
+		def processBuilder = new ProcessBuilder([
+				"curl", "-H", "Authorization: token ${System.getenv('GITHUB_TOKEN')}", "-H", "Content-Type: application/octet-stream", "--data-binary", "@${jarPath}", adjustedUploadUrl
+		])
+		processBuilder.redirectErrorStream(true)
+		def process = processBuilder.start()
+		println process.text
+	}
+}
+def getReleaseIdByTag(String tag) {
+	def token = System.getenv('GITHUB_TOKEN')
+	if (token == null) {
+		throw new GradleException('No GITHUB_TOKEN defined')
+	}
+
+	def url = new URL("https://api.github.com/repos/zhaixianyu/litematica-printer/releases/tags/$tag")
+	def connection = url.openConnection()
+	connection.setRequestProperty('Authorization', "token $token")
+//	println "==========="
+//	println connection
+	connection.connect()
+
+	if (connection.responseCode == 200) {
+		def jsonSlurper = new JsonSlurper()
+		def response = jsonSlurper.parseText(connection.content.text)
+		return response.id
+	} else {
+		println "Failed to fetch release id: ${connection.responseMessage}"
+		return null
 	}
 }
