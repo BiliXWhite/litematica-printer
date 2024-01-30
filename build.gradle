@@ -207,7 +207,7 @@ task writeReleaseNotes {
 
 def releaseVersion = version // 这里使用版本号作为 release 的 tag 名称
 // 发布到 Github Releases
-task createGitHubRelease(type: Exec/*, dependsOn: ['publish', 'writeReleaseNotes']*/) {
+task createGitHubRelease(type: Exec, dependsOn: ['publish', 'writeReleaseNotes']) {
 	if (System.getenv("GITHUB_TOKEN") == null) {
 		logger.error("No GITHUB_TOKEN defined!")
 		logger.error("You can define GITHUB_TOKEN in the project environment variables or run with `GITHUB_TOKEN=xxx ./gradlew task`")
@@ -220,37 +220,37 @@ task createGitHubRelease(type: Exec/*, dependsOn: ['publish', 'writeReleaseNotes
 	commandLine 'curl', '--insecure', '-H', 'Authorization: token ' + System.getenv('GITHUB_TOKEN'), '-H', 'Content-Type: application/json', '-d', "{\\\"tag_name\\\": \\\"$releaseVersion\\\",\\\"name\\\": \\\"$releaseVersion\\\",\\\"body\\\": \\\"${releaseNotes.replaceAll("\n", "\\\\n")}\\\"}", releaseUrl
 }
 
-task uploadGitHubReleaseAsset(/*dependsOn: ['createGitHubRelease']*/) {
+
+//task uploadGitHubReleaseAsset(dependsOn: ['createGitHubRelease']) {
+task uploadGitHubReleaseAsset() {
 	doLast {
 		if (System.getenv("GITHUB_TOKEN") == null) {
 			throw new GradleException("No GITHUB_TOKEN defined")
 		}
-
-		def tagName = "v$version" // 这里假定您知道想要上传到的 Release 的标签
+		def tagName = "$version"
 		def releaseId = getReleaseIdByTag(tagName)
 		if (releaseId == null) {
 			println("Failed to obtain Release ID for tag: $tagName")
 			return
 		}
-
+		def jarNameFixed = "${jarName}"+".jar"
 		def jarPath = "$project.buildDir/libs/$jarName"+".jar"
-		def jarName01 = jarPath.split("/").last()
-		println "==================="
-		def uploadUrl = "https://uploads.github.com/repos/zhaixianyu/litematica-printer/releases/$releaseId/assets?name=${jarName}"
-		def adjustedUploadUrl = uploadUrl.replace("$version", "$version").replace("{?name,label}", "?name=$jarName01")
+		def jarPath1 = "$project.buildDir/libs/$jarName"+"-sources.jar"
 
-		def command = "curl -H \"Authorization: token ${System.getenv('GITHUB_TOKEN')}\" -H \"Content-Type: application/octet-stream\" --data-binary @\"${jarPath}\" \"${adjustedUploadUrl}\""
-		println command // 打印命令以供检查
-		command.execute().text.trim()
-
-		def processBuilder = new ProcessBuilder([
-				"curl", "-H", "Authorization: token ${System.getenv('GITHUB_TOKEN')}", "-H", "Content-Type: application/octet-stream", "--data-binary", "@${jarPath}", adjustedUploadUrl
-		])
-		processBuilder.redirectErrorStream(true)
-		def process = processBuilder.start()
-		println process.text
+		uploadAsset(releaseId,jarPath,jarNameFixed)
+		uploadAsset(releaseId,jarPath1,"${jarName}"+"-sources.jar")
 	}
 }
+
+def uploadAsset(releaseId, filePath, fileName) {
+	//Windows环境下，路径中的空格会导致命令执行失败，需要对整个路径进行引号处理
+	def fixedFilePath = "\"${filePath}\""
+	def uploadUrl = "https://uploads.github.com/repos/zhaixianyu/litematica-printer/releases/${releaseId}/assets?name=${fileName}"
+	def commandString = "curl -H \"Authorization: token ${System.getenv('GITHUB_TOKEN')}\" -H \"Content-Type: application/octet-stream\" --data-binary @${fixedFilePath} \"${uploadUrl}\""
+	def output = commandString.execute().text
+	println "Upload output: $output"
+}
+
 def getReleaseIdByTag(String tag) {
 	def token = System.getenv('GITHUB_TOKEN')
 	if (token == null) {
@@ -261,7 +261,7 @@ def getReleaseIdByTag(String tag) {
 	def connection = url.openConnection()
 	connection.setRequestProperty('Authorization', "token $token")
 //	println "==========="
-//	println connection
+	println connection
 	connection.connect()
 
 	if (connection.responseCode == 200) {
