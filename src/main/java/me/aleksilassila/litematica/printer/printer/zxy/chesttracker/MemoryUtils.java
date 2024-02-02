@@ -92,9 +92,7 @@ public class MemoryUtils {
     public static void saveMemory(ScreenHandler sc){
         if(PRINTER_MEMORY != null && printerMemoryAdding || Printer.printerMemorySync)
             save(sc , PRINTER_MEMORY);
-        if(MemoryBank.INSTANCE != null && OpenInventoryPacket.key != null &&
-                //在当前选择库存为打印机库存的情况下避免重复保存，
-                !MemoryBank.INSTANCE.equals(PRINTER_MEMORY))
+        if(MemoryBank.INSTANCE != null && OpenInventoryPacket.key != null)
             save(sc , MemoryBank.INSTANCE);
         Printer.printerMemorySync = false;
         OpenInventoryPacket.key = null;

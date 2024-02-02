@@ -14,10 +14,7 @@ import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionMa
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.mixin.masa.Litematica_InventoryUtilsMixin;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.*;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 import net.fabricmc.loader.api.FabricLoader;
@@ -332,9 +329,10 @@ public class Printer extends PrinterUtils {
         if (!items2.isEmpty() && !isOpenHandler && !openIng) {
             ClientPlayerEntity player = client.player;
             ScreenHandler sc = player.currentScreenHandler;
-            if (!player.currentScreenHandler.equals(player.playerScreenHandler)) player.closeHandledScreen();
+            if (!player.currentScreenHandler.equals(player.playerScreenHandler)) return false;
+            //排除合成栏 装备栏 副手
             if (sc.slots.stream().skip(9).limit(sc.slots.size() - 10).noneMatch(slot -> slot.getStack().isEmpty())
-                    && LitematicaMixinMod.QUICKSHULKER.getBooleanValue() || LitematicaMixinMod.INVENTORY.getBooleanValue()) {
+                    && (LitematicaMixinMod.QUICKSHULKER.getBooleanValue() || LitematicaMixinMod.INVENTORY.getBooleanValue())) {
                 SwitchItem.checkItems();
                 return true;
             }
@@ -345,6 +343,7 @@ public class Printer extends PrinterUtils {
                     MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
                     MemoryUtils.itemStack = new ItemStack(item);
                     if (SearchItem.search(true)) {
+                        Statistics.closeScreen++;
                         isOpenHandler = true;
                         printerMemorySync = true;
                         return true;

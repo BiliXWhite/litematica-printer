@@ -94,6 +94,11 @@
   "chesttracker.gui.editMemoryBank.search.itemListRange": "物品列表范围：%s",
   "chesttracker.gui.editMemoryBank.search.itemListRange.tooltip": "物品列表将显示的最大距离（以方块为单位）。",
   "chesttracker.gui.editMemoryBank.search.searchRange": "搜索范围：%s",
+  "chesttracker.gui.editMemoryBank.search.stackMergeMode": "堆叠合并模式",
+  "chesttracker.gui.editMemoryBank.search.stackMergeMode.tooltip": "容器中不同物品堆叠如何合并并在物品列表中显示。",
+  "chesttracker.gui.editMemoryBank.search.stackMergeMode.all": "全部合并",
+  "chesttracker.gui.editMemoryBank.search.stackMergeMode.withinContainers": "容器内",
+  "chesttracker.gui.editMemoryBank.search.stackMergeMode.never": "从不合并",
 
   "chesttracker.gui.editMemoryKeys": "编辑库存清单键",
   "chesttracker.gui.editMemoryKeys.hint": "库存清单键",
@@ -144,5 +149,7 @@
   "chesttracker.config.compatibility.shulkerboxtooltip": "Shulker Box Tooltip 集成",
   "chesttracker.config.compatibility.shulkerboxtooltip.description": "Chest Tracker 用自己的客户端预览替换 Shulker Box Tooltip 的服务器端预览功能，从当前库存清单中读取。适用于没有安装 Shulker Box Tooltip 的 Realms 和服务器。",
   "chesttracker.config.compatibility.wthit": "WTHIT 集成",
-  "chesttracker.config.compatibility.wthit.description": "允许使用当前库存清单在 WTHIT 中显示高亮。在 WTHIT 的插件管理器中还有其他设置。"
+  "chesttracker.config.compatibility.wthit.description": "允许使用当前库存清单在 WTHIT 中显示高亮。在 WTHIT 的插件管理器中还有其他设置。",
+  "chesttracker.config.searchables.required": "需要 Searchables。",
+  "chesttracker.config.searchables.notInstalled": "未加载 Searchables。"
 }

@@ -4,6 +4,7 @@
   "package": "me.aleksilassila.litematica.printer.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
+    "jackf.SearchRequestMixin",
     "masa.Litematica_InventoryUtilsMixin",
     "masa.MixinInventoryUtils",
     "openinv.MixinGenericContainerScreenHandler",

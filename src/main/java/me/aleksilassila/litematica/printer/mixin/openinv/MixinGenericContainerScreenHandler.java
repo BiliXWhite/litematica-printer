@@ -14,8 +14,11 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 public class MixinGenericContainerScreenHandler {
     @Inject(at = @At("HEAD"), method = "onClosed",cancellable = true,locals = LocalCapture.CAPTURE_FAILHARD)
     public void onClosed(PlayerEntity player, CallbackInfo ci) {
+        if(!(player instanceof ServerPlayerEntity)) return;
         for (ServerPlayerEntity player1 : OpenInventoryPacket.playerlist) {
-            if(player.equals(player1)) ci.cancel();
+            if (player.equals(player1)) {
+                ci.cancel();
+            }
         }
     }
 }

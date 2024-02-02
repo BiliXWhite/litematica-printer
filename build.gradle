@@ -207,7 +207,8 @@ task writeReleaseNotes {
 
 def releaseVersion = version // 这里使用版本号作为 release 的 tag 名称
 // 发布到 Github Releases
-task createGitHubRelease(type: Exec, dependsOn: ['publish', 'writeReleaseNotes']) {
+//task createGitHubRelease(type: Exec, dependsOn: ['publish', 'writeReleaseNotes']) {
+task createGitHubRelease(type: Exec) {
 	if (System.getenv("GITHUB_TOKEN") == null) {
 		logger.error("No GITHUB_TOKEN defined!")
 		logger.error("You can define GITHUB_TOKEN in the project environment variables or run with `GITHUB_TOKEN=xxx ./gradlew task`")
@@ -217,12 +218,12 @@ task createGitHubRelease(type: Exec, dependsOn: ['publish', 'writeReleaseNotes']
 	def releaseNotes = new File("$project.projectDir/releaseNotes.txt").text.trim()
 
 //	commandLine 'curl', '-H', 'Authorization: token ' + System.getenv('GITHUB_TOKEN'), '-H', 'Content-Type: application/json', '-d', "{\\\"tag_name\\\": \\\"$releaseVersion\\\",\\\"name\\\": \\\"$releaseVersion\\\",\\\"body\\\": \\\"${releaseNotes.replaceAll("\n", "\\\\n")}\\\"}", releaseUrl
-	commandLine 'curl', '--insecure', '-H', 'Authorization: token ' + System.getenv('GITHUB_TOKEN'), '-H', 'Content-Type: application/json', '-d', "{\\\"tag_name\\\": \\\"$releaseVersion\\\",\\\"name\\\": \\\"$releaseVersion\\\",\\\"body\\\": \\\"${releaseNotes.replaceAll("\n", "\\\\n")}\\\"}", releaseUrl
+	commandLine 'curl', '--insecure', '-H', 'Authorization: token ' + System.getenv('GITHUB_TOKEN'), '-H', 'Content-Type: application/json', '-d', "{\\\"tag_name\\\": \\\"$version\\\",\\\"name\\\": \\\"$version\\\",\\\"body\\\": \\\"${releaseNotes.replaceAll("\n", "\\\\n")}\\\"}", releaseUrl
 }
 
 
-//task uploadGitHubReleaseAsset(dependsOn: ['createGitHubRelease']) {
-task uploadGitHubReleaseAsset() {
+task uploadGitHubReleaseAsset(dependsOn: ['createGitHubRelease']) {
+//task uploadGitHubReleaseAsset() {
 	doLast {
 		if (System.getenv("GITHUB_TOKEN") == null) {
 			throw new GradleException("No GITHUB_TOKEN defined")
@@ -262,6 +263,7 @@ def getReleaseIdByTag(String tag) {
 	connection.setRequestProperty('Authorization', "token $token")
 //	println "==========="
 	println connection
+	//如果下面这行报错 通常是连不上github 请使用海克斯科技
 	connection.connect()
 
 	if (connection.responseCode == 200) {
