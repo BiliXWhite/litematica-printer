@@ -46,6 +46,7 @@ import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST;
@@ -56,6 +57,7 @@ import static me.aleksilassila.litematica.printer.printer.Printer.TempData.min;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem.reSwitchItem;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.getPrinterRange;
 
 ;
 
@@ -133,6 +135,7 @@ public class Printer extends PrinterUtils {
     private final MinecraftClient client;
     public final PlacementGuide guide;
     public final Queue queue;
+    public int range;
 
     int tick = 0;
 
@@ -170,13 +173,13 @@ public class Printer extends PrinterUtils {
         - rotating blocks (signs, skulls)
      */
     void fluidMode(TempData data) {
-        int range = LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
 
         for (int y = range; y > -range - 1; y--) {
             for (int x = -range; x < range + 1; x++) {
                 for (int z = -range; z < range + 1; z++) {
                     BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
                     BlockState currentState = data.world.getBlockState(pos);
+                    if (client.player != null && client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(pos)) > range * range) continue;
                     if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
                     if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
                     if (currentState.getFluidState().isOf(Fluids.LAVA) || currentState.getFluidState().isOf(Fluids.WATER)) {
@@ -209,12 +212,13 @@ public class Printer extends PrinterUtils {
     }
 
     void miningMode(TempData data) {
+        int range = getPrinterRange();
         for (int y = range; y > -range - 1; y--) {
             for (int x = -range; x < range + 1; x++) {
                 for (int z = -range; z < range + 1; z++) {
                     BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
+                    if (client.player != null && client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(pos)) > range * range) continue;
                     if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
-//                    if (requiredState.isOf(Blocks.GLASS) && !currentState.isOf(Blocks.AIR) && !currentState.isOf(Blocks.BEDROCK)) {
                     if (TempData.xuanQuFanWeiNei_p(pos) && waJue(pos)) return;
                 }
             }
@@ -225,7 +229,6 @@ public class Printer extends PrinterUtils {
         MinecraftClient client = MinecraftClient.getInstance();
         ClientWorld world = client.world;
         BlockState currentState = world.getBlockState(pos);
-//                    if (requiredState.isOf(Blocks.GLASS) && !currentState.isOf(Blocks.AIR) && !currentState.isOf(Blocks.BEDROCK)) {
         if (
                 !currentState.isAir() &&
                         !currentState.isOf(Blocks.AIR) &&
@@ -234,6 +237,7 @@ public class Printer extends PrinterUtils {
                         !(currentState.getBlock().getHardness() == -1) &&
                         !(currentState.getBlock() instanceof FluidBlock) &&
                         !client.player.isBlockBreakingRestricted(client.world, pos, client.interactionManager.getCurrentGameMode()) &&
+
                         twBreakRestriction(currentState)
         ) {
             client.interactionManager.updateBlockBreakingProgress(pos, Direction.DOWN);
@@ -258,27 +262,28 @@ public class Printer extends PrinterUtils {
     }
 
 
+    //此模式依赖bug运行 请勿随意修改
     public void jymod(TempData data) {
-        int range = 3;
         BreakingFlowController.tick();
         int maxy = -9999;
+        int range = bedrockModeRange();
         for (int y = range; y > -range - 1; y--) {
             for (int x = -range; x < range + 1; x++) {
                 for (int z = -range; z < range + 1; z++) {
                     BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
+                    if (!ZxyUtils.bedrockCanInteracted(pos,range)) continue;
                     BlockState currentState = data.world.getBlockState(pos);
-//                    BlockState requiredState = data.worldSchematic.getBlockState(pos);
-
-//                    if (requiredState.isOf(Blocks.GLASS) && currentState.isOf(Blocks.BEDROCK)) {
-                    if (currentState.isOf(Blocks.PISTON) && !data.world.getBlockState(pos.down()).isOf(Blocks.BEDROCK)) {
-                        BreakingFlowController.poslist.add(pos);
+//                    if (currentState.isOf(Blocks.PISTON) && !data.world.getBlockState(pos.down()).isOf(Blocks.BEDROCK)) {
+                    if (currentState.isOf(Blocks.PISTON) && !bedrockModeTarget(data.world.getBlockState(pos.down()).getBlock())) {
+                        BreakingFlowController.addPosList(pos);
                     } else if (currentState.isOf(Blocks.PISTON_HEAD)) {
                         switchToItems(client.player, new Item[]{Items.AIR, Items.DIAMOND_PICKAXE});
                         ((IClientPlayerInteractionManager) client.interactionManager)
                                 .rightClickBlock(pos, Direction.UP, Vec3d.ofCenter(pos));
                     }
 
-                    if (TempData.xuanQuFanWeiNei_p(pos) && currentState.isOf(Blocks.BEDROCK) && pos.down().isWithinDistance(data.player.getPos(), 4f) && !client.world.getBlockState(pos.up()).isOf(Blocks.BEDROCK)) {
+//                    if (TempData.xuanQuFanWeiNei_p(pos) && currentState.isOf(Blocks.BEDROCK)  && ZxyUtils.canInteracted(pos,range-1.5) && !client.world.getBlockState(pos.up()).isOf(Blocks.BEDROCK)) {
+                    if (TempData.xuanQuFanWeiNei_p(pos) && bedrockModeTarget(currentState.getBlock()) && ZxyUtils.bedrockCanInteracted(pos,range-1.5) && !bedrockModeTarget(client.world.getBlockState(pos.up()).getBlock())) {
                         if (maxy == -9999) maxy = y;
                         if (y < maxy) return;
                         BreakingFlowController.addBlockPosToList(pos);
@@ -287,14 +292,19 @@ public class Printer extends PrinterUtils {
             }
         }
     }
+    public static int bedrockModeRange(){
+        return LitematicaMixinMod.RANGE_MODE.getOptionListValue() == State.ListType.SPHERE ? getPrinterRange() : 6;
+    }
+    public static boolean bedrockModeTarget(Block block){
+       return LitematicaMixinMod.BEDROCK_LIST.getStrings().stream().anyMatch(string -> Registries.BLOCK.getId(block).toString().contains(string));
+    }
 
     public boolean verify() {
         if (client.isInSingleplayer() && client.isRealmsEnabled()) return true;
         String address = null;
         try {
-            address = client.getCurrentServerEntry().address.split(":")[0];
+            address = Objects.requireNonNull(client.getCurrentServerEntry()).address.split(":")[0];
         } catch (Exception e) {
-            e.printStackTrace();
             return true;
         }
         if (Verify.getVerify() == null) {
@@ -305,7 +315,6 @@ public class Printer extends PrinterUtils {
         }
     }
 
-    public int range;
     int tickRate;
     boolean isFacing = false;
     Item[] item2 = null;
@@ -375,7 +384,7 @@ public class Printer extends PrinterUtils {
         ClientWorld world = client.world;
 
         tickRate = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();
-        range = LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
+        range = getPrinterRange();
         tick = tick == 0x7fffffff ? 0 : tick + 1;
 
         if (tickRate != 0) {
@@ -393,7 +402,7 @@ public class Printer extends PrinterUtils {
         if (isOpenHandler) return;
         if (switchItem()) return;
 
-        if (LitematicaMixinMod.BEDROCK.getBooleanValue()) {
+        if (LitematicaMixinMod.BEDROCK_SWITCH.getBooleanValue()) {
             jymod(data);
             return;
         }
@@ -415,6 +424,7 @@ public class Printer extends PrinterUtils {
                 for (int z = -range; z < range + 1; z++) {
                     BlockPos pos = pEntity.getBlockPos().north(x).west(z).up(y);
                     BlockState requiredState = worldSchematic.getBlockState(pos);
+                    if (client.player != null && client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(pos)) > range * range) continue;
                     PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
                     if (requiredState.isOf(Blocks.NETHER_PORTAL) ||
                             requiredState.isOf(Blocks.END_PORTAL)

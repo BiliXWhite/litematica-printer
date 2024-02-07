@@ -207,8 +207,8 @@ task writeReleaseNotes {
 
 def releaseVersion = version // 这里使用版本号作为 release 的 tag 名称
 // 发布到 Github Releases
-//task createGitHubRelease(type: Exec, dependsOn: ['publish', 'writeReleaseNotes']) {
-task createGitHubRelease(type: Exec) {
+task createGitHubRelease(type: Exec, dependsOn: ['publish', 'writeReleaseNotes']) {
+//task createGitHubRelease(type: Exec) {
 	if (System.getenv("GITHUB_TOKEN") == null) {
 		logger.error("No GITHUB_TOKEN defined!")
 		logger.error("You can define GITHUB_TOKEN in the project environment variables or run with `GITHUB_TOKEN=xxx ./gradlew task`")

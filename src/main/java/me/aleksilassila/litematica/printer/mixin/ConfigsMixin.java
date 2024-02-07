@@ -3,7 +3,6 @@ package me.aleksilassila.litematica.printer.mixin;
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.malilib.config.IConfigBase;
-import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -24,12 +23,12 @@ public class ConfigsMixin {
     }
     
     @Redirect(method = "loadFromFile", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Hotkeys;HOTKEY_LIST:Ljava/util/List;"))
-    private static List<ConfigHotkey> moreHotkeys() {
+    private static List<IConfigBase> moreHotkeys() {
         return LitematicaMixinMod.getHotkeyList();
     }
 
     @Redirect(method = "saveToFile", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Hotkeys;HOTKEY_LIST:Ljava/util/List;"))
-    private static List<ConfigHotkey> moreeHotkeys() {
+    private static List<IConfigBase> moreeHotkeys() {
         return LitematicaMixinMod.getHotkeyList();
     }
 }

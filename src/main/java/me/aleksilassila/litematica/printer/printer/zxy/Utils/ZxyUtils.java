@@ -4,6 +4,7 @@ import fi.dy.masa.malilib.util.InventoryUtils;
 import fi.dy.masa.malilib.util.ItemType;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Block;
@@ -25,6 +26,7 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -218,6 +220,13 @@ public class ZxyUtils {
             MemoryUtils.deletePrinterMemory();
             client.inGameHud.setOverlayMessage(Text.literal("打印机库存已清空"), false);
         }
+        if(LitematicaMixinMod.CLOSE_ALL_MODE.getKeybind().isPressed()){
+            LitematicaMixinMod.BEDROCK_SWITCH.setBooleanValue(false);
+            LitematicaMixinMod.EXCAVATE.setBooleanValue(false);
+            LitematicaMixinMod.FLUID.setBooleanValue(false);
+            LitematicaMixinMod.PRINT_MODE.setBooleanValue(false);
+            client.inGameHud.setOverlayMessage(Text.literal("已关闭全部模式"), false);
+        }
         for (BlockPos pos : syncPosList) {
 //            RenderUtils.FOUND_ITEM_POSITIONS.put(pos, new PositionData(pos, client.world.getTime(), VoxelShapes.fullCube(), 10, 10, 6, null));
         }
@@ -249,5 +258,20 @@ public class ZxyUtils {
     }
     public static boolean isLoadMod(String modId){
         return FabricLoader.getInstance().isModLoaded(modId);
+    }
+    public static boolean canInteracted(Vec3d d,double range){
+       return  client.player != null &&
+               d != null &&
+               LitematicaMixinMod.RANGE_MODE.getOptionListValue() == State.ListType.SPHERE &&
+               client.player.getEyePos().squaredDistanceTo(d) < range * range;
+    }
+    public static boolean canInteracted(BlockPos blockPos,double range){
+        return blockPos != null && canInteracted(Vec3d.ofCenter(blockPos),range);
+    }
+    public static boolean bedrockCanInteracted(BlockPos blockPos,double range){
+        return client.player != null && client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(blockPos)) < range* range;
+    }
+    public static int getPrinterRange(){
+        return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
     }
 }

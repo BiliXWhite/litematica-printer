@@ -1,14 +1,23 @@
 package me.aleksilassila.litematica.printer.printer.bedrockUtils;
 
 import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Items;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
+
+import static me.aleksilassila.litematica.printer.printer.Printer.bedrockModeRange;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.getPrinterRange;
 //import java.util.List;
 
 public class BreakingFlowController {
@@ -31,46 +40,68 @@ public class BreakingFlowController {
         if (cachedTargetBlockList.size() > 5) return;
 
         ClientWorld world = MinecraftClient.getInstance().world;
-        if (world.getBlockState(pos).isOf(Blocks.BEDROCK)) {
-            MinecraftClient minecraftClient = MinecraftClient.getInstance();
+//        if (world.getBlockState(pos).isOf(Blocks.BEDROCK)) {
+        MinecraftClient minecraftClient = MinecraftClient.getInstance();
 
-            String haveEnoughItems = InventoryManager.warningMessage();
-            if (haveEnoughItems != null) {
-                Messager.actionBar(haveEnoughItems);
+        String haveEnoughItems = InventoryManager.warningMessage();
+        if (haveEnoughItems != null) {
+            Messager.actionBar(haveEnoughItems);
+            return;
+        }
+        for (TargetBlock block : cachedTargetBlockList) {
+            if (pos.equals(block.getBlockPos()) || pos.equals(block.getnyk()) || pos.equals(block.geths()))
                 return;
-            }
-                for (TargetBlock block : cachedTargetBlockList) {
-                    if (pos.equals(block.getBlockPos()) || pos.equals(block.getnyk()) || pos.equals(block.geths()))
-                        return;
-                }
-                if (!minecraftClient.world.getBlockState(pos.up()).isOf(Blocks.AIR) || !minecraftClient.world.getBlockState(pos.up().up()).isOf(Blocks.AIR)) {
-                    if (!minecraftClient.world.getBlockState(pos.up()).isOf(Blocks.BEDROCK)) poslist.add(pos.up());
-                    if (!minecraftClient.world.getBlockState(pos.up().up()).isOf(Blocks.BEDROCK)) poslist.add(pos.up().up());
-                    return;
-                }
+        }
+        if (!minecraftClient.world.getBlockState(pos.up()).isOf(Blocks.AIR) || !minecraftClient.world.getBlockState(pos.up().up()).isOf(Blocks.AIR)) {
+            if (!Printer.bedrockModeTarget(minecraftClient.world.getBlockState(pos.up()).getBlock()))
+                addPosList(pos.up());
+            if (!Printer.bedrockModeTarget(minecraftClient.world.getBlockState(pos.up().up()).getBlock()))
+                addPosList(pos.up().up());
+            return;
+        }
 
-                cachedTargetBlockList.add(new TargetBlock(pos, world));
-                //Suggest also an english version, for debug reasons.
+        cachedTargetBlockList.add(new TargetBlock(pos, world));
+        //Suggest also an english version, for debug reasons.
 //                System.out.println("新任务");
-            }
+//            }
     }
 
     public static ArrayList<BlockPos> poslist = new ArrayList<>();
 
-    static void deleteBlock() {
+    public static void addPosList(BlockPos pos) {
+        if (poslist.stream().noneMatch(pos1 -> pos1.equals(pos))) poslist.add(pos);
+    }
 
+    static void deleteBlock() {
         for (int i = 0; i < poslist.size(); i++) {
-            if(MinecraftClient.getInstance().world.getBlockState(poslist.get(i)).isAir()){
+            BlockPos blockPos = poslist.get(i);
+
+            if (MinecraftClient.getInstance().world.getBlockState(blockPos).isAir() && ZxyUtils.bedrockCanInteracted(blockPos, bedrockModeRange())) {
+                InventoryManager.switchToItem(Items.DIAMOND_PICKAXE);
+                client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(blockPos), Direction.UP, poslist.get(i), false));
+                if (MinecraftClient.getInstance().world.getBlockState(blockPos).isAir()) {
+                    poslist.remove(i);
+                    i--;
+                    continue;
+                }
+            }
+            if (!ZxyUtils.bedrockCanInteracted(blockPos, bedrockModeRange() * 2)) {
                 poslist.remove(i);
+                i--;
                 continue;
             }
-            if (!blockInPlayerRange(poslist.get(i).down(), MinecraftClient.getInstance().player, 5f)) continue;
-//            if (Printer.getPrinter().wanJiaFanWeiNei(4, poslist.get(i))) continue;
-            if (poslist.get(i) != null && !MinecraftClient.getInstance().world.getBlockState(poslist.get(i)).isAir()){
+
+
+            Printer printer = Printer.getPrinter();
+            if (printer == null) return;
+            if (!ZxyUtils.bedrockCanInteracted(blockPos, bedrockModeRange())) continue;
+            if (!MinecraftClient.getInstance().world.getBlockState(blockPos).isAir()) {
 //                BlockBreaker.breakBlock(MinecraftClient.getInstance().world, poslist.get(i));
                 InventoryManager.switchToItem(Items.DIAMOND_PICKAXE);
-                Printer.waJue(poslist.get(i));
+                Printer.waJue(blockPos);
             }
+
+
         }
     }
 
@@ -82,13 +113,11 @@ public class BreakingFlowController {
         }
 
         MinecraftClient minecraftClient = MinecraftClient.getInstance();
-        PlayerEntity player = minecraftClient.player;
         for (int i = 0; i < cachedTargetBlockList.size(); i++) {
             TargetBlock selectedBlock = cachedTargetBlockList.get(i);
 
-//            if (!DataManager.getRenderLayerRange().isPositionWithinRange(selectedBlock.getBlockPos())) {
-            if (!blockInPlayerRange(selectedBlock.getBlockPos(), player, 5f)) {
-//            if (Printer.getPrinter().wanJiaFanWeiNei(4,selectedBlock.getBlockPos())) {
+//            if (!blockInPlayerRange(selectedBlock.getBlockPos(), player, 5f)) {
+            if (!ZxyUtils.bedrockCanInteracted(selectedBlock.getBlockPos(), getPrinterRange() - 1.5)) {
                 cachedTargetBlockList.remove(i);
                 continue;
             }
@@ -105,7 +134,7 @@ public class BreakingFlowController {
                 continue;
             } else if (status == TargetBlock.Status.FAILED || status == TargetBlock.Status.RETRACTED) {
                 for (BlockPos temppo : cachedTargetBlockList.get(i).temppos) {
-                    if(!minecraftClient.world.getBlockState(temppo).isAir()) poslist.add(temppo);
+                    if (!minecraftClient.world.getBlockState(temppo).isAir()) addPosList(temppo);
                 }
                 cachedTargetBlockList.remove(i);
             }/* else {

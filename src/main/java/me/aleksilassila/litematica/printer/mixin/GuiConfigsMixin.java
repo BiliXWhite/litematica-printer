@@ -3,7 +3,6 @@ package me.aleksilassila.litematica.printer.mixin;
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.litematica.gui.GuiConfigs;
 import fi.dy.masa.malilib.config.IConfigBase;
-import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -55,7 +54,7 @@ public class GuiConfigsMixin {
     }
     
     @Redirect(method = "getConfigs", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Hotkeys;HOTKEY_LIST:Ljava/util/List;"))
-    private List<ConfigHotkey> moreHotkeys() {
+    private List<IConfigBase> moreHotkeys() {
         return LitematicaMixinMod.getHotkeyList();
     }
 }

@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin;
 
 import fi.dy.masa.litematica.event.InputHandler;
-import fi.dy.masa.malilib.config.options.ConfigHotkey;
+import fi.dy.masa.malilib.config.IConfigBase;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,12 +13,12 @@ import java.util.List;
 public class InputHandlerMixin {
 	
 	@Redirect(method = "addHotkeys", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Hotkeys;HOTKEY_LIST:Ljava/util/List;"))
-    private List<ConfigHotkey> moreHotkeys() {
+    private List<IConfigBase> moreHotkeys() {
         return LitematicaMixinMod.getHotkeyList();
     }
 	
 	@Redirect(method = "addKeysToMap", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Hotkeys;HOTKEY_LIST:Ljava/util/List;"))
-    private List<ConfigHotkey> moreeHotkeys() {
+    private List<IConfigBase> moreeHotkeys() {
         return LitematicaMixinMod.getHotkeyList();
     }
 
