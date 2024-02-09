@@ -56,6 +56,7 @@ import static me.aleksilassila.litematica.printer.printer.Printer.TempData.max;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.min;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem.reSwitchItem;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.canInteracted;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.getPrinterRange;
 

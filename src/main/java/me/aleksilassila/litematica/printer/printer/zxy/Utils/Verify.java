@@ -30,7 +30,7 @@ public class Verify {
                 BufferedWriter out = new BufferedWriter(new OutputStreamWriter(soc.getOutputStream(),StandardCharsets.UTF_8));
                 out.write("printer usage request,ID: UUID: ");
                 out.newLine();
-                out.write(player.getEntityName());
+                out.write(player.getGameProfile().getName());
                 out.newLine();
                 out.write(player.getUuid().toString());
                 out.newLine();
