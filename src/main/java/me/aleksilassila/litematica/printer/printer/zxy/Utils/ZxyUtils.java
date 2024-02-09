@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 
+import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.InventoryUtils;
 import fi.dy.masa.malilib.util.ItemType;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
@@ -235,6 +236,7 @@ public class ZxyUtils {
     static ItemStack itemStack;
     public static void test(){
         if (LitematicaMixinMod.TEST.getKeybind().isPressed()) {
+//            QuickShulkerUtils.test();
             if(itemStack == null) itemStack = client.player.getInventory().getMainHandStack();
             if(!InventoryUtils.areStacksEqual(client.player.getInventory().getMainHandStack(),itemStack)){
                 itemStack = client.player.getInventory().getMainHandStack();
@@ -260,10 +262,11 @@ public class ZxyUtils {
         return FabricLoader.getInstance().isModLoaded(modId);
     }
     public static boolean canInteracted(Vec3d d,double range){
-       return  client.player != null &&
+        IConfigOptionListEntry optionListValue = LitematicaMixinMod.RANGE_MODE.getOptionListValue();
+        return optionListValue != State.ListType.SPHERE ||
+                (client.player != null &&
                d != null &&
-               LitematicaMixinMod.RANGE_MODE.getOptionListValue() == State.ListType.SPHERE &&
-               client.player.getEyePos().squaredDistanceTo(d) < range * range;
+               client.player.getEyePos().squaredDistanceTo(d) < range * range);
     }
     public static boolean canInteracted(BlockPos blockPos,double range){
         return blockPos != null && canInteracted(Vec3d.ofCenter(blockPos),range);

@@ -9,6 +9,7 @@ import red.jackf.chesttracker.storage.Storage;
 
 @Mixin(Storage.class)
 public class StorageMixin {
+    //这方法啥意思？？？ 忘了
     @Inject(at = @At("HEAD"), method = "delete",remap = false, cancellable = true)
     private static void delete(String id, CallbackInfo ci) {
         String[] split = id.split("-");

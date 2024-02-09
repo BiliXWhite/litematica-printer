@@ -6,10 +6,7 @@ import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.mixin.FlowerPotBlockAccessor;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.block.*;
-import net.minecraft.block.enums.Attachment;
-import net.minecraft.block.enums.BedPart;
-import net.minecraft.block.enums.DoorHinge;
-import net.minecraft.block.enums.SlabType;
+import net.minecraft.block.enums.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
@@ -25,6 +22,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+
+import static net.minecraft.block.enums.BlockFace.WALL;
 
 public class PlacementGuide extends PrinterUtils {
     @NotNull
@@ -58,10 +57,10 @@ public class PlacementGuide extends PrinterUtils {
 
         if (requiredState.getBlock() instanceof FluidBlock) {
             return null;
-        } else if (currentState.getBlock() instanceof FluidBlock) {
-            if (currentState.get(FluidBlock.LEVEL) == 0 && !LitematicaMixinMod.shouldReplaceFluids) {
-                return null;
-            }
+//        } else if (currentState.getBlock() instanceof FluidBlock) {
+//            if (currentState.get(FluidBlock.LEVEL) == 0 && !LitematicaMixinMod.shouldReplaceFluids) {
+//                return null;
+//            }
         }
 
         if (!requiredState.canPlaceAt(world, pos)) {
@@ -112,7 +111,7 @@ public class PlacementGuide extends PrinterUtils {
                     Direction half = getHalf(requiredState.get(TrapdoorBlock.HALF));
 
                     Map<Direction, Vec3d> sides = new HashMap<>(){{
-                        put(requiredState.get(StairsBlock.FACING).getOpposite(),
+                        put(half,
                             Vec3d.of(half.getVector()).multiply(0.25));
                         put(half, new Vec3d(0, 0, 0));
                     }};
@@ -151,42 +150,43 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setSides((Direction) getPropertyByName(requiredState, "FACING"));
                 }
                 case LEVER:
-//                case BUTTON: {
-//                    Direction side;
-//                    switch ((WallMountLocation) getPropertyByName(requiredState, "FACE")) {
-//                        case FLOOR: {
-//                            side = Direction.DOWN;
-//                            break;
-//                        }
-//                        case CEILING: {
-//                            side = Direction.UP;
-//                            break;
-//                        }
-//                        default: {
-//                            side = ((Direction) getPropertyByName(requiredState, "FACING")).getOpposite();
-//                            break;
-//                        }
-//                    }
-//
-//                    Direction look = getPropertyByName(requiredState, "FACE") == WallMountLocation.WALL ?
-//                            null : (Direction) getPropertyByName(requiredState, "FACING");
-//
-//                    return new Action().setSides(side).setLookDirection(look).setRequiresSupport();
-//                }
-    //            case GRINDSTONE -> { // Tese are broken
-    //                Direction side = switch ((WallMountLocation) getPropertyByName(requiredState, "FACE")) {
-    //                    case FLOOR -> Direction.DOWN;
-    //                    case CEILING -> Direction.UP;
-    //                    default -> (Direction) getPropertyByName(requiredState, "FACING");
-    //                };
-    //
-    //                Direction look = getPropertyByName(requiredState, "FACE") == WallMountLocation.WALL ?
-    //                        null : (Direction) getPropertyByName(requiredState, "FACING");
-    //
-    //                return new Placement(Direction.DOWN, // FIXME test
-    //                        Vec3d.of(side.getVector()).multiply(0.5),
-    //                        look);
-    //            }
+                case BUTTON: {
+                    Direction side;
+                    switch ((BlockFace) getPropertyByName(requiredState, "FACE")) {
+                        case FLOOR: {
+                            side = Direction.DOWN;
+                            break;
+                        }
+                        case CEILING: {
+                            side = Direction.UP;
+                            break;
+                        }
+                        default: {
+                            side = ((Direction) getPropertyByName(requiredState, "FACING")).getOpposite();
+                            break;
+                        }
+                    }
+
+                    Direction look = getPropertyByName(requiredState, "FACE") == WALL ?
+                            null : (Direction) getPropertyByName(requiredState, "FACING");
+
+                    return new Action().setSides(side).setLookDirection(look).setRequiresSupport();
+                }
+                case GRINDSTONE :{ // Tese are broken
+                    Direction side = switch ((BlockFace) getPropertyByName(requiredState, "FACE")) {
+                        case FLOOR -> Direction.DOWN;
+                        case CEILING -> Direction.UP;
+                        default -> (Direction) getPropertyByName(requiredState, "FACING");
+                    };
+
+                    Direction look = getPropertyByName(requiredState, "FACE") == WALL ?
+                            null : (Direction) getPropertyByName(requiredState, "FACING");
+
+                    Map<Direction,Vec3d> sides = new HashMap<>();
+                    sides.put(Direction.DOWN,Vec3d.of(side.getVector()).multiply(0.5));
+
+                    return new Action().setSides(sides).setLookDirection(look);
+                }
                 case GATE:
                 case OBSERVER:
                 case CAMPFIRE: {
@@ -229,8 +229,8 @@ public class PlacementGuide extends PrinterUtils {
                     Direction facing, hinge;
                     facing = hinge = requiredState.get(DoorBlock.FACING);
 
-                    Vec3d hingeVec = new Vec3d(requiredState.get(DoorBlock.HINGE) == DoorHinge.RIGHT ?
-                            0.25 : -0.25, 0, 0);
+                    Vec3d hingeVec = new Vec3d(
+                            0.25 , 0, 0.25);
 
                     if (requiredState.get(DoorBlock.HINGE) == DoorHinge.RIGHT) {
                         hinge = hinge.rotateYClockwise();
@@ -238,7 +238,7 @@ public class PlacementGuide extends PrinterUtils {
                         hinge = hinge.rotateYCounterclockwise();
                     }
 
-                    sides.put(hinge, new Vec3d(0, 0, 0));
+                    sides.put(hinge, hingeVec);
                     sides.put(Direction.DOWN, hingeVec);
                     sides.put(facing, hingeVec);
 
@@ -650,8 +650,8 @@ public class PlacementGuide extends PrinterUtils {
         PILLAR(PillarBlock.class),
         ANVIL(AnvilBlock.class),
         HOPPER(HopperBlock.class),
-        //    GRINDSTONE(GrindstoneBlock.class),
-//        BUTTON(AbstractButtonBlock.class),
+        GRINDSTONE(GrindstoneBlock.class),
+        BUTTON(ButtonBlock.class),
         CAMPFIRE(CampfireBlock.class),
         SHULKER(ShulkerBoxBlock.class),
         BED(BedBlock.class),

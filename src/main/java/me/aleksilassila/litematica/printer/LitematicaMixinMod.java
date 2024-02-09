@@ -15,6 +15,8 @@ import net.fabricmc.api.ModInitializer;
 
 import java.util.List;
 
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
+
 public class LitematicaMixinMod implements ModInitializer {
 
 	// Config settings
@@ -24,10 +26,9 @@ public class LitematicaMixinMod implements ModInitializer {
 	//    public static final ConfigBoolean PRINT_WATER    = new ConfigBoolean("printWater",    false, "Whether or not the printer should place water\n source blocks or make blocks waterlogged.");
 	public static final ConfigBoolean PRINT_IN_AIR = new ConfigBoolean("printInAir",    true, "Whether or not the printer should place blocks without anything to build on.\nBe aware that some anti-cheat plugins might notice this.");
 	public static final ConfigBoolean PRINT_MODE = new ConfigBoolean("printingMode",  false, "Autobuild / print loaded selection.\nBe aware that some servers and anticheat plugins do not allow printing.");
-	public static final ConfigBoolean REPLACE_FLUIDS = new ConfigBoolean("在流体中打印", false, "Whether or not fluid source blocks should be replaced by the printer.");
+	public static final ConfigBoolean REPLACE = new ConfigBoolean("替换列表方块", true, "可以直接在一些可替换方块放置，例如 草 雪片");
 	public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean("stripLogs", false, "Whether or not the printer should use normal logs if stripped\nversions are not available and then strip them with an axe.");
 	public static boolean shouldPrintInAir = PRINT_IN_AIR.getBooleanValue();
-	public static boolean shouldReplaceFluids = REPLACE_FLUIDS.getBooleanValue();
 	public static final ConfigBooleanHotkeyed BEDROCK_SWITCH = new ConfigBooleanHotkeyed("破基岩模式", false,"J", "啊吧啊吧");
 	public static final ConfigBooleanHotkeyed EXCAVATE = new ConfigBooleanHotkeyed("挖掘", false,"K", "挖掘所选区内的方块");
 	public static final ConfigBooleanHotkeyed FLUID = new ConfigBooleanHotkeyed("排流体", false,"L", "在岩浆源、水源处放方块默认是沙子");
@@ -40,6 +41,8 @@ public class LitematicaMixinMod implements ModInitializer {
 	public static final ConfigBoolean INVENTORY = new ConfigBoolean("远程交互容器", false, "在服务器有远程交互容器mod的情况下可以远程交互\n替换的位置为投影的预设位置。");
 	public static final ConfigStringList INVENTORY_LIST = new ConfigStringList("库存白名单", ImmutableList.of("minecraft:chest"), "");
 	public static final ConfigStringList BEDROCK_LIST = new ConfigStringList("基岩模式白名单", ImmutableList.of("minecraft:bedrock"), "");
+	public static final ConfigStringList REPLACEABLE_LIST = new ConfigStringList("可替换方块",
+			ImmutableList.of("minecraft:air","minecraft:snow","minecraft:lava","minecraft:water","minecraft:bubble_column","minecraft:grass_block"), "打印时将忽略这些错误方块 直接替换。");
 	public static final ConfigHotkey TEST = new ConfigHotkey("test", "V", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "测试用的，别乱按");
 
 	public static ImmutableList<IConfigBase> getConfigList() {
@@ -49,18 +52,19 @@ public class LitematicaMixinMod implements ModInitializer {
 		list.add(PRINTING_RANGE);
 		list.add(RANGE_MODE);
 		list.add(PRINT_IN_AIR);
-		list.add(REPLACE_FLUIDS);
+		list.add(REPLACE);
 		list.add(STRIP_LOGS);
 
 		list.add(FLUID_BLOCK_LIST);
-		if(Statistics.loadChestTracker) list.add(INVENTORY_LIST);
+		if(loadChestTracker) list.add(INVENTORY_LIST);
 		list.add(BEDROCK_LIST);
+		list.add(REPLACEABLE_LIST);
 		list.add(TEST);
 		list.add(0, SKIP);
 //		list.add(0, FLUID);
 
 		if(Statistics.loadQuickShulker) list.add(0, QUICKSHULKER);
-		if(Statistics.loadChestTracker) list.add(0, INVENTORY);
+		if(loadChestTracker) list.add(0, INVENTORY);
 
 		return ImmutableList.copyOf(list);
 	}
@@ -88,9 +92,9 @@ public class LitematicaMixinMod implements ModInitializer {
 		list.add(CLOSE_ALL_MODE);
 //		list.add(BEDROCK_MODE);
 //		list.add(EXE_MODE);
-		if(Statistics.loadChestTracker) list.add(PRINTER_INVENTORY);
+		if(loadChestTracker) list.add(PRINTER_INVENTORY);
 		list.add(SYNC_INVENTORY);
-		if(Statistics.loadChestTracker) list.add(REVISION_PRINT);
+		if(loadChestTracker) list.add(REVISION_PRINT);
 		list.add(TEST);
 
 		return ImmutableList.copyOf(list);
@@ -100,7 +104,7 @@ public class LitematicaMixinMod implements ModInitializer {
 	public void onInitialize() {
 		OpenInventoryPacket.registerReceivePacket();
 		OpenInventoryPacket.registerClientReceivePacket();
-		MemoryUtils.setup();
+		if(loadChestTracker) MemoryUtils.setup();
 		TOGGLE_PRINTING_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(PRINT_MODE));
 //		BEDROCK_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(BEDROCK_SWITCH));
 //		EXE_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(EXCAVATE));

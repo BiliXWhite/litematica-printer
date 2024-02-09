@@ -56,7 +56,7 @@ import static me.aleksilassila.litematica.printer.printer.Printer.TempData.max;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.min;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem.reSwitchItem;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.canInteracted;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.getPrinterRange;
 
 ;
@@ -179,7 +179,7 @@ public class Printer extends PrinterUtils {
                 for (int z = -range; z < range + 1; z++) {
                     BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
                     BlockState currentState = data.world.getBlockState(pos);
-                    if (client.player != null && client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(pos)) > range * range) continue;
+                    if (client.player != null && !canInteracted(pos,range)) continue;
                     if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
                     if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
                     if (currentState.getFluidState().isOf(Fluids.LAVA) || currentState.getFluidState().isOf(Fluids.WATER)) {
@@ -217,7 +217,7 @@ public class Printer extends PrinterUtils {
             for (int x = -range; x < range + 1; x++) {
                 for (int z = -range; z < range + 1; z++) {
                     BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
-                    if (client.player != null && client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(pos)) > range * range) continue;
+                    if (client.player != null && !canInteracted(pos,range)) continue;
                     if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
                     if (TempData.xuanQuFanWeiNei_p(pos) && waJue(pos)) return;
                 }
@@ -376,6 +376,7 @@ public class Printer extends PrinterUtils {
     }
 
 
+    int num = 0;
     public void tick() {
         if (!verify()) return;
         TempData data = new TempData(client.player, client.world, SchematicWorldHandler.getSchematicWorld());
@@ -383,6 +384,7 @@ public class Printer extends PrinterUtils {
         ClientPlayerEntity pEntity = client.player;
         ClientWorld world = client.world;
 
+        num = 0;
         tickRate = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();
         range = getPrinterRange();
         tick = tick == 0x7fffffff ? 0 : tick + 1;
@@ -416,7 +418,6 @@ public class Printer extends PrinterUtils {
         }
         for (TempPos tempPos : tempList) tempPos.tick++;
         LitematicaMixinMod.shouldPrintInAir = LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue();
-        LitematicaMixinMod.shouldReplaceFluids = LitematicaMixinMod.REPLACE_FLUIDS.getBooleanValue();
         // forEachBlockInRadius:
         for (int y = -range; y < range + 1; y++) {
             for (int x = -range; x < range + 1; x++) {
@@ -424,7 +425,7 @@ public class Printer extends PrinterUtils {
                 for (int z = -range; z < range + 1; z++) {
                     BlockPos pos = pEntity.getBlockPos().north(x).west(z).up(y);
                     BlockState requiredState = worldSchematic.getBlockState(pos);
-                    if (client.player != null && client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(pos)) > range * range) continue;
+                    if (client.player != null && !canInteracted(pos,range)) continue;
                     PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
                     if (requiredState.isOf(Blocks.NETHER_PORTAL) ||
                             requiredState.isOf(Blocks.END_PORTAL)
