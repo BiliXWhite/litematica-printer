@@ -29,6 +29,7 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -276,5 +277,11 @@ public class ZxyUtils {
     }
     public static int getPrinterRange(){
         return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
+    }
+    public static int frameGenerationTime = 0;
+    public void getMonitorRefreshRate() {
+        int refreshRate = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()).refreshRate();
+        frameGenerationTime = 1000/refreshRate;
+        System.out.println("The monitor refresh rate is " + refreshRate);
     }
 }

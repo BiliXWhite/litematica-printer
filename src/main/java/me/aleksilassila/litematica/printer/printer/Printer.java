@@ -57,8 +57,7 @@ import static me.aleksilassila.litematica.printer.printer.Printer.TempData.min;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem.reSwitchItem;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.canInteracted;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.getPrinterRange;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 
 ;
 
@@ -165,6 +164,45 @@ public class Printer extends PrinterUtils {
 
         INSTANCE = this;
     }
+    int x;
+    int y;
+    int z;
+    boolean getPosIng = false;
+    boolean yDegression = false;
+    BlockPos getBlockPos(){
+        ClientPlayerEntity player = client.player;
+        if (player == null) return null;
+        if (!getPosIng){
+            x = -range;
+            z = -range;
+            y = yDegression ? range : -range;
+            getPosIng = true;
+        }
+        if(x < range + 1){
+            BlockPos up1 = player.getBlockPos().north(x).west(z).up(y);
+            x++;
+            return up1;
+        }
+
+        if(z < range + 1){
+            x=-range;
+            BlockPos up1 = player.getBlockPos().north(x).west(z).up(y);
+            z++;
+            x++;
+            return up1;
+        }
+        if(yDegression ? y > -range - 1 : y < range + 1){
+            x=-range;
+            z=-range;
+            BlockPos up1 = player.getBlockPos().north(x).west(z).up(y);
+            x++;
+            z++;
+            int a = yDegression ? y-- : y++;
+            return up1;
+        }
+        getPosIng = false;
+        return null;
+    }
 
     /*
     Fixme legit mode:
@@ -175,55 +213,59 @@ public class Printer extends PrinterUtils {
      */
     void fluidMode(TempData data) {
 
-        for (int y = range; y > -range - 1; y--) {
-            for (int x = -range; x < range + 1; x++) {
-                for (int z = -range; z < range + 1; z++) {
-                    BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
-                    BlockState currentState = data.world.getBlockState(pos);
-                    if (client.player != null && !canInteracted(pos,range)) continue;
-                    if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
-                    if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
-                    if (currentState.getFluidState().isOf(Fluids.LAVA) || currentState.getFluidState().isOf(Fluids.WATER)) {
-                        blocklist = LitematicaMixinMod.FLUID_BLOCK_LIST.getStrings();
-                        for (int i = 0; i < blocklist.size(); i++) {
-                            try {
-                                ItemStringReader.ItemResult itemResult = ItemStringReader.item(Registries.ITEM.getReadOnlyWrapper(), new StringReader(blocklist.get(i)));
-                                Item item = itemResult.item().value();
-                                if (item != null) fluidList.add(item);
-                            } catch (Exception e) {
-                            }
-                        }
-                        switchToItems(data.player, fluidList.toArray(new Item[fluidList.size()]));
-                        Item item = Implementation.getInventory(data.player).getMainHandStack().getItem();
-                        String itemid = Registries.ITEM.getId(item).toString();
-                        if (!blocklist.stream().anyMatch(b -> itemid.contains(b) || item.getName().toString().contains(b))) {
-                            items2.addAll(fluidList);
-                            return;
-                        }
-//                        sendClick(pos, Vec3d.ofCenter(pos));
-                        ((IClientPlayerInteractionManager) client.interactionManager).rightClickBlock(pos, Direction.UP, Vec3d.ofCenter(pos));
-                        if (tickRate == 0) {
-                            continue;
-                        }
-                        return;
+//        for (int y = range; y > -range - 1; y--) {
+//            for (int x = -range; x < range + 1; x++) {
+//                for (int z = -range; z < range + 1; z++) {
+        BlockPos pos;
+        while ((pos = getBlockPos()) != null && !timedOut()) {
+            BlockState currentState = data.world.getBlockState(pos);
+            if (client.player != null && !canInteracted(pos, range)) continue;
+            if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
+            if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
+            if (currentState.getFluidState().isOf(Fluids.LAVA) || currentState.getFluidState().isOf(Fluids.WATER)) {
+                blocklist = LitematicaMixinMod.FLUID_BLOCK_LIST.getStrings();
+                for (int i = 0; i < blocklist.size(); i++) {
+                    try {
+                        ItemStringReader.ItemResult itemResult = ItemStringReader.item(Registries.ITEM.getReadOnlyWrapper(), new StringReader(blocklist.get(i)));
+                        Item item = itemResult.item().value();
+                        if (item != null) fluidList.add(item);
+                    } catch (Exception e) {
                     }
                 }
+                switchToItems(data.player, fluidList.toArray(new Item[fluidList.size()]));
+                Item item = Implementation.getInventory(data.player).getMainHandStack().getItem();
+                String itemid = Registries.ITEM.getId(item).toString();
+                if (!blocklist.stream().anyMatch(b -> itemid.contains(b) || item.getName().toString().contains(b))) {
+                    items2.addAll(fluidList);
+                    return;
+                }
+//                        sendClick(pos, Vec3d.ofCenter(pos));
+                ((IClientPlayerInteractionManager) client.interactionManager).rightClickBlock(pos, Direction.UP, Vec3d.ofCenter(pos));
+                if (tickRate == 0) {
+                    continue;
+                }
+                return;
             }
+//                }
+//            }
+//        }
         }
     }
 
     void miningMode(TempData data) {
-        int range = getPrinterRange();
-        for (int y = range; y > -range - 1; y--) {
-            for (int x = -range; x < range + 1; x++) {
-                for (int z = -range; z < range + 1; z++) {
-                    BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
+        BlockPos pos;
+        while ((pos = getBlockPos()) != null && !timedOut()) {
+
+//        for (int y = range; y > -range - 1; y--) {
+//            for (int x = -range; x < range + 1; x++) {
+//                for (int z = -range; z < range + 1; z++) {
+//                    BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
                     if (client.player != null && !canInteracted(pos,range)) continue;
                     if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
                     if (TempData.xuanQuFanWeiNei_p(pos) && waJue(pos)) return;
                 }
-            }
-        }
+//            }
+//        }
     }
 
     public static boolean waJue(BlockPos pos) {
@@ -268,30 +310,33 @@ public class Printer extends PrinterUtils {
         BreakingFlowController.tick();
         int maxy = -9999;
         int range = bedrockModeRange();
-        for (int y = range; y > -range - 1; y--) {
-            for (int x = -range; x < range + 1; x++) {
-                for (int z = -range; z < range + 1; z++) {
-                    BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
-                    if (!ZxyUtils.bedrockCanInteracted(pos,range)) continue;
-                    BlockState currentState = data.world.getBlockState(pos);
+        BlockPos pos;
+        while ((pos = getBlockPos()) != null && !timedOut()) {
+//        for (int y = range; y > -range - 1; y--) {
+//            for (int x = -range; x < range + 1; x++) {
+//                for (int z = -range; z < range + 1; z++) {
+//                    BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
+            if (!ZxyUtils.bedrockCanInteracted(pos, range)) continue;
+            BlockState currentState = data.world.getBlockState(pos);
 //                    if (currentState.isOf(Blocks.PISTON) && !data.world.getBlockState(pos.down()).isOf(Blocks.BEDROCK)) {
-                    if (currentState.isOf(Blocks.PISTON) && !bedrockModeTarget(data.world.getBlockState(pos.down()).getBlock())) {
-                        BreakingFlowController.addPosList(pos);
-                    } else if (currentState.isOf(Blocks.PISTON_HEAD)) {
-                        switchToItems(client.player, new Item[]{Items.AIR, Items.DIAMOND_PICKAXE});
-                        ((IClientPlayerInteractionManager) client.interactionManager)
-                                .rightClickBlock(pos, Direction.UP, Vec3d.ofCenter(pos));
-                    }
+            if (currentState.isOf(Blocks.PISTON) && !bedrockModeTarget(data.world.getBlockState(pos.down()).getBlock())) {
+                BreakingFlowController.addPosList(pos);
+            } else if (currentState.isOf(Blocks.PISTON_HEAD)) {
+                switchToItems(client.player, new Item[]{Items.AIR, Items.DIAMOND_PICKAXE});
+                ((IClientPlayerInteractionManager) client.interactionManager)
+                        .rightClickBlock(pos, Direction.UP, Vec3d.ofCenter(pos));
+            }
 
 //                    if (TempData.xuanQuFanWeiNei_p(pos) && currentState.isOf(Blocks.BEDROCK)  && ZxyUtils.canInteracted(pos,range-1.5) && !client.world.getBlockState(pos.up()).isOf(Blocks.BEDROCK)) {
-                    if (TempData.xuanQuFanWeiNei_p(pos) && bedrockModeTarget(currentState.getBlock()) && ZxyUtils.bedrockCanInteracted(pos,range-1.5) && !bedrockModeTarget(client.world.getBlockState(pos.up()).getBlock())) {
-                        if (maxy == -9999) maxy = y;
-                        if (y < maxy) return;
-                        BreakingFlowController.addBlockPosToList(pos);
-                    }
-                }
+            if (TempData.xuanQuFanWeiNei_p(pos) && bedrockModeTarget(currentState.getBlock()) && ZxyUtils.bedrockCanInteracted(pos, range - 1.5) && !bedrockModeTarget(client.world.getBlockState(pos.up()).getBlock())) {
+                if (maxy == -9999) maxy = y;
+                if (y < maxy) return;
+                BreakingFlowController.addBlockPosToList(pos);
             }
         }
+//                }
+//            }
+//        }
     }
     public static int bedrockModeRange(){
         return LitematicaMixinMod.RANGE_MODE.getOptionListValue() == State.ListType.SPHERE ? getPrinterRange() : 6;
@@ -377,7 +422,11 @@ public class Printer extends PrinterUtils {
     }
 
 
-    int num = 0;
+    boolean timedOut(){
+        if(frameGenerationTime == 0) return System.currentTimeMillis() > 15 + startTime;
+        return System.currentTimeMillis() > frameGenerationTime + startTime;
+    }
+    long startTime;
     public void tick() {
         if (!verify()) return;
         TempData data = new TempData(client.player, client.world, SchematicWorldHandler.getSchematicWorld());
@@ -385,7 +434,7 @@ public class Printer extends PrinterUtils {
         ClientPlayerEntity pEntity = client.player;
         ClientWorld world = client.world;
 
-        num = 0;
+        startTime = System.currentTimeMillis();
         tickRate = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();
         range = getPrinterRange();
         tick = tick == 0x7fffffff ? 0 : tick + 1;
@@ -406,10 +455,12 @@ public class Printer extends PrinterUtils {
         if (switchItem()) return;
 
         if (LitematicaMixinMod.BEDROCK_SWITCH.getBooleanValue()) {
+            yDegression = true;
             jymod(data);
             return;
         }
         if (LitematicaMixinMod.EXCAVATE.getBooleanValue()) {
+            yDegression = true;
             miningMode(data);
             return;
         }
@@ -420,13 +471,15 @@ public class Printer extends PrinterUtils {
         for (TempPos tempPos : tempList) tempPos.tick++;
         LitematicaMixinMod.shouldPrintInAir = LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue();
         // forEachBlockInRadius:
-        for (int y = -range; y < range + 1; y++) {
-            for (int x = -range; x < range + 1; x++) {
-                z:
-                for (int z = -range; z < range + 1; z++) {
-                    BlockPos pos = pEntity.getBlockPos().north(x).west(z).up(y);
+        BlockPos pos;
+        z:
+        while ((pos = getBlockPos()) != null && !timedOut()){
+//        for (int y = -range; y < range + 1; y++) {
+//            for (int x = -range; x < range + 1; x++) {
+//                z:
+//                for (int z = -range; z < range + 1; z++) {
                     BlockState requiredState = worldSchematic.getBlockState(pos);
-                    if (client.player != null && !canInteracted(pos,range)) continue;
+                    if (client.player != null && !canInteracted(pos, range)) continue;
                     PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
                     if (requiredState.isOf(Blocks.NETHER_PORTAL) ||
                             requiredState.isOf(Blocks.END_PORTAL)
@@ -531,9 +584,10 @@ public class Printer extends PrinterUtils {
                         }
                         return;
                     }
+//                }
+//            }
+//        }
                 }
-            }
-        }
     }
 
     public LinkedList<BlockPos> siftBlock(String blockName) {

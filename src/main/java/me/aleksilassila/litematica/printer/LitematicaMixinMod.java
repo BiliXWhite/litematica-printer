@@ -93,7 +93,7 @@ public class LitematicaMixinMod implements ModInitializer {
 //		list.add(BEDROCK_MODE);
 //		list.add(EXE_MODE);
 		if(loadChestTracker) list.add(PRINTER_INVENTORY);
-		list.add(SYNC_INVENTORY);
+		if(loadChestTracker) list.add(SYNC_INVENTORY);
 		if(loadChestTracker) list.add(REVISION_PRINT);
 		list.add(TEST);
 
