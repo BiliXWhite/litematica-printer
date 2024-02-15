@@ -9,6 +9,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,7 +23,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.c
 public abstract class MixinMinecraftClient {
     @Inject(method = {"setScreen"}, at = {@At(value = "HEAD")}, cancellable = true)
     public void setScreen(@Nullable Screen screen, CallbackInfo ci) {
-        if(closeScreen > 0 && screen != null){
+        if(closeScreen > 0 && /*screen != null &&*/ screen instanceof HandledScreen<?>){
             closeScreen--;
             ci.cancel();
         }

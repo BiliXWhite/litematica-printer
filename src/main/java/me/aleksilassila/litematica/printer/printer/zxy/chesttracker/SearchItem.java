@@ -2,6 +2,9 @@ package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 
 import fi.dy.masa.malilib.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
+import net.minecraft.block.Block;
+import net.minecraft.block.ShulkerBoxBlock;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
@@ -19,14 +22,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
 import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.PRINTER_MEMORY;
 import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.currentMemoryKey;
 
 public class SearchItem {
     static AtomicBoolean hasItem = new AtomicBoolean(false);
     static NbtCompound nbt = new NbtCompound();
+    static boolean isPrinterMemory = false;
 
     public static boolean search(boolean isPrinterMemory) {
+        SearchItem.isPrinterMemory = isPrinterMemory;
         MemoryBank memoryBank = isPrinterMemory ? PRINTER_MEMORY : MemoryBank.INSTANCE;
         if (memoryBank != null) {
             Map<Identifier, Map<BlockPos, Memory>> memories = memoryBank.getMemories();
@@ -50,17 +56,35 @@ public class SearchItem {
 
     public static void memoriesSearch(Identifier key, ItemStack itemStack, MemoryBank memoryBank) {
         if (key == null || itemStack == null) return;
-        if (memoryBank != null && !MemoryBank.ENDER_CHEST_KEY.equals(key)) {
+        ClientPlayerEntity player = client.player;
+        if (player == null) return;
+        if (memoryBank != null && memoryBank.getMemories() != null &&
+                memoryBank.getMemories().get(key) != null &&
+                !MemoryBank.ENDER_CHEST_KEY.equals(key)) {
             SearchRequest searchRequest = new SearchRequest();
             SearchRequestPopulator.addItemStack(searchRequest, itemStack, SearchRequestPopulator.Context.FAVOURITE);
-            memoryBank.getPositions(key, searchRequest).
-                    forEach(v -> {
-                        if (v.item() != null &&
-                                !hasItem.get()) {
-                            OpenInventoryPacket.sendOpenInventory(v.pos(), RegistryKey.of(RegistryKeys.WORLD, key));
-                            hasItem.set(true);
-                        }
-                    });
+            int range = memoryBank.getMetadata().getSearchSettings().searchRange;
+            double rangeSquared = range == Integer.MAX_VALUE ? Integer.MAX_VALUE : range * range;
+            for (Map.Entry<BlockPos, Memory> entry : memoryBank.getMemories().get(key).entrySet()) {
+                if (entry.getKey().getSquaredDistance(player.getPos()) > rangeSquared) continue;
+                if (entry.getValue().items().stream()
+                        .filter(item -> SearchRequest.check(item, searchRequest))
+                        .anyMatch(item -> !isPrinterMemory || !((Block.getBlockFromItem(item.getItem())) instanceof ShulkerBoxBlock))) {
+                    OpenInventoryPacket.sendOpenInventory(entry.getKey(), RegistryKey.of(RegistryKeys.WORLD, key));
+                    hasItem.set(true);
+                    return;
+                }
+            }
+//            memoryBank.getPositions(key, searchRequest).
+//                    forEach(v -> {
+//                        if (v.item() != null &&
+//                                !hasItem.get() &&
+//                                (!isPrinterMemory || !((Block.getBlockFromItem(v.item().getItem())) instanceof ShulkerBoxBlock))
+//                        ) {
+//                            OpenInventoryPacket.sendOpenInventory(v.pos(), RegistryKey.of(RegistryKeys.WORLD, key));
+//                            hasItem.set(true);
+//                        }
+//                    });
         }
     }
 
@@ -77,7 +101,7 @@ public class SearchItem {
                             !InventoryUtils.getStoredItems(memoryStack).isEmpty() &&
                             stack1.getName().getString().equals(memoryStack.getName().getString()) &&
                             compArray(InventoryUtils.getStoredItems(stack1, -1), InventoryUtils.getStoredItems(memoryStack, -1)));
-        }else if(Registries.ITEM.getId(memoryStack.getItem()).toString().contains("shulker_box")){
+        } else if (Registries.ITEM.getId(memoryStack.getItem()).toString().contains("shulker_box")) {
             return true;
         }
         return stack1.getName().getString().equals(memoryStack.getName().getString());

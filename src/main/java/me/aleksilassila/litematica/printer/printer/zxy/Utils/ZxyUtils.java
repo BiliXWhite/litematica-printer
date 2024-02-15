@@ -7,7 +7,6 @@ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
@@ -64,6 +63,7 @@ public class ZxyUtils {
             }
         } else if (LitematicaMixinMod.PRINTER_INVENTORY.getKeybind().isPressed() && LitematicaMixinMod.INVENTORY.getBooleanValue() && !printerMemoryAdding) {
             printerMemoryAdding = true;
+            if(MemoryUtils.PRINTER_MEMORY == null)MemoryUtils.createPrinterMemory();
             for (String string : LitematicaMixinMod.INVENTORY_LIST.getStrings()) {
                 if (Printer.getPrinter() != null) {
                     invBlockList.addAll(Printer.getPrinter().siftBlock(string));
@@ -229,13 +229,16 @@ public class ZxyUtils {
             LitematicaMixinMod.PRINT_MODE.setBooleanValue(false);
             client.inGameHud.setOverlayMessage(Text.literal("已关闭全部模式"), false);
         }
-        for (BlockPos pos : syncPosList) {
+//        for (BlockPos pos : syncPosList) {
 //            RenderUtils.FOUND_ITEM_POSITIONS.put(pos, new PositionData(pos, client.world.getTime(), VoxelShapes.fullCube(), 10, 10, 6, null));
-        }
+//        }
         test();
     }
     static ItemStack itemStack;
     public static void test(){
+        ClientPlayerEntity player = client.player;
+        BlockPos blockPos1 = player.getBlockPos().up(3);
+//        HighlightBlockReenderer.renderHighlightedBlock(client.world.getBlockState(blockPos1),blockPos1,client.world,null,null);
         if (LitematicaMixinMod.TEST.getKeybind().isPressed()) {
 //            QuickShulkerUtils.test();
             if(itemStack == null) itemStack = client.player.getInventory().getMainHandStack();
@@ -259,9 +262,6 @@ public class ZxyUtils {
             }
         }
     }
-    public static boolean isLoadMod(String modId){
-        return FabricLoader.getInstance().isModLoaded(modId);
-    }
     public static boolean canInteracted(Vec3d d,double range){
         IConfigOptionListEntry optionListValue = LitematicaMixinMod.RANGE_MODE.getOptionListValue();
         return optionListValue != State.ListType.SPHERE ||
@@ -278,10 +278,10 @@ public class ZxyUtils {
     public static int getPrinterRange(){
         return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
     }
-    public static int frameGenerationTime = 0;
-    public void getMonitorRefreshRate() {
+    public static int frameGenerationTime = getMonitorRefreshRate();
+    public static int getMonitorRefreshRate() {
         int refreshRate = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()).refreshRate();
-        frameGenerationTime = 1000/refreshRate;
-        System.out.println("The monitor refresh rate is " + refreshRate);
+        return 1000/refreshRate;
+//        System.out.println("The monitor refresh rate is " + refreshRate);
     }
 }

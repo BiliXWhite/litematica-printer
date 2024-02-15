@@ -164,40 +164,44 @@ public class Printer extends PrinterUtils {
 
         INSTANCE = this;
     }
+
     int x;
     int y;
     int z;
     boolean getPosIng = false;
     boolean yDegression = false;
-    BlockPos getBlockPos(){
+    //执行一次获取一个pos
+    //方法使用时一定要放在if语句最后 不然会出现获取了pos但是被后面的条件跳过了，这个pos就被跳过了
+    BlockPos getBlockPos() {
         ClientPlayerEntity player = client.player;
         if (player == null) return null;
-        if (!getPosIng){
+        if (!getPosIng) {
             x = -range;
             z = -range;
             y = yDegression ? range : -range;
             getPosIng = true;
         }
-        if(x < range + 1){
+        if (x < range + 1) {
             BlockPos up1 = player.getBlockPos().north(x).west(z).up(y);
             x++;
             return up1;
         }
 
-        if(z < range + 1){
-            x=-range;
+        if (z < range + 1) {
+            x = -range;
             BlockPos up1 = player.getBlockPos().north(x).west(z).up(y);
             z++;
             x++;
             return up1;
         }
-        if(yDegression ? y > -range - 1 : y < range + 1){
-            x=-range;
-            z=-range;
+        if (yDegression ? y > -range - 1 : y < range + 1) {
+            x = -range;
+            z = -range;
             BlockPos up1 = player.getBlockPos().north(x).west(z).up(y);
             x++;
             z++;
-            int a = yDegression ? y-- : y++;
+            if(yDegression) y--;
+            else y++;
             return up1;
         }
         getPosIng = false;
@@ -217,7 +221,7 @@ public class Printer extends PrinterUtils {
 //            for (int x = -range; x < range + 1; x++) {
 //                for (int z = -range; z < range + 1; z++) {
         BlockPos pos;
-        while ((pos = getBlockPos()) != null && !timedOut()) {
+        while (!timedOut() && (pos = getBlockPos()) != null) {
             BlockState currentState = data.world.getBlockState(pos);
             if (client.player != null && !canInteracted(pos, range)) continue;
             if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
@@ -252,18 +256,33 @@ public class Printer extends PrinterUtils {
         }
     }
 
+    BlockPos tempPos = null;
+
     void miningMode(TempData data) {
         BlockPos pos;
-        while ((pos = getBlockPos()) != null && !timedOut()) {
+        while (!timedOut() && (pos = tempPos == null ? getBlockPos() : tempPos) != null) {
 
 //        for (int y = range; y > -range - 1; y--) {
 //            for (int x = -range; x < range + 1; x++) {
 //                for (int z = -range; z < range + 1; z++) {
 //                    BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
-                    if (client.player != null && !canInteracted(pos,range)) continue;
-                    if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
-                    if (TempData.xuanQuFanWeiNei_p(pos) && waJue(pos)) return;
-                }
+
+            if (client.player != null && !canInteracted(pos, range)) {
+                if (tempPos == null)continue;
+                tempPos = null;
+                continue;
+            }
+            if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) {
+                if (tempPos == null)continue;
+                tempPos = null;
+                continue;
+            }
+            if (TempData.xuanQuFanWeiNei_p(pos) && waJue(pos)) {
+                tempPos = pos;
+                return;
+            }
+            tempPos = null;
+        }
 //            }
 //        }
     }
@@ -309,9 +328,9 @@ public class Printer extends PrinterUtils {
     public void jymod(TempData data) {
         BreakingFlowController.tick();
         int maxy = -9999;
-        int range = bedrockModeRange();
+        range = bedrockModeRange();
         BlockPos pos;
-        while ((pos = getBlockPos()) != null && !timedOut()) {
+        while (!timedOut() && (pos = getBlockPos()) != null) {
 //        for (int y = range; y > -range - 1; y--) {
 //            for (int x = -range; x < range + 1; x++) {
 //                for (int z = -range; z < range + 1; z++) {
@@ -338,11 +357,13 @@ public class Printer extends PrinterUtils {
 //            }
 //        }
     }
-    public static int bedrockModeRange(){
+
+    public static int bedrockModeRange() {
         return LitematicaMixinMod.RANGE_MODE.getOptionListValue() == State.ListType.SPHERE ? getPrinterRange() : 6;
     }
-    public static boolean bedrockModeTarget(Block block){
-       return LitematicaMixinMod.BEDROCK_LIST.getStrings().stream().anyMatch(string -> Registries.BLOCK.getId(block).toString().contains(string));
+
+    public static boolean bedrockModeTarget(Block block) {
+        return LitematicaMixinMod.BEDROCK_LIST.getStrings().stream().anyMatch(string -> Registries.BLOCK.getId(block).toString().contains(string));
     }
 
     public boolean verify() {
@@ -421,12 +442,14 @@ public class Printer extends PrinterUtils {
         return false;
     }
 
-
-    boolean timedOut(){
-        if(frameGenerationTime == 0) return System.currentTimeMillis() > 15 + startTime;
+    //根据当前毫秒值判断是否超出了屏幕刷新率
+    boolean timedOut() {
+        if (frameGenerationTime == 0) return System.currentTimeMillis() > 15 + startTime;
         return System.currentTimeMillis() > frameGenerationTime + startTime;
     }
+
     long startTime;
+
     public void tick() {
         if (!verify()) return;
         TempData data = new TempData(client.player, client.world, SchematicWorldHandler.getSchematicWorld());
@@ -434,6 +457,8 @@ public class Printer extends PrinterUtils {
         ClientPlayerEntity pEntity = client.player;
         ClientWorld world = client.world;
 
+        if(range != getPrinterRange()) getPosIng = false;
+        yDegression = false;
         startTime = System.currentTimeMillis();
         tickRate = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();
         range = getPrinterRange();
@@ -473,75 +498,75 @@ public class Printer extends PrinterUtils {
         // forEachBlockInRadius:
         BlockPos pos;
         z:
-        while ((pos = getBlockPos()) != null && !timedOut()){
+        while (!timedOut() && (pos = getBlockPos()) != null) {
 //        for (int y = -range; y < range + 1; y++) {
 //            for (int x = -range; x < range + 1; x++) {
 //                z:
 //                for (int z = -range; z < range + 1; z++) {
-                    BlockState requiredState = worldSchematic.getBlockState(pos);
-                    if (client.player != null && !canInteracted(pos, range)) continue;
-                    PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
-                    if (requiredState.isOf(Blocks.NETHER_PORTAL) ||
-                            requiredState.isOf(Blocks.END_PORTAL)
-                    ) continue;
-                    //跳过侦测器和红石块的放置
-                    if ((requiredState.isOf(Blocks.OBSERVER) || requiredState.isOf(Blocks.REDSTONE_BLOCK)) && !LitematicaMixinMod.SKIP.getBooleanValue()) {
-                        continue;
-                    }
+            BlockState requiredState = worldSchematic.getBlockState(pos);
+            if (client.player != null && !canInteracted(pos, range)) continue;
+            PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
+            if (requiredState.isOf(Blocks.NETHER_PORTAL) ||
+                    requiredState.isOf(Blocks.END_PORTAL)
+            ) continue;
+            //跳过侦测器和红石块的放置
+            if ((requiredState.isOf(Blocks.OBSERVER) || requiredState.isOf(Blocks.REDSTONE_BLOCK)) && !LitematicaMixinMod.SKIP.getBooleanValue()) {
+                continue;
+            }
 
-                    if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
-                    if (action == null) continue;
+            if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
+            if (action == null) continue;
 
-                    Direction side = action.getValidSide(world, pos);
-                    if (side == null) continue;
+            Direction side = action.getValidSide(world, pos);
+            if (side == null) continue;
 
-                    Item[] requiredItems = action.getRequiredItems(requiredState.getBlock());
-                    if (playerHasAccessToItems(pEntity, requiredItems)) {
-                        // Handle shift and chest placement
-                        // Won't be required if clickAction
-                        boolean useShift = false;
-                        if (requiredState.contains(ChestBlock.CHEST_TYPE)) {
-                            // Left neighbor from player's perspective
-                            BlockPos leftNeighbor = pos.offset(requiredState.get(ChestBlock.FACING).rotateYClockwise());
-                            BlockState leftState = world.getBlockState(leftNeighbor);
+            Item[] requiredItems = action.getRequiredItems(requiredState.getBlock());
+            if (playerHasAccessToItems(pEntity, requiredItems)) {
+                // Handle shift and chest placement
+                // Won't be required if clickAction
+                boolean useShift = false;
+                if (requiredState.contains(ChestBlock.CHEST_TYPE)) {
+                    // Left neighbor from player's perspective
+                    BlockPos leftNeighbor = pos.offset(requiredState.get(ChestBlock.FACING).rotateYClockwise());
+                    BlockState leftState = world.getBlockState(leftNeighbor);
 
-                            switch (requiredState.get(ChestBlock.CHEST_TYPE)) {
-                                case SINGLE:
-                                case RIGHT: {
-                                    useShift = true;
-                                    break;
-                                }
-                                case LEFT: { // Actually right
-                                    if (leftState.contains(ChestBlock.CHEST_TYPE) && leftState.get(ChestBlock.CHEST_TYPE) == ChestType.SINGLE) {
-                                        useShift = false;
-
-                                        // Check if it is possible to place without shift
-                                        if (Implementation.isInteractive(world.getBlockState(pos.offset(side)).getBlock())) {
-                                            continue;
-                                        }
-                                    } else {
-                                        continue;
-                                    }
-                                    break;
-                                }
-                            }
-                        } else if (Implementation.isInteractive(world.getBlockState(pos.offset(side)).getBlock())) {
+                    switch (requiredState.get(ChestBlock.CHEST_TYPE)) {
+                        case SINGLE:
+                        case RIGHT: {
                             useShift = true;
+                            break;
                         }
+                        case LEFT: { // Actually right
+                            if (leftState.contains(ChestBlock.CHEST_TYPE) && leftState.get(ChestBlock.CHEST_TYPE) == ChestType.SINGLE) {
+                                useShift = false;
 
-                        Direction lookDir = action.getLookDirection();
-
-                        if ((requiredState.isOf(Blocks.PISTON) ||
-                                requiredState.isOf(Blocks.STICKY_PISTON) ||
-                                requiredState.isOf(Blocks.OBSERVER) ||
-                                requiredState.isOf(Blocks.DROPPER) ||
-                                requiredState.isOf(Blocks.DISPENSER)) && isFacing
-                        ) {
-                            continue;
+                                // Check if it is possible to place without shift
+                                if (Implementation.isInteractive(world.getBlockState(pos.offset(side)).getBlock())) {
+                                    continue;
+                                }
+                            } else {
+                                continue;
+                            }
+                            break;
                         }
-                        //发送放置准备
-                        sendPlacementPreparation(pEntity, requiredItems, lookDir);
-                        action.queueAction(queue, pos, side, useShift, lookDir != null);
+                    }
+                } else if (Implementation.isInteractive(world.getBlockState(pos.offset(side)).getBlock())) {
+                    useShift = true;
+                }
+
+                Direction lookDir = action.getLookDirection();
+
+                if ((requiredState.isOf(Blocks.PISTON) ||
+                        requiredState.isOf(Blocks.STICKY_PISTON) ||
+                        requiredState.isOf(Blocks.OBSERVER) ||
+                        requiredState.isOf(Blocks.DROPPER) ||
+                        requiredState.isOf(Blocks.DISPENSER)) && isFacing
+                ) {
+                    continue;
+                }
+                //发送放置准备
+                sendPlacementPreparation(pEntity, requiredItems, lookDir);
+                action.queueAction(queue, pos, side, useShift, lookDir != null);
 
 
 //                        if(lookDir != null){
@@ -550,44 +575,44 @@ public class Printer extends PrinterUtils {
 //                            continue;
 //                        }
 
-                        if (requiredState.isOf(Blocks.NOTE_BLOCK)) {
-                            queue.sendQueue(pEntity);
-                            continue;
-                        }
-                        if (tickRate == 0) {
-                            //处理不能快速放置的方块
-                            if (requiredState.isOf(Blocks.PISTON) ||
-                                    requiredState.isOf(Blocks.STICKY_PISTON) ||
-                                    requiredState.isOf(Blocks.OBSERVER) ||
-                                    requiredState.isOf(Blocks.DROPPER) ||
-                                    requiredState.isOf(Blocks.DISPENSER)
-                            ) {
-                                item2 = requiredItems;
-                                isFacing = true;
-                                continue;
-                            }
-                            for (int i = 0; i < tempList.size(); i++) {
-                                if (tempList.get(i).tick > 3) {
-                                    tempList.remove(i);
-                                    i--;
-                                    continue;
-                                }
-                                if (this.queue.target.equals(tempList.get(i).pos) && tempList.get(i).tick < 3) {
-                                    this.queue.clearQueue();
-                                    continue z;
-                                }
-
-                            }
-                            tempList.add(new TempPos(this.queue.target, 0));
-                            queue.sendQueue(pEntity);
-                            continue;
-                        }
-                        return;
+                if (requiredState.isOf(Blocks.NOTE_BLOCK)) {
+                    queue.sendQueue(pEntity);
+                    continue;
+                }
+                if (tickRate == 0) {
+                    //处理不能快速放置的方块
+                    if (requiredState.isOf(Blocks.PISTON) ||
+                            requiredState.isOf(Blocks.STICKY_PISTON) ||
+                            requiredState.isOf(Blocks.OBSERVER) ||
+                            requiredState.isOf(Blocks.DROPPER) ||
+                            requiredState.isOf(Blocks.DISPENSER)
+                    ) {
+                        item2 = requiredItems;
+                        isFacing = true;
+                        continue;
                     }
+                    for (int i = 0; i < tempList.size(); i++) {
+                        if (tempList.get(i).tick > 3) {
+                            tempList.remove(i);
+                            i--;
+                            continue;
+                        }
+                        if (this.queue.target.equals(tempList.get(i).pos) && tempList.get(i).tick < 3) {
+                            this.queue.clearQueue();
+                            continue z;
+                        }
+
+                    }
+                    tempList.add(new TempPos(this.queue.target, 0));
+                    queue.sendQueue(pEntity);
+                    continue;
+                }
+                return;
+            }
 //                }
 //            }
 //        }
-                }
+        }
     }
 
     public LinkedList<BlockPos> siftBlock(String blockName) {

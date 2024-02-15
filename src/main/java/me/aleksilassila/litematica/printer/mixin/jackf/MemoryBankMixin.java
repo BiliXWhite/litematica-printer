@@ -44,7 +44,7 @@ public abstract class MemoryBankMixin {
      */
     @Redirect(at = @At(value = "INVOKE",target = "Lnet/minecraft/util/math/BlockPos;getSquaredDistance(Lnet/minecraft/util/math/Position;)D"),method = "getPositions")
     private double getSquaredDistance(BlockPos instance, Position position){
-        System.out.println(instance.getSquaredDistance(position));
+       // System.out.println(instance.getSquaredDistance(position));
         return (metadata.getSearchSettings().searchRange == Integer.MAX_VALUE) ? -1 : instance.getSquaredDistance(position);
     }
 //    @Inject(at = @At("HEAD"), method = "unload", cancellable = true,remap = false)

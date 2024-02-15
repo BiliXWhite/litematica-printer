@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.mixin.jackf;
 
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -12,10 +11,10 @@ public class StorageMixin {
     //这方法啥意思？？？ 忘了
     @Inject(at = @At("HEAD"), method = "delete",remap = false, cancellable = true)
     private static void delete(String id, CallbackInfo ci) {
-        String[] split = id.split("-");
-        if("printer".equals(split[split.length-1])){
-            MemoryUtils.deletePrinterMemory();
-            ci.cancel();
-        }
+//        String[] split = id.split("-");
+//        if("printer".equals(split[split.length-1])){
+//            MemoryUtils.deletePrinterMemory();
+//            ci.cancel();
+//        }
     }
 }
