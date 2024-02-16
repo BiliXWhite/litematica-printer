@@ -48,6 +48,10 @@ public class GuiConfigsMixin {
     }*/
 	
 	
+    @Redirect(method = "getConfigs", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Configs$Colors;OPTIONS:Lcom/google/common/collect/ImmutableList;"))
+    private ImmutableList<IConfigBase> colorsOptions() {
+        return LitematicaMixinMod.getColorsList();
+    }
     @Redirect(method = "getConfigs", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Configs$Generic;OPTIONS:Lcom/google/common/collect/ImmutableList;"))
     private ImmutableList<IConfigBase> moreOptions() {
         return LitematicaMixinMod.getConfigList();

@@ -12,6 +12,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import red.jackf.chesttracker.api.events.AfterPlayerDestroyBlock;
@@ -53,6 +54,7 @@ public class MemoryUtils {
             Storage.delete(id);
             createPrinterMemory();
         }
+        client.inGameHud.setOverlayMessage(Text.literal("打印机库存已清空"), false);
     }
 
     public static void setup() {

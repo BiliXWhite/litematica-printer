@@ -6,7 +6,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -28,7 +27,6 @@ import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.Memor
 
 public class SearchItem {
     static AtomicBoolean hasItem = new AtomicBoolean(false);
-    static NbtCompound nbt = new NbtCompound();
     static boolean isPrinterMemory = false;
 
     public static boolean search(boolean isPrinterMemory) {

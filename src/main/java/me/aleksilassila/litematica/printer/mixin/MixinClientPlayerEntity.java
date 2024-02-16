@@ -19,7 +19,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.num;
 import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.saveMemory;
 
 @Mixin(ClientPlayerEntity.class)
@@ -64,8 +63,6 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 			Printer.init(client);
 			return;
 		}
-		ZxyUtils.addInv();
-		if(num==1 || num == 3)ZxyUtils.syncInv();
 		ZxyUtils.tick();
 
 		if(!(LitematicaMixinMod.PRINT_MODE.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed())) return;

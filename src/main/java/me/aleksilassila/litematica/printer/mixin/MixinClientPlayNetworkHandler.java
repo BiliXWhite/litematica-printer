@@ -34,6 +34,6 @@ public abstract class MixinClientPlayNetworkHandler {
             client.player.closeHandledScreen();
         }
         if(QuickShulkerUtils.waitForTheItemToBeSwitched != null) QuickShulkerUtils.switchItem(QuickShulkerUtils.targetSlot);
-        if(num>1) ZxyUtils.syncInv();
+        if(num == 1 || num == 3)ZxyUtils.syncInv();
      }
 }

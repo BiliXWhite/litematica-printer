@@ -7,17 +7,21 @@ import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.options.*;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
+import me.aleksilassila.litematica.printer.config.KeyCallbackHotkeys;
 import me.aleksilassila.litematica.printer.printer.State;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
+import net.minecraft.client.MinecraftClient;
 
 import java.util.List;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
 
-public class LitematicaMixinMod implements ModInitializer {
+public class LitematicaMixinMod implements ModInitializer, ClientModInitializer {
 
 	// Config settings
 	public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger( "打印机工作间隔", 0,   0, 20, "以游戏刻度为单位工作间隔。值越低意味着打印速度越快");
@@ -79,7 +83,7 @@ public class LitematicaMixinMod implements ModInitializer {
 	public static final ConfigHotkey PRINTER_INVENTORY= new ConfigHotkey("打印机库存", "G", "如果远程取物的目标是未加载的区块将会增加取物品的时间，用投影选区后按下热键\n" +
 			"打印机工作时将会使用该库存内的物品\n" +
 			"建议库存区域内放置假人来常加载区块");
-	public static final ConfigHotkey REVISION_PRINT= new ConfigHotkey("清空打印机库存", "C,G", "清空打印机库存");
+	public static final ConfigHotkey REMOVE_PRINT_INVENTORY = new ConfigHotkey("清空打印机库存", "C,G", "清空打印机库存");
 
 
 	public static List<IConfigBase> getHotkeyList() {
@@ -94,19 +98,37 @@ public class LitematicaMixinMod implements ModInitializer {
 //		list.add(EXE_MODE);
 		if(loadChestTracker) list.add(PRINTER_INVENTORY);
 		if(loadChestTracker) list.add(SYNC_INVENTORY);
-		if(loadChestTracker) list.add(REVISION_PRINT);
+		if(loadChestTracker) list.add(REMOVE_PRINT_INVENTORY);
 		list.add(TEST);
 
+		return ImmutableList.copyOf(list);
+	}
+	public static final ConfigColor SYNC_INVENTORY_COLOR = new ConfigColor("容器同步和打印机添加库存高亮颜色",          "#4CFF4CE6", "The color of the area selection boxes, when they are unselected");
+
+
+	public static ImmutableList<IConfigBase> getColorsList() {
+		List<IConfigBase> list = new java.util.ArrayList<>(Configs.Colors.OPTIONS);
+		list.add(SYNC_INVENTORY_COLOR);
 		return ImmutableList.copyOf(list);
 	}
 
 	@Override
 	public void onInitialize() {
+		KeyCallbackHotkeys keyCallbackHotkeys = new KeyCallbackHotkeys(MinecraftClient.getInstance());
 		OpenInventoryPacket.registerReceivePacket();
 		OpenInventoryPacket.registerClientReceivePacket();
 		if(loadChestTracker) MemoryUtils.setup();
 		TOGGLE_PRINTING_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(PRINT_MODE));
+
+		SYNC_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
+		PRINTER_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
+		HighlightBlockRenderer.init();
 //		BEDROCK_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(BEDROCK_SWITCH));
 //		EXE_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(EXCAVATE));
+	}
+
+	@Override
+	public void onInitializeClient() {
+
 	}
 }

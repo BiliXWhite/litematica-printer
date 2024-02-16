@@ -28,6 +28,7 @@
     "jackf.SearchInvokerMixin",
     "jackf.SearchRequestPopulatorMixin",
     "jackf.StorageMixin",
+    "masa.WorldRendererMixin",
     "openinv.MixinMinecraftClient",
     "verify.MixinClientConnection"
   ],

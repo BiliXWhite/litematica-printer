@@ -170,6 +170,7 @@ public class Printer extends PrinterUtils {
     int z;
     boolean getPosIng = false;
     boolean yDegression = false;
+
     //执行一次获取一个pos
     //方法使用时一定要放在if语句最后 不然会出现获取了pos但是被后面的条件跳过了，这个pos就被跳过了
     BlockPos getBlockPos() {
@@ -200,7 +201,7 @@ public class Printer extends PrinterUtils {
             BlockPos up1 = player.getBlockPos().north(x).west(z).up(y);
             x++;
             z++;
-            if(yDegression) y--;
+            if (yDegression) y--;
             else y++;
             return up1;
         }
@@ -215,14 +216,14 @@ public class Printer extends PrinterUtils {
         - signs
         - rotating blocks (signs, skulls)
      */
-    void fluidMode(TempData data) {
+    void fluidMode() {
 
 //        for (int y = range; y > -range - 1; y--) {
 //            for (int x = -range; x < range + 1; x++) {
 //                for (int z = -range; z < range + 1; z++) {
         BlockPos pos;
-        while (!timedOut() && (pos = getBlockPos()) != null) {
-            BlockState currentState = data.world.getBlockState(pos);
+        while (!timedOut() && (pos = getBlockPos()) != null && client.world != null && client.player != null) {
+            BlockState currentState = client.world.getBlockState(pos);
             if (client.player != null && !canInteracted(pos, range)) continue;
             if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
             if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
@@ -236,8 +237,8 @@ public class Printer extends PrinterUtils {
                     } catch (Exception e) {
                     }
                 }
-                switchToItems(data.player, fluidList.toArray(new Item[fluidList.size()]));
-                Item item = Implementation.getInventory(data.player).getMainHandStack().getItem();
+                switchToItems(client.player, fluidList.toArray(new Item[fluidList.size()]));
+                Item item = Implementation.getInventory(client.player).getMainHandStack().getItem();
                 String itemid = Registries.ITEM.getId(item).toString();
                 if (!blocklist.stream().anyMatch(b -> itemid.contains(b) || item.getName().toString().contains(b))) {
                     items2.addAll(fluidList);
@@ -258,7 +259,7 @@ public class Printer extends PrinterUtils {
 
     BlockPos tempPos = null;
 
-    void miningMode(TempData data) {
+    void miningMode() {
         BlockPos pos;
         while (!timedOut() && (pos = tempPos == null ? getBlockPos() : tempPos) != null) {
 
@@ -268,12 +269,12 @@ public class Printer extends PrinterUtils {
 //                    BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
 
             if (client.player != null && !canInteracted(pos, range)) {
-                if (tempPos == null)continue;
+                if (tempPos == null) continue;
                 tempPos = null;
                 continue;
             }
             if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) {
-                if (tempPos == null)continue;
+                if (tempPos == null) continue;
                 tempPos = null;
                 continue;
             }
@@ -325,20 +326,20 @@ public class Printer extends PrinterUtils {
 
 
     //此模式依赖bug运行 请勿随意修改
-    public void jymod(TempData data) {
+    public void jymod() {
         BreakingFlowController.tick();
         int maxy = -9999;
         range = bedrockModeRange();
         BlockPos pos;
-        while (!timedOut() && (pos = getBlockPos()) != null) {
+        while (!timedOut() && (pos = getBlockPos()) != null && client.world != null) {
 //        for (int y = range; y > -range - 1; y--) {
 //            for (int x = -range; x < range + 1; x++) {
 //                for (int z = -range; z < range + 1; z++) {
 //                    BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
             if (!ZxyUtils.bedrockCanInteracted(pos, range)) continue;
-            BlockState currentState = data.world.getBlockState(pos);
+            BlockState currentState = client.world.getBlockState(pos);
 //                    if (currentState.isOf(Blocks.PISTON) && !data.world.getBlockState(pos.down()).isOf(Blocks.BEDROCK)) {
-            if (currentState.isOf(Blocks.PISTON) && !bedrockModeTarget(data.world.getBlockState(pos.down()).getBlock())) {
+            if (currentState.isOf(Blocks.PISTON) && !bedrockModeTarget(client.world.getBlockState(pos.down()).getBlock())) {
                 BreakingFlowController.addPosList(pos);
             } else if (currentState.isOf(Blocks.PISTON_HEAD)) {
                 switchToItems(client.player, new Item[]{Items.AIR, Items.DIAMOND_PICKAXE});
@@ -452,12 +453,11 @@ public class Printer extends PrinterUtils {
 
     public void tick() {
         if (!verify()) return;
-        TempData data = new TempData(client.player, client.world, SchematicWorldHandler.getSchematicWorld());
         WorldSchematic worldSchematic = SchematicWorldHandler.getSchematicWorld();
         ClientPlayerEntity pEntity = client.player;
         ClientWorld world = client.world;
 
-        if(range != getPrinterRange()) getPosIng = false;
+        if (range != getPrinterRange()) getPosIng = false;
         yDegression = false;
         startTime = System.currentTimeMillis();
         tickRate = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();
@@ -468,11 +468,11 @@ public class Printer extends PrinterUtils {
             if (tick % tickRate != 0) {
                 return;
             }
-            queue.sendQueue(data.player);
+            queue.sendQueue(client.player);
         }
         if (isFacing) {
             switchToItems(pEntity, item2);
-            queue.sendQueue(data.player);
+            queue.sendQueue(client.player);
             isFacing = false;
         }
 
@@ -481,16 +481,16 @@ public class Printer extends PrinterUtils {
 
         if (LitematicaMixinMod.BEDROCK_SWITCH.getBooleanValue()) {
             yDegression = true;
-            jymod(data);
+            jymod();
             return;
         }
         if (LitematicaMixinMod.EXCAVATE.getBooleanValue()) {
             yDegression = true;
-            miningMode(data);
+            miningMode();
             return;
         }
         if (LitematicaMixinMod.FLUID.getBooleanValue()) {
-            fluidMode(data);
+            fluidMode();
             return;
         }
         for (TempPos tempPos : tempList) tempPos.tick++;
