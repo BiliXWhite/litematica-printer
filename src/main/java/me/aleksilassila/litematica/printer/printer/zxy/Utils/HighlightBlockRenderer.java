@@ -36,7 +36,7 @@ public class HighlightBlockRenderer implements IRenderer {
     public static List<BlockPos> getPosList(Color4f color4f){
         return highlightMap.get(color4f);
     }
-    public void test(Color4f color4f,BlockPos pos) {
+    public void highlightBlock(Color4f color4f, BlockPos pos) {
         BlockState blockState = client.world.getBlockState(pos);
         Entity cameraEntity = client.cameraEntity;
         if(cameraEntity == null) return;
@@ -84,6 +84,7 @@ public class HighlightBlockRenderer implements IRenderer {
         fi.dy.masa.litematica.render.RenderUtils.renderAreaSides(pos1, pos1, new Color4f(1,1,0,0.5F), matrices, client);
     }
 
+    //如果不注册无法渲染，
     public static void init(){
         RenderEventHandler.getInstance().registerGameOverlayRenderer(instance);
         RenderEventHandler.getInstance().registerWorldLastRenderer(instance);
@@ -98,7 +99,7 @@ public class HighlightBlockRenderer implements IRenderer {
         for (Map.Entry<Color4f, List<BlockPos>> map : highlightMap.entrySet()) {
             Color4f key = map.getKey();
             for (BlockPos blockPos : map.getValue()) {
-                instance.test(key,blockPos);
+                instance.highlightBlock(key,blockPos);
             }
         }
     }

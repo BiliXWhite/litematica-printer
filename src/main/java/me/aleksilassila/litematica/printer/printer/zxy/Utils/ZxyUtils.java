@@ -2,7 +2,6 @@ package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.Color4f;
-import fi.dy.masa.malilib.util.InventoryUtils;
 import fi.dy.masa.malilib.util.ItemType;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
@@ -273,18 +272,13 @@ public class ZxyUtils {
     static ItemStack itemStack;
 
     public static void test() {
-        ClientPlayerEntity player = client.player;
-        BlockPos blockPos1 = player.getBlockPos().up(-1);
-        BlockPos blockPos2 = ((BlockHitResult) client.crosshairTarget).getBlockPos();
-//        HighlightBlockRenderer.test(blockPos1);
-//        HighlightBlockRenderer.renderHighlightedBlock(client.world.getBlockState(blockPos1),blockPos1,client.world,null,null);
         if (LitematicaMixinMod.TEST.getKeybind().isPressed()) {
 //            QuickShulkerUtils.test();
-            if (itemStack == null) itemStack = client.player.getInventory().getMainHandStack();
-            if (!InventoryUtils.areStacksEqual(client.player.getInventory().getMainHandStack(), itemStack)) {
-                itemStack = client.player.getInventory().getMainHandStack();
-                System.out.println("=======");
-            }
+//            if (itemStack == null) itemStack = client.player.getInventory().getMainHandStack();
+//            if (!InventoryUtils.areStacksEqual(client.player.getInventory().getMainHandStack(), itemStack)) {
+//                itemStack = client.player.getInventory().getMainHandStack();
+//                System.out.println("=======");
+//            }
 //            OpenInventoryPacket.sendOpenInventory(DataManager.getSelectionManager().getCurrentSelection().getSubRegionBox(DataManager.getSimpleArea().getName()).getPos1(),MinecraftClient.getInstance().world.getRegistryKey());
         }
     }
