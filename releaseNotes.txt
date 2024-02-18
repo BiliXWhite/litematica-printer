@@ -1,1 +1,1 @@
-修复门、活板门放置问题
+RELEASE NOTES
