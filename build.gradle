@@ -52,9 +52,9 @@ repositories {
 		name = 'Xander Maven'
 		url = 'https://maven.isxander.dev/releases'
 	}
-//	maven{
-//		url = uri"https://maven.pkg.github.com/zhaixianyu/litematica-printer"
-//	}
+	maven{
+		url = uri"https://maven.pkg.github.com/zhaixianyu/litematica-printer"
+	}
 	//拼音搜索
 	maven { url = "https://mvnrepository.com/artifact/com.belerweb/pinyin4j" }
 	// Add repositories to retrieve artifacts from in here.
@@ -90,11 +90,10 @@ dependencies {// To change the versions see the gradle.properties file
 	modImplementation ("red.jackf:whereisit:${project.where_is_it_version}")
 	modImplementation include("red.jackf:chesttracker:${project.chesttracker_version}")
 //	modImplementation "maven.modrinth:chest-tracker:${project.chesttracker_version}"
-
 	modImplementation ("com.blamejared.searchables:Searchables-fabric-${project.searchables_version}")
 	//test
 //	modImplementation ("com.github.YingChengxi:YChengxi:1.18.2-0.0.5-2")
-
+//	modImplementation "com.zxy:litematica_printer:1.20.2-2.4+20240218"
 
 
 	//拼音搜索
@@ -169,7 +168,7 @@ publishing {
 					developer {
 						id = 'litematica_printer'
 						name = 'litematica_printer'
-						email = 'developer@example.com'
+						email = ''
 					}
 				}
 			}
