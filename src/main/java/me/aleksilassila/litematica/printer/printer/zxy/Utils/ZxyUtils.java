@@ -2,7 +2,6 @@ package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.Color4f;
-import fi.dy.masa.malilib.util.ItemType;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
@@ -32,10 +31,9 @@ import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
+import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
@@ -88,6 +86,9 @@ public class ZxyUtils {
     static BlockPos blockPos = null;
     static Color4f color4f;
     static List<BlockPos> highlightPosList = new LinkedList<>();
+    static Map<ItemStack,Integer> targetItemsCount = new HashMap<>();
+    static Map<ItemStack,Integer> playerItemsCount = new HashMap<>();
+
     private static void getReadyColor(){
         color4f = LitematicaMixinMod.SYNC_INVENTORY_COLOR.getColor();
         HighlightBlockRenderer.addHighlightMap(color4f);
@@ -150,15 +151,34 @@ public class ZxyUtils {
             } else return false;
         }
     }
+    public static void itemsCount(Map<ItemStack,Integer> itemsCount , ItemStack itemStack){
+        // 判断是否存在可合并的键
+        Optional<Map.Entry<ItemStack, Integer>> entry = itemsCount.entrySet().stream()
+                .filter(e -> ItemStack.canCombine(e.getKey(), itemStack))
+                .findFirst();
+
+        if (entry.isPresent()) {
+            // 更新已有键对应的值
+            Integer count = entry.get().getValue();
+            count += itemStack.getCount();
+            itemsCount.put(entry.get().getKey(), count);
+        } else {
+            // 添加新键值对
+            itemsCount.put(itemStack, itemStack.getCount());
+        }
+    }
 
     public static void syncInv() {
         switch (num) {
             case 1 -> {
                 //按下热键后记录看向的容器 开始同步容器 只会触发一次
                 targetBlockInv = new ArrayList<>();
+                targetItemsCount = new HashMap<>();
                 if (client.player != null && (!LitematicaMixinMod.INVENTORY.getBooleanValue() || openIng) && !client.player.currentScreenHandler.equals(client.player.playerScreenHandler)) {
                     for (int i = 0; i < client.player.currentScreenHandler.slots.get(0).inventory.size(); i++) {
-                        targetBlockInv.add(client.player.currentScreenHandler.slots.get(i).getStack().copy());
+                        ItemStack copy = client.player.currentScreenHandler.slots.get(i).getStack().copy();
+                        itemsCount(targetItemsCount,copy);
+                        targetBlockInv.add(copy);
                     }
                     //上面如果不使用copy()在关闭容器后会使第一个元素号变该物品成总数 非常有趣...
 //                    System.out.println("???1 "+targetBlockInv.get(0).getCount());
@@ -169,8 +189,20 @@ public class ZxyUtils {
             }
             case 2 -> {
                 //打开列表中的容器 只要容器同步列表不为空 就会一直执行此处
-                client.inGameHud.setOverlayMessage(Text.literal("剩余 " + syncPosList.size() + " 个容器. 再次按下快捷键取消同步"), false);
-                if (client.player != null && !client.player.currentScreenHandler.equals(client.player.playerScreenHandler)) return;
+                if (client.player == null) return;
+                playerItemsCount = new HashMap<>();
+                client.inGameHud.setOverlayMessage(Text.of("剩余 " + syncPosList.size() + " 个容器. 再次按下快捷键取消同步"), false);
+                if (!client.player.currentScreenHandler.equals(client.player.playerScreenHandler)) return;
+                DefaultedList<Slot> slots = client.player.playerScreenHandler.slots;
+                slots.forEach(slot -> itemsCount(playerItemsCount,slot.getStack()));
+//                if(targetItemsCount.keySet().stream()
+//                        .noneMatch(itemStack -> playerItemsCount.keySet().stream()
+//                                .anyMatch(itemStack1 -> ItemStack.canCombine(itemStack,itemStack1)))) return;
+                if (SYNC_INVENTORY_CHECK.getBooleanValue() && !targetItemsCount.entrySet().stream()
+                        .allMatch(target -> playerItemsCount.entrySet().stream()
+                                .anyMatch(player ->
+                                        ItemStack.canCombine(player.getKey(), target.getKey()) && target.getValue() <= player.getValue()))) return;
+
                 if ((!LitematicaMixinMod.INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
                     for (BlockPos pos : syncPosList) {
                         if (!openInv(pos,true)) continue;
@@ -182,7 +214,7 @@ public class ZxyUtils {
                 }
                 if (syncPosList.isEmpty()) {
                     num = 0;
-                    client.inGameHud.setOverlayMessage(Text.literal("同步完成"), false);
+                    client.inGameHud.setOverlayMessage(Text.of("同步完成"), false);
                 }
             }
             case 3 -> {
@@ -195,47 +227,47 @@ public class ZxyUtils {
                 for (int i = 0; i < size; i++) {
                     ItemStack item1 = sc.slots.get(i).getStack();
                     ItemStack item2 = targetBlockInv.get(i).copy();
-//                            System.out.println(item2);
                     int currNum = item1.getCount();
                     int tarNum = item2.getCount();
-                    boolean same = new ItemType(item1).equals(new ItemType(item2.copy()));
-//                            System.out.println(currNum);
-//                            System.out.println(tarNum);
+                    boolean same = ItemStack.canCombine(item1,item2.copy()) && !item1.isEmpty();
+                    if(ItemStack.canCombine(item1,item2) && currNum == tarNum) continue;
                     //不和背包交互
                     if (same) {
                         //有多
                         while (currNum > tarNum) {
                             client.interactionManager.clickSlot(sc.syncId, i, 0, SlotActionType.THROW, client.player);
-                            currNum = item1.getCount();
+                            currNum--;
                         }
                     } else {
                         //不同直接扔出
                         client.interactionManager.clickSlot(sc.syncId, i, 1, SlotActionType.THROW, client.player);
                         times++;
                     }
+                    boolean thereAreItems = false;
                     //背包交互
                     for (int i1 = size; i1 < sc.slots.size(); i1++) {
                         ItemStack stack = sc.slots.get(i1).getStack();
-                        currNum = sc.slots.get(i).getStack().getCount();
-                        boolean same2 = new ItemType(item2).equals(new ItemType(stack));
+                        ItemStack currStack = sc.slots.get(i).getStack();
+                        currNum = currStack.getCount();
+                        boolean same2 = thereAreItems = ItemStack.canCombine(item2,stack);
                         if (same2 && !stack.isEmpty()) {
-//                                    System.out.println(i+"  tarNum\t"+tarNum);
-//                                    System.out.println(i+"  currNum\t"+currNum);
                             int i2 = stack.getCount();
                             client.interactionManager.clickSlot(sc.syncId, i1, 0, SlotActionType.PICKUP, client.player);
                             for (; currNum < tarNum && i2 > 0; i2--) {
                                 client.interactionManager.clickSlot(sc.syncId, i, 1, SlotActionType.PICKUP, client.player);
-                                currNum = sc.slots.get(i).getStack().getCount();
+                                currNum++;
                             }
                             client.interactionManager.clickSlot(sc.syncId, i1, 0, SlotActionType.PICKUP, client.player);
                         }
-                        if (currNum < tarNum) times++;
+                        //这里判断没啥用，因为一个游戏刻操作背包太多次.getStack().getCount()获取的数量不准确 下次一定优化，
+                        if (currNum != tarNum) times++;
                     }
-                    if (times == 0) {
-                        syncPosList.remove(blockPos);
-                        highlightPosList.remove(blockPos);
-                        blockPos = null;
-                    }
+                    if (!thereAreItems) times++;
+                }
+                if (times == 0) {
+                    syncPosList.remove(blockPos);
+                    highlightPosList.remove(blockPos);
+                    blockPos = null;
                 }
                 client.player.closeHandledScreen();
                 num = 2;
