@@ -26,7 +26,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static net.minecraft.block.enums.WallMountLocation.WALL;
+import static net.minecraft.block.enums.BlockFace.CEILING;
+import static net.minecraft.block.enums.BlockFace.WALL;
 
 public class PlacementGuide extends PrinterUtils {
     @NotNull
