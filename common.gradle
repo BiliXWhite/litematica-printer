@@ -99,9 +99,9 @@ def mod_dependencies = [
         ["maven.modrinth:carpet:${project.carpet}"                                  , 0],
 //        ["net.kyrptonaught:kyrptconfig:${project.kyrptconfig}"     			    	, 0],
 //        ["net.kyrptonaught:shulkerutils:${project.shulkerutils}"     			    , 0],
-        ["maven.modrinth:chest-tracker:${project.chesttracker}"                     , 0],
-        ["maven.modrinth:where-is-it:${project.whereisit}"                          , 0],
-//        ["com.blamejared.searchables:Searchables-fabric-${project.searchables}"     , 0],
+        ["red.jackf:chesttracker:${project.chesttracker}"                           , 0],
+        ["red.jackf:whereisit:${project.whereisit}"                                 , 0],
+        ["com.blamejared.searchables:Searchables-fabric-${project.searchables}"     , 0],
         ["dev.isxander.yacl:yet-another-config-lib-fabric:${project.yacl}"          , 0],
         ["maven.modrinth:modmenu:${project.modmenu}"                                , 0],
 
