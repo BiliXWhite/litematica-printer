@@ -1,0 +1,13 @@
+.gradle
+.settings
+bin/
+build/
+eclipse/
+logs/
+.classpath
+.project
+build.number
+.idea/
+.DS_Store
+/run/
+/build/

@@ -1,0 +1,42 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.aleksilassila.litematica.printer.mixin",
+  "compatibilityLevel": "JAVA_16",
+  "mixins": [
+    //#if MC > 12001
+    //$$ "jackf.SearchRequestMixin",
+    //#endif
+    "masa.Litematica_InventoryUtilsMixin",
+    "masa.MixinInventoryUtils",
+    "openinv.MixinGenericContainerScreenHandler",
+    "openinv.MixinLootableContainerBlockEntity",
+    "openinv.MixinServerPlayerEntity",
+    "openinv.MixinServerWorld"
+  ],
+  "client": [
+    "ClientCommonNetworkHandlerMixin",
+    "ConfigsMixin",
+    "FlowerPotBlockAccessor",
+    "GuiConfigsMixin",
+    "InputHandlerMixin",
+    "MixinClientPlayerEntity",
+    "MixinClientPlayerInteractionManager",
+    "MixinClientPlayNetworkHandler",
+    "PlayerMoveC2SPacketAccessor",
+    //#if MC > 12001
+    //$$ "jackf.ChestTrackerScreenMixin",
+    //$$ "jackf.ItemStackUtilMixin",
+    //$$ "jackf.MemoryBankMixin",
+    //$$ "jackf.SearchInvokerMixin",
+    //$$ "jackf.SearchRequestPopulatorMixin",
+    //$$ "jackf.StorageMixin",
+    //#endif
+    "masa.WorldRendererMixin",
+    "openinv.MixinMinecraftClient",
+    "verify.MixinClientConnection"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

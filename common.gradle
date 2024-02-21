@@ -1,0 +1,446 @@
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
+import net.fabricmc.loom.util.Platform
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.tree.ClassNode
+import org.objectweb.asm.tree.LdcInsnNode
+
+
+apply(plugin: "fabric-loom")
+apply(plugin: "maven-publish")
+apply(plugin: "com.replaymod.preprocess")
+
+int mcVersion = 1
+
+preprocess {
+    mcVersion = vars.get().get("MC")
+    tabIndentation.set(false)
+}
+
+repositories {
+
+    maven { url = 'https://masa.dy.fi/maven' }
+    maven { url = "https://www.cursemaven.com" }
+    maven {
+        name = "CottonMC"
+        url = "https://server.bbkr.space/artifactory/libs-release"
+    }
+    maven { url = 'https://maven.fabricmc.net' }
+    maven { url = "https://maven.kyrptonaught.dev" }
+    maven { url = "https://maven.terraformersmc.com/releases" }
+    maven { url = "https://maven.shedaniel.me/" }
+    maven {
+        url = "https://api.modrinth.com/maven"
+    }
+
+    maven {
+        name = "jackfredReleases"
+        url = uri("https://maven.jackf.red/releases")
+        content {
+            includeGroupAndSubgroups("red.jackf")
+        }
+    }
+    maven {
+        name = "BlameJared"
+        url = uri("https://maven.blamejared.com")
+        content {
+            includeGroupAndSubgroups("com.blamejared.searchables")
+        }
+    }
+    maven {
+        name = "QuiltMC"
+        url = uri("https://maven.quiltmc.org/repository/release")
+        content {
+            includeGroupAndSubgroups("org.quiltmc")
+        }
+    }
+    maven {
+        name = 'Xander Maven'
+        url = 'https://maven.isxander.dev/releases'
+    }
+    maven {
+        url = uri "https://maven.pkg.github.com/zhaixianyu/litematica-printer"
+    }
+    //拼音搜索
+    maven { url = "https://mvnrepository.com/artifact/com.belerweb/pinyin4j" }
+
+//	maven { url = "https://mvnrepository.com/artifact/com.github.open-android/pinyin4j " }
+    // Add repositories to retrieve artifacts from in here.
+    // You should only use this when depending on other mods because
+    // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
+    // See https://docs.gradle.org/current/userguide/declaring_repositories.html
+    // for more information about repositories.
+}
+
+configurations {
+    register("productionRuntimeClient") { configuration ->
+        configurations.findAll {
+            it.name in [
+                    "minecraftLibraries",
+                    "loaderLibraries",
+                    "minecraftRuntimeLibraries"
+            ]
+        }.forEach { Configuration superConfigurations ->
+            configuration.extendsFrom(superConfigurations)
+        }
+    }
+
+    register("productionRuntimeServer")
+    register("productionRuntimeMods")
+}
+//  1 = modImplementation 2 = modImplementation include 	3 = modApi	4 = modCompileOnly
+def mod_dependencies = [
+        ["fi.dy.masa.malilib:${project.malilib}"                                    , 1],
+        ["curse.maven:item-scroller-242064:${project.item_scrolle}"                 , 1],
+        ["curse.maven:tweakeroo-297344:${project.tweakeroo}"                        , 1],
+        ["curse.maven:litematica-308892:${project.litematica}"                      , 1],
+        ["curse.maven:quick-shulker-362669:${project.quick_shulker}"                , 1],
+        ["maven.modrinth:carpet:${project.carpet}"                                  , 1],
+        ["net.kyrptonaught:kyrptconfig:${project.kyrptconfig}"     			    	, 1],
+        ["net.kyrptonaught:shulkerutils:${project.shulkerutils}"     			    , 1],
+        ["red.jackf:chesttracker:${project.chesttracker}"                           , mcVersion > 12001 ? 1 : 0],
+        ["red.jackf:whereisit:${project.whereisit}"                                 , mcVersion > 12001 ? 1 : 0],
+        ["com.blamejared.searchables:Searchables-fabric-${project.searchables}"     , mcVersion > 12001 ? 1 : 0],
+        ["dev.isxander.yacl:yet-another-config-lib-fabric:${project.yacl}"          , mcVersion > 12001 ? 1 : 0],
+        ["maven.modrinth:chest-tracker:${project.chesttracker}"                     , mcVersion <= 12001 ? 1 : 0],
+        ["maven.modrinth:where-is-it:${project.whereisit}"                          , mcVersion <= 12001 ? 1 : 0],
+        ["maven.modrinth:cloth-config:${project.cloth_config}"                      , mcVersion <= 12001 ? 1 : 0],
+        ["io.github.cottonmc:LibGui:${project.LibGui}"                              , mcVersion <= 12001 ? 1 : 0],
+
+        ["maven.modrinth:modmenu:${project.modmenu}"                                , 1],
+
+]
+
+
+dependencies {
+    //拼音
+    implementation include("com.belerweb:pinyin4j:${project.pinyin_verson}")
+
+    // To change the versions see the gradle.properties file
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+//	modImplementation "com.zxy:litematica_printer:1.20.2-2.4+20240218"
+
+    mod_dependencies.forEach { item ->
+        def dependencyNotation = item[0]
+        def mode = item[1]
+        if (mode == 1) {
+            modImplementation dependencyNotation
+        } else if (mode == 2) {
+            modImplementation include(dependencyNotation)
+        } else if (mode == 3) {
+            modApi dependencyNotation
+        } else if (mode == 4) {
+            modCompileOnly dependencyNotation
+        }
+    }
+//	modImplementation "maven.modrinth:jei:${project.jei}"
+//	modImplementation "maven.modrinth:carpet-tis-addition:${project.carpet_tis_addition}"
+
+    // Uncomment the following line to enable the deprecated Fabric API modules.
+    // These are included in the Fabric API production distribution and allow you to update your mod to the latest modules at a later more convenient time.
+
+    // modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
+
+    //使用通用版本..大概
+    runtimeOnly(project(path: ":fabricWrapper"))
+}
+def time = new Date().format("yyyyMMdd", TimeZone.getTimeZone("GMT+08:00"))
+version = project.mod_version + "+" + time
+group = project.mod_maven_group
+
+base {
+    archivesName.set("${project.mod_archives_base_name}-${project.minecraft_version}")
+}
+
+loom {
+    interfaceInjection {
+        enableDependencyInterfaceInjection.set(true)
+    }
+
+    runConfigs.configureEach {
+        // Dump modified classes automatically.
+        property("mixin.debug.export", "true")
+    }
+
+    runConfigs.named("client") {
+        programArgs([
+                "--width",
+                "1280",
+                "--height",
+                "720",
+        ])
+        runDir("run/client")
+    }
+
+    runConfigs.named("server") {
+        runDir("run/server")
+    }
+
+    runs {
+        mixinAuditClient {
+            inherit(client)
+            vmArgs("-Dmagiclib.mixin_audit=true")
+            ideConfigGenerated(false)
+            runDir("run/client")
+        }
+
+        mixinAuditServer {
+            inherit(server)
+            vmArgs("-Dmagiclib.mixin_audit=true")
+            ideConfigGenerated(false)
+            runDir("run/server")
+        }
+    }
+
+    // Setup client default settings.
+    runClient {
+        defaultCharacterEncoding("UTF-8")
+
+        if (!new File("${projectDir}/run/client/options.txt").exists()) {
+            new File("${projectDir}/run/client").mkdirs()
+            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("${projectDir}/run/client/options.txt"))
+            bufferedWriter.writeLine("autoJump:false")
+            bufferedWriter.writeLine("enableVsync:false")
+            bufferedWriter.writeLine("forceUnicodeFont:false")
+            bufferedWriter.writeLine("fov:0.25")
+            bufferedWriter.writeLine("screenEffectScale:1.0")
+            bufferedWriter.writeLine("gamma:16.0")
+            bufferedWriter.writeLine("guiScale:3")
+            bufferedWriter.writeLine("lang:${Locale.getDefault().toString()}")
+            bufferedWriter.writeLine("maxFps:260")
+            bufferedWriter.writeLine("renderDistance:10")
+            bufferedWriter.writeLine("soundCategory_master:0.0")
+            bufferedWriter.close()
+        }
+    }
+
+    // Setup server default settings.
+    runServer {
+        defaultCharacterEncoding("UTF-8")
+
+        // Agree eula before server init.
+        if (!new File("${projectDir}/run/server/eula.txt").exists()) {
+            new File("${projectDir}/run/server").mkdirs()
+            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("${projectDir}/run/server/eula.txt"))
+            bufferedWriter.writeLine("eula=true")
+            bufferedWriter.close()
+        }
+    }
+}
+
+tasks.register("serverPropertiesJar", Jar) {
+    File propsFile = file("build/tmp/install.properties")
+
+    doFirst {
+        if (propsFile.exists()) {
+            propsFile.delete()
+        }
+
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(propsFile))
+        bufferedWriter.writeLine("fabric-loader-version=${project.fabric_loader_version}")
+        bufferedWriter.writeLine("game-version=${project.minecraft_version}")
+        bufferedWriter.close()
+    }
+
+    archiveFileName.set("server-properties.jar")
+    destinationDirectory.set(file("build/tmp"))
+    from(propsFile)
+}
+
+tasks.register("runProductionClient", JavaExec) {
+    dependsOn(tasks.remapJar)
+    classpath.from(configurations.productionRuntimeClient)
+    mainClass.set("net.fabricmc.loader.impl.launch.knot.KnotClient")
+    workingDir(file("run/client"))
+
+    doFirst {
+        classpath.from(loom.minecraftProvider.minecraftClientJar)
+        args(
+                "--assetIndex", loom.minecraftProvider.versionInfo.assetIndex().fabricId(loom.minecraftProvider.minecraftVersion()),
+                "--assetsDir", file("${loom.files.userCache}/assets").absolutePath,
+                "--gameDir", workingDir.absolutePath,
+                "--width", "1280",
+                "--height", "720"
+        )
+        jvmArgs("-Dmixin.debug.export=true")
+        jvmArgs("-Dfabric.addMods=${configurations.productionRuntimeMods.files.join(File.pathSeparator)}${File.pathSeparator}${tasks.remapJar.archiveFile.get().asFile.absolutePath}")
+
+
+        if (Platform.CURRENT.operatingSystem.isMacOS()) {
+            jvmArgs("-XstartOnFirstThread")
+        }
+    }
+}
+
+tasks.register("runProductionServer", JavaExec) {
+    dependsOn(tasks.remapJar)
+    classpath.from(configurations.productionRuntimeServer, tasks.named("serverPropertiesJar"))
+    mainClass.set("net.fabricmc.installer.ServerLauncher")
+    workingDir(file("run/server"))
+
+    doFirst {
+        args("nogui")
+        jvmArgs("-Dmixin.debug.export=true")
+        jvmArgs("-Dfabric.addMods=${configurations.productionRuntimeMods.files.join(File.pathSeparator)}${File.pathSeparator}${tasks.remapJar.archiveFile.get().asFile.absolutePath}")
+    }
+}
+
+["serverPropertiesJar",
+ "runClient", "runServer",
+ "runMixinAuditClient", "runMixinAuditServer",
+ "runProductionClient", "runProductionServer",
+ "preprocessCode", "preprocessResources",
+ "preprocessTestCode", "preprocessTestResources"].forEach {
+    if (tasks.getNames().contains(it)) {
+        tasks.named(it) {
+            it.group("${mod_id}")
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding("UTF-8")
+}
+
+remapJar {
+    remapperIsolation.set(true)
+}
+
+
+processResources {
+    outputs.upToDateWhen { false }
+
+    from("${rootDir}/LICENSE")
+
+    from("${rootDir}/icon.png") {
+        into("assets/${project.mod_id}")
+    }
+
+    filesMatching("fabric.mod.json") {
+        filter { line ->
+            line.trim().startsWith("//") ? null : line
+        }
+
+        expand([
+                "minecraft_dependency": project.minecraft_dependency,
+                "minecraft_version_id": project.minecraft_version.replace(".", "_"),
+                "minecraft_version"   : project.minecraft_version,
+                "mod_description"     : project.mod_description,
+                "mod_homepage"        : project.mod_homepage,
+                "mod_id"              : project.mod_id,
+                "mod_license"         : project.mod_license,
+                "mod_name"            : project.mod_name,
+                "mod_sources"         : project.mod_sources,
+                "mod_version"         : project.version
+        ])
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 17
+}
+
+java {
+    if (mcVersion > 11701) {
+        sourceCompatibility(JavaVersion.VERSION_16)
+        targetCompatibility(JavaVersion.VERSION_16)
+    } else {
+        sourceCompatibility(JavaVersion.VERSION_1_8)
+        targetCompatibility(JavaVersion.VERSION_1_8)
+    }
+
+    withSourcesJar()
+}
+
+//jar {
+////	from("${rootDir}/LICENSE")
+//	from("LICENSE") {
+//		rename { "${it}_${project.archivesBaseName}"}
+//	}
+//}
+
+// configure the maven publication
+publishing {
+    publications {
+        register("mavenJava", MavenPublication) {
+            artifactId("${project.mod_id}-${project.minecraft_version.replace(".", "_")}")
+            version("${rootProject.getMavenArtifactVersion()}")
+            from(components.java)
+        }
+    }
+
+    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+    repositories {
+        mavenLocal()
+
+        maven {
+            url("$rootDir/publish")
+        }
+    }
+}
+
+ImmutableMap<Object, Object> replaceTokenMap = ImmutableMap.builder()
+        .put("@MOD_IDENTIFIER@", project.mod_id)
+        .put("@MOD_NAME@", project.mod_name)
+        .put("@MINECRAFT_VERSION_IDENTIFY@", project.minecraft_version.replace(".", "_"))
+        .build()
+ImmutableList<Object> replaceTokenFile = ImmutableList.builder()
+        .add("litematica-printerReference")
+        .build()
+
+tasks.classes {
+    doLast {
+        File dir = file("build/classes/java")
+
+        dir.eachFileRecurse {
+            String path = it.path.replace(dir.path, "")
+
+            if (path.endsWith(".class") && replaceTokenFile.stream().anyMatch { path.contains(it as String) }) {
+                ClassReader cr = new ClassReader(it.newInputStream().bytes)
+                ClassNode cn = new ClassNode()
+                cr.accept(cn, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG)
+
+                // ReplaceToken in fields
+                cn.fields.each {
+                    if (it.desc == "Ljava/lang/String;" && it.value instanceof String) {
+                        String value = it.value as String
+
+                        replaceTokenMap.each {
+                            value = value.replace(it.key as String, it.value as String)
+                        }
+
+                        it.value = value
+                    }
+                }
+
+                // ReplaceToken in methods
+                cn.methods.each {
+                    it.instructions.each {
+                        if (it instanceof LdcInsnNode) {
+                            LdcInsnNode ldc = it as LdcInsnNode
+
+                            if (ldc.cst instanceof String) {
+                                String value = ldc.cst as String
+
+                                replaceTokenMap.each {
+                                    value = value.replace(it.key as String, it.value as String)
+                                }
+
+                                ldc.cst = value
+                            }
+                        }
+                    }
+                }
+
+                ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES)
+                cn.accept(cw)
+                new FileOutputStream(it).write(cw.toByteArray())
+            }
+        }
+    }
+}

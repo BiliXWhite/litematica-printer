@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "icon": "assets/${mod_id}/icon.png",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": [
+    {
+      "name": "zhaixianyu",
+      "contact": {
+        "homepage": "https://github.com/zhaixianyu"
+      }
+    }
+  ],
+  "contact": {
+    "homepage": "${mod_homepage}",
+    "issues": "${mod_sources}/issues",
+    "sources": "${mod_sources}"
+  },
+  "license": "${mod_license}",
+  "environment": "*",
+  "entrypoints": {
+
+  },
+  "depends": {
+    "malilib": "*"
+  },
+  "custom": {
+    "modmenu": {
+      "parent": "carpet"
+    }
+  }
+}
