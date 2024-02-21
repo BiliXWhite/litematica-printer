@@ -97,12 +97,16 @@ def mod_dependencies = [
         ["curse.maven:litematica-308892:${project.litematica}"                      , 0],
         ["curse.maven:quick-shulker-362669:${project.quick_shulker}"                , 1],
         ["maven.modrinth:carpet:${project.carpet}"                                  , 0],
-//        ["net.kyrptonaught:kyrptconfig:${project.kyrptconfig}"     			    	, 0],
-//        ["net.kyrptonaught:shulkerutils:${project.shulkerutils}"     			    , 0],
-        ["red.jackf:chesttracker:${project.chesttracker}"                           , 0],
-        ["red.jackf:whereisit:${project.whereisit}"                                 , 0],
-        ["com.blamejared.searchables:Searchables-fabric-${project.searchables}"     , 0],
-        ["dev.isxander.yacl:yet-another-config-lib-fabric:${project.yacl}"          , 0],
+        ["net.kyrptonaught:kyrptconfig:${project.kyrptconfig}"     			    	, 0],
+        ["net.kyrptonaught:shulkerutils:${project.shulkerutils}"     			    , 0],
+        ["red.jackf:chesttracker:${project.chesttracker}"                           , mcVersion > 12001 ? 0 : 3],
+        ["red.jackf:whereisit:${project.whereisit}"                                 , mcVersion > 12001 ? 0 : 3],
+        ["com.blamejared.searchables:Searchables-fabric-${project.searchables}"     , mcVersion > 12001 ? 0 : 3],
+        ["dev.isxander.yacl:yet-another-config-lib-fabric:${project.yacl}"          , mcVersion > 12001 ? 0 : 3],
+        ["maven.modrinth:chest-tracker:${project.chesttracker}"                     , mcVersion <= 12001 ? 0 : 3],
+        ["maven.modrinth:where-is-it:${project.whereisit}"                          , mcVersion <= 12001 ? 0 : 3],
+        ["maven.modrinth:cloth-config:${project.cloth_config}"                      , mcVersion <= 12001 ? 0 : 3],
+
         ["maven.modrinth:modmenu:${project.modmenu}"                                , 0],
 
 ]
@@ -383,7 +387,7 @@ ImmutableMap<Object, Object> replaceTokenMap = ImmutableMap.builder()
         .put("@MINECRAFT_VERSION_IDENTIFY@", project.minecraft_version.replace(".", "_"))
         .build()
 ImmutableList<Object> replaceTokenFile = ImmutableList.builder()
-        .add("WuHiclientReference")
+        .add("litematica-printerReference")
         .build()
 
 tasks.classes {

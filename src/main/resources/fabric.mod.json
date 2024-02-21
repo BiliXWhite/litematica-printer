@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
-  "id": "litematica_printer",
-  "version": "${version}",
-
-  "name": "Litematica Printer",
+  "id": "${mod_id}-${minecraft_version_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
   "description": "A fork of Litematica that adds the missing printer functionality",
   "authors": [
     "aleksilassila"
   ],
   "contact": {
-    "homepage": "https://github.com/aleksilassila/litematica-printer",
-    "sources": "https://github.com/aleksilassila/litematica-printer"
+    "website": "${mod_homepage}",
+    "homepage": "${mod_sources}",
+    "sources": "${mod_sources}"
   },
 
-  "license": "CC0-1.0",
+  "license": "${mod_license}",
   "icon": "assets/modid/icon.png",
 
   "environment": "*",
@@ -30,8 +30,7 @@
   ],
 
   "depends": {
-    "fabricloader": "*",
-    "fabric": "*"
+    "minecraft": "${minecraft_dependency}"
   },
   "custom": {
     "modmenu": {
