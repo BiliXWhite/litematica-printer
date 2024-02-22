@@ -11,7 +11,6 @@ import me.aleksilassila.litematica.printer.config.KeyCallbackHotkeys;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.client.MinecraftClient;
@@ -19,6 +18,7 @@ import net.minecraft.client.MinecraftClient;
 import java.util.List;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadQuickShulker;
 
 public class LitematicaMixinMod implements ModInitializer, ClientModInitializer {
 
@@ -48,7 +48,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigStringList BEDROCK_LIST = new ConfigStringList("基岩模式白名单", ImmutableList.of("minecraft:bedrock"), "");
 	public static final ConfigStringList REPLACEABLE_LIST = new ConfigStringList("可替换方块",
 			ImmutableList.of("minecraft:air","minecraft:snow","minecraft:lava","minecraft:water","minecraft:bubble_column","minecraft:grass_block"), "打印时将忽略这些错误方块 直接替换。");
-	public static final ConfigHotkey TEST = new ConfigHotkey("test", "V", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "测试用的，别乱按");
+	public static final ConfigHotkey TEST = new ConfigHotkey("test", "", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "测试用的，别乱设置");
 
 	public static ImmutableList<IConfigBase> getConfigList() {
 		List<IConfigBase> list = new java.util.ArrayList<>(Configs.Generic.OPTIONS);
@@ -68,7 +68,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		list.add(0, SKIP);
 //		list.add(0, FLUID);
 
-		if(Statistics.loadQuickShulker) list.add(0, QUICKSHULKER);
+		if(loadQuickShulker) list.add(0, QUICKSHULKER);
 		if(loadChestTracker) list.add(0, INVENTORY);
 
 		return ImmutableList.copyOf(list);
@@ -126,7 +126,10 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		TOGGLE_PRINTING_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(PRINT_MODE));
 
 		SYNC_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
-		PRINTER_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
+		if(loadChestTracker){
+			PRINTER_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
+			REMOVE_PRINT_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
+		}
 		HighlightBlockRenderer.init();
 //		BEDROCK_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(BEDROCK_SWITCH));
 //		EXE_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(EXCAVATE));

@@ -18,6 +18,8 @@ import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
+import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.ChestType;
@@ -31,15 +33,17 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
-import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,12 +63,12 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventor
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem.reSwitchItem;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
-
-//#if MC > 12001
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
+//#else
+//$$ import net.minecraft.registry.Registries;
+//$$ import net.minecraft.registry.RegistryKeys;
+//$$ import net.minecraft.registry.RegistryKey;
 //#endif
-;
+
 
 public class Printer extends PrinterUtils {
     public static boolean up = true;
@@ -236,15 +240,21 @@ public class Printer extends PrinterUtils {
                 blocklist = LitematicaMixinMod.FLUID_BLOCK_LIST.getStrings();
                 for (int i = 0; i < blocklist.size(); i++) {
                     try {
-                        ItemStringReader.ItemResult itemResult = ItemStringReader.item(Registries.ITEM.getReadOnlyWrapper(), new StringReader(blocklist.get(i)));
-                        Item item = itemResult.item().value();
+                        //#if MC < 11904
+                        ItemStringReader read = new ItemStringReader(new StringReader(blocklist.get(i)), true);
+                        read.consume();
+                        Item item = read.getItem();
+                        //#else
+                        //$$ ItemStringReader.ItemResult itemResult = ItemStringReader.item(Registries.ITEM.getReadOnlyWrapper(), new StringReader(blocklist.get(i)));
+                        //$$ Item item = itemResult.item().value();
+                        //#endif
                         if (item != null) fluidList.add(item);
                     } catch (Exception e) {
                     }
                 }
                 switchToItems(client.player, fluidList.toArray(new Item[fluidList.size()]));
                 Item item = Implementation.getInventory(client.player).getMainHandStack().getItem();
-                String itemid = Registries.ITEM.getId(item).toString();
+                String itemid = Registry.ITEM.getId(item).toString();
                 if (!blocklist.stream().anyMatch(b -> itemid.contains(b) || item.getName().toString().contains(b))) {
                     items2.addAll(fluidList);
                     return;
@@ -320,10 +330,10 @@ public class Printer extends PrinterUtils {
         UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
         if (listType == UsageRestriction.ListType.BLACKLIST) {
             return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
-                    .noneMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
+                    .noneMatch(string -> Registry.BLOCK.getId(blockState.getBlock()).toString().contains(string));
         } else if (listType == UsageRestriction.ListType.WHITELIST) {
             return BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
-                    .anyMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
+                    .anyMatch(string -> Registry.BLOCK.getId(blockState.getBlock()).toString().contains(string));
         } else {
             return true;
         }
@@ -369,7 +379,7 @@ public class Printer extends PrinterUtils {
     }
 
     public static boolean bedrockModeTarget(Block block) {
-        return LitematicaMixinMod.BEDROCK_LIST.getStrings().stream().anyMatch(string -> Registries.BLOCK.getId(block).toString().contains(string));
+        return LitematicaMixinMod.BEDROCK_LIST.getStrings().stream().anyMatch(string -> Registry.BLOCK.getId(block).toString().contains(string));
     }
 
     public boolean verify() {
@@ -426,22 +436,28 @@ public class Printer extends PrinterUtils {
                      //$$  MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
                      //$$  MemoryUtils.itemStack = new ItemStack(item);
                      //$$  if (SearchItem.search(true)) {
-                     //$$      Statistics.closeScreen++;
+                     //$$      closeScreen++;
                      //$$      isOpenHandler = true;
                      //$$      printerMemorySync = true;
                      //$$      return true;
                      //$$  }
-                     //#endif
-//                    MemoryDatabase database = MemoryDatabase.getCurrent();
-//                    if (database != null) {
-//                        for (Identifier dimension : database.getDimensions()) {
-//                            for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
-//                                OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
-//                                isOpenHandler = true;
-//                                return;
-//                            }
-//                        }
-//                    }
+                     //#else
+
+                        MemoryDatabase database = MemoryDatabase.getCurrent();
+                        if (database != null) {
+                            for (Identifier dimension : database.getDimensions()) {
+                                for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
+                                    //#if MC < 11904
+                                    OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(Registry.WORLD_KEY, dimension));
+                                    //#else
+                                    //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
+                                    //#endif
+                                    isOpenHandler = true;
+                                    return true;
+                                }
+                            }
+                        }
+                    //#endif
                 }
                 items2 = new HashSet<>();
                 isOpenHandler = false;
@@ -575,13 +591,6 @@ public class Printer extends PrinterUtils {
                 sendPlacementPreparation(pEntity, requiredItems, lookDir);
                 action.queueAction(queue, pos, side, useShift, lookDir != null);
 
-
-//                        if(lookDir != null){
-//                            requiredItems2 = action.getRequiredItems(requiredState.getBlock());
-//                            isFacing = true;
-//                            continue;
-//                        }
-
                 if (requiredState.isOf(Blocks.NOTE_BLOCK)) {
                     queue.sendQueue(pEntity);
                     continue;
@@ -639,7 +648,7 @@ public class Printer extends PrinterUtils {
                             state = client.world.getBlockState(pos);
                         }
                         Block block = state.getBlock();
-                        if (Registries.BLOCK.getId(block).toString().contains(blockName)) {
+                        if (Registry.BLOCK.getId(block).toString().contains(blockName)) {
                             blocks.add(pos);
                         }
                     }
@@ -675,7 +684,7 @@ public class Printer extends PrinterUtils {
                         if (s == null) break;
                         try {
                             int c = Integer.parseInt(s) - 1;
-                            if (Registries.ITEM.getId(player.getInventory().getStack(c).getItem()).toString().contains("shulker_box") &&
+                            if (Registry.ITEM.getId(player.getInventory().getStack(c).getItem()).toString().contains("shulker_box") &&
                                     LitematicaMixinMod.QUICKSHULKER.getBooleanValue()) {
                                 MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of("没有可替换的槽位，请将预选位的濳影盒换个位置"), false);
                                 continue;
@@ -729,7 +738,7 @@ public class Printer extends PrinterUtils {
 //            if(!MinecraftClient.getInstance().player.currentScreenHandler.equals(sc))return false;
             for (int i = 9; i < sc.slots.size(); i++) {
                 ItemStack stack = sc.slots.get(i).getStack();
-                String itemid = Registries.ITEM.getId(stack.getItem()).toString();
+                String itemid = Registry.ITEM.getId(stack.getItem()).toString();
                 if (itemid.contains("shulker_box")) {
                     DefaultedList<ItemStack> items1 = fi.dy.masa.malilib.util.InventoryUtils.getStoredItems(stack, -1);
                     if (items1.stream().anyMatch(s1 -> s1.getItem().equals(item))) {

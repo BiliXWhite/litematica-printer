@@ -21,7 +21,7 @@ public class Messager {
 
     public static void rawchat(String message){
         MinecraftClient minecraftClient = MinecraftClient.getInstance();
-//        Text text = new LiteralText(message);
+//        Text text = new ofText(message);
 //        minecraftClient.inGameHud.addChatMessage(MessageType.SYSTEM,text, UUID.randomUUID());
     }
 }

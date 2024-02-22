@@ -4,8 +4,8 @@
   "package": "me.aleksilassila.litematica.printer.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    //#if MC > 12001
-    //$$ "jackf.SearchRequestMixin",
+    //#if MC <12002
+    "jackf.lgacy.MixinWCardPanel",
     //#endif
     "masa.Litematica_InventoryUtilsMixin",
     "masa.MixinInventoryUtils",
@@ -24,14 +24,14 @@
     "MixinClientPlayerInteractionManager",
     "MixinClientPlayNetworkHandler",
     "PlayerMoveC2SPacketAccessor",
-    //#if MC > 12001
-    //$$ "jackf.ChestTrackerScreenMixin",
-    //$$ "jackf.ItemStackUtilMixin",
-    //$$ "jackf.MemoryBankMixin",
-    //$$ "jackf.SearchInvokerMixin",
-    //$$ "jackf.SearchRequestPopulatorMixin",
-    //$$ "jackf.StorageMixin",
-    //#endif
+    "jackf.lgacy.MemoryUtilsMixin",
+    "jackf.lgacy.MixinBlock",
+    "jackf.lgacy.MixinChestTracker",
+    "jackf.lgacy.MixinClientConnection",
+    "jackf.lgacy.MixinClientPlayerEntity",
+    "jackf.lgacy.MixinMemoryDatabase",
+    "jackf.lgacy.MixinRealmsMainScreen",
+    "jackf.lgacy.WItemListPanelMixin",
     "masa.WorldRendererMixin",
     "openinv.MixinMinecraftClient",
     "verify.MixinClientConnection"

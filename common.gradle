@@ -91,24 +91,24 @@ configurations {
 }
 //  1 = modImplementation 2 = modImplementation include 	3 = modApi	4 = modCompileOnly
 def mod_dependencies = [
-        ["fi.dy.masa.malilib:${project.malilib}"                                    , 1],
-        ["curse.maven:item-scroller-242064:${project.item_scrolle}"                 , 1],
-        ["curse.maven:tweakeroo-297344:${project.tweakeroo}"                        , 1],
-        ["curse.maven:litematica-308892:${project.litematica}"                      , 1],
-        ["curse.maven:quick-shulker-362669:${project.quick_shulker}"                , 1],
-        ["maven.modrinth:carpet:${project.carpet}"                                  , 1],
-        ["net.kyrptonaught:kyrptconfig:${project.kyrptconfig}"     			    	, 1],
-        ["net.kyrptonaught:shulkerutils:${project.shulkerutils}"     			    , 1],
-        ["red.jackf:chesttracker:${project.chesttracker}"                           , mcVersion > 12001 ? 1 : 0],
-        ["red.jackf:whereisit:${project.whereisit}"                                 , mcVersion > 12001 ? 1 : 0],
-        ["com.blamejared.searchables:Searchables-fabric-${project.searchables}"     , mcVersion > 12001 ? 1 : 0],
-        ["dev.isxander.yacl:yet-another-config-lib-fabric:${project.yacl}"          , mcVersion > 12001 ? 1 : 0],
-        ["maven.modrinth:chest-tracker:${project.chesttracker}"                     , mcVersion <= 12001 ? 1 : 0],
-        ["maven.modrinth:where-is-it:${project.whereisit}"                          , mcVersion <= 12001 ? 1 : 0],
-        ["maven.modrinth:cloth-config:${project.cloth_config}"                      , mcVersion <= 12001 ? 1 : 0],
-        ["io.github.cottonmc:LibGui:${project.LibGui}"                              , mcVersion <= 12001 ? 1 : 0],
-
-        ["maven.modrinth:modmenu:${project.modmenu}"                                , 1],
+        ["fi.dy.masa.malilib"                                   , "malilib",            1],
+        ["curse.maven:item-scroller-242064"                     , "item_scrolle",       1],
+        ["curse.maven:tweakeroo-297344"                         , "tweakeroo",          1],
+        ["curse.maven:litematica-308892"                        , "litematica",         1],
+        ["curse.maven:quick-shulker-362669"                     , "quick_shulker",      1],
+        ["maven.modrinth:carpet"                                , "carpet",             1],
+        ["net.kyrptonaught:kyrptconfig"     			        , "kyrptconfig",        1],
+        ["net.kyrptonaught:shulkerutils"     			        , "shulkerutils",       1],
+        ["red.jackf:chesttracker"                               , "chesttracker",       mcVersion > 12001 ? 1 : 0],
+        ["red.jackf:whereisit"                                  , "whereisit",          mcVersion > 12001 ? 1 : 0],
+        ["com.blamejared.searchables"                           , "searchables",        mcVersion > 12001 ? 1 : 0],
+        ["dev.isxander.yacl:yet-another-config-lib-fabric"      , "yacl",               mcVersion > 12001 ? 1 : 0],
+        ["maven.modrinth:chest-tracker"                         , "chesttracker",       mcVersion <= 12001 ? 1 : 0],
+        ["maven.modrinth:where-is-it"                           , "whereisit",          mcVersion <= 12001 ? 1 : 0],
+        ["maven.modrinth:cloth-config"                          , "cloth_config",       mcVersion <= 12001 ? 1 : 0],
+        ["me.shedaniel.cloth.api:cloth-api"                     , "cloth_api",          mcVersion <  11904 ? 1 : 0],
+        ["io.github.cottonmc:LibGui"                            , "LibGui",             mcVersion <= 12001 ? 1 : 0],
+        ["maven.modrinth:modmenu"                               , "modmenu",            1],
 
 ]
 
@@ -127,15 +127,18 @@ dependencies {
 
     mod_dependencies.forEach { item ->
         def dependencyNotation = item[0]
-        def mode = item[1]
+        def id = item[1]
+        def mode = item[2]
+        def idFix= ""
+        if(mode != 0) idFix = "${dependencyNotation}:${project.property("${id}")}"
         if (mode == 1) {
-            modImplementation dependencyNotation
+            modImplementation idFix
         } else if (mode == 2) {
-            modImplementation include(dependencyNotation)
+            modImplementation include(idFix)
         } else if (mode == 3) {
-            modApi dependencyNotation
+            modApi idFix
         } else if (mode == 4) {
-            modCompileOnly dependencyNotation
+            modCompileOnly idFix
         }
     }
 //	modImplementation "maven.modrinth:jei:${project.jei}"

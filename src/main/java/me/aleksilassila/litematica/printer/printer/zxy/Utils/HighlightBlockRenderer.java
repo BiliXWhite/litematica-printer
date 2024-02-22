@@ -7,15 +7,14 @@ import fi.dy.masa.malilib.render.RenderUtils;
 import fi.dy.masa.malilib.util.Color4f;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
-import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
 import java.util.HashMap;
@@ -56,7 +55,7 @@ public class HighlightBlockRenderer implements IRenderer {
         GL11.glPolygonOffset(-1.0F, -1.0F);
         RenderSystem.enableBlend();
         RenderSystem.disableCull();
-        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
         Tessellator instance = Tessellator.getInstance();
         BufferBuilder buffer = instance.getBuffer();
 
@@ -91,7 +90,11 @@ public class HighlightBlockRenderer implements IRenderer {
     }
 
     @Override
-    public void onRenderGameOverlayPost(DrawContext drawContext){
+    //#if MC < 12001
+    public void onRenderGameOverlayPost(MatrixStack drawContext){
+    //#else
+    //$$ public void onRenderGameOverlayPost(DrawContext drawContext){
+    //#endif
 
     }
     @Override

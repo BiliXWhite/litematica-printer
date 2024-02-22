@@ -6,10 +6,7 @@ import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.mixin.FlowerPotBlockAccessor;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.block.*;
-import net.minecraft.block.enums.Attachment;
-import net.minecraft.block.enums.BedPart;
-import net.minecraft.block.enums.DoorHinge;
-import net.minecraft.block.enums.SlabType;
+import net.minecraft.block.enums.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
@@ -26,8 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static net.minecraft.block.enums.BlockFace.CEILING;
-import static net.minecraft.block.enums.BlockFace.WALL;
+import static net.minecraft.block.enums.WallMountLocation.WALL;
 
 public class PlacementGuide extends PrinterUtils {
     @NotNull
@@ -529,7 +525,7 @@ public class PlacementGuide extends PrinterUtils {
                     }
 
                     if (canBeClicked(world, pos.offset(side)) && // Handle unclickable grass for example
-                            !world.getBlockState(pos.offset(side)).isReplaceable())
+                            !isReplaceable(world.getBlockState(pos.offset(side))))
                         validSides.add(side);
                 }
             }
@@ -544,6 +540,14 @@ public class PlacementGuide extends PrinterUtils {
             }
 
             return validSides.get(0);
+        }
+
+        public static boolean isReplaceable(BlockState state){
+            //#if MC < 11904
+            return state.getMaterial().isReplaceable();
+            //#else
+            //$$ return state.isReplaceable();
+            //#endif
         }
 
         public Action setSides(Direction.Axis... axis) {
@@ -655,7 +659,7 @@ public class PlacementGuide extends PrinterUtils {
         ANVIL(AnvilBlock.class),
         HOPPER(HopperBlock.class),
         GRINDSTONE(GrindstoneBlock.class),
-        BUTTON(ButtonBlock.class),
+        BUTTON(AbstractButtonBlock.class),
         CAMPFIRE(CampfireBlock.class),
         SHULKER(ShulkerBoxBlock.class),
         BED(BedBlock.class),

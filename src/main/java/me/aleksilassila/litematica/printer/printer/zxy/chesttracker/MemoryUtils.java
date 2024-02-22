@@ -56,7 +56,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 //$$             Storage.delete(id);
 //$$             createPrinterMemory();
 //$$         }
-//$$         ZxyUtils.client.inGameHud.setOverlayMessage(Text.literal("打印机库存已清空"), false);
+//$$         ZxyUtils.client.inGameHud.setOverlayMessage(Text.of("打印机库存已清空"), false);
 //$$     }
 //$$
 //$$     public static void setup() {
@@ -89,8 +89,6 @@ package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 //$$         //保存打印机库存
 //$$         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
 //$$             unLoad();
-//$$             //重置物品复原，
-//$$             SwitchItem.reSet();
 //$$         });
 //$$     }
 //$$     public static void saveMemory(ScreenHandler sc){
