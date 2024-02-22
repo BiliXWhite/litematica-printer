@@ -91,7 +91,11 @@ public class HighlightBlockRenderer implements IRenderer {
     }
 
     @Override
+    //#if MC < 12001
+    //$$ public void onRenderGameOverlayPost(MatrixStack drawContext){
+    //#else
     public void onRenderGameOverlayPost(DrawContext drawContext){
+    //#endif
 
     }
     @Override

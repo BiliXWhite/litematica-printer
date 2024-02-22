@@ -16,7 +16,6 @@ import static me.aleksilassila.litematica.printer.printer.Printer.isOpenHandler;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem.reSwitchItem;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 
-
 @Mixin(ClientPlayNetworkHandler.class)
 public abstract class MixinClientPlayNetworkHandler {
 

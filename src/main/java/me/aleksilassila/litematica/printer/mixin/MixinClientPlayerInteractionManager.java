@@ -13,6 +13,10 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+//#if MC < 11904
+//$$ import net.minecraft.world.World;
+//$$ import net.minecraft.client.world.ClientWorld;
+//#endif
 
 @Mixin(ClientPlayerInteractionManager.class)
 public abstract class MixinClientPlayerInteractionManager implements IClientPlayerInteractionManager {
@@ -22,9 +26,17 @@ public abstract class MixinClientPlayerInteractionManager implements IClientPlay
     @Override
 	public void rightClickBlock(BlockPos pos, Direction side, Vec3d hitVec)
 	{
-		interactBlock(client.player,  Hand.MAIN_HAND,
+		interactBlock(client.player,
+				//#if MC < 11904
+//$$ 				client.world,
+				//#endif
+				Hand.MAIN_HAND,
 			new BlockHitResult(hitVec, side, pos, false));
-		interactItem(client.player, Hand.MAIN_HAND);
+		interactItem(client.player,
+				//#if MC < 11904
+//$$ 				client.world,
+				//#endif
+				Hand.MAIN_HAND);
 //		System.out.println("Printer interactBlock: pos: (" + pos.toShortString() + "), side: " + side.getName() + ", vector: " + hitVec.toString());
 	}
 //	@Inject(at = @At("HEAD"), method = "interactBlock")
@@ -37,10 +49,16 @@ public abstract class MixinClientPlayerInteractionManager implements IClientPlay
 	@Shadow
 	public abstract ActionResult interactBlock(
             ClientPlayerEntity clientPlayerEntity_1,
+			//#if MC < 11904
+//$$ 			ClientWorld world,
+			//#endif
             Hand hand_1, BlockHitResult blockHitResult_1);
 
 	@Shadow
 	public abstract ActionResult interactItem(PlayerEntity playerEntity_1,
+											  //#if MC < 11904
+//$$ 											  World world,
+											  //#endif
                                                Hand hand_1);
 //	@Inject(at = @At("HEAD"), method = "interactBlock")
 //	public void interactBlock(ClientPlayerEntity player, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir) {

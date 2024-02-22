@@ -26,6 +26,7 @@ public class PinYinSearch {
         try {
             pinyin = new ArrayList<>();
             for (char c : ch) {
+                
                 if(c<128)pinyin.add(new String[]{""+c});
                 else pinyin.add(PinyinHelper.toHanyuPinyinStringArray(c, gs));
             }

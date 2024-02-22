@@ -3,7 +3,6 @@ package me.aleksilassila.litematica.printer.mixin;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.util.math.Direction;
@@ -12,7 +11,13 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
-@Mixin(ClientPlayNetworkHandler.class)
+//#if MC > 12001
+import net.minecraft.client.network.ClientCommonNetworkHandler;
+@Mixin(ClientCommonNetworkHandler.class)
+//#else
+//$$ import net.minecraft.client.network.ClientPlayNetworkHandler;
+//$$ @Mixin(ClientPlayNetworkHandler.class)
+//#endif
 public class ClientCommonNetworkHandlerMixin {
     @Final
     @Shadow

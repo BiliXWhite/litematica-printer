@@ -11,14 +11,16 @@ import me.aleksilassila.litematica.printer.config.KeyCallbackHotkeys;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.client.MinecraftClient;
-
+//#if MC > 12001
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+//#endif
 import java.util.List;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadQuickShulker;
 
 public class LitematicaMixinMod implements ModInitializer, ClientModInitializer {
 
@@ -26,9 +28,10 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger( "打印机工作间隔", 0,   0, 20, "以游戏刻度为单位工作间隔。值越低意味着打印速度越快");
 	public static final ConfigInteger PRINTING_RANGE = new ConfigInteger("打印机工作半径", 3,     1,   256,   "若服务器未修改交互距离 请勿设置太大");
 	public static final ConfigOptionList RANGE_MODE = new ConfigOptionList("半径模式", State.ListType.SPHERE,"立方体建议3，球体建议设置6，破基岩在立方体模式下无法正常使用");
-	//    public static final ConfigBoolean PRINT_WATER    = new ConfigBoolean("printWater",    false, "Whether or not the printer should place water\n source blocks or make blocks waterlogged.");
+	//    public static final ConfigBoolean PRINT_WATER    = new ConfigBoolean("PrintWater",    false, "Whether or not the printer should place water\n source blocks or make blocks waterlogged.");
 	public static final ConfigBoolean PRINT_IN_AIR = new ConfigBoolean("printInAir",    true, "Whether or not the printer should place blocks without anything to build on.\nBe aware that some anti-cheat plugins might notice this.");
 	public static final ConfigBoolean PRINT_MODE = new ConfigBoolean("printingMode",  false, "Autobuild / print loaded selection.\nBe aware that some servers and anticheat plugins do not allow printing.");
+	public static final ConfigBooleanHotkeyed PRINT_WATER_LOGGED_BLOCK = new ConfigBooleanHotkeyed("打印含水方块",  false,"","启用后会自动放置并破坏冰来使方块含水，但是要确保可以瞬间破坏冰");
 	public static final ConfigBoolean REPLACE = new ConfigBoolean("替换列表方块", true, "可以直接在一些可替换方块放置，例如 草 雪片");
 	public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean("stripLogs", false, "Whether or not the printer should use normal logs if stripped\nversions are not available and then strip them with an axe.");
 	public static boolean shouldPrintInAir = PRINT_IN_AIR.getBooleanValue();
@@ -48,7 +51,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigStringList BEDROCK_LIST = new ConfigStringList("基岩模式白名单", ImmutableList.of("minecraft:bedrock"), "");
 	public static final ConfigStringList REPLACEABLE_LIST = new ConfigStringList("可替换方块",
 			ImmutableList.of("minecraft:air","minecraft:snow","minecraft:lava","minecraft:water","minecraft:bubble_column","minecraft:grass_block"), "打印时将忽略这些错误方块 直接替换。");
-	public static final ConfigHotkey TEST = new ConfigHotkey("test", "V", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "测试用的，别乱按");
+	public static final ConfigHotkey TEST = new ConfigHotkey("test", "", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "测试用的，别乱设置");
 
 	public static ImmutableList<IConfigBase> getConfigList() {
 		List<IConfigBase> list = new java.util.ArrayList<>(Configs.Generic.OPTIONS);
@@ -68,7 +71,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		list.add(0, SKIP);
 //		list.add(0, FLUID);
 
-		if(Statistics.loadQuickShulker) list.add(0, QUICKSHULKER);
+		if(loadQuickShulker) list.add(0, QUICKSHULKER);
 		if(loadChestTracker) list.add(0, INVENTORY);
 
 		return ImmutableList.copyOf(list);
@@ -120,13 +123,16 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		OpenInventoryPacket.registerReceivePacket();
 		OpenInventoryPacket.registerClientReceivePacket();
 		//#if MC > 12001
-//$$ 		if(loadChestTracker) MemoryUtils.setup();
+		if(loadChestTracker) MemoryUtils.setup();
 		//#endif
 
 		TOGGLE_PRINTING_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(PRINT_MODE));
 
 		SYNC_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
-		PRINTER_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
+		if(loadChestTracker){
+			PRINTER_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
+			REMOVE_PRINT_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
+		}
 		HighlightBlockRenderer.init();
 //		BEDROCK_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(BEDROCK_SWITCH));
 //		EXE_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(EXCAVATE));

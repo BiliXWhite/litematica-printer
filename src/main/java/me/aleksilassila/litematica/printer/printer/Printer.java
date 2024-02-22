@@ -31,7 +31,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
-import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
@@ -55,16 +54,30 @@ import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRIC
 import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.max;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.min;
+import static me.aleksilassila.litematica.printer.printer.qwer.PrintWater.printWaterLoggedBlock;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem.reSwitchItem;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 
 //#if MC > 12001
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
+//#else
+//$$ import net.minecraft.util.Identifier;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //#endif
-;
+
+//#if MC < 11904
+//$$ import net.minecraft.util.registry.RegistryKey;
+//$$ import net.minecraft.util.registry.Registry;
+//#else
+import net.minecraft.registry.Registries;
+//$$ import net.minecraft.registry.RegistryKey;
+//$$ import net.minecraft.registry.RegistryKeys;
+//#endif
+
 
 public class Printer extends PrinterUtils {
     public static boolean up = true;
@@ -137,7 +150,7 @@ public class Printer extends PrinterUtils {
 
     private static Printer INSTANCE = null;
     @NotNull
-    private final MinecraftClient client;
+    public final MinecraftClient client;
     public final PlacementGuide guide;
     public final Queue queue;
     public int range;
@@ -236,8 +249,14 @@ public class Printer extends PrinterUtils {
                 blocklist = LitematicaMixinMod.FLUID_BLOCK_LIST.getStrings();
                 for (int i = 0; i < blocklist.size(); i++) {
                     try {
+                        //#if MC < 11904
+                        //$$ ItemStringReader read = new ItemStringReader(new StringReader(blocklist.get(i)), true);
+                        //$$ read.consume();
+                        //$$ Item item = read.getItem();
+                        //#else
                         ItemStringReader.ItemResult itemResult = ItemStringReader.item(Registries.ITEM.getReadOnlyWrapper(), new StringReader(blocklist.get(i)));
                         Item item = itemResult.item().value();
+                        //#endif
                         if (item != null) fluidList.add(item);
                     } catch (Exception e) {
                     }
@@ -423,25 +442,31 @@ public class Printer extends PrinterUtils {
             } else if (LitematicaMixinMod.INVENTORY.getBooleanValue()) {
                 for (Item item : items2) {
                      //#if MC > 12001
-                     //$$  MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
-                     //$$  MemoryUtils.itemStack = new ItemStack(item);
-                     //$$  if (SearchItem.search(true)) {
-                     //$$      Statistics.closeScreen++;
-                     //$$      isOpenHandler = true;
-                     //$$      printerMemorySync = true;
-                     //$$      return true;
-                     //$$  }
-                     //#endif
-//                    MemoryDatabase database = MemoryDatabase.getCurrent();
-//                    if (database != null) {
-//                        for (Identifier dimension : database.getDimensions()) {
-//                            for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
-//                                OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
-//                                isOpenHandler = true;
-//                                return;
-//                            }
-//                        }
-//                    }
+                      MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
+                      MemoryUtils.itemStack = new ItemStack(item);
+                      if (SearchItem.search(true)) {
+                          closeScreen++;
+                          isOpenHandler = true;
+                          printerMemorySync = true;
+                          return true;
+                      }
+                     //#else
+                     //$$
+                     //$$    MemoryDatabase database = MemoryDatabase.getCurrent();
+                     //$$    if (database != null) {
+                     //$$        for (Identifier dimension : database.getDimensions()) {
+                     //$$            for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
+                                    //#if MC < 11904
+                                    //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(Registry.WORLD_KEY, dimension));
+                                    //#else
+                                    //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
+                                    //#endif
+                     //$$                isOpenHandler = true;
+                     //$$                return true;
+                     //$$            }
+                     //$$        }
+                     //$$    }
+                    //#endif
                 }
                 items2 = new HashSet<>();
                 isOpenHandler = false;
@@ -571,16 +596,12 @@ public class Printer extends PrinterUtils {
                 ) {
                     continue;
                 }
+
+                // 打印含水方块
+                if (printWaterLoggedBlock(requiredState, pEntity, lookDir, pos)) return;
                 //发送放置准备
                 sendPlacementPreparation(pEntity, requiredItems, lookDir);
                 action.queueAction(queue, pos, side, useShift, lookDir != null);
-
-
-//                        if(lookDir != null){
-//                            requiredItems2 = action.getRequiredItems(requiredState.getBlock());
-//                            isFacing = true;
-//                            continue;
-//                        }
 
                 if (requiredState.isOf(Blocks.NOTE_BLOCK)) {
                     queue.sendQueue(pEntity);

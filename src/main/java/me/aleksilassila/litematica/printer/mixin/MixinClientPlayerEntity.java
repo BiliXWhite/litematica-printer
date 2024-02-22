@@ -4,8 +4,8 @@ import com.mojang.authlib.GameProfile;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
-import net.minecraft.block.ChestBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
 //#if MC > 12001
-//$$ import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.saveMemory;
+import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.saveMemory;
 //#endif
 
 
@@ -34,37 +34,19 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 	@Shadow
 	protected MinecraftClient client;
 
-//	@Inject(at = @At("HEAD"), method = "collideWithEntity")
-
-
-
-	@Inject(at = @At("HEAD"), method = "closeScreen")
-	public void closeScreen(CallbackInfo ci) {
-		ChestBlock c;
-//		if(LitematicaMixinMod.INVENTORY.getBooleanValue() && (LitematicaMixinMod.PRINT_MODE.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed() || adding) && !qw){
-//			if(!client.player.currentScreenHandler.equals(client.player.playerScreenHandler)){
-//				handleItemsFromScreen(client.player.currentScreenHandler);
-//			}
-//		}
-	}
 	@Inject(at = @At("HEAD"), method = "closeScreen")
 	public void close(CallbackInfo ci) {
 		if (client.player != null) {
 			//#if MC > 12001
-//$$ 			saveMemory(client.player.currentScreenHandler);
+			saveMemory(client.player.currentScreenHandler);
 			//#endif
-
 		}
+		OpenInventoryPacket.key = null;
+		OpenInventoryPacket.pos = null;
 		openIng = false;
 	}
 	@Inject(at = @At("TAIL"), method = "tick")
 	public void tick(CallbackInfo ci) {
-//		if (!didCheckForUpdates) {
-//			didCheckForUpdates = true;
-//
-//			checkForUpdates();
-//		}
-
 		if (Printer.getPrinter() == null) {
 			Printer.init(client);
 			return;
@@ -88,7 +70,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 
             if (!version.equals(newVersion)) {
                 client.inGameHud.getChatHud().addMessage(
-						Text.literal("Printer: 此版本为宅闲鱼二改最初版BV号：BV1q44y1T7hE\n" +
+						Text.of("Printer: 此版本为宅闲鱼二改最初版BV号：BV1q44y1T7hE\n" +
 								"投影打印机原作 https://github.com/aleksilassila/litematica-printer/releases\n" +
 								"破基岩作者视频BV号: BV1q44y1T7hE"));
             }

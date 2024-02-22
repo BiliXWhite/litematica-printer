@@ -5,6 +5,8 @@ import fi.dy.masa.malilib.util.Color4f;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
+
+import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
@@ -31,13 +33,21 @@ import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
-
+//#if MC > 12001
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+//#else
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
+//#endif
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
 
 public class ZxyUtils {
+    //旧版箱子追踪
+    public static boolean qw = false;
+    public static int currWorldId = 0;
+
     @NotNull
     public static MinecraftClient client = MinecraftClient.getInstance();
     public static LinkedList<BlockPos> invBlockList = new LinkedList<>();
@@ -48,7 +58,7 @@ public class ZxyUtils {
         if (LitematicaMixinMod.INVENTORY.getBooleanValue() && !printerMemoryAdding) {
             printerMemoryAdding = true;
             //#if MC > 12001
-            //$$ if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
+            if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
             //#endif
 
             for (String string : LitematicaMixinMod.INVENTORY_LIST.getStrings()) {
@@ -63,13 +73,15 @@ public class ZxyUtils {
         if (printerMemoryAdding && !openIng && OpenInventoryPacket.key == null) {
             if (invBlockList.isEmpty()) {
                 printerMemoryAdding = false;
-                client.inGameHud.setOverlayMessage(Text.literal("打印机库存添加完成"), false);
+                client.inGameHud.setOverlayMessage(Text.of("打印机库存添加完成"), false);
                 return;
             }
-            client.inGameHud.setOverlayMessage(Text.literal("添加库存中"), false);
+            client.inGameHud.setOverlayMessage(Text.of("添加库存中"), false);
             for (BlockPos pos : invBlockList) {
                 if (client.world != null) {
-//                    MemoryUtils.setLatestPos(pos);
+                    //#if MC < 12002
+                    //$$ MemoryUtils.setLatestPos(pos);
+                    //#endif
                     closeScreen++;
                     OpenInventoryPacket.sendOpenInventory(pos, client.world.getRegistryKey());
 //                    ((IClientPlayerInteractionManager) client.interactionManager)
@@ -111,10 +123,10 @@ public class ZxyUtils {
                             (blockEntity instanceof ShulkerBoxBlockEntity entity &&
                                     !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
                                     entity.getAnimationStage() == ShulkerBoxBlockEntity.AnimationStage.CLOSED)) {
-                        client.inGameHud.setOverlayMessage(Text.literal("容器无法打开"), false);
+                        client.inGameHud.setOverlayMessage(Text.of("容器无法打开"), false);
                     }
                 } catch (Exception e) {
-                    client.inGameHud.setOverlayMessage(Text.literal("这不是容器 无法同步"), false);
+                    client.inGameHud.setOverlayMessage(Text.of("这不是容器 无法同步"), false);
                     return;
                 }
             }
@@ -144,11 +156,15 @@ public class ZxyUtils {
             return true;
         } else {
             if (client.player != null && client.player.squaredDistanceTo(Vec3d.ofCenter(pos)) > 25D) {
-                if(!ignoreThePrompt) client.inGameHud.setOverlayMessage(Text.literal("距离过远无法打开容器"), false);
+                if(!ignoreThePrompt) client.inGameHud.setOverlayMessage(Text.of("距离过远无法打开容器"), false);
                 return false;
             }
             if (client.interactionManager != null){
+                //#if MC < 11904
+                //$$ client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
+                //#else
                 client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
+                //#endif
                 return true;
             } else return false;
         }
@@ -295,7 +311,7 @@ public class ZxyUtils {
             LitematicaMixinMod.EXCAVATE.setBooleanValue(false);
             LitematicaMixinMod.FLUID.setBooleanValue(false);
             LitematicaMixinMod.PRINT_MODE.setBooleanValue(false);
-            client.inGameHud.setOverlayMessage(Text.literal("已关闭全部模式"), false);
+            client.inGameHud.setOverlayMessage(Text.of("已关闭全部模式"), false);
         }
 //        for (BlockPos pos : syncPosList) {
 //            RenderUtils.FOUND_ITEM_POSITIONS.put(pos, new PositionData(pos, client.world.getTime(), VoxelShapes.fullCube(), 10, 10, 6, null));
@@ -357,6 +373,11 @@ public class ZxyUtils {
         int refreshRate = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()).refreshRate();
         return 1000 / refreshRate;
 //        System.out.println("The monitor refresh rate is " + refreshRate);
+    }
+    public static void reSet(){
+        SwitchItem.reSet();
+        Verify.verify = null;
+        BreakingFlowController.poslist = new ArrayList<>();
     }
 
 

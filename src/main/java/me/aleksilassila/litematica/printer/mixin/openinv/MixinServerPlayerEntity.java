@@ -20,7 +20,11 @@ public abstract class MixinServerPlayerEntity extends PlayerEntity{
     public MixinServerPlayerEntity(World world, BlockPos pos, float yaw, GameProfile profile) {
         super(world, pos, yaw, profile);
     }
+    //#if MC < 11904
+    //$$ @Inject(at = @At("HEAD"), method = "closeHandledScreen")
+    //#else
     @Inject(at = @At("HEAD"), method = "onHandledScreenClosed")
+    //#endif
     public void onHandledScreenClosed(CallbackInfo ci) {
         deletePlayerList();
     }

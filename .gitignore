@@ -9,5 +9,7 @@ logs/
 build.number
 .idea/
 .DS_Store
+run/
 /run/
 /build/
+

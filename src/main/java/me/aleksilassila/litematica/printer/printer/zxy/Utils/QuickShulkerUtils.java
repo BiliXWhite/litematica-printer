@@ -79,7 +79,7 @@ public class QuickShulkerUtils {
         int i = sc.equals(player.playerScreenHandler) ? 9 : 0;
         for (; i < slots.size(); i++) {
             if (slots.get(i).getStack().isEmpty() && slots.get(i).inventory instanceof PlayerInventory) {
-                fi.dy.masa.malilib.util.InventoryUtils.swapSlots(sc, i, slot);
+                InventoryUtils.swapSlots(sc, i, slot);
                 return;
             }
         }

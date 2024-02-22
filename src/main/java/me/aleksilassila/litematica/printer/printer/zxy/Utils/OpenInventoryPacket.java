@@ -11,7 +11,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.mob.ShulkerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -27,6 +26,16 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+
+//#if MC > 12001
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+//#endif
+
+//#if MC < 11904
+//$$ import net.minecraft.util.registry.Registry;
+//#else
+import net.minecraft.registry.RegistryKeys;
+//#endif
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -62,7 +71,11 @@ public class OpenInventoryPacket{
     public static void registerReceivePacket(){
         ServerPlayNetworking.registerGlobalReceiver(OPEN_INVENTORY, (server, player, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
             BlockPos pos = packetByteBuf.readBlockPos();
+            //#if MC < 11904
+            //$$ RegistryKey<World> key = RegistryKey.of(Registry.WORLD_KEY, packetByteBuf.readIdentifier());
+            //#else
             RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, packetByteBuf.readIdentifier());
+            //#endif
             server.execute(() -> openInv(server,player,pos,key));
         });
     }
@@ -113,7 +126,7 @@ public class OpenInventoryPacket{
     public static void openReturn(boolean open, BlockState state){
         if(open){
             //#if MC > 12001
-            //$$  MemoryUtils.blockState = state;
+             MemoryUtils.blockState = state;
             //#endif
 
 //            client.player.sendMessage(Text.of("return "+state.toString()));
@@ -122,10 +135,15 @@ public class OpenInventoryPacket{
 //        MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
 //        me.aleksilassila.litematica.printer.printer.memory.MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
 //            client.inGameHud.setOverlayMessage(Text.of("打开容器失败1"),false);
+            //#if MC < 11904
+            //$$ if (client.player != null) client.player.sendMessage(Text.of("打开容器失败."),false);
+            //#else
             if (client.player != null) client.player.sendMessage(Text.of("打开容器失败."));
+            //#endif
+
             if(key!=null){
                 //#if MC > 12001
-                //$$ MemoryUtils.PRINTER_MEMORY.removeMemory(key.getValue(),pos);
+                MemoryUtils.PRINTER_MEMORY.removeMemory(key.getValue(),pos);
                 //#endif
 
             }

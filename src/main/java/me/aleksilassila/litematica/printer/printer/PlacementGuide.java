@@ -6,10 +6,7 @@ import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.mixin.FlowerPotBlockAccessor;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.block.*;
-import net.minecraft.block.enums.Attachment;
-import net.minecraft.block.enums.BedPart;
-import net.minecraft.block.enums.DoorHinge;
-import net.minecraft.block.enums.SlabType;
+import net.minecraft.block.enums.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
@@ -23,10 +20,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import java.util.*;
-
-import static net.minecraft.block.enums.BlockFace.CEILING;
 import static net.minecraft.block.enums.BlockFace.WALL;
 
 public class PlacementGuide extends PrinterUtils {
@@ -156,7 +150,7 @@ public class PlacementGuide extends PrinterUtils {
                 case LEVER:
                 case BUTTON: {
                     Direction side;
-                    switch ((WallMountLocation) getPropertyByName(requiredState, "FACE")) {
+                    switch ((BlockFace) getPropertyByName(requiredState, "FACE")) {
                         case FLOOR: {
                             side = Direction.DOWN;
                             break;
@@ -177,7 +171,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setSides(side).setLookDirection(look).setRequiresSupport();
                 }
                 case GRINDSTONE :{ // Tese are broken
-                    Direction side = switch ((WallMountLocation) getPropertyByName(requiredState, "FACE")) {
+                    Direction side = switch ((BlockFace) getPropertyByName(requiredState, "FACE")) {
                         case FLOOR -> Direction.DOWN;
                         case CEILING -> Direction.UP;
                         default -> (Direction) getPropertyByName(requiredState, "FACING");
@@ -529,7 +523,7 @@ public class PlacementGuide extends PrinterUtils {
                     }
 
                     if (canBeClicked(world, pos.offset(side)) && // Handle unclickable grass for example
-                            !world.getBlockState(pos.offset(side)).isReplaceable())
+                            !isReplaceable(world.getBlockState(pos.offset(side))))
                         validSides.add(side);
                 }
             }
@@ -544,6 +538,14 @@ public class PlacementGuide extends PrinterUtils {
             }
 
             return validSides.get(0);
+        }
+
+        public static boolean isReplaceable(BlockState state){
+            //#if MC < 11904
+            //$$ return state.getMaterial().isReplaceable();
+            //#else
+            return state.isReplaceable();
+            //#endif
         }
 
         public Action setSides(Direction.Axis... axis) {
