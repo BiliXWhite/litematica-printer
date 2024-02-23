@@ -546,8 +546,12 @@ public class Printer extends PrinterUtils {
                 continue;
             }
 
+
             if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
             if (action == null) continue;
+
+            // 打印含水方块
+            printWaterLoggedBlock(requiredState, pEntity, action.getLookDirection(), pos,tick);
 
             Direction side = action.getValidSide(world, pos);
             if (side == null) continue;
@@ -597,8 +601,6 @@ public class Printer extends PrinterUtils {
                     continue;
                 }
 
-                // 打印含水方块
-                if (printWaterLoggedBlock(requiredState, pEntity, lookDir, pos)) return;
                 //发送放置准备
                 sendPlacementPreparation(pEntity, requiredItems, lookDir);
                 action.queueAction(queue, pos, side, useShift, lookDir != null);

@@ -30,8 +30,8 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigOptionList RANGE_MODE = new ConfigOptionList("半径模式", State.ListType.SPHERE,"立方体建议3，球体建议设置6，破基岩在立方体模式下无法正常使用");
 	//    public static final ConfigBoolean PRINT_WATER    = new ConfigBoolean("PrintWater",    false, "Whether or not the printer should place water\n source blocks or make blocks waterlogged.");
 	public static final ConfigBoolean PRINT_IN_AIR = new ConfigBoolean("printInAir",    true, "Whether or not the printer should place blocks without anything to build on.\nBe aware that some anti-cheat plugins might notice this.");
-	public static final ConfigBoolean PRINT_MODE = new ConfigBoolean("printingMode",  false, "Autobuild / print loaded selection.\nBe aware that some servers and anticheat plugins do not allow printing.");
 	public static final ConfigBooleanHotkeyed PRINT_WATER_LOGGED_BLOCK = new ConfigBooleanHotkeyed("打印含水方块",  false,"","启用后会自动放置并破坏冰来使方块含水，但是要确保可以瞬间破坏冰");
+	public static final ConfigBoolean PRINT_MODE = new ConfigBoolean("printingMode",  false, "Autobuild / print loaded selection.\nBe aware that some servers and anticheat plugins do not allow printing.");
 	public static final ConfigBoolean REPLACE = new ConfigBoolean("替换列表方块", true, "可以直接在一些可替换方块放置，例如 草 雪片");
 	public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean("stripLogs", false, "Whether or not the printer should use normal logs if stripped\nversions are not available and then strip them with an axe.");
 	public static boolean shouldPrintInAir = PRINT_IN_AIR.getBooleanValue();
@@ -60,6 +60,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		list.add(PRINTING_RANGE);
 		list.add(RANGE_MODE);
 		list.add(PRINT_IN_AIR);
+		list.add(PRINT_WATER_LOGGED_BLOCK);
 		list.add(REPLACE);
 		list.add(STRIP_LOGS);
 

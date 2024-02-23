@@ -53,7 +53,7 @@ public class PlacementGuide extends PrinterUtils {
         BlockState requiredState = worldSchematic.getBlockState(pos);
         BlockState currentState = world.getBlockState(pos);
 
-        if (requiredState.getBlock() instanceof FluidBlock) {
+        if (requiredState.getBlock() instanceof FluidBlock && !LitematicaMixinMod.PRINT_WATER_LOGGED_BLOCK.getBooleanValue()) {
             return null;
 //        } else if (currentState.getBlock() instanceof FluidBlock) {
 //            if (currentState.get(FluidBlock.LEVEL) == 0 && !LitematicaMixinMod.shouldReplaceFluids) {
