@@ -4,12 +4,12 @@ import fi.dy.masa.malilib.util.InventoryUtils;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 
 import java.lang.reflect.Method;

@@ -5,7 +5,6 @@
 
 package me.aleksilassila.litematica.printer.mixin.verify;
 
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.network.ClientConnection;
