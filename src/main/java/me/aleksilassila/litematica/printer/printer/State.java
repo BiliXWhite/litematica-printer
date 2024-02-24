@@ -4,7 +4,10 @@ import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.StringUtils;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import net.minecraft.block.BlockState;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.FluidBlock;
+import net.minecraft.registry.Registries;
+//import net.minecraft.util.registry.Registry;
 
 public enum State {
     MISSING_BLOCK,
@@ -13,9 +16,12 @@ public enum State {
     CORRECT;
 
     public static State get(BlockState schematicBlockState, BlockState currentBlockState) {
+//        if(currentBlockState.getBlock() instanceof FluidBlock){
+//            System.out.println(Registries.BLOCK.getId(currentBlockState.getBlock()));
+//        }
         if (!schematicBlockState.isAir() && (currentBlockState.isAir() ||
                 (LitematicaMixinMod.REPLACEABLE_LIST.getStrings().stream()
-                        .anyMatch(string -> Registry.BLOCK.getId(currentBlockState.getBlock()).toString().contains(string)) &&
+                        .anyMatch(string -> Registries.BLOCK.getId(currentBlockState.getBlock()).toString().contains(string)) &&
                         LitematicaMixinMod.REPLACE.getBooleanValue())))
 //        if (!schematicBlockState.isAir() && (currentBlockState.isAir() || currentBlockState.getBlock() instanceof FluidBlock || currentBlockState.isOf(Blocks.SNOW) || currentBlockState.isOf(Blocks.BUBBLE_COLUMN)))
 //        if (!schematicBlockState.isAir() && (currentBlockState.isAir())

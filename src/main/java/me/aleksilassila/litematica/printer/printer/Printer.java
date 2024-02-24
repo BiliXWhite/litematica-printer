@@ -54,7 +54,6 @@ import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRIC
 import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.max;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.min;
-import static me.aleksilassila.litematica.printer.printer.qwer.PrintWater.printWaterLoggedBlock;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem.reSwitchItem;
@@ -155,7 +154,7 @@ public class Printer extends PrinterUtils {
     public final Queue queue;
     public int range;
 
-    int tick = 0;
+    static int tick = 0;
 
     public static void init(MinecraftClient client) {
         if (client == null || client.player == null || client.world == null) {
@@ -186,46 +185,80 @@ public class Printer extends PrinterUtils {
     int x;
     int y;
     int z;
-    public boolean getPosIng = false;
-    boolean yDegression = false;
 
-    //执行一次获取一个pos
-    //方法使用时一定要放在if语句最后 不然会出现获取了pos但是被后面的条件跳过了，这个pos就被跳过了
+    boolean yDegression = false;
+    public boolean firstRun = true;
+
     BlockPos getBlockPos() {
         ClientPlayerEntity player = client.player;
         if (player == null) return null;
-        if (!getPosIng) {
+
+        if (firstRun) {
             x = -range;
             z = -range;
             y = yDegression ? range : -range;
-            getPosIng = true;
+            firstRun = false;
         }
-        if (x < range + 1) {
-            BlockPos up1 = player.getBlockPos().north(x).west(z).up(y);
-            x++;
-            return up1;
+        BlockPos pos = player.getBlockPos().north(x).west(z).up(y);
+        if (x == range && z == range && (yDegression ? y <= -range : y >= range)) {
+            firstRun = true;
+            return null;
         }
-
-        if (z < range + 1) {
+        x++;
+        if (x > range) {
             x = -range;
-            BlockPos up1 = player.getBlockPos().north(x).west(z).up(y);
             z++;
-            x++;
-            return up1;
         }
-        if (yDegression ? y > -range - 1 : y < range + 1) {
-            x = -range;
+        if (z > range) {
             z = -range;
-            BlockPos up1 = player.getBlockPos().north(x).west(z).up(y);
-            x++;
-            z++;
-            if (yDegression) y--;
-            else y++;
-            return up1;
+            if (yDegression) {
+                y--;
+            } else {
+                y++;
+            }
         }
-        getPosIng = false;
-        return null;
+        return pos;
     }
+
+    //执行一次获取一个pos
+    //方法使用时一定要放在if语句最后 不然会出现获取了pos但是被后面的条件跳过了，这个pos就被跳过了
+//    BlockPos getBlockPos() {
+//        ClientPlayerEntity player = client.player;
+//        if (player == null) return null;
+//        if (!getPosIng) {
+//            x = -range;
+//            z = -range;
+//            y = yDegression ? range : -range;
+//            getPosIng = true;
+//        }
+//        if (x < range + 1) {
+//            BlockPos up1 = player.getBlockPos().north(x).west(z).up(y);
+//            x++;
+//            return up1;
+//        }
+//
+//        if (z < range + 1) {
+//            x = -range;
+//
+//            BlockPos up1 = player.getBlockPos().north(x).west(z).up(y);
+//            z++;
+////            z++;
+//            x++;
+//            return up1;
+//        }
+//        if (yDegression ? y > -range - 1 : y < range + 1) {
+//            x = -range;
+//            z = -range;
+//            BlockPos up1 = player.getBlockPos().north(x).west(z).up(y);
+////            x++;
+////            z++;
+//            if (yDegression) y--;
+//            else y++;
+//            return up1;
+//        }
+//        getPosIng = false;
+//        return null;
+//    }
 
     /*
     Fixme legit mode:
@@ -286,7 +319,6 @@ public class Printer extends PrinterUtils {
     void miningMode() {
         BlockPos pos;
         while (!timedOut() && (pos = tempPos == null ? getBlockPos() : tempPos) != null) {
-
 //        for (int y = range; y > -range - 1; y--) {
 //            for (int x = -range; x < range + 1; x++) {
 //                for (int z = -range; z < range + 1; z++) {
@@ -316,6 +348,7 @@ public class Printer extends PrinterUtils {
         MinecraftClient client = MinecraftClient.getInstance();
         ClientWorld world = client.world;
         BlockState currentState = world.getBlockState(pos);
+        Block block = currentState.getBlock();
         if (
                 !currentState.isAir() &&
                         !currentState.isOf(Blocks.AIR) &&
@@ -329,8 +362,26 @@ public class Printer extends PrinterUtils {
         ) {
             client.interactionManager.updateBlockBreakingProgress(pos, Direction.DOWN);
             client.interactionManager.cancelBlockBreaking();
-            return !world.getBlockState(pos).isOf(Blocks.AIR);
+            return !world.getBlockState(pos).isOf(block);
         }
+        return false;
+    }
+    static BlockPos excavateBlock = null;
+    static int startTick = -1;
+    public static boolean excavateBlock(BlockPos pos){
+        //一个游戏刻挖一次就好
+        if(startTick != -1 && startTick == tick){
+            return false;
+        }else if(excavateBlock != null){
+            if (!Printer.waJue(excavateBlock)) {
+                excavateBlock = null;
+                return true;
+            }
+            else return false;
+        }
+        startTick = tick;
+        PlacementGuide.posSet.add(pos);
+        excavateBlock = pos;
         return false;
     }
 
@@ -489,7 +540,7 @@ public class Printer extends PrinterUtils {
         ClientPlayerEntity pEntity = client.player;
         ClientWorld world = client.world;
 
-        if (range != getPrinterRange()) getPosIng = false;
+        if (range != getPrinterRange()) firstRun = true;
         yDegression = false;
         startTime = System.currentTimeMillis();
         tickRate = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();
@@ -537,10 +588,10 @@ public class Printer extends PrinterUtils {
 //                for (int z = -range; z < range + 1; z++) {
             BlockState requiredState = worldSchematic.getBlockState(pos);
             if (client.player != null && !canInteracted(pos, range)) continue;
+
             PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
-            if (requiredState.isOf(Blocks.NETHER_PORTAL) ||
-                    requiredState.isOf(Blocks.END_PORTAL)
-            ) continue;
+            if (requiredState.isOf(Blocks.NETHER_PORTAL) || requiredState.isOf(Blocks.END_PORTAL)) continue;
+
             //跳过侦测器和红石块的放置
             if ((requiredState.isOf(Blocks.OBSERVER) || requiredState.isOf(Blocks.REDSTONE_BLOCK)) && !LitematicaMixinMod.SKIP.getBooleanValue()) {
                 continue;
@@ -549,9 +600,6 @@ public class Printer extends PrinterUtils {
 
             if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
             if (action == null) continue;
-
-            // 打印含水方块
-            printWaterLoggedBlock(requiredState, pEntity, action.getLookDirection(), pos,tick);
 
             Direction side = action.getValidSide(world, pos);
             if (side == null) continue;
@@ -600,6 +648,8 @@ public class Printer extends PrinterUtils {
                 ) {
                     continue;
                 }
+                // 打印含水方块
+//                if(printWaterLoggedBlock(requiredState, pEntity, Direction.DOWN, pos,tick)) continue;
 
                 //发送放置准备
                 sendPlacementPreparation(pEntity, requiredItems, lookDir);

@@ -21,6 +21,9 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.util.*;
+
+import static me.aleksilassila.litematica.printer.printer.Printer.excavateBlock;
+import static me.aleksilassila.litematica.printer.printer.qwer.PrintWater.*;
 import static net.minecraft.block.enums.BlockFace.WALL;
 
 public class PlacementGuide extends PrinterUtils {
@@ -47,19 +50,46 @@ public class PlacementGuide extends PrinterUtils {
 //        Placement placement = _getPlacement(requiredState, client);
 //        return placement.setItem(placement.item == null ? requiredState.getBlock().asItem() : placement.item);
 //    }
+    public static Set<BlockPos> posSet = new HashSet<>();
+    public @Nullable Action water(BlockState requiredState,BlockState currentState ,BlockPos pos){
+        if (!LitematicaMixinMod.PRINT_WATER_LOGGED_BLOCK.getBooleanValue()) return null;
+        if(currentState.isOf(Blocks.ICE)){
+            if (client.player != null) {
+                searchPickaxes(client.player);
+            }
+            excavateBlock(pos);
+            return null;
+        }
+        if (!spawnWater(pos)) return null;
+        if(posSet.stream().anyMatch(pos1 -> pos1.equals(pos))) return null;
+        State state = State.get(requiredState, currentState);
+        if (state != State.MISSING_BLOCK) return null;
+
+        Direction look = null;
+        for (Property<?> prop : requiredState.getProperties()) {
+            if (prop instanceof DirectionProperty && prop.getName().equalsIgnoreCase("FACING")) {
+                look = ((Direction) requiredState.get(prop)).getOpposite();
+            }
+        }
+        Action placement = new Action().setLookDirection(look);
+        placement.setItem(Items.ICE);
+        return placement;
+    }
 
     @SuppressWarnings("EnhancedSwitchMigration")
     private @Nullable Action buildAction(World world, WorldSchematic worldSchematic, BlockPos pos, ClassHook requiredType) {
         BlockState requiredState = worldSchematic.getBlockState(pos);
         BlockState currentState = world.getBlockState(pos);
 
-        if (requiredState.getBlock() instanceof FluidBlock && !LitematicaMixinMod.PRINT_WATER_LOGGED_BLOCK.getBooleanValue()) {
-            return null;
+//        if (requiredState.getBlock() instanceof FluidBlock && !LitematicaMixinMod.PRINT_WATER_LOGGED_BLOCK.getBooleanValue()) {
+//            return null;
 //        } else if (currentState.getBlock() instanceof FluidBlock) {
 //            if (currentState.get(FluidBlock.LEVEL) == 0 && !LitematicaMixinMod.shouldReplaceFluids) {
 //                return null;
 //            }
-        }
+//        }
+        if (canWaterLogged(requiredState) && !canWaterLogged(currentState))
+            return water(requiredState,currentState,pos);
 
         if (!requiredState.canPlaceAt(world, pos)) {
             return null;
@@ -255,6 +285,9 @@ public class PlacementGuide extends PrinterUtils {
                 case SKIP: {
                     break;
                 }
+                case WATER: {
+
+                }
                 case DEFAULT:
                 default: { // Try to guess how the rest of the blocks are placed.
                     Direction look = null;
@@ -411,10 +444,14 @@ public class PlacementGuide extends PrinterUtils {
 
                     break;
                 }
+                case WATER:{
+
+                }
                 default: {
                     return null;
                 }
             }
+
         }
 
         return null;
@@ -687,6 +724,7 @@ public class PlacementGuide extends PrinterUtils {
         FARMLAND(FarmlandBlock.class),
         DIRT_PATH(DirtPathBlock.class),
         SKIP(SkullBlock.class, GrindstoneBlock.class, SignBlock.class, /*Implementation.NewBlocks.LICHEN.clazz,*/ VineBlock.class),
+        WATER(FluidBlock.class),
         DEFAULT;
 
         private final Class<?>[] classes;

@@ -94,7 +94,7 @@ public class MemoryUtils {
     public static void saveMemory(ScreenHandler sc){
         if(PRINTER_MEMORY != null && ZxyUtils.printerMemoryAdding || Printer.printerMemorySync)
             save(sc , PRINTER_MEMORY);
-        if(MemoryBank.INSTANCE != null && OpenInventoryPacket.key != null)
+        if(MemoryBank.INSTANCE != null)
             save(sc , MemoryBank.INSTANCE);
         Printer.printerMemorySync = false;
         OpenInventoryPacket.key = null;

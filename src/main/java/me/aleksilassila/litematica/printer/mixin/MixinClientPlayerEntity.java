@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.mixin;
 
 import com.mojang.authlib.GameProfile;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
@@ -17,6 +18,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.HashSet;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
 //#if MC > 12001
@@ -54,7 +57,8 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 		ZxyUtils.tick();
 
 		if(!(LitematicaMixinMod.PRINT_MODE.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed())){
-			Printer.getPrinter().getPosIng = false;
+			Printer.getPrinter().firstRun = true;
+			PlacementGuide.posSet = new HashSet<>();
 			return;
 		}
 		if(Printer.up){

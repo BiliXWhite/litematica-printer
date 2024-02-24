@@ -151,7 +151,7 @@ public class ZxyUtils {
         }
     }
     public static boolean openInv(BlockPos pos,boolean ignoreThePrompt){
-        if(LitematicaMixinMod.INVENTORY.getBooleanValue()) {
+        if(LitematicaMixinMod.INVENTORY.getBooleanValue() && OpenInventoryPacket.key == null) {
             OpenInventoryPacket.sendOpenInventory(pos, client.world.getRegistryKey());
             return true;
         } else {

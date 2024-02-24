@@ -112,8 +112,11 @@ public class OpenInventoryPacket{
 //        System.out.println("player " + player.getName());
     }
     public static void sendOpenInventory(BlockPos pos, RegistryKey<World> key){
-        openIng = true;
+        //先置空，避免箱子追踪库存在奇妙的状态保存
+        OpenInventoryPacket.pos = null;
+        OpenInventoryPacket.key = null;
         if (client.player != null && !client.player.currentScreenHandler.equals(client.player.playerScreenHandler)) client.player.closeHandledScreen();
+        openIng = true;
         OpenInventoryPacket.pos = pos;
         OpenInventoryPacket.key = key;
 //        System.out.println(pos+"   key: "+key);

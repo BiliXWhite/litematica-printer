@@ -7,12 +7,13 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.registry.Registry;
+//import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.NotNull;
 
 public class QuickShulkerUtils {
@@ -41,7 +42,7 @@ public class QuickShulkerUtils {
         DefaultedList<Slot> sc = player.playerScreenHandler.slots;
         for (int i = 9; i < sc.size(); i++) {
             ItemStack stack = sc.get(i).getStack();
-            if (!Registry.ITEM.getId(stack.getItem()).toString().contains("shulker_box")) continue;
+            if (!Registries.ITEM.getId(stack.getItem()).toString().contains("shulker_box")) continue;
             DefaultedList<ItemStack> storedItems = InventoryUtils.getStoredItems(stack,-1);
             for (int i1 = 0; i1 < storedItems.size(); i1++) {
                 ItemStack itemStack1 = storedItems.get(i1);
