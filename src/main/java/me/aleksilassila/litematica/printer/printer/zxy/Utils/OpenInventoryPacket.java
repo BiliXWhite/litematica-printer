@@ -107,6 +107,7 @@ public class OpenInventoryPacket{
         if ((r != null && !r.equals(ActionResult.CONSUME)) || handler == null) {
             System.out.println("openFail" + pos);
             openReturn(player,blockState,false);
+            return;
         }
         openReturn(player,blockState,true);
 //        System.out.println("player " + player.getName());
@@ -148,7 +149,6 @@ public class OpenInventoryPacket{
                 //#if MC > 12001
                 MemoryUtils.PRINTER_MEMORY.removeMemory(key.getValue(),pos);
                 //#endif
-
             }
 
             if (MinecraftClient.getInstance().player != null) {

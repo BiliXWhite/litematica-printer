@@ -103,9 +103,6 @@ public class PrintWater {
     // 判断方块是否含水
     public static boolean canWaterLogged(BlockState requiredState) {
         try {
-            if(requiredState.isOf(Blocks.WATER)){
-                System.out.println(requiredState.get(FluidBlock.LEVEL));
-            }
             return requiredState.isOf(Blocks.WATER) && requiredState.get(FluidBlock.LEVEL) == 0 || requiredState.get(BooleanProperty.of("waterlogged"));
         } catch (Throwable e) {
             // 这样写应该没问题吧

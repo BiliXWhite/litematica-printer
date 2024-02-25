@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import red.jackf.whereisit.api.SearchRequest;
 import red.jackf.whereisit.client.api.events.SearchInvoker;
 
+
 @Mixin(SearchInvoker.class)
 public interface SearchInvokerMixin {
     @Inject(at = @At("RETURN"), method = "doSearch",remap = false)
@@ -18,6 +19,7 @@ public interface SearchInvokerMixin {
         if(LitematicaMixinMod.INVENTORY.getBooleanValue()){
             MemoryUtils.request = request;
             SearchItem.search(false);
+            SearchItem.openInventory(0);
         }
     }
 }

@@ -5,6 +5,7 @@ import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.litematica.config.Hotkeys;
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.options.*;
+import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import me.aleksilassila.litematica.printer.config.KeyCallbackHotkeys;
@@ -23,14 +24,14 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.l
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadQuickShulker;
 
 public class LitematicaMixinMod implements ModInitializer, ClientModInitializer {
-
+	private static final KeybindSettings GUI_NO_ORDER = KeybindSettings.create(KeybindSettings.Context.GUI, KeyAction.PRESS, false, false, false, true);
 	// Config settings
 	public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger( "打印机工作间隔", 0,   0, 20, "以游戏刻度为单位工作间隔。值越低意味着打印速度越快");
 	public static final ConfigInteger PRINTING_RANGE = new ConfigInteger("打印机工作半径", 3,     1,   256,   "若服务器未修改交互距离 请勿设置太大");
 	public static final ConfigOptionList RANGE_MODE = new ConfigOptionList("半径模式", State.ListType.SPHERE,"立方体建议3，球体建议设置6，破基岩在立方体模式下无法正常使用");
 	//    public static final ConfigBoolean PRINT_WATER    = new ConfigBoolean("PrintWater",    false, "Whether or not the printer should place water\n source blocks or make blocks waterlogged.");
 	public static final ConfigBoolean PRINT_IN_AIR = new ConfigBoolean("printInAir",    true, "Whether or not the printer should place blocks without anything to build on.\nBe aware that some anti-cheat plugins might notice this.");
-	public static final ConfigBooleanHotkeyed PRINT_WATER_LOGGED_BLOCK = new ConfigBooleanHotkeyed("打印含水方块",  false,"","启用后会自动放置并破坏冰来使方块含水，但是要确保可以瞬间破坏冰");
+	public static final ConfigBooleanHotkeyed PRINT_WATER_LOGGED_BLOCK = new ConfigBooleanHotkeyed("打印含水方块",  false,"","启用后会自动放置并破坏冰来使方块含水");
 	public static final ConfigBoolean PRINT_MODE = new ConfigBoolean("printingMode",  false, "Autobuild / print loaded selection.\nBe aware that some servers and anticheat plugins do not allow printing.");
 	public static final ConfigBoolean REPLACE = new ConfigBoolean("替换列表方块", true, "可以直接在一些可替换方块放置，例如 草 雪片");
 	public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean("stripLogs", false, "Whether or not the printer should use normal logs if stripped\nversions are not available and then strip them with an axe.");
@@ -38,8 +39,13 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigBooleanHotkeyed BEDROCK_SWITCH = new ConfigBooleanHotkeyed("破基岩模式", false,"J", "啊吧啊吧");
 	public static final ConfigBooleanHotkeyed EXCAVATE = new ConfigBooleanHotkeyed("挖掘", false,"K", "挖掘所选区内的方块");
 	public static final ConfigBooleanHotkeyed FLUID = new ConfigBooleanHotkeyed("排流体", false,"L", "在岩浆源、水源处放方块默认是沙子");
-
 	public static final ConfigHotkey CLOSE_ALL_MODE = new ConfigHotkey("关闭全部模式", "LEFT_CONTROL,G","");
+
+	//#if MC > 12001
+	public static final ConfigHotkey LAST = new ConfigHotkey("上一个箱子", "Z",GUI_NO_ORDER,"");
+	public static final ConfigHotkey NEXT = new ConfigHotkey("下一个箱子", "C",GUI_NO_ORDER,"");
+	public static final ConfigHotkey DELETE = new ConfigHotkey("删除当前容器", "LEFT_SHIFT,X",GUI_NO_ORDER,"");
+	//#endif
 
 	public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList("排流体方块名单", ImmutableList.of("minecraft:sand"), "");
 	public static final ConfigBoolean SKIP = new ConfigBoolean("是否放置侦测器和红石块", true, "关闭后会跳过侦测器和红石块的放置");
@@ -105,6 +111,11 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		if(loadChestTracker) list.add(PRINTER_INVENTORY);
 		if(loadChestTracker) list.add(SYNC_INVENTORY);
 		if(loadChestTracker) list.add(REMOVE_PRINT_INVENTORY);
+		//#if MC > 12001
+		if(loadChestTracker) list.add(LAST);
+		if(loadChestTracker) list.add(NEXT);
+		if(loadChestTracker) list.add(DELETE);
+		//#endif
 		list.add(TEST);
 
 		return ImmutableList.copyOf(list);
@@ -133,6 +144,11 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		if(loadChestTracker){
 			PRINTER_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
 			REMOVE_PRINT_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
+			//#if MC > 12001
+			LAST.getKeybind().setCallback(keyCallbackHotkeys);
+			NEXT.getKeybind().setCallback(keyCallbackHotkeys);
+			DELETE.getKeybind().setCallback(keyCallbackHotkeys);
+			//#endif
 		}
 		HighlightBlockRenderer.init();
 //		BEDROCK_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(BEDROCK_SWITCH));

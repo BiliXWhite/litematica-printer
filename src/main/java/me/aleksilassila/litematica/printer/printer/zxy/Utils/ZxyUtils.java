@@ -10,6 +10,7 @@ import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowCont
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.client.MinecraftClient;
@@ -320,7 +321,6 @@ public class ZxyUtils {
     }
 
     static ItemStack itemStack;
-
     public static void test() {
         if (LitematicaMixinMod.TEST.getKeybind().isPressed()) {
 //            QuickShulkerUtils.test();

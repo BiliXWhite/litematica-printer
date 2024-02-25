@@ -19,13 +19,43 @@ import red.jackf.chesttracker.memory.MemoryBank;
 import red.jackf.whereisit.api.SearchRequest;
 import red.jackf.whereisit.client.api.events.SearchRequestPopulator;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SearchItem {
     static AtomicBoolean hasItem = new AtomicBoolean(false);
     static boolean isPrinterMemory = false;
+    static Map<Identifier,Map<BlockPos,Memory>> currItems = new HashMap<>();
+    public static int page = 0;
+    public static int maxPage = 0;
+    public static void initPage(){
+        if (currItems.isEmpty()) return;
+        maxPage = 0;
+        page = 0;
+        currItems.forEach((k,v) -> {
+            if(v == null)return;
+            maxPage+=v.size();
+        });
+    }
+    public static void openInventory(int p){
+        if(currItems.isEmpty() || ZxyUtils.client.player == null)return;
+        ZxyUtils.client.player.closeHandledScreen();
+        final int[] pageFix = {p};
+        currItems.forEach((k,v) -> {
+            if(OpenInventoryPacket.key!=null || v == null)return;
+            v.forEach((k1,v1) -> {
+                if(OpenInventoryPacket.key!=null)return;
+                if(pageFix[0] != 0){
+                    pageFix[0]--;
+                }else if(k!=null && k1 != null){
+                    OpenInventoryPacket.sendOpenInventory(k1,RegistryKey.of(RegistryKeys.WORLD, k));
+                }
+            });
+        });
+    }
 
     public static boolean search(boolean isPrinterMemory) {
         SearchItem.isPrinterMemory = isPrinterMemory;
@@ -33,13 +63,20 @@ public class SearchItem {
         if (memoryBank != null) {
             Map<Identifier, Map<BlockPos, Memory>> memories = memoryBank.getMemories();
             if (MemoryUtils.currentMemoryKey != null) {
+                Map<Identifier,Map<BlockPos,Memory>> itemMemoryMap = new HashMap<>();
                 //搜索当前选中的维度
-                memoriesSearch(MemoryUtils.currentMemoryKey, MemoryUtils.itemStack, memoryBank);
+                Map<BlockPos, Memory> blockPosMemoryMap = memoriesSearch(MemoryUtils.currentMemoryKey, MemoryUtils.itemStack, memoryBank);
+                itemMemoryMap.put(MemoryUtils.currentMemoryKey,blockPosMemoryMap);
+
                 //搜索全部维度
                 memories.keySet().forEach(key -> {
-                    if (!hasItem.get() && !key.equals(MemoryUtils.currentMemoryKey))
-                        memoriesSearch(key, MemoryUtils.itemStack, memoryBank);
+                    if (!hasItem.get() && !key.equals(MemoryUtils.currentMemoryKey)) {
+                        Map<BlockPos, Memory> blockPosMemoryMap1 = memoriesSearch(key, MemoryUtils.itemStack, memoryBank);
+                        itemMemoryMap.put(key,blockPosMemoryMap1);
+                    }
                 });
+                currItems = itemMemoryMap;
+                initPage();
             }
             if (hasItem.get()) {
                 hasItem.set(false);
@@ -50,10 +87,10 @@ public class SearchItem {
         return false;
     }
 
-    public static void memoriesSearch(Identifier key, ItemStack itemStack, MemoryBank memoryBank) {
-        if (key == null || itemStack == null) return;
+    public static Map<BlockPos,Memory> memoriesSearch(Identifier key, ItemStack itemStack, MemoryBank memoryBank) {
+        if (key == null || itemStack == null) return null;
         ClientPlayerEntity player = ZxyUtils.client.player;
-        if (player == null) return;
+        if (player == null) return null;
         if (memoryBank != null && memoryBank.getMemories() != null &&
                 memoryBank.getMemories().get(key) != null &&
                 !MemoryBank.ENDER_CHEST_KEY.equals(key)) {
@@ -61,16 +98,22 @@ public class SearchItem {
             SearchRequestPopulator.addItemStack(searchRequest, itemStack, SearchRequestPopulator.Context.FAVOURITE);
             int range = memoryBank.getMetadata().getSearchSettings().searchRange;
             double rangeSquared = range == Integer.MAX_VALUE ? Integer.MAX_VALUE : range * range;
+
+            Map<BlockPos,Memory> itemsMap = new HashMap<>();
             for (Map.Entry<BlockPos, Memory> entry : memoryBank.getMemories().get(key).entrySet()) {
                 if (entry.getKey().getSquaredDistance(player.getPos()) > rangeSquared) continue;
                 if (entry.getValue().items().stream()
                         .filter(item -> SearchRequest.check(item, searchRequest))
                         .anyMatch(item -> !isPrinterMemory || !((Block.getBlockFromItem(item.getItem())) instanceof ShulkerBoxBlock))) {
-                    OpenInventoryPacket.sendOpenInventory(entry.getKey(), RegistryKey.of(RegistryKeys.WORLD, key));
-                    hasItem.set(true);
-                    return;
+                    if(isPrinterMemory){
+                        OpenInventoryPacket.sendOpenInventory(entry.getKey(), RegistryKey.of(RegistryKeys.WORLD, key));
+                        hasItem.set(true);
+                        return null;
+                    }
+                    itemsMap.put(entry.getKey(),entry.getValue());
                 }
             }
+            return itemsMap;
 //            memoryBank.getPositions(key, searchRequest).
 //                    forEach(v -> {
 //                        if (v.item() != null &&
@@ -82,6 +125,7 @@ public class SearchItem {
 //                        }
 //                    });
         }
+        return null;
     }
 
     public static boolean areStacksEquivalent(@NotNull ItemStack stack1, @NotNull ItemStack memoryStack) {

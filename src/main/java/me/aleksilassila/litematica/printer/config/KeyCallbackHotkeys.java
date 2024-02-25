@@ -1,14 +1,22 @@
 package me.aleksilassila.litematica.printer.config;
 
+import fi.dy.masa.itemscroller.config.Configs;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+
 //#if MC > 12001
+import fi.dy.masa.malilib.util.GuiUtils;
+import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
+import red.jackf.chesttracker.memory.MemoryBank;
 //#else
+//$$ import net.minecraft.text.Text;
+//$$ import net.minecraft.util.Identifier;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //#endif
 
@@ -47,6 +55,27 @@ public class KeyCallbackHotkeys implements IHotkeyCallback {
             //#endif
             return true;
         }
+        //#if MC > 12001
+        else if(GuiUtils.getCurrentScreen() instanceof HandledScreen<?> gui &&
+                !(GuiUtils.getCurrentScreen() instanceof CreativeInventoryScreen))
+        {
+            if(key == LAST.getKeybind()){
+                SearchItem.page = --SearchItem.page <= -1 ? SearchItem.maxPage-1 : SearchItem.page;
+                SearchItem.openInventory(SearchItem.page);
+            }
+            else if(key == NEXT.getKeybind()){
+                SearchItem.page = ++SearchItem.page >= SearchItem.maxPage ? 0 : SearchItem.page;
+                SearchItem.openInventory(SearchItem.page);
+            }
+            else if(key == DELETE.getKeybind()){
+                if (MemoryBank.INSTANCE != null && OpenInventoryPacket.key != null && client.player != null) {
+                    MemoryBank.INSTANCE.removeMemory(OpenInventoryPacket.key.getValue(),OpenInventoryPacket.pos);
+                    OpenInventoryPacket.key = null;
+                    client.player.closeHandledScreen();
+                }
+            }
+        }
+        //#endif
         return false;
     }
 }

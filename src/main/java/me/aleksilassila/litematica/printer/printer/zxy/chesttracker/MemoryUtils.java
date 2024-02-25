@@ -4,7 +4,6 @@ package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
@@ -34,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.INVENTORY;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.printerMemoryAdding;
 
@@ -99,6 +99,7 @@ public class MemoryUtils {
         Printer.printerMemorySync = false;
         OpenInventoryPacket.key = null;
         OpenInventoryPacket.pos = null;
+        openIng = false;
     }
     public static void createPrinterMemory(){
         Optional<Coordinate> current = Coordinate.getCurrent();
