@@ -14,13 +14,13 @@ public class CheckingEnvironment {
 
     public static BlockPos findNearbyFlatBlockToPlaceRedstoneTorch(ClientWorld world, BlockPos blockPos) {
 
-        if ((sideCoversSmallSquare(world, blockPos.east(), Direction.UP) && (isReplaceable(world.getBlockState(blockPos.east().up()))) || world.getBlockState(blockPos.east().up()).isOf(Blocks.REDSTONE_TORCH) && !world.getBlockState(blockPos.east()).isOf(Blocks.AIR))) {
+        if ((sideCoversSmallSquare(world, blockPos.east(), Direction.UP) && (isReplaceable(world.getBlockState(blockPos.east().up()))) || world.getBlockState(blockPos.east().up()).isOf(Blocks.REDSTONE_TORCH) && !world.getBlockState(blockPos.east()).isAir())) {
             return blockPos.east();
-        } else if ((sideCoversSmallSquare(world, blockPos.west(), Direction.UP) && (isReplaceable(world.getBlockState(blockPos.west().up()))) || world.getBlockState(blockPos.west().up()).isOf(Blocks.REDSTONE_TORCH) && !world.getBlockState(blockPos.west()).isOf(Blocks.AIR))) {
+        } else if ((sideCoversSmallSquare(world, blockPos.west(), Direction.UP) && (isReplaceable(world.getBlockState(blockPos.west().up()))) || world.getBlockState(blockPos.west().up()).isOf(Blocks.REDSTONE_TORCH) && !world.getBlockState(blockPos.west()).isAir())) {
             return blockPos.west();
-        } else if ((sideCoversSmallSquare(world, blockPos.north(), Direction.UP) && (isReplaceable(world.getBlockState(blockPos.north().up())))  || world.getBlockState(blockPos.north().up()).isOf(Blocks.REDSTONE_TORCH) && !world.getBlockState(blockPos.north()).isOf(Blocks.AIR))) {
+        } else if ((sideCoversSmallSquare(world, blockPos.north(), Direction.UP) && (isReplaceable(world.getBlockState(blockPos.north().up())))  || world.getBlockState(blockPos.north().up()).isOf(Blocks.REDSTONE_TORCH) && !world.getBlockState(blockPos.north()).isAir())) {
             return blockPos.north();
-        } else if ((sideCoversSmallSquare(world, blockPos.south(), Direction.UP) && (isReplaceable(world.getBlockState(blockPos.south().up())))  || world.getBlockState(blockPos.south().up()).isOf(Blocks.REDSTONE_TORCH) && !world.getBlockState(blockPos.south()).isOf(Blocks.AIR))) {
+        } else if ((sideCoversSmallSquare(world, blockPos.south(), Direction.UP) && (isReplaceable(world.getBlockState(blockPos.south().up())))  || world.getBlockState(blockPos.south().up()).isOf(Blocks.REDSTONE_TORCH) && !world.getBlockState(blockPos.south()).isAir())) {
             return blockPos.south();
         }
         return null;

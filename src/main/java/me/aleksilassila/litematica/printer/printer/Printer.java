@@ -43,15 +43,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
 import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
+import static me.aleksilassila.litematica.printer.LitematicaMixinMod.COMPULSION_RANGE;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.max;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.min;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
@@ -152,7 +150,7 @@ public class Printer extends PrinterUtils {
     public final MinecraftClient client;
     public final PlacementGuide guide;
     public final Queue queue;
-    public int range;
+    public int range2;
 
     static int tick = 0;
 
@@ -173,7 +171,7 @@ public class Printer extends PrinterUtils {
         return INSTANCE;
     }
 
-    private Printer(MinecraftClient client) {
+    private Printer(@NotNull MinecraftClient client) {
         this.client = client;
 
         this.guide = new PlacementGuide(client);
@@ -182,100 +180,102 @@ public class Printer extends PrinterUtils {
         INSTANCE = this;
     }
 
-    int x;
-    int y;
-    int z;
+    int x1, y1, z1, x2, y2, z2;
+    int range1;
 
     boolean yDegression = false;
-    public boolean firstRun = true;
-
+    //强制循环半径
+    public boolean reSetRange1 = true;
+    //正常循环
+    public boolean reSetRange2 = true;
+    public boolean usingRange1 = true;
+    // 执行一次获取一个pos
     BlockPos getBlockPos() {
+        if (!usingRange1 && timedOut()) return null;
         ClientPlayerEntity player = client.player;
         if (player == null) return null;
+        if (reSetRange1) {
+            x1 = -range1;
+            z1 = -range1;
+            y1 = yDegression ? range1 : -range1;
+            reSetRange1 = false;
+        }
+        if(reSetRange2){
+            x2 = -range2;
+            z2 = -range2;
+            y2 = yDegression ? range2 : -range2;
+            reSetRange2 = false;
+        }
 
-        if (firstRun) {
-            x = -range;
-            z = -range;
-            y = yDegression ? range : -range;
-            firstRun = false;
+        BlockPos pos;
+        if (usingRange1) {
+            pos = player.getBlockPos().north(x1).west(z1).up(y1);
+        } else {
+            pos = player.getBlockPos().north(x2).west(z2).up(y2);
         }
-        BlockPos pos = player.getBlockPos().north(x).west(z).up(y);
-        if (x == range && z == range && (yDegression ? y <= -range : y >= range)) {
-            firstRun = true;
-            return null;
-        }
-        x++;
-        if (x > range) {
-            x = -range;
-            z++;
-        }
-        if (z > range) {
-            z = -range;
-            if (yDegression) {
-                y--;
+
+        if ((usingRange1 && x1 >= range1 && z1 >= range1 && (yDegression ? y1 < -range1 : y1 > range1)) ||
+                (!usingRange1 && x2 >= range2 && z2 >= range2 && (yDegression ? y2 < -range2 : y2 > range2))) {
+            // 当前范围迭代完成
+            if (usingRange1) {
+                usingRange1 = false; // 切换到使用 range2
+                if(range2 <= range1) return null;
+                return pos;
             } else {
-                y++;
+                reSetRange2 = true;
+                return null;
+            }
+        }
+
+        if (usingRange1) {
+            x1++;
+            if (x1 > range1) {
+                x1 = -range1;
+                z1++;
+            }
+            if (z1 > range1) {
+                z1 = -range1;
+                if (yDegression) {
+                    y1--;
+                } else {
+                    y1++;
+                }
+            }
+        } else {
+            x2++;
+            if (x2 > range2) {
+                x2 = -range2;
+                z2++;
+            }
+            if (z2 > range2) {
+                z2 = -range2;
+                if (yDegression) {
+                    y2--;
+                } else {
+                    y2++;
+                }
             }
         }
         return pos;
     }
 
-    //执行一次获取一个pos
-    //方法使用时一定要放在if语句最后 不然会出现获取了pos但是被后面的条件跳过了，这个pos就被跳过了
-//    BlockPos getBlockPos() {
-//        ClientPlayerEntity player = client.player;
-//        if (player == null) return null;
-//        if (!getPosIng) {
-//            x = -range;
-//            z = -range;
-//            y = yDegression ? range : -range;
-//            getPosIng = true;
-//        }
-//        if (x < range + 1) {
-//            BlockPos up1 = player.getBlockPos().north(x).west(z).up(y);
-//            x++;
-//            return up1;
-//        }
-//
-//        if (z < range + 1) {
-//            x = -range;
-//
-//            BlockPos up1 = player.getBlockPos().north(x).west(z).up(y);
-//            z++;
-////            z++;
-//            x++;
-//            return up1;
-//        }
-//        if (yDegression ? y > -range - 1 : y < range + 1) {
-//            x = -range;
-//            z = -range;
-//            BlockPos up1 = player.getBlockPos().north(x).west(z).up(y);
-////            x++;
-////            z++;
-//            if (yDegression) y--;
-//            else y++;
-//            return up1;
-//        }
-//        getPosIng = false;
-//        return null;
-//    }
+    //根据当前毫秒值判断是否超出了屏幕刷新率
+    boolean timedOut() {
+        if (frameGenerationTime == 0) return System.currentTimeMillis() > 15 + startTime;
+        return System.currentTimeMillis() > frameGenerationTime + startTime;
+    }
 
-    /*
-    Fixme legit mode:
-        - scaffoldings
-    Fixme other:
-        - signs
-        - rotating blocks (signs, skulls)
-     */
+
+
     void fluidMode() {
 
 //        for (int y = range; y > -range - 1; y--) {
 //            for (int x = -range; x < range + 1; x++) {
 //                for (int z = -range; z < range + 1; z++) {
         BlockPos pos;
-        while (!timedOut() && (pos = getBlockPos()) != null && client.world != null && client.player != null) {
+        while ((pos = getBlockPos()) != null && client.world != null && client.player != null) {
             BlockState currentState = client.world.getBlockState(pos);
-            if (client.player != null && !canInteracted(pos, range)) continue;
+            if (client.player != null && !canInteracted(pos)) continue;
             if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
             if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
             if (currentState.getFluidState().isOf(Fluids.LAVA) || currentState.getFluidState().isOf(Fluids.WATER)) {
@@ -318,13 +318,8 @@ public class Printer extends PrinterUtils {
 
     void miningMode() {
         BlockPos pos;
-        while (!timedOut() && (pos = tempPos == null ? getBlockPos() : tempPos) != null) {
-//        for (int y = range; y > -range - 1; y--) {
-//            for (int x = -range; x < range + 1; x++) {
-//                for (int z = -range; z < range + 1; z++) {
-//                    BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
-
-            if (client.player != null && !canInteracted(pos, range)) {
+        while ((pos = tempPos == null ? getBlockPos() : tempPos) != null) {
+            if (client.player != null && !canInteracted(pos)) {
                 if (tempPos == null) continue;
                 tempPos = null;
                 continue;
@@ -334,14 +329,15 @@ public class Printer extends PrinterUtils {
                 tempPos = null;
                 continue;
             }
-            if (TempData.xuanQuFanWeiNei_p(pos) && waJue(pos)) {
+            if (client.world != null &&
+                    TempData.xuanQuFanWeiNei_p(pos) &&
+                    twBreakRestriction(client.world.getBlockState(pos)) &&
+                    waJue(pos)) {
                 tempPos = pos;
                 return;
             }
             tempPos = null;
         }
-//            }
-//        }
     }
 
     public static boolean waJue(BlockPos pos) {
@@ -356,13 +352,11 @@ public class Printer extends PrinterUtils {
                         !currentState.isOf(Blocks.VOID_AIR) &&
                         !(currentState.getBlock().getHardness() == -1) &&
                         !(currentState.getBlock() instanceof FluidBlock) &&
-                        !client.player.isBlockBreakingRestricted(client.world, pos, client.interactionManager.getCurrentGameMode()) &&
-
-                        twBreakRestriction(currentState)
+                        !client.player.isBlockBreakingRestricted(client.world, pos, client.interactionManager.getCurrentGameMode())
         ) {
             client.interactionManager.updateBlockBreakingProgress(pos, Direction.DOWN);
             client.interactionManager.cancelBlockBreaking();
-            return !world.getBlockState(pos).isOf(block);
+            return world.getBlockState(pos).isOf(block);
         }
         return false;
     }
@@ -404,14 +398,10 @@ public class Printer extends PrinterUtils {
     public void jymod() {
         BreakingFlowController.tick();
         int maxy = -9999;
-        range = bedrockModeRange();
+        range2 = bedrockModeRange();
         BlockPos pos;
-        while (!timedOut() && (pos = getBlockPos()) != null && client.world != null) {
-//        for (int y = range; y > -range - 1; y--) {
-//            for (int x = -range; x < range + 1; x++) {
-//                for (int z = -range; z < range + 1; z++) {
-//                    BlockPos pos = data.player.getBlockPos().north(x).west(z).up(y);
-            if (!ZxyUtils.bedrockCanInteracted(pos, range)) continue;
+        while ((pos = getBlockPos()) != null && client.world != null) {
+            if (!ZxyUtils.bedrockCanInteracted(pos,getRage())) continue;
             BlockState currentState = client.world.getBlockState(pos);
 //                    if (currentState.isOf(Blocks.PISTON) && !data.world.getBlockState(pos.down()).isOf(Blocks.BEDROCK)) {
             if (currentState.isOf(Blocks.PISTON) && !bedrockModeTarget(client.world.getBlockState(pos.down()).getBlock())) {
@@ -423,19 +413,19 @@ public class Printer extends PrinterUtils {
             }
 
 //                    if (TempData.xuanQuFanWeiNei_p(pos) && currentState.isOf(Blocks.BEDROCK)  && ZxyUtils.canInteracted(pos,range-1.5) && !client.world.getBlockState(pos.up()).isOf(Blocks.BEDROCK)) {
-            if (TempData.xuanQuFanWeiNei_p(pos) && bedrockModeTarget(currentState.getBlock()) && ZxyUtils.bedrockCanInteracted(pos, range - 1.5) && !bedrockModeTarget(client.world.getBlockState(pos.up()).getBlock())) {
-                if (maxy == -9999) maxy = y;
-                if (y < maxy) return;
+            if (TempData.xuanQuFanWeiNei_p(pos) &&
+                    bedrockModeTarget(currentState.getBlock()) &&
+                    ZxyUtils.bedrockCanInteracted(pos, getRage() - 1.5) &&
+                    !bedrockModeTarget(client.world.getBlockState(pos.up()).getBlock())) {
+                if (maxy == -9999) maxy = y1;
+                if (y1 < maxy) return;
                 BreakingFlowController.addBlockPosToList(pos);
             }
         }
-//                }
-//            }
-//        }
     }
 
     public static int bedrockModeRange() {
-        return LitematicaMixinMod.RANGE_MODE.getOptionListValue() == State.ListType.SPHERE ? getPrinterRange() : 6;
+        return LitematicaMixinMod.RANGE_MODE.getOptionListValue() == State.ListType.SPHERE ? getRage() : 6;
     }
 
     public static boolean bedrockModeTarget(Block block) {
@@ -525,13 +515,6 @@ public class Printer extends PrinterUtils {
         }
         return false;
     }
-
-    //根据当前毫秒值判断是否超出了屏幕刷新率
-    boolean timedOut() {
-        if (frameGenerationTime == 0) return System.currentTimeMillis() > 15 + startTime;
-        return System.currentTimeMillis() > frameGenerationTime + startTime;
-    }
-
     long startTime;
 
     public void tick() {
@@ -540,11 +523,14 @@ public class Printer extends PrinterUtils {
         ClientPlayerEntity pEntity = client.player;
         ClientWorld world = client.world;
 
-        if (range != getPrinterRange()) firstRun = true;
+        reSetRange1 = true;
+        range1 = COMPULSION_RANGE.getIntegerValue();
+        range2 = getPrinterRange();
+        usingRange1 = range2 == getPrinterRange();
         yDegression = false;
         startTime = System.currentTimeMillis();
         tickRate = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();
-        range = getPrinterRange();
+
         tick = tick == 0x7fffffff ? 0 : tick + 1;
 
         if (tickRate != 0) {
@@ -581,13 +567,9 @@ public class Printer extends PrinterUtils {
         // forEachBlockInRadius:
         BlockPos pos;
         z:
-        while (!timedOut() && (pos = getBlockPos()) != null) {
-//        for (int y = -range; y < range + 1; y++) {
-//            for (int x = -range; x < range + 1; x++) {
-//                z:
-//                for (int z = -range; z < range + 1; z++) {
+        while ((pos = getBlockPos()) != null) {
             BlockState requiredState = worldSchematic.getBlockState(pos);
-            if (client.player != null && !canInteracted(pos, range)) continue;
+            if (client.player != null && !canInteracted(pos)) continue;
 
             PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
             if (requiredState.isOf(Blocks.NETHER_PORTAL) || requiredState.isOf(Blocks.END_PORTAL)) continue;
@@ -689,9 +671,6 @@ public class Printer extends PrinterUtils {
                 }
                 return;
             }
-//                }
-//            }
-//        }
         }
     }
 

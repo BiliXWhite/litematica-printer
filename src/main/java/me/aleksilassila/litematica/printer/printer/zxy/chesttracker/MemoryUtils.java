@@ -73,11 +73,11 @@ public class MemoryUtils {
             }
         });
 
-        //关闭屏幕后保存
+        //关闭屏幕后保存 在屏蔽掉ui的情况下 这里可能无法触发 建议在mixin中调用保存方法
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             if (screen instanceof HandledScreen<?> sc) {
                 ScreenEvents.remove(screen).register(screen1 -> {
-                    saveMemory(sc.getScreenHandler());
+//                    saveMemory(sc.getScreenHandler());
                 });
             }
         });

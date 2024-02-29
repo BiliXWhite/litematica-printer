@@ -27,7 +27,9 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	private static final KeybindSettings GUI_NO_ORDER = KeybindSettings.create(KeybindSettings.Context.GUI, KeyAction.PRESS, false, false, false, true);
 	// Config settings
 	public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger( "打印机工作间隔", 0,   0, 20, "以游戏刻度为单位工作间隔。值越低意味着打印速度越快");
-	public static final ConfigInteger PRINTING_RANGE = new ConfigInteger("打印机工作半径", 3,     1,   256,   "若服务器未修改交互距离 请勿设置太大");
+	public static final ConfigInteger PRINTING_RANGE = new ConfigInteger("打印机工作半径", 3,     1,   256,   "若服务器未修改交互距离 请勿设置太大。");
+	public static final ConfigInteger COMPULSION_RANGE = new ConfigInteger("强制循环半径", 3,     1,   20, """
+            每个游戏刻强制循环的半径，可以更好的扫描需要处理的方块""");
 	public static final ConfigOptionList RANGE_MODE = new ConfigOptionList("半径模式", State.ListType.SPHERE,"立方体建议3，球体建议设置6，破基岩在立方体模式下无法正常使用");
 	//    public static final ConfigBoolean PRINT_WATER    = new ConfigBoolean("PrintWater",    false, "Whether or not the printer should place water\n source blocks or make blocks waterlogged.");
 	public static final ConfigBoolean PRINT_IN_AIR = new ConfigBoolean("printInAir",    true, "Whether or not the printer should place blocks without anything to build on.\nBe aware that some anti-cheat plugins might notice this.");
@@ -64,6 +66,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		list.add(PRINT_MODE);
 		list.add(PRINT_INTERVAL);
 		list.add(PRINTING_RANGE);
+		list.add(COMPULSION_RANGE);
 		list.add(RANGE_MODE);
 		list.add(PRINT_IN_AIR);
 		list.add(PRINT_WATER_LOGGED_BLOCK);

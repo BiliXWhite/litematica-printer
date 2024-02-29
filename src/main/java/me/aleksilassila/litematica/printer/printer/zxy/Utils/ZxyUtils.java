@@ -39,6 +39,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#else
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //#endif
+import static me.aleksilassila.litematica.printer.LitematicaMixinMod.COMPULSION_RANGE;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
@@ -355,16 +356,21 @@ public class ZxyUtils {
                         client.player.getEyePos().squaredDistanceTo(d) < range * range);
     }
 
-    public static boolean canInteracted(BlockPos blockPos, double range) {
-        return blockPos != null && canInteracted(Vec3d.ofCenter(blockPos), range);
+    public static boolean canInteracted(BlockPos blockPos) {
+        return blockPos != null && canInteracted(Vec3d.ofCenter(blockPos),getRage());
     }
 
-    public static boolean bedrockCanInteracted(BlockPos blockPos, double range) {
+    public static boolean bedrockCanInteracted(BlockPos blockPos,double range) {
         return client.player != null && client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(blockPos)) < range * range;
     }
-
+    public static int getRage(){
+        return Math.max(getPrinterRange(),getCompulsionRange());
+    }
     public static int getPrinterRange() {
         return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
+    }
+    public static int getCompulsionRange(){
+        return LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue();
     }
 
     public static int frameGenerationTime = getMonitorRefreshRate();

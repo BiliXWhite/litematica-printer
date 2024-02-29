@@ -21,7 +21,7 @@ public class BlockPlacer {
         MinecraftClient minecraftClient = MinecraftClient.getInstance();
 
         InventoryManager.switchToItem(item);
-//        if(item.equals(Blocks.REDSTONE_TORCH) && minecraftClient.world.getBlockState(pos.down()).isOf(Blocks.AIR)){
+//        if(item.equals(Blocks.REDSTONE_TORCH) && minecraftClient.world.getBlockState(pos.down()).isAir()){
 ////            System.out.println(minecraftClient.world.getBlockState(pos.down()));
 //            return;
 //        }

@@ -16,8 +16,7 @@ import net.minecraft.util.math.Vec3d;
 import java.util.ArrayList;
 
 import static me.aleksilassila.litematica.printer.printer.Printer.bedrockModeRange;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.getPrinterRange;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 //import java.util.List;
 
 public class BreakingFlowController {
@@ -52,7 +51,7 @@ public class BreakingFlowController {
             if (pos.equals(block.getBlockPos()) || pos.equals(block.getnyk()) || pos.equals(block.geths()))
                 return;
         }
-        if (!minecraftClient.world.getBlockState(pos.up()).isOf(Blocks.AIR) || !minecraftClient.world.getBlockState(pos.up().up()).isOf(Blocks.AIR)) {
+        if (!minecraftClient.world.getBlockState(pos.up()).isAir() || !minecraftClient.world.getBlockState(pos.up().up()).isAir()) {
             if (!Printer.bedrockModeTarget(minecraftClient.world.getBlockState(pos.up()).getBlock()))
                 addPosList(pos.up());
             if (!Printer.bedrockModeTarget(minecraftClient.world.getBlockState(pos.up().up()).getBlock()))
@@ -121,7 +120,7 @@ public class BreakingFlowController {
             TargetBlock selectedBlock = cachedTargetBlockList.get(i);
 
 //            if (!blockInPlayerRange(selectedBlock.getBlockPos(), player, 5f)) {
-            if (!ZxyUtils.bedrockCanInteracted(selectedBlock.getBlockPos(), getPrinterRange() - 1.5)) {
+            if (!ZxyUtils.bedrockCanInteracted(selectedBlock.getBlockPos(), getRage() - 1.5)) {
                 cachedTargetBlockList.remove(i);
                 continue;
             }

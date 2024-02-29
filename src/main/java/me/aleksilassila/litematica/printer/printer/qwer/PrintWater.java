@@ -133,16 +133,19 @@ public class PrintWater {
     }
     public static boolean spawnWater(BlockPos pos){
         MinecraftClient client = ZxyUtils.client;
+        IceBlock b;
         //冰碎后无法产生水
         //#if MC > 11904
         BlockState material = client.world.getBlockState(pos.down());
         //#else
         //$$ Material material = client.world.getBlockState(pos.down()).getMaterial();
         //#endif
-        if (!(material.blocksMovement() || material.isLiquid())) {
+
+        if (material.blocksMovement() || material.isLiquid()) {
+            return true;
+        }else {
             client.inGameHud.setOverlayMessage(Text.of("冰碎后无法产生水"), false);
             return false;
         }
-        return true;
     }
 }
