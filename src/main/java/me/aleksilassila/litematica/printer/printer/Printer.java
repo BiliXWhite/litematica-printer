@@ -58,12 +58,12 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem.r
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 
 //#if MC > 12001
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 //#else
-//$$ import net.minecraft.util.Identifier;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
+import net.minecraft.util.Identifier;
+import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
+import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //#endif
 
 //#if MC < 11904
@@ -71,8 +71,8 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 //$$ import net.minecraft.util.registry.Registry;
 //#else
 import net.minecraft.registry.Registries;
-//$$ import net.minecraft.registry.RegistryKey;
-//$$ import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 //#endif
 
 
@@ -483,30 +483,30 @@ public class Printer extends PrinterUtils {
             } else if (LitematicaMixinMod.INVENTORY.getBooleanValue()) {
                 for (Item item : items2) {
                      //#if MC > 12001
-                      MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
-                      MemoryUtils.itemStack = new ItemStack(item);
-                      if (SearchItem.search(true)) {
-                          closeScreen++;
-                          isOpenHandler = true;
-                          printerMemorySync = true;
-                          return true;
-                      }
+                     //$$  MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
+                     //$$  MemoryUtils.itemStack = new ItemStack(item);
+                     //$$  if (SearchItem.search(true)) {
+                     //$$      closeScreen++;
+                     //$$      isOpenHandler = true;
+                     //$$      printerMemorySync = true;
+                     //$$      return true;
+                     //$$  }
                      //#else
-                     //$$
-                     //$$    MemoryDatabase database = MemoryDatabase.getCurrent();
-                     //$$    if (database != null) {
-                     //$$        for (Identifier dimension : database.getDimensions()) {
-                     //$$            for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
+
+                        MemoryDatabase database = MemoryDatabase.getCurrent();
+                        if (database != null) {
+                            for (Identifier dimension : database.getDimensions()) {
+                                for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
                                     //#if MC < 11904
                                     //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(Registry.WORLD_KEY, dimension));
                                     //#else
-                                    //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
+                                    OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
                                     //#endif
-                     //$$                isOpenHandler = true;
-                     //$$                return true;
-                     //$$            }
-                     //$$        }
-                     //$$    }
+                                    isOpenHandler = true;
+                                    return true;
+                                }
+                            }
+                        }
                     //#endif
                 }
                 items2 = new HashSet<>();

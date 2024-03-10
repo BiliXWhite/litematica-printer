@@ -5,6 +5,7 @@ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.client.MinecraftClient;
@@ -19,8 +20,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.HashSet;
+
+
 //#if MC > 12001
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#endif
 @Mixin(ClientPlayerEntity.class)
 public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
@@ -35,8 +38,9 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 	@Inject(at = @At("HEAD"), method = "closeScreen")
 	public void close(CallbackInfo ci) {
 		//#if MC > 12001
-		if(Statistics.loadChestTracker) MemoryUtils.saveMemory(this.currentScreenHandler);
+//$$ 		if(Statistics.loadChestTracker) MemoryUtils.saveMemory(this.currentScreenHandler);
 		//#endif
+		OpenInventoryPacket.reSet();
 	}
 	@Inject(at = @At("TAIL"), method = "tick")
 	public void tick(CallbackInfo ci) {
