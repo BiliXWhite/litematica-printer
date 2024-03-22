@@ -93,7 +93,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 
 //	public static final ConfigHotkey BEDROCK_MODE = new ConfigHotkey("破基岩模式", "J", "切换为破基岩模式 此模式下 y轴会从上往下判定.");
 //	public static final ConfigHotkey EXE_MODE= new ConfigHotkey("挖掘模式", "K", "挖掘所选区的方块");
-	public static final ConfigHotkey SYNC_INVENTORY = new ConfigHotkey("容器同步", "Y", "对准你想要达成的容器方块。按下热键将开始同步投影所选区域内的所选容器");
+	public static final ConfigHotkey SYNC_INVENTORY = new ConfigHotkey("容器同步", "Y", "按下热键后会记录看向容器的物品。\n将投影选区内的同类型容器中的物品，同步至记录的容器。");
 	public static final ConfigBooleanHotkeyed SYNC_INVENTORY_CHECK = new ConfigBooleanHotkeyed("同步时检查背包", false,"", "容器同步时检查背包，如果填充物不足，则不会打开容器");
 	public static final ConfigHotkey PRINTER_INVENTORY= new ConfigHotkey("打印机库存", "G", "如果远程取物的目标是未加载的区块将会增加取物品的时间，用投影选区后按下热键\n" +
 			"打印机工作时将会使用该库存内的物品\n" +
