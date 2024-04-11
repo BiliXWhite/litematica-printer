@@ -62,6 +62,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 //#else
 import net.minecraft.util.Identifier;
+import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
 import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //#endif
@@ -497,6 +498,7 @@ public class Printer extends PrinterUtils {
                         if (database != null) {
                             for (Identifier dimension : database.getDimensions()) {
                                 for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
+                                    MemoryUtils.setLatestPos(memory.getPosition());
                                     //#if MC < 11904
                                     //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(Registry.WORLD_KEY, dimension));
                                     //#else

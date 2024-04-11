@@ -73,7 +73,7 @@ public abstract class MemoryUtils {
                     Collection<BlockPos> connected = getConnected(mc.world, latestPos);
 //                    System.out.println("print-Save" + key.getValue() + latestPos);
                     database.mergeItems(key.getValue(), Memory.of(latestPos, stacks, null, connected.size() > 0 ? getAveragePos(latestPos, connected) : null), connected);
-                    red.jackf.chesttracker.memory.MemoryDatabase.getCurrent().mergeItems(key.getValue(), red.jackf.chesttracker.memory.Memory.of(latestPos, stacks, null, connected.size() > 0 ? getAveragePos(latestPos, connected) : null), connected);
+                    MemoryDatabase.getCurrent().mergeItems(key.getValue(), Memory.of(latestPos, stacks, null, connected.size() > 0 ? getAveragePos(latestPos, connected) : null), connected);
                     red.jackf.chesttracker.memory.MemoryUtils.setLatestPos(null);
                 }
             }

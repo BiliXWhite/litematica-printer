@@ -5,6 +5,7 @@ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -20,7 +21,10 @@ public class MixinClientPlayerEntity {
     @Shadow @Final protected MinecraftClient client;
     @Inject(at = @At("HEAD"), method = "closeScreen")
     public void closeScreen(CallbackInfo ci) {
-        if(LitematicaMixinMod.INVENTORY.getBooleanValue() && (LitematicaMixinMod.PRINT_MODE.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed() || printerMemoryAdding) && MemoryUtils.getLatestPos()!=null){
+        BlockPos pos = MemoryUtils.getLatestPos();
+        if(LitematicaMixinMod.INVENTORY.getBooleanValue() &&
+                (LitematicaMixinMod.PRINT_MODE.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed() || printerMemoryAdding) &&
+                pos != null){
             if(!client.player.currentScreenHandler.equals(client.player.playerScreenHandler)){
                 handleItemsFromScreen(client.player.currentScreenHandler);
             }
