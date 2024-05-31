@@ -28,7 +28,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 //#if MC > 12001
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#endif
 
 //#if MC < 11904
@@ -130,7 +130,7 @@ public class OpenInventoryPacket{
     public static void openReturn(boolean open, BlockState state){
         if(open){
             //#if MC > 12001
-            //$$  MemoryUtils.blockState = state;
+             MemoryUtils.blockState = state;
             //#endif
 
 //            client.player.sendMessage(Text.of("return "+state.toString()));
@@ -147,7 +147,7 @@ public class OpenInventoryPacket{
 
             if(key!=null){
                 //#if MC > 12001
-                //$$ MemoryUtils.PRINTER_MEMORY.removeMemory(key.getValue(),pos);
+                MemoryUtils.PRINTER_MEMORY.removeMemory(key.getValue(),pos);
                 //#endif
             }
 

@@ -16,7 +16,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.client.MinecraftClient;
 //#if MC > 12001
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#endif
 import java.util.List;
 
@@ -44,9 +44,9 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigHotkey CLOSE_ALL_MODE = new ConfigHotkey("关闭全部模式", "LEFT_CONTROL,G","");
 
 	//#if MC > 12001
-//$$ 	public static final ConfigHotkey LAST = new ConfigHotkey("上一个箱子", "Z",GUI_NO_ORDER,"");
-//$$ 	public static final ConfigHotkey NEXT = new ConfigHotkey("下一个箱子", "C",GUI_NO_ORDER,"");
-//$$ 	public static final ConfigHotkey DELETE = new ConfigHotkey("删除当前容器", "LEFT_SHIFT,X",GUI_NO_ORDER,"");
+	public static final ConfigHotkey LAST = new ConfigHotkey("上一个箱子", "Z",GUI_NO_ORDER,"");
+	public static final ConfigHotkey NEXT = new ConfigHotkey("下一个箱子", "C",GUI_NO_ORDER,"");
+	public static final ConfigHotkey DELETE = new ConfigHotkey("删除当前容器", "LEFT_SHIFT,X",GUI_NO_ORDER,"");
 	//#endif
 
 	public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList("排流体方块名单", ImmutableList.of("minecraft:sand"), "");
@@ -115,9 +115,9 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		if(loadChestTracker) list.add(SYNC_INVENTORY);
 		if(loadChestTracker) list.add(REMOVE_PRINT_INVENTORY);
 		//#if MC > 12001
-//$$ 		if(loadChestTracker) list.add(LAST);
-//$$ 		if(loadChestTracker) list.add(NEXT);
-//$$ 		if(loadChestTracker) list.add(DELETE);
+		if(loadChestTracker) list.add(LAST);
+		if(loadChestTracker) list.add(NEXT);
+		if(loadChestTracker) list.add(DELETE);
 		//#endif
 		list.add(TEST);
 
@@ -138,7 +138,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		OpenInventoryPacket.registerReceivePacket();
 		OpenInventoryPacket.registerClientReceivePacket();
 		//#if MC > 12001
-//$$ 		if(loadChestTracker) MemoryUtils.setup();
+		if(loadChestTracker) MemoryUtils.setup();
 		//#endif
 
 		TOGGLE_PRINTING_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(PRINT_MODE));
@@ -148,9 +148,9 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 			PRINTER_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
 			REMOVE_PRINT_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
 			//#if MC > 12001
-//$$ 			LAST.getKeybind().setCallback(keyCallbackHotkeys);
-//$$ 			NEXT.getKeybind().setCallback(keyCallbackHotkeys);
-//$$ 			DELETE.getKeybind().setCallback(keyCallbackHotkeys);
+			LAST.getKeybind().setCallback(keyCallbackHotkeys);
+			NEXT.getKeybind().setCallback(keyCallbackHotkeys);
+			DELETE.getKeybind().setCallback(keyCallbackHotkeys);
 			//#endif
 		}
 		HighlightBlockRenderer.init();

@@ -4,8 +4,8 @@
   "package": "me.aleksilassila.litematica.printer.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    //#if MC <12002
-    "jackf.lgacy.MixinWCardPanel",
+    //#if MC < 12002
+    //$$ "jackf.lgacy.MixinWCardPanel",
     //#endif
     "masa.Litematica_InventoryUtilsMixin",
     "masa.MixinInventoryUtils",
@@ -25,22 +25,24 @@
     "MixinClientPlayNetworkHandler",
     "PlayerMoveC2SPacketAccessor",
     //#if MC > 12001
-    //$$ "jackf.ChestTrackerScreenMixin",
-    //$$ "jackf.ItemStackUtilMixin",
-    //$$ "jackf.MemoryBankMixin",
-    //$$ "jackf.SearchInvokerMixin",
-    //$$ "jackf.SearchRequestPopulatorMixin",
-    //$$ "jackf.StorageMixin",
-    //$$ "jackf.SearchRequestMixin",
+    "jackf.ChestTrackerScreenMixin",
+    "jackf.ItemStackUtilMixin",
+    "jackf.MemoryBankAccessMixin",
+    "jackf.SearchInvokerMixin",
+    "jackf.SearchRequestPopulatorMixin",
+    "jackf.StorageMixin",
+    "jackf.SearchRequestMixin",
+    "jackf.MemoryKeyImplMixin",
+    "jackf.EditMemoryBankScreenMixin",
     //#else
-    "jackf.lgacy.MixinClientPlayerEntity",
-    "jackf.lgacy.MemoryUtilsMixin",
-    "jackf.lgacy.MixinBlock",
-    "jackf.lgacy.MixinChestTracker",
-    "jackf.lgacy.MixinClientConnection",
-    "jackf.lgacy.MixinMemoryDatabase",
-    "jackf.lgacy.MixinRealmsMainScreen",
-    "jackf.lgacy.WItemListPanelMixin",
+    //$$ "jackf.lgacy.MixinClientPlayerEntity",
+    //$$ "jackf.lgacy.MemoryUtilsMixin",
+    //$$ "jackf.lgacy.MixinBlock",
+    //$$ "jackf.lgacy.MixinChestTracker",
+    //$$ "jackf.lgacy.MixinClientConnection",
+    //$$ "jackf.lgacy.MixinMemoryDatabase",
+    //$$ "jackf.lgacy.MixinRealmsMainScreen",
+    //$$ "jackf.lgacy.WItemListPanelMixin",
     //#endif
     "openinv.MixinMinecraftClient",
     "verify.MixinClientConnection"

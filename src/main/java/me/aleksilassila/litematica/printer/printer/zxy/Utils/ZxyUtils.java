@@ -35,9 +35,9 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
 //#if MC > 12001
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#else
-import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //#endif
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.COMPULSION_RANGE;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
@@ -60,7 +60,7 @@ public class ZxyUtils {
         if (LitematicaMixinMod.INVENTORY.getBooleanValue() && !printerMemoryAdding) {
             printerMemoryAdding = true;
             //#if MC > 12001
-            //$$ if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
+            if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
             //#endif
 
             for (String string : LitematicaMixinMod.INVENTORY_LIST.getStrings()) {
@@ -82,7 +82,7 @@ public class ZxyUtils {
             for (BlockPos pos : invBlockList) {
                 if (client.world != null) {
                     //#if MC < 12002
-                    MemoryUtils.setLatestPos(pos);
+                    //$$ MemoryUtils.setLatestPos(pos);
                     //#endif
                     closeScreen++;
                     OpenInventoryPacket.sendOpenInventory(pos, client.world.getRegistryKey());

@@ -1,6 +1,6 @@
 plugins {
     id("maven-publish")
-    id("fabric-loom").version("1.5-SNAPSHOT").apply(false)
+    id("fabric-loom").version("1.6-SNAPSHOT").apply(false)
     id("org.ajoberstar.grgit").version("5.2.0")
     id("com.replaymod.preprocess").version("SNAPSHOT")
 

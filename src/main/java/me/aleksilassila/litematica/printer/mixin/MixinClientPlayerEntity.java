@@ -23,7 +23,7 @@ import java.util.HashSet;
 
 
 //#if MC > 12001
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#endif
 @Mixin(ClientPlayerEntity.class)
 public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
@@ -38,9 +38,9 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 	@Inject(at = @At("HEAD"), method = "closeScreen")
 	public void close(CallbackInfo ci) {
 		//#if MC > 12001
-//$$ 		if(Statistics.loadChestTracker) MemoryUtils.saveMemory(this.currentScreenHandler);
-		//#endif
+		if(Statistics.loadChestTracker) MemoryUtils.saveMemory(this.currentScreenHandler);
 		OpenInventoryPacket.reSet();
+		//#endif
 	}
 	@Inject(at = @At("TAIL"), method = "tick")
 	public void tick(CallbackInfo ci) {

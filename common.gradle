@@ -102,7 +102,8 @@ def mod_dependencies = [
         ["red.jackf:chesttracker"                               , "chesttracker",       mcVersion > 12001 ? 1 : 0],
         ["red.jackf:whereisit"                                  , "whereisit",          mcVersion > 12001 ? 1 : 0],
         ["com.blamejared.searchables"                           , "searchables",        mcVersion > 12001 ? 1 : 0],
-        ["dev.isxander.yacl:yet-another-config-lib-fabric"      , "yacl",               mcVersion > 12001 ? 1 : 0],
+//        ["dev.isxander.yacl:yet-another-config-lib-fabric"      , "yacl",               mcVersion > 12001 ? 1 : 0],
+        ["maven.modrinth:yacl"                                  , "yacl",               mcVersion > 12001 ? 1 : 0],
         ["maven.modrinth:chest-tracker"                         , "chesttracker",       mcVersion <= 12001 ? 1 : 0],
         ["maven.modrinth:where-is-it"                           , "whereisit",          mcVersion <= 12001 ? 1 : 0],
         ["maven.modrinth:cloth-config"                          , "cloth_config",       mcVersion <= 12001 ? 1 : 0],
@@ -245,7 +246,7 @@ tasks.register("serverPropertiesJar", Jar) {
         }
 
         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(propsFile))
-        bufferedWriter.writeLine("fabric-loader-version=${project.fabric_loader_version}")
+        bufferedWriter.writeLine("fabric-loader-version=${project.loader_version}")
         bufferedWriter.writeLine("game-version=${project.minecraft_version}")
         bufferedWriter.close()
     }

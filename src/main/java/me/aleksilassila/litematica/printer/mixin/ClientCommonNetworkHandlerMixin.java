@@ -12,11 +12,11 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
 //#if MC > 12001
-//$$ import net.minecraft.client.network.ClientCommonNetworkHandler;
-//$$ @Mixin(ClientCommonNetworkHandler.class)
+import net.minecraft.client.network.ClientCommonNetworkHandler;
+@Mixin(ClientCommonNetworkHandler.class)
 //#else
-import net.minecraft.client.network.ClientPlayNetworkHandler;
-@Mixin(ClientPlayNetworkHandler.class)
+//$$ import net.minecraft.client.network.ClientPlayNetworkHandler;
+//$$ @Mixin(ClientPlayNetworkHandler.class)
 //#endif
 public class ClientCommonNetworkHandlerMixin {
     @Final

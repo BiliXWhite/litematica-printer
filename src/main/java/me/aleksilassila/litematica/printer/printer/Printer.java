@@ -50,21 +50,20 @@ import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRIC
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
 import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.COMPULSION_RANGE;
-import static me.aleksilassila.litematica.printer.printer.Printer.TempData.max;
-import static me.aleksilassila.litematica.printer.printer.Printer.TempData.min;
+import static me.aleksilassila.litematica.printer.printer.Printer.TempData.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem.reSwitchItem;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 
 //#if MC > 12001
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 //#else
-import net.minecraft.util.Identifier;
-import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
-import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
+//$$ import net.minecraft.util.Identifier;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //#endif
 
 //#if MC < 11904
@@ -83,15 +82,17 @@ public class Printer extends PrinterUtils {
     public static class TempData {
         public static int[] min;
         public static int[] max;
-
         public static boolean xuanQuFanWeiNei_p(BlockPos pos) {
+          return  xuanQuFanWeiNei_p(pos,0);
+        }
+        public static boolean xuanQuFanWeiNei_p(BlockPos pos,int p) {
             AreaSelection i = DataManager.getSelectionManager().getCurrentSelection();
             if (i == null) return false;
             if (DataManager.getSelectionManager().getSelectionMode() == NORMAL) {
                 boolean fw = false;
                 List<Box> arr = i.getAllSubRegionBoxes();
                 for (int j = 0; j < arr.size(); j++) {
-                    if (comparePos(arr.get(j), pos)) {
+                    if (comparePos(arr.get(j), pos,p)) {
                         return true;
                     } else {
                         fw = false;
@@ -100,11 +101,11 @@ public class Printer extends PrinterUtils {
                 return fw;
             } else {
                 Box box = i.getSubRegionBox(DataManager.getSimpleArea().getName());
-                return comparePos(box, pos);
+                return comparePos(box, pos,p);
             }
         }
 
-        static boolean comparePos(Box box, BlockPos pos) {
+        static boolean comparePos(Box box, BlockPos pos,int p) {
             int x = 0, y = 0, z = 0;
             if (pos != null) {
                 x = pos.getX();
@@ -112,17 +113,17 @@ public class Printer extends PrinterUtils {
                 z = pos.getZ();
             }
             if (box == null) return false;
-            BlockPos kpos1 = box.getPos1();
-            BlockPos kpos2 = box.getPos2();
+            BlockPos kpos1 = Objects.requireNonNull(box.getPos1());
+            BlockPos kpos2 = Objects.requireNonNull(box.getPos2());
             min = new int[]{
-                    kpos1.getX() < kpos2.getX() ? kpos1.getX() : kpos2.getX(),
-                    kpos1.getY() < kpos2.getY() ? kpos1.getY() : kpos2.getY(),
-                    kpos1.getZ() < kpos2.getZ() ? kpos1.getZ() : kpos2.getZ()
+                    Math.min(kpos1.getX(), kpos2.getX())-p,
+                    Math.min(kpos1.getY(), kpos2.getY())-p,
+                    Math.min(kpos1.getZ(), kpos2.getZ())-p
             };
             max = new int[]{
-                    kpos1.getX() > kpos2.getX() ? kpos1.getX() : kpos2.getX(),
-                    kpos1.getY() > kpos2.getY() ? kpos1.getY() : kpos2.getY(),
-                    kpos1.getZ() > kpos2.getZ() ? kpos1.getZ() : kpos2.getZ()
+                    Math.max(kpos1.getX(), kpos2.getX())+p,
+                    Math.max(kpos1.getY(), kpos2.getY())+p,
+                    Math.max(kpos1.getZ(), kpos2.getZ())+p
             };
             if (
                     x < min[0] || x > max[0] ||
@@ -405,7 +406,7 @@ public class Printer extends PrinterUtils {
             if (!ZxyUtils.bedrockCanInteracted(pos,getRage())) continue;
             BlockState currentState = client.world.getBlockState(pos);
 //                    if (currentState.isOf(Blocks.PISTON) && !data.world.getBlockState(pos.down()).isOf(Blocks.BEDROCK)) {
-            if (currentState.isOf(Blocks.PISTON) && !bedrockModeTarget(client.world.getBlockState(pos.down()).getBlock())) {
+            if (currentState.isOf(Blocks.PISTON) && !bedrockModeTarget(client.world.getBlockState(pos.down()).getBlock()) && xuanQuFanWeiNei_p(pos,3)) {
                 BreakingFlowController.addPosList(pos);
             } else if (currentState.isOf(Blocks.PISTON_HEAD)) {
                 switchToItems(client.player, new Item[]{Items.AIR, Items.DIAMOND_PICKAXE});
@@ -484,31 +485,31 @@ public class Printer extends PrinterUtils {
             } else if (LitematicaMixinMod.INVENTORY.getBooleanValue()) {
                 for (Item item : items2) {
                      //#if MC > 12001
-                     //$$  MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
-                     //$$  MemoryUtils.itemStack = new ItemStack(item);
-                     //$$  if (SearchItem.search(true)) {
-                     //$$      closeScreen++;
-                     //$$      isOpenHandler = true;
-                     //$$      printerMemorySync = true;
-                     //$$      return true;
-                     //$$  }
+                      MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
+                      MemoryUtils.itemStack = new ItemStack(item);
+                      if (SearchItem.search(true)) {
+                          closeScreen++;
+                          isOpenHandler = true;
+                          printerMemorySync = true;
+                          return true;
+                      }
                      //#else
-
-                        MemoryDatabase database = MemoryDatabase.getCurrent();
-                        if (database != null) {
-                            for (Identifier dimension : database.getDimensions()) {
-                                for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
-                                    MemoryUtils.setLatestPos(memory.getPosition());
+                     //$$
+                     //$$    MemoryDatabase database = MemoryDatabase.getCurrent();
+                     //$$    if (database != null) {
+                     //$$        for (Identifier dimension : database.getDimensions()) {
+                     //$$            for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
+                     //$$                MemoryUtils.setLatestPos(memory.getPosition());
                                     //#if MC < 11904
                                     //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(Registry.WORLD_KEY, dimension));
                                     //#else
-                                    OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
+                                    //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
                                     //#endif
-                                    isOpenHandler = true;
-                                    return true;
-                                }
-                            }
-                        }
+                     //$$                isOpenHandler = true;
+                     //$$                return true;
+                     //$$            }
+                     //$$        }
+                     //$$    }
                     //#endif
                 }
                 items2 = new HashSet<>();
@@ -683,7 +684,7 @@ public class Printer extends PrinterUtils {
         if (i == null) return blocks;
         box = i.getAllSubRegionBoxes();
         for (int index = 0; index < box.size(); index++) {
-            TempData.comparePos(box.get(index), null);
+            TempData.comparePos(box.get(index), null,0);
             for (int x = min[0]; x <= max[0]; x++) {
                 for (int y = min[1]; y <= max[1]; y++) {
                     for (int z = min[2]; z <= max[2]; z++) {
