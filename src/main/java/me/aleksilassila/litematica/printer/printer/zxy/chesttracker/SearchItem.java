@@ -22,7 +22,7 @@ import red.jackf.chesttracker.impl.memory.MemoryKeyImpl;
 import red.jackf.whereisit.api.SearchRequest;
 import red.jackf.whereisit.client.api.events.SearchRequestPopulator;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class SearchItem {
     static AtomicBoolean hasItem = new AtomicBoolean(false);
     static boolean isPrinterMemory = false;
-    static Map<Identifier,Map<BlockPos, Memory>> currItems = new HashMap<>();
+    static Map<Identifier,Map<BlockPos, Memory>> currItems = new LinkedHashMap<>();
     public static int page = 0;
     public static int maxPage = 0;
     public static void initPage(){
@@ -65,7 +65,7 @@ public class SearchItem {
         if (memoryBank != null) {
             Map<Identifier, MemoryKeyImpl> memories = memoryBank.getMemories();
             if (MemoryUtils.currentMemoryKey != null) {
-                Map<Identifier,Map<BlockPos,Memory>> itemMemoryMap = new HashMap<>();
+                Map<Identifier,Map<BlockPos,Memory>> itemMemoryMap = new LinkedHashMap<>();
                 //搜索当前选中的维度
                 Map<BlockPos, Memory> blockPosMemoryMap = memoriesSearch(MemoryUtils.currentMemoryKey, MemoryUtils.itemStack, memoryBank);
                 itemMemoryMap.put(MemoryUtils.currentMemoryKey,blockPosMemoryMap);
@@ -101,7 +101,7 @@ public class SearchItem {
             int range = memoryBank.getMetadata().getSearchSettings().searchRange;
             double rangeSquared = range == Integer.MAX_VALUE ? Integer.MAX_VALUE : range * range;
 
-            Map<BlockPos,Memory> itemsMap = new HashMap<>();
+            Map<BlockPos,Memory> itemsMap = new LinkedHashMap<>();
             for (Map.Entry<BlockPos, Memory> entry : memoryBank.getMemories().get(key).getMemories().entrySet()) {
                 if (entry.getKey().getSquaredDistance(player.getPos()) > rangeSquared && range != Integer.MAX_VALUE) continue;
                 if (entry.getValue().items().stream()

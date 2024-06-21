@@ -52,7 +52,6 @@ public class PlacementGuide extends PrinterUtils {
 //    }
     public static Set<BlockPos> posSet = new HashSet<>();
     public @Nullable Action water(BlockState requiredState,BlockState currentState ,BlockPos pos){
-        if (!LitematicaMixinMod.PRINT_WATER_LOGGED_BLOCK.getBooleanValue()) return null;
         if(currentState.isOf(Blocks.ICE)){
             if (client.player != null) {
                 searchPickaxes(client.player);
@@ -88,9 +87,8 @@ public class PlacementGuide extends PrinterUtils {
 //                return null;
 //            }
 //        }
-        if (canWaterLogged(requiredState) && !canWaterLogged(currentState))
+        if (LitematicaMixinMod.PRINT_WATER_LOGGED_BLOCK.getBooleanValue() && canWaterLogged(requiredState) && !canWaterLogged(currentState))
             return water(requiredState,currentState,pos);
-
         if (!requiredState.canPlaceAt(world, pos)) {
             return null;
         }
@@ -171,7 +169,7 @@ public class PlacementGuide extends PrinterUtils {
                     return action;
                 }
                 case ANVIL: {
-                    return new Action().setLookDirection(requiredState.get(AnvilBlock.FACING).rotateYCounterclockwise());
+                    return new Action().setLookDirection(requiredState.get(AnvilBlock.FACING).rotateYCounterclockwise()).setSides(Direction.UP);
                 }
                 case HOPPER: // FIXME add all sides
                 case COCOA: {

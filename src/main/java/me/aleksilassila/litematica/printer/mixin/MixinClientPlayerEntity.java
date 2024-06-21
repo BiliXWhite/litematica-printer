@@ -16,6 +16,7 @@ import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -35,7 +36,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 	@Shadow
 	protected MinecraftClient client;
 
-	@Inject(at = @At("HEAD"), method = "closeScreen")
+	@Inject(at = @At("HEAD"), method = "closeHandledScreen")
 	public void close(CallbackInfo ci) {
 		//#if MC > 12001
 		if(Statistics.loadChestTracker) MemoryUtils.saveMemory(this.currentScreenHandler);
@@ -50,7 +51,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 		}
 		ZxyUtils.tick();
 
-		if(!(LitematicaMixinMod.PRINT_MODE.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed())){
+		if(!(LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed())){
 			PlacementGuide.posSet = new HashSet<>();
 			return;
 		}
@@ -60,6 +61,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 		}
 		Printer.getPrinter().tick();
 	}
+	@Unique
 	public void checkForUpdates() {
         new Thread(() -> {
             String version = UpdateChecker.version;

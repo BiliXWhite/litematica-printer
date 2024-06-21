@@ -21,9 +21,9 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import java.util.List;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadQuickShulker;
 
 public class LitematicaMixinMod implements ModInitializer, ClientModInitializer {
+	public static final String MOD_ID = "Litematica_Printer";
 	private static final KeybindSettings GUI_NO_ORDER = KeybindSettings.create(KeybindSettings.Context.GUI, KeyAction.PRESS, false, false, false, true);
 	// Config settings
 	public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger( "打印机工作间隔", 0,   0, 20, "以游戏刻度为单位工作间隔。值越低意味着打印速度越快");
@@ -31,17 +31,24 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigInteger COMPULSION_RANGE = new ConfigInteger("强制循环半径", 3,     1,   20, """
             每个游戏刻强制循环的半径，可以更好的扫描需要处理的方块""");
 	public static final ConfigOptionList RANGE_MODE = new ConfigOptionList("半径模式", State.ListType.SPHERE,"立方体建议3，球体建议设置6，破基岩在立方体模式下无法正常使用");
+	public static final ConfigOptionList MODE_SWITCH = new ConfigOptionList("模式切换", State.ModeType.SINGLE,"单模：仅运行一个模式。多模：可多个模式同时运行");
+	public static final ConfigOptionList PRINTER_MODE = new ConfigOptionList("打印机模式", State.PrintModeType.PRINTER,"仅单模生效");
 	//    public static final ConfigBoolean PRINT_WATER    = new ConfigBoolean("PrintWater",    false, "Whether or not the printer should place water\n source blocks or make blocks waterlogged.");
-	public static final ConfigBoolean PRINT_IN_AIR = new ConfigBoolean("printInAir",    true, "Whether or not the printer should place blocks without anything to build on.\nBe aware that some anti-cheat plugins might notice this.");
+	public static final ConfigBoolean MULTI_BREAK = new ConfigBoolean("多模阻断",true, "启用后将按模式优先级运行，同时启用多个模式时优先级低的无法执行");
+	public static final ConfigBoolean RENDER_LAYER_LIMIT = new ConfigBoolean("渲染层数限制",false, "拍流体，破基岩，挖掘模式 是否受渲染层数限制");
+	public static final ConfigBoolean PRINT_IN_AIR = new ConfigBoolean("凭空放置",true, "Whether or not the printer should place blocks without anything to build on.\nBe aware that some anti-cheat plugins might notice this.");
 	public static final ConfigBooleanHotkeyed PRINT_WATER_LOGGED_BLOCK = new ConfigBooleanHotkeyed("打印含水方块",  false,"","启用后会自动放置并破坏冰来使方块含水");
-	public static final ConfigBoolean PRINT_MODE = new ConfigBoolean("printingMode",  false, "Autobuild / print loaded selection.\nBe aware that some servers and anticheat plugins do not allow printing.");
-	public static final ConfigBoolean REPLACE = new ConfigBoolean("替换列表方块", true, "可以直接在一些可替换方块放置，例如 草 雪片");
-	public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean("stripLogs", false, "Whether or not the printer should use normal logs if stripped\nversions are not available and then strip them with an axe.");
+	public static final ConfigBoolean PRINT_SWITCH = new ConfigBoolean("printingMode",false, "Autobuild / print loaded selection.\nBe aware that some servers and anticheat plugins do not allow printing.");
+	public static final ConfigBoolean EASY_MODE = new ConfigBoolean("精准放置",false, "根据投影的设置使用对应的协议");
+	public static final ConfigBoolean FORCED_PLACEMENT = new ConfigBoolean("强制潜行",false, "打印时会强制shift避免一些方块的交互");
+	public static final ConfigBoolean REPLACE = new ConfigBoolean("替换列表方块",true, "可以直接在一些可替换方块放置，例如 草 雪片");
+	public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean("stripLogs",false, "Whether or not the printer should use normal logs if stripped\nversions are not available and then strip them with an axe.");
 	public static boolean shouldPrintInAir = PRINT_IN_AIR.getBooleanValue();
+	public static final ConfigHotkey SWITCH_PRINTER_MODE = new ConfigHotkey("切换模式", "J", "切换打印机工作模式");
 	public static final ConfigBooleanHotkeyed BEDROCK_SWITCH = new ConfigBooleanHotkeyed("破基岩模式", false,"J", "啊吧啊吧");
 	public static final ConfigBooleanHotkeyed EXCAVATE = new ConfigBooleanHotkeyed("挖掘", false,"K", "挖掘所选区内的方块");
 	public static final ConfigBooleanHotkeyed FLUID = new ConfigBooleanHotkeyed("排流体", false,"L", "在岩浆源、水源处放方块默认是沙子");
-	public static final ConfigHotkey CLOSE_ALL_MODE = new ConfigHotkey("关闭全部模式", "LEFT_CONTROL,G","");
+	public static final ConfigHotkey CLOSE_ALL_MODE = new ConfigHotkey("关闭全部模式", "LEFT_CONTROL,G","关闭全部模式，若此时为单模模式将模式恢复为打印");
 
 	//#if MC > 12001
 	public static final ConfigHotkey LAST = new ConfigHotkey("上一个箱子", "Z",GUI_NO_ORDER,"");
@@ -63,26 +70,13 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 
 	public static ImmutableList<IConfigBase> getConfigList() {
 		List<IConfigBase> list = new java.util.ArrayList<>(Configs.Generic.OPTIONS);
-		list.add(PRINT_MODE);
+		list.add(PRINT_SWITCH);
+		list.add(EASY_MODE);
 		list.add(PRINT_INTERVAL);
-		list.add(PRINTING_RANGE);
 		list.add(COMPULSION_RANGE);
-		list.add(RANGE_MODE);
+		if(PRINTER_MODE.getOptionListValue().equals(State.ModeType.SINGLE)) list.add(PRINTER_MODE);
 		list.add(PRINT_IN_AIR);
 		list.add(PRINT_WATER_LOGGED_BLOCK);
-		list.add(REPLACE);
-		list.add(STRIP_LOGS);
-
-		list.add(FLUID_BLOCK_LIST);
-		if(loadChestTracker) list.add(INVENTORY_LIST);
-		list.add(BEDROCK_LIST);
-		list.add(REPLACEABLE_LIST);
-		list.add(TEST);
-		list.add(0, SKIP);
-//		list.add(0, FLUID);
-
-		if(loadQuickShulker) list.add(0, QUICKSHULKER);
-		if(loadChestTracker) list.add(0, INVENTORY);
 
 		return ImmutableList.copyOf(list);
 	}
@@ -105,21 +99,26 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		List<IConfigBase> list = new java.util.ArrayList<>(Hotkeys.HOTKEY_LIST);
 		list.add(PRINT);
 		list.add(TOGGLE_PRINTING_MODE);
-		list.add(BEDROCK_SWITCH);
-		list.add(EXCAVATE);
-		list.add(FLUID);
+
 		list.add(CLOSE_ALL_MODE);
+		if(MODE_SWITCH.getOptionListValue() == State.ModeType.SINGLE) {
+			list.add(SWITCH_PRINTER_MODE);
+		} else if(MODE_SWITCH.getOptionListValue() == State.ModeType.MULTI){
+			list.add(BEDROCK_SWITCH);
+			list.add(EXCAVATE);
+			list.add(FLUID);
+		}
 //		list.add(BEDROCK_MODE);
 //		list.add(EXE_MODE);
-		if(loadChestTracker) list.add(PRINTER_INVENTORY);
-		if(loadChestTracker) list.add(SYNC_INVENTORY);
-		if(loadChestTracker) list.add(REMOVE_PRINT_INVENTORY);
-		//#if MC > 12001
-		if(loadChestTracker) list.add(LAST);
-		if(loadChestTracker) list.add(NEXT);
-		if(loadChestTracker) list.add(DELETE);
-		//#endif
-		list.add(TEST);
+//		if(loadChestTracker) list.add(PRINTER_INVENTORY);
+//		if(loadChestTracker) list.add(SYNC_INVENTORY);
+//		if(loadChestTracker) list.add(REMOVE_PRINT_INVENTORY);
+//		//#if MC > 12001
+//		if(loadChestTracker) list.add(LAST);
+//		if(loadChestTracker) list.add(NEXT);
+//		if(loadChestTracker) list.add(DELETE);
+//		//#endif
+//		list.add(TEST);
 
 		return ImmutableList.copyOf(list);
 	}
@@ -141,9 +140,9 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		if(loadChestTracker) MemoryUtils.setup();
 		//#endif
 
-		TOGGLE_PRINTING_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(PRINT_MODE));
-
+		TOGGLE_PRINTING_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(PRINT_SWITCH));
 		SYNC_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
+		SWITCH_PRINTER_MODE.getKeybind().setCallback(keyCallbackHotkeys);
 		if(loadChestTracker){
 			PRINTER_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
 			REMOVE_PRINT_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
@@ -153,6 +152,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 			DELETE.getKeybind().setCallback(keyCallbackHotkeys);
 			//#endif
 		}
+		me.aleksilassila.litematica.printer.config.Configs.init();
 		HighlightBlockRenderer.init();
 //		BEDROCK_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(BEDROCK_SWITCH));
 //		EXE_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(EXCAVATE));

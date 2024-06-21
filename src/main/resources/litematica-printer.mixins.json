@@ -4,13 +4,16 @@
   "package": "me.aleksilassila.litematica.printer.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    //#if MC < 12002
-    //$$ "jackf.lgacy.MixinWCardPanel",
-    //#endif
     "masa.Litematica_InventoryUtilsMixin",
     "masa.MixinInventoryUtils",
+    "masa.WorldUtilsMixin",
+    "masa.BlockItemMixin",
     "openinv.MixinGenericContainerScreenHandler",
-    "openinv.MixinLootableContainerBlockEntity",
+    //#if MC > 11802
+    "openinv.InventoryMixin",
+    //#else
+    //$$ "openinv.MixinLootableContainerBlockEntity",
+    //#endif
     "openinv.MixinServerPlayerEntity",
     "openinv.MixinServerWorld"
   ],

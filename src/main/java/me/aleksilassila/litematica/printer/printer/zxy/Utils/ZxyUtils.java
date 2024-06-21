@@ -39,7 +39,6 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#else
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //#endif
-import static me.aleksilassila.litematica.printer.LitematicaMixinMod.COMPULSION_RANGE;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
@@ -312,7 +311,7 @@ public class ZxyUtils {
             LitematicaMixinMod.BEDROCK_SWITCH.setBooleanValue(false);
             LitematicaMixinMod.EXCAVATE.setBooleanValue(false);
             LitematicaMixinMod.FLUID.setBooleanValue(false);
-            LitematicaMixinMod.PRINT_MODE.setBooleanValue(false);
+            LitematicaMixinMod.PRINT_SWITCH.setBooleanValue(false);
             client.inGameHud.setOverlayMessage(Text.of("已关闭全部模式"), false);
         }
 //        for (BlockPos pos : syncPosList) {
@@ -384,6 +383,14 @@ public class ZxyUtils {
         SwitchItem.reSet();
         Verify.verify = null;
         BreakingFlowController.poslist = new ArrayList<>();
+    }
+
+    public static void useBlock(Vec3d vec3d,Direction direction,BlockPos pos,boolean insideBlock){
+        //#if MC < 11904
+        //$$ client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
+        //#else
+        client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
+        //#endif
     }
 
 

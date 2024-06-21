@@ -30,7 +30,7 @@ public class SwitchItem {
     }
     public static void syncUseTime(ItemStack itemStack){
         ItemStatistics itemStatistics = itemStacks.get(itemStack);
-        if(itemStatistics !=null) itemStatistics.syncUseTime();
+        if(itemStatistics != null) itemStatistics.syncUseTime();
     }
     public static void newItem(ItemStack itemStack, BlockPos pos, RegistryKey<World> key, int slot, int shulkerBox){
         itemStacks.put(itemStack,new ItemStatistics(key,pos,slot,shulkerBox));

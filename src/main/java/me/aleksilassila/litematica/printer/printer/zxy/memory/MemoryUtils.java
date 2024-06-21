@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 
 //#if MC < 12002
 //$$ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 //$$ import net.fabricmc.api.EnvType;
 //$$ import net.fabricmc.api.Environment;
 //$$ import net.fabricmc.loader.api.FabricLoader;
@@ -37,11 +38,10 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 //$$ import java.util.stream.Collectors;
 //$$ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.*;
 //$$ import static red.jackf.chesttracker.ChestTracker.id;
-//$$ import static red.jackf.chesttracker.memory.MemoryUtils.checkValidCycle;
 //$$
 //$$ @Environment(EnvType.CLIENT)
 //$$ public abstract class MemoryUtils {
-//$$     public static final Identifier ENDER_CHEST_ID = id("ender_chest");
+//$$     public static final Identifier ENDER_CHEST_ID = Statistics.loadChestTracker ? id("ender_chest") : null;
 //$$     @Nullable
 //$$     private static BlockPos latestPos = null;
 //$$     @Nullable
@@ -128,6 +128,9 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 //$$         pos = null;
 //$$         red.jackf.chesttracker.memory.MemoryUtils.setLatestPos(null);
 //$$         MemoryUtils.latestPos = null;
+//$$     }
+//$$     public static BlockPos getMemoryPos(){
+//$$         return red.jackf.chesttracker.memory.MemoryUtils.getLatestPos();
 //$$     }
 //$$
 //$$     public static void ignoreNextMerge() {

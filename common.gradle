@@ -57,7 +57,7 @@ repositories {
     }
     maven {
         name = 'Xander Maven'
-        url = 'https://maven.isxander.dev/releases'
+        url = 'https://maven.isxander.dev/snapshots'
     }
     maven {
         url = uri "https://maven.pkg.github.com/zhaixianyu/litematica-printer"
@@ -346,11 +346,14 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 17
+    options.release.set(21)
 }
 
 java {
-    if (mcVersion > 11701) {
+    if(mcVersion > 12004){
+        sourceCompatibility(JavaVersion.VERSION_21)
+        targetCompatibility(JavaVersion.VERSION_21)
+    } else if (mcVersion > 11701) {
         sourceCompatibility(JavaVersion.VERSION_16)
         targetCompatibility(JavaVersion.VERSION_16)
     } else {

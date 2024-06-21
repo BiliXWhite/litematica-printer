@@ -18,6 +18,7 @@ preprocess {
     def mc12001 = createNode("1.20.1", 1_20_01, "mojang")
     def mc12002 = createNode("1.20.2", 1_20_02, "mojang")
     def mc12004 = createNode("1.20.4", 1_20_04, "mojang")
+    def mc12006 = createNode("1.20.6", 1_20_06, "mojang")
 
 //    mc11404.link(mc11502, null)
 //    mc11502.link(mc11605, null)
@@ -29,6 +30,7 @@ preprocess {
     mc11904.link(mc12001, file("versions/mapping-1.19.4-1.20.1.txt"))
     mc12001.link(mc12002, file("versions/mapping-1.20.1-1.20.2.txt"))
     mc12002.link(mc12004, file("versions/mapping-1.20.2-1.20.4.txt"))
+    mc12004.link(mc12006, file("versions/mapping-1.20.4-1.20.6.txt"))
 }
 
 ext {

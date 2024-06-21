@@ -35,6 +35,116 @@ public enum State {
         return State.CORRECT;
     }
 
+
+    public enum PrintModeType implements IConfigOptionListEntry {
+        PRINTER("printer", "打印"),
+        BEDROCK("bedrock", "基岩"),
+        EXCAVATE("excavate", "挖掘"),
+        FLUID("fluid", "流体");
+
+        private final String configString;
+        private final String translationKey;
+
+        PrintModeType(String configString, String translationKey) {
+            this.configString = configString;
+            this.translationKey = translationKey;
+        }
+        @Override
+        public String getStringValue() {
+            return this.configString;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return StringUtils.translate(this.translationKey);
+        }
+
+        @Override
+        public IConfigOptionListEntry cycle(boolean forward) {
+            int id = this.ordinal();
+
+            if (forward) {
+                if (++id >= values().length) {
+                    id = 0;
+                }
+            } else {
+                if (--id < 0) {
+                    id = values().length - 1;
+                }
+            }
+
+            return values()[id % values().length];
+        }
+
+        @Override
+        public PrintModeType fromString(String name) {
+            return fromStringStatic(name);
+        }
+
+        public static PrintModeType fromStringStatic(String name) {
+            for (PrintModeType mode : PrintModeType.values()) {
+                if (mode.configString.equalsIgnoreCase(name)) {
+                    return mode;
+                }
+            }
+
+            return PrintModeType.PRINTER;
+        }
+    }
+
+    public enum ModeType implements IConfigOptionListEntry {
+        MULTI("multi", "多模"),
+        SINGLE("single", "单模");
+
+        private final String configString;
+        private final String translationKey;
+
+        ModeType(String configString, String translationKey) {
+            this.configString = configString;
+            this.translationKey = translationKey;
+        }
+        @Override
+        public String getStringValue() {
+            return this.configString;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return StringUtils.translate(this.translationKey);
+        }
+
+        @Override
+        public IConfigOptionListEntry cycle(boolean forward) {
+            int id = this.ordinal();
+
+            if (forward) {
+                if (++id >= values().length) {
+                    id = 0;
+                }
+            } else {
+                if (--id < 0) {
+                    id = values().length - 1;
+                }
+            }
+
+            return values()[id % values().length];
+        }
+
+        @Override
+        public ModeType fromString(String name) {
+            return fromStringStatic(name);
+        }
+
+        public static ModeType fromStringStatic(String name) {
+            for (ModeType mode : ModeType.values()) {
+                if (mode.configString.equalsIgnoreCase(name)) {
+                    return mode;
+                }
+            }
+
+            return ModeType.SINGLE;
+        }
+    }
     public enum ListType implements IConfigOptionListEntry {
         SPHERE("sphere", "球体"),
         CUBE("cube", "立方体");

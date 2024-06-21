@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 
 import io.netty.buffer.Unpooled;
+import me.aleksilassila.litematica.printer.printer.bedrockUtils.Messager;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.BlockState;
@@ -29,6 +30,7 @@ import net.minecraft.world.World;
 
 //#if MC > 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#endif
 
 //#if MC < 11904
@@ -64,7 +66,7 @@ public class OpenInventoryPacket{
                     client.execute(() -> openReturn(packet.getIsOpen(),packet.getBlockState()));
                 });
             }catch (Exception ignored){
-                client.inGameHud.setOverlayMessage(Text.of("服务端回复异常，箱子追踪库存无法更新"),false);
+                    Messager.actionBar("服务端回复异常，箱子追踪库存无法更新");
             }
         });
     }
@@ -116,6 +118,10 @@ public class OpenInventoryPacket{
         //先置空，避免箱子追踪库存在奇妙的状态保存
         OpenInventoryPacket.pos = null;
         OpenInventoryPacket.key = null;
+        //避免箱子追踪重复保存，
+        //#if MC > 12001
+        InteractionTracker.INSTANCE.clear();
+        //#endif
         if (client.player != null && !client.player.currentScreenHandler.equals(client.player.playerScreenHandler)) client.player.closeHandledScreen();
         openIng = true;
         OpenInventoryPacket.pos = pos;

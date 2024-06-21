@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.openinv;
 
 import com.mojang.authlib.GameProfile;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
@@ -26,6 +27,10 @@ public abstract class MixinServerPlayerEntity extends PlayerEntity{
     @Inject(at = @At("HEAD"), method = "onHandledScreenClosed")
     //#endif
     public void onHandledScreenClosed(CallbackInfo ci) {
+        deletePlayerList();
+    }
+    @Inject(at = @At("HEAD"), method = "onDisconnect")
+    public void onDisconnect(CallbackInfo ci) {
         deletePlayerList();
     }
     @Unique

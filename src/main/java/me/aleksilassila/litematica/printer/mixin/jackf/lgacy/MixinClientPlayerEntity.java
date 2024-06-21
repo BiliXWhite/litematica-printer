@@ -3,6 +3,7 @@ package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 //#if MC < 12002
 //$$ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //$$ import net.minecraft.client.MinecraftClient;
 //$$ import net.minecraft.client.network.ClientPlayerEntity;
@@ -15,19 +16,17 @@ package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 //$$ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 //$$
 //$$ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.printerMemoryAdding;
-//$$ import static me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils.handleItemsFromScreen;
-//$$
 //$$ @Mixin(ClientPlayerEntity.class)
 //$$ public class MixinClientPlayerEntity {
 //$$     @Shadow @Final protected MinecraftClient client;
 //$$     @Inject(at = @At("HEAD"), method = "closeScreen")
 //$$     public void closeScreen(CallbackInfo ci) {
 //$$         BlockPos pos = MemoryUtils.getLatestPos();
-//$$         if(LitematicaMixinMod.INVENTORY.getBooleanValue() &&
-//$$                 (LitematicaMixinMod.PRINT_MODE.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed() || printerMemoryAdding) &&(
-//$$                 pos != null || red.jackf.chesttracker.memory.MemoryUtils.getLatestPos() != null)){
+//$$         if(Statistics.loadChestTracker && LitematicaMixinMod.INVENTORY.getBooleanValue() &&
+//$$                 (LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed() || printerMemoryAdding) &&(
+//$$                 pos != null || MemoryUtils.getMemoryPos() != null)){
 //$$             if(!client.player.currentScreenHandler.equals(client.player.playerScreenHandler)){
-//$$                 handleItemsFromScreen(client.player.currentScreenHandler);
+//$$                 MemoryUtils.handleItemsFromScreen(client.player.currentScreenHandler);
 //$$             }
 //$$         }
 //$$         OpenInventoryPacket.reSet();
