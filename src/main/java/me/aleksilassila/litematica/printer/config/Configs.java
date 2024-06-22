@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fi.dy.masa.malilib.config.*;
+import fi.dy.masa.malilib.config.options.ConfigBase;
 import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.util.JsonUtils;
@@ -24,7 +25,6 @@ public class Configs implements IConfigHandler {
     //mod
     public static final ConfigHotkey PRINTER = new ConfigHotkey( "打开设置菜单", "Z,Y","");
 
-    public static final ImmutableList<IConfigBase> GENERAL = addGeneral();
     public static ImmutableList<IConfigBase> addGeneral(){
         List<IConfigBase> list = new ArrayList<>();
         if(loadChestTracker) list.add(INVENTORY);
@@ -43,7 +43,7 @@ public class Configs implements IConfigHandler {
 
         return ImmutableList.copyOf(list);
     }
-    public static final ImmutableList<IConfigBase> PUT = addPut();
+
     public static ImmutableList<IConfigBase> addPut(){
         List<IConfigBase> list = new ArrayList<>();
 
@@ -58,8 +58,17 @@ public class Configs implements IConfigHandler {
 
         return ImmutableList.copyOf(list);
     }
+    public static ImmutableList<IConfigBase> addExcavate(){
+        List<IConfigBase> list = new ArrayList<>();
+        if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)) list.add(EXCAVATE);
+        list.add(EXCAVATE_LIMITER);
+        if(EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.ME)) list.add(EXCAVATE_LIMIT);
+        if(EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.ME)) list.add(EXCAVATE_WHITELIST);
+        if(EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.ME)) list.add(EXCAVATE_BLACKLIST);
 
-    public static final ImmutableList<IConfigBase> HOTKEYS = addHotkeys();
+        return ImmutableList.copyOf(list);
+    }
+
     public static ImmutableList<IConfigBase> addHotkeys(){
         List<IConfigBase> list = new ArrayList<>();
         list.add(PRINTER);
@@ -85,7 +94,6 @@ public class Configs implements IConfigHandler {
         return ImmutableList.copyOf(list);
     }
 
-    public static final ImmutableList<IConfigBase> COLOR = addColor();
     public static ImmutableList<IConfigBase> addColor(){
         List<IConfigBase> list = new ArrayList<>();
         list.add(SYNC_INVENTORY_COLOR);
@@ -94,20 +102,39 @@ public class Configs implements IConfigHandler {
     }
 
     //按下时激活
-    public static final ImmutableList<ConfigHotkey> KEY_LIST = ImmutableList.of(
-            PRINTER
-    );
-    //切换型开关
-    public static final ImmutableList<IHotkeyTogglable> SWITCH_KEY = ImmutableList.of(
+    public static ImmutableList<ConfigHotkey> addKeyList(){
+        ArrayList<ConfigHotkey> list = new ArrayList<>();
+        list.add(PRINTER);
 
-    );
+        list.add(SYNC_INVENTORY);
+        list.add(SWITCH_PRINTER_MODE);
+		if(loadChestTracker){
+            list.add(PRINTER_INVENTORY);
+            list.add(REMOVE_PRINT_INVENTORY);
+            //#if MC > 12001
+            list.add(LAST);
+            list.add(NEXT);
+            list.add(DELETE);
+            //#endif
+        }
+		list.add(TEST);
+        return ImmutableList.copyOf(list);
+    }
+    //切换型开关
+    public static ImmutableList<IHotkeyTogglable> addSwitchKey(){
+        ArrayList<IHotkeyTogglable> list = new ArrayList<>();
+
+        return ImmutableList.copyOf(list);
+    }
 
     public static final ImmutableList<IConfigBase> ALL_CONFIGS = addAllConfigs();
     public static ImmutableList<IConfigBase> addAllConfigs(){
         List<IConfigBase> list = new ArrayList<>();
-        list.addAll(GENERAL);
-        list.addAll(HOTKEYS);
-        list.addAll(COLOR);
+        list.addAll(addGeneral());
+        list.addAll(addPut());
+        list.addAll(addExcavate());
+        list.addAll(addHotkeys());
+        list.addAll(addColor());
 
         return ImmutableList.copyOf(list);
     }

@@ -8,6 +8,7 @@ import fi.dy.masa.malilib.config.options.*;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
+import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.config.KeyCallbackHotkeys;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
@@ -28,7 +29,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	// Config settings
 	public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger( "打印机工作间隔", 0,   0, 20, "以游戏刻度为单位工作间隔。值越低意味着打印速度越快");
 	public static final ConfigInteger PRINTING_RANGE = new ConfigInteger("打印机工作半径", 3,     1,   256,   "若服务器未修改交互距离 请勿设置太大。");
-	public static final ConfigInteger COMPULSION_RANGE = new ConfigInteger("强制循环半径", 3,     1,   20, """
+	public static final ConfigInteger COMPULSION_RANGE = new ConfigInteger("强制循环半径", 6,     1,   20, """
             每个游戏刻强制循环的半径，可以更好的扫描需要处理的方块""");
 	public static final ConfigOptionList RANGE_MODE = new ConfigOptionList("半径模式", State.ListType.SPHERE,"立方体建议3，球体建议设置6，破基岩在立方体模式下无法正常使用");
 	public static final ConfigOptionList MODE_SWITCH = new ConfigOptionList("模式切换", State.ModeType.SINGLE,"单模：仅运行一个模式。多模：可多个模式同时运行");
@@ -63,6 +64,10 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigBoolean INVENTORY = new ConfigBoolean("远程交互容器", false, "在服务器有远程交互容器mod的情况下可以远程交互\n替换的位置为投影的预设位置。");
 
 	public static final ConfigStringList INVENTORY_LIST = new ConfigStringList("库存白名单", ImmutableList.of("minecraft:chest"), "");
+	public static final ConfigOptionList EXCAVATE_LIMITER = new ConfigOptionList("挖掘模式限制器",State.ExcavateListMode.ME,"使用tw挖掘限制预设或自带的限制");
+	public static final ConfigOptionList EXCAVATE_LIMIT = new ConfigOptionList("挖掘模式限制", UsageRestriction.ListType.NONE,"");
+	public static final ConfigStringList EXCAVATE_WHITELIST = new ConfigStringList("挖掘白名单", ImmutableList.of(""), "");
+	public static final ConfigStringList EXCAVATE_BLACKLIST = new ConfigStringList("挖掘黑名单", ImmutableList.of(""), "");
 	public static final ConfigStringList BEDROCK_LIST = new ConfigStringList("基岩模式白名单", ImmutableList.of("minecraft:bedrock"), "");
 	public static final ConfigStringList REPLACEABLE_LIST = new ConfigStringList("可替换方块",
 			ImmutableList.of("minecraft:air","minecraft:snow","minecraft:lava","minecraft:water","minecraft:bubble_column","minecraft:grass_block"), "打印时将忽略这些错误方块 直接替换。");
@@ -75,6 +80,9 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		list.add(PRINT_INTERVAL);
 		list.add(COMPULSION_RANGE);
 		if(PRINTER_MODE.getOptionListValue().equals(State.ModeType.SINGLE)) list.add(PRINTER_MODE);
+		if(EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.ME)) list.add(EXCAVATE_LIMIT);
+		if(EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.ME)) list.add(EXCAVATE_WHITELIST);
+		if(EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.ME)) list.add(EXCAVATE_BLACKLIST);
 		list.add(PRINT_IN_AIR);
 		list.add(PRINT_WATER_LOGGED_BLOCK);
 
@@ -108,18 +116,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 			list.add(EXCAVATE);
 			list.add(FLUID);
 		}
-//		list.add(BEDROCK_MODE);
-//		list.add(EXE_MODE);
-//		if(loadChestTracker) list.add(PRINTER_INVENTORY);
-//		if(loadChestTracker) list.add(SYNC_INVENTORY);
-//		if(loadChestTracker) list.add(REMOVE_PRINT_INVENTORY);
-//		//#if MC > 12001
-//		if(loadChestTracker) list.add(LAST);
-//		if(loadChestTracker) list.add(NEXT);
-//		if(loadChestTracker) list.add(DELETE);
-//		//#endif
-//		list.add(TEST);
-
 		return ImmutableList.copyOf(list);
 	}
 	public static final ConfigColor SYNC_INVENTORY_COLOR = new ConfigColor("容器同步和打印机添加库存高亮颜色",          "#4CFF4CE6", "");
@@ -133,7 +129,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 
 	@Override
 	public void onInitialize() {
-		KeyCallbackHotkeys keyCallbackHotkeys = new KeyCallbackHotkeys(MinecraftClient.getInstance());
+//		KeyCallbackHotkeys keyCallbackHotkeys = new KeyCallbackHotkeys(MinecraftClient.getInstance());
 		OpenInventoryPacket.registerReceivePacket();
 		OpenInventoryPacket.registerClientReceivePacket();
 		//#if MC > 12001
@@ -141,17 +137,17 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		//#endif
 
 		TOGGLE_PRINTING_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(PRINT_SWITCH));
-		SYNC_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
-		SWITCH_PRINTER_MODE.getKeybind().setCallback(keyCallbackHotkeys);
-		if(loadChestTracker){
-			PRINTER_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
-			REMOVE_PRINT_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
-			//#if MC > 12001
-			LAST.getKeybind().setCallback(keyCallbackHotkeys);
-			NEXT.getKeybind().setCallback(keyCallbackHotkeys);
-			DELETE.getKeybind().setCallback(keyCallbackHotkeys);
-			//#endif
-		}
+//		SYNC_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
+//		SWITCH_PRINTER_MODE.getKeybind().setCallback(keyCallbackHotkeys);
+//		if(loadChestTracker){
+//			PRINTER_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
+//			REMOVE_PRINT_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
+//			//#if MC > 12001
+//			LAST.getKeybind().setCallback(keyCallbackHotkeys);
+//			NEXT.getKeybind().setCallback(keyCallbackHotkeys);
+//			DELETE.getKeybind().setCallback(keyCallbackHotkeys);
+//			//#endif
+//		}
 		me.aleksilassila.litematica.printer.config.Configs.init();
 		HighlightBlockRenderer.init();
 //		BEDROCK_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(BEDROCK_SWITCH));

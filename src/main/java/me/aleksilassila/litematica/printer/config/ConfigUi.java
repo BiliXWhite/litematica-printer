@@ -66,11 +66,13 @@ public class ConfigUi extends GuiConfigsBase {
         } else if(tab == GENERAL) {
             configs = addGeneral();
         } else if (tab == PUT) {
-            configs = Configs.PUT;
+            configs = Configs.addPut();
+        } else if (tab == EXCAVATE) {
+            configs = Configs.addExcavate();
         } else if (tab == HOTKEYS) {
             configs = addHotkeys();
         } else if (tab == COLOR) {
-            configs = Configs.COLOR;
+            configs = Configs.addColor();
         } else if(tab == null){
             return null;
         } else {
@@ -101,6 +103,7 @@ public class ConfigUi extends GuiConfigsBase {
         ALL("全部"),
         GENERAL("通用"),
         PUT("放置"),
+        EXCAVATE("挖掘"),
         HOTKEYS("热键"),
         COLOR("颜色"),
         ;

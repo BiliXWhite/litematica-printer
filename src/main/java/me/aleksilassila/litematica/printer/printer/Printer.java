@@ -56,8 +56,7 @@ import static fi.dy.masa.litematica.util.WorldUtils.applyPlacementProtocolV3;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
 import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
-import static me.aleksilassila.litematica.printer.LitematicaMixinMod.COMPULSION_RANGE;
-import static me.aleksilassila.litematica.printer.LitematicaMixinMod.MULTI_BREAK;
+import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
 import static me.aleksilassila.litematica.printer.mixin.masa.WorldUtilsMixin.applyBlockSlabProtocol;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
@@ -343,7 +342,7 @@ public class Printer extends PrinterUtils {
             }
             if (client.world != null &&
                     TempData.xuanQuFanWeiNei_p(pos) &&
-                    twBreakRestriction(client.world.getBlockState(pos)) &&
+                    breakRestriction(client.world.getBlockState(pos)) &&
                     waJue(pos)) {
                 tempPos = pos;
                 return;
@@ -391,17 +390,41 @@ public class Printer extends PrinterUtils {
         return false;
     }
 
-    static boolean twBreakRestriction(BlockState blockState) {
-        if (!FabricLoader.getInstance().isModLoaded("tweakeroo")) return true;
-        UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
-        if (listType == UsageRestriction.ListType.BLACKLIST) {
-            return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
-                    .noneMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
-        } else if (listType == UsageRestriction.ListType.WHITELIST) {
-            return BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
-                    .anyMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
-        } else {
-            return true;
+    static boolean breakRestriction(BlockState blockState) {
+        if(EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.TW)){
+            if (!FabricLoader.getInstance().isModLoaded("tweakeroo")) return true;
+            UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
+            if (listType == UsageRestriction.ListType.BLACKLIST) {
+                return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
+                        .noneMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
+            } else if (listType == UsageRestriction.ListType.WHITELIST) {
+                return BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
+                        .anyMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
+            } else {
+                return true;
+            }
+        }else {
+            IConfigOptionListEntry optionListValue = EXCAVATE_LIMIT.getOptionListValue();
+            if (optionListValue == UsageRestriction.ListType.BLACKLIST) {
+                return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
+                        .noneMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
+            } else if (optionListValue == UsageRestriction.ListType.WHITELIST) {
+                return BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
+                        .anyMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
+            } else {
+                return true;
+            }
+
+//            IConfigOptionListEntry optionListValue = EXCAVATE_LIMIT.getOptionListValue();
+//            if (optionListValue == State.ExcavateList.BLACKLIST) {
+//                return EXCAVATE_BLACKLIST.getStrings().stream()
+//                        .noneMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
+//            } else if (optionListValue == State.ExcavateList.WHITELIST) {
+//                return EXCAVATE_WHITELIST.getStrings().stream()
+//                        .anyMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
+//            } else {
+//                return true;
+//            }
         }
     }
 
@@ -979,7 +1002,6 @@ public class Printer extends PrinterUtils {
                         .add(Vec3d.of(side.getVector()).multiply(0.5))
                         .add(hitModifier.multiply(0.5));
             }
-
 
             if (shift && !wasSneaking)
                 player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY));

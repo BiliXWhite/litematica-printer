@@ -4,8 +4,6 @@ import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.StringUtils;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.FluidBlock;
 import net.minecraft.registry.Registries;
 //import net.minecraft.util.registry.Registry;
 
@@ -91,7 +89,59 @@ public enum State {
             return PrintModeType.PRINTER;
         }
     }
+    public enum ExcavateListMode implements IConfigOptionListEntry {
+        TW("tw", "tw"),
+        ME("me", "自带");
 
+        private final String configString;
+        private final String translationKey;
+
+        ExcavateListMode(String configString, String translationKey) {
+            this.configString = configString;
+            this.translationKey = translationKey;
+        }
+        @Override
+        public String getStringValue() {
+            return this.configString;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return StringUtils.translate(this.translationKey);
+        }
+
+        @Override
+        public IConfigOptionListEntry cycle(boolean forward) {
+            int id = this.ordinal();
+
+            if (forward) {
+                if (++id >= values().length) {
+                    id = 0;
+                }
+            } else {
+                if (--id < 0) {
+                    id = values().length - 1;
+                }
+            }
+
+            return values()[id % values().length];
+        }
+
+        @Override
+        public ExcavateListMode fromString(String name) {
+            return fromStringStatic(name);
+        }
+
+        public static ExcavateListMode fromStringStatic(String name) {
+            for (ExcavateListMode mode : ExcavateListMode.values()) {
+                if (mode.configString.equalsIgnoreCase(name)) {
+                    return mode;
+                }
+            }
+
+            return ExcavateListMode.ME;
+        }
+    }
     public enum ModeType implements IConfigOptionListEntry {
         MULTI("multi", "多模"),
         SINGLE("single", "单模");
