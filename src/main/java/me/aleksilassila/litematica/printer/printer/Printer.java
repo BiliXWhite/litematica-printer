@@ -693,11 +693,11 @@ public class Printer extends PrinterUtils {
 
                 if (tickRate == 0) {
                     //处理不能快速放置的方块
-                    if(hitModifier != null){
-                        useBlock(hitModifier,action.lookDirection,pos,false);
-                        continue;
-                    }
-                    if (/*hitModifier == null &&*/
+//                    if(hitModifier != null){
+//                        useBlock(hitModifier,action.lookDirection,pos,false);
+//                        continue;
+//                    }
+                    if (hitModifier == null &&
                             (requiredState.isOf(Blocks.PISTON) ||
                             requiredState.isOf(Blocks.STICKY_PISTON) ||
                             requiredState.isOf(Blocks.OBSERVER) ||
@@ -731,8 +731,9 @@ public class Printer extends PrinterUtils {
     public Vec3d usePrecisionPlacement(BlockPos pos,BlockState stateSchematic){
         if (LitematicaMixinMod.EASY_MODE.getBooleanValue()) {
             EasyPlaceProtocol protocol = PlacementHandler.getEffectiveProtocolVersion();
+//            Vec3d hitPos = Vec3d.ZERO;
             Vec3d hitPos = Vec3d.of(pos);
-//            Vec3d hitPos = queue.hitModifier;
+            Vec3d hitPos2 = queue.hitModifier;
             if (protocol == EasyPlaceProtocol.V3)
             {
                 return applyPlacementProtocolV3(pos, stateSchematic, hitPos);
@@ -970,7 +971,7 @@ public class Printer extends PrinterUtils {
                     ((lookDir == null || !lookDir.getAxis().isHorizontal())
                             ? Direction.NORTH : lookDir) : side;
 
-            hitModifier = new Vec3d(hitModifier.z, hitModifier.y, hitModifier.x);
+//            hitModifier = new Vec3d(hitModifier.x, hitModifier.y, hitModifier.z);
             Vec3d hitVec = hitModifier;
             if(!LitematicaMixinMod.EASY_MODE.getBooleanValue()){
                 hitModifier = hitModifier.rotateY((direction.asRotation() + 90) % 360);

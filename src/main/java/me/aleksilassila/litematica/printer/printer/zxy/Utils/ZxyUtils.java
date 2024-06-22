@@ -387,9 +387,9 @@ public class ZxyUtils {
 
     public static void useBlock(Vec3d vec3d,Direction direction,BlockPos pos,boolean insideBlock){
         //#if MC < 11904
-        //$$ client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
+        //$$ client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(vec3d, direction,pos,insideBlock));
         //#else
-        client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
+        client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(vec3d, direction,pos,insideBlock));
         //#endif
     }
 
