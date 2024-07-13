@@ -8,10 +8,14 @@
     "masa.MixinInventoryUtils",
     "masa.WorldUtilsMixin",
     "masa.BlockItemMixin",
+    "masa.KeyCallbackToggleBooleanConfigWithMessageMixin",
     "openinv.MixinGenericContainerScreenHandler",
-    //#if MC > 11802
-    "openinv.InventoryMixin",
-    //#else
+    "openinv.PlayerManagerMixin",
+    "openinv.ClientPlayNetworkHandlerMixin",
+    "openinv.BlockWithEntityMixin",
+    //#if MC > 11802 && MC < 12005
+    //$$ "openinv.InventoryMixin",
+    //#elseif MC < 12005
     //$$ "openinv.MixinLootableContainerBlockEntity",
     //#endif
     "openinv.MixinServerPlayerEntity",

@@ -89,14 +89,15 @@ configurations {
     register("productionRuntimeServer")
     register("productionRuntimeMods")
 }
+def sakura = mcVersion > 12006
 //  1 = modImplementation 2 = modImplementation include 	3 = modApi	4 = modCompileOnly
 def mod_dependencies = [
-        ["fi.dy.masa.malilib"                                   , "malilib",            1],
+        [(sakura ? "com.github.sakura-ryoko:malilib" : "fi.dy.masa.malilib")    , "malilib",            1],
         ["curse.maven:item-scroller-242064"                     , "item_scrolle",       1],
         ["curse.maven:tweakeroo-297344"                         , "tweakeroo",          1],
         ["curse.maven:litematica-308892"                        , "litematica",         1],
-        ["curse.maven:quick-shulker-362669"                     , "quick_shulker",      1],
-        ["maven.modrinth:carpet"                                , "carpet",             1],
+        ["curse.maven:quick-shulker-362669"                     , "quick_shulker",      mcVersion > 12004 ? 4 : 1],
+        [(mcVersion > 12004 ? "curse.maven:carpet-349239":"maven.modrinth:carpet")   , "carpet",             1],
         ["net.kyrptonaught:kyrptconfig"     			        , "kyrptconfig",        1],
         ["net.kyrptonaught:shulkerutils"     			        , "shulkerutils",       1],
         ["red.jackf:chesttracker"                               , "chesttracker",       mcVersion > 12001 ? 1 : 0],
@@ -390,6 +391,8 @@ publishing {
         }
     }
 }
+
+
 
 ImmutableMap<Object, Object> replaceTokenMap = ImmutableMap.builder()
         .put("@MOD_IDENTIFIER@", project.mod_id)

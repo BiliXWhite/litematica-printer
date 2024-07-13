@@ -3,6 +3,10 @@ package me.aleksilassila.litematica.printer.printer;
 import com.mojang.brigadier.StringReader;
 import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.litematica.data.DataManager;
+import fi.dy.masa.litematica.schematic.placement.SchematicPlacement;
+import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
+import fi.dy.masa.litematica.schematic.projects.SchematicProject;
+import fi.dy.masa.litematica.schematic.projects.SchematicProjectsManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
 import fi.dy.masa.litematica.util.EasyPlaceProtocol;
@@ -17,7 +21,6 @@ import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionMa
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.mixin.masa.Litematica_InventoryUtilsMixin;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
-import me.aleksilassila.litematica.printer.printer.bedrockUtils.Messager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
@@ -39,9 +42,10 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
@@ -80,10 +84,15 @@ import red.jackf.chesttracker.api.providers.InteractionTracker;
 //$$ import net.minecraft.util.registry.Registry;
 //#else
 import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
+    //#if MC < 12002
+    //$$ import net.minecraft.registry.RegistryKey;
+    //$$ import net.minecraft.registry.RegistryKeys;
+    //#endif
 //#endif
 
+//#if MC < 11900
+//$$ import fi.dy.masa.malilib.util.SubChunkPos;
+//#endif
 
 public class Printer extends PrinterUtils {
     public static boolean up = true;
@@ -297,9 +306,11 @@ public class Printer extends PrinterUtils {
                         //$$ ItemStringReader read = new ItemStringReader(new StringReader(blocklist.get(i)), true);
                         //$$ read.consume();
                         //$$ Item item = read.getItem();
+                        //$$ ////#elseif MC < 12005
+                        //$$ ////$$ ItemStringReader.ItemResult itemResult = ItemStringReader.item(Registries.ITEM.getReadOnlyWrapper(), new StringReader(blocklist.get(i)));
+                        //$$ ////$$ Item item = itemResult.item().value();
                         //#else
-                        ItemStringReader.ItemResult itemResult = ItemStringReader.item(Registries.ITEM.getReadOnlyWrapper(), new StringReader(blocklist.get(i)));
-                        Item item = itemResult.item().value();
+                        Item item = Registries.ITEM.get(Identifier.tryParse(blocklist.get(i).toString()));
                         //#endif
                         if (item != null) fluidList.add(item);
                     } catch (Exception e) {
@@ -406,10 +417,10 @@ public class Printer extends PrinterUtils {
         }else {
             IConfigOptionListEntry optionListValue = EXCAVATE_LIMIT.getOptionListValue();
             if (optionListValue == UsageRestriction.ListType.BLACKLIST) {
-                return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
+                return EXCAVATE_BLACKLIST.getStrings().stream()
                         .noneMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
             } else if (optionListValue == UsageRestriction.ListType.WHITELIST) {
-                return BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
+                return EXCAVATE_WHITELIST.getStrings().stream()
                         .anyMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
             } else {
                 return true;
@@ -430,7 +441,7 @@ public class Printer extends PrinterUtils {
 
 
     //此模式依赖bug运行 请勿随意修改
-    public void jymod() {
+    public void bedrockMode() {
         BreakingFlowController.tick();
         int maxy = -9999;
         range2 = bedrockModeRange();
@@ -523,7 +534,11 @@ public class Printer extends PrinterUtils {
             } else if (LitematicaMixinMod.INVENTORY.getBooleanValue()) {
                 for (Item item : items2) {
                      //#if MC > 12001
-                      MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
+                        //#if MC > 12004
+                        MemoryUtils.currentMemoryKey = client.world.getRegistryKey().getValue();
+                        //#else
+                        //$$ MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
+                        //#endif
                       MemoryUtils.itemStack = new ItemStack(item);
                       if (SearchItem.search(true)) {
                           closeScreen++;
@@ -591,11 +606,11 @@ public class Printer extends PrinterUtils {
         if (isOpenHandler) return;
         if (switchItem()) return;
 
-        if(LitematicaMixinMod.MODE_SWITCH.getOptionListValue() == State.ModeType.SINGLE){
+        if(LitematicaMixinMod.MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)){
             boolean multiBreakBooleanValue = MULTI_BREAK.getBooleanValue();
             if (LitematicaMixinMod.BEDROCK_SWITCH.getBooleanValue()) {
                 yDegression = true;
-                jymod();
+                bedrockMode();
                 if(multiBreakBooleanValue) return;
             }
             if (LitematicaMixinMod.EXCAVATE.getBooleanValue()) {
@@ -611,7 +626,7 @@ public class Printer extends PrinterUtils {
             IConfigOptionListEntry mode = LitematicaMixinMod.PRINTER_MODE.getOptionListValue();
             if (mode.equals(State.PrintModeType.BEDROCK)) {
                 yDegression = true;
-                jymod();
+                bedrockMode();
                 return;
             } else if (mode.equals(State.PrintModeType.EXCAVATE)) {
                 yDegression = true;
@@ -635,8 +650,11 @@ public class Printer extends PrinterUtils {
             PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
             if (requiredState.isOf(Blocks.NETHER_PORTAL) || requiredState.isOf(Blocks.END_PORTAL)) continue;
 
-            //跳过侦测器和红石块的放置
-            if ((requiredState.isOf(Blocks.OBSERVER) || requiredState.isOf(Blocks.REDSTONE_BLOCK)) && !LitematicaMixinMod.SKIP.getBooleanValue()) {
+            //跳过放置
+            if (LitematicaMixinMod.PUT_SKIP.getBooleanValue() &&
+                    PUT_SKIP_LIST.getStrings().stream().anyMatch(block -> Registries.BLOCK.getId(requiredState.getBlock()).toString().contains(block))
+//                   && PUT_SKIP_LIST.getStrings().contains(Registries.BLOCK.getId(requiredState.getBlock()).toString())
+                   ) {
                 continue;
             }
 
@@ -694,12 +712,24 @@ public class Printer extends PrinterUtils {
                 }
 
                 //确认侦测器朝向方块是否正确
-                if(requiredState.isOf(Blocks.OBSERVER)){
+                if(requiredState.isOf(Blocks.OBSERVER) && PUT_TESTING.getBooleanValue()){
                     BlockPos offset = pos.offset(lookDir);
                     BlockState state1 = world.getBlockState(offset);
                     BlockState state2 = worldSchematic.getBlockState(offset);
-                    State state = State.get(state1,state2);
-                    if (!(state == State.CORRECT)) continue;
+
+                    SchematicPlacementManager schematicPlacementManager = DataManager.getSchematicPlacementManager();
+                    //#if MC < 11900
+                    //$$ List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingSubChunk(new SubChunkPos(offset));
+                    //#else
+                    List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingChunk(offset);
+                    //#endif
+
+                    for (SchematicPlacementManager.PlacementPart placementPart : allPlacementsTouchingChunk) {
+                        if (placementPart.getBox().containsPos(offset)) {
+                            State state = State.get(state1,state2);
+                            if (!(state == State.CORRECT)) continue z;
+                        }
+                    }
                 }
                 if(forcedPlacementBooleanValue) useShift = true;
                 //发送放置准备

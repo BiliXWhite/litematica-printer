@@ -9,13 +9,11 @@ import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
-import me.aleksilassila.litematica.printer.config.KeyCallbackHotkeys;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.client.MinecraftClient;
 //#if MC > 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#endif
@@ -46,7 +44,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean("stripLogs",false, "Whether or not the printer should use normal logs if stripped\nversions are not available and then strip them with an axe.");
 	public static boolean shouldPrintInAir = PRINT_IN_AIR.getBooleanValue();
 	public static final ConfigHotkey SWITCH_PRINTER_MODE = new ConfigHotkey("切换模式", "J", "切换打印机工作模式");
-	public static final ConfigBooleanHotkeyed BEDROCK_SWITCH = new ConfigBooleanHotkeyed("破基岩模式", false,"J", "啊吧啊吧");
+	public static final ConfigBooleanHotkeyed BEDROCK_SWITCH = new ConfigBooleanHotkeyed("破基岩", false,"J", "啊吧啊吧");
 	public static final ConfigBooleanHotkeyed EXCAVATE = new ConfigBooleanHotkeyed("挖掘", false,"K", "挖掘所选区内的方块");
 	public static final ConfigBooleanHotkeyed FLUID = new ConfigBooleanHotkeyed("排流体", false,"L", "在岩浆源、水源处放方块默认是沙子");
 	public static final ConfigHotkey CLOSE_ALL_MODE = new ConfigHotkey("关闭全部模式", "LEFT_CONTROL,G","关闭全部模式，若此时为单模模式将模式恢复为打印");
@@ -58,16 +56,19 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	//#endif
 
 	public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList("排流体方块名单", ImmutableList.of("minecraft:sand"), "");
-	public static final ConfigBoolean SKIP = new ConfigBoolean("是否放置侦测器和红石块", true, "关闭后会跳过侦测器和红石块的放置");
+	public static final ConfigBoolean PUT_SKIP = new ConfigBoolean("跳过放置", false, "开启后会跳过列表内的方块");
+	public static final ConfigBoolean PUT_TESTING = new ConfigBoolean("侦测器放置检测", false, "检测侦测器看向的方块是否和投影方块一致");
 	//	public static final ConfigBoolean NO_FACING = new ConfigBoolean("忽略朝向", false, "会忽略朝向放置 建造间隔拉到0会有更快的速度");
 	public static final ConfigBoolean QUICKSHULKER = new ConfigBoolean("快捷潜影盒", false, "在有快捷潜影盒mod的情况下可以直接从背包内的潜影盒取出物品\n替换的位置为投影的预设位置,如果所有预设位置都有濳影盒则不会替换。");
 	public static final ConfigBoolean INVENTORY = new ConfigBoolean("远程交互容器", false, "在服务器有远程交互容器mod的情况下可以远程交互\n替换的位置为投影的预设位置。");
+	public static final ConfigBoolean AUTO_INVENTORY = new ConfigBoolean("自动设置远程交互", true, "在服务器若允许使用则自动开启远程交互容器，反之则自动关闭");
 
 	public static final ConfigStringList INVENTORY_LIST = new ConfigStringList("库存白名单", ImmutableList.of("minecraft:chest"), "");
 	public static final ConfigOptionList EXCAVATE_LIMITER = new ConfigOptionList("挖掘模式限制器",State.ExcavateListMode.ME,"使用tw挖掘限制预设或自带的限制");
 	public static final ConfigOptionList EXCAVATE_LIMIT = new ConfigOptionList("挖掘模式限制", UsageRestriction.ListType.NONE,"");
 	public static final ConfigStringList EXCAVATE_WHITELIST = new ConfigStringList("挖掘白名单", ImmutableList.of(""), "");
 	public static final ConfigStringList EXCAVATE_BLACKLIST = new ConfigStringList("挖掘黑名单", ImmutableList.of(""), "");
+	public static final ConfigStringList PUT_SKIP_LIST = new ConfigStringList("跳过放置名单", ImmutableList.of(), "");
 	public static final ConfigStringList BEDROCK_LIST = new ConfigStringList("基岩模式白名单", ImmutableList.of("minecraft:bedrock"), "");
 	public static final ConfigStringList REPLACEABLE_LIST = new ConfigStringList("可替换方块",
 			ImmutableList.of("minecraft:air","minecraft:snow","minecraft:lava","minecraft:water","minecraft:bubble_column","minecraft:grass_block"), "打印时将忽略这些错误方块 直接替换。");
@@ -111,10 +112,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		list.add(CLOSE_ALL_MODE);
 		if(MODE_SWITCH.getOptionListValue() == State.ModeType.SINGLE) {
 			list.add(SWITCH_PRINTER_MODE);
-		} else if(MODE_SWITCH.getOptionListValue() == State.ModeType.MULTI){
-			list.add(BEDROCK_SWITCH);
-			list.add(EXCAVATE);
-			list.add(FLUID);
 		}
 		return ImmutableList.copyOf(list);
 	}
@@ -130,6 +127,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	@Override
 	public void onInitialize() {
 //		KeyCallbackHotkeys keyCallbackHotkeys = new KeyCallbackHotkeys(MinecraftClient.getInstance());
+		OpenInventoryPacket.init();
 		OpenInventoryPacket.registerReceivePacket();
 		OpenInventoryPacket.registerClientReceivePacket();
 		//#if MC > 12001

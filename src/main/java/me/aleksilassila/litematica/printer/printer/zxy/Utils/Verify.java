@@ -14,6 +14,7 @@ public class Verify {
     public static Verify verify;
     private String address;
     private ClientPlayerEntity player;
+    long verifyTime = System.currentTimeMillis();
     public boolean yz = false;
     private boolean run = true;
 
@@ -59,7 +60,8 @@ public class Verify {
     }
 
     public boolean tick(String address) {
-        if (yz) return true;
+        long currTime = System.currentTimeMillis();
+        if (yz || this.verifyTime + 3000L < currTime) return true;
         if (!this.address.equals(address) || run) {
             this.address = address;
             verifyRequest(address);

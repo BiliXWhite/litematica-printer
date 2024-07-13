@@ -3,6 +3,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.Color4f;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.mixin.openinv.BlockWithEntityMixin;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 
@@ -120,9 +121,13 @@ public class ZxyUtils {
                 block = client.world.getBlockState(pos).getBlock();
                 BlockEntity blockEntity = client.world.getBlockEntity(pos);
                 try {
-                    if (((BlockWithEntity) blockState.getBlock()).createScreenHandlerFactory(blockState, client.world, pos) == null ||
+                    if (((BlockWithEntityMixin) blockState.getBlock()).createScreenHandlerFactory(blockState, client.world, pos) == null ||
                             (blockEntity instanceof ShulkerBoxBlockEntity entity &&
-                                    !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
+                                    //#if MC > 12004
+                                    !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(0.0f, blockState.get(FACING), 0.5f).offset(pos).contract(1.0E-6)) &&
+                                    //#else
+                                    //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
+                                    //#endif
                                     entity.getAnimationStage() == ShulkerBoxBlockEntity.AnimationStage.CLOSED)) {
                         client.inGameHud.setOverlayMessage(Text.of("容器无法打开"), false);
                     }
@@ -173,7 +178,7 @@ public class ZxyUtils {
     public static void itemsCount(Map<ItemStack,Integer> itemsCount , ItemStack itemStack){
         // 判断是否存在可合并的键
         Optional<Map.Entry<ItemStack, Integer>> entry = itemsCount.entrySet().stream()
-                .filter(e -> ItemStack.canCombine(e.getKey(), itemStack))
+                .filter(e -> ItemStack.areItemsAndComponentsEqual(e.getKey(), itemStack))
                 .findFirst();
 
         if (entry.isPresent()) {
@@ -220,7 +225,7 @@ public class ZxyUtils {
                 if (SYNC_INVENTORY_CHECK.getBooleanValue() && !targetItemsCount.entrySet().stream()
                         .allMatch(target -> playerItemsCount.entrySet().stream()
                                 .anyMatch(player ->
-                                        ItemStack.canCombine(player.getKey(), target.getKey()) && target.getValue() <= player.getValue()))) return;
+                                        ItemStack.areItemsAndComponentsEqual(player.getKey(), target.getKey()) && target.getValue() <= player.getValue()))) return;
 
                 if ((!LitematicaMixinMod.INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
                     for (BlockPos pos : syncPosList) {
@@ -248,8 +253,8 @@ public class ZxyUtils {
                     ItemStack item2 = targetBlockInv.get(i).copy();
                     int currNum = item1.getCount();
                     int tarNum = item2.getCount();
-                    boolean same = ItemStack.canCombine(item1,item2.copy()) && !item1.isEmpty();
-                    if(ItemStack.canCombine(item1,item2) && currNum == tarNum) continue;
+                    boolean same = ItemStack.areItemsAndComponentsEqual(item1,item2.copy()) && !item1.isEmpty();
+                    if(ItemStack.areItemsAndComponentsEqual(item1,item2) && currNum == tarNum) continue;
                     //不和背包交互
                     if (same) {
                         //有多
@@ -268,7 +273,7 @@ public class ZxyUtils {
                         ItemStack stack = sc.slots.get(i1).getStack();
                         ItemStack currStack = sc.slots.get(i).getStack();
                         currNum = currStack.getCount();
-                        boolean same2 = thereAreItems = ItemStack.canCombine(item2,stack);
+                        boolean same2 = thereAreItems = ItemStack.areItemsAndComponentsEqual(item2,stack);
                         if (same2 && !stack.isEmpty()) {
                             int i2 = stack.getCount();
                             client.interactionManager.clickSlot(sc.syncId, i1, 0, SlotActionType.PICKUP, client.player);
@@ -314,6 +319,7 @@ public class ZxyUtils {
             LitematicaMixinMod.PRINT_SWITCH.setBooleanValue(false);
             client.inGameHud.setOverlayMessage(Text.of("已关闭全部模式"), false);
         }
+        OpenInventoryPacket.tick();
 //        for (BlockPos pos : syncPosList) {
 //            RenderUtils.FOUND_ITEM_POSITIONS.put(pos, new PositionData(pos, client.world.getTime(), VoxelShapes.fullCube(), 10, 10, 6, null));
 //        }
@@ -392,6 +398,7 @@ public class ZxyUtils {
         client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(vec3d, direction,pos,insideBlock));
         //#endif
     }
+
 
 
     //右键单击

@@ -25,6 +25,6 @@ public class WorldUtilsMixin {
         if (facing != null) {
             id = facing.getId();
         }
-        System.out.println(id);
+
     }
 }

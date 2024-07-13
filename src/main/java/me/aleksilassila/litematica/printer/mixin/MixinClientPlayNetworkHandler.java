@@ -1,7 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin;
 
 import me.aleksilassila.litematica.printer.printer.Printer;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.QuickShulkerUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.client.MinecraftClient;
@@ -32,7 +31,7 @@ public abstract class MixinClientPlayNetworkHandler {
         if (client.player != null && printerMemoryAdding) {
             client.player.closeHandledScreen();
         }
-        if(QuickShulkerUtils.waitForTheItemToBeSwitched != null) QuickShulkerUtils.switchItem(QuickShulkerUtils.targetSlot);
+//        if(QuickShulkerUtils.waitForTheItemToBeSwitched != null) QuickShulkerUtils.switchItem(QuickShulkerUtils.targetSlot);
         if(num == 1 || num == 3)ZxyUtils.syncInv();
      }
 }

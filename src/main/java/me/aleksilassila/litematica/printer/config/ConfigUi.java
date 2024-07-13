@@ -62,7 +62,7 @@ public class ConfigUi extends GuiConfigsBase {
         List<? extends IConfigBase> configs;
         Tab tab = ConfigUi.tab;
         if (tab == Tab.ALL) {
-            configs = Configs.ALL_CONFIGS;
+            configs = Configs.addAllConfigs();
         } else if(tab == GENERAL) {
             configs = addGeneral();
         } else if (tab == PUT) {
@@ -76,7 +76,7 @@ public class ConfigUi extends GuiConfigsBase {
         } else if(tab == null){
             return null;
         } else {
-            configs = Configs.ALL_CONFIGS;
+            configs = Configs.addAllConfigs();
         }
         return ConfigOptionWrapper.createFor(configs);
     }

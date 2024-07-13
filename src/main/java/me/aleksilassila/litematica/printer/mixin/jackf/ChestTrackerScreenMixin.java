@@ -28,6 +28,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+//#if MC > 12004
+import net.minecraft.component.DataComponentTypes;
+import java.util.Objects;
+//#else
+//$$
+//#endif
+
+
+
 @Mixin(ChestTrackerScreen.class)
 public abstract class ChestTrackerScreenMixin extends Screen {
     @Shadow(remap = false) private ItemListWidget itemList;
@@ -49,14 +58,41 @@ public abstract class ChestTrackerScreenMixin extends Screen {
         //濳影盒等搜索
         List<ItemStack> filtered = new ArrayList<>(items.stream().filter(stack -> {
             return InventoryUtils.getStoredItems(stack, -1).stream().anyMatch((stack2) -> {
-                return stack2.getName().getString().toLowerCase().contains(filter) ||
-                        stack2.hasCustomName() && stack2.getItem().getName(stack2).getString().toLowerCase().contains(filter) ||
-                        stack2.getNbt() != null && stack2.getNbt().toString().toLowerCase().contains(filter) ||
 
-                        PinYinSearch.hasPinYin(stack2.getName().getString().toLowerCase(),filter)||
-                        stack2.hasCustomName() && PinYinSearch.hasPinYin(stack2.getItem().getName(stack2).getString().toLowerCase(),filter)||
-                        Registries.ITEM.getId(stack.getItem()).toString().contains(filter) ||
-                        stack2.getNbt() != null && PinYinSearch.hasPinYin(stack2.getNbt().toString().toLowerCase(),filter);
+                //#if MC > 12004
+                System.out.print(stack.getComponentChanges().toString());
+                //#else
+                //#endif
+
+                return stack2.getName().getString().toLowerCase().contains(filter) ||
+                        //#if MC > 12004
+                        Objects.requireNonNull(stack.getComponentChanges().get(DataComponentTypes.CUSTOM_NAME)).isPresent()
+                        //#else
+                        //$$ stack2.hasCustomName()
+                        //#endif
+                        && stack2.getItem().getName(stack2).getString().toLowerCase().contains(filter) ||
+
+                        //#if MC > 12004
+
+                        //#else
+                        //$$ stack2.getNbt() != null && stack2.getNbt().toString().toLowerCase().contains(filter) ||
+                        //#endif
+
+
+                        PinYinSearch.hasPinYin(stack2.getName().getString().toLowerCase(), filter) ||
+                        //#if MC > 12004
+                        Objects.requireNonNull(stack.getComponentChanges().get(DataComponentTypes.CUSTOM_NAME)).isPresent()
+                        //#else
+                        //$$  stack2.hasCustomName()
+                        //#endif
+                        && PinYinSearch.hasPinYin(stack2.getItem().getName(stack2).getString().toLowerCase(), filter) ||
+                        Registries.ITEM.getId(stack.getItem()).toString().contains(filter)
+                        //#if MC > 12004
+
+                        //#else
+                        //$$ ||  stack2.getNbt() != null && PinYinSearch.hasPinYin(stack2.getNbt().toString().toLowerCase(), filter)
+                        //#endif
+                ;
             });
         }).toList());
 
