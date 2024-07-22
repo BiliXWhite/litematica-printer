@@ -10,17 +10,17 @@ import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket
 import net.minecraft.client.MinecraftClient;
 
 //#if MC > 12001
-import fi.dy.masa.malilib.util.GuiUtils;
-import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
-import red.jackf.chesttracker.impl.memory.MemoryBankAccessImpl;
-import red.jackf.chesttracker.impl.memory.MemoryBankImpl;
+//$$ import fi.dy.masa.malilib.util.GuiUtils;
+//$$ import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
+//$$ import net.minecraft.client.gui.screen.ingame.HandledScreen;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
+//$$ import red.jackf.chesttracker.impl.memory.MemoryBankAccessImpl;
+//$$ import red.jackf.chesttracker.impl.memory.MemoryBankImpl;
 //#else
-//$$ import net.minecraft.text.Text;
-//$$ import net.minecraft.util.Identifier;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //#endif
 
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;

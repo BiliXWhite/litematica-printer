@@ -24,7 +24,8 @@
 
   },
   "depends": {
-    "malilib": "*"
+    "malilib": "*",
+    "java": ">=21"
   },
   "custom": {
     "modmenu": {

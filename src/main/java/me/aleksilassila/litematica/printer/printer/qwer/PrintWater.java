@@ -21,6 +21,8 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.getEnchantmentLevel;
+
 public class PrintWater {
     /**
      * 打印原理图中的含水方块，在放置原理图方块前先放置一块冰并打破来使方块含水
@@ -124,7 +126,7 @@ public class PrintWater {
             ItemStack stack = player.playerScreenHandler.slots.get(i).getStack();
             if((stack.isOf(Items.DIAMOND_PICKAXE)||
                     stack.isOf(Items.NETHERITE_PICKAXE)) &&
-                    !(EnchantmentHelper.getLevel(Enchantments.SILK_TOUCH,stack) > 0)){
+                    !(getEnchantmentLevel(stack,Enchantments.SILK_TOUCH) > 0)){
                 player.getInventory().selectedSlot = i-36;
                 return;
             }

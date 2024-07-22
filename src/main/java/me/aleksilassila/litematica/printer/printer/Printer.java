@@ -69,14 +69,14 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem.r
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 
 //#if MC > 12001
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
-import red.jackf.chesttracker.api.providers.InteractionTracker;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
+//$$ import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#else
-//$$ import net.minecraft.util.Identifier;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
+import net.minecraft.util.Identifier;
+import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
+import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //#endif
 
 //#if MC < 11904
@@ -85,8 +85,8 @@ import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#else
 import net.minecraft.registry.Registries;
     //#if MC < 12002
-    //$$ import net.minecraft.registry.RegistryKey;
-    //$$ import net.minecraft.registry.RegistryKeys;
+    import net.minecraft.registry.RegistryKey;
+    import net.minecraft.registry.RegistryKeys;
     //#endif
 //#endif
 
@@ -524,7 +524,7 @@ public class Printer extends PrinterUtils {
             ScreenHandler sc = player.currentScreenHandler;
             if (!player.currentScreenHandler.equals(player.playerScreenHandler)) return false;
             //排除合成栏 装备栏 副手
-            if (sc.slots.stream().skip(9).limit(sc.slots.size() - 10).noneMatch(slot -> slot.getStack().isEmpty())
+            if (PRINT_CHECK.getBooleanValue() && sc.slots.stream().skip(9).limit(sc.slots.size() - 10).noneMatch(slot -> slot.getStack().isEmpty())
                     && (LitematicaMixinMod.QUICKSHULKER.getBooleanValue() || LitematicaMixinMod.INVENTORY.getBooleanValue())) {
                 SwitchItem.checkItems();
                 return true;
@@ -535,34 +535,36 @@ public class Printer extends PrinterUtils {
                 for (Item item : items2) {
                      //#if MC > 12001
                         //#if MC > 12004
-                        MemoryUtils.currentMemoryKey = client.world.getRegistryKey().getValue();
+                        //$$ MemoryUtils.currentMemoryKey = client.world.getRegistryKey().getValue();
                         //#else
                         //$$ MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
                         //#endif
-                      MemoryUtils.itemStack = new ItemStack(item);
-                      if (SearchItem.search(true)) {
-                          closeScreen++;
-                          isOpenHandler = true;
-                          printerMemorySync = true;
-                          return true;
-                      }
+                     //$$  MemoryUtils.itemStack = new ItemStack(item);
+                     //$$  if (SearchItem.search(true)) {
+                     //$$      closeScreen++;
+                     //$$      isOpenHandler = true;
+                     //$$      printerMemorySync = true;
+                     //$$      return true;
+                     //$$  }
                      //#else
-                     //$$
-                     //$$    MemoryDatabase database = MemoryDatabase.getCurrent();
-                     //$$    if (database != null) {
-                     //$$        for (Identifier dimension : database.getDimensions()) {
-                     //$$            for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
-                     //$$                MemoryUtils.setLatestPos(memory.getPosition());
+
+                        MemoryDatabase database = MemoryDatabase.getCurrent();
+                        if (database != null) {
+                            for (Identifier dimension : database.getDimensions()) {
+                                for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
+                                    MemoryUtils.setLatestPos(memory.getPosition());
                                     //#if MC < 11904
                                     //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(Registry.WORLD_KEY, dimension));
                                     //#else
-                                    //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
+                                    OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
                                     //#endif
-                     //$$                isOpenHandler = true;
-                     //$$                return true;
-                     //$$            }
-                     //$$        }
-                     //$$    }
+                                    if(closeScreen == 0)closeScreen++;
+                                    syncPrinterInventory = true;
+                                    isOpenHandler = true;
+                                    return true;
+                                }
+                            }
+                        }
                     //#endif
                 }
                 items2 = new HashSet<>();
@@ -923,7 +925,7 @@ public class Printer extends PrinterUtils {
                             if (reSwitchItem == null) shulkerBoxSlot = i;
 //                            ClientUtil.CheckAndSend(stack,i);
                             //#if MC > 12001
-                            InteractionTracker.INSTANCE.clear();
+                            //$$ InteractionTracker.INSTANCE.clear();
                             //#endif
                             Class quickShulker = Class.forName("net.kyrptonaught.quickshulker.client.ClientUtil");
                             Method checkAndSend = quickShulker.getDeclaredMethod("CheckAndSend", ItemStack.class, int.class);

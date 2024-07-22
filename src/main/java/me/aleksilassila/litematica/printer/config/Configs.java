@@ -51,6 +51,7 @@ public class Configs implements IConfigHandler {
         list.add(PUT_SKIP);
         list.add(PUT_SKIP_LIST);
         list.add(PUT_TESTING);
+        list.add(PRINT_CHECK);
         list.add(EASY_MODE);
         list.add(FORCED_PLACEMENT);
         list.add(PRINT_IN_AIR);
@@ -95,9 +96,9 @@ public class Configs implements IConfigHandler {
             list.add(PRINTER_INVENTORY);
             list.add(REMOVE_PRINT_INVENTORY);
             //#if MC > 12001
-            list.add(LAST);
-            list.add(NEXT);
-            list.add(DELETE);
+            //$$ list.add(LAST);
+            //$$ list.add(NEXT);
+            //$$ list.add(DELETE);
             //#endif
         }
         list.add(TEST);
@@ -124,9 +125,9 @@ public class Configs implements IConfigHandler {
             list.add(PRINTER_INVENTORY);
             list.add(REMOVE_PRINT_INVENTORY);
             //#if MC > 12001
-            list.add(LAST);
-            list.add(NEXT);
-            list.add(DELETE);
+            //$$ list.add(LAST);
+            //$$ list.add(NEXT);
+            //$$ list.add(DELETE);
             //#endif
         }
 		list.add(TEST);

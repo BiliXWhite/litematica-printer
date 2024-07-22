@@ -143,9 +143,9 @@ public class HighlightBlockRenderer implements IRenderer {
 //    }
     @Override
     //#if MC > 12004
-    public void onRenderWorldLast(Matrix4f matrices, Matrix4f projMatrix){
+    //$$ public void onRenderWorldLast(Matrix4f matrices, Matrix4f projMatrix){
     //#else
-    //$$ public void onRenderWorldLast(MatrixStack matrices, Matrix4f projMatrix){
+    public void onRenderWorldLast(MatrixStack matrices, Matrix4f projMatrix){
     //#endif
         for (Map.Entry<Color4f, List<BlockPos>> map : highlightMap.entrySet()) {
             Color4f key = map.getKey();

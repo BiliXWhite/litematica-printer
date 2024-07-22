@@ -18,6 +18,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.screen.slot.SlotActionType;
+
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.getEnchantmentLevel;
 //import net.minecraft.tag.FluidTags;
 
 public class InventoryManager {
@@ -64,8 +66,11 @@ public class InventoryManager {
         PlayerInventory playerInventory = minecraftClient.player.getInventory();
 
         int i = playerInventory.getSlotWithStack(new ItemStack(item));
-
-        if ("diamond_pickaxe".equals(item.toString())) {
+        if(item.toString().contains("pickaxe")){
+            String string = item.toString();
+            int a = 1;
+        }
+        if ("diamond_pickaxe".equals(item.toString()) || "minecraft:diamond_pickaxe".equals(item.toString())) {
             i = getEfficientTool(playerInventory);
         }
         if (i != -1) {
@@ -75,6 +80,7 @@ public class InventoryManager {
             } else {
                 minecraftClient.interactionManager.pickFromInventory(i);
             }
+
             minecraftClient.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(playerInventory.selectedSlot));
             refresh();
             return true;
@@ -111,7 +117,7 @@ public class InventoryManager {
 
         float f = stack.getMiningSpeedMultiplier(block);
         if (f > 1.0F) {
-            int i = EnchantmentHelper.getLevel(Enchantments.EFFICIENCY, stack);
+            int i = getEnchantmentLevel(stack,Enchantments.EFFICIENCY);
             ItemStack itemStack = player.getInventory().getStack(slot);
             if (i > 0 && !itemStack.isEmpty()) {
                 f += (float) (i * i + 1);
@@ -142,7 +148,7 @@ public class InventoryManager {
             f *= k;
         }
 
-        if (player.isSubmergedIn(FluidTags.WATER) && !EnchantmentHelper.hasAquaAffinity(player)) {
+        if (player.isSubmergedIn(FluidTags.WATER) && getEnchantmentLevel(stack, Enchantments.AQUA_AFFINITY) <= 0) {
             f /= 5.0F;
         }
 
