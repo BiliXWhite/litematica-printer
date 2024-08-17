@@ -11,10 +11,10 @@ import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
-//#if MC > 12001
+//#if MC >= 12001
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#endif
 import java.util.List;
@@ -22,7 +22,7 @@ import java.util.List;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
 
 public class LitematicaMixinMod implements ModInitializer, ClientModInitializer {
-	public static final String MOD_ID = "Litematica_Printer";
+	public static final String MOD_ID = "litematica_printer";
 	private static final KeybindSettings GUI_NO_ORDER = KeybindSettings.create(KeybindSettings.Context.GUI, KeyAction.PRESS, false, false, false, true);
 	// Config settings
 	public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger( "打印机工作间隔", 0,   0, 20, "以游戏刻度为单位工作间隔。值越低意味着打印速度越快");
@@ -34,7 +34,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigOptionList PRINTER_MODE = new ConfigOptionList("打印机模式", State.PrintModeType.PRINTER,"仅单模生效");
 	//    public static final ConfigBoolean PRINT_WATER    = new ConfigBoolean("PrintWater",    false, "Whether or not the printer should place water\n source blocks or make blocks waterlogged.");
 	public static final ConfigBoolean MULTI_BREAK = new ConfigBoolean("多模阻断",true, "启用后将按模式优先级运行，同时启用多个模式时优先级低的无法执行");
-	public static final ConfigBoolean RENDER_LAYER_LIMIT = new ConfigBoolean("渲染层数限制",false, "拍流体，破基岩，挖掘模式 是否受渲染层数限制");
+	public static final ConfigBoolean RENDER_LAYER_LIMIT = new ConfigBoolean("渲染层数限制",false, "排流体，破基岩，挖掘模式 是否受渲染层数限制");
 	public static final ConfigBoolean PRINT_IN_AIR = new ConfigBoolean("凭空放置",true, "Whether or not the printer should place blocks without anything to build on.\nBe aware that some anti-cheat plugins might notice this.");
 	public static final ConfigBooleanHotkeyed PRINT_WATER_LOGGED_BLOCK = new ConfigBooleanHotkeyed("打印含水方块",  false,"","启用后会自动放置并破坏冰来使方块含水");
 	public static final ConfigBoolean PRINT_SWITCH = new ConfigBoolean("printingMode",false, "Autobuild / print loaded selection.\nBe aware that some servers and anticheat plugins do not allow printing.");
@@ -49,7 +49,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigBooleanHotkeyed FLUID = new ConfigBooleanHotkeyed("排流体", false,"L", "在岩浆源、水源处放方块默认是沙子");
 	public static final ConfigHotkey CLOSE_ALL_MODE = new ConfigHotkey("关闭全部模式", "LEFT_CONTROL,G","关闭全部模式，若此时为单模模式将模式恢复为打印");
 
-	//#if MC > 12001
+	//#if MC >= 12001
 //$$ 	public static final ConfigHotkey LAST = new ConfigHotkey("上一个箱子", "Z",GUI_NO_ORDER,"");
 //$$ 	public static final ConfigHotkey NEXT = new ConfigHotkey("下一个箱子", "C",GUI_NO_ORDER,"");
 //$$ 	public static final ConfigHotkey DELETE = new ConfigHotkey("删除当前容器", "LEFT_SHIFT,X",GUI_NO_ORDER,"");
@@ -58,10 +58,9 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList("排流体方块名单", ImmutableList.of("minecraft:sand"), "");
 	public static final ConfigBoolean PUT_SKIP = new ConfigBoolean("跳过放置", false, "开启后会跳过列表内的方块");
 	public static final ConfigBoolean PUT_TESTING = new ConfigBoolean("侦测器放置检测", false, "检测侦测器看向的方块是否和投影方块一致，若不一致测跳过放置");
-	//	public static final ConfigBoolean NO_FACING = new ConfigBoolean("忽略朝向", false, "会忽略朝向放置 建造间隔拉到0会有更快的速度");
 	public static final ConfigBoolean QUICKSHULKER = new ConfigBoolean("快捷潜影盒", false, "在有快捷潜影盒mod的情况下可以直接从背包内的潜影盒取出物品\n替换的位置为投影的预设位置,如果所有预设位置都有濳影盒则不会替换。");
 	public static final ConfigBoolean INVENTORY = new ConfigBoolean("远程交互容器", false, "在服务器有远程交互容器mod的情况下可以远程交互\n替换的位置为投影的预设位置。");
-	public static final ConfigBoolean AUTO_INVENTORY = new ConfigBoolean("自动设置远程交互", true, "在服务器若允许使用则自动开启远程交互容器，反之则自动关闭");
+	public static final ConfigBoolean AUTO_INVENTORY = new ConfigBoolean("自动设置远程交互", false, "在服务器若允许使用则自动开启远程交互容器，反之则自动关闭");
 
 	public static final ConfigBoolean PRINT_CHECK = new ConfigBoolean("有序存放", false, "在背包满时将从快捷盒子或打印机库存中取出的物品还原到之前位置，关闭后将会打乱打印机以及濳影盒");
 
@@ -73,7 +72,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigStringList PUT_SKIP_LIST = new ConfigStringList("跳过放置名单", ImmutableList.of(), "");
 	public static final ConfigStringList BEDROCK_LIST = new ConfigStringList("基岩模式白名单", ImmutableList.of("minecraft:bedrock"), "");
 	public static final ConfigStringList REPLACEABLE_LIST = new ConfigStringList("可替换方块",
-			ImmutableList.of("minecraft:air","minecraft:snow","minecraft:lava","minecraft:water","minecraft:bubble_column","minecraft:grass_block"), "打印时将忽略这些错误方块 直接替换。");
+			ImmutableList.of("minecraft:snow","minecraft:lava","minecraft:water","minecraft:bubble_column","minecraft:short_grass"), "打印时将忽略这些错误方块 直接替换。");
 	public static final ConfigHotkey TEST = new ConfigHotkey("test", "", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "测试用的，别乱设置");
 
 	public static ImmutableList<IConfigBase> getConfigList() {
@@ -132,7 +131,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		OpenInventoryPacket.init();
 		OpenInventoryPacket.registerReceivePacket();
 		OpenInventoryPacket.registerClientReceivePacket();
-		//#if MC > 12001
+		//#if MC >= 12001
 //$$ 		if(loadChestTracker) MemoryUtils.setup();
 		//#endif
 

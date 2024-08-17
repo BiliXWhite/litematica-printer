@@ -138,9 +138,9 @@ public class PrintWater {
         IceBlock b;
         //冰碎后无法产生水
         //#if MC > 11904
-        BlockState material = client.world.getBlockState(pos.down());
+        //$$ BlockState material = client.world.getBlockState(pos.down());
         //#else
-        //$$ Material material = client.world.getBlockState(pos.down()).getMaterial();
+        Material material = client.world.getBlockState(pos.down()).getMaterial();
         //#endif
 
         if (material.blocksMovement() || material.isLiquid()) {

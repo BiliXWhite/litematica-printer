@@ -1,9 +1,9 @@
 package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 
-//#if MC > 12001
+//#if MC >= 12001
 //$$ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 //$$ import me.aleksilassila.litematica.printer.printer.Printer;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 //$$ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 //$$ import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
@@ -33,6 +33,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 //$$ import java.util.HashMap;
 //$$ import java.util.List;
 //$$ import java.util.Optional;
+//$$
 //$$ public class MemoryUtils {
 //$$     public static MemoryBankImpl PRINTER_MEMORY = null;
 //$$ //    public static MemoryBankImpl memoryBankImpl = MemoryBankAccessImpl.INSTANCE.getLoadedInternal().get();
@@ -45,10 +46,13 @@ package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 //$$     public static BlockState blockState = null;
 //$$     //箱子追踪搜索请求
 //$$     public static SearchRequest request = null;
+//$$     //打印机库存设置
+//$$     public static Metadata printerMetadata = null;
 //$$
 //$$     public static void deletePrinterMemory() {
 //$$         if (PRINTER_MEMORY != null) {
 //$$             String id = PRINTER_MEMORY.getId();
+//$$             printerMetadata = PRINTER_MEMORY.getMetadata();
 //$$             unLoad();
 //$$             Storage.delete(id);
 //$$             createPrinterMemory();
@@ -107,12 +111,23 @@ package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 //$$                 bank.setId(s1);
 //$$                 return bank;
 //$$             });
+//$$             if(printerMetadata != null){
+//$$                 PRINTER_MEMORY.setMetadata(printerMetadata);
+//$$             }
+//$$ //            Metadata metadata = PRINTER_MEMORY.getMetadata();
+//$$ //            SearchSettings searchSettings = metadata.getSearchSettings();
+//$$ //            searchSettings.searchRange = Integer.MAX_VALUE;
+//$$ //            searchSettings.itemListRange = Integer.MAX_VALUE;
+//$$ //            metadata.getIntegritySettings().memoryLifetime = NEVER;
 //$$             save();
 //$$         }
 //$$     }
 //$$
 //$$     public static void unLoad() {
 //$$         if (PRINTER_MEMORY != null) {
+//$$             if (MemoryBankAccessImpl.INSTANCE.getLoadedInternal().isPresent() && MemoryBankAccessImpl.INSTANCE.getLoadedInternal().get().equals(PRINTER_MEMORY)) {
+//$$                 MemoryBankAccessImpl.INSTANCE.unload();
+//$$             }
 //$$             save();
 //$$         }
 //$$         PRINTER_MEMORY = null;

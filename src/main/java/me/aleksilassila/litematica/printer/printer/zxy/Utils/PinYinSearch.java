@@ -12,9 +12,11 @@ import java.util.ArrayList;
 
 public class PinYinSearch {
     public static void main(String[] args){
-        System.out.println(getPinYin("曾0长0"));
+        System.out.println(getPinYin("曾长"));
     }
-    static ArrayList<String[]> pinyin = new ArrayList<>();
+
+    //[cengzhang, zengzhang, cengchang, zengchang, cz, zz, cc, zc]
+    static ArrayList<String[]> pinyin = new ArrayList<>();//存储拼音，String[]数组的方式存储包含了各个读音 {String[zeng,ceng],String[chang,zhang]}
     public static ArrayList<String> getPinYin(String str){
 
         char[] ch = str.toCharArray();
@@ -41,27 +43,52 @@ public class PinYinSearch {
 
     @NotNull
     private static ArrayList<String> getStrings() {
+        //存储全拼
         ArrayList<String> pys1 = new ArrayList<>();
         ArrayList<String> pys2;
-
+        //简拼
         ArrayList<String> pys3 = new ArrayList<>();
         ArrayList<String> pys4;
 
-        for (int i = 0; i < pinyin.size(); i++) {
+        for (int pyss = 0; pyss < pinyin.size(); pyss++) {
+            //pyss.get(0) == String[ceng,zeng]
+            //pyss.get(1) == String[zhang,chang]
             pys2 = new ArrayList<>();
             pys4 = new ArrayList<>();
-            for (int i1 = 0; i1 < pinyin.get(i).length && pinyin.get(i).length > 0; i1++) {
-                if(i==0) {
-                    pys1.add(pinyin.get(i)[i1]);
-                    pys3.add(""+ pinyin.get(i)[i1].charAt(0));
+            //循环String[]中的各读音
+            for (int stringS = 0; stringS < pinyin.get(pyss).length && pinyin.get(pyss).length > 0; stringS++) {
+                //记录第一个字的各种读音
+                //pys1 = ceng -> ceng+zhang
+                if(pyss==0) {
+                    //ceng / zeng
+                    pys1.add(pinyin.get(pyss)[stringS]);
+                    pys3.add(""+ pinyin.get(pyss)[stringS].charAt(0));
                 }else {
-                    for (int i2 = 0; i2 < pys1.size(); i2++) {
-                        pys2.add(pys1.get(i2) + pinyin.get(i)[i1]);
-                        pys4.add(pys3.get(i2) + pinyin.get(i)[i1].charAt(0));
+                    //将当前String[]中的各读音与之前记录的拼接
+                    //若currentString == 0 那么读取到的读音就是ceng
+                    //此时"长"读取到的是zhang
+                    //使用ceng  得到 cengzhang
+                    //若currentString == 1 那么读取到的读音就是zeng
+                    //使用zeng 得到  zengzhang
+                    for (int currentString = 0; currentString < pys1.size(); currentString++) {
+                        // pinyin.get(1).[0] = zhang
+
+                        // currentString == 0
+                        // pys1.get(currentString) == ceng
+                        // ceng + zhang
+                        // currentString == 1
+                        // pys1.get(currentString) == zeng
+                        // zeng + zhang
+
+                        // pinyin.get(1).[1] = chang
+                        //...
+
+                        pys2.add(pys1.get(currentString) + pinyin.get(pyss)[stringS]);
+                        pys4.add(pys3.get(currentString) + pinyin.get(pyss)[stringS].charAt(0));
                     }
                 }
             }
-            if(i!=0) {
+            if(pyss!=0) {
                 pys1 = pys2;
                 pys3 = pys4;
             }

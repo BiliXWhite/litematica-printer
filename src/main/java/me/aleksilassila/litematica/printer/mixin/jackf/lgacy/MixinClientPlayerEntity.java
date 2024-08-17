@@ -1,8 +1,8 @@
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 
-//#if MC < 12002
+//#if MC < 12001
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 import net.minecraft.client.MinecraftClient;

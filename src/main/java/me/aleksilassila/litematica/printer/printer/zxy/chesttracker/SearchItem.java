@@ -1,8 +1,8 @@
 package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 
-//#if MC > 12001
+//#if MC >= 12001
 //$$ import fi.dy.masa.malilib.util.InventoryUtils;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 //$$ import net.minecraft.block.Block;
 //$$ import net.minecraft.block.ShulkerBoxBlock;

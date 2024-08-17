@@ -1,5 +1,5 @@
 package me.aleksilassila.litematica.printer.mixin.jackf;
-//#if MC > 12001
+//#if MC >= 12001
 //$$
 //$$ import net.minecraft.client.gui.widget.ButtonWidget;
 //$$ import org.spongepowered.asm.mixin.Final;

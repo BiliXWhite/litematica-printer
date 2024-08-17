@@ -1,8 +1,9 @@
 package me.aleksilassila.litematica.printer.mixin.openinv;
 
 import com.mojang.authlib.GameProfile;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -10,9 +11,10 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.playerlist;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.playerlist;
 
 
 @Mixin(ServerPlayerEntity.class)
@@ -36,5 +38,14 @@ public abstract class MixinServerPlayerEntity extends PlayerEntity{
     @Unique
     private void deletePlayerList(){
         playerlist.removeIf(player -> player.getUuid().equals(getUuid()));
+    }
+    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/screen/ScreenHandler;canUse(Lnet/minecraft/entity/player/PlayerEntity;)Z"),method = "tick")
+    public boolean onTick(ScreenHandler instance, PlayerEntity playerEntity){
+        if (playerEntity instanceof ServerPlayerEntity) {
+            for (ServerPlayerEntity serverPlayerEntity : OpenInventoryPacket.playerlist) {
+                if (serverPlayerEntity.equals(playerEntity)) return true;
+            }
+        }
+        return instance.canUse(playerEntity);
     }
 }

@@ -20,6 +20,8 @@ import net.minecraft.world.World;
 import java.util.HashMap;
 import java.util.Map;
 
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
+
 public class PrinterUtils {
 
 	public static Direction[] horizontalDirections = new Direction[]{Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
@@ -32,6 +34,7 @@ public class PrinterUtils {
 		if (items == null || items.length == 0) return true;
 		if (Implementation.getAbilities(playerEntity).creativeMode) return true;
 		else {
+            if (!client.player.currentScreenHandler.equals(client.player.playerScreenHandler)) return false;
 			Inventory inv = Implementation.getInventory(playerEntity);
 			for (Item item : items) {
 				for (int i = 0; i < inv.size(); i++) {

@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.printer.zxy.memory;
 
-//#if MC < 12002
+//#if MC < 12001
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import net.fabricmc.api.EnvType;
@@ -36,7 +36,7 @@ import red.jackf.chesttracker.compat.ExpandedStorageHandler;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.*;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.syncPrinterInventory;
 import static red.jackf.chesttracker.ChestTracker.id;
 

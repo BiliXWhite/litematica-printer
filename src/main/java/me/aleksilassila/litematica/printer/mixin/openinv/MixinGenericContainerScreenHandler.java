@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.openinv;
 
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;

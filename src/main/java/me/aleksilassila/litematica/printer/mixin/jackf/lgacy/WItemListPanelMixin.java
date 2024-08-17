@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
-//#if MC < 12002
+//#if MC < 12001
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.PinYinSearch;
 import net.minecraft.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -39,13 +40,19 @@ public class WItemListPanelMixin{
     private void updateFilter() {
         filteredItems = items.stream().filter((stack) -> {
             return stack.getName().getString().toLowerCase().contains(filter) ||
-                    stack.hasCustomName() && stack.getItem().getName(stack).getString().toLowerCase().contains(filter) ||
-                    stack.getNbt() != null && stack.getNbt().toString().toLowerCase().contains(filter)
-         ||
+                    PinYinSearch.hasPinYin(stack.getName().getString().toLowerCase(),filter) ||
+                    (stack.hasCustomName() && stack.getItem().getName(stack).getString().toLowerCase().contains(filter) ||
+                            PinYinSearch.hasPinYin(stack.getItem().getName(stack).getString().toLowerCase(),filter)) ||
+                    (stack.getNbt() != null && (stack.getNbt().toString().toLowerCase().contains(filter) ||
+                            PinYinSearch.hasPinYin(stack.getNbt().toString().toLowerCase(),filter))) ||
+
                     fi.dy.masa.malilib.util.InventoryUtils.getStoredItems(stack, -1).stream().anyMatch((stack2) ->{
                        return stack2.getName().getString().toLowerCase().contains(filter) ||
-                                stack2.hasCustomName() && stack2.getItem().getName(stack2).getString().toLowerCase().contains(filter) ||
-                                stack2.getNbt() != null && stack2.getNbt().toString().toLowerCase().contains(filter);
+                               PinYinSearch.hasPinYin(stack2.getName().getString().toLowerCase(),filter) ||
+                               (stack2.hasCustomName() && stack2.getItem().getName(stack2).getString().toLowerCase().contains(filter) ||
+                                       PinYinSearch.hasPinYin(stack2.getItem().getName(stack2).getString().toLowerCase(),filter)) ||
+                               (stack2.getNbt() != null && (stack2.getNbt().toString().toLowerCase().contains(filter) ||
+                                       PinYinSearch.hasPinYin(stack2.getNbt().toString().toLowerCase(),filter)));
                     })
                     ;
         }).collect(Collectors.toList());

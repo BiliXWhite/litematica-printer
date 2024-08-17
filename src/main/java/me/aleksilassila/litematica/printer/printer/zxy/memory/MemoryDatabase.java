@@ -5,7 +5,7 @@
 
 package me.aleksilassila.litematica.printer.printer.zxy.memory;
 
-//#if MC < 12002
+//#if MC < 12001
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import net.fabricmc.api.EnvType;

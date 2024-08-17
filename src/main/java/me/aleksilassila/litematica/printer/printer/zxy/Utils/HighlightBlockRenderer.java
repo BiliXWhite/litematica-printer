@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import fi.dy.masa.litematica.Litematica;
+import fi.dy.masa.malilib.config.options.ConfigColor;
 import fi.dy.masa.malilib.event.RenderEventHandler;
 import fi.dy.masa.malilib.interfaces.IRenderer;
 import fi.dy.masa.malilib.render.RenderUtils;
@@ -26,16 +27,20 @@ import java.util.Map;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
 
-
 public class HighlightBlockRenderer implements IRenderer {
+    public record HighlightTheProject(ConfigColor color4f, List<BlockPos> pos){ }
     public static HighlightBlockRenderer instance = new HighlightBlockRenderer();
-    public static Map<Color4f,List<BlockPos>> highlightMap = new HashMap<>();
-    public static void addHighlightMap(Color4f color4f){
-        if(highlightMap.get(color4f) != null) return;
-        highlightMap.put(color4f, new LinkedList<>());
+    public static Map<String,HighlightTheProject> highlightTheProjectMap = new HashMap<>();
+    public static void createHighlightBlockList(String id,ConfigColor color4f){
+        if (highlightTheProjectMap.get(id) == null) {
+            highlightTheProjectMap.put(id,new HighlightTheProject(color4f,new LinkedList<>()));
+        }
     }
-    public static List<BlockPos> getPosList(Color4f color4f){
-        return highlightMap.get(color4f);
+    public static List<BlockPos> getHighlightBlockPosList(String id){
+        if(highlightTheProjectMap.get(id) != null){
+            return highlightTheProjectMap.get(id).pos();
+        }
+        return null;
     }
     public void highlightBlock(Color4f color4f, BlockPos pos) {
         BlockState blockState = client.world.getBlockState(pos);
@@ -129,28 +134,22 @@ public class HighlightBlockRenderer implements IRenderer {
 
     //如果不注册无法渲染，
     public static void init(){
-        RenderEventHandler.getInstance().registerGameOverlayRenderer(instance);
         RenderEventHandler.getInstance().registerWorldLastRenderer(instance);
     }
 
-//    @Override
-//    //#if MC < 12001
-//    //$$ public void onRenderGameOverlayPost(MatrixStack drawContext){
-//    //#else
-//    public void onRenderGameOverlayPost(DrawContext drawContext){
-//    //#endif
-//
-//    }
     @Override
     //#if MC > 12004
     //$$ public void onRenderWorldLast(Matrix4f matrices, Matrix4f projMatrix){
     //#else
     public void onRenderWorldLast(MatrixStack matrices, Matrix4f projMatrix){
     //#endif
-        for (Map.Entry<Color4f, List<BlockPos>> map : highlightMap.entrySet()) {
-            Color4f key = map.getKey();
-            for (BlockPos blockPos : map.getValue()) {
-                instance.highlightBlock(key,blockPos);
+
+        for (Map.Entry<String, HighlightTheProject> stringHighlightTheProjectEntry : highlightTheProjectMap.entrySet()) {
+            HighlightTheProject value = stringHighlightTheProjectEntry.getValue();
+            List<BlockPos> pos = value.pos;
+            Color4f color = value.color4f.getColor();
+            for (BlockPos p : pos) {
+                instance.highlightBlock(color,p);
             }
         }
     }

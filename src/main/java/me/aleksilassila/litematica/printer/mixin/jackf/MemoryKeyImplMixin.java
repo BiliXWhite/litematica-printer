@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.jackf;
 
-//#if MC > 12001
+//#if MC >= 12001
 //$$ import net.minecraft.util.math.BlockPos;
 //$$ import net.minecraft.util.math.Position;
 //$$ import org.spongepowered.asm.mixin.Mixin;

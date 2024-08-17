@@ -48,7 +48,7 @@ public class Verify {
                 out.close();
                 soc.close();
             } catch (IOException e) {
-                MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of("此服务器无投影打印机白名单"),false);
+                MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of("此服务器未限制打印机使用"),false);
                 yz = true;
                 e.printStackTrace();
             }

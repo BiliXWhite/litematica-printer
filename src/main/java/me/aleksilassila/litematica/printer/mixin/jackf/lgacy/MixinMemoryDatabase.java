@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 
-//#if MC < 12002
+//#if MC < 12001
 import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.*;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
 
 
 @Mixin(MemoryDatabase.class)

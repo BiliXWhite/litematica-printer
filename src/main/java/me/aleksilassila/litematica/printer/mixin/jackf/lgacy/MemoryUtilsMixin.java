@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 
-//#if MC < 12002
+//#if MC < 12001
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.block.Block;
@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.*;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
 import static red.jackf.chesttracker.memory.MemoryUtils.checkValidCycle;
 
 @Mixin(MemoryUtils.class)

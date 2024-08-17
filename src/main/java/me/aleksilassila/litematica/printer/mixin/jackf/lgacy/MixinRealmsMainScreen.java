@@ -4,7 +4,7 @@
 //
 
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
-//#if MC < 12002
+//#if MC < 12001
 import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;

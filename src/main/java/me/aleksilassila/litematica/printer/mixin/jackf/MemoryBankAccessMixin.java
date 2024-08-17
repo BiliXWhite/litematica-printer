@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.jackf;
 
-//#if MC > 12001
+//#if MC >= 12001
 //$$ import org.jetbrains.annotations.Nullable;
 //$$ import org.spongepowered.asm.mixin.Mixin;
 //$$ import org.spongepowered.asm.mixin.Shadow;

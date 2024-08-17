@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.jackf;
 
-//#if MC > 12001
+//#if MC >= 12001
 //$$ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;

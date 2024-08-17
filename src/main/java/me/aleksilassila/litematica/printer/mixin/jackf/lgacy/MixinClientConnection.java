@@ -1,7 +1,7 @@
 
 
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
-//#if MC < 12002
+//#if MC < 12001
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
 import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;

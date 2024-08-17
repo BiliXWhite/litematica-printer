@@ -19,7 +19,8 @@ public enum State {
 //        }
         if (!schematicBlockState.isAir() && (currentBlockState.isAir() ||
                 (LitematicaMixinMod.REPLACEABLE_LIST.getStrings().stream()
-                        .anyMatch(string -> Registries.BLOCK.getId(currentBlockState.getBlock()).toString().contains(string)) &&
+                        .anyMatch(string -> !Registries.BLOCK.getId(schematicBlockState.getBlock()).toString().contains(string) &&
+                                Registries.BLOCK.getId(currentBlockState.getBlock()).toString().contains(string)) &&
                         LitematicaMixinMod.REPLACE.getBooleanValue())))
 //        if (!schematicBlockState.isAir() && (currentBlockState.isAir() || currentBlockState.getBlock() instanceof FluidBlock || currentBlockState.isOf(Blocks.SNOW) || currentBlockState.isOf(Blocks.BUBBLE_COLUMN)))
 //        if (!schematicBlockState.isAir() && (currentBlockState.isAir())

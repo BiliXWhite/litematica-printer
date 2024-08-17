@@ -1,26 +1,22 @@
-package me.aleksilassila.litematica.printer.printer.zxy.Utils;
+package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.malilib.util.StringUtils;
 import io.netty.buffer.Unpooled;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.Messager;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.BlockWithEntity;
+import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.mob.ShulkerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
 
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ChunkTicketType;
@@ -30,13 +26,11 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 
-//#if MC > 12001
+
+//#if MC >= 12001
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //$$ import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#endif
@@ -61,13 +55,11 @@ import static net.minecraft.block.ShulkerBoxBlock.FACING;
 //$$ import net.minecraft.network.codec.PacketCodecs;
 //$$ import net.minecraft.network.packet.CustomPayload;
 //$$ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-//$$ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.HelloPackage.HELLO_REMOTE_INTERACTIONS_ID;
-//$$ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.OpenPackage.OPEN_INVENTORY_ID;
-//$$ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.ReturnPackage.OPEN_RETURN_ID;
-//$$ public class OpenInventoryPacket{
-//#else
-public class OpenInventoryPacket {
+//$$ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.HelloPackage.HELLO_REMOTE_INTERACTIONS_ID;
+//$$ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.OpenPackage.OPEN_INVENTORY_ID;
+//$$ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.ReturnPackage.OPEN_RETURN_ID;
 //#endif
+public class OpenInventoryPacket {
 
     private static final ChunkTicketType<ChunkPos> OPEN_TICKET =
             ChunkTicketType.create("openInv", Comparator.comparingLong(ChunkPos::toLong), 2);
@@ -76,6 +68,8 @@ public class OpenInventoryPacket {
     public static RegistryKey<World> key = null;
     public static BlockPos pos = null;
     public static boolean isRemote = false;
+    public static boolean clientTry = false;
+    public static long clientTryTime = 0;
     public static long remoteTime = 0;
     //#if MC > 12006
     //$$ private static final Identifier OPEN_INVENTORY = Identifier.of("remoteinventory", "open_inventory");
@@ -253,32 +247,38 @@ public class OpenInventoryPacket {
         if (blockState == null) return;
         tickMap.put(player, new TickList(blockState.getBlock(), world, pos, blockState));
         BlockEntity blockEntity = world.getBlockEntity(pos);
-        if (blockState.isAir() || blockEntity instanceof ShulkerBoxBlockEntity entity &&
+        boolean isInv = isContainer(blockEntity);
+
+        if (!isInv || blockState.isAir() || (blockEntity instanceof ShulkerBoxBlockEntity entity &&
                 //#if MC > 12004
-                //$$ !world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(0.0f,blockState.get(FACING),  0.5f).offset(pos).contract(1.0E-6)) &&
+                //$$ !world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0f,blockState.get(FACING),  0.0f,0.5f).offset(pos).contract(1.0E-6)) &&
                 //#else
                 !world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
                 //#endif
-
-                entity.getAnimationStage() == ShulkerBoxBlockEntity.AnimationStage.CLOSED) {
+                entity.getAnimationStage() == ShulkerBoxBlockEntity.AnimationStage.CLOSED)) {
             System.out.println("openFail" + pos);
             openReturn(player, blockState, false);
             return;
         }
-        NamedScreenHandlerFactory handler = null;
-        try {
-            handler = ((me.aleksilassila.litematica.printer.mixin.openinv.BlockWithEntityMixin) blockState.getBlock()).createScreenHandlerFactory(blockState, world, pos);
-        } catch (Exception ignored) {
-            openReturn(player, blockState, false);
-            return;
-        }
+//        NamedScreenHandlerFactory handler = null;
+//        try {
+//            //#if MC < 12005
+//            handler = ((BlockWithEntity) blockState.getBlock()).createScreenHandlerFactory(blockState, world, pos);
+//            //#else
+//            //$$ handler = ((me.aleksilassila.litematica.printer.mixin.openinv.BlockWithEntityMixin) blockState.getBlock()).createScreenHandlerFactory(blockState, world, pos);
+//            //#endif
+//        } catch (Exception ignored) {
+//            openReturn(player, blockState, false);
+//            return;
+//        }
+
         //#if MC > 12004
         //$$ ActionResult r = blockState.onUse(world, player, new BlockHitResult(Vec3d.ofCenter(pos), Direction.UP, pos, false));
         //#else
         ActionResult r = blockState.onUse(world, player, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(pos), Direction.UP, pos, false));
         //#endif
 
-        if ((r != null && !r.equals(ActionResult.CONSUME)) || handler == null) {
+        if ((r != null && !r.equals(ActionResult.CONSUME))) {
             System.out.println("openFail" + pos);
             openReturn(player, blockState, false);
             return;
@@ -292,7 +292,8 @@ public class OpenInventoryPacket {
         OpenInventoryPacket.pos = null;
         OpenInventoryPacket.key = null;
         //避免箱子追踪重复保存，
-        //#if MC > 12001
+        //#if MC >= 12001
+        //$$ //避免箱子追踪胡乱记录若不清空，则会吧打开容器前右键的方块视为目标容器
         //$$ InteractionTracker.INSTANCE.clear();
         //#endif
         if (client.player != null && !client.player.currentScreenHandler.equals(client.player.playerScreenHandler))
@@ -316,26 +317,40 @@ public class OpenInventoryPacket {
     }
 
     public static void openReturn(boolean open, BlockState state) {
+        if(clientTry){
+            Messager.actionBar("已自动启用远程交互容器!!!");
+            LitematicaMixinMod.INVENTORY.setBooleanValue(true);
+            key = null;
+            pos = null;
+            remoteTime = 0;
+            openIng = false;
+            clientTry = false;
+            return;
+        }
         if (open) {
-            //#if MC > 12001
+            //#if MC >= 12001
             //$$ MemoryUtils.blockState = state;
             //#endif
 //            client.player.sendMessage(Text.of("return "+state.toString()));
         } else {
             if (key != null) {
                 //#if MC < 11904
-                //$$ if (client.player != null) client.player.sendMessage(Text.of("打开容器失败."),false);
+                //$$ String translationKey = key.getValue().toString();
+                //$$ String translate = StringUtils.translate(translationKey);
+                //$$ if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toString()),false);
                 //#else
                 String translationKey = key.getValue().toTranslationKey();
                 String translate = StringUtils.translate(translationKey);
                 if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toCenterPos().toString()));
                 //#endif
 
-                //#if MC > 12001
+                //#if MC >= 12001
                 //$$ MemoryUtils.PRINTER_MEMORY.removeMemory(key.getValue(), pos);
+                //#else
+                red.jackf.chesttracker.memory.MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
+                me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
                 //#endif
             }
-
             if (MinecraftClient.getInstance().player != null) {
                 MinecraftClient.getInstance().player.closeHandledScreen();
             }
@@ -368,11 +383,19 @@ public class OpenInventoryPacket {
     }
 
     public static void tick(){
-        boolean booleanValue = LitematicaMixinMod.AUTO_INVENTORY.getBooleanValue();
-        if(booleanValue && remoteTime != 0 && !isRemote && remoteTime + 3000L < System.currentTimeMillis()){
-            Messager.actionBar("已自动关闭远程交互容器");
-            LitematicaMixinMod.INVENTORY.setBooleanValue(false);
-            remoteTime = 0;
+        if (!LitematicaMixinMod.AUTO_INVENTORY.getBooleanValue()) return;
+        if(remoteTime != 0 && !isRemote && remoteTime + 3000L < System.currentTimeMillis()){
+            if(!clientTry) {
+                clientTryTime = System.currentTimeMillis();
+                sendOpenInventory(new BlockPos(0,-999,0), client.player.clientWorld.getRegistryKey());
+            }
+            clientTry = true;
+            if(clientTryTime + 3000L < System.currentTimeMillis() && clientTry){
+                Messager.actionBar("已自动关闭远程交互容器");
+                LitematicaMixinMod.INVENTORY.setBooleanValue(false);
+                remoteTime = 0;
+                clientTry = false;
+            }
         }
     }
 
@@ -384,5 +407,18 @@ public class OpenInventoryPacket {
 //    //#else
 //    //$$
 //    //#endif
-
+    public static boolean isContainer(BlockEntity blockEntity){
+        if(blockEntity == null) return false;
+        BlockEntityType<?> type = blockEntity.getType();
+        return  type == BlockEntityType.CHEST || type == BlockEntityType.ENDER_CHEST ||
+                type == BlockEntityType.SHULKER_BOX || type == BlockEntityType.BARREL ||
+                type == BlockEntityType.HOPPER || type == BlockEntityType.DISPENSER ||
+                type == BlockEntityType.DROPPER || type == BlockEntityType.BREWING_STAND ||
+                type == BlockEntityType.BLAST_FURNACE || type == BlockEntityType.SMOKER
+                //#if MC > 12002
+                //$$ ||
+                //$$ type == BlockEntityType.CRAFTER
+                //#endif
+                ;
+    }
 }

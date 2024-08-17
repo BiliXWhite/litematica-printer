@@ -1,12 +1,8 @@
 package me.aleksilassila.litematica.printer.printer;
 
-import com.mojang.brigadier.StringReader;
 import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.litematica.data.DataManager;
-import fi.dy.masa.litematica.schematic.placement.SchematicPlacement;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
-import fi.dy.masa.litematica.schematic.projects.SchematicProject;
-import fi.dy.masa.litematica.schematic.projects.SchematicProjectsManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
 import fi.dy.masa.litematica.util.EasyPlaceProtocol;
@@ -21,8 +17,8 @@ import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionMa
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.mixin.masa.Litematica_InventoryUtilsMixin;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.loader.api.FabricLoader;
@@ -31,7 +27,6 @@ import net.minecraft.block.enums.ChestType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.command.argument.ItemStringReader;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Item;
@@ -45,7 +40,6 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
@@ -61,14 +55,14 @@ import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRIC
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
 import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
-import static me.aleksilassila.litematica.printer.mixin.masa.WorldUtilsMixin.applyBlockSlabProtocol;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.*;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.openIng;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.SwitchItem.reSwitchItem;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem.reSwitchItem;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 
-//#if MC > 12001
+//#if MC >= 12001
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 //$$ import red.jackf.chesttracker.api.providers.InteractionTracker;
@@ -80,6 +74,8 @@ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //#endif
 
 //#if MC < 11904
+//$$ import net.minecraft.command.argument.ItemStringReader;
+//$$ import com.mojang.brigadier.StringReader;
 //$$ import net.minecraft.util.registry.RegistryKey;
 //$$ import net.minecraft.util.registry.Registry;
 //#else
@@ -533,7 +529,7 @@ public class Printer extends PrinterUtils {
                 return true;
             } else if (LitematicaMixinMod.INVENTORY.getBooleanValue()) {
                 for (Item item : items2) {
-                     //#if MC > 12001
+                     //#if MC >= 12001
                         //#if MC > 12004
                         //$$ MemoryUtils.currentMemoryKey = client.world.getRegistryKey().getValue();
                         //#else
@@ -594,10 +590,10 @@ public class Printer extends PrinterUtils {
         boolean forcedPlacementBooleanValue = LitematicaMixinMod.FORCED_PLACEMENT.getBooleanValue();
 
         if (tickRate != 0) {
+            queue.sendQueue(client.player);
             if (tick % tickRate != 0) {
                 return;
             }
-            queue.sendQueue(client.player);
         }
         if (isFacing) {
             switchToItems(pEntity, item2);
@@ -739,7 +735,10 @@ public class Printer extends PrinterUtils {
                 action.queueAction(queue, pos, side, useShift, lookDir != null);
 
                 Vec3d hitModifier = usePrecisionPlacement(pos, requiredState);
-                if(hitModifier != null) queue.hitModifier = hitModifier;
+                if(hitModifier != null){
+                    queue.hitModifier = hitModifier;
+                    queue.termsOfUse = true;
+                }
 
                 if (requiredState.isOf(Blocks.NOTE_BLOCK)) {
                     queue.sendQueue(pEntity);
@@ -786,9 +785,7 @@ public class Printer extends PrinterUtils {
     public Vec3d usePrecisionPlacement(BlockPos pos,BlockState stateSchematic){
         if (LitematicaMixinMod.EASY_MODE.getBooleanValue()) {
             EasyPlaceProtocol protocol = PlacementHandler.getEffectiveProtocolVersion();
-//            Vec3d hitPos = Vec3d.ZERO;
             Vec3d hitPos = Vec3d.of(pos);
-            Vec3d hitPos2 = queue.hitModifier;
             if (protocol == EasyPlaceProtocol.V3)
             {
                 return applyPlacementProtocolV3(pos, stateSchematic, hitPos);
@@ -797,11 +794,6 @@ public class Printer extends PrinterUtils {
             {
                 // Carpet Accurate Block Placement protocol support, plus slab support
                 return applyCarpetProtocolHitVec(pos, stateSchematic, hitPos);
-            }
-            else if (protocol == EasyPlaceProtocol.SLAB_ONLY)
-            {
-                // Slab support only
-                return applyBlockSlabProtocol(pos, stateSchematic, hitPos);
             }
         }
         return null;
@@ -879,8 +871,9 @@ public class Printer extends PrinterUtils {
 //                            }
 //                            shulkerBox = shulkerSlot == -1? null : slots.get(shulkerSlot).getStack();
                             if (OpenInventoryPacket.key != null) {
-                                SwitchItem.newItem(slots.get(y).getStack(), OpenInventoryPacket.pos, OpenInventoryPacket.key, y, shulkerBoxSlot);
+                                SwitchItem.newItem(slots.get(y).getStack(), OpenInventoryPacket.pos, OpenInventoryPacket.key, y, -1);
                             } else SwitchItem.newItem(slots.get(y).getStack(), null, null, y, shulkerBoxSlot);
+                            int boxSlot = shulkerBoxSlot;
                             shulkerBoxSlot = -1;
                             int a = Litematica_InventoryUtilsMixin.getEmptyPickBlockableHotbarSlot(player.getInventory()) == -1 ?
                                     Litematica_InventoryUtilsMixin.getPickBlockTargetSlot(player) :
@@ -924,8 +917,8 @@ public class Printer extends PrinterUtils {
                         try {
                             if (reSwitchItem == null) shulkerBoxSlot = i;
 //                            ClientUtil.CheckAndSend(stack,i);
-                            //#if MC > 12001
-                            //$$ InteractionTracker.INSTANCE.clear();
+                            //#if MC >= 12001
+                            //$$ if(loadChestTracker) InteractionTracker.INSTANCE.clear();
                             //#endif
                             Class quickShulker = Class.forName("net.kyrptonaught.quickshulker.client.ClientUtil");
                             Method checkAndSend = quickShulker.getDeclaredMethod("CheckAndSend", ItemStack.class, int.class);
@@ -988,6 +981,7 @@ public class Printer extends PrinterUtils {
         public Vec3d hitModifier;
         public boolean shift = false;
         public boolean didSendLook = true;
+        public boolean termsOfUse = false;
 
         public Direction lookDir = null;
 
@@ -1028,7 +1022,7 @@ public class Printer extends PrinterUtils {
 
 //            hitModifier = new Vec3d(hitModifier.x, hitModifier.y, hitModifier.z);
             Vec3d hitVec = hitModifier;
-            if(!LitematicaMixinMod.EASY_MODE.getBooleanValue()){
+            if(!termsOfUse){
                 hitModifier = hitModifier.rotateY((direction.asRotation() + 90) % 360);
                  hitVec = Vec3d.ofCenter(target)
                         .add(Vec3d.of(side.getVector()).multiply(0.5))

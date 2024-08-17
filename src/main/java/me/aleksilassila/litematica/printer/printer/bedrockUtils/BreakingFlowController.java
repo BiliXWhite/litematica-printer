@@ -6,6 +6,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -132,6 +133,10 @@ public class BreakingFlowController {
 
 //            if (blockInPlayerRange(selectedBlock.getBlockPos(), player, 5f)) {
 //            if (DataManager.getRenderLayerRange().isPositionWithinRange(selectedBlock.getBlockPos())) {
+            //#if MC > 12006
+            //$$ ItemStack mainHandStack = client.player.getMainHandStack();
+            //$$ cachedTargetBlockList.stream().filter( targetBlock -> targetBlock.getStatus() == TargetBlock.Status.EXTENDED).forEach(TargetBlock::tick);
+            //#endif
             TargetBlock.Status status = cachedTargetBlockList.get(i).tick();
             if (status == TargetBlock.Status.RETRACTING) {
                 continue;
@@ -146,6 +151,12 @@ public class BreakingFlowController {
 
 //            }
         }
+        //#if MC > 12006
+        //$$ if (cachedTargetBlockList.stream().anyMatch(targetBlock -> targetBlock.getStatus() == TargetBlock.Status.EXTENDED)) {
+        //$$     InventoryManager.switchToItem(Items.DIAMOND_PICKAXE);
+        //$$     TargetBlock.switchPickaxe = true;
+        //$$ }
+        //#endif
     }
 
     private static boolean blockInPlayerRange(BlockPos blockPos, PlayerEntity player, float range) {

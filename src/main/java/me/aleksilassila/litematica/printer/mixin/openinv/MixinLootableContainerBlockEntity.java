@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.openinv;
 
-//#if MC < 11802
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
+//#if MC <= 11802
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 //$$ import net.minecraft.block.BlockState;
 //$$ import net.minecraft.block.entity.*;
 //$$ import net.minecraft.entity.player.PlayerEntity;

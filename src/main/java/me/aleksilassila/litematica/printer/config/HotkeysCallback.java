@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.config;
 
-import fi.dy.masa.malilib.config.IHotkeyTogglable;
 import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
@@ -9,15 +8,11 @@ import net.minecraft.client.MinecraftClient;
 
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
-import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
-import fi.dy.masa.malilib.hotkeys.IKeybind;
-import fi.dy.masa.malilib.hotkeys.KeyAction;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.Messager;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
-import net.minecraft.client.MinecraftClient;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 
-//#if MC > 12001
+//#if MC >= 12001
 //$$ import fi.dy.masa.malilib.util.GuiUtils;
 //$$ import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
 //$$ import net.minecraft.client.gui.screen.ingame.HandledScreen;
@@ -59,7 +54,7 @@ public class HotkeysCallback implements IHotkeyCallback {
             startAddPrinterInventory();
             return true;
         }else if(key == REMOVE_PRINT_INVENTORY.getKeybind()){
-            //#if MC > 12001
+            //#if MC >= 12001
             //$$ MemoryUtils.deletePrinterMemory();
             //#else
             MemoryDatabase database = MemoryDatabase.getCurrent();
@@ -72,7 +67,7 @@ public class HotkeysCallback implements IHotkeyCallback {
             //#endif
             return true;
         }
-        //#if MC > 12001
+        //#if MC >= 12001
         //$$ else if(GuiUtils.getCurrentScreen() instanceof HandledScreen<?> gui &&
         //$$         !(GuiUtils.getCurrentScreen() instanceof CreativeInventoryScreen))
         //$$ {

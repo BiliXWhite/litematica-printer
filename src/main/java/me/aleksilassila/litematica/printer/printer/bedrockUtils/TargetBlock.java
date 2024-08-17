@@ -4,15 +4,20 @@ import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.PistonBlock;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.item.Item;
+import net.minecraft.item.Items;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController.addPosList;
-//import net.minecraft.world.World;
+import static me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController.cachedTargetBlockList;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
 
 public class TargetBlock {
+    public static boolean switchPickaxe = false;
     private BlockPos blockPos;
     private BlockPos redstoneTorchBlockPos;
     private BlockPos pistonBlockPos;
@@ -22,6 +27,7 @@ public class TargetBlock {
     private int tickTimes;
     private boolean hasTried;
     private int stuckTicksCounter;
+    public boolean pistonIsBreak = false;
     public ArrayList<BlockPos> temppos = new ArrayList<>();
 
     public TargetBlock(BlockPos pos, ClientWorld world) {
@@ -45,7 +51,7 @@ public class TargetBlock {
 
     public Status tick() {
         this.tickTimes++;
-        updateStatus();
+        if(!pistonIsBreak) updateStatus();
         switch (this.status) {
             case UNINITIALIZED:
                 InventoryManager.switchToItem(Blocks.PISTON);
@@ -56,6 +62,11 @@ public class TargetBlock {
             case UNEXTENDED_WITH_POWER_SOURCE:
                 break;
             case EXTENDED:
+                //#if MC > 12006
+                //$$ Item item = client.player.getMainHandStack().getItem();
+                //$$ System.out.println(item.toString());
+                //$$ if(!(item.equals(Items.NETHERITE_PICKAXE) || item.equals(Items.DIAMOND_PICKAXE)) || !switchPickaxe) break;
+                //#endif
                 //打掉红石火把
                 ArrayList<BlockPos> nearByRedstoneTorchPosList = CheckingEnvironment.findNearbyRedstoneTorch(world, pistonBlockPos);
                 for (BlockPos pos : nearByRedstoneTorchPosList) {
@@ -67,9 +78,22 @@ public class TargetBlock {
                     addPosList(pistonBlockPos.up(i));
                 }
                 //放置朝下的活塞
+                //#if MC > 12006
+                //$$ pistonIsBreak = true;
+                //$$ List<TargetBlock> list = cachedTargetBlockList.stream().filter(targetBlock -> targetBlock.status == Status.EXTENDED).toList();
+                //$$ if (list.stream().allMatch(targetBlock -> targetBlock.pistonIsBreak)) {
+                //$$     list.forEach(targetBlock -> {
+                //$$         BlockPlacer.pistonPlacement(targetBlock.pistonBlockPos, Direction.DOWN);
+                //$$         targetBlock.hasTried = true;
+                //$$         targetBlock.status = Status.NEEDS_WAITING;
+                //$$     });
+                //$$ }
+                //$$ break;
+                //#else
                 BlockPlacer.pistonPlacement(this.pistonBlockPos, Direction.DOWN);
                 this.hasTried = true;
                 break;
+                //#endif
             case RETRACTED:
                 addPosList(pistonBlockPos);
                 addPosList(pistonBlockPos.up());
@@ -99,6 +123,12 @@ public class TargetBlock {
 //                BlockBreaker.breakBlock(world, pistonBlockPos.up());
                 break;
             case NEEDS_WAITING:
+                //#if MC > 12006
+                //$$ if (pistonIsBreak) {
+                //$$     pistonIsBreak = false;
+                //$$     break;
+                //$$ }
+                //#endif
                 break;
         }
         return null;

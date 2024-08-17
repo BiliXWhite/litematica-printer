@@ -95,7 +95,7 @@ public class Configs implements IConfigHandler {
         if(loadChestTracker){
             list.add(PRINTER_INVENTORY);
             list.add(REMOVE_PRINT_INVENTORY);
-            //#if MC > 12001
+            //#if MC >= 12001
             //$$ list.add(LAST);
             //$$ list.add(NEXT);
             //$$ list.add(DELETE);
@@ -124,7 +124,7 @@ public class Configs implements IConfigHandler {
 		if(loadChestTracker){
             list.add(PRINTER_INVENTORY);
             list.add(REMOVE_PRINT_INVENTORY);
-            //#if MC > 12001
+            //#if MC >= 12001
             //$$ list.add(LAST);
             //$$ list.add(NEXT);
             //$$ list.add(DELETE);

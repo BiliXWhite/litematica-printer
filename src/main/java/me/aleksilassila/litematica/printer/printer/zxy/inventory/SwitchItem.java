@@ -1,6 +1,7 @@
-package me.aleksilassila.litematica.printer.printer.zxy.Utils;
+package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.malilib.util.InventoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -53,23 +54,38 @@ public class SwitchItem {
                 Statistics.closeScreen++;
             }else {
                 ScreenHandler sc = client.player.currentScreenHandler;
-                for (int i = 9; i < sc.slots.size() && itemStatistics.shulkerBoxSlot != -1; i++) {
-                    ItemStack stack = sc.slots.get(i).getStack();
-                    if (InventoryUtils.getStoredItems(stack,-1).stream().anyMatch(stack1 -> stack1.isEmpty() ||
-                            (InventoryUtils.areStacksEqual(stack1,reSwitchItem) && stack1.getCount() < stack1.getMaxCount()))
-                    ) {
-                        try {
-                            Class quickShulker = Class.forName("net.kyrptonaught.quickshulker.client.ClientUtil");
-                            Method checkAndSend = quickShulker.getDeclaredMethod("CheckAndSend",ItemStack.class,int.class);
-                            checkAndSend.invoke(checkAndSend,sc.slots.get(itemStatistics.shulkerBoxSlot).getStack(),i);
-                            Statistics.closeScreen++;
-                            return;
-                        } catch (Exception ignored){}
+                //因使用快捷濳影盒打开容器后无法更新，所以读取的盒子物品列表没意义。
+//                DefaultedList<ItemStack> storedItems = InventoryUtils.getStoredItems(sc.slots.get(itemStatistics.shulkerBoxSlot).getStack(), -1);
+//                if(storedItems.get(itemStatistics.slot).isEmpty()){
+                    try {
+                        Class quickShulker = Class.forName("net.kyrptonaught.quickshulker.client.ClientUtil");
+                        Method checkAndSend = quickShulker.getDeclaredMethod("CheckAndSend",ItemStack.class,int.class);
+                        checkAndSend.invoke(checkAndSend,sc.slots.get(itemStatistics.shulkerBoxSlot).getStack(),itemStatistics.shulkerBoxSlot);
+                        Statistics.closeScreen++;
+                    } catch (Exception ignored){
+                        removeItem(reSwitchItem);
+                        reSwitchItem = null;
                     }
-                }
-                removeItem(reSwitchItem);
-                reSwitchItem = null;
+//                }
+//                for (int i = 9; i < sc.slots.size() && itemStatistics.shulkerBoxSlot != -1; i++) {
+//                    ItemStack stack = sc.slots.get(i).getStack();
+//                    if (InventoryUtils.getStoredItems(stack,-1).stream().anyMatch(stack1 -> stack1.isEmpty() ||
+//                            (InventoryUtils.areStacksEqual(stack1,reSwitchItem) && stack1.getCount() + reSwitchItem.getCount() <= stack1.getMaxCount()))
+//                    ) {
+//                        try {
+//                            Class quickShulker = Class.forName("net.kyrptonaught.quickshulker.client.ClientUtil");
+//                            Method checkAndSend = quickShulker.getDeclaredMethod("CheckAndSend",ItemStack.class,int.class);
+//                            checkAndSend.invoke(checkAndSend,sc.slots.get(itemStatistics.shulkerBoxSlot).getStack(),i);
+//                            Statistics.closeScreen++;
+//                            return;
+//                        } catch (Exception ignored){}
+//                    }
+//                }
+
             }
+        }else {
+            removeItem(reSwitchItem);
+            reSwitchItem = null;
         }
     }
     public static void checkItems(){
@@ -93,6 +109,7 @@ public class SwitchItem {
         ClientPlayerEntity player = client.player;
         ScreenHandler sc = player.currentScreenHandler;
         if (sc.equals(player.playerScreenHandler)) return;
+
         List<Integer> sameItem = new ArrayList<>();
         for (int i = 0; i < sc.slots.size(); i++) {
             Slot slot = sc.slots.get(i);
@@ -104,6 +121,7 @@ public class SwitchItem {
                 int slot1 = itemStacks.get(reSwitchItem).slot;
                 boolean reInv = false;
                 //检查记录的槽位是否有物品
+                ItemStack stack = sc.slots.get(slot1).getStack();
                 if(sc.slots.get(slot1).getStack().isEmpty()){
                     client.interactionManager.clickSlot(sc.syncId, i, 0, SlotActionType.PICKUP, client.player);
                     client.interactionManager.clickSlot(sc.syncId, slot1, 0, SlotActionType.PICKUP, client.player);
@@ -123,7 +141,9 @@ public class SwitchItem {
                 removeItem(reSwitchItem);
                 reSwitchItem = null;
                 player.closeHandledScreen();
-                if(!reInv) client.inGameHud.setOverlayMessage(Text.of("复原库存物品失败"),false);
+                if(!reInv) {
+                    client.inGameHud.setOverlayMessage(Text.of("复原库存物品失败"),false);
+                }
                 client.interactionManager.clickSlot(sc.syncId, i, 0, SlotActionType.PICKUP, client.player);
                 return;
             }

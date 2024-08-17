@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.printer.zxy.Utils;
+package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;

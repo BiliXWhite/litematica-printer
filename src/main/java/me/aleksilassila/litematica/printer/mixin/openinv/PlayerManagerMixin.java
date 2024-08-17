@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.openinv;
 
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.PlayerManager;
 //#if MC > 12001

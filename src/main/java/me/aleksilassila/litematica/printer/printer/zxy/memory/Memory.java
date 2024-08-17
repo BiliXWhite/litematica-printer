@@ -1,6 +1,6 @@
 
 package me.aleksilassila.litematica.printer.printer.zxy.memory;
-//#if MC < 12002
+//#if MC < 12001
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.item.ItemStack;

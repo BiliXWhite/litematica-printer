@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "me.aleksilassila.litematica.printer.mixin",
-  "compatibilityLevel": "JAVA_16",
+  "compatibilityLevel": "JAVA_21",
   "mixins": [
     "masa.Litematica_InventoryUtilsMixin",
     "masa.MixinInventoryUtils",
@@ -12,13 +12,13 @@
     "openinv.MixinGenericContainerScreenHandler",
     "openinv.PlayerManagerMixin",
     "openinv.ClientPlayNetworkHandlerMixin",
-    "openinv.BlockWithEntityMixin",
-    //#if MC > 11802 && MC < 12005
+    //#if MC > 11802
     "openinv.InventoryMixin",
-    //#elseif MC < 12005
+    //#elseif MC < 12002
     //$$ "openinv.MixinLootableContainerBlockEntity",
     //#endif
     "openinv.MixinServerPlayerEntity",
+    "openinv.MixinPlayerEntity",
     "openinv.MixinServerWorld"
   ],
   "client": [
@@ -31,7 +31,7 @@
     "MixinClientPlayerInteractionManager",
     "MixinClientPlayNetworkHandler",
     "PlayerMoveC2SPacketAccessor",
-    //#if MC > 12001
+    //#if MC >= 12001
     //$$ "jackf.ChestTrackerScreenMixin",
     //$$ "jackf.ItemStackUtilMixin",
     //$$ "jackf.MemoryBankAccessMixin",

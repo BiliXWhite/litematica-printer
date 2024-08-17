@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.jackf;
 
 
-//#if MC > 12001
+//#if MC >= 12001
 //$$ import org.spongepowered.asm.mixin.Mixin;
 //$$ import org.spongepowered.asm.mixin.injection.At;
 //$$ import org.spongepowered.asm.mixin.injection.Inject;

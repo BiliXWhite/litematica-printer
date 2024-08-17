@@ -10,10 +10,12 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 //#if MC > 12001
 //$$ import net.minecraft.client.network.ClientCommonNetworkHandler;
-//$$ @Mixin(ClientCommonNetworkHandler.class)
+//$$ @Mixin(value = ClientCommonNetworkHandler.class)
 //#else
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 @Mixin(ClientPlayNetworkHandler.class)
@@ -31,8 +33,13 @@ public class ClientCommonNetworkHandlerMixin {
      * @author 6
      * @reason 6
      */
-    @Overwrite
-    public void sendPacket(Packet<?> packet) {
+//    @Overwrite
+    //#if MC < 12004
+    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket(Lnet/minecraft/network/packet/Packet;)V")
+    //#else
+    //$$ @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket")
+    //#endif
+    public void sendPacket(ClientConnection instance, Packet<?> packet) {
         if (Printer.getPrinter() == null) {
             this.connection.send(packet);
             return;

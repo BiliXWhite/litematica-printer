@@ -1,8 +1,8 @@
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 
-//#if MC < 12002
+//#if MC < 12001
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.RegistryKey;
@@ -20,7 +20,7 @@ import red.jackf.chesttracker.memory.MemoryDatabase;
     //#else
     import net.minecraft.registry.RegistryKeys;
     //#endif
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.key;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.key;
 
 @Mixin(ChestTracker.class)
 public class MixinChestTracker {

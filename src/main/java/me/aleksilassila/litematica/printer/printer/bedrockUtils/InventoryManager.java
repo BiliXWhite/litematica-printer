@@ -19,6 +19,7 @@ import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.screen.slot.SlotActionType;
 
+import static me.aleksilassila.litematica.printer.printer.bedrockUtils.TargetBlock.switchPickaxe;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.getEnchantmentLevel;
 //import net.minecraft.tag.FluidTags;
 
@@ -72,7 +73,8 @@ public class InventoryManager {
         }
         if ("diamond_pickaxe".equals(item.toString()) || "minecraft:diamond_pickaxe".equals(item.toString())) {
             i = getEfficientTool(playerInventory);
-        }
+        }else switchPickaxe = false;
+
         if (i != -1) {
 
             if (PlayerInventory.isValidHotbarIndex(i)) {

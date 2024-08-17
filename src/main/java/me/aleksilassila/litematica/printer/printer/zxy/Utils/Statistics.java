@@ -10,5 +10,4 @@ public class Statistics {
     public static boolean isLoadMod(String modId){
         return FabricLoader.getInstance().isModLoaded(modId);
     }
-
 }

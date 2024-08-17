@@ -3,22 +3,21 @@ package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.Color4f;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
-import me.aleksilassila.litematica.printer.mixin.openinv.BlockWithEntityMixin;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.BlockWithEntity;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.mob.ShulkerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -38,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
-//#if MC > 12001
+//#if MC >= 12001
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#else
 import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
@@ -49,7 +48,8 @@ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //$$ import net.minecraft.registry.entry.RegistryEntry;
 //#endif
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.OpenInventoryPacket.*;
+import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_COLOR;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
 
@@ -63,12 +63,13 @@ public class ZxyUtils {
     public static LinkedList<BlockPos> invBlockList = new LinkedList<>();
     public static boolean printerMemoryAdding = false;
     public static boolean syncPrinterInventory = false;
+    public static String syncInventoryId = "syncInventory";
 
     public static void startAddPrinterInventory(){
         getReadyColor();
         if (LitematicaMixinMod.INVENTORY.getBooleanValue() && !printerMemoryAdding) {
             printerMemoryAdding = true;
-            //#if MC > 12001
+            //#if MC >= 12001
             //$$ if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
             //#endif
 
@@ -90,7 +91,7 @@ public class ZxyUtils {
             client.inGameHud.setOverlayMessage(Text.of("添加库存中"), false);
             for (BlockPos pos : invBlockList) {
                 if (client.world != null) {
-                    //#if MC < 12002
+                    //#if MC < 12001
                     MemoryUtils.setLatestPos(pos);
                     //#endif
                     closeScreen++;
@@ -109,15 +110,13 @@ public class ZxyUtils {
     public static ArrayList<ItemStack> targetBlockInv;
     public static int num = 0;
     static BlockPos blockPos = null;
-    static Color4f color4f;
     static List<BlockPos> highlightPosList = new LinkedList<>();
     static Map<ItemStack,Integer> targetItemsCount = new HashMap<>();
     static Map<ItemStack,Integer> playerItemsCount = new HashMap<>();
 
     private static void getReadyColor(){
-        color4f = LitematicaMixinMod.SYNC_INVENTORY_COLOR.getColor();
-        HighlightBlockRenderer.addHighlightMap(color4f);
-        highlightPosList = HighlightBlockRenderer.getPosList(color4f);
+        HighlightBlockRenderer.createHighlightBlockList(syncInventoryId,SYNC_INVENTORY_COLOR);
+        highlightPosList = HighlightBlockRenderer.getHighlightBlockPosList(syncInventoryId);
     }
 
     public static void startOrOffSyncInventory() {
@@ -130,10 +129,10 @@ public class ZxyUtils {
                 block = client.world.getBlockState(pos).getBlock();
                 BlockEntity blockEntity = client.world.getBlockEntity(pos);
                 try {
-                    if (blockState.isAir() || ((BlockWithEntityMixin) blockState.getBlock()).createScreenHandlerFactory(blockState, client.world, pos) == null ||
+                    if ((!InventoryUtils.isInventory(client.world,pos) && blockState.createScreenHandlerFactory(client.world,pos) == null)||
                             (blockEntity instanceof ShulkerBoxBlockEntity entity &&
                                     //#if MC > 12004
-                                    //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(0.0f, blockState.get(FACING), 0.5f).offset(pos).contract(1.0E-6)) &&
+                                    //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
                                     //#else
                                     !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
                                     //#endif
@@ -148,21 +147,24 @@ public class ZxyUtils {
             String blockName = Registries.BLOCK.getId(block).toString();
             if (Printer.getPrinter() != null) {
                 syncPosList.addAll(Printer.getPrinter().siftBlock(blockName));
-                highlightPosList.addAll(syncPosList);
             }
             if (!syncPosList.isEmpty()) {
                 if (client.player == null) return;
                 client.player.closeHandledScreen();
-                if (!openInv(pos,false))return;
+                if (!openInv(pos,false)){
+                    syncPosList = new LinkedList<>();
+                    return;
+                }
+                highlightPosList.addAll(syncPosList);
                 closeScreen++;
                 num = 1;
             }
-        } else {
+        } else if(!syncPosList.isEmpty()){
             highlightPosList.removeAll(syncPosList);
             syncPosList = new LinkedList<>();
             if (client.player != null) client.player.closeScreen();
             num = 0;
-            client.inGameHud.setOverlayMessage(Text.of("已取消同步"),false);
+            client.inGameHud.setOverlayMessage(Text.of("已取消同步"), false);
         }
     }
     public static boolean openInv(BlockPos pos,boolean ignoreThePrompt){
@@ -170,7 +172,7 @@ public class ZxyUtils {
             OpenInventoryPacket.sendOpenInventory(pos, client.world.getRegistryKey());
             return true;
         } else {
-            if (client.player != null && client.player.squaredDistanceTo(Vec3d.ofCenter(pos)) > 25D) {
+            if (client.player != null && !canInteracted(5,Vec3d.ofCenter(pos))) {
                 if(!ignoreThePrompt) client.inGameHud.setOverlayMessage(Text.of("距离过远无法打开容器"), false);
                 return false;
             }
@@ -326,6 +328,7 @@ public class ZxyUtils {
             LitematicaMixinMod.EXCAVATE.setBooleanValue(false);
             LitematicaMixinMod.FLUID.setBooleanValue(false);
             LitematicaMixinMod.PRINT_SWITCH.setBooleanValue(false);
+            LitematicaMixinMod.PRINTER_MODE.setOptionListValue(State.PrintModeType.PRINTER);
             client.inGameHud.setOverlayMessage(Text.of("已关闭全部模式"), false);
         }
         OpenInventoryPacket.tick();
@@ -364,10 +367,12 @@ public class ZxyUtils {
 
     public static boolean canInteracted(Vec3d d, double range) {
         IConfigOptionListEntry optionListValue = LitematicaMixinMod.RANGE_MODE.getOptionListValue();
-        return optionListValue != State.ListType.SPHERE ||
-                (client.player != null &&
-                        d != null &&
-                        client.player.getEyePos().squaredDistanceTo(d) < range * range);
+        return optionListValue != State.ListType.SPHERE || canInteracted(range,d);
+    }
+    public static boolean canInteracted(double range,Vec3d d){
+        return client.player != null &&
+                d != null &&
+                client.player.getEyePos().squaredDistanceTo(d) < range * range;
     }
 
     public static boolean canInteracted(BlockPos blockPos) {
@@ -399,6 +404,7 @@ public class ZxyUtils {
         Verify.verify = null;
         BreakingFlowController.poslist = new ArrayList<>();
         isRemote = false;
+        clientTry = false;
         remoteTime = 0;
     }
 

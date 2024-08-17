@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.jackf;
 
 
-//#if MC > 12001
+//#if MC >= 12001
 //$$
 //$$ import fi.dy.masa.malilib.util.StringUtils;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.Utils.PinYinSearch;
