@@ -10,7 +10,7 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
@@ -106,7 +106,7 @@ public abstract class MemoryUtilsMixin {
 //                System.out.println(state);
                 boolean k = true;
                 for (String string : LitematicaMixinMod.INVENTORY_LIST.getStrings()) {
-                    if (Registries.BLOCK.getId(block).toString().contains(string)) {
+                    if (Registry.BLOCK.getId(block).toString().contains(string)) {
                         k = false;
                         break;
                     }

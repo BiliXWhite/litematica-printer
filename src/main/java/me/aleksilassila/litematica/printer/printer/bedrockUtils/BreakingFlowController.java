@@ -79,9 +79,9 @@ public class BreakingFlowController {
             if (MinecraftClient.getInstance().world.getBlockState(blockPos).isAir() && ZxyUtils.bedrockCanInteracted(blockPos, bedrockModeRange())) {
                 InventoryManager.switchToItem(Items.DIAMOND_PICKAXE);
                 //#if MC < 11904
-                //$$ client.interactionManager.interactBlock(client.player,client.world, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(blockPos), Direction.UP, poslist.get(i), false));
+                client.interactionManager.interactBlock(client.player,client.world, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(blockPos), Direction.UP, poslist.get(i), false));
                 //#else
-                client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(blockPos), Direction.UP, poslist.get(i), false));
+                //$$ client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(blockPos), Direction.UP, poslist.get(i), false));
                 //#endif
                 if (MinecraftClient.getInstance().world.getBlockState(blockPos).isAir()) {
                     poslist.remove(i);

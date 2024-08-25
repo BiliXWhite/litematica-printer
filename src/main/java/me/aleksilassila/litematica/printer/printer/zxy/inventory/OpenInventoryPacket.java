@@ -14,9 +14,10 @@ import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.mob.ShulkerEntity;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.network.PacketByteBuf;
 
-import net.minecraft.registry.RegistryKey;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ChunkTicketType;
@@ -36,9 +37,9 @@ import net.minecraft.world.World;
 //#endif
 
 //#if MC < 11904
-//$$ import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.Registry;
 //#else
-import net.minecraft.registry.RegistryKeys;
+//$$ import net.minecraft.registry.RegistryKeys;
 //#endif
 
 import java.util.ArrayList;
@@ -219,9 +220,9 @@ public class OpenInventoryPacket {
         ServerPlayNetworking.registerGlobalReceiver(OPEN_INVENTORY, (server, player, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
             BlockPos pos = packetByteBuf.readBlockPos();
             //#if MC < 11904
-            //$$ RegistryKey<World> key = RegistryKey.of(Registry.WORLD_KEY, packetByteBuf.readIdentifier());
+            RegistryKey<World> key = RegistryKey.of(Registry.WORLD_KEY, packetByteBuf.readIdentifier());
             //#else
-            RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, packetByteBuf.readIdentifier());
+            //$$ RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, packetByteBuf.readIdentifier());
             //#endif
             server.execute(() -> openInv(server, player, pos, key));
         });
@@ -335,13 +336,13 @@ public class OpenInventoryPacket {
         } else {
             if (key != null) {
                 //#if MC < 11904
-                //$$ String translationKey = key.getValue().toString();
-                //$$ String translate = StringUtils.translate(translationKey);
-                //$$ if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toString()),false);
-                //#else
-                String translationKey = key.getValue().toTranslationKey();
+                String translationKey = key.getValue().toString();
                 String translate = StringUtils.translate(translationKey);
-                if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toCenterPos().toString()));
+                if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toString()),false);
+                //#else
+                //$$ String translationKey = key.getValue().toTranslationKey();
+                //$$ String translate = StringUtils.translate(translationKey);
+                //$$ if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toCenterPos().toString()));
                 //#endif
 
                 //#if MC >= 12001
@@ -408,17 +409,18 @@ public class OpenInventoryPacket {
 //    //$$
 //    //#endif
     public static boolean isContainer(BlockEntity blockEntity){
-        if(blockEntity == null) return false;
-        BlockEntityType<?> type = blockEntity.getType();
-        return  type == BlockEntityType.CHEST || type == BlockEntityType.ENDER_CHEST ||
-                type == BlockEntityType.SHULKER_BOX || type == BlockEntityType.BARREL ||
-                type == BlockEntityType.HOPPER || type == BlockEntityType.DISPENSER ||
-                type == BlockEntityType.DROPPER || type == BlockEntityType.BREWING_STAND ||
-                type == BlockEntityType.BLAST_FURNACE || type == BlockEntityType.SMOKER
-                //#if MC > 12002
-                //$$ ||
-                //$$ type == BlockEntityType.CRAFTER
-                //#endif
-                ;
+        return blockEntity instanceof Inventory;
+//        if(blockEntity == null) return false;
+//        BlockEntityType<?> type = blockEntity.getType();
+//        return  type == BlockEntityType.CHEST || type == BlockEntityType.ENDER_CHEST ||
+//                type == BlockEntityType.SHULKER_BOX || type == BlockEntityType.BARREL ||
+//                type == BlockEntityType.HOPPER || type == BlockEntityType.DISPENSER ||
+//                type == BlockEntityType.DROPPER || type == BlockEntityType.BREWING_STAND ||
+//                type == BlockEntityType.BLAST_FURNACE || type == BlockEntityType.SMOKER
+//                //#if MC > 12002
+//                //$$ ||
+//                //$$ type == BlockEntityType.CRAFTER
+//                //#endif
+//                ;
     }
 }

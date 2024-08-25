@@ -1,5 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.openinv;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.authlib.GameProfile;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import net.minecraft.entity.player.PlayerEntity;
@@ -24,9 +26,9 @@ public abstract class MixinServerPlayerEntity extends PlayerEntity{
         super(world, pos, yaw, profile);
     }
     //#if MC < 11904
-    //$$ @Inject(at = @At("HEAD"), method = "closeHandledScreen")
+    @Inject(at = @At("HEAD"), method = "closeHandledScreen")
     //#else
-    @Inject(at = @At("HEAD"), method = "onHandledScreenClosed")
+    //$$ @Inject(at = @At("HEAD"), method = "onHandledScreenClosed")
     //#endif
     public void onHandledScreenClosed(CallbackInfo ci) {
         deletePlayerList();
@@ -39,8 +41,8 @@ public abstract class MixinServerPlayerEntity extends PlayerEntity{
     private void deletePlayerList(){
         playerlist.removeIf(player -> player.getUuid().equals(getUuid()));
     }
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/screen/ScreenHandler;canUse(Lnet/minecraft/entity/player/PlayerEntity;)Z"),method = "tick")
-    public boolean onTick(ScreenHandler instance, PlayerEntity playerEntity){
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/screen/ScreenHandler;canUse(Lnet/minecraft/entity/player/PlayerEntity;)Z"),method = "tick")
+    public boolean onTick(ScreenHandler instance, PlayerEntity playerEntity, Operation<Boolean> original){
         if (playerEntity instanceof ServerPlayerEntity) {
             for (ServerPlayerEntity serverPlayerEntity : OpenInventoryPacket.playerlist) {
                 if (serverPlayerEntity.equals(playerEntity)) return true;

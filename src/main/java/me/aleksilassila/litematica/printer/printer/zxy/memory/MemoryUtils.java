@@ -16,7 +16,7 @@ import net.minecraft.client.realms.dto.RealmsServer;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
@@ -99,7 +99,7 @@ public abstract class MemoryUtils {
 //                System.out.println(state);
             boolean k = true;
             for (String string : LitematicaMixinMod.INVENTORY_LIST.getStrings()) {
-                if (Registries.BLOCK.getId(block).toString().contains(string)) {
+                if (Registry.BLOCK.getId(block).toString().contains(string)) {
                     k = false;
                     break;
                 }

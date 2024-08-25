@@ -5,6 +5,8 @@
 
 package me.aleksilassila.litematica.printer.mixin.openinv;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -42,8 +44,8 @@ public abstract class MixinMinecraftClient {
         }
     }
     //鼠标中键从打印机库存或通过快捷濳影盒 取出对应物品
-    @Redirect(method = "doItemPick",at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerInventory;getSlotWithStack(Lnet/minecraft/item/ItemStack;)I" ))
-    private int doItemPick(PlayerInventory instance, ItemStack stack) {
+    @WrapOperation(method = "doItemPick",at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerInventory;getSlotWithStack(Lnet/minecraft/item/ItemStack;)I" ))
+    private int doItemPick(PlayerInventory instance, ItemStack stack, Operation<Integer> original) {
         if(!player.getAbilities().creativeMode && (INVENTORY.getBooleanValue() || QUICKSHULKER.getBooleanValue())){
             Item item = stack.getItem();
             Printer.items2.add(item);

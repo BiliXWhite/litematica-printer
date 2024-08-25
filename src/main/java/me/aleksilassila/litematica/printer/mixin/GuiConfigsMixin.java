@@ -1,8 +1,11 @@
 package me.aleksilassila.litematica.printer.mixin;
 
 import com.google.common.collect.ImmutableList;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import fi.dy.masa.litematica.gui.GuiConfigs;
 import fi.dy.masa.malilib.config.IConfigBase;
+import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -46,19 +49,19 @@ public class GuiConfigsMixin {
 
         return ConfigOptionWrapper.createFor(configs);
     }*/
-	
-	
-    @Redirect(method = "getConfigs", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Configs$Colors;OPTIONS:Lcom/google/common/collect/ImmutableList;"))
-    private ImmutableList<IConfigBase> colorsOptions() {
+
+
+    @WrapOperation(method = "getConfigs", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Configs$Colors;OPTIONS:Lcom/google/common/collect/ImmutableList;"))
+    private ImmutableList<IConfigBase> colorsOptions(Operation<ImmutableList<IConfigBase>> original) {
         return LitematicaMixinMod.getColorsList();
     }
-    @Redirect(method = "getConfigs", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Configs$Generic;OPTIONS:Lcom/google/common/collect/ImmutableList;"))
-    private ImmutableList<IConfigBase> moreOptions() {
+    @WrapOperation(method = "getConfigs", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Configs$Generic;OPTIONS:Lcom/google/common/collect/ImmutableList;"))
+    private ImmutableList<IConfigBase> moreOptions(Operation<ImmutableList<IConfigBase>> original) {
         return LitematicaMixinMod.getConfigList();
     }
-    
-    @Redirect(method = "getConfigs", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Hotkeys;HOTKEY_LIST:Ljava/util/List;"))
-    private List<IConfigBase> moreHotkeys() {
+
+    @WrapOperation(method = "getConfigs", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Hotkeys;HOTKEY_LIST:Ljava/util/List;"))
+    private List<IConfigBase> moreHotkeys(Operation<List<ConfigHotkey>> original) {
         return LitematicaMixinMod.getHotkeyList();
     }
 }

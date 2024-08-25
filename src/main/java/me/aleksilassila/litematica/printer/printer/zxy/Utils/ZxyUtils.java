@@ -21,7 +21,7 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.mob.ShulkerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
@@ -144,7 +144,7 @@ public class ZxyUtils {
                     return;
                 }
             }
-            String blockName = Registries.BLOCK.getId(block).toString();
+            String blockName = Registry.BLOCK.getId(block).toString();
             if (Printer.getPrinter() != null) {
                 syncPosList.addAll(Printer.getPrinter().siftBlock(blockName));
             }
@@ -178,9 +178,9 @@ public class ZxyUtils {
             }
             if (client.interactionManager != null){
                 //#if MC < 11904
-                //$$ client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
+                client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
                 //#else
-                client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
+                //$$ client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
                 //#endif
                 return true;
             } else return false;
@@ -410,9 +410,9 @@ public class ZxyUtils {
 
     public static void useBlock(Vec3d vec3d,Direction direction,BlockPos pos,boolean insideBlock){
         //#if MC < 11904
-        //$$ client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(vec3d, direction,pos,insideBlock));
+        client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(vec3d, direction,pos,insideBlock));
         //#else
-        client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(vec3d, direction,pos,insideBlock));
+        //$$ client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(vec3d, direction,pos,insideBlock));
         //#endif
     }
 

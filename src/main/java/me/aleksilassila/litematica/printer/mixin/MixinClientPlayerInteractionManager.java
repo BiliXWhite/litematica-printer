@@ -17,8 +17,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 //#if MC < 11904
-//$$ import net.minecraft.world.World;
-//$$ import net.minecraft.client.world.ClientWorld;
+import net.minecraft.world.World;
+import net.minecraft.client.world.ClientWorld;
 //#endif
 
 @Mixin(ClientPlayerInteractionManager.class)
@@ -31,13 +31,13 @@ public abstract class MixinClientPlayerInteractionManager implements IClientPlay
 	{
 		interactBlock(client.player,
 				//#if MC < 11904
-//$$ 				client.world,
+				client.world,
 				//#endif
 				Hand.MAIN_HAND,
 			new BlockHitResult(hitVec, side, pos, false));
 		interactItem(client.player,
 				//#if MC < 11904
-//$$ 				client.world,
+				client.world,
 				//#endif
 				Hand.MAIN_HAND);
 //		System.out.println("Printer interactBlock: pos: (" + pos.toShortString() + "), side: " + side.getName() + ", vector: " + hitVec.toString());
@@ -57,14 +57,14 @@ public abstract class MixinClientPlayerInteractionManager implements IClientPlay
 	public abstract ActionResult interactBlock(
             ClientPlayerEntity clientPlayerEntity_1,
 			//#if MC < 11904
-//$$ 			ClientWorld world,
+			ClientWorld world,
 			//#endif
             Hand hand_1, BlockHitResult blockHitResult_1);
 
 	@Shadow
 	public abstract ActionResult interactItem(PlayerEntity playerEntity_1,
 											  //#if MC < 11904
-//$$ 											   World world,
+											   World world,
 											  //#endif
                                                Hand hand_1);
 //	@Inject(at = @At("HEAD"), method = "interactBlock")

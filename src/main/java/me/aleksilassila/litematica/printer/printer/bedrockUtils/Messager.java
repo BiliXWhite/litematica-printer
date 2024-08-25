@@ -5,26 +5,26 @@ import net.minecraft.client.MinecraftClient;
 
 import net.minecraft.text.Text;
 //#if MC > 11802
-import net.minecraft.text.MutableText;
+//$$ import net.minecraft.text.MutableText;
 //#else
-//$$ import net.minecraft.text.TranslatableText;
+import net.minecraft.text.TranslatableText;
 //#endif
 public class Messager {
     public static void actionBar(String message){
         MinecraftClient minecraftClient = MinecraftClient.getInstance();
         //#if MC > 11802
-        MutableText translatable = Text.translatable(message);
+        //$$ MutableText translatable = Text.translatable(message);
         //#else
-        //$$ TranslatableText translatable = new TranslatableText(message);
+        TranslatableText translatable = new TranslatableText(message);
         //#endif
         minecraftClient.inGameHud.setOverlayMessage(translatable,false);
     }
     public static void rawactionBar(String message){
         MinecraftClient minecraftClient = MinecraftClient.getInstance();
         //#if MC > 11802
-        MutableText translatable = Text.translatable(message);
+        //$$ MutableText translatable = Text.translatable(message);
         //#else
-        //$$ TranslatableText translatable = new TranslatableText(message);
+        TranslatableText translatable = new TranslatableText(message);
         //#endif
         minecraftClient.inGameHud.setOverlayMessage(translatable,false);
     }
@@ -32,9 +32,9 @@ public class Messager {
     public static void chat(String message){
         MinecraftClient minecraftClient = MinecraftClient.getInstance();
         //#if MC > 11802
-        MutableText translatable = Text.translatable(message);
+        //$$ MutableText translatable = Text.translatable(message);
         //#else
-        //$$ TranslatableText translatable = new TranslatableText(message);
+        TranslatableText translatable = new TranslatableText(message);
         //#endif
         minecraftClient.inGameHud.getChatHud().addMessage(translatable);
     }

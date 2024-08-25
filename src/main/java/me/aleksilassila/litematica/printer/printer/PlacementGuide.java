@@ -51,14 +51,19 @@ public class PlacementGuide extends PrinterUtils {
 //        return placement.setItem(placement.item == null ? requiredState.getBlock().asItem() : placement.item);
 //    }
     public static Set<BlockPos> posSet = new HashSet<>();
+    public static boolean breakIce = false;
     public @Nullable Action water(BlockState requiredState,BlockState currentState ,BlockPos pos){
         if(currentState.isOf(Blocks.ICE)){
             if (client.player != null) {
                 searchPickaxes(client.player);
             }
-            excavateBlock(pos);
+            if (excavateBlock(pos)) {
+                breakIce = true;
+                return null;
+            }
             return null;
         }
+
         if (!spawnWater(pos)) return null;
         if(posSet.stream().anyMatch(pos1 -> pos1.equals(pos))) return null;
         State state = State.get(requiredState, currentState);
@@ -87,8 +92,16 @@ public class PlacementGuide extends PrinterUtils {
 //                return null;
 //            }
 //        }
-        if (LitematicaMixinMod.PRINT_WATER_LOGGED_BLOCK.getBooleanValue() && canWaterLogged(requiredState) && !canWaterLogged(currentState))
-            return water(requiredState,currentState,pos);
+
+        if (LitematicaMixinMod.PRINT_WATER_LOGGED_BLOCK.getBooleanValue()
+                && canWaterLogged(requiredState)
+                && !canWaterLogged(currentState)){
+            Action water = water(requiredState, currentState, pos);
+            if(breakIce){
+                breakIce = false;
+            }else return water;
+        }
+
         if (!requiredState.canPlaceAt(world, pos)) {
             return null;
         }
@@ -577,9 +590,9 @@ public class PlacementGuide extends PrinterUtils {
 
         public static boolean isReplaceable(BlockState state){
             //#if MC < 11904
-            //$$ return state.getMaterial().isReplaceable();
+            return state.getMaterial().isReplaceable();
             //#else
-            return state.isReplaceable();
+            //$$ return state.isReplaceable();
             //#endif
         }
 
@@ -692,7 +705,7 @@ public class PlacementGuide extends PrinterUtils {
         ANVIL(AnvilBlock.class),
         HOPPER(HopperBlock.class),
         GRINDSTONE(GrindstoneBlock.class),
-        BUTTON(ButtonBlock.class),
+        BUTTON(AbstractButtonBlock.class),
         CAMPFIRE(CampfireBlock.class),
         SHULKER(ShulkerBoxBlock.class),
         BED(BedBlock.class),

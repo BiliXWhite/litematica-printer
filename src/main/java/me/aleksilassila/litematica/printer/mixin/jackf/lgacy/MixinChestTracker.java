@@ -5,7 +5,7 @@ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.RegistryKey;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -15,10 +15,10 @@ import red.jackf.chesttracker.ChestTracker;
 import red.jackf.chesttracker.memory.Memory;
 import red.jackf.chesttracker.memory.MemoryDatabase;
     //#if MC < 11904
-    //$$ import net.minecraft.util.registry.Registry;
-    //$$ import net.minecraft.util.registry.RegistryKey;
+    import net.minecraft.util.registry.Registry;
+    import net.minecraft.util.registry.RegistryKey;
     //#else
-    import net.minecraft.registry.RegistryKeys;
+    //$$ import net.minecraft.registry.RegistryKeys;
     //#endif
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.key;
 
@@ -36,9 +36,9 @@ public class MixinChestTracker {
                     for (Memory item : database.findItems(stack, dimension)) {
                         red.jackf.chesttracker.memory.MemoryUtils.setLatestPos(item.getPosition());
                         //#if MC < 11904
-                        //$$ OpenInventoryPacket.sendOpenInventory(item.getPosition(), RegistryKey.of(Registry.WORLD_KEY, dimension));
+                        OpenInventoryPacket.sendOpenInventory(item.getPosition(), RegistryKey.of(Registry.WORLD_KEY, dimension));
                         //#else
-                        OpenInventoryPacket.sendOpenInventory(item.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
+                        //$$ OpenInventoryPacket.sendOpenInventory(item.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
                         //#endif
                         return;
                     }
@@ -51,9 +51,9 @@ public class MixinChestTracker {
                 for (Memory item : database.findItems(stack, dimension)) {
                     red.jackf.chesttracker.memory.MemoryUtils.setLatestPos(item.getPosition());
                     //#if MC < 11904
-                    //$$ OpenInventoryPacket.sendOpenInventory(item.getPosition(), RegistryKey.of(Registry.WORLD_KEY, dimension));
+                    OpenInventoryPacket.sendOpenInventory(item.getPosition(), RegistryKey.of(Registry.WORLD_KEY, dimension));
                     //#else
-                    OpenInventoryPacket.sendOpenInventory(item.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
+                    //$$ OpenInventoryPacket.sendOpenInventory(item.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
                     //#endif
                     return;
                 }

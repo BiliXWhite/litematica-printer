@@ -13,6 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -103,9 +104,13 @@ public class PrintWater {
     }
 
     // 判断方块是否含水
-    public static boolean canWaterLogged(BlockState requiredState) {
+    public static boolean canWaterLogged(BlockState blockState) {
         try {
-            return requiredState.isOf(Blocks.WATER) && requiredState.get(FluidBlock.LEVEL) == 0 || requiredState.get(BooleanProperty.of("waterlogged"));
+            if (blockState.isOf(Blocks.WATER)) {
+                return blockState.get(FluidBlock.LEVEL) == 0;
+            }else {
+                return blockState.get(Properties.WATERLOGGED);
+            }
         } catch (Throwable e) {
             // 这样写应该没问题吧
             return false;
@@ -115,9 +120,9 @@ public class PrintWater {
 
         player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY));
         //#if MC > 11802
-        printer.client.interactionManager.interactBlock(player, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN, pos, true));
+        //$$ printer.client.interactionManager.interactBlock(player, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN, pos, true));
         //#else
-        //$$ printer.client.interactionManager.interactBlock(player, player.clientWorld, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN, pos, true));
+        printer.client.interactionManager.interactBlock(player, player.clientWorld, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN, pos, true));
         //#endif
         player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY));
     }

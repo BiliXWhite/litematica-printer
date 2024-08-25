@@ -1,10 +1,12 @@
 package me.aleksilassila.litematica.printer.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.ClientConnection;
-import net.minecraft.network.packet.Packet;
+import net.minecraft.network.Packet;
 import net.minecraft.util.math.Direction;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -35,11 +37,11 @@ public class ClientCommonNetworkHandlerMixin {
      */
 //    @Overwrite
     //#if MC < 12004
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket(Lnet/minecraft/network/packet/Packet;)V")
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/Packet;)V"),method = "sendPacket(Lnet/minecraft/network/Packet;)V")
     //#else
-    //$$ @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket")
+    //$$ @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket")
     //#endif
-    public void sendPacket(ClientConnection instance, Packet<?> packet) {
+    public void sendPacket(ClientConnection instance, Packet<?> packet, Operation<Void> original) {
         if (Printer.getPrinter() == null) {
             this.connection.send(packet);
             return;

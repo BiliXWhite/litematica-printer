@@ -7,6 +7,7 @@ public class Statistics {
     public static int closeScreen = 0;
     public static boolean loadChestTracker = isLoadMod("chesttracker");
     public static boolean loadQuickShulker = isLoadMod("quickshulker");
+    public static boolean loadCarpetWuHuAddition = isLoadMod("carpet-wuhu-addition");
     public static boolean isLoadMod(String modId){
         return FabricLoader.getInstance().isModLoaded(modId);
     }

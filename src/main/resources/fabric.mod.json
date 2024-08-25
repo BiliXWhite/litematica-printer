@@ -23,6 +23,9 @@
     ],
     "client": [
       "me.aleksilassila.litematica.printer.LitematicaMixinMod"
+    ],
+    "modmenu": [
+      "me.aleksilassila.litematica.printer.config.ModMenu"
     ]
   },
   "mixins": [
@@ -33,9 +36,7 @@
     "minecraft": "${minecraft_dependency}"
   },
   "custom": {
-    "modmenu": {
-      "parent": "carpet"
-    }
+
   }
 }
 

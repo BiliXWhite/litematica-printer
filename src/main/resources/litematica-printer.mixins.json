@@ -13,9 +13,9 @@
     "openinv.PlayerManagerMixin",
     "openinv.ClientPlayNetworkHandlerMixin",
     //#if MC > 11802
-    "openinv.InventoryMixin",
+    //$$ "openinv.InventoryMixin",
     //#elseif MC < 12002
-    //$$ "openinv.MixinLootableContainerBlockEntity",
+    "openinv.MixinLootableContainerBlockEntity",
     //#endif
     "openinv.MixinServerPlayerEntity",
     "openinv.MixinPlayerEntity",

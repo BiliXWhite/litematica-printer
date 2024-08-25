@@ -3,6 +3,8 @@ package me.aleksilassila.litematica.printer.mixin.jackf;
 
 //#if MC >= 12001
 //$$
+//$$ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+//$$ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 //$$ import fi.dy.masa.malilib.util.StringUtils;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.Utils.PinYinSearch;
 //$$ import net.minecraft.enchantment.Enchantment;
@@ -83,8 +85,8 @@ package me.aleksilassila.litematica.printer.mixin.jackf;
 //$$ //            if (resloc.isPresent() && PinYinSearch.hasPinYin(resloc.toString(), filter)) cir.setReturnValue(true);
 //$$ //        }
 //$$ //    }
-//$$     @Redirect(at = @At(value = "INVOKE", target = "Ljava/lang/String;contains(Ljava/lang/CharSequence;)Z"),method = "potionOrEffectPredicate")
-//$$     private static boolean potionOrEffectPredicate(String instance, CharSequence s){
+//$$     @WrapOperation(at = @At(value = "INVOKE", target = "Ljava/lang/String;contains(Ljava/lang/CharSequence;)Z"),method = "potionOrEffectPredicate")
+//$$     private static boolean potionOrEffectPredicate(String instance, CharSequence s, Operation<Boolean> original){
 //$$         return instance.contains(s) || PinYinSearch.hasPinYin(instance,s.toString());
 //$$     }
 //$$
@@ -95,8 +97,8 @@ package me.aleksilassila.litematica.printer.mixin.jackf;
 //$$             cir.setReturnValue(true);
 //$$     }
 //$$
-//$$     @Redirect(at = @At(value = "INVOKE", target = "Ljava/lang/String;contains(Ljava/lang/CharSequence;)Z"),method = "tooltipPredicate")
-//$$     private static boolean tooltipPredicate(String instance, CharSequence s){
+//$$     @WrapOperation(at = @At(value = "INVOKE", target = "Ljava/lang/String;contains(Ljava/lang/CharSequence;)Z"),method = "tooltipPredicate")
+//$$     private static boolean tooltipPredicate(String instance, CharSequence s, Operation<Boolean> original){
 //$$         return instance.contains(s) || PinYinSearch.hasPinYin(instance,s.toString());
 //$$     }
 //$$ //    @Inject(at = @At("HEAD"), method = "tooltipPredicate", cancellable = true)
