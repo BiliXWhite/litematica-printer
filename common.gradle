@@ -120,10 +120,10 @@ def mod_dependencies = [
         [(sakura ? "com.github.sakura-ryoko:itemscroller" :"curse.maven:item-scroller-242064")     , "item_scrolle",       1],
         [(sakura ? "com.github.sakura-ryoko:tweakeroo" :"curse.maven:tweakeroo-297344")             , "tweakeroo",          1],
         [(sakura ? "com.github.sakura-ryoko:litematica" :"curse.maven:litematica-308892")           , "litematica",         1],
-        ["curse.maven:quick-shulker-362669"                     , "quick_shulker",      mcVersion > 12004 ? 4 : 1],
+        [getQuiShulkerBox()                                                                         , "quick_shulker",    mcVersion > 12004 ? 5 : 1],
         [(mcVersion > 12004 ? "curse.maven:carpet-349239":"maven.modrinth:carpet")   , "carpet",             1],
         ["net.kyrptonaught:kyrptconfig"     			        , "kyrptconfig",        1],
-        ["net.kyrptonaught:shulkerutils"     			        , "shulkerutils",       mcVersion >  12004 ? 5 : 1],
+        ["net.kyrptonaught:shulkerutils"     			        , "shulkerutils",       mcVersion >  12004 ? 0 : 1],
         ["red.jackf:chesttracker"                               , "chesttracker",       mcVersion >= 12001 ? 1 : 0],
         ["red.jackf:whereisit"                                  , "whereisit",          mcVersion >= 12001 ? 1 : 0],
         ["com.blamejared.searchables"                           , "searchables",        mcVersion >= 12001 ? 1 : 0],
@@ -145,6 +145,17 @@ String getSbYacl(){
 //        return "maven.modrinth:yacl";
 //    }
 //    return mcVersion == 12002 ? "dev.isxander.yacl:yet-another-config-lib-fabric" : "dev.isxander:yet-another-config-lib";
+}
+String getQuiShulkerBox(){
+    String path = "curse.maven:quick-shulker-362669";
+    if(mcVersion == 12006){
+        path = "build/libs/quickshulker-1.4.3-1.20.6.jar"
+    }else if(mcVersion == 12100){
+        path = "build/libs/quickshulker-1.4.5-1.21.jar"
+    }else if(mcVersion == 12101){
+        path = "build/libs/quickshulker-1.4.5-1.21.jar"
+    }
+    return path;
 }
 dependencies {
     //拼音
@@ -173,11 +184,7 @@ dependencies {
         } else if (mode == 4) {
             modCompileOnly idFix
         } else if (mode == 5) {
-            if(mcVersion == 12005){
-                modImplementation files("build/libs/quickshulker-1.4.3-1.20.6.jar")
-            }else if(mcVersion == 12100){
-                modImplementation files("build/libs/quickshulker-1.4.5-1.21.jar")
-            }
+            modImplementation files(dependencyNotation)
         }
     }
 //	modImplementation "maven.modrinth:jei:${project.jei}"
@@ -353,6 +360,40 @@ remapJar {
     remapperIsolation.set(true)
 }
 
+def MIXIN_CONFIG_PATHS = ['litematica-printer.mixins.json']
+JavaVersion JAVA_COMPATIBILITY
+if (mcVersion >= 12005) {
+    JAVA_COMPATIBILITY = JavaVersion.VERSION_21
+} else if (mcVersion >= 11800) {
+    JAVA_COMPATIBILITY = JavaVersion.VERSION_17
+} else if (mcVersion >= 11700) {
+    JAVA_COMPATIBILITY = JavaVersion.VERSION_16
+} else {
+    JAVA_COMPATIBILITY = JavaVersion.VERSION_1_8
+}
+JavaVersion MIXIN_COMPATIBILITY_LEVEL = JAVA_COMPATIBILITY
+
+tasks.withType(JavaCompile).configureEach {
+    if(mcVersion >= 12005){
+        it.options.release = 21
+    }else if(mcVersion >=11800){
+        it.options.release = 17
+    }else if(mcVersion >=11700){
+        it.options.release = 16
+    }else{
+        it.options.release = 8
+    }
+
+}
+
+java {
+
+    sourceCompatibility = JAVA_COMPATIBILITY
+    targetCompatibility = JAVA_COMPATIBILITY
+
+    withSourcesJar()
+}
+
 
 processResources {
     outputs.upToDateWhen { false }
@@ -381,26 +422,12 @@ processResources {
                 "mod_version"         : project.version
         ])
     }
-}
 
-tasks.withType(JavaCompile).configureEach {
-    if(mcVersion > 12004) options.release.set(21)
-    else options.release.set(17)
-}
-
-java {
-    if(mcVersion > 12004){
-        sourceCompatibility(JavaVersion.VERSION_21)
-        targetCompatibility(JavaVersion.VERSION_21)
-    } else if (mcVersion > 11701) {
-        sourceCompatibility(JavaVersion.VERSION_16)
-        targetCompatibility(JavaVersion.VERSION_16)
-    } else {
-        sourceCompatibility(JavaVersion.VERSION_1_8)
-        targetCompatibility(JavaVersion.VERSION_1_8)
+    MIXIN_CONFIG_PATHS.each {mixinConfigPath ->
+        filesMatching(mixinConfigPath) {
+            filter { s -> s.replace('{{COMPATIBILITY_LEVEL}}', "JAVA_${MIXIN_COMPATIBILITY_LEVEL.ordinal() + 1}") }
+        }
     }
-
-    withSourcesJar()
 }
 
 //jar {

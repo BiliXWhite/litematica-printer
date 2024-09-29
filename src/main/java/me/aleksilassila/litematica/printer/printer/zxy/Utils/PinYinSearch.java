@@ -17,7 +17,7 @@ public class PinYinSearch {
 
     //[cengzhang, zengzhang, cengchang, zengchang, cz, zz, cc, zc]
     static ArrayList<String[]> pinyin = new ArrayList<>();//存储拼音，String[]数组的方式存储包含了各个读音 {String[zeng,ceng],String[chang,zhang]}
-    public static ArrayList<String> getPinYin(String str){
+    public static synchronized ArrayList<String> getPinYin(String str){
 
         char[] ch = str.toCharArray();
         HanyuPinyinOutputFormat gs = new HanyuPinyinOutputFormat();

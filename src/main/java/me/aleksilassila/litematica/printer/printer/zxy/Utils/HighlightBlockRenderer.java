@@ -17,7 +17,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.util.math.Matrix4f;
+import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
 import java.util.HashMap;
@@ -61,66 +61,66 @@ public class HighlightBlockRenderer implements IRenderer {
         GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
         GL11.glPolygonOffset(-1.0F, -1.0F);
         //#if MC > 12006
-        //$$ BuiltBuffer meshData;
+        BuiltBuffer meshData;
         //#endif
         RenderSystem.depthMask(false);
         RenderSystem.enableBlend();
         RenderSystem.disableCull();
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
 //        RenderSystem.setShader(GameRenderer::getPositionColorShader);
         Tessellator instance = Tessellator.getInstance();
         //#if MC > 12006
-        //$$ BufferBuilder buffer = instance.begin(VertexFormat.DrawMode.QUADS,VertexFormats.POSITION_COLOR);
+        BufferBuilder buffer = instance.begin(VertexFormat.DrawMode.QUADS,VertexFormats.POSITION_COLOR);
         //#else
-        BufferBuilder buffer = instance.getBuffer();
+        //$$ BufferBuilder buffer = instance.getBuffer();
         //#endif
 
         //#if MC > 12006
-        //$$ voxelShape.forEachBox((minX, minY, minZ, maxX, maxY, maxZ) ->
-        //$$         RenderUtils.drawBoxAllSidesBatchedQuads(
-        //$$                 (float)(minX + x),
-        //$$                 (float)(minY + y),
-        //$$                 (float)(minZ + z),
-        //$$                 (float)(maxX + x),
-        //$$                 (float)(maxY + y),
-        //$$                 (float)(maxZ + z),
-        //$$                 color4f, buffer));
-        //#else
-        if (!buffer.isBuilding()) buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         voxelShape.forEachBox((minX, minY, minZ, maxX, maxY, maxZ) ->
                 RenderUtils.drawBoxAllSidesBatchedQuads(
-                        minX + x,
-                        minY + y,
-                        minZ + z,
-                        maxX + x,
-                        maxY + y,
-                        maxZ + z,
+                        (float)(minX + x),
+                        (float)(minY + y),
+                        (float)(minZ + z),
+                        (float)(maxX + x),
+                        (float)(maxY + y),
+                        (float)(maxZ + z),
                         color4f, buffer));
+        //#else
+        //$$ if (!buffer.isBuilding()) buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+        //$$ voxelShape.forEachBox((minX, minY, minZ, maxX, maxY, maxZ) ->
+        //$$         RenderUtils.drawBoxAllSidesBatchedQuads(
+        //$$                 minX + x,
+        //$$                 minY + y,
+        //$$                 minZ + z,
+        //$$                 maxX + x,
+        //$$                 maxY + y,
+        //$$                 maxZ + z,
+        //$$                 color4f, buffer));
         //#endif
 
 
 
 
         //#if MC > 12006
-        //$$ try
-        //$$ {
-        //$$     meshData = buffer.end();
-        //$$     BufferRenderer.drawWithGlobalProgram(meshData);
-        //$$     meshData.close();
-        //$$ }
-        //$$ catch (Exception e)
-        //$$ {
-        //$$     Litematica.logger.error("renderSchematicMismatches: Failed to draw Schematic Mismatches (Step 2) (Error: {})", e.getLocalizedMessage());
-        //$$ }
-        //$$
-        //$$ RenderSystem.enableCull();
-        //$$ RenderSystem.depthMask(true);
-        //$$ RenderSystem.enableDepthTest();
-        //#else
-        instance.draw();
+        try
+        {
+            meshData = buffer.end();
+            BufferRenderer.drawWithGlobalProgram(meshData);
+            meshData.close();
+        }
+        catch (Exception e)
+        {
+            Litematica.logger.error("renderSchematicMismatches: Failed to draw Schematic Mismatches (Step 2) (Error: {})", e.getLocalizedMessage());
+        }
+
         RenderSystem.enableCull();
-        RenderSystem.disableBlend();
+        RenderSystem.depthMask(true);
         RenderSystem.enableDepthTest();
+        //#else
+        //$$ instance.draw();
+        //$$ RenderSystem.enableCull();
+        //$$ RenderSystem.disableBlend();
+        //$$ RenderSystem.enableDepthTest();
         //#endif
 
         GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
@@ -139,9 +139,9 @@ public class HighlightBlockRenderer implements IRenderer {
 
     @Override
     //#if MC > 12004
-    //$$ public void onRenderWorldLast(Matrix4f matrices, Matrix4f projMatrix){
+    public void onRenderWorldLast(Matrix4f matrices, Matrix4f projMatrix){
     //#else
-    public void onRenderWorldLast(MatrixStack matrices, Matrix4f projMatrix){
+    //$$ public void onRenderWorldLast(MatrixStack matrices, Matrix4f projMatrix){
     //#endif
 
         for (Map.Entry<String, HighlightTheProject> stringHighlightTheProjectEntry : highlightTheProjectMap.entrySet()) {

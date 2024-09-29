@@ -63,22 +63,22 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchIt
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 
 //#if MC >= 12001
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
-//$$ import red.jackf.chesttracker.api.providers.InteractionTracker;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
+import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#else
-import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
-import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //#endif
 
 //#if MC < 11904
-import net.minecraft.command.argument.ItemStringReader;
-import com.mojang.brigadier.StringReader;
-import net.minecraft.util.registry.RegistryKey;
-import net.minecraft.util.registry.Registry;
+//$$ import net.minecraft.command.argument.ItemStringReader;
+//$$ import com.mojang.brigadier.StringReader;
+//$$ import net.minecraft.util.registry.RegistryKey;
+//$$ import net.minecraft.util.registry.Registry;
 //#else
-//$$ import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registries;
     //#if MC < 12002
     //$$ import net.minecraft.registry.RegistryKey;
     //$$ import net.minecraft.registry.RegistryKeys;
@@ -86,7 +86,7 @@ import net.minecraft.util.registry.Registry;
 //#endif
 
 //#if MC < 11900
-import fi.dy.masa.malilib.util.SubChunkPos;
+//$$ import fi.dy.masa.malilib.util.SubChunkPos;
 //#endif
 
 public class Printer extends PrinterUtils {
@@ -297,14 +297,14 @@ public class Printer extends PrinterUtils {
                 for (int i = 0; i < blocklist.size(); i++) {
                     try {
                         //#if MC < 11904
-                        ItemStringReader read = new ItemStringReader(new StringReader(blocklist.get(i)), true);
-                        read.consume();
-                        Item item = read.getItem();
-                        ////#elseif MC < 12005
-                        ////$$ ItemStringReader.ItemResult itemResult = ItemStringReader.item(Registries.ITEM.getReadOnlyWrapper(), new StringReader(blocklist.get(i)));
-                        ////$$ Item item = itemResult.item().value();
+                        //$$ ItemStringReader read = new ItemStringReader(new StringReader(blocklist.get(i)), true);
+                        //$$ read.consume();
+                        //$$ Item item = read.getItem();
+                        //$$ ////#elseif MC < 12005
+                        //$$ ////$$ ItemStringReader.ItemResult itemResult = ItemStringReader.item(Registries.ITEM.getReadOnlyWrapper(), new StringReader(blocklist.get(i)));
+                        //$$ ////$$ Item item = itemResult.item().value();
                         //#else
-                        //$$ Item item = Registries.ITEM.get(Identifier.tryParse(blocklist.get(i).toString()));
+                        Item item = Registries.ITEM.get(Identifier.tryParse(blocklist.get(i).toString()));
                         //#endif
                         if (item != null) fluidList.add(item);
                     } catch (Exception e) {
@@ -312,7 +312,7 @@ public class Printer extends PrinterUtils {
                 }
                 switchToItems(client.player, fluidList.toArray(new Item[fluidList.size()]));
                 Item item = Implementation.getInventory(client.player).getMainHandStack().getItem();
-                String itemid = Registry.ITEM.getId(item).toString();
+                String itemid = Registries.ITEM.getId(item).toString();
                 if (!blocklist.stream().anyMatch(b -> itemid.contains(b) || item.getName().toString().contains(b))) {
                     items2.addAll(fluidList);
                     return;
@@ -401,10 +401,10 @@ public class Printer extends PrinterUtils {
             UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
                 return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> Registry.BLOCK.getId(blockState.getBlock()).toString().contains(string));
+                        .noneMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
             } else if (listType == UsageRestriction.ListType.WHITELIST) {
                 return BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> Registry.BLOCK.getId(blockState.getBlock()).toString().contains(string));
+                        .anyMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
             } else {
                 return true;
             }
@@ -412,10 +412,10 @@ public class Printer extends PrinterUtils {
             IConfigOptionListEntry optionListValue = EXCAVATE_LIMIT.getOptionListValue();
             if (optionListValue == UsageRestriction.ListType.BLACKLIST) {
                 return EXCAVATE_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> Registry.BLOCK.getId(blockState.getBlock()).toString().contains(string));
+                        .noneMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
             } else if (optionListValue == UsageRestriction.ListType.WHITELIST) {
                 return EXCAVATE_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> Registry.BLOCK.getId(blockState.getBlock()).toString().contains(string));
+                        .anyMatch(string -> Registries.BLOCK.getId(blockState.getBlock()).toString().contains(string));
             } else {
                 return true;
             }
@@ -474,7 +474,7 @@ public class Printer extends PrinterUtils {
     }
 
     public static boolean bedrockModeTarget(Block block) {
-        return LitematicaMixinMod.BEDROCK_LIST.getStrings().stream().anyMatch(string -> Registry.BLOCK.getId(block).toString().contains(string));
+        return LitematicaMixinMod.BEDROCK_LIST.getStrings().stream().anyMatch(string -> Registries.BLOCK.getId(block).toString().contains(string));
     }
 
     public boolean verify() {
@@ -529,36 +529,36 @@ public class Printer extends PrinterUtils {
                 for (Item item : items2) {
                      //#if MC >= 12001
                         //#if MC > 12004
-                        //$$ MemoryUtils.currentMemoryKey = client.world.getRegistryKey().getValue();
+                        MemoryUtils.currentMemoryKey = client.world.getRegistryKey().getValue();
                         //#else
                         //$$ MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
                         //#endif
-                     //$$  MemoryUtils.itemStack = new ItemStack(item);
-                     //$$  if (SearchItem.search(true)) {
-                     //$$      closeScreen++;
-                     //$$      isOpenHandler = true;
-                     //$$      printerMemorySync = true;
-                     //$$      return true;
-                     //$$  }
+                      MemoryUtils.itemStack = new ItemStack(item);
+                      if (SearchItem.search(true)) {
+                          closeScreen++;
+                          isOpenHandler = true;
+                          printerMemorySync = true;
+                          return true;
+                      }
                      //#else
-
-                        MemoryDatabase database = MemoryDatabase.getCurrent();
-                        if (database != null) {
-                            for (Identifier dimension : database.getDimensions()) {
-                                for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
-                                    MemoryUtils.setLatestPos(memory.getPosition());
+                     //$$
+                     //$$    MemoryDatabase database = MemoryDatabase.getCurrent();
+                     //$$    if (database != null) {
+                     //$$        for (Identifier dimension : database.getDimensions()) {
+                     //$$            for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
+                     //$$                MemoryUtils.setLatestPos(memory.getPosition());
                                     //#if MC < 11904
-                                    OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(Registry.WORLD_KEY, dimension));
+                                    //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(Registry.WORLD_KEY, dimension));
                                     //#else
                                     //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
                                     //#endif
-                                    if(closeScreen == 0)closeScreen++;
-                                    syncPrinterInventory = true;
-                                    isOpenHandler = true;
-                                    return true;
-                                }
-                            }
-                        }
+                     //$$                if(closeScreen == 0)closeScreen++;
+                     //$$                syncPrinterInventory = true;
+                     //$$                isOpenHandler = true;
+                     //$$                return true;
+                     //$$            }
+                     //$$        }
+                     //$$    }
                     //#endif
                 }
                 items2 = new HashSet<>();
@@ -648,7 +648,7 @@ public class Printer extends PrinterUtils {
 
             //跳过放置
             if (LitematicaMixinMod.PUT_SKIP.getBooleanValue() &&
-                    PUT_SKIP_LIST.getStrings().stream().anyMatch(block -> Registry.BLOCK.getId(requiredState.getBlock()).toString().contains(block))
+                    PUT_SKIP_LIST.getStrings().stream().anyMatch(block -> Registries.BLOCK.getId(requiredState.getBlock()).toString().contains(block))
 //                   && PUT_SKIP_LIST.getStrings().contains(Registries.BLOCK.getId(requiredState.getBlock()).toString())
                    ) {
                 continue;
@@ -715,9 +715,9 @@ public class Printer extends PrinterUtils {
 
                     SchematicPlacementManager schematicPlacementManager = DataManager.getSchematicPlacementManager();
                     //#if MC < 11900
-                    List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingSubChunk(new SubChunkPos(offset));
+                    //$$ List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingSubChunk(new SubChunkPos(offset));
                     //#else
-                    //$$ List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingChunk(offset);
+                    List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingChunk(offset);
                     //#endif
 
                     for (SchematicPlacementManager.PlacementPart placementPart : allPlacementsTouchingChunk) {
@@ -814,7 +814,7 @@ public class Printer extends PrinterUtils {
                             state = client.world.getBlockState(pos);
                         }
                         Block block = state.getBlock();
-                        if (Registry.BLOCK.getId(block).toString().contains(blockName)) {
+                        if (Registries.BLOCK.getId(block).toString().contains(blockName)) {
                             blocks.add(pos);
                         }
                     }
@@ -850,7 +850,7 @@ public class Printer extends PrinterUtils {
                         if (s == null) break;
                         try {
                             int c = Integer.parseInt(s) - 1;
-                            if (Registry.ITEM.getId(player.getInventory().getStack(c).getItem()).toString().contains("shulker_box") &&
+                            if (Registries.ITEM.getId(player.getInventory().getStack(c).getItem()).toString().contains("shulker_box") &&
                                     LitematicaMixinMod.QUICKSHULKER.getBooleanValue()) {
                                 MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of("没有可替换的槽位，请将预选位的濳影盒换个位置"), false);
                                 continue;
@@ -908,7 +908,7 @@ public class Printer extends PrinterUtils {
 //            if(!MinecraftClient.getInstance().player.currentScreenHandler.equals(sc))return false;
             for (int i = 9; i < sc.slots.size(); i++) {
                 ItemStack stack = sc.slots.get(i).getStack();
-                String itemid = Registry.ITEM.getId(stack.getItem()).toString();
+                String itemid = Registries.ITEM.getId(stack.getItem()).toString();
                 if (itemid.contains("shulker_box") && stack.getCount() == 1) {
                     DefaultedList<ItemStack> items1 = fi.dy.masa.malilib.util.InventoryUtils.getStoredItems(stack, -1);
                     if (items1.stream().anyMatch(s1 -> s1.getItem().equals(item))) {
@@ -916,7 +916,7 @@ public class Printer extends PrinterUtils {
                             if (reSwitchItem == null) shulkerBoxSlot = i;
 //                            ClientUtil.CheckAndSend(stack,i);
                             //#if MC >= 12001
-                            //$$ if(loadChestTracker) InteractionTracker.INSTANCE.clear();
+                            if(loadChestTracker) InteractionTracker.INSTANCE.clear();
                             //#endif
                             Class quickShulker = Class.forName("net.kyrptonaught.quickshulker.client.ClientUtil");
                             Method checkAndSend = quickShulker.getDeclaredMethod("CheckAndSend", ItemStack.class, int.class);

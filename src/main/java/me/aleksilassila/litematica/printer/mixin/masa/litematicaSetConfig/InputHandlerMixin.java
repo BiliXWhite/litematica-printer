@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.mixin;
+package me.aleksilassila.litematica.printer.mixin.masa.litematicaSetConfig;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -8,7 +8,6 @@ import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
 
 import java.util.List;
 

@@ -1,16 +1,7 @@
-package me.aleksilassila.litematica.printer.mixin;
+package me.aleksilassila.litematica.printer.mixin.masa.litematicaSetConfig;
 
-import com.google.common.collect.ImmutableList;
 import fi.dy.masa.litematica.config.Configs;
-import fi.dy.masa.malilib.config.IConfigBase;
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
-
-import java.util.List;
-
-import static me.aleksilassila.litematica.printer.LitematicaMixinMod.getColorsList;
 
 @Mixin(value = Configs.class, remap = false)
 public class ConfigsMixin {

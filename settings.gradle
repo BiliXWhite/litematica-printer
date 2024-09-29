@@ -50,6 +50,7 @@ def versions = Arrays.asList(
         "1.20.4",
         "1.20.6",
         "1.21.0",
+        "1.21.1",
 )
 
 for (String version : versions) {

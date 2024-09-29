@@ -79,9 +79,9 @@ public class BreakingFlowController {
             if (MinecraftClient.getInstance().world.getBlockState(blockPos).isAir() && ZxyUtils.bedrockCanInteracted(blockPos, bedrockModeRange())) {
                 InventoryManager.switchToItem(Items.DIAMOND_PICKAXE);
                 //#if MC < 11904
-                client.interactionManager.interactBlock(client.player,client.world, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(blockPos), Direction.UP, poslist.get(i), false));
+                //$$ client.interactionManager.interactBlock(client.player,client.world, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(blockPos), Direction.UP, poslist.get(i), false));
                 //#else
-                //$$ client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(blockPos), Direction.UP, poslist.get(i), false));
+                client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(blockPos), Direction.UP, poslist.get(i), false));
                 //#endif
                 if (MinecraftClient.getInstance().world.getBlockState(blockPos).isAir()) {
                     poslist.remove(i);
@@ -134,8 +134,8 @@ public class BreakingFlowController {
 //            if (blockInPlayerRange(selectedBlock.getBlockPos(), player, 5f)) {
 //            if (DataManager.getRenderLayerRange().isPositionWithinRange(selectedBlock.getBlockPos())) {
             //#if MC > 12006
-            //$$ ItemStack mainHandStack = client.player.getMainHandStack();
-            //$$ cachedTargetBlockList.stream().filter( targetBlock -> targetBlock.getStatus() == TargetBlock.Status.EXTENDED).forEach(TargetBlock::tick);
+            ItemStack mainHandStack = client.player.getMainHandStack();
+            cachedTargetBlockList.stream().filter( targetBlock -> targetBlock.getStatus() == TargetBlock.Status.EXTENDED).forEach(TargetBlock::tick);
             //#endif
             TargetBlock.Status status = cachedTargetBlockList.get(i).tick();
             if (status == TargetBlock.Status.RETRACTING) {
@@ -152,10 +152,10 @@ public class BreakingFlowController {
 //            }
         }
         //#if MC > 12006
-        //$$ if (cachedTargetBlockList.stream().anyMatch(targetBlock -> targetBlock.getStatus() == TargetBlock.Status.EXTENDED)) {
-        //$$     InventoryManager.switchToItem(Items.DIAMOND_PICKAXE);
-        //$$     TargetBlock.switchPickaxe = true;
-        //$$ }
+        if (cachedTargetBlockList.stream().anyMatch(targetBlock -> targetBlock.getStatus() == TargetBlock.Status.EXTENDED)) {
+            InventoryManager.switchToItem(Items.DIAMOND_PICKAXE);
+            TargetBlock.switchPickaxe = true;
+        }
         //#endif
     }
 

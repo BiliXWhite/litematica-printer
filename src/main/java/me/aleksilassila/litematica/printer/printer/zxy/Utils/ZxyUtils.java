@@ -21,7 +21,7 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.mob.ShulkerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
@@ -38,14 +38,14 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
 //#if MC >= 12001
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#else
-import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //#endif
 //#if MC > 12006
-//$$ import net.minecraft.registry.RegistryKey;
-//$$ import net.minecraft.component.type.ItemEnchantmentsComponent;
-//$$ import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
+import net.minecraft.registry.entry.RegistryEntry;
 //#endif
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_COLOR;
@@ -70,7 +70,7 @@ public class ZxyUtils {
         if (LitematicaMixinMod.INVENTORY.getBooleanValue() && !printerMemoryAdding) {
             printerMemoryAdding = true;
             //#if MC >= 12001
-            //$$ if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
+            if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
             //#endif
 
             for (String string : LitematicaMixinMod.INVENTORY_LIST.getStrings()) {
@@ -92,7 +92,7 @@ public class ZxyUtils {
             for (BlockPos pos : invBlockList) {
                 if (client.world != null) {
                     //#if MC < 12001
-                    MemoryUtils.setLatestPos(pos);
+                    //$$ MemoryUtils.setLatestPos(pos);
                     //#endif
                     closeScreen++;
                     OpenInventoryPacket.sendOpenInventory(pos, client.world.getRegistryKey());
@@ -132,9 +132,9 @@ public class ZxyUtils {
                     if ((!InventoryUtils.isInventory(client.world,pos) && blockState.createScreenHandlerFactory(client.world,pos) == null)||
                             (blockEntity instanceof ShulkerBoxBlockEntity entity &&
                                     //#if MC > 12004
-                                    //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
+                                    !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
                                     //#else
-                                    !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
+                                    //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
                                     //#endif
                                     entity.getAnimationStage() == ShulkerBoxBlockEntity.AnimationStage.CLOSED)) {
                         client.inGameHud.setOverlayMessage(Text.of("容器无法打开"), false);
@@ -144,7 +144,7 @@ public class ZxyUtils {
                     return;
                 }
             }
-            String blockName = Registry.BLOCK.getId(block).toString();
+            String blockName = Registries.BLOCK.getId(block).toString();
             if (Printer.getPrinter() != null) {
                 syncPosList.addAll(Printer.getPrinter().siftBlock(blockName));
             }
@@ -178,9 +178,9 @@ public class ZxyUtils {
             }
             if (client.interactionManager != null){
                 //#if MC < 11904
-                client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
+                //$$ client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
                 //#else
-                //$$ client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
+                client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
                 //#endif
                 return true;
             } else return false;
@@ -189,7 +189,7 @@ public class ZxyUtils {
     public static void itemsCount(Map<ItemStack,Integer> itemsCount , ItemStack itemStack){
         // 判断是否存在可合并的键
         Optional<Map.Entry<ItemStack, Integer>> entry = itemsCount.entrySet().stream()
-                .filter(e -> ItemStack.canCombine(e.getKey(), itemStack))
+                .filter(e -> ItemStack.areItemsAndComponentsEqual(e.getKey(), itemStack))
                 .findFirst();
 
         if (entry.isPresent()) {
@@ -236,7 +236,7 @@ public class ZxyUtils {
                 if (SYNC_INVENTORY_CHECK.getBooleanValue() && !targetItemsCount.entrySet().stream()
                         .allMatch(target -> playerItemsCount.entrySet().stream()
                                 .anyMatch(player ->
-                                        ItemStack.canCombine(player.getKey(), target.getKey()) && target.getValue() <= player.getValue()))) return;
+                                        ItemStack.areItemsAndComponentsEqual(player.getKey(), target.getKey()) && target.getValue() <= player.getValue()))) return;
 
                 if ((!LitematicaMixinMod.INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
                     for (BlockPos pos : syncPosList) {
@@ -264,8 +264,8 @@ public class ZxyUtils {
                     ItemStack item2 = targetBlockInv.get(i).copy();
                     int currNum = item1.getCount();
                     int tarNum = item2.getCount();
-                    boolean same = ItemStack.canCombine(item1,item2.copy()) && !item1.isEmpty();
-                    if(ItemStack.canCombine(item1,item2) && currNum == tarNum) continue;
+                    boolean same = ItemStack.areItemsAndComponentsEqual(item1,item2.copy()) && !item1.isEmpty();
+                    if(ItemStack.areItemsAndComponentsEqual(item1,item2) && currNum == tarNum) continue;
                     //不和背包交互
                     if (same) {
                         //有多
@@ -284,7 +284,7 @@ public class ZxyUtils {
                         ItemStack stack = sc.slots.get(i1).getStack();
                         ItemStack currStack = sc.slots.get(i).getStack();
                         currNum = currStack.getCount();
-                        boolean same2 = thereAreItems = ItemStack.canCombine(item2,stack);
+                        boolean same2 = thereAreItems = ItemStack.areItemsAndComponentsEqual(item2,stack);
                         if (same2 && !stack.isEmpty()) {
                             int i2 = stack.getCount();
                             client.interactionManager.clickSlot(sc.syncId, i1, 0, SlotActionType.PICKUP, client.player);
@@ -410,32 +410,32 @@ public class ZxyUtils {
 
     public static void useBlock(Vec3d vec3d,Direction direction,BlockPos pos,boolean insideBlock){
         //#if MC < 11904
-        client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(vec3d, direction,pos,insideBlock));
+        //$$ client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(vec3d, direction,pos,insideBlock));
         //#else
-        //$$ client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(vec3d, direction,pos,insideBlock));
+        client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(vec3d, direction,pos,insideBlock));
         //#endif
     }
 
     public static int getEnchantmentLevel(ItemStack itemStack,
                                           //#if MC > 12006
-                                          //$$ RegistryKey<Enchantment> enchantment
+                                          RegistryKey<Enchantment> enchantment
                                           //#else
-                                          Enchantment enchantment
+                                          //$$ Enchantment enchantment
                                           //#endif
     ){
         //#if MC > 12006
-        //$$ ItemEnchantmentsComponent enchantments = itemStack.getEnchantments();
-        //$$
-        //$$ if (enchantments.equals(ItemEnchantmentsComponent.DEFAULT)) return -1;
-        //$$ Set<RegistryEntry<Enchantment>> enchantmentsEnchantments = enchantments.getEnchantments();
-        //$$ for (RegistryEntry<Enchantment> entry : enchantmentsEnchantments) {
-        //$$     if (entry.matchesKey(enchantment)) {
-        //$$         return enchantments.getLevel(entry);
-        //$$     }
-        //$$ }
-        //$$ return -1;
+        ItemEnchantmentsComponent enchantments = itemStack.getEnchantments();
+
+        if (enchantments.equals(ItemEnchantmentsComponent.DEFAULT)) return -1;
+        Set<RegistryEntry<Enchantment>> enchantmentsEnchantments = enchantments.getEnchantments();
+        for (RegistryEntry<Enchantment> entry : enchantmentsEnchantments) {
+            if (entry.matchesKey(enchantment)) {
+                return enchantments.getLevel(entry);
+            }
+        }
+        return -1;
         //#else
-        return EnchantmentHelper.getLevel(enchantment,itemStack);
+        //$$ return EnchantmentHelper.getLevel(enchantment,itemStack);
         //#endif
     }
 

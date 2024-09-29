@@ -63,9 +63,9 @@ public class TargetBlock {
                 break;
             case EXTENDED:
                 //#if MC > 12006
-                //$$ Item item = client.player.getMainHandStack().getItem();
-                //$$ System.out.println(item.toString());
-                //$$ if(!(item.equals(Items.NETHERITE_PICKAXE) || item.equals(Items.DIAMOND_PICKAXE)) || !switchPickaxe) break;
+                Item item = client.player.getMainHandStack().getItem();
+                System.out.println(item.toString());
+                if(!(item.equals(Items.NETHERITE_PICKAXE) || item.equals(Items.DIAMOND_PICKAXE)) || !switchPickaxe) break;
                 //#endif
                 //打掉红石火把
                 ArrayList<BlockPos> nearByRedstoneTorchPosList = CheckingEnvironment.findNearbyRedstoneTorch(world, pistonBlockPos);
@@ -79,20 +79,20 @@ public class TargetBlock {
                 }
                 //放置朝下的活塞
                 //#if MC > 12006
-                //$$ pistonIsBreak = true;
-                //$$ List<TargetBlock> list = cachedTargetBlockList.stream().filter(targetBlock -> targetBlock.status == Status.EXTENDED).toList();
-                //$$ if (list.stream().allMatch(targetBlock -> targetBlock.pistonIsBreak)) {
-                //$$     list.forEach(targetBlock -> {
-                //$$         BlockPlacer.pistonPlacement(targetBlock.pistonBlockPos, Direction.DOWN);
-                //$$         targetBlock.hasTried = true;
-                //$$         targetBlock.status = Status.NEEDS_WAITING;
-                //$$     });
-                //$$ }
-                //$$ break;
-                //#else
-                BlockPlacer.pistonPlacement(this.pistonBlockPos, Direction.DOWN);
-                this.hasTried = true;
+                pistonIsBreak = true;
+                List<TargetBlock> list = cachedTargetBlockList.stream().filter(targetBlock -> targetBlock.status == Status.EXTENDED).toList();
+                if (list.stream().allMatch(targetBlock -> targetBlock.pistonIsBreak)) {
+                    list.forEach(targetBlock -> {
+                        BlockPlacer.pistonPlacement(targetBlock.pistonBlockPos, Direction.DOWN);
+                        targetBlock.hasTried = true;
+                        targetBlock.status = Status.NEEDS_WAITING;
+                    });
+                }
                 break;
+                //#else
+                //$$ BlockPlacer.pistonPlacement(this.pistonBlockPos, Direction.DOWN);
+                //$$ this.hasTried = true;
+                //$$ break;
                 //#endif
             case RETRACTED:
                 addPosList(pistonBlockPos);
@@ -124,10 +124,10 @@ public class TargetBlock {
                 break;
             case NEEDS_WAITING:
                 //#if MC > 12006
-                //$$ if (pistonIsBreak) {
-                //$$     pistonIsBreak = false;
-                //$$     break;
-                //$$ }
+                if (pistonIsBreak) {
+                    pistonIsBreak = false;
+                    break;
+                }
                 //#endif
                 break;
         }
