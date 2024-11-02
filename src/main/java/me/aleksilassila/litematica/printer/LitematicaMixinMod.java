@@ -15,7 +15,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPa
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 //#if MC >= 12001
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#endif
 import java.util.List;
 
@@ -44,15 +44,15 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean("stripLogs",false, "Whether or not the printer should use normal logs if stripped\nversions are not available and then strip them with an axe.");
 	public static boolean shouldPrintInAir = PRINT_IN_AIR.getBooleanValue();
 	public static final ConfigHotkey SWITCH_PRINTER_MODE = new ConfigHotkey("切换模式", "J", "切换打印机工作模式");
-	public static final ConfigBooleanHotkeyed BEDROCK_SWITCH = new ConfigBooleanHotkeyed("破基岩", false,"J", "啊吧啊吧");
-	public static final ConfigBooleanHotkeyed EXCAVATE = new ConfigBooleanHotkeyed("挖掘", false,"K", "挖掘所选区内的方块");
-	public static final ConfigBooleanHotkeyed FLUID = new ConfigBooleanHotkeyed("排流体", false,"L", "在岩浆源、水源处放方块默认是沙子");
+	public static final ConfigBooleanHotkeyed BEDROCK_SWITCH = new ConfigBooleanHotkeyed("破基岩", false,"", "啊吧啊吧");
+	public static final ConfigBooleanHotkeyed EXCAVATE = new ConfigBooleanHotkeyed("挖掘", false,"", "挖掘所选区内的方块");
+	public static final ConfigBooleanHotkeyed FLUID = new ConfigBooleanHotkeyed("排流体", false,"", "在岩浆源、水源处放方块默认是沙子");
 	public static final ConfigHotkey CLOSE_ALL_MODE = new ConfigHotkey("关闭全部模式", "LEFT_CONTROL,G","关闭全部模式，若此时为单模模式将模式恢复为打印");
 
 	//#if MC >= 12001
-	public static final ConfigHotkey LAST = new ConfigHotkey("上一个箱子", "Z",GUI_NO_ORDER,"");
-	public static final ConfigHotkey NEXT = new ConfigHotkey("下一个箱子", "C",GUI_NO_ORDER,"");
-	public static final ConfigHotkey DELETE = new ConfigHotkey("删除当前容器", "LEFT_SHIFT,X",GUI_NO_ORDER,"");
+//$$ 	public static final ConfigHotkey LAST = new ConfigHotkey("上一个箱子", "",GUI_NO_ORDER,"");
+//$$ 	public static final ConfigHotkey NEXT = new ConfigHotkey("下一个箱子", "",GUI_NO_ORDER,"");
+//$$ 	public static final ConfigHotkey DELETE = new ConfigHotkey("删除当前容器", "",GUI_NO_ORDER,"");
 	//#endif
 
 	public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList("排流体方块名单", ImmutableList.of("minecraft:sand"), "");
@@ -92,17 +92,17 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	}
 
 	// Hotkeys
-	public static final ConfigHotkey PRINT = new ConfigHotkey("print", "V", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "Prints while pressed");
+	public static final ConfigHotkey PRINT = new ConfigHotkey("print", "", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "Prints while pressed");
 	public static final ConfigHotkey TOGGLE_PRINTING_MODE = new ConfigHotkey("togglePrintingMode", "CAPS_LOCK", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "Allows quickly toggling on/off Printing mode");
 
 //	public static final ConfigHotkey BEDROCK_MODE = new ConfigHotkey("破基岩模式", "J", "切换为破基岩模式 此模式下 y轴会从上往下判定.");
 //	public static final ConfigHotkey EXE_MODE= new ConfigHotkey("挖掘模式", "K", "挖掘所选区的方块");
-	public static final ConfigHotkey SYNC_INVENTORY = new ConfigHotkey("容器同步", "Y", "按下热键后会记录看向容器的物品。\n将投影选区内的同类型容器中的物品，同步至记录的容器。");
+	public static final ConfigHotkey SYNC_INVENTORY = new ConfigHotkey("容器同步", "", "按下热键后会记录看向容器的物品。\n将投影选区内的同类型容器中的物品，同步至记录的容器。");
 	public static final ConfigBooleanHotkeyed SYNC_INVENTORY_CHECK = new ConfigBooleanHotkeyed("同步时检查背包", false,"", "容器同步时检查背包，如果填充物不足，则不会打开容器");
-	public static final ConfigHotkey PRINTER_INVENTORY= new ConfigHotkey("打印机库存", "G", "如果远程取物的目标是未加载的区块将会增加取物品的时间，用投影选区后按下热键\n" +
+	public static final ConfigHotkey PRINTER_INVENTORY= new ConfigHotkey("打印机库存", "", "如果远程取物的目标是未加载的区块将会增加取物品的时间，用投影选区后按下热键\n" +
 			"打印机工作时将会使用该库存内的物品\n" +
 			"建议库存区域内放置假人来常加载区块");
-	public static final ConfigHotkey REMOVE_PRINT_INVENTORY = new ConfigHotkey("清空打印机库存", "C,G", "清空打印机库存");
+	public static final ConfigHotkey REMOVE_PRINT_INVENTORY = new ConfigHotkey("清空打印机库存", "", "清空打印机库存");
 
 
 	public static List<IConfigBase> getHotkeyList() {
@@ -132,7 +132,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		OpenInventoryPacket.registerReceivePacket();
 		OpenInventoryPacket.registerClientReceivePacket();
 		//#if MC >= 12001
-		if(loadChestTracker) MemoryUtils.setup();
+//$$ 		if(loadChestTracker) MemoryUtils.setup();
 		//#endif
 
 		TOGGLE_PRINTING_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(PRINT_SWITCH));
@@ -155,6 +155,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 
 	@Override
 	public void onInitializeClient() {
-
+		
 	}
 }

@@ -7,11 +7,18 @@
   "description": "${mod_description}",
   "authors": [
     {
+      "name": "aleksilassila",
+      "contact": {
+        "homepage": ""
+      }
+    },
+    {
       "name": "zhaixianyu",
       "contact": {
         "homepage": "https://github.com/zhaixianyu"
       }
     }
+
   ],
   "contact": {
     "homepage": "${mod_homepage}",

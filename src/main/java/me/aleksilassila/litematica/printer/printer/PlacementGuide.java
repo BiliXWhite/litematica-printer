@@ -24,7 +24,7 @@ import java.util.*;
 
 import static me.aleksilassila.litematica.printer.printer.Printer.excavateBlock;
 import static me.aleksilassila.litematica.printer.printer.qwer.PrintWater.*;
-import static net.minecraft.block.enums.BlockFace.WALL;
+import static net.minecraft.block.enums.WallMountLocation.WALL;
 
 public class PlacementGuide extends PrinterUtils {
     @NotNull
@@ -191,7 +191,7 @@ public class PlacementGuide extends PrinterUtils {
                 case LEVER:
                 case BUTTON: {
                     Direction side;
-                    switch ((BlockFace) getPropertyByName(requiredState, "FACE")) {
+                    switch ((WallMountLocation) getPropertyByName(requiredState, "FACE")) {
                         case FLOOR: {
                             side = Direction.DOWN;
                             break;
@@ -212,7 +212,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setSides(side).setLookDirection(look).setRequiresSupport();
                 }
                 case GRINDSTONE :{ // Tese are broken
-                    Direction side = switch ((BlockFace) getPropertyByName(requiredState, "FACE")) {
+                    Direction side = switch ((WallMountLocation) getPropertyByName(requiredState, "FACE")) {
                         case FLOOR -> Direction.DOWN;
                         case CEILING -> Direction.UP;
                         default -> (Direction) getPropertyByName(requiredState, "FACING");
@@ -590,9 +590,9 @@ public class PlacementGuide extends PrinterUtils {
 
         public static boolean isReplaceable(BlockState state){
             //#if MC < 11904
-            //$$ return state.getMaterial().isReplaceable();
+            return state.getMaterial().isReplaceable();
             //#else
-            return state.isReplaceable();
+            //$$ return state.isReplaceable();
             //#endif
         }
 
@@ -705,7 +705,7 @@ public class PlacementGuide extends PrinterUtils {
         ANVIL(AnvilBlock.class),
         HOPPER(HopperBlock.class),
         GRINDSTONE(GrindstoneBlock.class),
-        BUTTON(ButtonBlock.class),
+        BUTTON(AbstractButtonBlock.class),
         CAMPFIRE(CampfireBlock.class),
         SHULKER(ShulkerBoxBlock.class),
         BED(BedBlock.class),

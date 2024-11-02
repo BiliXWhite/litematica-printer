@@ -7,9 +7,9 @@ import net.minecraft.client.MinecraftClient;
 
 //#if MC >= 12001
 //#else
-//$$ import net.minecraft.text.Text;
-//$$ import net.minecraft.util.Identifier;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //#endif
 
 

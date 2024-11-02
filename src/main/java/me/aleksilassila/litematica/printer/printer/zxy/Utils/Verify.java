@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 
+import me.aleksilassila.litematica.printer.printer.bedrockUtils.Messager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.text.Text;
@@ -15,11 +16,11 @@ public class Verify {
     private String address;
     private ClientPlayerEntity player;
     long verifyTime = System.currentTimeMillis();
-    public boolean yz = false;
-    private boolean run = true;
+    private byte step = 0; //0未验证 1验证中 2验证完成 3验证失败
+    private boolean result = false;
 
     public Verify(String address, ClientPlayerEntity player) {
-        this.verify = this;
+        verify = this;
         this.player = player;
         this.address = address;
     }
@@ -40,17 +41,17 @@ public class Verify {
                 BufferedReader br = new BufferedReader(new InputStreamReader(soc.getInputStream(), StandardCharsets.UTF_8));
                 String str = "???";
                 if ("Y".equals(str = br.readLine())) {
-                    yz = true;
+                    result = true;
                 }else {
                     MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of(str),false);
                 }
                 br.close();
                 out.close();
                 soc.close();
+                step = 2;
             } catch (IOException e) {
                 MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of("此服务器未限制打印机使用"),false);
-                yz = true;
-                e.printStackTrace();
+                result = true;
             }
         }).start();
     }
@@ -60,13 +61,37 @@ public class Verify {
     }
 
     public boolean tick(String address) {
-        long currTime = System.currentTimeMillis();
-        if (yz || this.verifyTime + 3000L < currTime) return true;
-        if (!this.address.equals(address) || run) {
-            this.address = address;
-            verifyRequest(address);
-            run = false;
+        switch (step){
+            case 0 ->{
+                verifyRequest(address);
+                step = 1;
+            }
+            case 1 ->{
+                long currTime = System.currentTimeMillis();
+                if (this.verifyTime + 3000L < currTime){
+                    step = 3;
+                    return true; //验证时间超过3秒未回复视为服务器端口并非用于打印机验证
+                }
+            }
+            case 2 ->{
+                return result;
+            }
+            case 3 ->{
+                return true;
+            }
         }
-        return yz;
+//        if(result || step == 3) return true;
+//        else if(step == 2) return false;
+//        long currTime = System.currentTimeMillis();
+//        if (this.verifyTime + 3000L < currTime && step == 1) {
+//            step = 3;
+//            return true; //验证时间超过3秒未回复视为服务器端口并非用于打印机验证
+//        }
+//        if (!this.address.equals(address) || step == 0) {
+//            this.address = address;
+//            verifyRequest(address);
+//            step = 1;
+//        }
+        return false;
     }
 }

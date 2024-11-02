@@ -5,7 +5,8 @@
   "name": "${mod_name}",
   "description": "A fork of Litematica that adds the missing printer functionality",
   "authors": [
-    "aleksilassila"
+    "aleksilassila",
+    "zhaixianyu"
   ],
   "contact": {
     "website": "${mod_homepage}",

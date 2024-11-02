@@ -26,9 +26,9 @@ public abstract class MixinServerPlayerEntity extends PlayerEntity{
         super(world, pos, yaw, profile);
     }
     //#if MC < 11904
-    //$$ @Inject(at = @At("HEAD"), method = "closeHandledScreen")
+    @Inject(at = @At("HEAD"), method = "closeHandledScreen")
     //#else
-    @Inject(at = @At("HEAD"), method = "onHandledScreenClosed")
+    //$$ @Inject(at = @At("HEAD"), method = "onHandledScreenClosed")
     //#endif
     public void onHandledScreenClosed(CallbackInfo ci) {
         deletePlayerList();
