@@ -20,6 +20,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.HashMap;
 import java.util.HashSet;
 
 //#if MC >= 12001
@@ -55,7 +57,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 		ZxyUtils.tick();
 
 		if(!(LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed())){
-			PlacementGuide.posSet = new HashSet<>();
+			PlacementGuide.posMap = new HashMap<>();
 			return;
 		}
 		if(Printer.up){

@@ -33,7 +33,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
-import net.minecraft.tag.TagKey;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
@@ -48,7 +47,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.stream.Stream;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static fi.dy.masa.litematica.util.WorldUtils.applyCarpetProtocolHitVec;
@@ -58,7 +56,6 @@ import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRIC
 import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.*;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isInventory;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
@@ -69,6 +66,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 //$$ import red.jackf.chesttracker.api.providers.InteractionTracker;
+//$$ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
 //#else
 import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
@@ -364,21 +362,27 @@ public class Printer extends PrinterUtils {
         ClientWorld world = client.world;
         BlockState currentState = world.getBlockState(pos);
         Block block = currentState.getBlock();
-        if (
-                !currentState.isAir() &&
-                        !currentState.isOf(Blocks.AIR) &&
-                        !currentState.isOf(Blocks.CAVE_AIR) &&
-                        !currentState.isOf(Blocks.VOID_AIR) &&
-                        !(currentState.getBlock().getHardness() == -1) &&
-                        !(currentState.getBlock() instanceof FluidBlock) &&
-                        !client.player.isBlockBreakingRestricted(client.world, pos, client.interactionManager.getCurrentGameMode())
-        ) {
+        if (canBreakBlock(pos)) {
             client.interactionManager.updateBlockBreakingProgress(pos, Direction.DOWN);
             client.interactionManager.cancelBlockBreaking();
             return world.getBlockState(pos).isOf(block);
         }
         return false;
     }
+
+    public static boolean canBreakBlock(BlockPos pos) {
+        MinecraftClient client = ZxyUtils.client;
+        ClientWorld world = client.world;
+        BlockState currentState = world.getBlockState(pos);
+        return !currentState.isAir() &&
+                !currentState.isOf(Blocks.AIR) &&
+                !currentState.isOf(Blocks.CAVE_AIR) &&
+                !currentState.isOf(Blocks.VOID_AIR) &&
+                !(currentState.getBlock().getHardness() == -1) &&
+                !(currentState.getBlock() instanceof FluidBlock) &&
+                !client.player.isBlockBreakingRestricted(client.world, pos, client.interactionManager.getCurrentGameMode());
+    }
+
     static BlockPos breakTargetBlock = null;
     static int startTick = -1;
     public static boolean excavateBlock(BlockPos pos){
@@ -393,7 +397,6 @@ public class Printer extends PrinterUtils {
             else return false;
         }
         startTick = tick;
-        PlacementGuide.posSet.add(pos);
         breakTargetBlock = pos;
         return false;
     }
@@ -649,6 +652,7 @@ public class Printer extends PrinterUtils {
 
         for (TempPos tempPos : tempList) tempPos.tick++;
         LitematicaMixinMod.shouldPrintInAir = LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue();
+
         // forEachBlockInRadius:
         BlockPos pos;
         z:
@@ -725,18 +729,9 @@ public class Printer extends PrinterUtils {
                     BlockState state1 = world.getBlockState(offset);
                     BlockState state2 = worldSchematic.getBlockState(offset);
 
-                    SchematicPlacementManager schematicPlacementManager = DataManager.getSchematicPlacementManager();
-                    //#if MC < 11900
-                    List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingSubChunk(new SubChunkPos(offset));
-                    //#else
-                    //$$ List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingChunk(offset);
-                    //#endif
-
-                    for (SchematicPlacementManager.PlacementPart placementPart : allPlacementsTouchingChunk) {
-                        if (placementPart.getBox().containsPos(offset)) {
-                            State state = State.get(state1,state2);
-                            if (!(state == State.CORRECT)) continue z;
-                        }
+                    if (isSchematicBlock(offset)) {
+                        State state = State.get(state1,state2);
+                        if (!(state == State.CORRECT)) continue z;
                     }
                 }
                 if(forcedPlacementBooleanValue) useShift = true;
@@ -792,6 +787,23 @@ public class Printer extends PrinterUtils {
             }
         }
     }
+
+    public static boolean isSchematicBlock(BlockPos offset) {
+        SchematicPlacementManager schematicPlacementManager = DataManager.getSchematicPlacementManager();
+        //#if MC < 11900
+        List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingSubChunk(new SubChunkPos(offset));
+        //#else
+        //$$ List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingChunk(offset);
+        //#endif
+
+        for (SchematicPlacementManager.PlacementPart placementPart : allPlacementsTouchingChunk) {
+            if (placementPart.getBox().containsPos(offset)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public Vec3d usePrecisionPlacement(BlockPos pos,BlockState stateSchematic){
         if (LitematicaMixinMod.EASY_MODE.getBooleanValue()) {
             EasyPlaceProtocol protocol = PlacementHandler.getEffectiveProtocolVersion();

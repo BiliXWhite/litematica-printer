@@ -8,6 +8,7 @@ import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.util.JsonUtils;
 import me.aleksilassila.litematica.printer.printer.State;
+import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -56,6 +57,7 @@ public class Configs implements IConfigHandler {
         list.add(FORCED_PLACEMENT);
         list.add(PRINT_IN_AIR);
         list.add(PRINT_WATER_LOGGED_BLOCK);
+        list.add(BREAK_ERROR_BLOCK);
         list.add(REPLACE);
         list.add(REPLACEABLE_LIST);
         list.add(STRIP_LOGS);
@@ -101,7 +103,7 @@ public class Configs implements IConfigHandler {
             //$$ list.add(DELETE);
             //#endif
         }
-        list.add(TEST);
+        if(FabricLoader.getInstance().isDevelopmentEnvironment()) list.add(TEST);
 
         return ImmutableList.copyOf(list);
     }
@@ -130,7 +132,7 @@ public class Configs implements IConfigHandler {
             //$$ list.add(DELETE);
             //#endif
         }
-		list.add(TEST);
+        if(FabricLoader.getInstance().isDevelopmentEnvironment()) list.add(TEST);
         return ImmutableList.copyOf(list);
     }
     //切换型开关
