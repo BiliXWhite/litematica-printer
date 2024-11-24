@@ -80,18 +80,6 @@ public class Verify {
                 return true;
             }
         }
-//        if(result || step == 3) return true;
-//        else if(step == 2) return false;
-//        long currTime = System.currentTimeMillis();
-//        if (this.verifyTime + 3000L < currTime && step == 1) {
-//            step = 3;
-//            return true; //验证时间超过3秒未回复视为服务器端口并非用于打印机验证
-//        }
-//        if (!this.address.equals(address) || step == 0) {
-//            this.address = address;
-//            verifyRequest(address);
-//            step = 1;
-//        }
         return false;
     }
 }

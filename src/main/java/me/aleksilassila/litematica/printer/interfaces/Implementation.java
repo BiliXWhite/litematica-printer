@@ -8,9 +8,11 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 //import net.minecraft.network.Packet;
-import net.minecraft.network.Packet;
+import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.util.math.Direction;
+
+import static me.aleksilassila.litematica.printer.printer.Printer.itemPos;
 
 /**
  * Dirty class that contains anything and everything that is
@@ -69,7 +71,6 @@ public class Implementation {
         double y = ((PlayerMoveC2SPacketAccessor) packet).getY();
         double z = ((PlayerMoveC2SPacketAccessor) packet).getZ();
         boolean onGround = ((PlayerMoveC2SPacketAccessor) packet).getOnGround();
-
         return new PlayerMoveC2SPacket.Full(x, y, z, yaw, pitch, onGround);
     }
 

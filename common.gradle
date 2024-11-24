@@ -124,28 +124,30 @@ def mod_dependencies = [
         [(mcVersion > 12004 ? "curse.maven:carpet-349239":"maven.modrinth:carpet")   , "carpet",             1],
         ["net.kyrptonaught:kyrptconfig"     			        , "kyrptconfig",        1],
         ["net.kyrptonaught:shulkerutils"     			        , "shulkerutils",       mcVersion >  12004 ? 0 : 1],
-        ["red.jackf:chesttracker"                               , "chesttracker",       mcVersion >= 12001 ? 1 : 0],
-        ["red.jackf:whereisit"                                  , "whereisit",          mcVersion >= 12001 ? 1 : 0],
-        ["com.blamejared.searchables"                           , "searchables",        mcVersion >= 12001 ? 1 : 0],
-        [getSbYacl()                                            , "yacl",               mcVersion >= 12001 ? 1 : 0],
+
+//        ["red.jackf:chesttracker"                               , "chesttracker",       mcVersion >= 12001 ? 1 : 0],
+//        ["red.jackf:whereisit"                                  , "whereisit",          mcVersion >= 12001 ? 1 : 0],
 //        ["maven.modrinth:yacl"                                  , "yacl",               mcVersion >= 12001 ? 1 : 0],
-//        ["maven.modrinth:yacl"                                  , "yacl",               mcVersion > 12001 ? 1 : 0],
-        ["maven.modrinth:chest-tracker"                         , "chesttracker",       mcVersion < 12001 ? 1 : 0],
-        ["maven.modrinth:where-is-it"                           , "whereisit",          mcVersion < 12001 ? 1 : 0],
+        [getSbYacl()                                            , "yacl",               mcVersion >= 12001 ? 1 : 0],
+        ["maven.modrinth:chest-tracker"                         , "chesttracker",       1],
+        ["maven.modrinth:where-is-it"                           , "whereisit",          1],
+        ["red.jackf.jackfredlib:jackfredlib"                    , "jackfredlib",        mcVersion >= 12001 ? 1 : 0],
+        ["com.blamejared.searchables"                           , "searchables",        mcVersion >= 12001 ? 1 : 0],
+        ["maven.modrinth:modmenu"                               , "modmenu",            1],
+
         ["maven.modrinth:cloth-config"                          , "cloth_config",       mcVersion < 12001 ? 1 : 0],
         ["me.shedaniel.cloth.api:cloth-api"                     , "cloth_api",          mcVersion < 11904 ? 1 : 0],
         ["io.github.cottonmc:LibGui"                            , "LibGui",             mcVersion < 12001 ? 1 : 0],
-        ["maven.modrinth:modmenu"                               , "modmenu",            1],
+
 
 ]
 
 String getSbYacl(){
-    return "maven.modrinth:yacl";
-//    if(mcVersion == 12004 || mcVersion == 12006){
-//        return "maven.modrinth:yacl";
-//    }
+//    return "maven.modrinth:yacl";
+    return mcVersion == 12002 ? "maven.modrinth:yacl" : "dev.isxander:yet-another-config-lib";
 //    return mcVersion == 12002 ? "dev.isxander.yacl:yet-another-config-lib-fabric" : "dev.isxander:yet-another-config-lib";
 }
+
 String getQuiShulkerBox(){
     String path = "curse.maven:quick-shulker-362669";
     if(mcVersion == 12006){
@@ -167,14 +169,22 @@ dependencies {
 
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+
 //	modImplementation "com.zxy:litematica_printer:1.20.2-2.4+20240218"
 
     mod_dependencies.forEach { item ->
         def dependencyNotation = item[0]
         def id = item[1]
         def mode = item[2]
-        def idFix= ""
-        if(mode != 0) idFix = "${dependencyNotation}:${project.property("${id}")}"
+        if (mode == 0) return;
+        def idFix= mode != 5 ? "${dependencyNotation}:${project.property("${id}")}" : ""
+//        if(id.equals("yacl")){
+//            modImplementation (idFix) {
+//                exclude group: "com.terraformersmc", module: "modmenu"
+//            }
+//            return;
+//        }
         if (mode == 1) {
             modImplementation idFix
         } else if (mode == 2) {

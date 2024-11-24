@@ -34,6 +34,7 @@ public class Configs implements IConfigHandler {
         list.add(PRINT_INTERVAL);
         list.add(PRINTING_RANGE);
         list.add(COMPULSION_RANGE);
+        list.add(PUT_COOLING);
         list.add(RANGE_MODE);
         list.add(MODE_SWITCH);
         if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)) list.add(PRINTER_MODE);
@@ -54,6 +55,7 @@ public class Configs implements IConfigHandler {
         list.add(PUT_TESTING);
         list.add(PRINT_CHECK);
         list.add(EASY_MODE);
+        list.add(USE_EASY_MODE);
         list.add(FORCED_PLACEMENT);
         list.add(PRINT_IN_AIR);
         list.add(PRINT_WATER_LOGGED_BLOCK);
@@ -98,9 +100,9 @@ public class Configs implements IConfigHandler {
             list.add(PRINTER_INVENTORY);
             list.add(REMOVE_PRINT_INVENTORY);
             //#if MC >= 12001
-            //$$ list.add(LAST);
-            //$$ list.add(NEXT);
-            //$$ list.add(DELETE);
+            list.add(LAST);
+            list.add(NEXT);
+            list.add(DELETE);
             //#endif
         }
         if(FabricLoader.getInstance().isDevelopmentEnvironment()) list.add(TEST);
@@ -127,9 +129,9 @@ public class Configs implements IConfigHandler {
             list.add(PRINTER_INVENTORY);
             list.add(REMOVE_PRINT_INVENTORY);
             //#if MC >= 12001
-            //$$ list.add(LAST);
-            //$$ list.add(NEXT);
-            //$$ list.add(DELETE);
+            list.add(LAST);
+            list.add(NEXT);
+            list.add(DELETE);
             //#endif
         }
         if(FabricLoader.getInstance().isDevelopmentEnvironment()) list.add(TEST);
@@ -141,6 +143,9 @@ public class Configs implements IConfigHandler {
         list.add(BEDROCK_SWITCH);
         list.add(EXCAVATE);
         list.add(FLUID);
+        list.add(BREAK_ERROR_BLOCK);
+        list.add(PRINT_WATER_LOGGED_BLOCK);
+        list.add(USE_EASY_MODE);
 
         return ImmutableList.copyOf(list);
     }

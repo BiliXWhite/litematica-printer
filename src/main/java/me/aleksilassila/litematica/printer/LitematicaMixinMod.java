@@ -15,7 +15,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPa
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 //#if MC >= 12001
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#endif
 import java.util.List;
 
@@ -26,9 +26,11 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	private static final KeybindSettings GUI_NO_ORDER = KeybindSettings.create(KeybindSettings.Context.GUI, KeyAction.PRESS, false, false, false, true);
 	// Config settings
 	public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger( "打印机工作间隔", 0,   0, 20, "以游戏刻度为单位工作间隔。值越低意味着打印速度越快");
+	;
 	public static final ConfigInteger PRINTING_RANGE = new ConfigInteger("打印机工作半径", 3,     1,   256,   "若服务器未修改交互距离 请勿设置太大。");
 	public static final ConfigInteger COMPULSION_RANGE = new ConfigInteger("强制循环半径", 6,     1,   20, """
             每个游戏刻强制循环的半径，可以更好的扫描需要处理的方块""");
+	public static final ConfigInteger PUT_COOLING = new ConfigInteger("放置冷却", 2,     0,   256,   "对同一位置的方块放置时需等待设定的tick值才会再次放置。");
 	public static final ConfigOptionList RANGE_MODE = new ConfigOptionList("半径模式", State.ListType.SPHERE,"立方体建议3，球体建议设置6，破基岩在立方体模式下无法正常使用");
 	public static final ConfigOptionList MODE_SWITCH = new ConfigOptionList("模式切换", State.ModeType.SINGLE,"单模：仅运行一个模式。多模：可多个模式同时运行");
 	public static final ConfigOptionList PRINTER_MODE = new ConfigOptionList("打印机模式", State.PrintModeType.PRINTER,"仅单模生效");
@@ -40,6 +42,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigBooleanHotkeyed BREAK_ERROR_BLOCK = new ConfigBooleanHotkeyed("破坏错误方块",  false,"","打印过程中自动破坏投影中错误的方块");
 	public static final ConfigBoolean PRINT_SWITCH = new ConfigBoolean("printingMode",false, "Autobuild / print loaded selection.\nBe aware that some servers and anticheat plugins do not allow printing.");
 	public static final ConfigBoolean EASY_MODE = new ConfigBoolean("精准放置",false, "根据投影的设置使用对应的协议");
+	public static final ConfigBooleanHotkeyed USE_EASY_MODE = new ConfigBooleanHotkeyed("轻松放置模式",false,"", "启用后会调用轻松放置来进行放置，\n因为轻松放置本身会使用放置协议，所以本mod的精准放置无需启用。");
 	public static final ConfigBoolean FORCED_PLACEMENT = new ConfigBoolean("强制潜行",false, "打印时会强制shift避免一些方块的交互");
 	public static final ConfigBoolean REPLACE = new ConfigBoolean("替换列表方块",true, "可以直接在一些可替换方块放置，例如 草 雪片");
 	public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean("stripLogs",false, "Whether or not the printer should use normal logs if stripped\nversions are not available and then strip them with an axe.");
@@ -51,9 +54,9 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigHotkey CLOSE_ALL_MODE = new ConfigHotkey("关闭全部模式", "LEFT_CONTROL,G","关闭全部模式，若此时为单模模式将模式恢复为打印");
 
 	//#if MC >= 12001
-//$$ 	public static final ConfigHotkey LAST = new ConfigHotkey("上一个箱子", "",GUI_NO_ORDER,"");
-//$$ 	public static final ConfigHotkey NEXT = new ConfigHotkey("下一个箱子", "",GUI_NO_ORDER,"");
-//$$ 	public static final ConfigHotkey DELETE = new ConfigHotkey("删除当前容器", "",GUI_NO_ORDER,"");
+	public static final ConfigHotkey LAST = new ConfigHotkey("上一个箱子", "",GUI_NO_ORDER,"");
+	public static final ConfigHotkey NEXT = new ConfigHotkey("下一个箱子", "",GUI_NO_ORDER,"");
+	public static final ConfigHotkey DELETE = new ConfigHotkey("删除当前容器", "",GUI_NO_ORDER,"");
 	//#endif
 
 	public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList("排流体方块名单", ImmutableList.of("minecraft:sand"), "");
@@ -134,7 +137,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		OpenInventoryPacket.registerReceivePacket();
 		OpenInventoryPacket.registerClientReceivePacket();
 		//#if MC >= 12001
-//$$ 		if(loadChestTracker) MemoryUtils.setup();
+		if(loadChestTracker) MemoryUtils.setup();
 		//#endif
 
 		TOGGLE_PRINTING_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(PRINT_SWITCH));

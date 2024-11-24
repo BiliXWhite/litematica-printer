@@ -24,7 +24,7 @@ import java.util.*;
 
 import static me.aleksilassila.litematica.printer.printer.Printer.*;
 import static me.aleksilassila.litematica.printer.printer.qwer.PrintWater.*;
-import static net.minecraft.block.enums.WallMountLocation.WALL;
+import static net.minecraft.block.enums.BlockFace.WALL;
 
 public class PlacementGuide extends PrinterUtils {
     @NotNull
@@ -71,8 +71,9 @@ public class PlacementGuide extends PrinterUtils {
         //产生水有延迟，需要等待一会儿
         if(currentState.isOf(Blocks.ICE)){
             if (client.player != null) searchPickaxes(client.player);
-            if (!posMap.containsKey(pos) && excavateBlock(pos)) {
-                posMap.put(pos,0);
+            BlockPos tempPos;
+            if (!posMap.containsKey(pos) && (tempPos = excavateBlock(pos)) != null) {
+                posMap.put(tempPos,0);
                 breakIce = true;
                 return null;
             }
@@ -201,7 +202,7 @@ public class PlacementGuide extends PrinterUtils {
                 case LEVER:
                 case BUTTON: {
                     Direction side;
-                    switch ((WallMountLocation) getPropertyByName(requiredState, "FACE")) {
+                    switch ((BlockFace) getPropertyByName(requiredState, "FACE")) {
                         case FLOOR: {
                             side = Direction.DOWN;
                             break;
@@ -222,7 +223,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setSides(side).setLookDirection(look).setRequiresSupport();
                 }
                 case GRINDSTONE :{ // Tese are broken
-                    Direction side = switch ((WallMountLocation) getPropertyByName(requiredState, "FACE")) {
+                    Direction side = switch ((BlockFace) getPropertyByName(requiredState, "FACE")) {
                         case FLOOR -> Direction.DOWN;
                         case CEILING -> Direction.UP;
                         default -> (Direction) getPropertyByName(requiredState, "FACING");
@@ -333,8 +334,11 @@ public class PlacementGuide extends PrinterUtils {
             switch (requiredType) {
                 case SLAB: {
                     if (requiredState.get(SlabBlock.TYPE) == SlabType.DOUBLE) {
-                        SlabType requiredHalf = currentState.get(SlabBlock.TYPE) == SlabType.TOP ? SlabType.BOTTOM : SlabType.TOP;
-                        return new Action().setSides(getSlabSides(world, pos, requiredHalf));
+//                        SlabType requiredHalf1 = currentState.get(SlabBlock.TYPE) == SlabType.TOP ? SlabType.BOTTOM : SlabType.TOP;
+//                        return new Action().setSides(getSlabSides(world, pos, requiredHalf1));
+                        Direction requiredHalf = currentState.get(SlabBlock.TYPE) == SlabType.BOTTOM ? Direction.DOWN : Direction.UP;
+
+                        return new Action().setSides(requiredHalf);
                     }
 
                     break;
@@ -600,9 +604,9 @@ public class PlacementGuide extends PrinterUtils {
 
         public static boolean isReplaceable(BlockState state){
             //#if MC < 11904
-            return state.getMaterial().isReplaceable();
+            //$$ return state.getMaterial().isReplaceable();
             //#else
-            //$$ return state.isReplaceable();
+            return state.isReplaceable();
             //#endif
         }
 
@@ -715,7 +719,7 @@ public class PlacementGuide extends PrinterUtils {
         ANVIL(AnvilBlock.class),
         HOPPER(HopperBlock.class),
         GRINDSTONE(GrindstoneBlock.class),
-        BUTTON(AbstractButtonBlock.class),
+        BUTTON(ButtonBlock.class),
         CAMPFIRE(CampfireBlock.class),
         SHULKER(ShulkerBoxBlock.class),
         BED(BedBlock.class),

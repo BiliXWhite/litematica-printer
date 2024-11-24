@@ -21,7 +21,7 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.mob.ShulkerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
@@ -38,9 +38,9 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
 //#if MC >= 12001
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#else
-import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //#endif
 //#if MC > 12006
 //$$ import net.minecraft.registry.RegistryKey;
@@ -70,7 +70,7 @@ public class ZxyUtils {
         if (LitematicaMixinMod.INVENTORY.getBooleanValue() && !printerMemoryAdding) {
             printerMemoryAdding = true;
             //#if MC >= 12001
-            //$$ if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
+            if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
             //#endif
 
             for (String string : LitematicaMixinMod.INVENTORY_LIST.getStrings()) {
@@ -92,7 +92,7 @@ public class ZxyUtils {
             for (BlockPos pos : invBlockList) {
                 if (client.world != null) {
                     //#if MC < 12001
-                    MemoryUtils.setLatestPos(pos);
+                    //$$ MemoryUtils.setLatestPos(pos);
                     //#endif
                     closeScreen++;
                     OpenInventoryPacket.sendOpenInventory(pos, client.world.getRegistryKey());
@@ -148,7 +148,7 @@ public class ZxyUtils {
                     return;
                 }
             }
-            String blockName = Registry.BLOCK.getId(block).toString();
+            String blockName = Registries.BLOCK.getId(block).toString();
             if (Printer.getPrinter() != null) {
                 syncPosList.addAll(Printer.getPrinter().siftBlock(blockName));
             }
@@ -182,9 +182,9 @@ public class ZxyUtils {
             }
             if (client.interactionManager != null){
                 //#if MC < 11904
-                client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
+                //$$ client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
                 //#else
-                //$$ client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
+                client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
                 //#endif
                 return true;
             } else return false;
@@ -414,9 +414,9 @@ public class ZxyUtils {
 
     public static void useBlock(Vec3d vec3d,Direction direction,BlockPos pos,boolean insideBlock){
         //#if MC < 11904
-        client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(vec3d, direction,pos,insideBlock));
+        //$$ client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(vec3d, direction,pos,insideBlock));
         //#else
-        //$$ client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(vec3d, direction,pos,insideBlock));
+        client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(vec3d, direction,pos,insideBlock));
         //#endif
     }
 
@@ -460,4 +460,7 @@ public class ZxyUtils {
 //              client.interactionManager.clickSlot(sc.syncId, i1, 1, SlotActionType.QUICK_CRAFT, client.player);
     //结束拖动
 //              client.interactionManager.clickSlot(sc.syncId, -999, 2, SlotActionType.QUICK_CRAFT, client.player);
+    //副手交换
+//              client.interactionManager.clickSlot(sc.syncId, i, 40, SlotActionType.SWAP, client.player);
+
 }

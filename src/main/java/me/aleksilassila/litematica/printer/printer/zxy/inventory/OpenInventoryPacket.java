@@ -17,7 +17,7 @@ import net.minecraft.entity.mob.ShulkerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.network.PacketByteBuf;
 
-import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ChunkTicketType;
@@ -32,14 +32,14 @@ import net.minecraft.world.World;
 
 
 //#if MC >= 12001
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-//$$ import red.jackf.chesttracker.api.providers.InteractionTracker;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#endif
 
 //#if MC < 11904
-import net.minecraft.util.registry.Registry;
+//$$ import net.minecraft.util.registry.Registry;
 //#else
-//$$ import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.RegistryKeys;
 //#endif
 
 import java.util.ArrayList;
@@ -220,9 +220,9 @@ public class OpenInventoryPacket {
         ServerPlayNetworking.registerGlobalReceiver(OPEN_INVENTORY, (server, player, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
             BlockPos pos = packetByteBuf.readBlockPos();
             //#if MC < 11904
-            RegistryKey<World> key = RegistryKey.of(Registry.WORLD_KEY, packetByteBuf.readIdentifier());
+            //$$ RegistryKey<World> key = RegistryKey.of(Registry.WORLD_KEY, packetByteBuf.readIdentifier());
             //#else
-            //$$ RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, packetByteBuf.readIdentifier());
+            RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, packetByteBuf.readIdentifier());
             //#endif
             server.execute(() -> openInv(server, player, pos, key));
         });
@@ -294,8 +294,8 @@ public class OpenInventoryPacket {
         OpenInventoryPacket.key = null;
         //避免箱子追踪重复保存，
         //#if MC >= 12001
-        //$$ //避免箱子追踪胡乱记录若不清空，则会吧打开容器前右键的方块视为目标容器
-        //$$ InteractionTracker.INSTANCE.clear();
+        //避免箱子追踪胡乱记录，若不清空，则会吧打开容器前右键的方块视为目标容器
+        InteractionTracker.INSTANCE.clear();
         //#endif
         if (client.player != null && !client.player.currentScreenHandler.equals(client.player.playerScreenHandler))
             client.player.closeHandledScreen();
@@ -330,26 +330,26 @@ public class OpenInventoryPacket {
         }
         if (open) {
             //#if MC >= 12001
-            //$$ MemoryUtils.blockState = state;
+            MemoryUtils.blockState = state;
             //#endif
 //            client.player.sendMessage(Text.of("return "+state.toString()));
         } else {
             if (key != null) {
                 //#if MC < 11904
-                String translationKey = key.getValue().toString();
-                String translate = StringUtils.translate(translationKey);
-                if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toString()),false);
-                //#else
-                //$$ String translationKey = key.getValue().toTranslationKey();
+                //$$ String translationKey = key.getValue().toString();
                 //$$ String translate = StringUtils.translate(translationKey);
-                //$$ if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toCenterPos().toString()));
+                //$$ if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toString()),false);
+                //#else
+                String translationKey = key.getValue().toTranslationKey();
+                String translate = StringUtils.translate(translationKey);
+                if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toCenterPos().toString()));
                 //#endif
 
                 //#if MC >= 12001
-                //$$ MemoryUtils.PRINTER_MEMORY.removeMemory(key.getValue(), pos);
+                MemoryUtils.PRINTER_MEMORY.removeMemory(key.getValue(), pos);
                 //#else
-                red.jackf.chesttracker.memory.MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
-                me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
+                //$$ red.jackf.chesttracker.memory.MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
+                //$$ me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
                 //#endif
             }
             if (MinecraftClient.getInstance().player != null) {

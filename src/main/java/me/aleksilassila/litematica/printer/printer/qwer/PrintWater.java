@@ -120,9 +120,9 @@ public class PrintWater {
 
         player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY));
         //#if MC > 11802
-        //$$ printer.client.interactionManager.interactBlock(player, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN, pos, true));
+        printer.client.interactionManager.interactBlock(player, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN, pos, true));
         //#else
-        printer.client.interactionManager.interactBlock(player, player.clientWorld, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN, pos, true));
+        //$$ printer.client.interactionManager.interactBlock(player, player.clientWorld, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN, pos, true));
         //#endif
         player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY));
     }
@@ -143,9 +143,9 @@ public class PrintWater {
         IceBlock b;
         //冰碎后无法产生水
         //#if MC > 11904
-        //$$ BlockState material = client.world.getBlockState(pos.down());
+        BlockState material = client.world.getBlockState(pos.down());
         //#else
-        Material material = client.world.getBlockState(pos.down()).getMaterial();
+        //$$ Material material = client.world.getBlockState(pos.down()).getMaterial();
         //#endif
 
         if (material.blocksMovement() || material.isLiquid()) {
