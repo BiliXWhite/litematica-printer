@@ -26,9 +26,9 @@ import red.jackf.chesttracker.impl.util.ItemStacks;
 import java.util.*;
 
 //#if MC > 12004
-//$$
-//#else
 
+//#else
+//$$
 //#endif
 
 
@@ -56,9 +56,9 @@ public abstract class ChestTrackerScreenMixin extends Screen {
                 return InventoryUtils.getStoredItems(stack, -1).stream().anyMatch((stack2) -> {
 
                     //#if MC > 12004
-                    //$$
-                    //#else
 
+                    //#else
+                    //$$
                     //#endif
                     return ItemStacks.defaultPredicate(stack2,filter);
 

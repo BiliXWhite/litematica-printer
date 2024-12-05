@@ -8,7 +8,6 @@ import fi.dy.masa.litematica.selection.Box;
 import fi.dy.masa.litematica.util.EasyPlaceProtocol;
 import fi.dy.masa.litematica.util.InventoryUtils;
 import fi.dy.masa.litematica.util.PlacementHandler;
-import fi.dy.masa.litematica.util.WorldUtils;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
@@ -19,29 +18,27 @@ import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.mixin.masa.Litematica_InventoryUtilsMixin;
 import me.aleksilassila.litematica.printer.mixin.masa.WorldUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
-import me.aleksilassila.litematica.printer.printer.bedrockUtils.Messager;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.PinYinSearch;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.TextFilters;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.*;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.ChestBlockEntity;
-import net.minecraft.block.enums.ChestType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
-import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
+import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -49,12 +46,12 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static fi.dy.masa.litematica.util.WorldUtils.applyCarpetProtocolHitVec;
@@ -62,6 +59,7 @@ import static fi.dy.masa.litematica.util.WorldUtils.applyPlacementProtocolV3;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
 import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
+import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.isPositionAllowedByBreakingRestriction;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isInventory;
@@ -69,7 +67,8 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInve
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem.reSwitchItem;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 //#if MC >= 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
@@ -99,6 +98,7 @@ import net.minecraft.registry.Registries;
 //#endif
 
 public class Printer extends PrinterUtils {
+    private static final Logger log = LoggerFactory.getLogger(Printer.class);
     public static boolean up = true;
 
     public static class TempData {
@@ -417,6 +417,7 @@ public class Printer extends PrinterUtils {
     static boolean breakRestriction(BlockState blockState,BlockPos pos) {
         if(EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.TW)){
             if (!FabricLoader.getInstance().isModLoaded("tweakeroo")) return true;
+//            return isPositionAllowedByBreakingRestriction(pos,Direction.UP);
             UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
                 return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
@@ -442,30 +443,44 @@ public class Printer extends PrinterUtils {
     }
     public static boolean equalsBlockName(String blockName, BlockState blockState,BlockPos pos){
         String string = Registries.BLOCK.getId(blockState.getBlock()).toString();
+        String[] strs = blockName.split(",");
+        String blockName1 = strs[0];
+        if(strs.length > 1){
+            strs = Arrays.copyOfRange(strs,1,strs.length);
+        }else strs = new String[]{};
 
-        if (blockName.length() > 2) {
-            String fix = null;
-            String[] split = blockName.split("-");
-            fix = split[split.length-1];
-            if ("a".equals(fix)) {  //方块全称
-                String substring = blockName.substring(0, blockName.length() - 2);
-                if (substring.equals(string)) {
-                    return true;
+        //标签
+        if (blockName1.length() > 1 && blockName1.charAt(0) == '#') {
+            AtomicBoolean theLabelIsTheSame = new AtomicBoolean(false);
+            String fix1 = blockName1.split("#")[1];
+            String[] finalStrs = strs;
+            blockState.streamTags().forEach(tag -> {
+                String tagName = tag.id().toString();
+                if (TextFilters.filters(tagName,fix1, finalStrs)) {
+                    theLabelIsTheSame.set(true);
                 }
-                //容器
-            }else if ("inventory".equals(fix) && isInventory(ZxyUtils.client.world,pos)){
-                return true;
-            }else if("all".equals(fix)){ //所有方块
-                return true;
-            }
+            });
+            return theLabelIsTheSame.get();
         }
-       return string.contains(blockName);
+
+        //中文 、 拼音
+        String block = blockState.getBlock().getName().getString();
+        ArrayList<String> pinYin = PinYinSearch.getPinYin(block);
+        String[] finalStrs1 = strs;
+        boolean py = pinYin.stream().anyMatch(p -> TextFilters.filters(p,blockName1, finalStrs1));
+        return TextFilters.filters(block,blockName1,strs) || py || TextFilters.filters(string,blockName1,strs);
     }
 
     public static int moveTick = 0;
     public static Vec3d itemPos = null;
+    public static ItemStack offHandItem = null;
     //此模式依赖bug运行 请勿随意修改
     public void bedrockMode() {
+
+//        if (!client.player.getOffHandStack().isEmpty()){
+//            offHandItem = client.player.getOffHandStack();
+//        }else offHandItem = null;
+
         BreakingFlowController.tick();
         int maxy = -9999;
         range2 = bedrockModeRange();
@@ -493,6 +508,15 @@ public class Printer extends PrinterUtils {
                 BreakingFlowController.addBlockPosToList(pos);
             }
         }
+//        if (offHandItem != null){
+//            PlayerScreenHandler sc = client.player.playerScreenHandler;
+//            int i1 = -1;
+//            for (int i = 0; i < sc.slots.size(); i++) {
+//                if (fi.dy.masa.malilib.util.InventoryUtils.areStacksEqual(sc.slots.get(i).getStack(),offHandItem)) i1 = i;
+//            }
+//            if (i1 != -1) client.interactionManager.clickSlot(client.player.currentScreenHandler.syncId, i1, 40, SlotActionType.SWAP, client.player);
+//        }
+
 
         //尝试移动到掉落物位置。。。
 //        if (moveTick < 20) return;
@@ -570,9 +594,9 @@ public class Printer extends PrinterUtils {
                 for (Item item : items2) {
                      //#if MC >= 12001
                         //#if MC > 12004
-                        //$$ MemoryUtils.currentMemoryKey = client.world.getRegistryKey().getValue();
+                        MemoryUtils.currentMemoryKey = client.world.getRegistryKey().getValue();
                         //#else
-                        MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
+                        //$$ MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
                         //#endif
                       MemoryUtils.itemStack = new ItemStack(item);
                       if (SearchItem.search(true)) {

@@ -15,16 +15,16 @@ package me.aleksilassila.litematica.printer.mixin.openinv;
  public interface InventoryMixin {
      @Inject(at = @At("HEAD"), method =
         //#if MC < 12005
-        "canPlayerUse(Lnet/minecraft/block/entity/BlockEntity;Lnet/minecraft/entity/player/PlayerEntity;I)Z"
+        //$$ "canPlayerUse(Lnet/minecraft/block/entity/BlockEntity;Lnet/minecraft/entity/player/PlayerEntity;I)Z"
         //#else
-        //$$ "canPlayerUse(Lnet/minecraft/block/entity/BlockEntity;Lnet/minecraft/entity/player/PlayerEntity;F)Z"
+        "canPlayerUse(Lnet/minecraft/block/entity/BlockEntity;Lnet/minecraft/entity/player/PlayerEntity;F)Z"
         //#endif
              , cancellable = true)
      private static void canPlayeruse(
         //#if MC < 12005
-        BlockEntity blockEntity, PlayerEntity player, int range, CallbackInfoReturnable<Boolean> cir
+        //$$ BlockEntity blockEntity, PlayerEntity player, int range, CallbackInfoReturnable<Boolean> cir
         //#else
-        //$$ BlockEntity blockEntity, PlayerEntity player, float range, CallbackInfoReturnable<Boolean> cir
+        BlockEntity blockEntity, PlayerEntity player, float range, CallbackInfoReturnable<Boolean> cir
         //#endif
      ) {
          if (player instanceof ServerPlayerEntity) {

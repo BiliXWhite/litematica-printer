@@ -3,11 +3,12 @@ pluginManagement {
         jcenter()
         mavenLocal()
         mavenCentral()
+        gradlePluginPortal()
+
         maven {
             name = 'Fabric'
             url = 'https://maven.fabricmc.net/'
         }
-        gradlePluginPortal()
 
         maven {
             name("Jitpack")
@@ -49,7 +50,6 @@ def versions = Arrays.asList(
         "1.20.2",
         "1.20.4",
         "1.20.6",
-        "1.21.0",
         "1.21.1",
 )
 

@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.printer.bedrockUtils;
 
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -27,7 +28,6 @@ public class BlockPlacer {
 //        }
         tar.temppos.add(pos);
         BlockHitResult hitResult = new BlockHitResult(new Vec3d(pos.getX(), pos.getY(), pos.getZ()), Direction.UP, pos, false);
-//        minecraftClient.interactionManager.interactBlock(minecraftClient.player, minecraftClient.world, Hand.MAIN_HAND, hitResult);
         placeBlockWithoutInteractingBlock(minecraftClient, hitResult);
     }
 
@@ -70,16 +70,17 @@ public class BlockPlacer {
 
     private static void placeBlockWithoutInteractingBlock(MinecraftClient minecraftClient, BlockHitResult hitResult) {
         ClientPlayerEntity player = minecraftClient.player;
-        ItemStack itemStack = player.getStackInHand(Hand.MAIN_HAND);
+        ItemStack itemStack = player.getStackInHand(Hand.OFF_HAND);
 
-        //#if MC < 11904
-        //$$ minecraftClient.getNetworkHandler().sendPacket(new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND, hitResult));
-        //#else
-        minecraftClient.getNetworkHandler().sendPacket(new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND, hitResult,0));
-        //#endif
+        ZxyUtils.useBlock(Hand.OFF_HAND,hitResult.getPos(),hitResult.getSide(),hitResult.getBlockPos(),hitResult.isInsideBlock());
+//        //#if MC < 11904
+//        //$$ minecraftClient.getNetworkHandler().sendPacket(new PlayerInteractBlockC2SPacket(Hand.OFF_HAND, hitResult));
+//        //#else
+//        minecraftClient.getNetworkHandler().sendPacket(new PlayerInteractBlockC2SPacket(Hand.OFF_HAND, hitResult,0));
+//        //#endif
 
         if (!itemStack.isEmpty() && !player.getItemCooldownManager().isCoolingDown(itemStack.getItem())) {
-            ItemUsageContext itemUsageContext = new ItemUsageContext(player, Hand.MAIN_HAND, hitResult);
+            ItemUsageContext itemUsageContext = new ItemUsageContext(player, Hand.OFF_HAND, hitResult);
             itemStack.useOnBlock(itemUsageContext);
 
         }

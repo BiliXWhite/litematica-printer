@@ -3,6 +3,7 @@ package me.aleksilassila.litematica.printer.printer.bedrockUtils;
 //import net.fabricmc.fabric.api.event.client.player.ClientPickBlockCallback;
 //import net.minecraft.client.MinecraftClient;
 
+import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -17,6 +18,8 @@ import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.registry.tag.FluidTags;
+import net.minecraft.screen.PlayerScreenHandler;
+import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 
 import static me.aleksilassila.litematica.printer.printer.bedrockUtils.TargetBlock.switchPickaxe;
@@ -76,18 +79,27 @@ public class InventoryManager {
         }else switchPickaxe = false;
 
         if (i != -1) {
+            if(!item.toString().contains("pickaxe")){
 
-            if (PlayerInventory.isValidHotbarIndex(i)) {
-                playerInventory.selectedSlot = i;
-            } else {
-                minecraftClient.interactionManager.pickFromInventory(i);
+                PlayerScreenHandler sc = minecraftClient.player.playerScreenHandler;
+                for (int i1 = 0; i1 < sc.slots.size(); i1++) {
+                    if (ItemStack.areItemsEqual(sc.slots.get(i1).getStack(),new ItemStack(item))) i = i1;
+                }
+                minecraftClient.interactionManager.clickSlot(sc.syncId, i, 40, SlotActionType.SWAP, minecraftClient.player);
+                refresh();
+            }else{
+                if (PlayerInventory.isValidHotbarIndex(i)) {
+                    playerInventory.selectedSlot = i;
+                } else {
+                    {
+                        minecraftClient.interactionManager.pickFromInventory(i);
+                        minecraftClient.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(playerInventory.selectedSlot));
+                        refresh();
+                    }
+                }
             }
-
-            minecraftClient.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(playerInventory.selectedSlot));
-            refresh();
             return true;
         }
-
         return false;
     }
 

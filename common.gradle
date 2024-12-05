@@ -179,12 +179,6 @@ dependencies {
         def mode = item[2]
         if (mode == 0) return;
         def idFix= mode != 5 ? "${dependencyNotation}:${project.property("${id}")}" : ""
-//        if(id.equals("yacl")){
-//            modImplementation (idFix) {
-//                exclude group: "com.terraformersmc", module: "modmenu"
-//            }
-//            return;
-//        }
         if (mode == 1) {
             modImplementation idFix
         } else if (mode == 2) {
