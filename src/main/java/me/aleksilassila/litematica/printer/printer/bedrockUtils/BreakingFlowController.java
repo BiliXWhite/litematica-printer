@@ -53,9 +53,9 @@ public class BreakingFlowController {
                 return;
         }
         if (!minecraftClient.world.getBlockState(pos.up()).isAir() || !minecraftClient.world.getBlockState(pos.up().up()).isAir()) {
-            if (!Printer.bedrockModeTarget(minecraftClient.world.getBlockState(pos.up()).getBlock()))
+            if (!Printer.bedrockModeTarget(minecraftClient.world.getBlockState(pos.up())))
                 addPosList(pos.up());
-            if (!Printer.bedrockModeTarget(minecraftClient.world.getBlockState(pos.up().up()).getBlock()))
+            if (!Printer.bedrockModeTarget(minecraftClient.world.getBlockState(pos.up().up())))
                 addPosList(pos.up().up());
             return;
         }

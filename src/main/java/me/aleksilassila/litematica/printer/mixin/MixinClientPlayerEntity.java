@@ -58,6 +58,8 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 		Printer.getPrinter().myTick();
 		if(!(LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed())){
 			PlacementGuide.posMap = new HashMap<>();
+			Printer.getPrinter().currPos = null;
+			Printer.getPrinter().basePos = null;
 			return;
 		}
 		if(Printer.up){

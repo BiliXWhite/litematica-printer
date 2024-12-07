@@ -20,6 +20,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import java.util.List;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadQuickShulker;
 
 public class LitematicaMixinMod implements ModInitializer, ClientModInitializer {
 	public static final String MOD_ID = "litematica_printer";
@@ -27,9 +28,9 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	// Config settings
 	public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger( "打印机工作间隔", 0,   0, 20, "以游戏刻度为单位工作间隔。值越低意味着打印速度越快");
 	;
-	public static final ConfigInteger PRINTING_RANGE = new ConfigInteger("打印机工作半径", 3,     1,   256,   "若服务器未修改交互距离 请勿设置太大。");
-	public static final ConfigInteger COMPULSION_RANGE = new ConfigInteger("强制循环半径", 6,     1,   20, """
-            每个游戏刻强制循环的半径，可以更好的扫描需要处理的方块""");
+//	public static final ConfigInteger PRINTING_RANGE = new ConfigInteger("打印机工作半径", 3,     1,   256,   "若服务器未修改交互距离 请勿设置太大。");
+	public static final ConfigInteger COMPULSION_RANGE = new ConfigInteger("打印机工作半径", 6,     1,   256, """
+            若服务器未修改交互距离 请勿设置太大""");
 	public static final ConfigInteger PUT_COOLING = new ConfigInteger("放置冷却", 2,     0,   256,   "对同一位置的方块放置时需等待设定的tick值才会再次放置。");
 	public static final ConfigOptionList RANGE_MODE = new ConfigOptionList("半径模式", State.ListType.SPHERE,"立方体建议3，球体建议设置6，破基岩在立方体模式下无法正常使用");
 	public static final ConfigOptionList MODE_SWITCH = new ConfigOptionList("模式切换", State.ModeType.SINGLE,"单模：仅运行一个模式。多模：可多个模式同时运行");
@@ -59,7 +60,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigHotkey DELETE = new ConfigHotkey("删除当前容器", "",GUI_NO_ORDER,"");
 	//#endif
 
-	public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList("排流体方块名单", ImmutableList.of("minecraft:sand"), "");
+	public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList("排流体方块名单", ImmutableList.of("minecraft:sand"), "此项需严格填写");
 	public static final ConfigBoolean PUT_SKIP = new ConfigBoolean("跳过放置", false, "开启后会跳过列表内的方块");
 	public static final ConfigBoolean PUT_TESTING = new ConfigBoolean("侦测器放置检测", false, "检测侦测器看向的方块是否和投影方块一致，若不一致测跳过放置");
 	public static final ConfigBoolean QUICKSHULKER = new ConfigBoolean("快捷潜影盒", false, "在有快捷潜影盒mod的情况下可以直接从背包内的潜影盒取出物品\n替换的位置为投影的预设位置,如果所有预设位置都有濳影盒则不会替换。");
@@ -134,6 +135,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 
 	@Override
 	public void onInitialize() {
+		reSetConfig();
 //		KeyCallbackHotkeys keyCallbackHotkeys = new KeyCallbackHotkeys(MinecraftClient.getInstance());
 		OpenInventoryPacket.init();
 		OpenInventoryPacket.registerReceivePacket();
@@ -163,5 +165,14 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	@Override
 	public void onInitializeClient() {
 		
+	}
+	private void reSetConfig(){
+		if(!loadChestTracker){
+			AUTO_INVENTORY.setBooleanValue(false);
+			INVENTORY.setBooleanValue(false);
+		}
+		if(!loadQuickShulker){
+			QUICKSHULKER.setBooleanValue(false);
+		}
 	}
 }

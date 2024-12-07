@@ -24,7 +24,7 @@ public abstract class MixinClientConnection {
     }
 
     @Inject(
-            method = {"disconnect"},
+            method = {"disconnect*"},
             at = {@At("HEAD")}
     )
     public void disconnect(Text ignored, CallbackInfo ci) {

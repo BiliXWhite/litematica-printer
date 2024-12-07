@@ -234,9 +234,7 @@ public class ZxyUtils {
                 if (!client.player.currentScreenHandler.equals(client.player.playerScreenHandler)) return;
                 DefaultedList<Slot> slots = client.player.playerScreenHandler.slots;
                 slots.forEach(slot -> itemsCount(playerItemsCount,slot.getStack()));
-//                if(targetItemsCount.keySet().stream()
-//                        .noneMatch(itemStack -> playerItemsCount.keySet().stream()
-//                                .anyMatch(itemStack1 -> ItemStack.canCombine(itemStack,itemStack1)))) return;
+
                 if (SYNC_INVENTORY_CHECK.getBooleanValue() && !targetItemsCount.entrySet().stream()
                         .allMatch(target -> playerItemsCount.entrySet().stream()
                                 .anyMatch(player ->
@@ -319,14 +317,7 @@ public class ZxyUtils {
             syncInv();
         }
         addInv();
-//        if (LitematicaMixinMod.REMOVE_PRINT_INVENTORY.getKeybind().isPressed()) {
-////            MemoryDatabase database = MemoryDatabase.getCurrent();
-////            if (database != null) {
-////                for (Identifier dimension : database.getDimensions()) {
-////                    database.clearDimension(dimension);
-////                }
-////            }
-//        }
+
         if (LitematicaMixinMod.CLOSE_ALL_MODE.getKeybind().isPressed()) {
             LitematicaMixinMod.BEDROCK_SWITCH.setBooleanValue(false);
             LitematicaMixinMod.EXCAVATE.setBooleanValue(false);
@@ -336,9 +327,6 @@ public class ZxyUtils {
             client.inGameHud.setOverlayMessage(Text.of("已关闭全部模式"), false);
         }
         OpenInventoryPacket.tick();
-//        for (BlockPos pos : syncPosList) {
-//            RenderUtils.FOUND_ITEM_POSITIONS.put(pos, new PositionData(pos, client.world.getTime(), VoxelShapes.fullCube(), 10, 10, 6, null));
-//        }
         test();
     }
 
@@ -390,7 +378,8 @@ public class ZxyUtils {
         return Math.max(getPrinterRange(),getCompulsionRange());
     }
     public static int getPrinterRange() {
-        return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
+//        return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
+        return LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue();
     }
     public static int getCompulsionRange(){
         return LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue();

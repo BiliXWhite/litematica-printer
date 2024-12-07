@@ -152,8 +152,6 @@ String getQuiShulkerBox(){
     String path = "curse.maven:quick-shulker-362669";
     if(mcVersion == 12006){
         path = "build/libs/quickshulker-1.4.3-1.20.6.jar"
-    }else if(mcVersion == 12100){
-        path = "build/libs/quickshulker-1.4.5-1.21.jar"
     }else if(mcVersion == 12101){
         path = "build/libs/quickshulker-1.4.5-1.21.jar"
     }
@@ -169,7 +167,6 @@ dependencies {
 
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
 
 //	modImplementation "com.zxy:litematica_printer:1.20.2-2.4+20240218"
 
@@ -343,18 +340,18 @@ tasks.register("runProductionServer", JavaExec) {
     }
 }
 
-["serverPropertiesJar",
- "runClient", "runServer",
- "runMixinAuditClient", "runMixinAuditServer",
- "runProductionClient", "runProductionServer",
- "preprocessCode", "preprocessResources",
- "preprocessTestCode", "preprocessTestResources"].forEach {
-    if (tasks.getNames().contains(it)) {
-        tasks.named(it) {
-            it.group("${mod_id}")
-        }
-    }
-}
+//["serverPropertiesJar",
+// "runClient", "runServer",
+// "runMixinAuditClient", "runMixinAuditServer",
+// "runProductionClient", "runProductionServer",
+// "preprocessCode", "preprocessResources",
+// "preprocessTestCode", "preprocessTestResources"].forEach {
+//    if (tasks.getNames().contains(it)) {
+//        tasks.named(it) {
+//            it.group("${mod_id}")
+//        }
+//    }
+//}
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding("UTF-8")

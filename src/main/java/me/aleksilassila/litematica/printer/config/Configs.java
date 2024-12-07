@@ -32,7 +32,7 @@ public class Configs implements IConfigHandler {
         if(loadQuickShulker) list.add(QUICKSHULKER);
         list.add(PRINT_SWITCH);
         list.add(PRINT_INTERVAL);
-        list.add(PRINTING_RANGE);
+//        list.add(PRINTING_RANGE);
         list.add(COMPULSION_RANGE);
         list.add(PUT_COOLING);
         list.add(RANGE_MODE);
