@@ -201,6 +201,7 @@ public class Printer extends PrinterUtils {
     public boolean reSetRange2 = true;
     public boolean usingRange1 = true;
     // 执行一次获取一个pos
+    @Deprecated
     BlockPos getBlockPos() {
         if (!usingRange1 && timedOut()) return null;
         ClientPlayerEntity player = client.player;
@@ -311,8 +312,10 @@ public class Printer extends PrinterUtils {
                 y1 = yDegression ? py + range1 : py - range1;
             }
         }
+
         //移动后会触发，频繁重置pos会浪费性能
-        if (Math.abs(x1 - player.getBlockX()) > range1 || Math.abs(z1 - player.getBlockZ()) > range1 || Math.abs(y1 - player.getBlockY()) > range1) {
+        double num = range1 * 0.7;
+        if (Math.abs(px - player.getBlockX()) > num || Math.abs(pz - player.getBlockZ()) > num || Math.abs(py - player.getBlockY()) > num) {
             currPos = null;
             basePos = null;
             return null;
@@ -1020,6 +1023,15 @@ public class Printer extends PrinterUtils {
     }
 
     static int shulkerBoxSlot = -1;
+    private static Method method;
+
+    static {
+        try {
+            method = Class.forName("net.kyrptonaught.quickshulker.client.ClientUtil").getDeclaredMethod("CheckAndSend", ItemStack.class, int.class);
+        } catch (Exception ignored) {
+            method = null;
+        }
+    }
 
     boolean openShulker(HashSet<Item> items) {
         for (Item item : items) {
@@ -1037,9 +1049,7 @@ public class Printer extends PrinterUtils {
                             //#if MC >= 12001
                             if(loadChestTracker) InteractionTracker.INSTANCE.clear();
                             //#endif
-                            Class quickShulker = Class.forName("net.kyrptonaught.quickshulker.client.ClientUtil");
-                            Method checkAndSend = quickShulker.getDeclaredMethod("CheckAndSend", ItemStack.class, int.class);
-                            checkAndSend.invoke(checkAndSend, stack, i);
+                            method.invoke(method, stack, i);
                             closeScreen++;
                             isOpenHandler = true;
                             //System.out.println("open "+b);

@@ -55,7 +55,16 @@ public class PinYinSearch {
             //pyss.get(1) == String[zhang,chang]
             pys2 = new ArrayList<>();
             pys4 = new ArrayList<>();
+            //逻辑类似于小学题目中的握手
             //循环String[]中的各读音
+            /*
+            * list          list
+            * ceng     ->   cengzhang
+            * zeng          zengzhang
+            *
+            *               cengchang
+            *               cengchang
+            * */
             for (int stringS = 0; stringS < pinyin.get(pyss).length && pinyin.get(pyss).length > 0; stringS++) {
                 //记录第一个字的各种读音
                 //pys1 = ceng -> ceng+zhang
