@@ -85,15 +85,10 @@ public class Configs implements IConfigHandler {
         list.add(PRINTER);
         list.add(PRINT);
         list.add(TOGGLE_PRINTING_MODE);
-
-        if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)) {
-            list.add(SWITCH_PRINTER_MODE);
-        } else if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)){
-            list.add(BEDROCK_SWITCH);
-            list.add(EXCAVATE);
-            list.add(FLUID);
-        }
-
+        list.add(SWITCH_PRINTER_MODE);
+        list.add(BEDROCK_SWITCH);
+        list.add(EXCAVATE);
+        list.add(FLUID);
         list.add(CLOSE_ALL_MODE);
         list.add(SYNC_INVENTORY);
         if(loadChestTracker){

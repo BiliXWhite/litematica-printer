@@ -375,7 +375,8 @@ public class ZxyUtils {
         return client.player != null && client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(blockPos)) < range * range;
     }
     public static int getRage(){
-        return Math.max(getPrinterRange(),getCompulsionRange());
+        return getPrinterRange();
+//        return Math.max(getPrinterRange(),getCompulsionRange());
     }
     public static int getPrinterRange() {
 //        return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();

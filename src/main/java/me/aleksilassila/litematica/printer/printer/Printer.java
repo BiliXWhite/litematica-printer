@@ -24,6 +24,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPa
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.overwrite.MyBox;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
@@ -40,6 +41,7 @@ import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -59,6 +61,7 @@ import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRIC
 import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.*;
+import static me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController.cachedTargetBlockList;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.BlockFilters.equalsBlockName;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
@@ -100,8 +103,6 @@ public class Printer extends PrinterUtils {
     public static boolean up = true;
 
     public static class TempData {
-        public static int[] min;
-        public static int[] max;
         public static boolean xuanQuFanWeiNei_p(BlockPos pos) {
           return  xuanQuFanWeiNei_p(pos,0);
         }
@@ -126,34 +127,12 @@ public class Printer extends PrinterUtils {
         }
 
         static boolean comparePos(Box box, BlockPos pos,int p) {
-            int x = 0, y = 0, z = 0;
-            if (pos != null) {
-                x = pos.getX();
-                y = pos.getY();
-                z = pos.getZ();
-            }
-            if (box == null) return false;
-            BlockPos kpos1 = Objects.requireNonNull(box.getPos1());
-            BlockPos kpos2 = Objects.requireNonNull(box.getPos2());
-            min = new int[]{
-                    Math.min(kpos1.getX(), kpos2.getX())-p,
-                    Math.min(kpos1.getY(), kpos2.getY())-p,
-                    Math.min(kpos1.getZ(), kpos2.getZ())-p
-            };
-            max = new int[]{
-                    Math.max(kpos1.getX(), kpos2.getX())+p,
-                    Math.max(kpos1.getY(), kpos2.getY())+p,
-                    Math.max(kpos1.getZ(), kpos2.getZ())+p
-            };
-            if (
-                    x < min[0] || x > max[0] ||
-                            y < min[1] || y > max[1] ||
-                            z < min[2] || z > max[2]
-            ) {
-                return false;
-            } else {
-                return true;
-            }
+            if(box == null || box.getPos1() == null || box.getPos2() == null || pos == null) return false;
+            net.minecraft.util.math.Box box1 = new MyBox(Vec3d.of(box.getPos1()),Vec3d.of(box.getPos2()));
+            box1 = box1.expand(p);
+            //因为麻将的Box.contains方法内部用的 x >= this.minX && x < this.maxX ... 使得最小边界能被覆盖，但是最大边界不行
+            //因此 我重写了该方法
+            return box1.contains(Vec3d.of(pos));
         }
     }
 
@@ -270,65 +249,36 @@ public class Printer extends PrinterUtils {
         }
         return pos;
     }
-    public BlockPos currPos = null;
     public BlockPos basePos = null;
+    public MyBox myBox;
     BlockPos getBlockPos2() {
         if (timedOut()) return null;
         ClientPlayerEntity player = client.player;
         if (player == null) return null;
-        if(basePos == null) {
-            basePos = player.getBlockPos();
-            return null;
+        if (basePos == null) {
+            BlockPos blockPos = player.getBlockPos();
+            basePos = blockPos;
+            myBox = new MyBox(blockPos).expand(range1);
         }
-        int px = basePos.getX();
-        int py = basePos.getY();
-        int pz = basePos.getZ();
-        int x1,y1,z1;
-        if (currPos == null) {
-            x1 = px-range1;
-            z1 = pz-range1;
-            y1 = yDegression ? py+range1 : py-range1;
-            currPos = new BlockPos(x1,y1,z1);
-            return currPos;
-        }else {
-            x1=currPos.getX();
-            y1=currPos.getY();
-            z1=currPos.getZ();
-        }
-
-        x1++;
-        if (x1 - px > range1) {
-            x1 = px - range1;
-            z1++;
-        }
-        if (z1 - pz > range1) {
-            z1 = pz - range1;
-            if (yDegression) {
-                y1--;
-            } else {
-                y1++;
-            }
-            if(yDegression ? y1 - py < -range1 : y1 - py > range1){
-                y1 = yDegression ? py + range1 : py - range1;
-            }
-        }
-
         //移动后会触发，频繁重置pos会浪费性能
         double num = range1 * 0.7;
-        if (Math.abs(px - player.getBlockX()) > num || Math.abs(pz - player.getBlockZ()) > num || Math.abs(py - player.getBlockY()) > num) {
-            currPos = null;
+        if (!basePos.isWithinDistance(player.getBlockPos(), num)) {
             basePos = null;
             return null;
         }
-        if (px - x1 == range1 && (yDegression ? py - y1 : py + y1) == range1 && pz - z1 == range1){
-            BlockPos tempPos = currPos;
-            currPos = null;
-            basePos = null;
-            return tempPos;
-        }else {
-            currPos = new BlockPos(x1,y1,z1);
-            return currPos;
+        myBox.yIncrement = !yDegression;
+        myBox.initIterator();
+        Iterator<BlockPos> iterator = myBox.iterator;
+        while (iterator.hasNext()) {
+            BlockPos pos = iterator.next();
+            IConfigOptionListEntry optionListValue = LitematicaMixinMod.RANGE_MODE.getOptionListValue();
+            if (optionListValue == State.ListType.SPHERE && !basePos.isWithinDistance(pos,range1)) {
+                continue;
+            }
+            return pos;
         }
+        basePos = null;
+        return null;
     }
 
     //根据当前毫秒值判断是否超出了屏幕刷新率
@@ -391,12 +341,7 @@ public class Printer extends PrinterUtils {
     void miningMode() {
         BlockPos pos;
         while ((pos = tempPos == null ? getBlockPos2() : tempPos) != null) {
-            if (client.player != null && !canInteracted(pos)) {
-                if (tempPos == null) continue;
-                tempPos = null;
-                continue;
-            }
-            if (isLimitedByTheNumberOfLayers(pos)) {
+            if (client.player != null && (!canInteracted(pos) || isLimitedByTheNumberOfLayers(pos))) {
                 if (tempPos == null) continue;
                 tempPos = null;
                 continue;
@@ -507,7 +452,12 @@ public class Printer extends PrinterUtils {
             if (isLimitedByTheNumberOfLayers(pos)) continue;
             BlockState currentState = client.world.getBlockState(pos);
 //                    if (currentState.isOf(Blocks.PISTON) && !data.world.getBlockState(pos.down()).isOf(Blocks.BEDROCK)) {
-            if (currentState.isOf(Blocks.PISTON) && !bedrockModeTarget(client.world.getBlockState(pos.down())) && xuanQuFanWeiNei_p(pos,3)) {
+            BlockPos finalPos = pos;
+            if ((currentState.isOf(Blocks.PISTON) || (currentState.isOf(Blocks.SLIME_BLOCK) &&
+                    cachedTargetBlockList.stream().allMatch(
+                            targetBlock -> targetBlock.temppos.stream().noneMatch(
+                                    blockPos -> blockPos.equals(finalPos)))))
+                    && !bedrockModeTarget(client.world.getBlockState(pos.down())) && xuanQuFanWeiNei_p(pos,3)) {
                 BreakingFlowController.addPosList(pos);
             } else if (currentState.isOf(Blocks.PISTON_HEAD)) {
                 switchToItems(client.player, new Item[]{Items.AIR, Items.DIAMOND_PICKAXE});
@@ -520,8 +470,12 @@ public class Printer extends PrinterUtils {
                     bedrockModeTarget(currentState) &&
                     ZxyUtils.bedrockCanInteracted(pos, getRage() - 1.5) &&
                     !bedrockModeTarget(client.world.getBlockState(pos.up()))) {
-                if (maxy == -9999) maxy = y1;
-                if (y1 < maxy) return;
+                if (maxy == -9999) maxy = pos.getY();
+                if (pos.getY() < maxy){
+                    //重置迭代器 如果不重置 继续根据上次结束的y轴递减会出事
+                    myBox.resetIterator();
+                    return;
+                }
                 BreakingFlowController.addBlockPosToList(pos);
             }
         }
@@ -681,7 +635,6 @@ public class Printer extends PrinterUtils {
         yDegression = false;
         startTime = System.currentTimeMillis();
         tickRate = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();
-        basePos = pEntity.getBlockPos();
 
         tick = tick == 0x7fffffff ? 0 : tick + 1;
         boolean easyModeBooleanValue = LitematicaMixinMod.EASY_MODE.getBooleanValue();
@@ -921,25 +874,20 @@ public class Printer extends PrinterUtils {
     public LinkedList<BlockPos> siftBlock(String blockName) {
         LinkedList<BlockPos> blocks = new LinkedList<>();
         AreaSelection i = DataManager.getSelectionManager().getCurrentSelection();
-        List<Box> box;
+        List<Box> boxes;
         if (i == null) return blocks;
-        box = i.getAllSubRegionBoxes();
-        for (int index = 0; index < box.size(); index++) {
-            TempData.comparePos(box.get(index), null,0);
-            for (int x = min[0]; x <= max[0]; x++) {
-                for (int y = min[1]; y <= max[1]; y++) {
-                    for (int z = min[2]; z <= max[2]; z++) {
-                        BlockPos pos = new BlockPos(new BlockPos(x, y, z));
-                        BlockState state = null;
-                        if (client.world != null) {
-                            state = client.world.getBlockState(pos);
-                        }
+        boxes = i.getAllSubRegionBoxes();
+        for (Box box : boxes) {
+            MyBox myBox = new MyBox(box);
+            for (BlockPos pos : myBox) {
+                BlockState state = null;
+                if (client.world != null) {
+                    state = client.world.getBlockState(pos);
+                }
 //                        Block block = state.getBlock();
 //                        if (Registries.BLOCK.getId(block).toString().contains(blockName)) {
-                        if (equalsBlockName(blockName,state)) {
-                            blocks.add(pos);
-                        }
-                    }
+                if (equalsBlockName(blockName, state)) {
+                    blocks.add(pos);
                 }
             }
         }
@@ -1062,7 +1010,7 @@ public class Printer extends PrinterUtils {
         }
         return false;
     }
-
+    static ItemStack yxcfItem; //有序存放临时存储
     public void switchToItems(ClientPlayerEntity player, Item[] items) {
         if (items == null) return;
         PlayerInventory inv = Implementation.getInventory(player);
@@ -1084,6 +1032,7 @@ public class Printer extends PrinterUtils {
                         slot = i;
                 }
                 if (slot != -1) {
+                    yxcfItem = inv.getStack(slot);
                     swapHandWithSlot(player, slot);
                     return;
                 }
@@ -1138,7 +1087,6 @@ public class Printer extends PrinterUtils {
             this.shift = shift;
 
         }
-
         public void sendQueue(ClientPlayerEntity player) {
             if (target == null || side == null || hitModifier == null) return;
 
@@ -1162,16 +1110,17 @@ public class Printer extends PrinterUtils {
             else if (!shift && wasSneaking)
                 player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY));
 
-            ItemStack mainHandStack1 = printerInstance.client.player.getMainHandStack();
-            ItemStack mainHandStack2 = printerInstance.client.player.getMainHandStack().copy();
+            ItemStack mainHandStack1 = yxcfItem;
 
             ((IClientPlayerInteractionManager) printerInstance.client.interactionManager)
                         .rightClickBlock(target, side, hitVec);
 
 
-            if (mainHandStack1.isEmpty()) {
-                SwitchItem.removeItem(mainHandStack2);
-            } else SwitchItem.syncUseTime(mainHandStack1);
+            if (mainHandStack1 != null) {
+                if ( mainHandStack1.isEmpty()) {
+                    SwitchItem.removeItem(mainHandStack1);
+                } else SwitchItem.syncUseTime(mainHandStack1);
+            }
 //            System.out.println("Printed at " + (target.toString()) + ", " + side + ", modifier: " + hitVec);
 
             if (shift && !wasSneaking)

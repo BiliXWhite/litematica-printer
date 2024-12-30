@@ -73,25 +73,7 @@ public class PinYinSearch {
                     pys1.add(pinyin.get(pyss)[stringS]);
                     pys3.add(""+ pinyin.get(pyss)[stringS].charAt(0));
                 }else {
-                    //将当前String[]中的各读音与之前记录的拼接
-                    //若currentString == 0 那么读取到的读音就是ceng
-                    //此时"长"读取到的是zhang
-                    //使用ceng  得到 cengzhang
-                    //若currentString == 1 那么读取到的读音就是zeng
-                    //使用zeng 得到  zengzhang
                     for (int currentString = 0; currentString < pys1.size(); currentString++) {
-                        // pinyin.get(1).[0] = zhang
-
-                        // currentString == 0
-                        // pys1.get(currentString) == ceng
-                        // ceng + zhang
-                        // currentString == 1
-                        // pys1.get(currentString) == zeng
-                        // zeng + zhang
-
-                        // pinyin.get(1).[1] = chang
-                        //...
-
                         pys2.add(pys1.get(currentString) + pinyin.get(pyss)[stringS]);
                         pys4.add(pys3.get(currentString) + pinyin.get(pyss)[stringS].charAt(0));
                     }
