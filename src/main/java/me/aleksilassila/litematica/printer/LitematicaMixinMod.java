@@ -11,6 +11,7 @@ import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.TPPos;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
@@ -124,8 +125,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		}
 		return ImmutableList.copyOf(list);
 	}
-	public static final ConfigColor SYNC_INVENTORY_COLOR = new ConfigColor("容器同步和打印机添加库存高亮颜色",          "#4CFF4CE6", "");
-
+	public static final ConfigColor SYNC_INVENTORY_COLOR = new ConfigColor("容器同步和打印机添加库存高亮颜色","#4CFF4CE6", "");
 
 	public static ImmutableList<IConfigBase> getColorsList() {
 		List<IConfigBase> list = new java.util.ArrayList<>(Configs.Colors.OPTIONS);
@@ -140,6 +140,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		OpenInventoryPacket.init();
 		OpenInventoryPacket.registerReceivePacket();
 		OpenInventoryPacket.registerClientReceivePacket();
+		TPPos.init();
 		//#if MC >= 12001
 		if(loadChestTracker) MemoryUtils.setup();
 		//#endif

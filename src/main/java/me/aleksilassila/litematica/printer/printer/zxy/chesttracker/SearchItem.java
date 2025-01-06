@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class SearchItem {
     static AtomicBoolean hasItem = new AtomicBoolean(false);
@@ -47,15 +48,22 @@ public class SearchItem {
         ZxyUtils.client.player.closeHandledScreen();
         final int[] pageFix = {p};
         currItems.forEach((k,v) -> {
-            if(OpenInventoryPacket.key!=null || v == null)return;
-            v.forEach((k1,v1) -> {
-                if(OpenInventoryPacket.key!=null)return;
-                if(pageFix[0] != 0){
-                    pageFix[0]--;
-                }else if(k!=null && k1 != null){
-                    OpenInventoryPacket.sendOpenInventory(k1,RegistryKey.of(RegistryKeys.WORLD, k));
-                }
-            });
+            if(OpenInventoryPacket.key!=null || v == null || k == null) return;
+
+            if(pageFix[0] > v.size() - 1){
+                pageFix[0] -= v.size();
+            }else {
+                v.entrySet().stream().skip(pageFix[0]).findFirst().ifPresent((value) ->
+                        OpenInventoryPacket.sendOpenInventory(value.getKey(),RegistryKey.of(RegistryKeys.WORLD, k)));
+            }
+//            v.forEach((k1,v1) -> {
+//                if(OpenInventoryPacket.key!=null) return;
+//                if(pageFix[0] != 0){
+//                    pageFix[0]--;
+//                }else if(k!=null && k1 != null){
+//                    OpenInventoryPacket.sendOpenInventory(k1,RegistryKey.of(RegistryKeys.WORLD, k));
+//                }
+//            });
         });
     }
 
@@ -116,16 +124,6 @@ public class SearchItem {
                 }
             }
             return itemsMap;
-//            memoryBank.getPositions(key, searchRequest).
-//                    forEach(v -> {
-//                        if (v.item() != null &&
-//                                !hasItem.get() &&
-//                                (!isPrinterMemory || !((Block.getBlockFromItem(v.item().getItem())) instanceof ShulkerBoxBlock))
-//                        ) {
-//                            OpenInventoryPacket.sendOpenInventory(v.pos(), RegistryKey.of(RegistryKeys.WORLD, key));
-//                            hasItem.set(true);
-//                        }
-//                    });
         }
         return null;
     }

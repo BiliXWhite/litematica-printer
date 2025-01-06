@@ -3,9 +3,8 @@ package me.aleksilassila.litematica.printer.printer;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.StringUtils;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.BlockFilters;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
 import net.minecraft.block.BlockState;
-import net.minecraft.registry.Registries;
 //import net.minecraft.util.registry.Registry;
 
 public enum State {
@@ -20,10 +19,10 @@ public enum State {
 //        }
         if (!schematicBlockState.isAir() && (currentBlockState.isAir() ||
                 (LitematicaMixinMod.REPLACEABLE_LIST.getStrings().stream()
-                        .anyMatch(string -> !BlockFilters.equalsBlockName(string,schematicBlockState) &&
+                        .anyMatch(string -> !Filters.equalsName(string,schematicBlockState) &&
 //                        .anyMatch(string -> !Registries.BLOCK.getId(schematicBlockState.getBlock()).toString().contains(string) &&
 //                                Registries.BLOCK.getId(currentBlockState.getBlock()).toString().contains(string)) &&
-                                BlockFilters.equalsBlockName(string,currentBlockState)) &&
+                                Filters.equalsName(string,currentBlockState)) &&
                         LitematicaMixinMod.REPLACE.getBooleanValue())))
 //        if (!schematicBlockState.isAir() && (currentBlockState.isAir() || currentBlockState.getBlock() instanceof FluidBlock || currentBlockState.isOf(Blocks.SNOW) || currentBlockState.isOf(Blocks.BUBBLE_COLUMN)))
 //        if (!schematicBlockState.isAir() && (currentBlockState.isAir())

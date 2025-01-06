@@ -35,7 +35,7 @@ public class SwitchItem {
         if(itemStatistics != null) itemStatistics.syncUseTime();
     }
     public static void newItem(ItemStack itemStack, BlockPos pos, RegistryKey<World> key, int slot, int shulkerBox){
-        itemStacks.put(itemStack,new ItemStatistics(key,pos,slot,shulkerBox));
+        if(shulkerBox != -1) itemStacks.put(itemStack,new ItemStatistics(key,pos,slot,shulkerBox));
     }
     public static void openInv(ItemStack itemStack){
         if(!client.player.currentScreenHandler.equals(client.player.playerScreenHandler) || Statistics.closeScreen > 0){

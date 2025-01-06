@@ -10,17 +10,21 @@ import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowCont
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.mob.ShulkerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
@@ -35,6 +39,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import java.util.*;
 //#if MC >= 12001
@@ -42,10 +47,13 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#else
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //#endif
-//#if MC > 12006
+//#if MC >= 12006
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
+import net.minecraft.nbt.NbtCompound;
 //#endif
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_COLOR;
@@ -74,9 +82,7 @@ public class ZxyUtils {
             //#endif
 
             for (String string : LitematicaMixinMod.INVENTORY_LIST.getStrings()) {
-                if (Printer.getPrinter() != null) {
-                    invBlockList.addAll(Printer.getPrinter().siftBlock(string));
-                }
+                invBlockList.addAll(Printer.getPrinter().siftBlock(string));
             }
             highlightPosList.addAll(invBlockList);
         }
@@ -409,6 +415,35 @@ public class ZxyUtils {
         client.interactionManager.interactBlock(client.player, hand,new BlockHitResult(vec3d, direction,pos,insideBlock));
         //#endif
     }
+    public static Optional<ClientPlayerEntity> getPlayer(){
+        return Optional.ofNullable(client.player);
+    }
+    public static void refreshPlayerInventory(){
+        ClientPlayNetworkHandler networkHandler = client.getNetworkHandler();
+        if (getPlayer().isEmpty()) return;
+        ClientPlayerEntity player = getPlayer().get();
+        if(networkHandler == null) return;
+        ItemStack uniqueItem = new ItemStack(Items.STONE);
+
+        // Tags with NaN are not equal, so the server will find an inventory desync and send an inventory refresh to the client
+        //#if MC >= 12006
+        var nbt = new NbtCompound();
+        nbt.putDouble("force_sync", Double.NaN);
+        NbtComponent.set(DataComponentTypes.CUSTOM_DATA, uniqueItem, nbt);
+        //#else
+        //$$ uniqueItem.getOrCreateNbt().putDouble("force_resync", Double.NaN);
+        //#endif
+
+        networkHandler.sendPacket(new ClickSlotC2SPacket(
+                player.currentScreenHandler.syncId,
+                player.currentScreenHandler.getRevision(),
+                -999, 2,
+                SlotActionType.QUICK_CRAFT,
+                uniqueItem,
+                new Int2ObjectOpenHashMap<>()
+
+        ));
+    }
 
     public static int getEnchantmentLevel(ItemStack itemStack,
                                           //#if MC > 12006
@@ -432,7 +467,6 @@ public class ZxyUtils {
         //$$ return EnchantmentHelper.getLevel(enchantment,itemStack);
         //#endif
     }
-
 
     //右键单击
 //              client.interactionManager.clickSlot(sc.syncId, i, 1, SlotActionType.PICKUP, client.player);

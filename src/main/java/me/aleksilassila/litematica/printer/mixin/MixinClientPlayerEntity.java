@@ -50,22 +50,20 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 	}
 	@Inject(at = @At("TAIL"), method = "tick")
 	public void tick(CallbackInfo ci) {
-		if (Printer.getPrinter() == null) {
-			Printer.init(client);
-			return;
-		}
+		Printer printer = Printer.getPrinter();
 		ZxyUtils.tick();
-		Printer.getPrinter().myTick();
+		printer.myTick();
 		if(!(LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed())){
 			PlacementGuide.posMap = new HashMap<>();
-			Printer.getPrinter().basePos = null;
+			printer.basePos = null;
+			Printer.fluidList = new HashSet<>();
 			return;
 		}
 		if(Printer.up){
 			checkForUpdates();
 			Printer.up = false;
 		}
-		Printer.getPrinter().tick();
+		printer.tick();
 	}
 	@Unique
 	public void checkForUpdates() {

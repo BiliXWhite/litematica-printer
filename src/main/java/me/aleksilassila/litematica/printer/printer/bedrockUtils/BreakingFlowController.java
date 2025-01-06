@@ -1,5 +1,8 @@
 package me.aleksilassila.litematica.printer.printer.bedrockUtils;
 
+import fi.dy.masa.litematica.util.EasyPlaceProtocol;
+import fi.dy.masa.litematica.util.PlacementHandler;
+import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.block.Blocks;
@@ -22,17 +25,6 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 
 public class BreakingFlowController {
     public static ArrayList<TargetBlock> cachedTargetBlockList = new ArrayList<>();
-
-    public static boolean isWorking() {
-        return working;
-    }
-
-    private static boolean working = true;
-
-
-    static {
-
-    }
 
     //加入破坏列表
     public static void addBlockPosToList(BlockPos pos) {
@@ -164,7 +156,9 @@ public class BreakingFlowController {
     }
 
     public static WorkingMode getWorkingMode() {
-        return WorkingMode.VANILLA;
+        if (LitematicaMixinMod.EASY_MODE.getBooleanValue() && PlacementHandler.getEffectiveProtocolVersion() == EasyPlaceProtocol.V2) {
+            return WorkingMode.CARPET_EXTRA;
+        }else return WorkingMode.VANILLA;
     }
 
     private static boolean shouldAddNewTargetBlock(BlockPos pos) {
