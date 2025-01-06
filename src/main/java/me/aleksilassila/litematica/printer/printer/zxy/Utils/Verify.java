@@ -50,7 +50,7 @@ public class Verify {
                 soc.close();
                 step = 2;
             } catch (IOException e) {
-                MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of("此服务器未限制打印机使用"),false);
+//                MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of("此服务器未限制打印机使用"),false);
                 result = true;
             }
         }).start();
