@@ -23,7 +23,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPa
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.overwrite.MyBox;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
@@ -40,7 +40,6 @@ import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -85,9 +84,8 @@ import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#else
 import net.minecraft.registry.Registries;
     //#if MC < 12002
-    //$$ import net.minecraft.registry.RegistryKey;
-    //$$ import net.minecraft.registry.RegistryKeys;
-    //#endif
+
+//#endif
 //#endif
 
 //#if MC < 11900
@@ -587,9 +585,9 @@ public class Printer extends PrinterUtils {
                 for (Item item : items2) {
                      //#if MC >= 12001
                         //#if MC > 12004
-                        MemoryUtils.currentMemoryKey = client.world.getRegistryKey().getValue();
+                        //$$ MemoryUtils.currentMemoryKey = client.world.getRegistryKey().getValue();
                         //#else
-                        //$$ MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
+                        MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
                         //#endif
                       MemoryUtils.itemStack = new ItemStack(item);
                       if (SearchItem.search(true)) {

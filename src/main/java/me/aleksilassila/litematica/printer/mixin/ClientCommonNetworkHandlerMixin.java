@@ -21,11 +21,11 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.cancelMovePack;
 
 //#if MC > 12001
-import net.minecraft.client.network.ClientCommonNetworkHandler;
-@Mixin(value = ClientCommonNetworkHandler.class)
+//$$ import net.minecraft.client.network.ClientCommonNetworkHandler;
+//$$ @Mixin(value = ClientCommonNetworkHandler.class)
 //#else
-//$$ import net.minecraft.client.network.ClientPlayNetworkHandler;
-//$$ @Mixin(ClientPlayNetworkHandler.class)
+import net.minecraft.client.network.ClientPlayNetworkHandler;
+@Mixin(ClientPlayNetworkHandler.class)
 //#endif
 public class ClientCommonNetworkHandlerMixin {
     @Final
@@ -42,9 +42,9 @@ public class ClientCommonNetworkHandlerMixin {
      */
 //    @Overwrite
     //#if MC < 12004
-    //$$ @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket(Lnet/minecraft/network/packet/Packet;)V")
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket(Lnet/minecraft/network/packet/Packet;)V")
     //#else
-    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket")
+    //$$ @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket")
     //#endif
     public void sendPacket(ClientConnection instance, Packet<?> packet, Operation<Void> original) {
         Direction direction = Printer.getPrinter().queue.lookDir;

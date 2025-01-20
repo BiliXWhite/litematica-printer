@@ -1,7 +1,6 @@
 package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
-import fi.dy.masa.malilib.util.Color4f;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
@@ -10,7 +9,6 @@ import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowCont
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -19,7 +17,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.mob.ShulkerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -48,13 +45,14 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //#endif
 //#if MC >= 12006
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.component.type.ItemEnchantmentsComponent;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.nbt.NbtCompound;
+//$$ import net.minecraft.registry.RegistryKey;
+//$$ import net.minecraft.component.type.ItemEnchantmentsComponent;
+//$$ import net.minecraft.registry.entry.RegistryEntry;
+//$$ import net.minecraft.component.DataComponentTypes;
+//$$ import net.minecraft.component.type.NbtComponent;
+//$$ import net.minecraft.nbt.NbtCompound;
 //#endif
+import net.minecraft.enchantment.EnchantmentHelper;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_COLOR;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
@@ -139,9 +137,9 @@ public class ZxyUtils {
                     if ((isInventory && blockState.createScreenHandlerFactory(client.world,pos) == null) ||
                             (blockEntity instanceof ShulkerBoxBlockEntity entity &&
                                     //#if MC > 12004
-                                    !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
+                                    //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
                                     //#else
-                                    //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
+                                    !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
                                     //#endif
                                     entity.getAnimationStage() == ShulkerBoxBlockEntity.AnimationStage.CLOSED)) {
                         client.inGameHud.setOverlayMessage(Text.of("容器无法打开"), false);
@@ -199,7 +197,7 @@ public class ZxyUtils {
     public static void itemsCount(Map<ItemStack,Integer> itemsCount , ItemStack itemStack){
         // 判断是否存在可合并的键
         Optional<Map.Entry<ItemStack, Integer>> entry = itemsCount.entrySet().stream()
-                .filter(e -> ItemStack.areItemsAndComponentsEqual(e.getKey(), itemStack))
+                .filter(e -> ItemStack.canCombine(e.getKey(), itemStack))
                 .findFirst();
 
         if (entry.isPresent()) {
@@ -244,7 +242,7 @@ public class ZxyUtils {
                 if (SYNC_INVENTORY_CHECK.getBooleanValue() && !targetItemsCount.entrySet().stream()
                         .allMatch(target -> playerItemsCount.entrySet().stream()
                                 .anyMatch(player ->
-                                        ItemStack.areItemsAndComponentsEqual(player.getKey(), target.getKey()) && target.getValue() <= player.getValue()))) return;
+                                        ItemStack.canCombine(player.getKey(), target.getKey()) && target.getValue() <= player.getValue()))) return;
 
                 if ((!LitematicaMixinMod.INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
                     for (BlockPos pos : syncPosList) {
@@ -272,8 +270,8 @@ public class ZxyUtils {
                     ItemStack item2 = targetBlockInv.get(i).copy();
                     int currNum = item1.getCount();
                     int tarNum = item2.getCount();
-                    boolean same = ItemStack.areItemsAndComponentsEqual(item1,item2.copy()) && !item1.isEmpty();
-                    if(ItemStack.areItemsAndComponentsEqual(item1,item2) && currNum == tarNum) continue;
+                    boolean same = ItemStack.canCombine(item1,item2.copy()) && !item1.isEmpty();
+                    if(ItemStack.canCombine(item1,item2) && currNum == tarNum) continue;
                     //不和背包交互
                     if (same) {
                         //有多
@@ -292,7 +290,7 @@ public class ZxyUtils {
                         ItemStack stack = sc.slots.get(i1).getStack();
                         ItemStack currStack = sc.slots.get(i).getStack();
                         currNum = currStack.getCount();
-                        boolean same2 = thereAreItems = ItemStack.areItemsAndComponentsEqual(item2,stack);
+                        boolean same2 = thereAreItems = ItemStack.canCombine(item2,stack);
                         if (same2 && !stack.isEmpty()) {
                             int i2 = stack.getCount();
                             client.interactionManager.clickSlot(sc.syncId, i1, 0, SlotActionType.PICKUP, client.player);
@@ -399,7 +397,7 @@ public class ZxyUtils {
         return 1000 / refreshRate;
 //        System.out.println("The monitor refresh rate is " + refreshRate);
     }
-    public static void reSet(){
+    public static void exitGameReSet(){
         SwitchItem.reSet();
         Verify.verify = null;
         BreakingFlowController.poslist = new ArrayList<>();
@@ -427,11 +425,11 @@ public class ZxyUtils {
 
         // Tags with NaN are not equal, so the server will find an inventory desync and send an inventory refresh to the client
         //#if MC >= 12006
-        var nbt = new NbtCompound();
-        nbt.putDouble("force_sync", Double.NaN);
-        NbtComponent.set(DataComponentTypes.CUSTOM_DATA, uniqueItem, nbt);
+        //$$ var nbt = new NbtCompound();
+        //$$ nbt.putDouble("force_sync", Double.NaN);
+        //$$ NbtComponent.set(DataComponentTypes.CUSTOM_DATA, uniqueItem, nbt);
         //#else
-        //$$ uniqueItem.getOrCreateNbt().putDouble("force_resync", Double.NaN);
+        uniqueItem.getOrCreateNbt().putDouble("force_resync", Double.NaN);
         //#endif
 
         networkHandler.sendPacket(new ClickSlotC2SPacket(
@@ -447,24 +445,24 @@ public class ZxyUtils {
 
     public static int getEnchantmentLevel(ItemStack itemStack,
                                           //#if MC > 12006
-                                          RegistryKey<Enchantment> enchantment
+                                          //$$ RegistryKey<Enchantment> enchantment
                                           //#else
-                                          //$$ Enchantment enchantment
+                                          Enchantment enchantment
                                           //#endif
     ){
         //#if MC > 12006
-        ItemEnchantmentsComponent enchantments = itemStack.getEnchantments();
-
-        if (enchantments.equals(ItemEnchantmentsComponent.DEFAULT)) return -1;
-        Set<RegistryEntry<Enchantment>> enchantmentsEnchantments = enchantments.getEnchantments();
-        for (RegistryEntry<Enchantment> entry : enchantmentsEnchantments) {
-            if (entry.matchesKey(enchantment)) {
-                return enchantments.getLevel(entry);
-            }
-        }
-        return -1;
+        //$$ ItemEnchantmentsComponent enchantments = itemStack.getEnchantments();
+        //$$
+        //$$ if (enchantments.equals(ItemEnchantmentsComponent.DEFAULT)) return -1;
+        //$$ Set<RegistryEntry<Enchantment>> enchantmentsEnchantments = enchantments.getEnchantments();
+        //$$ for (RegistryEntry<Enchantment> entry : enchantmentsEnchantments) {
+        //$$     if (entry.matchesKey(enchantment)) {
+        //$$         return enchantments.getLevel(entry);
+        //$$     }
+        //$$ }
+        //$$ return -1;
         //#else
-        //$$ return EnchantmentHelper.getLevel(enchantment,itemStack);
+        return EnchantmentHelper.getLevel(enchantment,itemStack);
         //#endif
     }
 

@@ -42,8 +42,11 @@ public class Verify {
                 String str = "???";
                 if ("Y".equals(str = br.readLine())) {
                     result = true;
-                }else {
+                }else if(str != null){
                     MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of(str),false);
+                }else {
+                    step = 3;
+                    return;
                 }
                 br.close();
                 out.close();
