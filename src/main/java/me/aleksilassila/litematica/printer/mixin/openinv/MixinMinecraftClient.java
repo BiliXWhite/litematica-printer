@@ -7,7 +7,6 @@ package me.aleksilassila.litematica.printer.mixin.openinv;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import fi.dy.masa.malilib.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -15,7 +14,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -24,7 +22,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.INVENTORY;
@@ -50,7 +47,7 @@ public abstract class MixinMinecraftClient {
         int slotWithStack = original.call(instance, stack);
         if(!player.getAbilities().creativeMode && (INVENTORY.getBooleanValue() || QUICKSHULKER.getBooleanValue()) && slotWithStack == -1){
             Item item = stack.getItem();
-            Printer.items2.add(item);
+            Printer.remoteItem.add(item);
             Printer.getPrinter().switchItem();
             return -1;
         }

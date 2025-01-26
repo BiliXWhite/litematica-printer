@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.printer.Printer.items2;
+import static me.aleksilassila.litematica.printer.printer.Printer.remoteItem;
 
 @Mixin(InventoryUtils.class)
 public class MixinInventoryUtils {
@@ -21,7 +21,7 @@ public class MixinInventoryUtils {
     private static void schematicWorldPickBlock(ItemStack stack, BlockPos pos, World schematicWorld, MinecraftClient mc, CallbackInfo ci){
 //        System.out.println(cir.getReturnValue().booleanValue());
         if (mc.player != null && !ItemStack.canCombine(mc.player.getMainHandStack(),stack) && (LitematicaMixinMod.INVENTORY.getBooleanValue() || LitematicaMixinMod.QUICKSHULKER.getBooleanValue())) {
-            items2.add(stack.getItem());
+            remoteItem.add(stack.getItem());
             Printer.getPrinter().switchItem();
         }
     }

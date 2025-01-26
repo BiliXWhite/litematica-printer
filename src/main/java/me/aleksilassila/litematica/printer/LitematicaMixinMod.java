@@ -125,7 +125,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		}
 		return ImmutableList.copyOf(list);
 	}
-	public static final ConfigColor SYNC_INVENTORY_COLOR = new ConfigColor("容器同步和打印机添加库存高亮颜色","#4CFF4CE6", "");
+	public static final ConfigColor SYNC_INVENTORY_COLOR = new ConfigColor("容器同步与打印机添加库存高亮颜色","#4CFF4CE6", "");
 
 	public static ImmutableList<IConfigBase> getColorsList() {
 		List<IConfigBase> list = new java.util.ArrayList<>(Configs.Colors.OPTIONS);

@@ -42,7 +42,7 @@ public class PrinterUtils {
                         return true;
                     }
 				}
-                Printer.items2.add(item);
+                Printer.remoteItem.add(item);
             }
 		}
         return false;
