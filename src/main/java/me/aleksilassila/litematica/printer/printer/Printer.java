@@ -45,6 +45,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
+import net.minecraft.util.Identifier;
+import net.minecraft.registry.RegistryKey;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -83,9 +85,10 @@ import red.jackf.chesttracker.api.providers.InteractionTracker;
 //$$ import net.minecraft.util.registry.RegistryKey;
 //$$ import net.minecraft.util.registry.Registry;
 //#else
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.Registries;
     //#if MC < 12002
-
+    //$$
     //#endif
 //#endif
 
@@ -472,7 +475,7 @@ public class Printer extends PrinterUtils {
 
 
         //尝试移动到掉落物位置。。。
-        //如果与目标水平面之间遮挡 那么会移动失败
+        //如果与目标水平面之间有遮挡 那么会移动失败
 //        if (moveTick < 20) return;
 //        moveTick = 0;
 //        List<Item> items = List.of(Items.PISTON, Items.SLIME_BLOCK, Items.REDSTONE_TORCH);
@@ -563,9 +566,9 @@ public class Printer extends PrinterUtils {
                 for (Item item : remoteItem) {
                      //#if MC >= 12001
                         //#if MC > 12004
-                        //$$ MemoryUtils.currentMemoryKey = client.world.getRegistryKey().getValue();
+                        MemoryUtils.currentMemoryKey = client.world.getRegistryKey().getValue();
                         //#else
-                        MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
+                        //$$ MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
                         //#endif
                       MemoryUtils.itemStack = new ItemStack(item);
                       if (SearchItem.search(true)) {

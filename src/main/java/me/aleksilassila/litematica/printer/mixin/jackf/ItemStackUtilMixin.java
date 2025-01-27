@@ -23,7 +23,7 @@ import red.jackf.chesttracker.impl.util.ItemStacks;
 import net.minecraft.registry.Registries;
 
 //#if MC > 12004
-//$$ import net.minecraft.component.type.ItemEnchantmentsComponent;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
 //#endif
 
 @Mixin(ItemStacks.class)
@@ -31,32 +31,32 @@ public class ItemStackUtilMixin {
     @Inject(at = @At(value = "INVOKE", target = "Ljava/util/stream/Stream;anyMatch(Ljava/util/function/Predicate;)Z"), method = "enchantmentPredicate", cancellable = true)
     private static void stackEnchantmentFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir) {
         //#if MC > 12004
-        //$$ ItemEnchantmentsComponent enchantments = EnchantmentHelper.getEnchantments(stack);
-        //$$ if (enchantments.getEnchantments().stream()
-        //$$         .anyMatch(ench -> {
+        ItemEnchantmentsComponent enchantments = EnchantmentHelper.getEnchantments(stack);
+        if (enchantments.getEnchantments().stream()
+                .anyMatch(ench -> {
                     //#if MC > 12006
-                    //$$ RegistryEntry<Enchantment> ench1 = ench;
-                    //$$ RegistryKey<Enchantment> enchantmentRegistryKey = ench1.getKey().get();
-                    //$$ String translationKey = enchantmentRegistryKey.getValue().toTranslationKey();
-                    //$$ if (testLang(translationKey, filter)) return true;
-                    //$$ String translate = StringUtils.translate(translationKey);
-                    //$$ return translate != null && (translate.contains(filter) || PinYinSearch.hasPinYin(translate, filter));
+                    RegistryEntry<Enchantment> ench1 = ench;
+                    RegistryKey<Enchantment> enchantmentRegistryKey = ench1.getKey().get();
+                    String translationKey = enchantmentRegistryKey.getValue().toTranslationKey();
+                    if (testLang(translationKey, filter)) return true;
+                    String translate = StringUtils.translate(translationKey);
+                    return translate != null && (translate.contains(filter) || PinYinSearch.hasPinYin(translate, filter));
                     //#else
                     //$$ if (testLang(ench.value().getTranslationKey(), filter)) return true;
                     //$$ var resloc = Registries.ENCHANTMENT.getId(ench.value());
                     //$$ return resloc != null && (resloc.toString().contains(filter) || PinYinSearch.hasPinYin(resloc.toString(), filter));
                     //#endif
-        //$$         })) cir.setReturnValue(true);
+                })) cir.setReturnValue(true);
         //#else
-        var enchantments = EnchantmentHelper.get(stack);
-        if (enchantments.isEmpty()) return;
-        if (enchantments.keySet().stream()
-                .anyMatch(ench -> {
-                    if (testLang(ench.getTranslationKey(), filter)) return true;
-                    var resloc = Registries.ENCHANTMENT.getKey(ench);
-                    return resloc.isPresent() && PinYinSearch.hasPinYin(resloc.toString(), filter);
-                })
-        ) cir.setReturnValue(true);
+        //$$ var enchantments = EnchantmentHelper.get(stack);
+        //$$ if (enchantments.isEmpty()) return;
+        //$$ if (enchantments.keySet().stream()
+        //$$         .anyMatch(ench -> {
+        //$$             if (testLang(ench.getTranslationKey(), filter)) return true;
+        //$$             var resloc = Registries.ENCHANTMENT.getKey(ench);
+        //$$             return resloc.isPresent() && PinYinSearch.hasPinYin(resloc.toString(), filter);
+        //$$         })
+        //$$ ) cir.setReturnValue(true);
         //#endif
     }
 

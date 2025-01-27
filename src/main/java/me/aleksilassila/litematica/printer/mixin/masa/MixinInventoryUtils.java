@@ -20,7 +20,7 @@ public class MixinInventoryUtils {
     @Inject(at = @At("TAIL"),method = "schematicWorldPickBlock")
     private static void schematicWorldPickBlock(ItemStack stack, BlockPos pos, World schematicWorld, MinecraftClient mc, CallbackInfo ci){
 //        System.out.println(cir.getReturnValue().booleanValue());
-        if (mc.player != null && !ItemStack.canCombine(mc.player.getMainHandStack(),stack) && (LitematicaMixinMod.INVENTORY.getBooleanValue() || LitematicaMixinMod.QUICKSHULKER.getBooleanValue())) {
+        if (mc.player != null && !ItemStack.areItemsAndComponentsEqual(mc.player.getMainHandStack(),stack) && (LitematicaMixinMod.INVENTORY.getBooleanValue() || LitematicaMixinMod.QUICKSHULKER.getBooleanValue())) {
             remoteItem.add(stack.getItem());
             Printer.getPrinter().switchItem();
         }

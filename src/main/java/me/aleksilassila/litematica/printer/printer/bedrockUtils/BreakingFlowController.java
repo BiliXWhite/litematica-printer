@@ -126,8 +126,8 @@ public class BreakingFlowController {
 //            if (blockInPlayerRange(selectedBlock.getBlockPos(), player, 5f)) {
 //            if (DataManager.getRenderLayerRange().isPositionWithinRange(selectedBlock.getBlockPos())) {
             //#if MC > 12006
-            //$$ ItemStack mainHandStack = client.player.getMainHandStack();
-            //$$ cachedTargetBlockList.stream().filter( targetBlock -> targetBlock.getStatus() == TargetBlock.Status.EXTENDED).forEach(TargetBlock::tick);
+            ItemStack mainHandStack = client.player.getMainHandStack();
+            cachedTargetBlockList.stream().filter( targetBlock -> targetBlock.getStatus() == TargetBlock.Status.EXTENDED).forEach(TargetBlock::tick);
             //#endif
             TargetBlock.Status status = cachedTargetBlockList.get(i).tick();
             if (status == TargetBlock.Status.RETRACTING) {
@@ -144,10 +144,10 @@ public class BreakingFlowController {
 //            }
         }
         //#if MC > 12006
-        //$$ if (cachedTargetBlockList.stream().anyMatch(targetBlock -> targetBlock.getStatus() == TargetBlock.Status.EXTENDED)) {
-        //$$     InventoryManager.switchToItem(Items.DIAMOND_PICKAXE);
-        //$$     TargetBlock.switchPickaxe = true;
-        //$$ }
+        if (cachedTargetBlockList.stream().anyMatch(targetBlock -> targetBlock.getStatus() == TargetBlock.Status.EXTENDED)) {
+            InventoryManager.switchToItem(Items.DIAMOND_PICKAXE);
+            TargetBlock.switchPickaxe = true;
+        }
         //#endif
     }
 

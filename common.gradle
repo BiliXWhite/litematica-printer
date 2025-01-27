@@ -138,8 +138,6 @@ def mod_dependencies = [
         ["maven.modrinth:cloth-config"                          , "cloth_config",       mcVersion < 12001 ? 1 : 0],
         ["me.shedaniel.cloth.api:cloth-api"                     , "cloth_api",          mcVersion < 11904 ? 1 : 0],
         ["io.github.cottonmc:LibGui"                            , "LibGui",             mcVersion < 12001 ? 1 : 0],
-
-
 ]
 
 String getSbYacl(){

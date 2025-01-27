@@ -36,9 +36,9 @@ public class WorldUtilsMixin {
         }
     }
     //#if MC >= 12100
-    //$$
-    //#else
 
+    //#else
+    //$$
     //#endif
     @WrapOperation(at= @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/util/RayTraceUtils;getGenericTrace(Lnet/minecraft/world/World;Lnet/minecraft/entity/Entity;DZZZ)Lfi/dy/masa/litematica/util/RayTraceUtils$RayTraceWrapper;"),method = "doEasyPlaceAction")
     private static RayTraceUtils.RayTraceWrapper doSchematicWorldPickBlock(World world, Entity dist2, double verifier, boolean posList, boolean traceMismatch, boolean worldClient, Operation<RayTraceUtils.RayTraceWrapper> original){

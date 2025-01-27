@@ -63,8 +63,8 @@ public class TargetBlock {
                 break;
             case EXTENDED:
                 //#if MC > 12006
-                //$$ Item item = client.player.getMainHandStack().getItem();
-                //$$ if(!(item.equals(Items.NETHERITE_PICKAXE) || item.equals(Items.DIAMOND_PICKAXE)) || !switchPickaxe) break;
+                Item item = client.player.getMainHandStack().getItem();
+                if(!(item.equals(Items.NETHERITE_PICKAXE) || item.equals(Items.DIAMOND_PICKAXE)) || !switchPickaxe) break;
                 //#endif
                 //打掉红石火把
                 ArrayList<BlockPos> nearByRedstoneTorchPosList = CheckingEnvironment.findNearbyRedstoneTorch(world, pistonBlockPos);
