@@ -251,10 +251,12 @@ public class OpenInventoryPacket {
         boolean isInv = isContainer(blockEntity);
 
         if (!isInv || blockState.isAir() || (blockEntity instanceof ShulkerBoxBlockEntity entity &&
-                //#if MC > 12004
-                !world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0f,blockState.get(FACING),  0.0f,0.5f).offset(pos).contract(1.0E-6)) &&
-                //#else
-                //$$ !world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
+                //#if MC > 12101
+                !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F, pos.toBottomCenterPos()).offset(pos).contract(1.0E-6)) &&
+                //#elseif MC <= 12101 && MC > 12004
+                //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
+                //#elseif MC <= 12004
+                //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
                 //#endif
                 entity.getAnimationStage() == ShulkerBoxBlockEntity.AnimationStage.CLOSED)) {
             System.out.println("openFail" + pos);
@@ -279,7 +281,11 @@ public class OpenInventoryPacket {
         //$$ ActionResult r = blockState.onUse(world, player, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(pos), Direction.UP, pos, false));
         //#endif
 
-        if ((r != null && !r.equals(ActionResult.CONSUME))) {
+        if ((r != null && (!r.equals(ActionResult.CONSUME)
+                //#if MC > 12101
+                 && !r.equals(ActionResult.SUCCESS)
+                //#endif
+        ))) {
             System.out.println("openFail" + pos);
             openReturn(player, blockState, false);
             return;
@@ -342,7 +348,11 @@ public class OpenInventoryPacket {
                 //#else
                 String translationKey = key.getValue().toTranslationKey();
                 String translate = StringUtils.translate(translationKey);
-                if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toCenterPos().toString()));
+                    //#if MC > 12101
+                    if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toCenterPos().toString()),false);
+                    //#else
+                    //$$ if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toCenterPos().toString()));
+                    //#endif
                 //#endif
 
                 //#if MC >= 12001

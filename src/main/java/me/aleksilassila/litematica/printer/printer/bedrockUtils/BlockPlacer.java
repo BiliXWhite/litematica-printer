@@ -34,7 +34,16 @@ public class BlockPlacer {
     private static float yaw;
     private static float pitch;
     private static void resetLook(){
-        MinecraftClient.getInstance().getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(yaw, pitch, true));
+        sendLookPacket(yaw,pitch);
+    }
+    private static void sendLookPacket(float yaw,float pitch){
+        ClientPlayerEntity player = ZxyUtils.client.player;
+        if(player == null) return;
+        //#if MC > 12101
+        MinecraftClient.getInstance().getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(yaw, pitch, player.isOnGround(),player.horizontalCollision));
+        //#else
+        //$$ MinecraftClient.getInstance().getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(yaw, pitch, player.isOnGround()));
+        //#endif
     }
 
     public static void pistonPlacement(BlockPos pos, Direction direction) {
@@ -61,7 +70,7 @@ public class BlockPlacer {
                 }
                 yaw = player.getYaw();
                 BlockPlacer.pitch = player.getPitch();
-                minecraftClient.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(player.getYaw(1.0f), pitch, player.isOnGround()));
+                sendLookPacket(player.getYaw(1.0f), pitch);
                 break;
         }
 
@@ -85,7 +94,13 @@ public class BlockPlacer {
 //        minecraftClient.getNetworkHandler().sendPacket(new PlayerInteractBlockC2SPacket(Hand.OFF_HAND, hitResult,0));
 //        //#endif
 
-        if (!itemStack.isEmpty() && !player.getItemCooldownManager().isCoolingDown(itemStack.getItem())) {
+        if (!itemStack.isEmpty() && !player.getItemCooldownManager().isCoolingDown(
+                //#if MC > 12101
+                itemStack
+                //#else
+                //$$ itemStack.getItem()
+                //#endif
+        )) {
             ItemUsageContext itemUsageContext = new ItemUsageContext(player, Hand.OFF_HAND, hitResult);
             itemStack.useOnBlock(itemUsageContext);
 

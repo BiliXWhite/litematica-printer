@@ -14,9 +14,12 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.network.ClientPlayerInteractionManager;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -34,6 +37,10 @@ public abstract class MixinMinecraftClient {
     @Shadow
     public ClientPlayerEntity player;
 
+    @Shadow
+    @Nullable
+    public ClientWorld world;
+
     @Inject(method = {"setScreen"}, at = {@At(value = "HEAD")}, cancellable = true)
     public void setScreen(@Nullable Screen screen, CallbackInfo ci) {
         if(closeScreen > 0 && /*screen != null &&*/ screen instanceof HandledScreen<?>){
@@ -42,15 +49,34 @@ public abstract class MixinMinecraftClient {
         }
     }
     //鼠标中键从打印机库存或通过快捷濳影盒 取出对应物品
-    @WrapOperation(method = "doItemPick",at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerInventory;getSlotWithStack(Lnet/minecraft/item/ItemStack;)I" ))
-    private int doItemPick(PlayerInventory instance, ItemStack stack, Operation<Integer> original) {
-        int slotWithStack = original.call(instance, stack);
-        if(!player.getAbilities().creativeMode && (INVENTORY.getBooleanValue() || QUICKSHULKER.getBooleanValue()) && slotWithStack == -1){
-            Item item = stack.getItem();
+    //#if MC > 12101
+    @WrapOperation(method = "doItemPick",at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerInteractionManager;pickItemFromBlock(Lnet/minecraft/util/math/BlockPos;Z)V" ))
+    private void doItemPick(ClientPlayerInteractionManager instance, BlockPos pos, boolean b, Operation<Void> original) {
+        if(world == null) {
+            original.call(instance, pos, b);
+            return;
+        }
+        Item item = world.getBlockState(pos).getBlock().asItem();
+        if (player.playerScreenHandler.slots.stream().noneMatch(slot -> slot.getStack().getItem().equals(item)) &&
+                !player.getAbilities().creativeMode && (INVENTORY.getBooleanValue() || QUICKSHULKER.getBooleanValue())) {
             Printer.remoteItem.add(item);
             Printer.getPrinter().switchItem();
-            return -1;
+            return;
         }
-        return slotWithStack;
+        original.call(instance, pos, b);
     }
+    //#else
+    //$$ @WrapOperation(method = "doItemPick",at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerInventory;getSlotWithStack(Lnet/minecraft/item/ItemStack;)I" ))
+    //$$ private int doItemPick(PlayerInventory instance, ItemStack stack, Operation<Integer> original) {
+    //$$     int slotWithStack = original.call(instance, stack);
+    //$$     if(!player.getAbilities().creativeMode && (INVENTORY.getBooleanValue() || QUICKSHULKER.getBooleanValue()) && slotWithStack == -1){
+    //$$         Item item = stack.getItem();
+    //$$         Printer.remoteItem.add(item);
+    //$$         Printer.getPrinter().switchItem();
+    //$$         return -1;
+    //$$     }
+    //$$     return slotWithStack;
+    //$$ }
+    //#endif
+
 }

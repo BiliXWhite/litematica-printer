@@ -136,9 +136,11 @@ public class ZxyUtils {
                 try {
                     if ((isInventory && blockState.createScreenHandlerFactory(client.world,pos) == null) ||
                             (blockEntity instanceof ShulkerBoxBlockEntity entity &&
-                                    //#if MC > 12004
-                                    !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
-                                    //#else
+                                    //#if MC > 12101
+                                    !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F, pos.toBottomCenterPos()).offset(pos).contract(1.0E-6)) &&
+                                    //#elseif MC <= 12101 && MC > 12004
+                                    //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
+                                    //#elseif MC <= 12004
                                     //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
                                     //#endif
                                     entity.getAnimationStage() == ShulkerBoxBlockEntity.AnimationStage.CLOSED)) {

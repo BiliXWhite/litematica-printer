@@ -11,7 +11,13 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
-import net.minecraft.state.property.DirectionProperty;
+//#if MC < 12104
+//$$ import net.minecraft.state.property.DirectionProperty;
+//#else
+
+//#endif
+
+import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
@@ -87,7 +93,11 @@ public class PlacementGuide extends PrinterUtils {
 
         Direction look = null;
         for (Property<?> prop : requiredState.getProperties()) {
-            if (prop instanceof DirectionProperty && prop.getName().equalsIgnoreCase("FACING")) {
+            //#if MC > 12101
+            if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
+            //#else
+            //$$ if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
+            //#endif
                 look = ((Direction) requiredState.get(prop)).getOpposite();
             }
         }
@@ -315,9 +325,14 @@ public class PlacementGuide extends PrinterUtils {
                     Direction look = null;
 
                     for (Property<?> prop : requiredState.getProperties()) {
-                        if (prop instanceof DirectionProperty && prop.getName().equalsIgnoreCase("FACING")) {
+                        //#if MC > 12101
+                        if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
+                        //#else
+                        //$$ if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
+                        //#endif
                             look = ((Direction) requiredState.get(prop)).getOpposite();
                         }
+
                     }
 
                     Action placement = new Action().setLookDirection(look);

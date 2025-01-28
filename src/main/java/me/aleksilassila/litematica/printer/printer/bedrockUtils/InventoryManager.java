@@ -77,11 +77,9 @@ public class InventoryManager {
         if ("diamond_pickaxe".equals(item.toString()) || "minecraft:diamond_pickaxe".equals(item.toString())) {
             i = getEfficientTool(playerInventory);
         }else switchPickaxe = false;
-
+        PlayerScreenHandler sc = minecraftClient.player.playerScreenHandler;
         if (i != -1) {
             if(!item.toString().contains("pickaxe")){
-
-                PlayerScreenHandler sc = minecraftClient.player.playerScreenHandler;
                 for (int i1 = 0; i1 < sc.slots.size(); i1++) {
                     if (ItemStack.areItemsEqual(sc.slots.get(i1).getStack(),new ItemStack(item))) i = i1;
                 }
@@ -92,8 +90,9 @@ public class InventoryManager {
                     playerInventory.selectedSlot = i;
                 } else {
                     {
-                        minecraftClient.interactionManager.pickFromInventory(i);
-                        minecraftClient.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(playerInventory.selectedSlot));
+//                        minecraftClient.interactionManager.pickFromInventory(i);
+                        minecraftClient.interactionManager.clickSlot(sc.syncId, i, playerInventory.selectedSlot, SlotActionType.SWAP, minecraftClient.player);
+//                        minecraftClient.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(playerInventory.selectedSlot));
                         refresh();
                     }
                 }
