@@ -91,8 +91,8 @@ public class InventoryManager {
                 } else {
                     {
 //                        minecraftClient.interactionManager.pickFromInventory(i);
-                        minecraftClient.interactionManager.clickSlot(sc.syncId, i, playerInventory.selectedSlot, SlotActionType.SWAP, minecraftClient.player);
 //                        minecraftClient.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(playerInventory.selectedSlot));
+                        minecraftClient.interactionManager.clickSlot(sc.syncId, i, playerInventory.selectedSlot, SlotActionType.SWAP, minecraftClient.player);
                         refresh();
                     }
                 }
