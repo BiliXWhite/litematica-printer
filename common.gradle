@@ -120,10 +120,6 @@ def mod_dependencies = [
         [(sakura ? "com.github.sakura-ryoko:itemscroller" :"curse.maven:item-scroller-242064")     , "item_scrolle",       1],
         [(sakura ? "com.github.sakura-ryoko:tweakeroo" :"curse.maven:tweakeroo-297344")             , "tweakeroo",          1],
         [(sakura ? "com.github.sakura-ryoko:litematica" :"curse.maven:litematica-308892")           , "litematica",         1],
-        [getQuiShulkerBox()                                                                         , "quick_shulker",    mcVersion > 12004 ? 5 : 1],
-        [(mcVersion > 12004 ? "curse.maven:carpet-349239":"maven.modrinth:carpet")   , "carpet",             1],
-        ["net.kyrptonaught:kyrptconfig"     			        , "kyrptconfig",        1],
-        ["net.kyrptonaught:shulkerutils"     			        , "shulkerutils",       mcVersion >  12004 ? 0 : 1],
 
 //        ["red.jackf:chesttracker"                               , "chesttracker",       mcVersion >= 12001 ? 1 : 0],
 //        ["red.jackf:whereisit"                                  , "whereisit",          mcVersion >= 12001 ? 1 : 0],
@@ -146,17 +142,6 @@ String getSbYacl(){
 //    return mcVersion == 12002 ? "dev.isxander.yacl:yet-another-config-lib-fabric" : "dev.isxander:yet-another-config-lib";
 }
 
-String getQuiShulkerBox(){
-    String path = "curse.maven:quick-shulker-362669";
-    if(mcVersion == 12006){
-        path = "build/libs/quickshulker-1.4.3-1.20.6.jar"
-    }else if(mcVersion == 12101){
-        path = "build/libs/quickshulker-1.4.5-1.21.jar"
-    }else if(mcVersion == 12104){
-        path = "build/libs/quickshulker-1.4.5-1.21.4.jar"
-    }
-    return path;
-}
 dependencies {
     //拼音
     implementation include("com.belerweb:pinyin4j:${project.pinyin_verson}")

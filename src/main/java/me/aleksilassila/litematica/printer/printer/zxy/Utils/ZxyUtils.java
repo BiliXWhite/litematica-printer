@@ -71,6 +71,8 @@ public class ZxyUtils {
     public static boolean syncPrinterInventory = false;
     public static String syncInventoryId = "syncInventory";
 
+    private static int sequence = 0;
+
     public static void startAddPrinterInventory(){
         getReadyColor();
         if (LitematicaMixinMod.INVENTORY.getBooleanValue() && !printerMemoryAdding) {
@@ -466,6 +468,10 @@ public class ZxyUtils {
         //#else
         //$$ return EnchantmentHelper.getLevel(enchantment,itemStack);
         //#endif
+    }
+
+    public static int getSequence() {
+        return sequence++;
     }
 
     //右键单击
