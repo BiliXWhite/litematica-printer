@@ -5,9 +5,10 @@ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
-import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -23,9 +24,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.HashMap;
 import java.util.HashSet;
-
-//#if MC >= 12001
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#else
 //$$ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 //#endif
@@ -75,9 +73,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
                 client.inGameHud.getChatHud().addMessage(
 						Text.of("Printer: 此版本为宅闲鱼二改最初版BV号：BV1q44y1T7hE\n" +
 								"投影打印机原作 https://github.com/aleksilassila/litematica-printer/releases\n" +
-								"再魔改by BiliXWhite(BlinkWhite)\n" +
-								"该版本不开源请勿外传！！！！\n" +
-								"-----闻久华特供-----"));
+								"再魔改by BiliXWhite(BlinkWhite)"));
             }
         }).start();
 	}
