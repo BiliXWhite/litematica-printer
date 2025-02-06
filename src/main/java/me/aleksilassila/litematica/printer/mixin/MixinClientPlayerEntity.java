@@ -75,7 +75,9 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
                 client.inGameHud.getChatHud().addMessage(
 						Text.of("Printer: 此版本为宅闲鱼二改最初版BV号：BV1q44y1T7hE\n" +
 								"投影打印机原作 https://github.com/aleksilassila/litematica-printer/releases\n" +
-								"破基岩作者视频BV号: BV1q44y1T7hE"));
+								"再魔改by BiliXWhite(BlinkWhite)\n" +
+								"该版本不开源请勿外传！！！！\n" +
+								"-----闻久华特供-----"));
             }
         }).start();
 	}

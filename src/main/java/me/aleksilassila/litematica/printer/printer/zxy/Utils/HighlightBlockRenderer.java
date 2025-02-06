@@ -57,7 +57,7 @@ public class HighlightBlockRenderer implements IRenderer {
     }
     public static Method method;
 
-    public void highlightBlock(Color4f color4f, BlockPos pos) {
+    public static void highlightBlock(Color4f color4f, BlockPos pos) {
 
         BlockState blockState = client.world.getBlockState(pos);
         Entity cameraEntity = client.cameraEntity;

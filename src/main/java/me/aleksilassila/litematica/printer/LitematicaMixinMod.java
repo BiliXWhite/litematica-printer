@@ -32,6 +32,8 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigInteger COMPULSION_RANGE = new ConfigInteger("打印机工作半径", 6,     1,   256, """
             若服务器未修改交互距离 请勿设置太大""");
 	public static final ConfigInteger PUT_COOLING = new ConfigInteger("放置冷却", 2,     0,   256,   "对同一位置的方块放置时需等待设定的tick值才会再次放置。");
+    public static final ConfigBoolean BETTER_PLACE = new ConfigBoolean("更好的放置", false, "采用直接发数据包，不用原版的方式（如果有反作弊你还是老老实实关掉吧~）");
+	public static final ConfigBoolean SWITCH_ITEM = new ConfigBoolean("切换到对应方块", true, "为了绕过反作弊");
 	public static final ConfigOptionList RANGE_MODE = new ConfigOptionList("半径模式", State.ListType.SPHERE,"立方体建议3，球体建议设置6，破基岩在立方体模式下无法正常使用");
 	public static final ConfigOptionList MODE_SWITCH = new ConfigOptionList("模式切换", State.ModeType.SINGLE,"单模：仅运行一个模式。多模：可多个模式同时运行");
 	public static final ConfigOptionList PRINTER_MODE = new ConfigOptionList("打印机模式", State.PrintModeType.PRINTER,"仅单模生效");
