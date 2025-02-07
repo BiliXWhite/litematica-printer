@@ -17,8 +17,13 @@
       "contact": {
         "homepage": "https://github.com/zhaixianyu"
       }
+    },
+    {
+      "name": "BlinkWhite",
+      "contact": {
+        "homepage": "https://github.com/BiliXWhite"
+      }
     }
-
   ],
   "contact": {
     "homepage": "${mod_homepage}",

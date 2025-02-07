@@ -5,13 +5,12 @@ import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
-import fi.dy.masa.litematica.util.EasyPlaceProtocol;
-import fi.dy.masa.litematica.util.InventoryUtils;
-import fi.dy.masa.litematica.util.PlacementHandler;
+import fi.dy.masa.litematica.util.*;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
-import fi.dy.masa.malilib.util.Color4f;
+import fi.dy.masa.malilib.gui.Message;
+import fi.dy.masa.malilib.util.InfoUtils;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
@@ -20,7 +19,6 @@ import me.aleksilassila.litematica.printer.mixin.masa.Litematica_InventoryUtilsM
 import me.aleksilassila.litematica.printer.mixin.masa.WorldUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
@@ -38,6 +36,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
+import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
@@ -49,14 +48,12 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
-import net.minecraft.util.Identifier;
-import net.minecraft.registry.RegistryKey;
 
-import java.awt.*;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.List;
 
+import static fi.dy.masa.litematica.config.Configs.Generic.PICK_BLOCKABLE_SLOTS;
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static fi.dy.masa.litematica.util.WorldUtils.applyCarpetProtocolHitVec;
 import static fi.dy.masa.litematica.util.WorldUtils.applyPlacementProtocolV3;
@@ -64,6 +61,8 @@ import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRIC
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
 import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
+import static me.aleksilassila.litematica.printer.mixin.masa.Litematica_InventoryUtilsMixin.getEmptyPickBlockableHotbarSlot;
+import static me.aleksilassila.litematica.printer.mixin.masa.Litematica_InventoryUtilsMixin.getPickBlockTargetSlot;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.*;
 import static me.aleksilassila.litematica.printer.printer.State.PrintModeType.*;
 import static me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController.cachedTargetBlockList;
@@ -75,6 +74,10 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchIt
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.minecraft.util.Identifier;
+
+
 //#if MC >= 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
@@ -91,11 +94,12 @@ import red.jackf.chesttracker.api.providers.InteractionTracker;
 //$$ import net.minecraft.util.registry.RegistryKey;
 //$$ import net.minecraft.util.registry.Registry;
 //#else
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.Registries;
-    //#if MC < 12002
-    //$$
-    //#endif
+//#if MC < 12002
+//$$
+//#endif
 //#endif
 
 
@@ -121,6 +125,8 @@ public class Printer extends PrinterUtils {
     static ItemStack yxcfItem; //有序存放临时存储
     private static Printer INSTANCE = null;
     private static Method method;
+
+    private static final List<Integer> PICK_BLOCKABLE_SLOTS_1 = new ArrayList<>();
 
     static {
         try {
@@ -868,7 +874,7 @@ public class Printer extends PrinterUtils {
     }
 
     private void sendPlacementPreparation(ClientPlayerEntity player, Item[] requiredItems, Direction lookDir) {
-        if (SWITCH_ITEM.getBooleanValue()) switchToItems(player, requiredItems);
+        switchToItems(player, requiredItems);
         sendLook(player, lookDir);
     }
 
@@ -996,6 +1002,57 @@ public class Printer extends PrinterUtils {
     public void swapHandWithSlot(ClientPlayerEntity player, int slot) {
         ItemStack stack = Implementation.getInventory(player).getStack(slot);
         InventoryUtils.setPickedItemToHand(stack, client);
+        int sourceSlot = client.player.getInventory().getSlotWithStack(stack);
+        PlayerInventory inventory = player.getInventory();
+
+        if (PlayerInventory.isValidHotbarIndex(sourceSlot))
+        {
+            if (SWITCH_ITEM_USE_PACKET.getBooleanValue()) {
+                client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(sourceSlot));
+            } else {
+                inventory.selectedSlot = sourceSlot;
+            }
+        }
+        else
+        {
+            if (PICK_BLOCKABLE_SLOTS_1.size() == 0)
+            {
+                InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_valid_slots_configured");
+                return;
+            }
+
+            int hotbarSlot = sourceSlot;
+
+            if (sourceSlot == -1 || PlayerInventory.isValidHotbarIndex(sourceSlot) == false)
+            {
+                hotbarSlot = getEmptyPickBlockableHotbarSlot(inventory);
+            }
+
+            if (hotbarSlot == -1)
+            {
+                hotbarSlot = getPickBlockTargetSlot(player);
+            }
+
+            if (hotbarSlot != -1)
+            {
+                inventory.selectedSlot = hotbarSlot;
+
+                if (EntityUtils.isCreativeMode(player))
+                {
+                    inventory.main.set(hotbarSlot, stack.copy());
+                }
+                else
+                {
+                    fi.dy.masa.malilib.util.InventoryUtils.swapItemToMainHand(stack.copy(), client);
+                }
+
+                WorldUtils.setEasyPlaceLastPickBlockTime();
+            }
+            else
+            {
+                InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");
+            }
+        }
     }
 
     public void sendLook(ClientPlayerEntity player, Direction direction) {
@@ -1104,7 +1161,7 @@ public class Printer extends PrinterUtils {
                 } else SwitchItem.syncUseTime(mainHandStack1);
             }
 
-            if (BETTER_PLACE.getBooleanValue()) {
+            if (PLACE_USE_PACKET.getBooleanValue()) {
                 //#if MC >= 11904
                 // 1.19.4 及以上版本
                 player.networkHandler.sendPacket(new PlayerInteractBlockC2SPacket(
