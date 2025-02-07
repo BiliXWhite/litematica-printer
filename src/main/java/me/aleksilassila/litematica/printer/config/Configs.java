@@ -35,8 +35,8 @@ public class Configs implements IConfigHandler {
 //        list.add(PRINTING_RANGE);
         list.add(COMPULSION_RANGE);
         list.add(PUT_COOLING);
-        list.add(BETTER_PLACE);
-        list.add(SWITCH_ITEM);
+        list.add(PLACE_USE_PACKET);
+        list.add(SWITCH_ITEM_USE_PACKET);
         list.add(RANGE_MODE);
         list.add(MODE_SWITCH);
         if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)) list.add(PRINTER_MODE);
