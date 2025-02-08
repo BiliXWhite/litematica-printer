@@ -121,7 +121,7 @@ public abstract class ChestTrackerScreenMixin extends Screen {
             filtered.addAll(SearchablesUtil.ITEM_STACK.filterEntries(this.items, filter.toLowerCase()));
             filtered = filtered.stream().distinct().toList();
             this.itemList.setItems(filtered);
-            ChestTrackerConfig.Gui guiConfig = ((ChestTrackerConfig)ChestTrackerConfig.INSTANCE.instance()).gui;
+            ChestTrackerConfig.Gui guiConfig = ChestTrackerConfig.INSTANCE.instance().gui;
             this.scroll.setDisabled(filtered.size() <= guiConfig.gridWidth * guiConfig.gridHeight);
         }).start();
     }

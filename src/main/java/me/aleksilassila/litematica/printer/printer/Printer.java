@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.printer;
 
+import com.google.common.collect.Lists;
 import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
@@ -9,13 +10,12 @@ import fi.dy.masa.litematica.util.*;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
-import fi.dy.masa.malilib.gui.Message;
-import fi.dy.masa.malilib.util.InfoUtils;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
-import me.aleksilassila.litematica.printer.mixin.masa.Litematica_InventoryUtilsMixin;
 import me.aleksilassila.litematica.printer.mixin.masa.WorldUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
@@ -34,6 +34,7 @@ import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
@@ -53,7 +54,6 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.List;
 
-import static fi.dy.masa.litematica.config.Configs.Generic.PICK_BLOCKABLE_SLOTS;
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static fi.dy.masa.litematica.util.WorldUtils.applyCarpetProtocolHitVec;
 import static fi.dy.masa.litematica.util.WorldUtils.applyPlacementProtocolV3;
@@ -61,8 +61,8 @@ import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRIC
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
 import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
-import static me.aleksilassila.litematica.printer.mixin.masa.Litematica_InventoryUtilsMixin.getEmptyPickBlockableHotbarSlot;
-import static me.aleksilassila.litematica.printer.mixin.masa.Litematica_InventoryUtilsMixin.getPickBlockTargetSlot;
+import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.getEmptyPickBlockableHotbarSlot;
+import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.getPickBlockTargetSlot;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.*;
 import static me.aleksilassila.litematica.printer.printer.State.PrintModeType.*;
 import static me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController.cachedTargetBlockList;
@@ -72,8 +72,6 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.*
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem.reSwitchItem;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import net.minecraft.util.Identifier;
 
@@ -107,9 +105,13 @@ import net.minecraft.registry.Registries;
 //$$ import fi.dy.masa.malilib.util.SubChunkPos;
 //#endif
 
+//#if MC <= 12004
+//$$import static fi.dy.masa.malilib.util.InventoryUtils.areStacksEqual;
+//#else
+import static fi.dy.masa.malilib.util.InventoryUtils.areStacksEqualIgnoreNbt;
+//#endif
+
 public class Printer extends PrinterUtils {
-    private static final Logger log = LoggerFactory.getLogger(Printer.class);
-    public static boolean up = true;
     public static Vec3d itemPos = null;
     public static ItemStack offHandItem = null;
     public static HashSet<Item> remoteItem = new HashSet<>();
@@ -125,8 +127,6 @@ public class Printer extends PrinterUtils {
     static ItemStack yxcfItem; //有序存放临时存储
     private static Printer INSTANCE = null;
     private static Method method;
-
-    private static final List<Integer> PICK_BLOCKABLE_SLOTS_1 = new ArrayList<>();
 
     static {
         try {
@@ -451,10 +451,6 @@ public class Printer extends PrinterUtils {
     //此模式依赖bug运行 请勿随意修改
     public void bedrockMode() {
 
-//        if (!client.player.getOffHandStack().isEmpty()){
-//            offHandItem = client.player.getOffHandStack();
-//        }else offHandItem = null;
-
         BreakingFlowController.tick();
         int maxy = -9999;
         range2 = bedrockModeRange();
@@ -540,7 +536,7 @@ public class Printer extends PrinterUtils {
 
     public boolean verify() {
         if (client.isInSingleplayer() && client.isRealmsEnabled()) return true;
-        String address = null;
+        String address;
         try {
             address = Objects.requireNonNull(client.getCurrentServerEntry()).address.split(":")[0];
         } catch (Exception e) {
@@ -791,7 +787,7 @@ public class Printer extends PrinterUtils {
 
                     if (isSchematicBlock(offset)) {
                         State state = State.get(state1, state2);
-                        if (!(state == State.CORRECT)) continue z;
+                        if (!(state == State.CORRECT)) continue;
                     }
                 }
                 if (forcedPlacementBooleanValue) useShift = true;
@@ -906,9 +902,9 @@ public class Printer extends PrinterUtils {
                             if (OpenInventoryPacket.key != null) {
                                 SwitchItem.newItem(slots.get(y).getStack(), OpenInventoryPacket.pos, OpenInventoryPacket.key, y, -1);
                             } else SwitchItem.newItem(slots.get(y).getStack(), null, null, y, shulkerBoxSlot);
-                            int a = Litematica_InventoryUtilsMixin.getEmptyPickBlockableHotbarSlot(player.getInventory()) == -1 ?
-                                    Litematica_InventoryUtilsMixin.getPickBlockTargetSlot(player) :
-                                    Litematica_InventoryUtilsMixin.getEmptyPickBlockableHotbarSlot(player.getInventory());
+                            int a = getEmptyPickBlockableHotbarSlot(player.getInventory()) == -1 ?
+                                    getPickBlockTargetSlot(player) :
+                            getEmptyPickBlockableHotbarSlot(player.getInventory());
                             c = a == -1 ? c : a;
                             ZxyUtils.switchPlayerInvToHotbarAir(c);
                             fi.dy.masa.malilib.util.InventoryUtils.swapSlots(sc, y, c);
@@ -960,7 +956,7 @@ public class Printer extends PrinterUtils {
                             isOpenHandler = true;
                             //System.out.println("open "+b);
                             return true;
-                        } catch (Exception e) {
+                        } catch (Exception ignored) {
                         }
                     }
                 }
@@ -972,12 +968,6 @@ public class Printer extends PrinterUtils {
     public boolean switchToItems(ClientPlayerEntity player, Item[] items) {
         if (items == null) return false;
         PlayerInventory inv = Implementation.getInventory(player);
-        //inv.getMainHandStack()  信息滞后 如果服务器有延迟这个获取的信息可能是错误的
-//        for (Item item : items) {
-//            if (inv.getMainHandStack().getItem() == item) {
-//                return;
-//            }
-//        }
         for (Item item : items) {
             if (Implementation.getAbilities(player).creativeMode) {
                 InventoryUtils.setPickedItemToHand(new ItemStack(item), client);
@@ -1001,56 +991,94 @@ public class Printer extends PrinterUtils {
 
     public void swapHandWithSlot(ClientPlayerEntity player, int slot) {
         ItemStack stack = Implementation.getInventory(player).getStack(slot);
-        InventoryUtils.setPickedItemToHand(stack, client);
         int sourceSlot = client.player.getInventory().getSlotWithStack(stack);
         PlayerInventory inventory = player.getInventory();
 
-        if (PlayerInventory.isValidHotbarIndex(sourceSlot))
-        {
+        if (PlayerInventory.isValidHotbarIndex(sourceSlot)) {
             if (SWITCH_ITEM_USE_PACKET.getBooleanValue()) {
                 client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(sourceSlot));
             } else {
                 inventory.selectedSlot = sourceSlot;
             }
-        }
-        else
-        {
-            if (PICK_BLOCKABLE_SLOTS_1.size() == 0)
-            {
-                InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_valid_slots_configured");
-                return;
-            }
-
+        } else {
             int hotbarSlot = sourceSlot;
 
-            if (sourceSlot == -1 || PlayerInventory.isValidHotbarIndex(sourceSlot) == false)
-            {
+            if (sourceSlot == -1 || !PlayerInventory.isValidHotbarIndex(sourceSlot)) {
                 hotbarSlot = getEmptyPickBlockableHotbarSlot(inventory);
             }
 
-            if (hotbarSlot == -1)
-            {
+            if (hotbarSlot == -1) {
                 hotbarSlot = getPickBlockTargetSlot(player);
             }
 
-            if (hotbarSlot != -1)
-            {
-                inventory.selectedSlot = hotbarSlot;
-
-                if (EntityUtils.isCreativeMode(player))
-                {
-                    inventory.main.set(hotbarSlot, stack.copy());
+            if (hotbarSlot != -1) {
+                if (SWITCH_ITEM_USE_PACKET.getBooleanValue()) {
+                    client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(hotbarSlot));
+                } else {
+                    inventory.selectedSlot = hotbarSlot;
                 }
-                else
-                {
-                    fi.dy.masa.malilib.util.InventoryUtils.swapItemToMainHand(stack.copy(), client);
+
+                if (EntityUtils.isCreativeMode(player)) {
+                    inventory.main.set(hotbarSlot, stack.copy());
+                } else {
+
+                    // Already holding the requested item
+                    if (
+                        //#if MC <= 12004
+                        //$$areStacksEqual(stack.copy(), player.getMainHandStack())
+                        //#else
+                            areStacksEqualIgnoreNbt(stack.copy(), player.getMainHandStack())
+                        //#endif
+                    )
+                    {
+                        return;
+                    }
+
+                    if (player.isCreative())
+                    {
+                        //#if MC <= 12101
+                        //$$player.getInventory().addPickBlock(stack.copy());
+                        //#else
+                        player.getInventory().swapStackWithHotbar(stack.copy());
+                        //#endif
+                        client.interactionManager.clickCreativeStack(player.getMainHandStack(), 36 + player.getInventory().selectedSlot); // sendSlotPacket
+                        return;
+                    }
+                    else
+                    {
+                        int slot1 = fi.dy.masa.malilib.util.InventoryUtils.findSlotWithItem(player.playerScreenHandler, stack.copy(), true);
+
+                        if (slot1 != -1)
+                        {
+                            //client.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot1, currentHotbarSlot, SlotActionType.SWAP, player);
+                            //改用数据包发送
+                            if (SWITCH_ITEM_USE_PACKET.getBooleanValue()) {
+                                Int2ObjectMap<ItemStack> int2ObjectMap = new Int2ObjectOpenHashMap();
+                                DefaultedList<Slot> defaultedList = player.currentScreenHandler.slots;
+                                int i = defaultedList.size();
+                                List<ItemStack> list = Lists.newArrayListWithCapacity(i);
+
+                                for (Slot slot2 : defaultedList) {
+                                    list.add(slot2.getStack().copy());
+                                }
+
+                                for (int j = 0; j < i; ++j) {
+                                    ItemStack itemStack = (ItemStack) list.get(j);
+                                    ItemStack itemStack2 = ((Slot) defaultedList.get(j)).getStack();
+                                    if (!ItemStack.areEqual(itemStack, itemStack2)) {
+                                        int2ObjectMap.put(j, itemStack2.copy());
+                                    }
+                                }
+                                client.getNetworkHandler().sendPacket(new ClickSlotC2SPacket(player.playerScreenHandler.syncId, player.currentScreenHandler.getRevision(), slot1, hotbarSlot, SlotActionType.SWAP, stack.copy(), int2ObjectMap));
+                            } else {
+                                int currentHotbarSlot = player.getInventory().selectedSlot;
+                                client.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot1, currentHotbarSlot, SlotActionType.SWAP, player);
+                            }
+                        }
+                    }
                 }
 
                 WorldUtils.setEasyPlaceLastPickBlockTime();
-            }
-            else
-            {
-                InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");
             }
         }
     }
@@ -1080,7 +1108,7 @@ public class Printer extends PrinterUtils {
                         fw = false;
                     }
                 }
-                return fw;
+                return false;
             } else {
                 Box box = i.getSubRegionBox(DataManager.getSimpleArea().getName());
                 return comparePos(box, pos, p);
@@ -1109,10 +1137,6 @@ public class Printer extends PrinterUtils {
 
         public Queue(Printer printerInstance) {
             this.printerInstance = printerInstance;
-        }
-
-        public void queueClick(@NotNull BlockPos target, @NotNull Direction side, @NotNull Vec3d hitModifier) {
-            queueClick(target, side, hitModifier, true, true);
         }
 
         public void queueClick(@NotNull BlockPos target, @NotNull Direction side, @NotNull Vec3d hitModifier, boolean shift, boolean didSendLook) {
