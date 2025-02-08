@@ -7,14 +7,14 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(InventoryUtils.class)
-public interface MixinInventoryFix {
+public interface Litematica_InventoryUtilsMixin {
     @Invoker("getPickBlockTargetSlot")
-    static int getPickBlockTargetSlot(PlayerEntity player){
+    public static int getPickBlockTargetSlot(PlayerEntity player){
         return -1;
-    }
+    };
     @Invoker("getEmptyPickBlockableHotbarSlot")
 
-    static int getEmptyPickBlockableHotbarSlot(PlayerInventory inventory){
+    public static int getEmptyPickBlockableHotbarSlot(PlayerInventory inventory){
         return -1;
-    }
+    };
 }

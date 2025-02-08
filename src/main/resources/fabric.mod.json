@@ -3,11 +3,10 @@
   "id": "${mod_id}-${minecraft_version_id}",
   "version": "${mod_version}",
   "name": "${mod_name}",
-  "description": "Litematica的一个分支，增加了缺失的打印功能",
+  "description": "A fork of Litematica that adds the missing printer functionality",
   "authors": [
     "aleksilassila",
-    "zhaixianyu",
-    "BlinkWhite"
+    "zhaixianyu"
   ],
   "contact": {
     "website": "${mod_homepage}",
@@ -16,7 +15,7 @@
   },
 
   "license": "${mod_license}",
-  "icon": "assets/litematica-printer/icon.png",
+  "icon": "assets/modid/icon.png",
 
   "environment": "*",
   "entrypoints": {

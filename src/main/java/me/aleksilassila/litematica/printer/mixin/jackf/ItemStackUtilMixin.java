@@ -35,7 +35,8 @@ public class ItemStackUtilMixin {
         if (enchantments.getEnchantments().stream()
                 .anyMatch(ench -> {
                     //#if MC > 12006
-                    RegistryKey<Enchantment> enchantmentRegistryKey = ench.getKey().get();
+                    RegistryEntry<Enchantment> ench1 = ench;
+                    RegistryKey<Enchantment> enchantmentRegistryKey = ench1.getKey().get();
                     String translationKey = enchantmentRegistryKey.getValue().toTranslationKey();
                     if (testLang(translationKey, filter)) return true;
                     String translate = StringUtils.translate(translationKey);

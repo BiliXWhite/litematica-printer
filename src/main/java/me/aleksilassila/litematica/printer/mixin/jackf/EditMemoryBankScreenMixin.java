@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import red.jackf.chesttracker.impl.gui.screen.EditMemoryBankScreen;
 import red.jackf.chesttracker.impl.gui.screen.MemoryBankView;
+import red.jackf.chesttracker.impl.gui.widget.HoldToConfirmButton;
 import red.jackf.chesttracker.impl.memory.metadata.Metadata;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.PRINTER_MEMORY;
