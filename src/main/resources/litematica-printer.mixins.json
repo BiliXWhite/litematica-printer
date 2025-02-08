@@ -6,7 +6,7 @@
   "mixins": [
     "masa.BlockItemMixin",
     "masa.KeyCallbackToggleBooleanConfigWithMessageMixin",
-    "masa.Litematica_InventoryUtilsMixin",
+    "masa.MixinInventoryFix",
     "masa.MixinInventoryUtils",
     "masa.WorldUtilsAccessor",
     "masa.WorldUtilsMixin",
@@ -21,7 +21,6 @@
   ],
   "client": [
     "ClientCommonNetworkHandlerMixin",
-    "ClientPlayNetworkHandlerMixin",
     "FlowerPotBlockAccessor",
     "MixinClientPlayerEntity",
     "MixinClientPlayerInteractionManager",
