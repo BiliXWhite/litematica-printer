@@ -21,8 +21,6 @@ public abstract class BlockItemMixin extends Item
         super(builder);
     }
 
-    @Shadow
-    protected abstract BlockState getPlacementState(ItemPlacementContext context);
     @Shadow protected abstract boolean canPlace(ItemPlacementContext context, BlockState state);
     @Shadow public abstract Block getBlock();
 
