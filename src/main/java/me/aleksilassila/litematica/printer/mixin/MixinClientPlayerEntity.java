@@ -59,6 +59,25 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 			Printer.fluidList = new HashSet<>();
 			return;
 		}
+		if(Printer.up){
+			checkForUpdates();
+			Printer.up = false;
+		}
 		printer.tick();
+	}
+	@Unique
+	public void checkForUpdates() {
+		new Thread(() -> {
+			String version = UpdateChecker.version;
+			String newVersion = UpdateChecker.getPrinterVersion();
+
+			if (!version.equals(newVersion)) {
+				client.inGameHud.getChatHud().addMessage(
+						Text.of("""
+Printer: 此版本为宅闲鱼二改最初版BV号：BV1q44y1T7hE
+投影打印机原作 https://github.com/aleksilassila/litematica-printer/releases
+再魔改by BiliXWhite(BlinkWhite)"""));
+			}
+		}).start();
 	}
 }
