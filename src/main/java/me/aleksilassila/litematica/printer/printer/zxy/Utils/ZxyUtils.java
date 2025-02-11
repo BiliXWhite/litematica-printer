@@ -39,6 +39,11 @@ import org.lwjgl.glfw.GLFW;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import java.util.*;
+
+//#if MC < 12101
+//$$ import net.minecraft.enchantment.EnchantmentHelper;
+//#endif
+
 //#if MC >= 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#else
@@ -52,9 +57,9 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.nbt.NbtCompound;
 //#endif
-import net.minecraft.enchantment.EnchantmentHelper;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_COLOR;
+import static me.aleksilassila.litematica.printer.printer.Test.t1;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
@@ -408,7 +413,7 @@ public class ZxyUtils {
         remoteTime = 0;
     }
 
-    public static void useBlock(Hand hand,Vec3d vec3d,Direction direction,BlockPos pos,boolean insideBlock){
+    public static void interactBlock1(Hand hand, Vec3d vec3d, Direction direction, BlockPos pos, boolean insideBlock){
         //#if MC < 11904
         //$$ client.interactionManager.interactBlock(client.player, client.world, hand,new BlockHitResult(vec3d, direction,pos,insideBlock));
         //#else

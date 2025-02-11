@@ -57,17 +57,17 @@ repositories {
     }
 
     //拼音搜索
-    maven { url = "https://mvnrepository.com/artifact/com.belerweb/pinyin4j"
-            content {
-                includeGroupAndSubgroups("com.belerweb")
-            }
+    maven {
+        url = "https://mvnrepository.com/artifact/com.belerweb/pinyin4j"
+        content {
+            includeGroupAndSubgroups("com.belerweb")
+        }
     }
 
 
     maven {
         url 'https://jitpack.io'
     }
-
 
 
     // YACL
@@ -116,47 +116,43 @@ configurations {
 def sakura = mcVersion > 12006
 //  1 = modImplementation 2 = modImplementation include 	3 = modApi	4 = modCompileOnly  5 = modImplementation file
 def mod_dependencies = [
-        [(sakura ? "com.github.sakura-ryoko:malilib" : "fi.dy.masa.malilib")                        , "malilib",            1],
-        [(sakura ? "com.github.sakura-ryoko:itemscroller" :"curse.maven:item-scroller-242064")     , "item_scrolle",       1],
-        [(sakura ? "com.github.sakura-ryoko:tweakeroo" :"curse.maven:tweakeroo-297344")             , "tweakeroo",          1],
-        [(sakura ? "com.github.sakura-ryoko:litematica" :"curse.maven:litematica-308892")           , "litematica",         1],
-        [getQuiShulkerBox()                                                                         , "quick_shulker",    mcVersion > 12004 ? 5 : 1],
-        [(mcVersion > 12004 ? "curse.maven:carpet-349239":"maven.modrinth:carpet")   , "carpet",             1],
-        ["net.kyrptonaught:kyrptconfig"     			        , "kyrptconfig",        1],
-        ["net.kyrptonaught:shulkerutils"     			        , "shulkerutils",       mcVersion >  12004 ? 0 : 1],
-
-//        ["red.jackf:chesttracker"                               , "chesttracker",       mcVersion >= 12001 ? 1 : 0],
-//        ["red.jackf:whereisit"                                  , "whereisit",          mcVersion >= 12001 ? 1 : 0],
-//        ["maven.modrinth:yacl"                                  , "yacl",               mcVersion >= 12001 ? 1 : 0],
-        [getSbYacl()                                            , "yacl",               mcVersion >= 12001 ? 1 : 0],
-        ["maven.modrinth:chest-tracker"                         , "chesttracker",       1],
-        ["maven.modrinth:where-is-it"                           , "whereisit",          1],
-        ["red.jackf.jackfredlib:jackfredlib"                    , "jackfredlib",        mcVersion >= 12001 ? 1 : 0],
-        ["com.blamejared.searchables"                           , "searchables",        mcVersion >= 12001 ? 1 : 0],
-        ["maven.modrinth:modmenu"                               , "modmenu",            1],
-
-        ["maven.modrinth:cloth-config"                          , "cloth_config",       mcVersion < 12001 ? 1 : 0],
-        ["me.shedaniel.cloth.api:cloth-api"                     , "cloth_api",          mcVersion < 11904 ? 1 : 0],
-        ["io.github.cottonmc:LibGui"                            , "LibGui",             mcVersion < 12001 ? 1 : 0],
+        [(sakura ? "com.github.sakura-ryoko:malilib" : "fi.dy.masa.malilib"), "malilib", 1],
+        [(sakura ? "com.github.sakura-ryoko:itemscroller" : "curse.maven:item-scroller-242064"), "item_scrolle", 1],
+        [(sakura ? "com.github.sakura-ryoko:tweakeroo" : "curse.maven:tweakeroo-297344"), "tweakeroo", 1],
+        [(sakura ? "com.github.sakura-ryoko:litematica" : "curse.maven:litematica-308892"), "litematica", 1],
+        [getQuiShulkerBox(), "quick_shulker", mcVersion > 12004 ? 5 : 1],
+        [(mcVersion > 12004 ? "curse.maven:carpet-349239" : "maven.modrinth:carpet"), "carpet", 1],
+        ["net.kyrptonaught:kyrptconfig", "kyrptconfig", 1],
+        ["net.kyrptonaught:shulkerutils", "shulkerutils", mcVersion > 12004 ? 0 : 1],
+        [getSbYacl(), "yacl", mcVersion >= 12001 ? 1 : 0],
+        ["maven.modrinth:chest-tracker", "chesttracker", 1],
+        ["maven.modrinth:where-is-it", "whereisit", 1],
+        ["red.jackf.jackfredlib:jackfredlib", "jackfredlib", mcVersion >= 12001 ? 1 : 0],
+        ["com.blamejared.searchables", "searchables", mcVersion >= 12001 ? 1 : 0],
+        ["maven.modrinth:modmenu", "modmenu", 1],
+        ["maven.modrinth:cloth-config", "cloth_config", mcVersion < 12001 ? 1 : 0],
+        ["me.shedaniel.cloth.api:cloth-api", "cloth_api", mcVersion < 11904 ? 1 : 0],
+        ["io.github.cottonmc:LibGui", "LibGui", mcVersion < 12001 ? 1 : 0],
 ]
 
-String getSbYacl(){
+String getSbYacl() {
 //    return "maven.modrinth:yacl";
     return mcVersion == 12002 ? "maven.modrinth:yacl" : "dev.isxander:yet-another-config-lib";
-//    return mcVersion == 12002 ? "dev.isxander.yacl:yet-another-config-lib-fabric" : "dev.isxander:yet-another-config-lib";
+//    return"maven.modrinth:yacl";
 }
 
-String getQuiShulkerBox(){
+String getQuiShulkerBox() {
     String path = "curse.maven:quick-shulker-362669";
-    if(mcVersion == 12006){
+    if (mcVersion == 12006) {
         path = "build/libs/quickshulker-1.4.3-1.20.6.jar"
-    }else if(mcVersion == 12101){
+    } else if (mcVersion == 12101) {
         path = "build/libs/quickshulker-1.4.5-1.21.jar"
-    }else if(mcVersion == 12104){
+    } else if (mcVersion == 12104) {
         path = "build/libs/quickshulker-1.4.5-1.21.4.jar"
     }
     return path;
 }
+
 dependencies {
     //拼音
     implementation include("com.belerweb:pinyin4j:${project.pinyin_verson}")
@@ -175,7 +171,7 @@ dependencies {
         def id = item[1]
         def mode = item[2]
         if (mode == 0) return;
-        def idFix= mode != 5 ? "${dependencyNotation}:${project.property("${id}")}" : ""
+        def idFix = mode != 5 ? "${dependencyNotation}:${project.property("${id}")}" : ""
         if (mode == 1) {
             modImplementation idFix
         } else if (mode == 2) {
@@ -219,10 +215,10 @@ loom {
 
     runConfigs.named("client") {
         programArgs([
-                "--width",
-                "1280",
-                "--height",
-                "720",
+                "--width", "1280",
+                "--height", "720",
+                "--username", "zhaixianyu",
+                "--uuid", "a87377da-8bb1-49a0-adc6-0bb8a4863386"
         ])
         runDir("run/client")
     }
@@ -315,7 +311,7 @@ tasks.register("runProductionClient", JavaExec) {
                 "--assetsDir", file("${loom.files.userCache}/assets").absolutePath,
                 "--gameDir", workingDir.absolutePath,
                 "--width", "1280",
-                "--height", "720"
+                "--height", "720",
         )
         jvmArgs("-Dmixin.debug.export=true")
         jvmArgs("-Dfabric.addMods=${configurations.productionRuntimeMods.files.join(File.pathSeparator)}${File.pathSeparator}${tasks.remapJar.archiveFile.get().asFile.absolutePath}")
@@ -375,13 +371,13 @@ if (mcVersion >= 12005) {
 JavaVersion MIXIN_COMPATIBILITY_LEVEL = JAVA_COMPATIBILITY
 
 tasks.withType(JavaCompile).configureEach {
-    if(mcVersion >= 12005){
+    if (mcVersion >= 12005) {
         it.options.release = 21
-    }else if(mcVersion >=11800){
+    } else if (mcVersion >= 11800) {
         it.options.release = 17
-    }else if(mcVersion >=11700){
+    } else if (mcVersion >= 11700) {
         it.options.release = 16
-    }else{
+    } else {
         it.options.release = 8
     }
 
@@ -424,19 +420,13 @@ processResources {
         ])
     }
 
-    MIXIN_CONFIG_PATHS.each {mixinConfigPath ->
+    MIXIN_CONFIG_PATHS.each { mixinConfigPath ->
         filesMatching(mixinConfigPath) {
             filter { s -> s.replace('{{COMPATIBILITY_LEVEL}}', "JAVA_${MIXIN_COMPATIBILITY_LEVEL.ordinal() + 1}") }
         }
     }
 }
 
-//jar {
-////	from("${rootDir}/LICENSE")
-//	from("LICENSE") {
-//		rename { "${it}_${project.archivesBaseName}"}
-//	}
-//}
 
 // configure the maven publication
 publishing {
@@ -457,7 +447,6 @@ publishing {
         }
     }
 }
-
 
 
 ImmutableMap<Object, Object> replaceTokenMap = ImmutableMap.builder()

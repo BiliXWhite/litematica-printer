@@ -524,6 +524,7 @@ public class Printer extends PrinterUtils {
         return LitematicaMixinMod.BEDROCK_LIST.getStrings().stream().anyMatch(string -> Filters.equalsName(string,block));
     }
 
+    //TODO 使用数据包验证
     public boolean verify() {
         if (client.isInSingleplayer() && client.isRealmsEnabled()) return true;
         String address = null;

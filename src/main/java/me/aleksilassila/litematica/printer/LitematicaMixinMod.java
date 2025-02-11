@@ -80,7 +80,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigStringList BEDROCK_LIST = new ConfigStringList("基岩模式白名单", ImmutableList.of("minecraft:bedrock"), "");
 	public static final ConfigStringList REPLACEABLE_LIST = new ConfigStringList("可替换方块",
 			ImmutableList.of("minecraft:snow","minecraft:lava","minecraft:water","minecraft:bubble_column","minecraft:short_grass"), "打印时将忽略这些错误方块 直接替换。");
-	public static final ConfigHotkey TEST = new ConfigHotkey("test", "", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "测试用的，别乱设置");
+	public static final ConfigHotkey TEST = new ConfigHotkey("test", "","测试用的，别乱设置");
 
 	public static ImmutableList<IConfigBase> getConfigList() {
 		List<IConfigBase> list = new java.util.ArrayList<>(Configs.Generic.OPTIONS);

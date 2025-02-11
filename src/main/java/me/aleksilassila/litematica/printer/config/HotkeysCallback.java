@@ -27,6 +27,7 @@ import red.jackf.chesttracker.impl.memory.MemoryBankImpl;
 //#endif
 
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
+import static me.aleksilassila.litematica.printer.printer.Test.t1;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.startAddPrinterInventory;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.startOrOffSyncInventory;
 
@@ -40,6 +41,10 @@ public class HotkeysCallback implements IHotkeyCallback {
     @Override
     public boolean onKeyAction(KeyAction action, IKeybind key) {
         if (this.client.player == null || this.client.world == null) return false;
+        if(key == TEST.getKeybind()){
+            t1();
+            return true;
+        }
         if(key == PRINTER.getKeybind()){
             client.setScreen(new ConfigUi());
             return true;
@@ -50,6 +55,7 @@ public class HotkeysCallback implements IHotkeyCallback {
             IConfigOptionListEntry cycle = PRINTER_MODE.getOptionListValue().cycle(true);
             PRINTER_MODE.setOptionListValue(cycle);
             Messager.actionBar(PRINTER_MODE.getOptionListValue().getDisplayName());
+            return true;
         }else if(key == PRINTER_INVENTORY.getKeybind()){
             startAddPrinterInventory();
             return true;
