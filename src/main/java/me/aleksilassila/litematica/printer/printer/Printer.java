@@ -122,15 +122,6 @@ public class Printer extends PrinterUtils {
     static int shulkerBoxSlot = -1;
     static ItemStack yxcfItem; //有序存放临时存储
     private static Printer INSTANCE = null;
-    private static Method method;
-
-    static {
-        try {
-            method = Class.forName("net.kyrptonaught.quickshulker.client.ClientUtil").getDeclaredMethod("CheckAndSend", ItemStack.class, int.class);
-        } catch (Exception ignored) {
-            method = null;
-        }
-    }
 
     @NotNull
     public final MinecraftClient client;
@@ -871,8 +862,6 @@ public class Printer extends PrinterUtils {
     }
 
     public void switchInv() {
-//        if(true) return;
-
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         ScreenHandler sc = player.currentScreenHandler;
         if (sc.equals(player.playerScreenHandler)) {
@@ -882,7 +871,6 @@ public class Printer extends PrinterUtils {
         for (Item item : remoteItem) {
             for (int y = 0; y < slots.get(0).inventory.size(); y++) {
                 if (slots.get(y).getStack().getItem().equals(item)) {
-
                     String[] str = Configs.Generic.PICK_BLOCKABLE_SLOTS.getStringValue().split(",");
                     if (str.length == 0) return;
                     for (String s : str) {
@@ -891,7 +879,7 @@ public class Printer extends PrinterUtils {
                             int c = Integer.parseInt(s) - 1;
                             if (Registries.ITEM.getId(player.getInventory().getStack(c).getItem()).toString().contains("shulker_box") &&
                                     LitematicaMixinMod.QUICKSHULKER.getBooleanValue()) {
-                                MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of("濳影盒占用了预选栏"), false);
+                                client.inGameHud.setOverlayMessage(Text.of("潜影盒占用了预选栏"), false);
                                 continue;
                             }
 
@@ -900,15 +888,15 @@ public class Printer extends PrinterUtils {
                             } else SwitchItem.newItem(slots.get(y).getStack(), null, null, y, shulkerBoxSlot);
                             int a = getEmptyPickBlockableHotbarSlot(player.getInventory()) == -1 ?
                                     getPickBlockTargetSlot(player) :
-                            getEmptyPickBlockableHotbarSlot(player.getInventory());
+                                    getEmptyPickBlockableHotbarSlot(player.getInventory());
                             c = a == -1 ? c : a;
                             ZxyUtils.switchPlayerInvToHotbarAir(c);
                             fi.dy.masa.malilib.util.InventoryUtils.swapSlots(sc, y, c);
                             player.getInventory().selectedSlot = c;
                             player.closeHandledScreen();
                             if (shulkerBoxSlot != -1) {
-                                client.interactionManager.clickSlot(sc.syncId, shulkerBoxSlot, 0, SlotActionType.PICKUP, client.player);
-                                client.interactionManager.clickSlot(sc.syncId, shulkerBoxSlot, 0, SlotActionType.PICKUP, client.player);
+                                client.interactionManager.clickSlot(sc.syncId, shulkerBoxSlot, 1, SlotActionType.PICKUP, client.player);
+                                client.inGameHud.getChatHud().addMessage(Text.of("尝试打开潜影盒"));
                             }
                             shulkerBoxSlot = -1;
                             isOpenHandler = false;
@@ -933,7 +921,6 @@ public class Printer extends PrinterUtils {
     boolean openShulker(HashSet<Item> items) {
         for (Item item : items) {
             ScreenHandler sc = MinecraftClient.getInstance().player.playerScreenHandler;
-//            if(!MinecraftClient.getInstance().player.currentScreenHandler.equals(sc))return false;
             for (int i = 9; i < sc.slots.size(); i++) {
                 ItemStack stack = sc.slots.get(i).getStack();
                 String itemid = Registries.ITEM.getId(stack.getItem()).toString();
@@ -941,16 +928,11 @@ public class Printer extends PrinterUtils {
                     DefaultedList<ItemStack> items1 = fi.dy.masa.malilib.util.InventoryUtils.getStoredItems(stack, -1);
                     if (items1.stream().anyMatch(s1 -> s1.getItem().equals(item))) {
                         try {
-//                            if (reSwitchItem == null)
                             shulkerBoxSlot = i;
-//                            ClientUtil.CheckAndSend(stack,i);
-                            //#if MC >= 12001
-                            if (loadChestTracker) InteractionTracker.INSTANCE.clear();
-                            //#endif
-                            method.invoke(method, stack, i);
+                            client.interactionManager.clickSlot(sc.syncId, i, 1, SlotActionType.PICKUP, client.player);
+                            client.inGameHud.getChatHud().addMessage(Text.of("尝试打开潜影盒"));
                             closeScreen++;
                             isOpenHandler = true;
-                            //System.out.println("open "+b);
                             return true;
                         } catch (Exception ignored) {
                         }
