@@ -32,8 +32,10 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigInteger COMPULSION_RANGE = new ConfigInteger("打印机工作半径", 6,     1,   256, """
             若服务器未修改交互距离 请勿设置太大""");
 	public static final ConfigInteger PUT_COOLING = new ConfigInteger("放置冷却", 2,     0,   256,   "对同一位置的方块放置时需等待设定的tick值才会再次放置。");
-    public static final ConfigBoolean PLACE_USE_PACKET = new ConfigBoolean("使用数据包放置方块", false, "采用直接发数据包放置方块，可以得到更快的放置速度而且不会漏放（如果有反作弊你还是老老实实关掉吧~）");
-	public static final ConfigBoolean SWITCH_ITEM_USE_PACKET = new ConfigBoolean("使用数据包切换物品", true, "可以避免把没必要的物品打印上去（如果有反作弊你还是老老实实关掉吧~）");
+    public static final ConfigBoolean PLACE_USE_PACKET = new ConfigBoolean("使用数据包放置方块", false, "采用直接发数据包放置方块，可以得到更快的放置速度，而且不会漏放方块（如果有反作弊你还是老老实实关掉吧~）");
+	public static final ConfigBoolean SWITCH_ITEM_USE_PACKET = new ConfigBoolean("使用数据包切换物品栏", true, "可以避免把没必要的物品打印上去（如果有反作弊你还是老老实实关掉吧~）");
+	public static final ConfigBoolean AFTER_SWITCH_ITEM_SYNC = new ConfigBoolean("物品栏同步到客户端", true, "在开启物品栏切换数据包后，同步物品栏到客户端");
+	public static final ConfigBoolean GET_ITEM_USE_PACKET = new ConfigBoolean("使用数据包取物品", true, "作用不明，还有概率发包过快被踢，理论上不用开启，已经优化了原来的逻辑");
 	public static final ConfigOptionList RANGE_MODE = new ConfigOptionList("半径模式", State.ListType.SPHERE,"立方体建议3，球体建议设置6，破基岩在立方体模式下无法正常使用");
 	public static final ConfigOptionList MODE_SWITCH = new ConfigOptionList("模式切换", State.ModeType.SINGLE,"单模：仅运行一个模式。多模：可多个模式同时运行");
 	public static final ConfigOptionList PRINTER_MODE = new ConfigOptionList("打印机模式", State.PrintModeType.PRINTER,"仅单模生效");
