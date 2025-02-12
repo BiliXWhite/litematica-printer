@@ -72,9 +72,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.*
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem.reSwitchItem;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
-
 import net.minecraft.util.Identifier;
-
 
 //#if MC >= 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
@@ -91,15 +89,13 @@ import red.jackf.chesttracker.api.providers.InteractionTracker;
 //$$ import com.mojang.brigadier.StringReader;
 //$$ import net.minecraft.util.registry.RegistryKey;
 //$$ import net.minecraft.util.registry.Registry;
+//#else if MC = 11904
+//$$ import net.minecraft.util.Identifier;
+//$$ import net.minecraft.registry.RegistryKey;
+//$$ import net.minecraft.registry.RegistryKeys;
 //#else
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.Registries;
-//#if MC < 12002
-//$$
 //#endif
-//#endif
-
 
 //#if MC < 11900
 //$$ import fi.dy.masa.malilib.util.SubChunkPos;
@@ -997,6 +993,10 @@ public class Printer extends PrinterUtils {
         if (PlayerInventory.isValidHotbarIndex(sourceSlot)) {
             if (SWITCH_ITEM_USE_PACKET.getBooleanValue()) {
                 client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(sourceSlot));
+                //同步物品栏
+                if (AFTER_SWITCH_ITEM_SYNC.getBooleanValue()) {
+                    inventory.selectedSlot = sourceSlot;
+                }
             } else {
                 inventory.selectedSlot = sourceSlot;
             }
@@ -1014,6 +1014,10 @@ public class Printer extends PrinterUtils {
             if (hotbarSlot != -1) {
                 if (SWITCH_ITEM_USE_PACKET.getBooleanValue()) {
                     client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(hotbarSlot));
+                    //同步物品栏
+                    if (AFTER_SWITCH_ITEM_SYNC.getBooleanValue()) {
+                        inventory.selectedSlot = hotbarSlot;
+                    }
                 } else {
                     inventory.selectedSlot = hotbarSlot;
                 }
@@ -1071,8 +1075,7 @@ public class Printer extends PrinterUtils {
                                 }
                                 client.getNetworkHandler().sendPacket(new ClickSlotC2SPacket(player.playerScreenHandler.syncId, player.currentScreenHandler.getRevision(), slot1, hotbarSlot, SlotActionType.SWAP, stack.copy(), int2ObjectMap));
                             } else {
-                                int currentHotbarSlot = player.getInventory().selectedSlot;
-                                client.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot1, currentHotbarSlot, SlotActionType.SWAP, player);
+                                client.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot1, hotbarSlot, SlotActionType.SWAP, player);
                             }
                         }
                     }
