@@ -896,7 +896,6 @@ public class Printer extends PrinterUtils {
                             player.closeHandledScreen();
                             if (shulkerBoxSlot != -1) {
                                 client.interactionManager.clickSlot(sc.syncId, shulkerBoxSlot, 1, SlotActionType.PICKUP, client.player);
-                                client.inGameHud.getChatHud().addMessage(Text.of("尝试打开潜影盒"));
                             }
                             shulkerBoxSlot = -1;
                             isOpenHandler = false;
@@ -930,7 +929,6 @@ public class Printer extends PrinterUtils {
                         try {
                             shulkerBoxSlot = i;
                             client.interactionManager.clickSlot(sc.syncId, i, 1, SlotActionType.PICKUP, client.player);
-                            client.inGameHud.getChatHud().addMessage(Text.of("尝试打开潜影盒"));
                             closeScreen++;
                             isOpenHandler = true;
                             return true;
