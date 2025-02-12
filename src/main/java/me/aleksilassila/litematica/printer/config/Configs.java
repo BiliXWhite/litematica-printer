@@ -16,7 +16,6 @@ import java.util.List;
 
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadQuickShulker;
 
 public class Configs implements IConfigHandler {
     public static Configs INSTANCE = new Configs();
@@ -29,10 +28,9 @@ public class Configs implements IConfigHandler {
         List<IConfigBase> list = new ArrayList<>();
         if(loadChestTracker) list.add(INVENTORY);
         if(loadChestTracker) list.add(AUTO_INVENTORY);
-        if(loadQuickShulker) list.add(QUICKSHULKER);
+        list.add(QUICKSHULKER);
         list.add(PRINT_SWITCH);
         list.add(PRINT_INTERVAL);
-//        list.add(PRINTING_RANGE);
         list.add(COMPULSION_RANGE);
         list.add(PUT_COOLING);
         list.add(PLACE_USE_PACKET);
@@ -107,7 +105,6 @@ public class Configs implements IConfigHandler {
             list.add(DELETE);
             //#endif
         }
-        if(FabricLoader.getInstance().isDevelopmentEnvironment()) list.add(TEST);
 
         return ImmutableList.copyOf(list);
     }
@@ -136,7 +133,6 @@ public class Configs implements IConfigHandler {
             list.add(DELETE);
             //#endif
         }
-        if(FabricLoader.getInstance().isDevelopmentEnvironment()) list.add(TEST);
         return ImmutableList.copyOf(list);
     }
     //切换型开关

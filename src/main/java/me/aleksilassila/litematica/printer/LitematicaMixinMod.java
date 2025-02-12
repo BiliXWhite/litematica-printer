@@ -20,26 +20,21 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import java.util.List;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadQuickShulker;
 
 public class LitematicaMixinMod implements ModInitializer, ClientModInitializer {
 	public static final String MOD_ID = "litematica_printer";
 	private static final KeybindSettings GUI_NO_ORDER = KeybindSettings.create(KeybindSettings.Context.GUI, KeyAction.PRESS, false, false, false, true);
 	// Config settings
-	public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger( "打印机工作间隔", 0,   0, 20, "以游戏刻度为单位工作间隔。值越低意味着打印速度越快");
-	;
-//	public static final ConfigInteger PRINTING_RANGE = new ConfigInteger("打印机工作半径", 3,     1,   256,   "若服务器未修改交互距离 请勿设置太大。");
-	public static final ConfigInteger COMPULSION_RANGE = new ConfigInteger("打印机工作半径", 6,     1,   256, """
-            若服务器未修改交互距离 请勿设置太大""");
+	public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger( "打印机工作间隔", 1,   0, 20, "以游戏刻度为单位工作间隔。值越低意味着打印速度越快");
+	public static final ConfigInteger COMPULSION_RANGE = new ConfigInteger("打印机工作半径", 6,     1,   256, "若服务器未修改交互距离 请勿设置太大");
 	public static final ConfigInteger PUT_COOLING = new ConfigInteger("放置冷却", 2,     0,   256,   "对同一位置的方块放置时需等待设定的tick值才会再次放置。");
     public static final ConfigBoolean PLACE_USE_PACKET = new ConfigBoolean("使用数据包放置方块", false, "采用直接发数据包放置方块，可以得到更快的放置速度，而且不会漏放方块（如果有反作弊你还是老老实实关掉吧~）");
-	public static final ConfigBoolean SWITCH_ITEM_USE_PACKET = new ConfigBoolean("使用数据包切换物品栏", true, "可以避免把没必要的物品打印上去（如果有反作弊你还是老老实实关掉吧~）");
-	public static final ConfigBoolean AFTER_SWITCH_ITEM_SYNC = new ConfigBoolean("物品栏同步到客户端", true, "在开启物品栏切换数据包后，同步物品栏到客户端");
-	public static final ConfigBoolean GET_ITEM_USE_PACKET = new ConfigBoolean("使用数据包取物品", true, "作用不明，还有概率发包过快被踢，理论上不用开启，已经优化了原来的逻辑");
+	public static final ConfigBoolean SWITCH_ITEM_USE_PACKET = new ConfigBoolean("使用数据包切换物品栏", false, "可以避免把没必要的物品打印上去（如果有反作弊你还是老老实实关掉吧~）");
+	public static final ConfigBoolean AFTER_SWITCH_ITEM_SYNC = new ConfigBoolean("物品栏同步到客户端", false, "在开启物品栏切换数据包后，同步物品栏到客户端");
+	public static final ConfigBoolean GET_ITEM_USE_PACKET = new ConfigBoolean("使用数据包取物品", false, "作用不明，还有概率发包过快被踢，理论上不用开启，已经优化了原来的逻辑");
 	public static final ConfigOptionList RANGE_MODE = new ConfigOptionList("半径模式", State.ListType.SPHERE,"立方体建议3，球体建议设置6，破基岩在立方体模式下无法正常使用");
 	public static final ConfigOptionList MODE_SWITCH = new ConfigOptionList("模式切换", State.ModeType.SINGLE,"单模：仅运行一个模式。多模：可多个模式同时运行");
 	public static final ConfigOptionList PRINTER_MODE = new ConfigOptionList("打印机模式", State.PrintModeType.PRINTER,"仅单模生效");
-	//    public static final ConfigBoolean PRINT_WATER    = new ConfigBoolean("PrintWater",    false, "Whether or not the printer should place water\n source blocks or make blocks waterlogged.");
 	public static final ConfigBoolean MULTI_BREAK = new ConfigBoolean("多模阻断",true, "启用后将按模式优先级运行，同时启用多个模式时优先级低的无法执行");
 	public static final ConfigBoolean RENDER_LAYER_LIMIT = new ConfigBoolean("渲染层数限制",false, "排流体，破基岩，挖掘模式 是否受渲染层数限制");
 	public static final ConfigBoolean PRINT_IN_AIR = new ConfigBoolean("凭空放置",true, "Whether or not the printer should place blocks without anything to build on.\nBe aware that some anti-cheat plugins might notice this.");
@@ -67,7 +62,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList("排流体方块名单", ImmutableList.of("minecraft:sand"), "此项需严格填写");
 	public static final ConfigBoolean PUT_SKIP = new ConfigBoolean("跳过放置", false, "开启后会跳过列表内的方块");
 	public static final ConfigBoolean PUT_TESTING = new ConfigBoolean("侦测器放置检测", false, "检测侦测器看向的方块是否和投影方块一致，若不一致测跳过放置");
-	public static final ConfigBoolean QUICKSHULKER = new ConfigBoolean("快捷潜影盒", false, "在有快捷潜影盒mod的情况下可以直接从背包内的潜影盒取出物品\n替换的位置为投影的预设位置,如果所有预设位置都有濳影盒则不会替换。");
+	public static final ConfigBoolean QUICKSHULKER = new ConfigBoolean("快捷潜影盒", false, "在服务器装有AxShulkers的情况下可以直接从背包内的潜影盒取出物品\n替换的位置为投影的预设位置,如果所有预设位置都有濳影盒则不会替换。");
 	public static final ConfigBoolean INVENTORY = new ConfigBoolean("远程交互容器", false, "在服务器支持远程交互容器或单机的情况下可以远程交互\n替换的位置为投影的预设位置。");
 	public static final ConfigBoolean AUTO_INVENTORY = new ConfigBoolean("自动设置远程交互", false, "在服务器若允许使用则自动开启远程交互容器，反之则自动关闭");
 
@@ -84,8 +79,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigStringList BEDROCK_LIST = new ConfigStringList("基岩模式白名单", ImmutableList.of("minecraft:bedrock"), "");
 	public static final ConfigStringList REPLACEABLE_LIST = new ConfigStringList("可替换方块",
 			ImmutableList.of("minecraft:snow","minecraft:lava","minecraft:water","minecraft:bubble_column","minecraft:short_grass"), "打印时将忽略这些错误方块 直接替换。");
-	public static final ConfigHotkey TEST = new ConfigHotkey("test", "", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "测试用的，别乱设置");
-
 	public static ImmutableList<IConfigBase> getConfigList() {
 		List<IConfigBase> list = new java.util.ArrayList<>(Configs.Generic.OPTIONS);
 		list.add(PRINT_SWITCH);
@@ -173,9 +166,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		if(!loadChestTracker){
 			AUTO_INVENTORY.setBooleanValue(false);
 			INVENTORY.setBooleanValue(false);
-		}
-		if(!loadQuickShulker){
-			QUICKSHULKER.setBooleanValue(false);
 		}
 	}
 }

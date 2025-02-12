@@ -335,20 +335,6 @@ public class ZxyUtils {
             client.inGameHud.setOverlayMessage(Text.of("已关闭全部模式"), false);
         }
         OpenInventoryPacket.tick();
-        test();
-    }
-
-    static ItemStack itemStack;
-    public static void test() {
-        if (LitematicaMixinMod.TEST.getKeybind().isPressed()) {
-//            QuickShulkerUtils.test();
-//            if (itemStack == null) itemStack = client.player.getInventory().getMainHandStack();
-//            if (!InventoryUtils.areStacksEqual(client.player.getInventory().getMainHandStack(), itemStack)) {
-//                itemStack = client.player.getInventory().getMainHandStack();
-//                System.out.println("=======");
-//            }
-//            OpenInventoryPacket.sendOpenInventory(DataManager.getSelectionManager().getCurrentSelection().getSubRegionBox(DataManager.getSimpleArea().getName()).getPos1(),MinecraftClient.getInstance().world.getRegistryKey());
-        }
     }
 
     public static void switchPlayerInvToHotbarAir(int slot) {
