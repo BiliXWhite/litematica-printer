@@ -122,6 +122,7 @@ public class Printer extends PrinterUtils {
     static int shulkerBoxSlot = -1;
     static ItemStack yxcfItem; //有序存放临时存储
     private static Printer INSTANCE = null;
+    private int shulkerCooldown = 0;
 
     @NotNull
     public final MinecraftClient client;
@@ -623,6 +624,11 @@ public class Printer extends PrinterUtils {
         boolean easyModeBooleanValue = LitematicaMixinMod.EASY_MODE.getBooleanValue();
         boolean forcedPlacementBooleanValue = LitematicaMixinMod.FORCED_PLACEMENT.getBooleanValue();
 
+        //神tm潜影盒延迟
+        if (shulkerCooldown > 0) {
+            shulkerCooldown--;
+        }
+
         if (tickRate != 0) {
             queue.sendQueue(client.player);
             if (tick % tickRate != 0) {
@@ -918,6 +924,9 @@ public class Printer extends PrinterUtils {
     }
 
     boolean openShulker(HashSet<Item> items) {
+        if (shulkerCooldown > 0) {
+            return false;
+        }
         for (Item item : items) {
             ScreenHandler sc = MinecraftClient.getInstance().player.playerScreenHandler;
             for (int i = 9; i < sc.slots.size(); i++) {
@@ -931,6 +940,7 @@ public class Printer extends PrinterUtils {
                             client.interactionManager.clickSlot(sc.syncId, i, 1, SlotActionType.PICKUP, client.player);
                             closeScreen++;
                             isOpenHandler = true;
+                            shulkerCooldown = 20; // Set cooldown to 20 ticks
                             return true;
                         } catch (Exception ignored) {
                         }
