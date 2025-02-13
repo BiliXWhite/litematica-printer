@@ -28,7 +28,6 @@ public class Configs implements IConfigHandler {
         List<IConfigBase> list = new ArrayList<>();
         if(loadChestTracker) list.add(INVENTORY);
         if(loadChestTracker) list.add(AUTO_INVENTORY);
-        list.add(QUICKSHULKER);
         list.add(PRINT_SWITCH);
         list.add(PRINT_INTERVAL);
         list.add(COMPULSION_RANGE);
@@ -37,6 +36,7 @@ public class Configs implements IConfigHandler {
         list.add(SWITCH_ITEM_USE_PACKET);
         list.add(AFTER_SWITCH_ITEM_SYNC);
         list.add(GET_ITEM_USE_PACKET);
+        list.add(QUICKSHULKER);
         list.add(RANGE_MODE);
         list.add(MODE_SWITCH);
         if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)) list.add(PRINTER_MODE);
