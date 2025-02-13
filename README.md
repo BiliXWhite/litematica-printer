@@ -1,72 +1,28 @@
-Litematica Printer
+Litematica 打印机
 ==================
-This fork adds printing functionality for Litematica fabric 1.18 and 1.17 versions. Printer allows players to build
-big structures more quickly by automatically placing the correct blocks around you.
+此分支为 Litematica 的 Fabric 1.18.2 至 1.21.4 版本添加了自动建造功能。打印机允许玩家通过自动放置周围正确方块来快速建造大型结构。
 
-The main branch (printing) is dedicated to latest version of Minecraft, while printing_1.17 and printing_1.16 are
-for the older versions respectively. If you have issues with the printer, **do not** bother the original creator of
-Litematica (maruohon) with them. Contact me instead. Feature requests or bugs can be reported via github issues.
+再分支于 宅咸鱼 的版本，添加了使用数据包打印的一系列功能，并且将快捷潜影盒改为适配给装有AxShulkers插件的服务器。
 
-For downloads check out [releases](https://github.com/aleksilassila/litematica-printing/releases/latest).
-To install the mod, first download the original Litematica and MaLiLib from [here](https://www.curseforge.com/minecraft/mc-mods/litematica).
-You will also need [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api/).
-Finally, move the printer's .jar from [releases](https://github.com/aleksilassila/litematica-printing/releases/latest) to your mods folder.
+下载构建出的版本请访问 [Releases](https://github.com/BiliXWhite/litematica-printer/releases)。安装前请先下载 Litematica 和 MaLiLib，并确保已安装 [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api/）。最后将打印机的 .jar 文件放入 mods 文件夹。
 
-![Demo](printer_demo.gif)
+![演示](printer_demo.gif)
 
-How To Use
+使用方法
 ----------
-Using the printer is straightforward: You can toggle the feature by pressing `CAPS_LOCK` by default. To configure variables such as
-printing speed and range, open Litematica's settings by pressing `M + C` and navigate to "Generic" tab. Printer's configuration can be
-found at the bottom of the page. You can also rebind the printing toggle under "Hotkeys" tab. Holding down `V` by default will also
-print regardless if the printer is toggled on or off.
+默认按 `大写锁定键（CAPS_LOCK）` 切换打印机功能。配置参数（如建造速度和范围）需按 `M + C` 打开 Litematica 设置，在"通用"标签页底部找到打印机配置。快捷键可在"热键"标签页中重新绑定。按住 `V` 键（默认）可临时启用打印机（无论当前是否开启）。
 
-### List of blacklisted blocks
-These blocks have not been implemented yet for various reasons and the printer will skip them instead of placing them wrong. If any
-other blocks are placed incorrectly, try to lower the printing speed. If certain block is still placed incorrectly, you can create
-[an issue](https://github.com/aleksilassila/litematica-printer/issues).
- - Grindstones
- - Skulls placed on the ground
- - Signs
- - Glow lichen and vines
- - Entities, including item frames and armor stands
+### 未支持方块列表
+以下方块由于特殊原因暂未实现，打印机将自动跳过。如果发现其他方块放置错误，请尝试降低建造速度。若问题依旧存在，请提交 [issue](https://github.com/BiliXWhite/litematica-printer/issues)。
+- 砂轮
+- 地面放置的头颅
+- 告示牌
+- 发光地衣和藤蔓
+- 实体（包括物品展示框和盔甲架）
 
+编译指南
 ----------
-
-[![Curseforge](http://cf.way2muchnoise.eu/full_litematica_downloads.svg)](https://minecraft.curseforge.com/projects/litematica) [![Curseforge](http://cf.way2muchnoise.eu/versions/For%20MC_litematica_all.svg)](https://minecraft.curseforge.com/projects/litematica)
-
-# Litematica
-Litematica is a client-side schematic mod for Minecraft, with also lots of extra functionality
-especially for creative mode (such as schematic pasting, area cloning, moving, filling, deletion).
-
-It's primarily developed on MC 1.12.2 for LiteLoader. It has also been ported to Rift on MC 1.13.2,
-and for Fabric on MC 1.14 and later. There are also Forge versions for 1.12.2, and Forge ports for 1.14.4+
-are also planned, but Forge will need to start shipping the Mixin library before those can happen.
-
-Litematica was started as an alternative for [Schematica](https://minecraft.curseforge.com/projects/schematica),
-for players who don't want to have Forge installed on their client, and that's why it was developed for Liteloader.
-
-For compiled builds (= downloads), see:
-* CurseForge: http://minecraft.curseforge.com/projects/litematica
-* For more up-to-date development builds: https://masa.dy.fi/mcmods/client_mods/
-* **Note:** Litematica also requires the malilib library mod! But on the other hand Fabric API is not needed.
-
-## Compiling
-* Clone the repository
-* Open a command prompt/terminal to the repository directory
-* On 1.12.x you will first need to run `gradlew setupDecompWorkspace`
-  (unless you have already done it once for another project on the same 1.12.x MC version
-  and mappings and the same mod loader, Forge or LiteLoader)
-* Run `gradlew build` to build the mod
-* The built jar file will be inside `build/libs/`
-
-## YourKit
-![](https://www.yourkit.com/images/yklogo.png)
-
-We appreciate YourKit for providing the project developers licenses of its profiler to help us improve performance! 
-
-YourKit supports open source projects with innovative and intelligent tools
-for monitoring and profiling Java and .NET applications.
-YourKit is the creator of [YourKit Java Profiler](https://www.yourkit.com/java/profiler/),
-[YourKit .NET Profiler](https://www.yourkit.com/.net/profiler/) and
-[YourKit YouMonitor](https://www.yourkit.com/youmonitor), tools for profiling Java and .NET applications.
+* 克隆本仓库
+* 在仓库目录打开cmd
+* 运行 `gradlew build` 编译
+* 生成文件位于 `build/libs/`
