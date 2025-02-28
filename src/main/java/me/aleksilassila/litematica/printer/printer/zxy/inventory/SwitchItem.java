@@ -154,6 +154,10 @@ public class SwitchItem {
         reSwitchItem = null;
         itemStacks = new HashMap<>();
     }
+    public static void failedSet(){
+        itemStacks.remove(reSwitchItem);
+        reSwitchItem = null;
+    }
     public static class ItemStatistics {
         public RegistryKey<World> key;
         public BlockPos pos;

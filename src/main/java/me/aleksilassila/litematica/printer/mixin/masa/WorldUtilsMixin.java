@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.masa;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import fi.dy.masa.litematica.util.RayTraceUtils;
@@ -35,11 +36,7 @@ public class WorldUtilsMixin {
             id = facing.getId();
         }
     }
-    //#if MC >= 12100
 
-    //#else
-    //$$
-    //#endif
     @WrapOperation(at= @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/util/RayTraceUtils;getGenericTrace(Lnet/minecraft/world/World;Lnet/minecraft/entity/Entity;DZZZ)Lfi/dy/masa/litematica/util/RayTraceUtils$RayTraceWrapper;"),method = "doEasyPlaceAction")
     private static RayTraceUtils.RayTraceWrapper doSchematicWorldPickBlock(World world, Entity dist2, double verifier, boolean posList, boolean traceMismatch, boolean worldClient, Operation<RayTraceUtils.RayTraceWrapper> original){
         if (USE_EASY_MODE.getBooleanValue() && easyPos != null) {

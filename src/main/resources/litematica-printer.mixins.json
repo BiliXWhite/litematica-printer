@@ -35,6 +35,7 @@
     "jackf.SearchInvokerMixin",
     "jackf.SearchRequestMixin",
     "jackf.SearchRequestPopulatorMixin",
+    "jackf.fix.InteractionTrackerImplMixin",
     "jackf.lgacy.MemoryUtilsMixin",
     "jackf.lgacy.MixinBlock",
     "jackf.lgacy.MixinChestTracker",

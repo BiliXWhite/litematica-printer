@@ -65,7 +65,6 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equa
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsItemName;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.openIng;
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem.reSwitchItem;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -977,7 +976,6 @@ public class Printer extends PrinterUtils {
                     DefaultedList<ItemStack> items1 = fi.dy.masa.malilib.util.InventoryUtils.getStoredItems(stack, -1);
                     if (items1.stream().anyMatch(s1 -> s1.getItem().equals(item))) {
                         try {
-//                            if (reSwitchItem == null)
                             shulkerBoxSlot = i;
 //                            ClientUtil.CheckAndSend(stack,i);
                             //#if MC >= 12001

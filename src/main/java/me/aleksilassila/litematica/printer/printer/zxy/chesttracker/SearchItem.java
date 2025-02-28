@@ -44,7 +44,7 @@ public class SearchItem {
         });
     }
     public static void openInventory(int p){
-        if(currItems.isEmpty() || ZxyUtils.client.player == null)return;
+        if(currItems.isEmpty() || ZxyUtils.client.player == null || p < 0)return;
         ZxyUtils.client.player.closeHandledScreen();
         final int[] pageFix = {p};
         currItems.forEach((k,v) -> {

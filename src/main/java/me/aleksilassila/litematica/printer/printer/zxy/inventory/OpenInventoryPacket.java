@@ -365,6 +365,7 @@ public class OpenInventoryPacket {
             if (MinecraftClient.getInstance().player != null) {
                 MinecraftClient.getInstance().player.closeHandledScreen();
             }
+            SwitchItem.failedSet();
             Statistics.closeScreen--;
             openIng = false;
             isOpenHandler = false;
