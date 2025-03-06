@@ -968,7 +968,6 @@ public class Printer extends PrinterUtils {
     boolean openShulker(HashSet<Item> items) {
         for (Item item : items) {
             ScreenHandler sc = MinecraftClient.getInstance().player.playerScreenHandler;
-//            if(!MinecraftClient.getInstance().player.currentScreenHandler.equals(sc))return false;
             for (int i = 9; i < sc.slots.size(); i++) {
                 ItemStack stack = sc.slots.get(i).getStack();
                 String itemid = Registries.ITEM.getId(stack.getItem()).toString();
@@ -984,7 +983,6 @@ public class Printer extends PrinterUtils {
                             method.invoke(method, stack, i);
                             closeScreen++;
                             isOpenHandler = true;
-                            //System.out.println("open "+b);
                             return true;
                         } catch (Exception e) {
                         }

@@ -283,7 +283,7 @@ public class OpenInventoryPacket {
 
         if ((r != null && (!r.equals(ActionResult.CONSUME)
                 //#if MC > 12101
-                 && !r.equals(ActionResult.SUCCESS)
+                && !r.equals(ActionResult.SUCCESS)
                 //#endif
         ))) {
             System.out.println("openFail" + pos);
@@ -338,7 +338,6 @@ public class OpenInventoryPacket {
             //#if MC >= 12001
             MemoryUtils.blockState = state;
             //#endif
-//            client.player.sendMessage(Text.of("return "+state.toString()));
         } else {
             if (key != null) {
                 //#if MC < 11904
@@ -411,14 +410,6 @@ public class OpenInventoryPacket {
         }
     }
 
-//    //#if MC > 12004
-//    @Override
-//    public Id<? extends CustomPayload> getId() {
-//        return null;
-//    }
-//    //#else
-//    //$$
-//    //#endif
     public static boolean isContainer(BlockEntity blockEntity){
         return blockEntity instanceof Inventory;
     }

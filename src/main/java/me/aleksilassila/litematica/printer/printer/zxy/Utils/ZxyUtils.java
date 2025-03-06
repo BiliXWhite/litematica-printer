@@ -6,6 +6,7 @@ import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
+import me.aleksilassila.litematica.printer.printer.bedrockUtils.Messager;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
@@ -60,6 +61,7 @@ import net.minecraft.nbt.NbtCompound;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_COLOR;
 import static me.aleksilassila.litematica.printer.printer.Test.t1;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.canOpenInv;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
@@ -85,7 +87,7 @@ public class ZxyUtils {
             //#endif
 
             for (String string : LitematicaMixinMod.INVENTORY_LIST.getStrings()) {
-                invBlockList.addAll(Printer.getPrinter().siftBlock(string));
+                invBlockList.addAll(Printer.getPrinter().siftBlock(string).stream().filter(InventoryUtils::canOpenInv).toList());
             }
             highlightPosList.addAll(invBlockList);
         }
@@ -132,37 +134,17 @@ public class ZxyUtils {
         getReadyColor();
         if (client.crosshairTarget != null && client.crosshairTarget.getType() == HitResult.Type.BLOCK && syncPosList.isEmpty()) {
             BlockPos pos = ((BlockHitResult) client.crosshairTarget).getBlockPos();
-            BlockState blockState = client.world.getBlockState(pos);
             Block block = null;
             if (client.world != null) {
                 block = client.world.getBlockState(pos).getBlock();
-                BlockEntity blockEntity = client.world.getBlockEntity(pos);
-                boolean isInventory = InventoryUtils.isInventory(client.world,pos);
-                try {
-                    if ((isInventory && blockState.createScreenHandlerFactory(client.world,pos) == null) ||
-                            (blockEntity instanceof ShulkerBoxBlockEntity entity &&
-                                    //#if MC > 12101
-                                    !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F, pos.toBottomCenterPos()).offset(pos).contract(1.0E-6)) &&
-                                    //#elseif MC <= 12101 && MC > 12004
-                                    //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
-                                    //#elseif MC <= 12004
-                                    //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
-                                    //#endif
-                                    entity.getAnimationStage() == ShulkerBoxBlockEntity.AnimationStage.CLOSED)) {
-                        client.inGameHud.setOverlayMessage(Text.of("容器无法打开"), false);
-                    }else if(!isInventory){
-                        client.inGameHud.setOverlayMessage(Text.of("这不是容器 无法同步"), false);
-                        return;
-                    }
-                } catch (Exception e) {
-                    client.inGameHud.setOverlayMessage(Text.of("这不是容器 无法同步"), false);
+                if(!canOpenInv(pos)){
+                    Messager.actionBar("打开容器失败");
                     return;
                 }
             }
             String blockName = Registries.BLOCK.getId(block).toString();
-            if (Printer.getPrinter() != null) {
-                syncPosList.addAll(Printer.getPrinter().siftBlock(blockName));
-            }
+            Printer.getPrinter();
+            syncPosList.addAll(Printer.getPrinter().siftBlock(blockName));
             if (!syncPosList.isEmpty()) {
                 if (client.player == null) return;
                 client.player.closeHandledScreen();
