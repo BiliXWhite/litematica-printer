@@ -29,6 +29,8 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#else
 //$$ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 //#endif
+
+import static me.aleksilassila.litematica.printer.printer.Printer.isEnablePrinter;
 @Mixin(ClientPlayerEntity.class)
 public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
     public MixinClientPlayerEntity(ClientWorld world, GameProfile profile) {
@@ -45,7 +47,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
  		if(Statistics.loadChestTracker) MemoryUtils.saveMemory(this.currentScreenHandler);
  		OpenInventoryPacket.reSet();
 		//#else
-//$$
+
 		//#endif
 	}
 	@Inject(at = @At("TAIL"), method = "tick")
@@ -53,7 +55,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 		Printer printer = Printer.getPrinter();
 		ZxyUtils.tick();
 		printer.myTick();
-		if(!(LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed())){
+		if(!(isEnablePrinter())){
 			PlacementGuide.posMap = new HashMap<>();
 			printer.basePos = null;
 			Printer.fluidList = new HashSet<>();

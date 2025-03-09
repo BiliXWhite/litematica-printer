@@ -25,6 +25,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import net.fabricmc.loader.api.FabricLoader;
+import net.kyrptonaught.quickshulker.client.ClientUtil;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -132,6 +133,9 @@ public class Printer extends PrinterUtils {
             //因此 我重写了该方法
             return box1.contains(Vec3d.of(pos));
         }
+    }
+    public static boolean isEnablePrinter(){
+        return LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed();
     }
 
     private static Printer INSTANCE = null;

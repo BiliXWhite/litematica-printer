@@ -34,6 +34,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+import static me.aleksilassila.litematica.printer.printer.Printer.isEnablePrinter;
+
 public class MemoryUtils {
     public static MemoryBankImpl PRINTER_MEMORY = null;
 //    public static MemoryBankImpl memoryBankImpl = MemoryBankAccessImpl.INSTANCE.getLoadedInternal().get();
@@ -89,7 +91,8 @@ public class MemoryUtils {
         });
     }
     public static void saveMemory(ScreenHandler sc){
-        if(PRINTER_MEMORY != null && ZxyUtils.printerMemoryAdding || Printer.printerMemorySync)
+        // 启动打印机时保存 用于更新可补充的库存
+        if(PRINTER_MEMORY != null && ZxyUtils.printerMemoryAdding || Printer.printerMemorySync || isEnablePrinter())
             save(sc , PRINTER_MEMORY);
         MemoryBankImpl memoryBank = MemoryBankAccessImpl.INSTANCE.getLoadedInternal().orElse(null);
         if(memoryBank != null)

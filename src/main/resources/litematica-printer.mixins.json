@@ -4,6 +4,7 @@
   "package": "me.aleksilassila.litematica.printer.mixin",
   "compatibilityLevel": "{{COMPATIBILITY_LEVEL}}",
   "mixins": [
+    "jackf.fix.ClientUtilMixin",
     "masa.BlockItemMixin",
     "masa.KeyCallbackToggleBooleanConfigWithMessageMixin",
     "masa.Litematica_InventoryUtilsMixin",
