@@ -4,7 +4,7 @@ Litematica 打印机
 
 再分支于 宅咸鱼 的版本，添加了使用数据包打印的一系列功能，并且将快捷潜影盒改为适配给装有AxShulkers插件的服务器。
 
-下载构建出的版本请访问 [Releases](https://github.com/BiliXWhite/litematica-printer/releases)。安装前请先下载 Litematica 和 MaLiLib，并确保已安装 [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api/）。最后将打印机的 .jar 文件放入 mods 文件夹。
+下载构建出的版本请访问 [Releases](https://github.com/BiliXWhite/litematica-printer/releases)。安装前请先下载 Litematica 和 MaLiLib，并确保已安装 [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api/)。最后将打印机的 .jar 文件放入 mods 文件夹。
 
 ![演示](printer_demo.gif)
 
