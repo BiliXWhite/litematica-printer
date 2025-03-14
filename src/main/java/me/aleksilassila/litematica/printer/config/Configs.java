@@ -35,7 +35,6 @@ public class Configs implements IConfigHandler {
         list.add(PLACE_USE_PACKET);
         list.add(SWITCH_ITEM_USE_PACKET);
         list.add(AFTER_SWITCH_ITEM_SYNC);
-        list.add(GET_ITEM_USE_PACKET);
         list.add(QUICKSHULKER);
         list.add(RANGE_MODE);
         list.add(MODE_SWITCH);

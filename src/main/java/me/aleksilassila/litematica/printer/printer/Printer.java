@@ -886,7 +886,7 @@ public class Printer extends PrinterUtils {
                             if (Registries.ITEM.getId(player.getInventory().getStack(c).getItem()).toString().contains("shulker_box") &&
                                     LitematicaMixinMod.QUICKSHULKER.getBooleanValue()) {
                                 client.inGameHud.setOverlayMessage(Text.of("潜影盒占用了预选栏"), false);
-                                continue;
+                                //continue;
                             }
 
                             if (OpenInventoryPacket.key != null) {
@@ -986,6 +986,7 @@ public class Printer extends PrinterUtils {
                 //同步物品栏
                 if (AFTER_SWITCH_ITEM_SYNC.getBooleanValue()) {
                     inventory.selectedSlot = sourceSlot;
+                    MinecraftClient.getInstance().player.getInventory().selectedSlot = sourceSlot;
                 }
             } else {
                 inventory.selectedSlot = sourceSlot;
