@@ -18,10 +18,10 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.cli
 
 public class TargetBlock {
     public static boolean switchPickaxe = false;
-    private BlockPos blockPos;
+    private final BlockPos blockPos;
     private BlockPos redstoneTorchBlockPos;
-    private BlockPos pistonBlockPos;
-    private ClientWorld world;
+    private final BlockPos pistonBlockPos;
+    private final ClientWorld world;
     private Status status;
     private BlockPos slimeBlockPos;
     private int tickTimes;
@@ -123,7 +123,7 @@ public class TargetBlock {
         NEEDS_WAITING,
         RETRACTING,
         RETRACTED,
-        STUCK;
+        STUCK
     }
 
     public BlockPos getBlockPos() {

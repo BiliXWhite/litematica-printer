@@ -389,7 +389,6 @@ public class ZxyUtils {
     }
     public static void exitGameReSet(){
         SwitchItem.reSet();
-        Verify.verify = null;
         BreakingFlowController.poslist = new ArrayList<>();
         isRemote = false;
         clientTry = false;

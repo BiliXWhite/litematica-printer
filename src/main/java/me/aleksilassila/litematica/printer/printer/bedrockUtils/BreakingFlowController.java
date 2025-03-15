@@ -179,6 +179,6 @@ public class BreakingFlowController {
     enum WorkingMode {
         CARPET_EXTRA,
         VANILLA,
-        MANUALLY;
+        MANUALLY
     }
 }
