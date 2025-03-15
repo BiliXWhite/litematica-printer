@@ -26,6 +26,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import java.util.*;
 
 import static me.aleksilassila.litematica.printer.printer.Printer.*;
@@ -33,6 +34,13 @@ import static me.aleksilassila.litematica.printer.printer.qwer.PrintWater.*;
 import static net.minecraft.block.enums.BlockFace.WALL;
 
 public class PlacementGuide extends PrinterUtils {
+    //    public static Placement getPlacement(BlockState requiredState, MinecraftClient client) {
+//        Placement placement = _getPlacement(requiredState, client);
+//        return placement.setItem(placement.item == null ? requiredState.getBlock().asItem() : placement.item);
+//    }
+    //打破过的冰
+    public static Map<BlockPos, Integer> posMap = new HashMap<>();
+    public static boolean breakIce = false;
     @NotNull
     protected final MinecraftClient client;
 
@@ -43,7 +51,7 @@ public class PlacementGuide extends PrinterUtils {
     public @Nullable Action getAction(World world, WorldSchematic worldSchematic, BlockPos pos) {
         for (ClassHook hook : ClassHook.values()) {
             for (Class<?> clazz : hook.classes) {
-                if (clazz != null  && clazz.isInstance(worldSchematic.getBlockState(pos).getBlock())) {
+                if (clazz != null && clazz.isInstance(worldSchematic.getBlockState(pos).getBlock())) {
                     return buildAction(world, worldSchematic, pos, hook);
                 }
             }
@@ -52,34 +60,28 @@ public class PlacementGuide extends PrinterUtils {
         return buildAction(world, worldSchematic, pos, ClassHook.DEFAULT);
     }
 
-//    public static Placement getPlacement(BlockState requiredState, MinecraftClient client) {
-//        Placement placement = _getPlacement(requiredState, client);
-//        return placement.setItem(placement.item == null ? requiredState.getBlock().asItem() : placement.item);
-//    }
-    //打破过的冰
-    public static Map<BlockPos,Integer> posMap = new HashMap<>();
-    public static boolean breakIce = false;
-    public @Nullable Action water(BlockState requiredState,BlockState currentState ,BlockPos pos){
+    public @Nullable Action water(BlockState requiredState, BlockState currentState, BlockPos pos) {
         Integer i = posMap.get(pos);
-        if (i != null){
-            posMap.put(pos,i+1);
-            if(posMap.get(pos) > 10) posMap.remove(pos);
+        if (i != null) {
+            posMap.put(pos, i + 1);
+            if (posMap.get(pos) > 10) posMap.remove(pos);
             if (posMap.size() > 10) {
                 Set<Map.Entry<BlockPos, Integer>> entries = posMap.entrySet();
                 ArrayList<BlockPos> removeList = new ArrayList<>();
                 entries.forEach(v -> {
-                    if (client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(v.getKey())) < 6 * 6) removeList.add(v.getKey());
+                    if (client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(v.getKey())) < 6 * 6)
+                        removeList.add(v.getKey());
                 });
                 removeList.forEach(v -> posMap.remove(v));
             }
         }
 
         //产生水有延迟，需要等待一会儿
-        if(currentState.isOf(Blocks.ICE)){
+        if (currentState.isOf(Blocks.ICE)) {
             if (client.player != null) searchPickaxes(client.player);
             BlockPos tempPos;
             if (!posMap.containsKey(pos) && (tempPos = excavateBlock(pos)) != null) {
-                posMap.put(tempPos,0);
+                posMap.put(tempPos, 0);
                 breakIce = true;
                 return null;
             }
@@ -95,9 +97,9 @@ public class PlacementGuide extends PrinterUtils {
         for (Property<?> prop : requiredState.getProperties()) {
             //#if MC > 12101
             if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
-            //#else
-            //$$ if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
-            //#endif
+                //#else
+                //$$ if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
+                //#endif
                 look = ((Direction) requiredState.get(prop)).getOpposite();
             }
         }
@@ -113,13 +115,13 @@ public class PlacementGuide extends PrinterUtils {
 
         if (LitematicaMixinMod.PRINT_WATER_LOGGED_BLOCK.getBooleanValue()
                 && canWaterLogged(requiredState)
-                && !canWaterLogged(currentState)){
+                && !canWaterLogged(currentState)) {
             Action water = water(requiredState, currentState, pos);
-            if(breakIce){
+            if (breakIce) {
                 breakIce = false;
-            }else return water;
+            } else return water;
         }
-        if(LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue() && canBreakBlock(pos) && isSchematicBlock(pos) && State.get(requiredState, currentState) == State.WRONG_BLOCK){
+        if (LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue() && canBreakBlock(pos) && isSchematicBlock(pos) && State.get(requiredState, currentState) == State.WRONG_BLOCK) {
             excavateBlock(pos);
         }
 
@@ -164,15 +166,15 @@ public class PlacementGuide extends PrinterUtils {
                     sides.put(half, new Vec3d(0, 0, 0));
 
                     return new Action()
-                        .setSides(sides)
-                        .setLookDirection(requiredState.get(StairsBlock.FACING));
+                            .setSides(sides)
+                            .setLookDirection(requiredState.get(StairsBlock.FACING));
                 }
                 case TRAPDOOR: {
                     Direction half = getHalf(requiredState.get(TrapdoorBlock.HALF));
 
-                    Map<Direction, Vec3d> sides = new HashMap<>(){{
+                    Map<Direction, Vec3d> sides = new HashMap<>() {{
                         put(half,
-                            Vec3d.of(half.getVector()).multiply(0.25));
+                                Vec3d.of(half.getVector()).multiply(0.25));
                         put(half, new Vec3d(0, 0, 0));
                     }};
 
@@ -232,7 +234,7 @@ public class PlacementGuide extends PrinterUtils {
 
                     return new Action().setSides(side).setLookDirection(look).setRequiresSupport();
                 }
-                case GRINDSTONE :{ // Tese are broken
+                case GRINDSTONE: { // Tese are broken
                     Direction side = switch ((BlockFace) getPropertyByName(requiredState, "FACE")) {
                         case FLOOR -> Direction.DOWN;
                         case CEILING -> Direction.UP;
@@ -242,8 +244,8 @@ public class PlacementGuide extends PrinterUtils {
                     Direction look = getPropertyByName(requiredState, "FACE") == WALL ?
                             null : (Direction) getPropertyByName(requiredState, "FACING");
 
-                    Map<Direction,Vec3d> sides = new HashMap<>();
-                    sides.put(Direction.DOWN,Vec3d.of(side.getVector()).multiply(0.5));
+                    Map<Direction, Vec3d> sides = new HashMap<>();
+                    sides.put(Direction.DOWN, Vec3d.of(side.getVector()).multiply(0.5));
 
                     return new Action().setSides(sides).setLookDirection(look);
                 }
@@ -286,23 +288,21 @@ public class PlacementGuide extends PrinterUtils {
                 case DOOR: {
                     Map<Direction, Vec3d> sides = new HashMap<>();
 
-                    Direction facing, hinge;
-                    facing = hinge = requiredState.get(DoorBlock.FACING);
+                    Direction facing = requiredState.get(DoorBlock.FACING);
+                    Direction hinge = requiredState.get(DoorBlock.HINGE) == DoorHinge.RIGHT
+                            ? facing.rotateYClockwise()
+                            : facing.rotateYCounterclockwise();
 
-                    Vec3d hingeVec = new Vec3d(
-                            0.25 , 0, 0.25);
-
-                    if (requiredState.get(DoorBlock.HINGE) == DoorHinge.RIGHT) {
-                        hinge = hinge.rotateYClockwise();
-                    } else {
-                        hinge = hinge.rotateYCounterclockwise();
-                    }
+                    Vec3d hingeVec = new Vec3d(0.25, 0, 0.25);
 
                     sides.put(hinge, hingeVec);
                     sides.put(Direction.DOWN, hingeVec);
                     sides.put(facing, hingeVec);
 
-                    return new Action().setLookDirection(requiredState.get(DoorBlock.FACING)).setSides(sides).setRequiresSupport();
+                    return new Action()
+                            .setLookDirection(facing)
+                            .setSides(sides)
+                            .setRequiresSupport();
                 }
                 case WALLSKULL: {
                     return new Action().setSides(requiredState.get(WallSkullBlock.FACING).getOpposite());
@@ -313,6 +313,12 @@ public class PlacementGuide extends PrinterUtils {
                 }
                 case BIG_DRIPLEAF_STEM: {
                     return new Action().setItem(Items.BIG_DRIPLEAF);
+                }
+
+                //主要修复两种方块类型的物品选择问题
+                case CAVE_VINES: {
+                    //发光浆果
+                    return new Action().setItem(Items.GLOW_BERRIES);
                 }
                 case SKIP: {
                     break;
@@ -327,9 +333,9 @@ public class PlacementGuide extends PrinterUtils {
                     for (Property<?> prop : requiredState.getProperties()) {
                         //#if MC > 12101
                         if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
-                        //#else
-                        //$$ if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
-                        //#endif
+                            //#else
+                            //$$ if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
+                            //#endif
                             look = ((Direction) requiredState.get(prop)).getOpposite();
                         }
 
@@ -361,8 +367,8 @@ public class PlacementGuide extends PrinterUtils {
                 case SNOW: {
                     int layers = currentState.get(SnowBlock.LAYERS);
                     if (layers < requiredState.get(SnowBlock.LAYERS)) {
-                        Map<Direction, Vec3d> sides = new HashMap<>(){{
-                            put(Direction.UP, new Vec3d(0,  (layers / 8d) - 1, 0));
+                        Map<Direction, Vec3d> sides = new HashMap<>() {{
+                            put(Direction.UP, new Vec3d(0, (layers / 8d) - 1, 0));
                         }};
                         return new ClickAction().setItem(Items.SNOW).setSides(sides);
                     }
@@ -484,7 +490,7 @@ public class PlacementGuide extends PrinterUtils {
 
                     break;
                 }
-                case WATER:{
+                case WATER: {
 
                 }
                 default: {
@@ -497,13 +503,65 @@ public class PlacementGuide extends PrinterUtils {
         return null;
     }
 
+    enum ClassHook {
+        // 放置
+        ROD(Implementation.NewBlocks.ROD.clazz), // 杆
+        WALLTORCH(WallTorchBlock.class, WallRedstoneTorchBlock.class), // 墙上的火把
+        TORCH(TorchBlock.class), // 火把
+        SLAB(SlabBlock.class), // 台阶
+        STAIR(StairsBlock.class), // 楼梯
+        TRAPDOOR(TrapdoorBlock.class), // 活板门
+        PILLAR(PillarBlock.class), // 柱子
+        ANVIL(AnvilBlock.class), // 铁砧
+        HOPPER(HopperBlock.class), // 漏斗
+        GRINDSTONE(GrindstoneBlock.class), // 磨石
+        BUTTON(ButtonBlock.class), // 按钮
+        CAMPFIRE(CampfireBlock.class), // 营火
+        SHULKER(ShulkerBoxBlock.class), // 潜影盒
+        BED(BedBlock.class), // 床
+        BELL(BellBlock.class), // 钟
+        AMETHYST(Implementation.NewBlocks.AMETHYST.clazz), // 紫水晶
+        DOOR(DoorBlock.class), // 门
+        COCOA(CocoaBlock.class), // 可可豆
+        OBSERVER(ObserverBlock.class), // 观察者
+        WALLSKULL(WallSkullBlock.class), // 墙上的头颅
+
+        // 仅点击
+        FLOWER_POT(FlowerPotBlock.class), // 花盆
+        BIG_DRIPLEAF_STEM(BigDripleafStemBlock.class), // 大垂叶茎
+        SNOW(SnowBlock.class), // 雪
+        CANDLES(Implementation.NewBlocks.CANDLES.clazz), // 蜡烛
+        REPEATER(RepeaterBlock.class), // 中继器
+        COMPARATOR(ComparatorBlock.class), // 比较器
+        PICKLES(SeaPickleBlock.class), // 海泡菜
+        NOTE_BLOCK(NoteBlock.class), // 音符盒
+        END_PORTAL_FRAME(EndPortalFrameBlock.class), // 末地传送门框架
+
+        // 两者皆有
+        GATE(FenceGateBlock.class), // 栅栏门
+        LEVER(LeverBlock.class), // 拉杆
+
+        // 其他
+        FARMLAND(FarmlandBlock.class), // 耕地
+        DIRT_PATH(DirtPathBlock.class), // 泥土小径
+        SKIP(SkullBlock.class, GrindstoneBlock.class, SignBlock.class, /*Implementation.NewBlocks.LICHEN.clazz,*/ VineBlock.class), // 跳过
+        WATER(FluidBlock.class), // 水
+        CAVE_VINES(CaveVinesHeadBlock.class, CaveVinesBodyBlock.class), // 洞穴藤蔓
+        DEFAULT; // 默认
+
+        private final Class<?>[] classes;
+
+        ClassHook(Class<?>... classes) {
+            this.classes = classes;
+        }
+    }
+
     public static class Action {
         protected Map<Direction, Vec3d> sides;
         protected Direction lookDirection;
         @Nullable
         protected Item[] clickItems; // null == any
 
-        protected boolean crouch = false;
         protected boolean requiresSupport = false;
 
         // If true, click target block, not neighbor
@@ -527,8 +585,7 @@ public class PlacementGuide extends PrinterUtils {
         }
 
         /**
-         *
-         * @param side The side pointing to the block that should be clicked
+         * @param side     The side pointing to the block that should be clicked
          * @param modifier defines where should be clicked exactly. Vector's
          *                 x component defines left and right offset, y
          *                 defines height variation and z how far away from
@@ -564,8 +621,21 @@ public class PlacementGuide extends PrinterUtils {
             }
         }
 
+        public static boolean isReplaceable(BlockState state) {
+            //#if MC < 11904
+            //$$ return state.getMaterial().isReplaceable();
+            //#else
+            return state.isReplaceable();
+            //#endif
+        }
+
         public @Nullable Direction getLookDirection() {
             return lookDirection;
+        }
+
+        public Action setLookDirection(Direction lookDirection) {
+            this.lookDirection = lookDirection;
+            return this;
         }
 
         public @Nullable Item[] getRequiredItems(Block backup) {
@@ -581,6 +651,44 @@ public class PlacementGuide extends PrinterUtils {
             }
 
             return this.sides;
+        }
+
+        public Action setSides(Direction.Axis... axis) {
+            Map<Direction, Vec3d> sides = new HashMap<>();
+
+            for (Direction.Axis a : axis) {
+                for (Direction d : Direction.values()) {
+                    if (d.getAxis() == a) {
+                        sides.put(d, new Vec3d(0, 0, 0));
+                    }
+                }
+            }
+
+            this.sides = sides;
+            return this;
+        }
+
+//        public Action setInvalidNeighbors(Direction... neighbors) {
+//            List<Direction> dirs = Arrays.asList(Direction.values());
+//            dirs.removeAll(Arrays.asList(neighbors));
+//            this.neighbors = dirs.toArray(Direction[]::new);
+//            return this;
+//        }
+
+        public Action setSides(Map<Direction, Vec3d> sides) {
+            this.sides = sides;
+            return this;
+        }
+
+        public Action setSides(Direction... directions) {
+            Map<Direction, Vec3d> sides = new HashMap<>();
+
+            for (Direction d : directions) {
+                sides.put(d, new Vec3d(0, 0, 0));
+            }
+
+            this.sides = sides;
+            return this;
         }
 
         public @Nullable Direction getValidSide(ClientWorld world, BlockPos pos) {
@@ -617,62 +725,11 @@ public class PlacementGuide extends PrinterUtils {
             return validSides.get(0);
         }
 
-        public static boolean isReplaceable(BlockState state){
-            //#if MC < 11904
-            //$$ return state.getMaterial().isReplaceable();
-            //#else
-            return state.isReplaceable();
-            //#endif
-        }
-
-        public Action setSides(Direction.Axis... axis) {
-            Map<Direction, Vec3d> sides = new HashMap<>();
-
-            for (Direction.Axis a : axis) {
-                for (Direction d : Direction.values()) {
-                    if (d.getAxis() == a) {
-                        sides.put(d, new Vec3d(0, 0, 0));
-                    }
-                }
-            }
-
-            this.sides = sides;
-            return this;
-        }
-
-//        public Action setInvalidNeighbors(Direction... neighbors) {
-//            List<Direction> dirs = Arrays.asList(Direction.values());
-//            dirs.removeAll(Arrays.asList(neighbors));
-//            this.neighbors = dirs.toArray(Direction[]::new);
-//            return this;
-//        }
-
-        public Action setLookDirection(Direction lookDirection) {
-            this.lookDirection = lookDirection;
-            return this;
-        }
-
-        public Action setSides(Map<Direction, Vec3d> sides) {
-            this.sides = sides;
-            return this;
-        }
-
-        public Action setSides(Direction... directions) {
-            Map<Direction, Vec3d> sides = new HashMap<>();
-
-            for (Direction d : directions) {
-                sides.put(d, new Vec3d(0, 0, 0));
-            }
-
-            this.sides = sides;
-            return this;
-        }
-
         public Action setItem(Item item) {
             return this.setItems(item);
         }
 
-        public Action setItems(Item ...items) {
+        public Action setItems(Item... items) {
             this.clickItems = items;
             return this;
         }
@@ -719,58 +776,6 @@ public class PlacementGuide extends PrinterUtils {
             }
 
             return null;
-        }
-    }
-
-    enum ClassHook {
-        // Placements
-        ROD(Implementation.NewBlocks.ROD.clazz),
-        WALLTORCH(WallTorchBlock.class, WallRedstoneTorchBlock.class),
-        TORCH(TorchBlock.class),
-        SLAB(SlabBlock.class),
-        STAIR(StairsBlock.class),
-        TRAPDOOR(TrapdoorBlock.class),
-        PILLAR(PillarBlock.class),
-        ANVIL(AnvilBlock.class),
-        HOPPER(HopperBlock.class),
-        GRINDSTONE(GrindstoneBlock.class),
-        BUTTON(ButtonBlock.class),
-        CAMPFIRE(CampfireBlock.class),
-        SHULKER(ShulkerBoxBlock.class),
-        BED(BedBlock.class),
-        BELL(BellBlock.class),
-        AMETHYST(Implementation.NewBlocks.AMETHYST.clazz),
-        DOOR(DoorBlock.class),
-        COCOA(CocoaBlock.class),
-        OBSERVER(ObserverBlock.class),
-        WALLSKULL(WallSkullBlock.class),
-
-        // Only clicks
-        FLOWER_POT(FlowerPotBlock.class),
-        BIG_DRIPLEAF_STEM(BigDripleafStemBlock.class),
-        SNOW(SnowBlock.class),
-        CANDLES(Implementation.NewBlocks.CANDLES.clazz),
-        REPEATER(RepeaterBlock.class),
-        COMPARATOR(ComparatorBlock.class),
-        PICKLES(SeaPickleBlock.class),
-        NOTE_BLOCK(NoteBlock.class),
-        END_PORTAL_FRAME(EndPortalFrameBlock.class),
-
-        // Both
-        GATE(FenceGateBlock.class),
-        LEVER(LeverBlock.class),
-
-        // Other
-        FARMLAND(FarmlandBlock.class),
-        DIRT_PATH(DirtPathBlock.class),
-        SKIP(SkullBlock.class, GrindstoneBlock.class, SignBlock.class, /*Implementation.NewBlocks.LICHEN.clazz,*/ VineBlock.class),
-        WATER(FluidBlock.class),
-        DEFAULT;
-
-        private final Class<?>[] classes;
-
-        ClassHook(Class<?> ...classes) {
-            this.classes = classes;
         }
     }
 }
