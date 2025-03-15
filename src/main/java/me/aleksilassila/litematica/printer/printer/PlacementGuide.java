@@ -412,6 +412,8 @@ public class PlacementGuide extends PrinterUtils {
                     break;
                 }
                 case TRAPDOOR: {
+                    //判断活版门是不是铁制的，如果是就直接返回
+                    if (requiredState.isOf(Blocks.IRON_TRAPDOOR)) break;
                     if (requiredState.get(TrapdoorBlock.OPEN) != currentState.get(TrapdoorBlock.OPEN))
                         return new ClickAction();
 
