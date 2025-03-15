@@ -1167,6 +1167,12 @@ public class Printer extends PrinterUtils {
 
 //            hitModifier = new Vec3d(hitModifier.x, hitModifier.y, hitModifier.z);
             Vec3d hitVec = hitModifier;
+            if (!termsOfUse) {
+                hitModifier = hitModifier.rotateY((direction.getPositiveHorizontalDegrees() + 90) % 360);
+                hitVec = Vec3d.ofCenter(target)
+                        .add(Vec3d.of(side.getVector()).multiply(0.5))
+                        .add(hitModifier.multiply(0.5));
+            }
 
             if (shift && !wasSneaking) {
                 player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY));
@@ -1180,13 +1186,6 @@ public class Printer extends PrinterUtils {
                 if (mainHandStack1.isEmpty()) {
                     SwitchItem.removeItem(mainHandStack1);
                 } else SwitchItem.syncUseTime(mainHandStack1);
-            }
-
-            if (!termsOfUse) {
-                hitModifier = hitModifier.rotateY((direction.getPositiveHorizontalDegrees() + 90) % 360);
-                hitVec = Vec3d.ofCenter(target)
-                        .add(Vec3d.of(side.getVector()).multiply(0.5))
-                        .add(hitModifier.multiply(0.5));
             }
 
             if (PLACE_USE_PACKET.getBooleanValue()) {
