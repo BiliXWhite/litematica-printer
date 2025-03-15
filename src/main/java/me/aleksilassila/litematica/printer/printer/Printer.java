@@ -109,7 +109,6 @@ import static fi.dy.masa.malilib.util.InventoryUtils.areStacksEqualIgnoreNbt;
 
 public class Printer extends PrinterUtils {
     public static Vec3d itemPos = null;
-    public static ItemStack offHandItem = null;
     public static HashSet<Item> remoteItem = new HashSet<>();
     public static HashSet<Item> fluidList = new HashSet<>();
     public static boolean printerMemorySync = false;
@@ -763,11 +762,15 @@ public class Printer extends PrinterUtils {
                 Direction lookDir = action.getLookDirection();
 
                 if (!easyModeBooleanValue &&
-                        (requiredState.isOf(Blocks.PISTON) ||
-                                requiredState.isOf(Blocks.STICKY_PISTON) ||
-                                requiredState.isOf(Blocks.OBSERVER) ||
-                                requiredState.isOf(Blocks.DROPPER) ||
-                                requiredState.isOf(Blocks.DISPENSER)) && isFacing
+                        (requiredState.isOf(Blocks.PISTON) || //活塞
+                                requiredState.isOf(Blocks.STICKY_PISTON) || //粘性活塞
+                                requiredState.isOf(Blocks.OBSERVER) || //观察者
+                                requiredState.isOf(Blocks.DROPPER) || //投掷器
+                                requiredState.isOf(Blocks.DISPENSER) //发射器
+                                //#if MC >= 12003
+                                ||requiredState.isOf(Blocks.CRAFTER) //合成器
+                                //#endif
+                        ) && isFacing
                 ) {
                     continue;
                 }
@@ -806,11 +809,15 @@ public class Printer extends PrinterUtils {
 //                        continue;
 //                    }
                     if (hitModifier == null &&
-                            (requiredState.isOf(Blocks.PISTON) ||
-                                    requiredState.isOf(Blocks.STICKY_PISTON) ||
-                                    requiredState.isOf(Blocks.OBSERVER) ||
-                                    requiredState.isOf(Blocks.DROPPER) ||
-                                    requiredState.isOf(Blocks.DISPENSER))
+                            (requiredState.isOf(Blocks.PISTON) || //活塞
+                                    requiredState.isOf(Blocks.STICKY_PISTON) || //粘性活塞
+                                    requiredState.isOf(Blocks.OBSERVER) || //观察者
+                                    requiredState.isOf(Blocks.DROPPER) || //投掷器
+                                    requiredState.isOf(Blocks.DISPENSER) //发射器
+                                    //#if MC >= 12003
+                                    ||requiredState.isOf(Blocks.CRAFTER) //合成器
+                                    //#endif
+                            )
                     ) {
                         item2 = requiredItems;
                         isFacing = true;
@@ -1160,23 +1167,26 @@ public class Printer extends PrinterUtils {
 
 //            hitModifier = new Vec3d(hitModifier.x, hitModifier.y, hitModifier.z);
             Vec3d hitVec = hitModifier;
-            if (!termsOfUse) {
-                hitModifier = hitModifier.rotateY((direction.getPositiveHorizontalDegrees() + 90) % 360);
-                hitVec = Vec3d.ofCenter(target)
-                        .add(Vec3d.of(side.getVector()).multiply(0.5))
-                        .add(hitModifier.multiply(0.5));
-            }
 
-            if (shift && !wasSneaking)
+            if (shift && !wasSneaking) {
                 player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY));
-            else if (!shift && wasSneaking)
+            }
+            else if (!shift && wasSneaking) {
                 player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY));
+            }
 
             ItemStack mainHandStack1 = yxcfItem;
             if (mainHandStack1 != null) {
                 if (mainHandStack1.isEmpty()) {
                     SwitchItem.removeItem(mainHandStack1);
                 } else SwitchItem.syncUseTime(mainHandStack1);
+            }
+
+            if (!termsOfUse) {
+                hitModifier = hitModifier.rotateY((direction.getPositiveHorizontalDegrees() + 90) % 360);
+                hitVec = Vec3d.ofCenter(target)
+                        .add(Vec3d.of(side.getVector()).multiply(0.5))
+                        .add(hitModifier.multiply(0.5));
             }
 
             if (PLACE_USE_PACKET.getBooleanValue()) {
@@ -1194,8 +1204,11 @@ public class Printer extends PrinterUtils {
                 //$$));
                 //#endif
             } else {
-                ((IClientPlayerInteractionManager) printerInstance.client.interactionManager)
-                        .rightClickBlock(target, side, hitVec);
+                ((IClientPlayerInteractionManager) printerInstance.client.interactionManager).rightClickBlock(target, side, hitVec);
+                //其他方法(interactBlock)可能会导致一些问题
+                //player.interactionManager.interactBlock(player, player.world, Hand.MAIN_HAND, new BlockHitResult(hitVec, side, target, false));
+                //其他方法(clickBlock)可能会导致一些问题
+                //player.interactionManager.clickBlock(target, side);
             }
 
 //            System.out.println("Printed at " + (target.toString()) + ", " + side + ", modifier: " + hitVec);
