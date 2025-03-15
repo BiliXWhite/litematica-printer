@@ -8,5 +8,5 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(FlowerPotBlock.class)
 public interface FlowerPotBlockAccessor {
     @Accessor("content")
-    public Block getContent();
+    Block getContent();
 }

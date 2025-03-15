@@ -19,7 +19,7 @@ public class MyBox extends Box implements Iterable<BlockPos> {
     }
 
     public MyBox(BlockPos pos) {
-        this((double) pos.getX(), (double) pos.getY(), (double) pos.getZ(), (double) (pos.getX()), (double) (pos.getY()), (double) (pos.getZ()));
+        this(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
     }
 
     public MyBox(Vec3d pos1, Vec3d pos2) {

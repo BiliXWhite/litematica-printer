@@ -21,7 +21,6 @@ import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowCont
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import net.fabricmc.loader.api.FabricLoader;
@@ -50,7 +49,6 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.List;
 
@@ -77,7 +75,6 @@ import net.minecraft.util.Identifier;
 //#if MC >= 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
-import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#else
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
@@ -389,9 +386,6 @@ public class Printer extends PrinterUtils {
             }
         }
         Item[] array = fluidList.toArray(new Item[fluidList.size()]);
-//        for (int y = range; y > -range - 1; y--) {
-//            for (int x = -range; x < range + 1; x++) {
-//                for (int z = -range; z < range + 1; z++) {
         BlockPos pos;
         while ((pos = getBlockPos2()) != null && client.world != null && client.player != null) {
             BlockState currentState = client.world.getBlockState(pos);
@@ -410,9 +404,6 @@ public class Printer extends PrinterUtils {
                 }
                 return;
             }
-//                }
-//            }
-//        }
         }
     }
 
@@ -446,7 +437,6 @@ public class Printer extends PrinterUtils {
             if (!ZxyUtils.bedrockCanInteracted(pos, getRage())) continue;
             if (isLimitedByTheNumberOfLayers(pos)) continue;
             BlockState currentState = client.world.getBlockState(pos);
-//                    if (currentState.isOf(Blocks.PISTON) && !data.world.getBlockState(pos.down()).isOf(Blocks.BEDROCK)) {
             BlockPos finalPos = pos;
             if ((currentState.isOf(Blocks.PISTON) || (currentState.isOf(Blocks.SLIME_BLOCK) &&
                     cachedTargetBlockList.stream().allMatch(
@@ -460,7 +450,6 @@ public class Printer extends PrinterUtils {
                         .rightClickBlock(pos, Direction.UP, Vec3d.ofCenter(pos));
             }
 
-//                    if (TempData.xuanQuFanWeiNei_p(pos) && currentState.isOf(Blocks.BEDROCK)  && ZxyUtils.canInteracted(pos,range-1.5) && !client.world.getBlockState(pos.up()).isOf(Blocks.BEDROCK)) {
             if (TempData.xuanQuFanWeiNei_p(pos) &&
                     bedrockModeTarget(currentState) &&
                     ZxyUtils.bedrockCanInteracted(pos, getRage() - 1.5) &&
@@ -473,66 +462,6 @@ public class Printer extends PrinterUtils {
                 }
                 BreakingFlowController.addBlockPosToList(pos);
             }
-        }
-//        if (offHandItem != null){
-//            PlayerScreenHandler sc = client.player.playerScreenHandler;
-//            int i1 = -1;
-//            for (int i = 0; i < sc.slots.size(); i++) {
-//                if (fi.dy.masa.malilib.util.InventoryUtils.areStacksEqual(sc.slots.get(i).getStack(),offHandItem)) i1 = i;
-//            }
-//            if (i1 != -1) client.interactionManager.clickSlot(client.player.currentScreenHandler.syncId, i1, 40, SlotActionType.SWAP, client.player);
-//        }
-
-
-        //尝试移动到掉落物位置。。。
-        //如果与目标水平面之间有遮挡 那么会移动失败
-//        if (moveTick < 20) return;
-//        moveTick = 0;
-//        List<Item> items = List.of(Items.PISTON, Items.SLIME_BLOCK, Items.REDSTONE_TORCH);
-//        ClientPlayerEntity player = client.player;
-//        Vec3d playerPos = player.getPos();
-//
-//        net.minecraft.util.math.Box area = new net.minecraft.util.math.Box(playerPos.subtract(4,4,4), playerPos.add(4, 4, 4));
-//        MyBox area1 = new MyBox(player.getBlockPos());
-//        area1.expand(4);
-//        Optional<BlockPos> optionalBlockPos = client.world.getEntitiesByClass(ItemEntity.class, area,
-//                // entity -> entity.getItemAge() >= 40 可拾取时间  cannotPickup()方法无效 此处获取的pickupDelay一直是0 是一个无效数据
-//                entity -> items.contains(entity.getStack().getItem()))
-//                .stream().findAny().map(Entity::getBlockPos);
-//        optionalBlockPos.ifPresent(blockPos -> targetPos = blockPos);
-//        optionalBlockPos.ifPresent(blockPos -> {
-//            if (!client.world.getBlockState(blockPos).isAir() /*|| cancelMovePack != 0*/ ) return;
-
-//            Vec3d itemPos = new Vec3d(blockPos.getX()+0.5,blockPos.getY(),blockPos.getZ()+0.5);
-//            player.networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(
-//                    itemPos.getX(),itemPos.getY(),itemPos.getZ(),player.isOnGround()));
-//            cancelMovePack = 3;
-//        });
-
-//        for (ItemEntity byClass : entitiesByClass) {
-//            client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(byClass.getX(), byClass.getY(), byClass.getZ(), true));
-
-//            itemPos = new Vec3d(byClass.getX(),byClass.getY(),byClass.getZ());
-//            player.setPosition(byClass.getX(),byClass.getY(),byClass.getZ());
-//            player.networkHandler.sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(player.getYaw(),player.getPitch(),player.isOnGround()));
-//            break;
-//        }
-//        player.setPosition(playerPos1.getX(),playerPos1.getY(),playerPos1.getZ());
-//        player.networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(playerPos1.getX(),playerPos1.getY(),playerPos1.getZ(),player.isOnGround()));
-    }
-
-    public boolean verify() {
-        if (client.isInSingleplayer() && client.isRealmsEnabled()) return true;
-        String address;
-        try {
-            address = Objects.requireNonNull(client.getCurrentServerEntry()).address.split(":")[0];
-        } catch (Exception e) {
-            return true;
-        }
-        if (Verify.getVerify() == null) {
-            return new Verify(address, client.player).tick(address);
-        } else {
-            return Verify.getVerify().tick(address);
         }
     }
 
@@ -606,7 +535,6 @@ public class Printer extends PrinterUtils {
     }
 
     public void tick() {
-        if (!verify()) return;
         WorldSchematic worldSchematic = SchematicWorldHandler.getSchematicWorld();
         ClientPlayerEntity pEntity = client.player;
         ClientWorld world = client.world;
@@ -678,7 +606,6 @@ public class Printer extends PrinterUtils {
 
         // forEachBlockInRadius:
         BlockPos pos;
-        z:
         while ((pos = getBlockPos2()) != null) {
             if (client.player != null && !canInteracted(pos)) continue;
             BlockState requiredState = worldSchematic.getBlockState(pos);
@@ -768,7 +695,7 @@ public class Printer extends PrinterUtils {
                                 requiredState.isOf(Blocks.DROPPER) || //投掷器
                                 requiredState.isOf(Blocks.DISPENSER) //发射器
                                 //#if MC >= 12003
-                                ||requiredState.isOf(Blocks.CRAFTER) //合成器
+                                || requiredState.isOf(Blocks.CRAFTER) //合成器
                                 //#endif
                         ) && isFacing
                 ) {
@@ -815,7 +742,7 @@ public class Printer extends PrinterUtils {
                                     requiredState.isOf(Blocks.DROPPER) || //投掷器
                                     requiredState.isOf(Blocks.DISPENSER) //发射器
                                     //#if MC >= 12003
-                                    ||requiredState.isOf(Blocks.CRAFTER) //合成器
+                                    || requiredState.isOf(Blocks.CRAFTER) //合成器
                                     //#endif
                             )
                     ) {
@@ -1065,8 +992,8 @@ public class Printer extends PrinterUtils {
                                 }
 
                                 for (int j = 0; j < i; ++j) {
-                                    ItemStack itemStack = (ItemStack) list.get(j);
-                                    ItemStack itemStack2 = ((Slot) defaultedList.get(j)).getStack();
+                                    ItemStack itemStack = list.get(j);
+                                    ItemStack itemStack2 = defaultedList.get(j).getStack();
                                     if (!ItemStack.areEqual(itemStack, itemStack2)) {
                                         int2ObjectMap.put(j, itemStack2.copy());
                                     }

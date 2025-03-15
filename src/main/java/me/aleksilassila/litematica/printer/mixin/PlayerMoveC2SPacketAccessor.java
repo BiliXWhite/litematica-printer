@@ -7,20 +7,20 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(PlayerMoveC2SPacket.class)
 public interface PlayerMoveC2SPacketAccessor {
     @Accessor("x")
-    public double getX();
+    double getX();
 
     @Accessor("y")
-    public double getY();
+    double getY();
 
     @Accessor("z")
-    public double getZ();
+    double getZ();
 
     @Accessor("yaw")
-    public float getYaw();
+    float getYaw();
 
     @Accessor("onGround")
-    public boolean getOnGround();
+    boolean getOnGround();
 
     @Accessor("changePosition")
-    public boolean changePosition();
+    boolean changePosition();
 }
