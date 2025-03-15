@@ -3,7 +3,6 @@ package me.aleksilassila.litematica.printer.printer;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
-import me.aleksilassila.litematica.printer.mixin.FlowerPotBlockAccessor;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.*;
@@ -320,6 +319,11 @@ public class PlacementGuide extends PrinterUtils {
                     //发光浆果
                     return new Action().setItem(Items.GLOW_BERRIES);
                 }
+
+                //花盆修复
+                case FLOWER_POT: {
+                    return new Action().setItem(Items.FLOWER_POT);
+                }
                 case SKIP: {
                     break;
                 }
@@ -376,6 +380,8 @@ public class PlacementGuide extends PrinterUtils {
                     break;
                 }
                 case DOOR: {
+                    //判断门是不是铁制的，如果是就直接返回
+                    if (requiredState.isOf(Blocks.IRON_DOOR)) break;
                     if (requiredState.get(DoorBlock.OPEN) != currentState.get(DoorBlock.OPEN))
                         return new ClickAction();
 
@@ -450,15 +456,6 @@ public class PlacementGuide extends PrinterUtils {
 
                     break;
                 }
-                case FLOWER_POT: { // Fixme test
-                    Block content = ((FlowerPotBlockAccessor) requiredState).getContent();
-
-                    if (content != null && content != Blocks.AIR) {
-                        return new Action().setItem(content.asItem());
-                    }
-
-                    break;
-                }
                 case DEFAULT: {
                     if (currentState.getBlock().equals(Blocks.DIRT) && requiredState.getBlock().equals(Blocks.FARMLAND)) {
                         return new ClickAction().setItems(Implementation.HOES);
@@ -488,6 +485,91 @@ public class PlacementGuide extends PrinterUtils {
                     for (Block soilBlock : soilBlocks) {
                         if (currentState.getBlock().equals(soilBlock))
                             return new ClickAction().setItems(Implementation.SHOVELS);
+                    }
+
+                    break;
+                }
+                case FLOWER_POT: {
+                    String blockTranslationKey = requiredState.getBlock().getTranslationKey();
+                    if (blockTranslationKey != null && blockTranslationKey.contains("potted")) {
+                        //利用字符串判断，一一对应方块
+                        //potted_dandelion, potted_poppy, potted_blue_orchid, potted_allium, potted_azure_bluet, potted_red_tulip, potted_orange_tulip, potted_white_tulip, potted_pink_tulip, potted_oxeye_daisy, potted_cornflower, potted_lily_of_the_valley, potted_wither_rose, potted_oak_sapling,potted_spruce_sapling,potted_birch_sapling,potted_jungle_sapling,potted_acacia_sapling,potted_dark_oak_sapling,potted_red_mushroom,potted_brown_mushroom,potted_fern,potted_dead_bush,potted_cactus,potted_bamboo,potted_azalea_bush,potted_flowering_azalea_bush,potted_crimson_fungus,potted_crimson_roots,potted_warped_roots,potted_mangrove_propagule,potted_cherry_sapling,potted_torchflower
+                        switch (blockTranslationKey) {
+                            case "block.minecraft.potted_dandelion":
+                                return new ClickAction().setItem(Items.DANDELION);
+                            case "block.minecraft.potted_poppy":
+                                return new ClickAction().setItem(Items.POPPY);
+                            case "block.minecraft.potted_blue_orchid":
+                                return new ClickAction().setItem(Items.BLUE_ORCHID);
+                            case "block.minecraft.potted_allium":
+                                return new ClickAction().setItem(Items.ALLIUM);
+                            case "block.minecraft.potted_azure_bluet":
+                                return new ClickAction().setItem(Items.AZURE_BLUET);
+                            case "block.minecraft.potted_red_tulip":
+                                return new ClickAction().setItem(Items.RED_TULIP);
+                            case "block.minecraft.potted_orange_tulip":
+                                return new ClickAction().setItem(Items.ORANGE_TULIP);
+                            case "block.minecraft.potted_white_tulip":
+                                return new ClickAction().setItem(Items.WHITE_TULIP);
+                            case "block.minecraft.potted_pink_tulip":
+                                return new ClickAction().setItem(Items.PINK_TULIP);
+                            case "block.minecraft.potted_oxeye_daisy":
+                                return new ClickAction().setItem(Items.OXEYE_DAISY);
+                            case "block.minecraft.potted_cornflower":
+                                return new ClickAction().setItem(Items.CORNFLOWER);
+                            case "block.minecraft.potted_lily_of_the_valley":
+                                return new ClickAction().setItem(Items.LILY_OF_THE_VALLEY);
+                            case "block.minecraft.potted_wither_rose":
+                                return new ClickAction().setItem(Items.WITHER_ROSE);
+                            case "block.minecraft.potted_oak_sapling":
+                                return new ClickAction().setItem(Items.OAK_SAPLING);
+                            case "block.minecraft.potted_spruce_sapling":
+                                return new ClickAction().setItem(Items.SPRUCE_SAPLING);
+                            case "block.minecraft.potted_birch_sapling":
+                                return new ClickAction().setItem(Items.BIRCH_SAPLING);
+                            case "block.minecraft.potted_jungle_sapling":
+                                return new ClickAction().setItem(Items.JUNGLE_SAPLING);
+                            case "block.minecraft.potted_acacia_sapling":
+                                return new ClickAction().setItem(Items.ACACIA_SAPLING);
+                            case "block.minecraft.potted_dark_oak_sapling":
+                                return new ClickAction().setItem(Items.DARK_OAK_SAPLING);
+                            case "block.minecraft.potted_red_mushroom":
+                                return new ClickAction().setItem(Items.RED_MUSHROOM);
+                            case "block.minecraft.potted_brown_mushroom":
+                                return new ClickAction().setItem(Items.BROWN_MUSHROOM);
+                            case "block.minecraft.potted_fern":
+                                return new ClickAction().setItem(Items.FERN);
+                            case "block.minecraft.potted_dead_bush":
+                                return new ClickAction().setItem(Items.DEAD_BUSH);
+                            case "block.minecraft.potted_cactus":
+                                return new ClickAction().setItem(Items.CACTUS);
+                            case "block.minecraft.potted_bamboo":
+                                return new ClickAction().setItem(Items.BAMBOO);
+                            case "block.minecraft.potted_azalea_bush":
+                                return new ClickAction().setItem(Items.AZALEA);
+                            case "block.minecraft.potted_flowering_azalea_bush":
+                                return new ClickAction().setItem(Items.FLOWERING_AZALEA);
+                            case "block.minecraft.potted_crimson_fungus":
+                                return new ClickAction().setItem(Items.CRIMSON_FUNGUS);
+                            case "block.minecraft.potted_crimson_roots":
+                                return new ClickAction().setItem(Items.CRIMSON_ROOTS);
+                            case "block.minecraft.potted_warped_roots":
+                                return new ClickAction().setItem(Items.WARPED_ROOTS);
+                            //#if MC > 11904
+                            case "block.minecraft.potted_torchflower":
+                                return new ClickAction().setItem(Items.TORCHFLOWER);
+                            case "block.minecraft.potted_mangrove_propagule":
+                                return new ClickAction().setItem(Items.MANGROVE_PROPAGULE);
+                            case "block.minecraft.potted_cherry_sapling":
+                                return new ClickAction().setItem(Items.CHERRY_SAPLING);
+                            //#endif
+                            //#if MC > 12101
+                            case "block.minecraft.potted_plae_oak_sapling":
+                                return new ClickAction().setItem(Items.PALE_OAK_SAPLING);
+                            //#endif
+                            default:
+                                return null;
+                        }
                     }
 
                     break;
