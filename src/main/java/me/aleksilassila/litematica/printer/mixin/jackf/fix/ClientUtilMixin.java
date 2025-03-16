@@ -18,14 +18,13 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 public class ClientUtilMixin {
     @Inject(at = @At("HEAD"),method = "CheckAndSend")
     private static void CheckAndSend(ItemStack stack, int slot, CallbackInfoReturnable<Boolean> cir) {
-        //保存一下当前打开的容器
+        //远程取物时再打开濳影盒会将濳影盒内的物品保存到打开的容器..
         ZxyUtils.getPlayer().ifPresent(player ->{
             if(Statistics.loadChestTracker){
                 //#if MC >= 12001
                 MemoryUtils.saveMemory(player.currentScreenHandler);
                 OpenInventoryPacket.reSet();
                 //#endif
-//                player.closeScreen();
             }
         });
     }

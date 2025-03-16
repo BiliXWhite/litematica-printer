@@ -315,7 +315,7 @@ public class ZxyUtils {
             LitematicaMixinMod.BEDROCK_SWITCH.setBooleanValue(false);
             LitematicaMixinMod.EXCAVATE.setBooleanValue(false);
             LitematicaMixinMod.FLUID.setBooleanValue(false);
-            LitematicaMixinMod.PRINT_SWITCH.setBooleanValue(false);
+            LitematicaMixinMod.TOGGLE_PRINTING_MODE.setBooleanValue(false);
             LitematicaMixinMod.PRINTER_MODE.setOptionListValue(State.PrintModeType.PRINTER);
             client.inGameHud.setOverlayMessage(Text.of("已关闭全部模式"), false);
         }

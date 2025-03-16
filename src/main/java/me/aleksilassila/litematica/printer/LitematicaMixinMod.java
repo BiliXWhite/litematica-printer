@@ -3,12 +3,14 @@ package me.aleksilassila.litematica.printer;
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.litematica.config.Hotkeys;
+import fi.dy.masa.litematica.gui.GuiConfigs;
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.options.*;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
+import me.aleksilassila.litematica.printer.config.KeyCallbackHotkeys;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
@@ -16,6 +18,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 //#if MC >= 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import net.minecraft.client.MinecraftClient;
 //#endif
 import java.util.List;
 
@@ -23,7 +26,8 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.l
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadQuickShulker;
 
 public class LitematicaMixinMod implements ModInitializer, ClientModInitializer {
-	public static final String MOD_ID = "litematica_printer";
+	public static final String MOD_ID = "litematica-printer";
+	public static final GuiConfigs.ConfigGuiTab PRINTER_TAB_KEY = GuiConfigs.ConfigGuiTab.values()[GuiConfigs.ConfigGuiTab.values().length -1];
 	private static final KeybindSettings GUI_NO_ORDER = KeybindSettings.create(KeybindSettings.Context.GUI, KeyAction.PRESS, false, false, false, true);
 	// Config settings
 	public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger( "打印机工作间隔", 0,   0, 20, "以游戏刻度为单位工作间隔。值越低意味着打印速度越快");
@@ -43,10 +47,10 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigBooleanHotkeyed BREAK_ERROR_BLOCK = new ConfigBooleanHotkeyed("破坏错误方块",  false,"","打印过程中自动破坏投影中错误的方块");
 	public static final ConfigBoolean PRINT_SWITCH = new ConfigBoolean("printingMode",false, "Autobuild / print loaded selection.\nBe aware that some servers and anticheat plugins do not allow printing.");
 	public static final ConfigBoolean EASY_MODE = new ConfigBoolean("精准放置",false, "根据投影的设置使用对应的协议");
-	public static final ConfigBooleanHotkeyed USE_EASY_MODE = new ConfigBooleanHotkeyed("轻松放置模式",false,"", "启用后会调用轻松放置来进行放置，\n因为轻松放置本身会使用放置协议，所以本mod的精准放置无需启用。");
+	public static final ConfigBooleanHotkeyed USE_EASY_MODE = new ConfigBooleanHotkeyed("轻松放置模式",false,"", "打印模式下放置方块将由投影轻松放置接管");
 	public static final ConfigBoolean FORCED_PLACEMENT = new ConfigBoolean("强制潜行",false, "打印时会强制shift避免一些方块的交互");
 	public static final ConfigBoolean REPLACE = new ConfigBoolean("替换列表方块",true, "可以直接在一些可替换方块放置，例如 草 雪片");
-	public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean("stripLogs",false, "Whether or not the printer should use normal logs if stripped\nversions are not available and then strip them with an axe.");
+	public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean("原木去皮",false, "去皮木头可以通过放置原木后去皮，但你需要一把斧子");
 	public static boolean shouldPrintInAir = PRINT_IN_AIR.getBooleanValue();
 	public static final ConfigHotkey SWITCH_PRINTER_MODE = new ConfigHotkey("切换模式", "J", "切换打印机工作模式");
 	public static final ConfigBooleanHotkeyed BEDROCK_SWITCH = new ConfigBooleanHotkeyed("破基岩", false,"", "啊吧啊吧");
@@ -84,7 +88,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 
 	public static ImmutableList<IConfigBase> getConfigList() {
 		List<IConfigBase> list = new java.util.ArrayList<>(Configs.Generic.OPTIONS);
-		list.add(PRINT_SWITCH);
+		list.add(TOGGLE_PRINTING_MODE);
 		list.add(EASY_MODE);
 		list.add(PRINT_INTERVAL);
 		list.add(COMPULSION_RANGE);
@@ -100,8 +104,9 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	}
 
 	// Hotkeys
-	public static final ConfigHotkey PRINT = new ConfigHotkey("print", "", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "Prints while pressed");
-	public static final ConfigHotkey TOGGLE_PRINTING_MODE = new ConfigHotkey("togglePrintingMode", "CAPS_LOCK", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "Allows quickly toggling on/off Printing mode");
+	public static final ConfigHotkey PRINT = new ConfigHotkey("打印", "", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "按下时打印机开始工作，松开时停止");
+	public static final ConfigBooleanHotkeyed TOGGLE_PRINTING_MODE =
+			new ConfigBooleanHotkeyed("打印机开关", false,"CAPS_LOCK", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "控制打印机是否工作","打印机开关");
 
 //	public static final ConfigHotkey BEDROCK_MODE = new ConfigHotkey("破基岩模式", "J", "切换为破基岩模式 此模式下 y轴会从上往下判定.");
 //	public static final ConfigHotkey EXE_MODE= new ConfigHotkey("挖掘模式", "K", "挖掘所选区的方块");
@@ -143,7 +148,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		if(loadChestTracker) MemoryUtils.setup();
 		//#endif
 
-		TOGGLE_PRINTING_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(PRINT_SWITCH));
+//		TOGGLE_PRINTING_MODE.getKeybind().setCallback();
 //		SYNC_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
 //		SWITCH_PRINTER_MODE.getKeybind().setCallback(keyCallbackHotkeys);
 //		if(loadChestTracker){

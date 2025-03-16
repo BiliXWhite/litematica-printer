@@ -46,6 +46,8 @@
     "jackf.lgacy.MixinRealmsMainScreen",
     "jackf.lgacy.MixinWCardPanel",
     "jackf.lgacy.WItemListPanelMixin",
+    "masa.litematicaSetConfig.ConfigGuiTabAccessor",
+    "masa.litematicaSetConfig.ConfigGuiTabMixin",
     "masa.litematicaSetConfig.ConfigsMixin",
     "masa.litematicaSetConfig.GuiConfigsMixin",
     "masa.litematicaSetConfig.InputHandlerMixin",

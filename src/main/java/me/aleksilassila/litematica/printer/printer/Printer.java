@@ -135,7 +135,7 @@ public class Printer extends PrinterUtils {
         }
     }
     public static boolean isEnablePrinter(){
-        return LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed();
+        return LitematicaMixinMod.TOGGLE_PRINTING_MODE.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed();
     }
 
     private static Printer INSTANCE = null;
@@ -699,10 +699,8 @@ public class Printer extends PrinterUtils {
 
             //跳过放置
             if (LitematicaMixinMod.PUT_SKIP.getBooleanValue() &&
-//                    PUT_SKIP_LIST.getStrings().stream().anyMatch(block -> Registries.BLOCK.getId(requiredState.getBlock()).toString().contains(block))
-                    PUT_SKIP_LIST.getStrings().stream().anyMatch(block -> Filters.equalsName(block,requiredState))
-//                   && PUT_SKIP_LIST.getStrings().contains(Registries.BLOCK.getId(requiredState.getBlock()).toString())
-                   ) {
+                    PUT_SKIP_LIST.getStrings().stream().anyMatch(block -> Filters.equalsName(block,requiredState)))
+            {
                 continue;
             }
             if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
@@ -748,23 +746,6 @@ public class Printer extends PrinterUtils {
                             useShift = true;
                             break ;
                         }
-//                        case RIGHT: {
-//                            useShift = true;
-//                            break;
-//                        }
-//                        case LEFT: { // Actually right
-//                            if (leftState.contains(ChestBlock.CHEST_TYPE) && leftState.get(ChestBlock.CHEST_TYPE) == ChestType.SINGLE) {
-//                                useShift = false;
-//
-//                                // Check if it is possible to place without shift
-//                                if (Implementation.isInteractive(world.getBlockState(pos.offset(side)).getBlock())) {
-//                                    continue;
-//                                }
-//                            } else {
-//                                continue;
-//                            }
-//                            break;
-//                        }
                     }
                 } else if (Implementation.isInteractive(world.getBlockState(pos.offset(side)).getBlock())) {
                     useShift = true;

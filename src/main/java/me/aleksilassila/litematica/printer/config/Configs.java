@@ -30,7 +30,6 @@ public class Configs implements IConfigHandler {
         if(loadChestTracker) list.add(INVENTORY);
         if(loadChestTracker) list.add(AUTO_INVENTORY);
         if(loadQuickShulker) list.add(QUICKSHULKER);
-        list.add(PRINT_SWITCH);
         list.add(PRINT_INTERVAL);
 //        list.add(PRINTING_RANGE);
         list.add(COMPULSION_RANGE);
@@ -138,6 +137,8 @@ public class Configs implements IConfigHandler {
     //切换型开关
     public static ImmutableList<IHotkeyTogglable> addSwitchKey(){
         ArrayList<IHotkeyTogglable> list = new ArrayList<>();
+        list.add(TOGGLE_PRINTING_MODE);
+        list.add(SYNC_INVENTORY_CHECK);
         list.add(BEDROCK_SWITCH);
         list.add(EXCAVATE);
         list.add(FLUID);

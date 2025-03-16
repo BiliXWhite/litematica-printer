@@ -119,9 +119,6 @@ public class PlacementGuide extends PrinterUtils {
                 breakIce = false;
             }else return water;
         }
-        if(LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue() && canBreakBlock(pos) && isSchematicBlock(pos) && State.get(requiredState, currentState) == State.WRONG_BLOCK){
-            excavateBlock(pos);
-        }
 
         if (!requiredState.canPlaceAt(world, pos)) {
             return null;
@@ -420,20 +417,12 @@ public class PlacementGuide extends PrinterUtils {
                 case NOTE_BLOCK: {
                     if (!Objects.equals(requiredState.get(NoteBlock.NOTE), currentState.get(NoteBlock.NOTE)))
                         return new ClickAction();
-
                     break;
                 }
                 case CAMPFIRE: {
                     if (requiredState.get(CampfireBlock.LIT) != currentState.get(CampfireBlock.LIT))
                         return new ClickAction().setItems(Implementation.SHOVELS);
 
-                    break;
-                }
-                case PILLAR: {
-                    Block stripped = AxeItemAccessor.getStrippedBlocks().get(currentState.getBlock());
-                    if (stripped != null && stripped == requiredState.getBlock()) {
-                        return new ClickAction().setItems(Implementation.AXES);
-                    }
                     break;
                 }
                 case END_PORTAL_FRAME: {
@@ -484,10 +473,18 @@ public class PlacementGuide extends PrinterUtils {
 
                     break;
                 }
+                case PILLAR: {
+                    Block stripped = AxeItemAccessor.getStrippedBlocks().get(currentState.getBlock());
+                    if (stripped != null && stripped == requiredState.getBlock()) {
+                        return new ClickAction().setItems(Implementation.AXES);
+                    }
+                    break;
+                }
                 case WATER:{
 
                 }
                 default: {
+                    if(canBreakBlock(pos) && LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue()) excavateBlock(pos);
                     return null;
                 }
             }

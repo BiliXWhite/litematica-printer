@@ -64,12 +64,6 @@ repositories {
         }
     }
 
-
-    maven {
-        url 'https://jitpack.io'
-    }
-
-
     // YACL
     maven {
         name = "Xander Maven"
@@ -88,6 +82,11 @@ repositories {
             includeGroupAndSubgroups("dev.isxander")
             includeGroupAndSubgroups("org.quiltmc")
         }
+    }
+
+    maven {
+        //这个一定要放在末尾！！！ 不然构建时会重新下载一些依赖
+        url 'https://jitpack.io'
     }
 //	maven { url = "https://mvnrepository.com/artifact/com.github.open-android/pinyin4j " }
     // Add repositories to retrieve artifacts from in here.
