@@ -202,7 +202,7 @@ public class PlacementGuide extends PrinterUtils {
                 case ANVIL: {
                     return new Action().setLookDirection(requiredState.get(AnvilBlock.FACING).rotateYCounterclockwise()).setSides(Direction.UP);
                 }
-                case HOPPER: // FIXME add all sides
+                case HOPPER:
                 case COCOA: {
                     return new Action().setSides((Direction) getPropertyByName(requiredState, "FACING"));
                 }
@@ -431,7 +431,7 @@ public class PlacementGuide extends PrinterUtils {
 
                     break;
                 }
-                case FLOWER_POT: { // Fixme test
+                case FLOWER_POT: {
                     Block content = ((FlowerPotBlockAccessor) requiredState).getContent();
 
                     if (content != null && content != Blocks.AIR) {

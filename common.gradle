@@ -1,5 +1,6 @@
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
+import com.google.gson.JsonObject
 import net.fabricmc.loom.util.Platform
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
@@ -202,6 +203,7 @@ base {
     archivesName.set("${project.mod_archives_base_name}-${project.minecraft_version}")
 }
 
+
 loom {
     interfaceInjection {
         enableDependencyInterfaceInjection.set(true)
@@ -213,6 +215,7 @@ loom {
     }
 
     runConfigs.named("client") {
+
         programArgs([
                 "--width", "1280",
                 "--height", "720",

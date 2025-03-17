@@ -14,7 +14,7 @@ public class UpdateChecker {
     public static String getPrinterVersion() {
         try (InputStream inputStream = new URL("https://api.github.com/repos/aleksilassila/litematica-printer/tags").openStream(); Scanner scanner = new Scanner(inputStream)) {
             if (scanner.hasNext()) {
-                JsonArray tags = new JsonParser().parse(scanner.next()).getAsJsonArray();
+                JsonArray tags = JsonParser.parseString(scanner.next()).getAsJsonArray();
                 return ((JsonObject) tags.get(0)).get("name").getAsString();
             }
         } catch (Exception exception) {
