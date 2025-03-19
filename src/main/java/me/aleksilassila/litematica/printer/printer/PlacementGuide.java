@@ -720,6 +720,7 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     enum ClassHook {
+        //TODO 火把有bug
         // Placements
         ROD(Implementation.NewBlocks.ROD.clazz),
         WALLTORCH(WallTorchBlock.class, WallRedstoneTorchBlock.class),

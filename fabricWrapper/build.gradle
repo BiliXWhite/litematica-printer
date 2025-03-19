@@ -4,6 +4,7 @@ import groovy.json.JsonSlurper
 plugins {
     id("java-library")
     id("maven-publish")
+    id("com.github.breadmoirai.github-release").version('2.4.1')
 }
 def time = new Date().format("yyyyMMdd", TimeZone.getTimeZone("GMT+08:00"))
 
@@ -97,8 +98,10 @@ java {
 publishing {
     publications {
         register("mavenJava", MavenPublication) {
+            groupId("${project.mod_maven_group}")
             artifactId("${project.mod_id}")
-            version("${rootProject.getMavenArtifactVersion()}")
+//            version("${rootProject.getMavenArtifactVersion()}")
+            version("all-" + version)
             from(components.java)
         }
     }
@@ -110,4 +113,29 @@ publishing {
             url("$rootDir/publish")
         }
     }
+
+
 }
+
+githubRelease {
+    token = System.getenv("GITHUB_TOKEN")                                   // GitHub PAT
+    owner = "zhaixianyu"                                                    // GitHub 用户名或组织名
+    repo = project.mod_id                                                   // 仓库名称
+    tagName = project.version                                               // 使用 Mod 版本作为 Git 标签
+    targetCommitish = "litematica-printer2.4-Revision-1.0"                  // 目标分支
+    releaseName = "v${project.version}"                                     // 发布名称
+    body = ""                                                               // 发布说明
+    draft = false                                                           // 是否存为草稿
+    prerelease = false                                                      // 是否为预发布版
+
+    def buildLibsDir = project.layout.buildDirectory.dir("libs").get().asFile
+    def jarFile = buildLibsDir.listFiles().find { file ->
+        file.name.endsWith(".jar") && file.name.contains(time)
+    }
+    releaseAssets = [
+            jarFile
+//            remapJar.archiveFile.get().asFile,
+//            sourcesJar.archiveFile.get().asFile
+    ]
+}
+

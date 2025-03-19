@@ -3,7 +3,7 @@ plugins {
     id("fabric-loom").version("1.7-SNAPSHOT").apply(false)
     id("org.ajoberstar.grgit").version("5.2.0")
     id("com.replaymod.preprocess").version("ce1aeb2b")
-
+    id("com.github.breadmoirai.github-release").version('2.4.1')
 }
 
 preprocess {
@@ -37,52 +37,52 @@ preprocess {
     mc12101.link(mc12104, file("versions/mapping-1.21.1-1.21.4.txt"))
 }
 
-ext {
-    env = System.getenv()
-
-    getVersionGit = { List paths ->
-        if (grgit == null) {
-            return "nogit"
-        }
-
-        List latestCommits = paths.isEmpty() ? grgit.log(maxCommits: 1) : grgit.log(paths: paths, maxCommits: 1)
-        return latestCommits.isEmpty() ? "uncommited" : "${latestCommits.get(0).id.substring(0, 7)}"
-    }
-
-    getBuildNumber = {
-        return ext.env.GITHUB_RUN_NUMBER ? ext.env.GITHUB_RUN_NUMBER : Integer.MAX_VALUE
-    }
-
-    getVersionType = {
-        switch (ext.env.BUILD_TYPE) {
-            case "RELEASE":
-                return "stable"
-            case "BETA":
-                return "beta"
-            default:
-                return "dev"
-        }
-    }
-
-    getVersionPatch = { List paths ->
-        if (grgit == null) {
-            return 0
-        }
-
-        List latestCommits = paths.isEmpty() ? grgit.log() : grgit.log(paths: paths)
-        return latestCommits.size()
-    }
-
-    getMavenArtifactVersion = {
-        return ext.getVersionType() == "stable" ? "${project.mod_version}.${ext.getVersionPatch([])}" : project.version
-    }
-
-    getModVersion = {
-        return "${project.mod_version}.${getVersionPatch([])}+${getVersionGit([])}-${getVersionType()}"
-    }
-}
-
-setVersion(project.getModVersion())
+//ext {
+//    env = System.getenv()
+//
+//    getVersionGit = { List paths ->
+//        if (grgit == null) {
+//            return "nogit"
+//        }
+//
+//        List latestCommits = paths.isEmpty() ? grgit.log(maxCommits: 1) : grgit.log(paths: paths, maxCommits: 1)
+//        return latestCommits.isEmpty() ? "uncommited" : "${latestCommits.get(0).id.substring(0, 7)}"
+//    }
+//
+//    getBuildNumber = {
+//        return ext.env.GITHUB_RUN_NUMBER ? ext.env.GITHUB_RUN_NUMBER : Integer.MAX_VALUE
+//    }
+//
+//    getVersionType = {
+//        switch (ext.env.BUILD_TYPE) {
+//            case "RELEASE":
+//                return "stable"
+//            case "BETA":
+//                return "beta"
+//            default:
+//                return "dev"
+//        }
+//    }
+//
+//    getVersionPatch = { List paths ->
+//        if (grgit == null) {
+//            return 0
+//        }
+//
+//        List latestCommits = paths.isEmpty() ? grgit.log() : grgit.log(paths: paths)
+//        return latestCommits.size()
+//    }
+//
+//    getMavenArtifactVersion = {
+//        return ext.getVersionType() == "stable" ? "${project.mod_version}.${ext.getVersionPatch([])}" : project.version
+//    }
+//
+//    getModVersion = {
+//        return "${project.mod_version}.${getVersionPatch([])}+${getVersionGit([])}-${getVersionType()}"
+//    }
+//}
+//
+//setVersion(project.getModVersion())
 
 tasks.register("cleanPreprocessSources") {
     it.group("${project.mod_id}")
@@ -90,7 +90,9 @@ tasks.register("cleanPreprocessSources") {
     doFirst {
         subprojects {
             def path = project.projectDir.toPath().resolve("build/preprocessed")
-            path.toFile().deleteDir()
+            if (path.toFile().isDirectory()) {
+                path.toFile().deleteDir()
+            }
         }
     }
 }

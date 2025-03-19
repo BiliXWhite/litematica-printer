@@ -552,7 +552,6 @@ public class Printer extends PrinterUtils {
     static Map<BlockPos,Integer> skipPosMap = new HashMap<>();
     public static boolean printerMemorySync = false;
 
-
     public boolean switchItem() {
         if (!remoteItem.isEmpty() && !isOpenHandler && !openIng && OpenInventoryPacket.key == null) {
             ClientPlayerEntity player = client.player;

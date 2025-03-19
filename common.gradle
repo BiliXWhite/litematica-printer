@@ -1,6 +1,5 @@
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
-import com.google.gson.JsonObject
 import net.fabricmc.loom.util.Platform
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
@@ -11,6 +10,8 @@ import org.objectweb.asm.tree.LdcInsnNode
 apply(plugin: "fabric-loom")
 apply(plugin: "maven-publish")
 apply(plugin: "com.replaymod.preprocess")
+apply(plugin: "com.github.breadmoirai.github-release")
+
 
 int mcVersion = 1
 
@@ -434,8 +435,10 @@ processResources {
 publishing {
     publications {
         register("mavenJava", MavenPublication) {
-            artifactId("${project.mod_id}-${project.minecraft_version.replace(".", "_")}")
-            version("${rootProject.getMavenArtifactVersion()}")
+            groupId("${project.mod_maven_group}")
+            artifactId("${project.mod_id}")
+//            version("${rootProject.getMavenArtifactVersion()}")
+            version("${project.minecraft_version}-" + version)
             from(components.java)
         }
     }
@@ -443,9 +446,16 @@ publishing {
     // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
         mavenLocal()
-
         maven {
             url("$rootDir/publish")
+        }
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/zhaixianyu/litematica-printer" // 替换为你的仓库地址
+            credentials {
+                username = System.getenv("GITHUB_USERNAME") // GitHub 用户名
+                password = System.getenv("GITHUB_TOKEN")     // GitHub Personal Access Token (PAT)
+            }
         }
     }
 }
