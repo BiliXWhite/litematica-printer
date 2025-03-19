@@ -118,7 +118,7 @@ publishing {
 }
 
 githubRelease {
-    token = System.getenv("GITHUB_TOKEN")                                   // GitHub PAT
+    token = System.getenv("GITHUB_RELEASES_TOKEN")                          // GitHub PAT
     owner = "zhaixianyu"                                                    // GitHub 用户名或组织名
     repo = project.mod_id                                                   // 仓库名称
     tagName = project.version                                               // 使用 Mod 版本作为 Git 标签
@@ -134,8 +134,6 @@ githubRelease {
     }
     releaseAssets = [
             jarFile
-//            remapJar.archiveFile.get().asFile,
-//            sourcesJar.archiveFile.get().asFile
     ]
 }
 
