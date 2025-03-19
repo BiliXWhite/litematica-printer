@@ -252,9 +252,9 @@ public class OpenInventoryPacket {
 
         if (!isInv || blockState.isAir() || (blockEntity instanceof ShulkerBoxBlockEntity entity &&
                 //#if MC > 12101
-                !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F, pos.toBottomCenterPos()).offset(pos).contract(1.0E-6)) &&
+                //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F, pos.toBottomCenterPos()).offset(pos).contract(1.0E-6)) &&
                 //#elseif MC <= 12101 && MC > 12004
-                //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
+                !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
                 //#elseif MC <= 12004
                 //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
                 //#endif
@@ -283,7 +283,7 @@ public class OpenInventoryPacket {
 
         if ((r != null && (!r.equals(ActionResult.CONSUME)
                 //#if MC > 12101
-                && !r.equals(ActionResult.SUCCESS)
+                //$$ && !r.equals(ActionResult.SUCCESS)
                 //#endif
         ))) {
             System.out.println("openFail" + pos);
@@ -348,9 +348,9 @@ public class OpenInventoryPacket {
                 String translationKey = key.getValue().toTranslationKey();
                 String translate = StringUtils.translate(translationKey);
                     //#if MC > 12101
-                    if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toCenterPos().toString()),false);
+                    //$$ if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toCenterPos().toString()),false);
                     //#else
-                    //$$ if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toCenterPos().toString()));
+                    if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toCenterPos().toString()));
                     //#endif
                 //#endif
 

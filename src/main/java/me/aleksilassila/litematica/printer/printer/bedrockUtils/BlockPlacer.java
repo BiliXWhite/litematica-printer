@@ -40,9 +40,9 @@ public class BlockPlacer {
         ClientPlayerEntity player = ZxyUtils.client.player;
         if(player == null) return;
         //#if MC > 12101
-        MinecraftClient.getInstance().getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(yaw, pitch, player.isOnGround(),player.horizontalCollision));
+        //$$ MinecraftClient.getInstance().getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(yaw, pitch, player.isOnGround(),player.horizontalCollision));
         //#else
-        //$$ MinecraftClient.getInstance().getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(yaw, pitch, player.isOnGround()));
+        MinecraftClient.getInstance().getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(yaw, pitch, player.isOnGround()));
         //#endif
     }
 
@@ -96,9 +96,9 @@ public class BlockPlacer {
 
         if (!itemStack.isEmpty() && !player.getItemCooldownManager().isCoolingDown(
                 //#if MC > 12101
-                itemStack
+                //$$ itemStack
                 //#else
-                //$$ itemStack.getItem()
+                itemStack.getItem()
                 //#endif
         )) {
             ItemUsageContext itemUsageContext = new ItemUsageContext(player, Hand.OFF_HAND, hitResult);

@@ -12,9 +12,9 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 //#if MC < 12104
-//$$ import net.minecraft.state.property.DirectionProperty;
+import net.minecraft.state.property.DirectionProperty;
 //#else
-
+//$$
 //#endif
 
 import net.minecraft.state.property.EnumProperty;
@@ -94,9 +94,9 @@ public class PlacementGuide extends PrinterUtils {
         Direction look = null;
         for (Property<?> prop : requiredState.getProperties()) {
             //#if MC > 12101
-            if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
+            //$$ if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
             //#else
-            //$$ if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
+            if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
             //#endif
                 look = ((Direction) requiredState.get(prop)).getOpposite();
             }
@@ -134,7 +134,13 @@ public class PlacementGuide extends PrinterUtils {
 
         if (state == State.MISSING_BLOCK) {
             switch (requiredType) {
-                case WALLTORCH:
+                case WALLTORCH:{
+                    Direction facing = (Direction)getPropertyByName(requiredState, "FACING");
+                    if(facing != null){
+                       return new Action().setSides(facing.getOpposite()).setRequiresSupport();
+                    }
+                    return null;
+                }
                 case AMETHYST: {
                     return new Action()
                             .setSides(((Direction) getPropertyByName(requiredState, "FACING"))
@@ -317,15 +323,18 @@ public class PlacementGuide extends PrinterUtils {
                 case WATER: {
 
                 }
+                case TORCH: {
+
+                }
                 case DEFAULT:
                 default: { // Try to guess how the rest of the blocks are placed.
                     Direction look = null;
 
                     for (Property<?> prop : requiredState.getProperties()) {
                         //#if MC > 12101
-                        if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
+                        //$$ if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
                         //#else
-                        //$$ if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
+                        if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
                         //#endif
                             look = ((Direction) requiredState.get(prop)).getOpposite();
                         }
@@ -720,7 +729,7 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     enum ClassHook {
-        //TODO 火把有bug
+        //TODO 地狱门
         // Placements
         ROD(Implementation.NewBlocks.ROD.clazz),
         WALLTORCH(WallTorchBlock.class, WallRedstoneTorchBlock.class),

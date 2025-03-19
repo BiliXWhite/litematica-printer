@@ -47,7 +47,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
  		if(Statistics.loadChestTracker) MemoryUtils.saveMemory(this.currentScreenHandler);
  		OpenInventoryPacket.reSet();
 		//#else
-
+//$$
 		//#endif
 	}
 	@Inject(at = @At("TAIL"), method = "tick")
