@@ -145,7 +145,7 @@ public class Printer extends PrinterUtils {
     public final Queue queue;
     public int range2;
 
-    static int tick = 0;
+    public static int tick = 0;
 
     public static void init(MinecraftClient client) {
         if (client == null || client.player == null || client.world == null) {
@@ -543,7 +543,7 @@ public class Printer extends PrinterUtils {
         }
     }
 
-    int tickRate;
+    public static int tickRate;
     boolean isFacing = false;
     Item[] item2 = null;
     List<String> fluidBlocklist;
@@ -613,12 +613,15 @@ public class Printer extends PrinterUtils {
         ArrayList<BlockPos> deletePosList = new ArrayList<>();
         skipPosMap.forEach((k,v) -> {
             skipPosMap.put(k,v+1);
-            if(v > PUT_COOLING.getIntegerValue()){
+            if(v >= PUT_COOLING.getIntegerValue()){
                 deletePosList.add(k);
             }
         });
         for (BlockPos blockPos : deletePosList) {
             skipPosMap.remove(blockPos);
+        }
+        if (PlacementGuide.createPortalTick != 1) {
+            PlacementGuide.createPortalTick = 1;
         }
     }
     public void tick() {
@@ -694,7 +697,6 @@ public class Printer extends PrinterUtils {
             if (client.player != null && !canInteracted(pos)) continue;
             BlockState requiredState = worldSchematic.getBlockState(pos);
             PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
-            if (requiredState.isOf(Blocks.NETHER_PORTAL) || requiredState.isOf(Blocks.END_PORTAL)) continue;
 
             //跳过放置
             if (LitematicaMixinMod.PUT_SKIP.getBooleanValue() &&

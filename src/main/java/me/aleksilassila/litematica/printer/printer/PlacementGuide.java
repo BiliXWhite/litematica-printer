@@ -35,6 +35,7 @@ import static net.minecraft.block.enums.BlockFace.WALL;
 public class PlacementGuide extends PrinterUtils {
     @NotNull
     protected final MinecraftClient client;
+    public static long createPortalTick = 1;
 
     public PlacementGuide(@NotNull MinecraftClient client) {
         this.client = client;
@@ -139,7 +140,7 @@ public class PlacementGuide extends PrinterUtils {
                     if(facing != null){
                        return new Action().setSides(facing.getOpposite()).setRequiresSupport();
                     }
-                    return null;
+                    break;
                 }
                 case AMETHYST: {
                     return new Action()
@@ -316,6 +317,15 @@ public class PlacementGuide extends PrinterUtils {
                 }
                 case BIG_DRIPLEAF_STEM: {
                     return new Action().setItem(Items.BIG_DRIPLEAF);
+                }
+                case NETHER_PORTAL_BLOCK: {
+
+                    boolean canCreatePortal = net.minecraft.world.dimension.NetherPortal.getNewPortal(world, pos, Direction.Axis.X).isPresent();
+                    if (canCreatePortal && createPortalTick == 1) {
+                        createPortalTick = 0;
+                        return new Action().setItems(Items.FLINT_AND_STEEL,Items.FIRE_CHARGE);
+                    }
+                    break;
                 }
                 case SKIP: {
                     break;
@@ -751,6 +761,7 @@ public class PlacementGuide extends PrinterUtils {
         COCOA(CocoaBlock.class),
         OBSERVER(ObserverBlock.class),
         WALLSKULL(WallSkullBlock.class),
+        NETHER_PORTAL_BLOCK(NetherPortalBlock.class),
 
         // Only clicks
         FLOWER_POT(FlowerPotBlock.class),
@@ -770,7 +781,7 @@ public class PlacementGuide extends PrinterUtils {
         // Other
         FARMLAND(FarmlandBlock.class),
         DIRT_PATH(DirtPathBlock.class),
-        SKIP(SkullBlock.class, GrindstoneBlock.class, SignBlock.class, /*Implementation.NewBlocks.LICHEN.clazz,*/ VineBlock.class),
+        SKIP(SkullBlock.class, GrindstoneBlock.class, SignBlock.class, VineBlock.class,EndPortalBlock.class),
         WATER(FluidBlock.class),
         DEFAULT;
 
