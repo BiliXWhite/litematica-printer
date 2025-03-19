@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.remoteItem;
 
 public class PrinterUtils {
 
@@ -42,7 +43,7 @@ public class PrinterUtils {
                         return true;
                     }
 				}
-                Printer.remoteItem.add(item);
+                remoteItem.add(item);
             }
 		}
         return false;

@@ -323,7 +323,7 @@ public class PlacementGuide extends PrinterUtils {
                     boolean canCreatePortal = net.minecraft.world.dimension.NetherPortal.getNewPortal(world, pos, Direction.Axis.X).isPresent();
                     if (canCreatePortal && createPortalTick == 1) {
                         createPortalTick = 0;
-                        return new Action().setItems(Items.FLINT_AND_STEEL,Items.FIRE_CHARGE);
+                        return new Action().setItems(Items.FLINT_AND_STEEL,Items.FIRE_CHARGE).setRequiresSupport();
                     }
                     break;
                 }

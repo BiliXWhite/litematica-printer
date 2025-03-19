@@ -13,7 +13,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.printer.Printer.remoteItem;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.*;
+
 
 @Mixin(InventoryUtils.class)
 public class MixinInventoryUtils {
@@ -22,7 +23,7 @@ public class MixinInventoryUtils {
 //        System.out.println(cir.getReturnValue().booleanValue());
         if (mc.player != null && !ItemStack.areItemsAndComponentsEqual(mc.player.getMainHandStack(),stack) && (LitematicaMixinMod.INVENTORY.getBooleanValue() || LitematicaMixinMod.QUICKSHULKER.getBooleanValue())) {
             remoteItem.add(stack.getItem());
-            Printer.getPrinter().switchItem();
+            switchItem();
         }
     }
 }

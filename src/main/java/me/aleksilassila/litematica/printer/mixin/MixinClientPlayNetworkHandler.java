@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.printer.Printer.isOpenHandler;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem.reSwitchItem;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 
@@ -22,7 +22,7 @@ public abstract class MixinClientPlayNetworkHandler {
     public void onInventory(InventoryS2CPacket packet, CallbackInfo ci){
          MinecraftClient mc = MinecraftClient.getInstance();
         if(isOpenHandler){
-            Printer.getPrinter().switchInv();
+            switchInv();
         }
         if(reSwitchItem != null ){
             SwitchItem.reSwitchItem();

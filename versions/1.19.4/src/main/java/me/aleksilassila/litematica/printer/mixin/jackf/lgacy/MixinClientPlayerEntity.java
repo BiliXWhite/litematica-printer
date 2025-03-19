@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
@@ -24,7 +25,7 @@ public class MixinClientPlayerEntity {
     public void closeScreen(CallbackInfo ci) {
         BlockPos pos = MemoryUtils.getLatestPos();
         if(Statistics.loadChestTracker && LitematicaMixinMod.INVENTORY.getBooleanValue() &&
-                (LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed() || printerMemoryAdding || syncPrinterInventory) &&(
+                (LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed() || printerMemoryAdding || Printer.printerMemorySync) &&(
                 pos != null || MemoryUtils.getMemoryPos() != null)){
             if(!client.player.currentScreenHandler.equals(client.player.playerScreenHandler)){
                 MemoryUtils.handleItemsFromScreen(client.player.currentScreenHandler);

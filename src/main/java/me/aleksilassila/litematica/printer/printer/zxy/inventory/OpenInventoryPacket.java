@@ -3,6 +3,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 import fi.dy.masa.malilib.util.StringUtils;
 import io.netty.buffer.Unpooled;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.Messager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -46,7 +47,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import static me.aleksilassila.litematica.printer.printer.Printer.isOpenHandler;
 import static me.aleksilassila.litematica.printer.printer.Printer.printerMemorySync;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
@@ -367,7 +367,7 @@ public class OpenInventoryPacket {
             SwitchItem.failedSet();
             Statistics.closeScreen--;
             openIng = false;
-            isOpenHandler = false;
+            InventoryUtils.isOpenHandler = false;
             printerMemorySync = false;
             key = null;
             pos = null;
@@ -391,6 +391,7 @@ public class OpenInventoryPacket {
         key = null;
         pos = null;
         openIng = false;
+        Printer.printerMemorySync = false;
     }
 
     public static void tick(){
