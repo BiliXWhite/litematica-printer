@@ -17,7 +17,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import red.jackf.chesttracker.impl.util.ItemStacks;
 import net.minecraft.registry.Registries;
@@ -65,7 +64,7 @@ public class ItemStackUtilMixin {
         return false;
     }
 
-    //    @Inject(at = @At(value = "INVOKE", target = "Ljava/lang/String;contains(Ljava/lang/CharSequence;)Z"), method = "potionOrEffectPredicate", cancellable = true)
+//    @Inject(at = @At(value = "INVOKE", target = "Ljava/lang/String;contains(Ljava/lang/CharSequence;)Z"), method = "potionOrEffectPredicate", cancellable = true)
 //    private static void stackPotionFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir) {
 //
 //        Potion potion = PotionContentsComponent.getPotion(stack);
@@ -101,16 +100,6 @@ public class ItemStackUtilMixin {
     private static boolean tooltipPredicate(String instance, CharSequence s, Operation<Boolean> original){
         return instance.contains(s) || PinYinSearch.hasPinYin(instance,s.toString());
     }
-//    @Inject(at = @At("HEAD"), method = "tooltipPredicate", cancellable = true)
-//    private static void stackTooltipFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir) {
-//        var player = MinecraftClient.getInstance().player;
-//        if (player == null) cir.setReturnValue(false);
-//        var advanced = MinecraftClient.getInstance().options.advancedItemTooltips ? ADVANCED : TooltipType.BASIC;
-//        for (Text line : stack.getTooltip(player, advanced)) {
-////            if (line.getString().toLowerCase().contains(filter)) cir.setReturnValue(true);
-//            if (PinYinSearch.hasPinYin(line.getString(), filter)) cir.setReturnValue(true);
-//        }
-//    }
 
     @Inject(at = @At("HEAD"), method = "testLang", cancellable = true, remap = false)
     private static void testLang(String key, String filter, CallbackInfoReturnable<Boolean> cir) {
@@ -124,10 +113,5 @@ public class ItemStackUtilMixin {
         boolean b = PinYinSearch.hasPinYin(stack.getName().getString(), filter);
         if (b) cir.setReturnValue(true);
     }
-//    @Inject(at = @At("HEAD"),method = "anyTextFilter", cancellable = true)
-//    private static void anyTextFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir){
-////        System.out.println(filter);
-////        cir.setReturnValue(true);
-//    }
 }
 //#endif
