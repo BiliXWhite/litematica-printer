@@ -45,7 +45,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigBoolean PRINT_IN_AIR = new ConfigBoolean("凭空放置",true, "Whether or not the printer should place blocks without anything to build on.\nBe aware that some anti-cheat plugins might notice this.");
 	public static final ConfigBooleanHotkeyed PRINT_WATER_LOGGED_BLOCK = new ConfigBooleanHotkeyed("打印含水方块",  false,"","启用后会自动放置冰,破坏冰来使方块含水");
 	public static final ConfigBooleanHotkeyed BREAK_ERROR_BLOCK = new ConfigBooleanHotkeyed("破坏错误方块",  false,"","打印过程中自动破坏投影中错误的方块");
-	public static final ConfigBoolean PRINT_SWITCH = new ConfigBoolean("printingMode",false, "Autobuild / print loaded selection.\nBe aware that some servers and anticheat plugins do not allow printing.");
 	public static final ConfigBoolean EASY_MODE = new ConfigBoolean("精准放置",false, "根据投影的设置使用对应的协议");
 	public static final ConfigBooleanHotkeyed USE_EASY_MODE = new ConfigBooleanHotkeyed("轻松放置模式",false,"", "打印模式下放置方块将由投影轻松放置接管");
 	public static final ConfigBoolean FORCED_PLACEMENT = new ConfigBoolean("强制潜行",false, "打印时会强制shift避免一些方块的交互");
