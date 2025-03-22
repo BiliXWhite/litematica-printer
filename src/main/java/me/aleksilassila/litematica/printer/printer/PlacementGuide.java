@@ -139,6 +139,7 @@ public class PlacementGuide extends PrinterUtils {
                     if(facing != null){
                         return new Action().setSides(facing.getOpposite()).setRequiresSupport();
                     }
+                    break;
                 }
                 case AMETHYST: {
                     return new Action()
