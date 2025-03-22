@@ -33,15 +33,11 @@ import static me.aleksilassila.litematica.printer.printer.qwer.PrintWater.*;
 import static net.minecraft.block.enums.BlockFace.WALL;
 
 public class PlacementGuide extends PrinterUtils {
-    //    public static Placement getPlacement(BlockState requiredState, MinecraftClient client) {
-//        Placement placement = _getPlacement(requiredState, client);
-//        return placement.setItem(placement.item == null ? requiredState.getBlock().asItem() : placement.item);
-//    }
-    //打破过的冰
     public static Map<BlockPos, Integer> posMap = new HashMap<>();
     public static boolean breakIce = false;
     @NotNull
     protected final MinecraftClient client;
+    public static long createPortalTick = 1;
 
     public PlacementGuide(@NotNull MinecraftClient client) {
         this.client = client;
@@ -138,7 +134,12 @@ public class PlacementGuide extends PrinterUtils {
 
         if (state == State.MISSING_BLOCK) {
             switch (requiredType) {
-                case WALLTORCH:
+                case WALLTORCH:{
+                    Direction facing = (Direction)getPropertyByName(requiredState, "FACING");
+                    if(facing != null){
+                        return new Action().setSides(facing.getOpposite()).setRequiresSupport();
+                    }
+                }
                 case AMETHYST: {
                     return new Action()
                             .setSides(((Direction) getPropertyByName(requiredState, "FACING"))
@@ -207,6 +208,15 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setLookDirection(requiredState.get(AnvilBlock.FACING).rotateYCounterclockwise()).setSides(Direction.UP);
                 }
                 case HOPPER: // FIXME add all sides
+                case NETHER_PORTAL: {
+
+                    boolean canCreatePortal = net.minecraft.world.dimension.NetherPortal.getNewPortal(world, pos, Direction.Axis.X).isPresent();
+                    if (canCreatePortal && createPortalTick == 1) {
+                        createPortalTick = 0;
+                        return new Action().setItems(Items.FLINT_AND_STEEL,Items.FIRE_CHARGE).setRequiresSupport();
+                    }
+                    break;
+                }
                 case COCOA: {
                     return new Action().setSides((Direction) getPropertyByName(requiredState, "FACING"));
                 }
@@ -609,6 +619,7 @@ public class PlacementGuide extends PrinterUtils {
         COCOA(CocoaBlock.class), // 可可豆
         OBSERVER(ObserverBlock.class), // 观察者
         WALLSKULL(WallSkullBlock.class), // 墙上的头颅
+        NETHER_PORTAL(NetherPortalBlock.class), // 下界传送门
 
         // 仅点击
         FLOWER_POT(FlowerPotBlock.class), // 花盆
@@ -628,7 +639,7 @@ public class PlacementGuide extends PrinterUtils {
         // 其他
         FARMLAND(FarmlandBlock.class), // 耕地
         DIRT_PATH(DirtPathBlock.class), // 泥土小径
-        SKIP(SkullBlock.class, GrindstoneBlock.class, SignBlock.class, /*Implementation.NewBlocks.LICHEN.clazz,*/ VineBlock.class), // 跳过
+        SKIP(SkullBlock.class, GrindstoneBlock.class, SignBlock.class,VineBlock.class, EndPortalBlock.class), // 跳过
         WATER(FluidBlock.class), // 水
         CAVE_VINES(CaveVinesHeadBlock.class, CaveVinesBodyBlock.class), // 洞穴藤蔓
         DEFAULT; // 默认
@@ -806,7 +817,7 @@ public class PlacementGuide extends PrinterUtils {
                 }
             }
 
-            return validSides.get(0);
+            return validSides.getFirst();
         }
 
         public Action setItem(Item item) {

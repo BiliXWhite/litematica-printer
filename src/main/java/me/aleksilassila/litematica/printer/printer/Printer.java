@@ -525,12 +525,15 @@ public class Printer extends PrinterUtils {
         ArrayList<BlockPos> deletePosList = new ArrayList<>();
         skipPosMap.forEach((k, v) -> {
             skipPosMap.put(k, v + 1);
-            if (v > PUT_COOLING.getIntegerValue()) {
+            if (v >= PUT_COOLING.getIntegerValue()) {
                 deletePosList.add(k);
             }
         });
         for (BlockPos blockPos : deletePosList) {
             skipPosMap.remove(blockPos);
+        }
+        if (PlacementGuide.createPortalTick != 1) {
+            PlacementGuide.createPortalTick = 1;
         }
     }
 
@@ -610,8 +613,6 @@ public class Printer extends PrinterUtils {
             if (client.player != null && !canInteracted(pos)) continue;
             BlockState requiredState = worldSchematic.getBlockState(pos);
             PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
-            if (requiredState.isOf(Blocks.NETHER_PORTAL) || requiredState.isOf(Blocks.END_PORTAL)) continue;
-
             //跳过放置
             if (LitematicaMixinMod.PUT_SKIP.getBooleanValue() &&
 //                    PUT_SKIP_LIST.getStrings().stream().anyMatch(block -> Registries.BLOCK.getId(requiredState.getBlock()).toString().contains(block))
