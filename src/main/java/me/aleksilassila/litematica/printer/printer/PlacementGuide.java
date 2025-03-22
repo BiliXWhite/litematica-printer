@@ -817,7 +817,7 @@ public class PlacementGuide extends PrinterUtils {
                 }
             }
 
-            return validSides.getFirst();
+            return validSides.get(0);
         }
 
         public Action setItem(Item item) {
