@@ -171,85 +171,9 @@ public class Printer extends PrinterUtils {
         INSTANCE = this;
     }
 
-    int x1, y1, z1, x2, y2, z2;
+
     int range1;
-
     boolean yDegression = false;
-    //强制循环半径
-    public boolean reSetRange1 = true;
-    //正常循环
-    public boolean reSetRange2 = true;
-    public boolean usingRange1 = true;
-    // 执行一次获取一个pos
-    @Deprecated
-    BlockPos getBlockPos() {
-        if (!usingRange1 && timedOut()) return null;
-        ClientPlayerEntity player = client.player;
-        if (player == null) return null;
-        if (reSetRange1) {
-            x1 = -range1;
-            z1 = -range1;
-            y1 = yDegression ? range1 : -range1;
-            reSetRange1 = false;
-        }
-        if(reSetRange2){
-            x2 = -range2;
-            z2 = -range2;
-            y2 = yDegression ? range2 : -range2;
-            reSetRange2 = false;
-        }
-
-        BlockPos pos;
-        if (usingRange1) {
-            pos = player.getBlockPos().north(x1).west(z1).up(y1);
-        } else {
-            pos = player.getBlockPos().north(x2).west(z2).up(y2);
-        }
-
-        if ((usingRange1 && x1 >= range1 && z1 >= range1 && (yDegression ? y1 < -range1 : y1 > range1)) ||
-                (!usingRange1 && x2 >= range2 && z2 >= range2 && (yDegression ? y2 < -range2 : y2 > range2))) {
-            // 当前范围迭代完成
-            if (usingRange1) {
-                usingRange1 = false; // 切换到使用 range2
-                if(range2 <= range1) return null;
-                return pos;
-            } else {
-                reSetRange2 = true;
-                return null;
-            }
-        }
-
-        if (usingRange1) {
-            x1++;
-            if (x1 > range1) {
-                x1 = -range1;
-                z1++;
-            }
-            if (z1 > range1) {
-                z1 = -range1;
-                if (yDegression) {
-                    y1--;
-                } else {
-                    y1++;
-                }
-            }
-        } else {
-            x2++;
-            if (x2 > range2) {
-                x2 = -range2;
-                z2++;
-            }
-            if (z2 > range2) {
-                z2 = -range2;
-                if (yDegression) {
-                    y2--;
-                } else {
-                    y2++;
-                }
-            }
-        }
-        return pos;
-    }
     public BlockPos basePos = null;
     public MyBox myBox;
     BlockPos getBlockPos2() {
@@ -298,9 +222,6 @@ public class Printer extends PrinterUtils {
             }
         }
         Item[] array = fluidList.toArray(new Item[fluidList.size()]);
-//        for (int y = range; y > -range - 1; y--) {
-//            for (int x = -range; x < range + 1; x++) {
-//                for (int z = -range; z < range + 1; z++) {
         BlockPos pos;
         while ((pos = getBlockPos2()) != null && client.world != null && client.player != null) {
             BlockState currentState = client.world.getBlockState(pos);
@@ -319,9 +240,6 @@ public class Printer extends PrinterUtils {
                 }
                 return;
             }
-//                }
-//            }
-//        }
         }
     }
 
@@ -576,10 +494,8 @@ public class Printer extends PrinterUtils {
         ClientPlayerEntity pEntity = client.player;
         ClientWorld world = client.world;
 
-        reSetRange1 = true;
         range1 = COMPULSION_RANGE.getIntegerValue();
         range2 = getPrinterRange();
-        usingRange1 = true;
         yDegression = false;
         startTime = System.currentTimeMillis();
         tickRate = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();

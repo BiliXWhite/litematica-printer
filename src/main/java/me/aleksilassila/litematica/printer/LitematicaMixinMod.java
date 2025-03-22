@@ -58,8 +58,8 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigHotkey CLOSE_ALL_MODE = new ConfigHotkey("关闭全部模式", "LEFT_CONTROL,G","关闭全部模式，若此时为单模模式将模式恢复为打印");
 
 	//#if MC >= 12001
-	public static final ConfigHotkey LAST = new ConfigHotkey("上一个箱子", "",GUI_NO_ORDER,"");
-	public static final ConfigHotkey NEXT = new ConfigHotkey("下一个箱子", "",GUI_NO_ORDER,"");
+	public static final ConfigHotkey LAST = new ConfigHotkey("上一个容器", "",GUI_NO_ORDER,"");
+	public static final ConfigHotkey NEXT = new ConfigHotkey("下一个容器", "",GUI_NO_ORDER,"");
 	public static final ConfigHotkey DELETE = new ConfigHotkey("删除当前容器", "",GUI_NO_ORDER,"");
 	//#endif
 
@@ -76,9 +76,9 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigOptionList EXCAVATE_LIMITER = new ConfigOptionList("挖掘模式限制器",State.ExcavateListMode.ME,"使用tw挖掘限制预设或自带的限制");
 	public static final ConfigOptionList EXCAVATE_LIMIT = new ConfigOptionList("挖掘模式限制", UsageRestriction.ListType.NONE,"");
 	public static final ConfigStringList EXCAVATE_WHITELIST = new ConfigStringList("挖掘白名单", ImmutableList.of(""), "#minecraft:*** 前方加入#可以按标签搜索，用,分隔可以填入参数\n" +
-			"c:包含（例如 橡树树叶 填入 叶,c 那么此项会被通过）");
+			"c:包含（例如 橡树树叶 填入 叶,c 那么此项条件成立）");
 	public static final ConfigStringList EXCAVATE_BLACKLIST = new ConfigStringList("挖掘黑名单", ImmutableList.of(""), "#minecraft:*** 前方加入#可以按标签搜索，用,分隔可以填入参数\n" +
-			"c:包含（例如 橡树树叶 填入 叶,c 那么此项会被通过）");
+			"c:包含（例如 橡树树叶 填入 叶,c 那么此项条件成立）");
 	public static final ConfigStringList PUT_SKIP_LIST = new ConfigStringList("跳过放置名单", ImmutableList.of(), "");
 	public static final ConfigStringList BEDROCK_LIST = new ConfigStringList("基岩模式白名单", ImmutableList.of("minecraft:bedrock"), "");
 	public static final ConfigStringList REPLACEABLE_LIST = new ConfigStringList("可替换方块",

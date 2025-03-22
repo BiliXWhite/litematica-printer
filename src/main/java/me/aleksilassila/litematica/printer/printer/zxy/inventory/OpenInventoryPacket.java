@@ -281,11 +281,11 @@ public class OpenInventoryPacket {
         //$$ ActionResult r = blockState.onUse(world, player, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(pos), Direction.UP, pos, false));
         //#endif
 
-        if ((r != null && (!r.equals(ActionResult.CONSUME)
+        if (r != null && (!r.equals(ActionResult.CONSUME)
                 //#if MC > 12101
                 //$$ && !r.equals(ActionResult.SUCCESS)
                 //#endif
-        ))) {
+        )) {
             System.out.println("openFail" + pos);
             openReturn(player, blockState, false);
             return;

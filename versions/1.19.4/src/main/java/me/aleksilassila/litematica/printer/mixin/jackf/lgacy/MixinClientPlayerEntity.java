@@ -25,7 +25,7 @@ public class MixinClientPlayerEntity {
     public void closeScreen(CallbackInfo ci) {
         BlockPos pos = MemoryUtils.getLatestPos();
         if(Statistics.loadChestTracker && LitematicaMixinMod.INVENTORY.getBooleanValue() &&
-                (LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed() || printerMemoryAdding || Printer.printerMemorySync) &&(
+                (LitematicaMixinMod.TOGGLE_PRINTING_MODE.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed() || printerMemoryAdding || Printer.printerMemorySync) &&(
                 pos != null || MemoryUtils.getMemoryPos() != null)){
             if(!client.player.currentScreenHandler.equals(client.player.playerScreenHandler)){
                 MemoryUtils.handleItemsFromScreen(client.player.currentScreenHandler);
