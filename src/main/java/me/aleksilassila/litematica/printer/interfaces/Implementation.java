@@ -162,6 +162,7 @@ public class Implementation {
             BlastFurnaceBlock.class, // 高炉
             //if MC >= 12003
             CrafterBlock.class //合成器
+            //endif
 
     };
 
