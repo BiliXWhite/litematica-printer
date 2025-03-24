@@ -379,10 +379,12 @@ public class ZxyUtils {
         return LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue();
     }
 
+    public static int maximumFrameRate = 10;
     public static int frameGenerationTime = getMonitorRefreshRate();
 
     public static int getMonitorRefreshRate() {
         int refreshRate = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()).refreshRate();
+        maximumFrameRate = refreshRate;
         return 1000 / refreshRate;
 //        System.out.println("The monitor refresh rate is " + refreshRate);
     }

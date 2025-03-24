@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.printer;
 
-import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
@@ -15,17 +14,16 @@ import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
-import me.aleksilassila.litematica.printer.mixin.masa.Litematica_InventoryUtilsMixin;
+import me.aleksilassila.litematica.printer.mixin.getFps.AccessorMinecraftClient;
 import me.aleksilassila.litematica.printer.mixin.masa.WorldUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
+import me.aleksilassila.litematica.printer.printer.bedrockUtils.Messager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
-import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import net.fabricmc.loader.api.FabricLoader;
-import net.kyrptonaught.quickshulker.client.ClientUtil;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -36,20 +34,12 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
-import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
-import net.minecraft.util.Identifier;
-import net.minecraft.registry.RegistryKey;
 
-import java.lang.reflect.Method;
 import java.util.*;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
@@ -64,15 +54,11 @@ import static me.aleksilassila.litematica.printer.printer.State.PrintModeType.*;
 import static me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController.cachedTargetBlockList;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsItemName;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 //#if MC >= 12001
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
-import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#else
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
@@ -85,7 +71,6 @@ import red.jackf.chesttracker.api.providers.InteractionTracker;
 //$$ import net.minecraft.util.registry.RegistryKey;
 //$$ import net.minecraft.util.registry.Registry;
 //#else
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.Registries;
     //#if MC < 12002
     //$$
@@ -185,7 +170,7 @@ public class Printer extends PrinterUtils {
             basePos = blockPos;
             myBox = new MyBox(blockPos).expand(range1);
         }
-        //移动后会触发，频繁重置pos会浪费性能
+        //离中心点一段距离后会触发，频繁重置pos会浪费性能
         double num = range1 * 0.7;
         if (!basePos.isWithinDistance(player.getBlockPos(), num)) {
             basePos = null;
@@ -208,8 +193,8 @@ public class Printer extends PrinterUtils {
 
     //根据当前毫秒值判断是否超出了屏幕刷新率
     boolean timedOut() {
-        if (frameGenerationTime == 0) return System.currentTimeMillis() > 15 + startTime;
-        return System.currentTimeMillis() > frameGenerationTime + startTime;
+        return ((AccessorMinecraftClient) client).getCurrentFps() < maximumFrameRate - 5 ||
+                System.currentTimeMillis() > frameGenerationTime -5 + startTime;
     }
 
     void fluidMode() {
