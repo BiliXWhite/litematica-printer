@@ -7,12 +7,9 @@ import net.minecraft.entity.player.PlayerAbilities;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
-//import net.minecraft.network.Packet;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.util.math.Direction;
-
-import static me.aleksilassila.litematica.printer.printer.Printer.itemPos;
 
 /**
  * Dirty class that contains anything and everything that is
@@ -160,9 +157,9 @@ public class Implementation {
             FletchingTableBlock.class, // 制箭台
             SmokerBlock.class, // 烟熏炉
             BlastFurnaceBlock.class, // 高炉
-            //if MC >= 12003
+            //#if MC >= 12003
             CrafterBlock.class //合成器
-            //endif
+            //#endif
 
     };
 

@@ -66,7 +66,13 @@ public class PrinterUtils {
         }
         return Direction.DOWN;
     }
-
+    /**
+     * 根据属性名称获取给定区块状态中的属性值.
+     *
+     * @param state 要检查的区块状态
+     * @param name 属性名称（忽略大小写）
+     * @return 如果找到对应属性, 则返回属性值；否则返回 null
+     */
     public static Comparable<?> getPropertyByName(BlockState state, String name) {
         for (Property<?> prop : state.getProperties()) {
             if (prop.getName().equalsIgnoreCase(name)) {
