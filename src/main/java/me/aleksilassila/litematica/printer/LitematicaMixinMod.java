@@ -37,7 +37,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     public static final ConfigBoolean MULTI_BREAK = new ConfigBoolean("多模阻断",true, "启用后将按模式优先级运行，同时启用多个模式时优先级低的无法执行。");
     public static final ConfigBoolean RENDER_LAYER_LIMIT = new ConfigBoolean("渲染层数限制",false, "根据Litematica的渲染层数限制来限制打印机的工作范围。");
     public static final ConfigBoolean PRINT_IN_AIR = new ConfigBoolean("凭空放置",true, "无视是否有方块面支撑，直接放置方块。");
-    public static final ConfigBooleanHotkeyed PRINT_WATER_LOGGED_BLOCK = new ConfigBooleanHotkeyed("打印含水方块",  false,"","启用后会自动放置冰,破坏冰来使方块含水。");
+    public static final ConfigBooleanHotkeyed PRINT_WATER_LOGGED_BLOCK = new ConfigBooleanHotkeyed("启用打印水",  false,"","启用后会自动放置冰,破坏冰来生成水。");
     public static final ConfigBooleanHotkeyed BREAK_ERROR_BLOCK = new ConfigBooleanHotkeyed("破坏错误方块",  false,"","打印过程中自动破坏投影中错误的方块。");
     public static final ConfigBoolean PRINT_SWITCH = new ConfigBoolean("开启打印",false, "打印的开关状态。");
     public static final ConfigBoolean EASY_MODE = new ConfigBoolean("精准放置",false, "根据投影的设置使用对应的协议。");
