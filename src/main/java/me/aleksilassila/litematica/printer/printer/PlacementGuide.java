@@ -10,14 +10,10 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
-//#if MC < 12104
-//$$ import net.minecraft.state.property.DirectionProperty;
-//#else
-
-//#endif
-
 import net.minecraft.state.property.EnumProperty;
+import net.minecraft.state.property.Properties;
 import net.minecraft.state.property.Property;
+import net.minecraft.text.Text;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -37,7 +33,6 @@ public class PlacementGuide extends PrinterUtils {
     public static boolean breakIce = false;
     @NotNull
     protected final MinecraftClient client;
-    public static long createPortalTick = 1;
 
     public PlacementGuide(@NotNull MinecraftClient client) {
         this.client = client;
@@ -56,51 +51,65 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     public @Nullable Action water(BlockState requiredState, BlockState currentState, BlockPos pos) {
-        Integer i = posMap.get(pos);
-        if (i != null) {
-            posMap.put(pos, i + 1);
-            if (posMap.get(pos) > 10) posMap.remove(pos);
-            if (posMap.size() > 10) {
-                Set<Map.Entry<BlockPos, Integer>> entries = posMap.entrySet();
-                ArrayList<BlockPos> removeList = new ArrayList<>();
-                entries.forEach(v -> {
-                    if (client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(v.getKey())) < 6 * 6)
-                        removeList.add(v.getKey());
-                });
-                removeList.forEach(v -> posMap.remove(v));
+        // 缓存 player 避免重复访问 client.player
+        var player = client.player;
+        if (player == null) {
+            return null;
+        }
+
+        Integer count = posMap.get(pos);
+        if (count != null) {
+            posMap.put(pos, count + 1);
+            if (count + 1 > 10) {
+                posMap.remove(pos);
+            }
+            // 用普通 for 循环替换 stream 操作，减少额外对象分配
+            List<BlockPos> removeList = new ArrayList<>();
+            for (BlockPos key : posMap.keySet()) {
+                if (player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(key)) < 36) {
+                    removeList.add(key);
+                }
+            }
+            for (BlockPos key : removeList) {
+                posMap.remove(key);
             }
         }
 
-        //产生水有延迟，需要等待一会儿
         if (currentState.isOf(Blocks.ICE)) {
-            if (client.player != null) searchPickaxes(client.player);
-            BlockPos tempPos;
-            if (!posMap.containsKey(pos) && (tempPos = excavateBlock(pos)) != null) {
+            searchPickaxes(player);
+            BlockPos tempPos = excavateBlock(pos);
+            if (tempPos != null && !posMap.containsKey(pos)) {
                 posMap.put(tempPos, 0);
                 breakIce = true;
                 return null;
             }
             return null;
         }
-        if (!spawnWater(pos)) return null;
 
-        if (posMap.keySet().stream().anyMatch(p -> p.equals(pos))) return null;
+        if (!spawnWater(pos)) {
+            return null;
+        }
+
+        // 在此处直接判断 posMap 是否含有该位置，避免重复计算
+        if (posMap.containsKey(pos)) {
+            return null;
+        }
+
         State state = State.get(requiredState, currentState);
-        if (state != State.MISSING_BLOCK) return null;
+        if (state != State.MISSING_BLOCK) {
+            return null;
+        }
 
         Direction look = null;
         for (Property<?> prop : requiredState.getProperties()) {
-            //#if MC > 12101
-            if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
-                //#else
-                //$$ if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
-                //#endif
+            if (prop instanceof EnumProperty<?> enumProperty &&
+                    enumProperty.getType().equals(Direction.class) &&
+                    prop.getName().equalsIgnoreCase("FACING")) {
                 look = ((Direction) requiredState.get(prop)).getOpposite();
+                break;
             }
         }
-        Action placement = new Action().setLookDirection(look);
-        placement.setItem(Items.ICE);
-        return placement;
+        return new Action().setLookDirection(look).setItem(Items.ICE);
     }
 
     @SuppressWarnings("EnhancedSwitchMigration")
@@ -143,14 +152,14 @@ public class PlacementGuide extends PrinterUtils {
                 }
                 case AMETHYST: {
                     return new Action()
-                            .setSides(((Direction) getPropertyByName(requiredState, "FACING"))
+                            .setSides((requiredState.get(Properties.FACING))
                                     .getOpposite())
                             .setRequiresSupport();
                 }
                 case ROD:
                 case SHULKER: {
                     return new Action().setSides(
-                            ((Direction) getPropertyByName(requiredState, "FACING"))
+                            (requiredState.get(Properties.FACING))
                                     .getOpposite());
                 }
                 case SLAB: {
@@ -174,19 +183,17 @@ public class PlacementGuide extends PrinterUtils {
                     Direction half = getHalf(requiredState.get(TrapdoorBlock.HALF));
 
                     Map<Direction, Vec3d> sides = new HashMap<>() {{
-                        put(half,
-                                Vec3d.of(half.getVector()).multiply(0.25));
                         put(half, new Vec3d(0, 0, 0));
                     }};
 
                     return new Action()
                             .setSides(sides)
-                            .setLookDirection(requiredState.get(StairsBlock.FACING).getOpposite());
+                            .setLookDirection(requiredState.get(TrapdoorBlock.FACING).getOpposite());
                 }
                 case PILLAR: {
                     Action action = new Action().setSides(requiredState.get(PillarBlock.AXIS));
 
-                    // If is stripped log && should use normal log instead
+                    //如果是剥皮原木且应该使用普通原木替换
                     if (AxeItemAccessor.getStrippedBlocks().containsValue(requiredState.getBlock()) &&
                             LitematicaMixinMod.STRIP_LOGS.getBooleanValue()) {
                         Block stripped = requiredState.getBlock();
@@ -208,20 +215,48 @@ public class PlacementGuide extends PrinterUtils {
                 case ANVIL: {
                     return new Action().setLookDirection(requiredState.get(AnvilBlock.FACING).rotateYCounterclockwise()).setSides(Direction.UP);
                 }
-                case HOPPER: // FIXME add all sides
+                //FIXME)) add all sides
+                case HOPPER: {
+                    Map<Direction, Vec3d> sides = new HashMap<>();
+                    for (Direction direction : Direction.values()) {
+                        if (direction.getAxis() == Direction.Axis.Y) {
+                            sides.put(direction, new Vec3d(0, 0, 0));
+                        } else {
+                            sides.put(direction, Vec3d.of(direction.getVector()).multiply(0.5));
+                        }
+                    }
+
+                    return new Action()
+                            .setSides(sides)
+                            .setLookDirection(requiredState.get(HopperBlock.FACING).getOpposite());
+                }
                 case NETHER_PORTAL: {
 
                     boolean canCreatePortal = net.minecraft.world.dimension.NetherPortal.getNewPortal(world, pos, Direction.Axis.X).isPresent();
-                    if (canCreatePortal && createPortalTick == 1) {
-                        createPortalTick = 0;
+                    if (canCreatePortal) {
                         return new Action().setItems(Items.FLINT_AND_STEEL,Items.FIRE_CHARGE).setRequiresSupport();
                     }
                     break;
                 }
                 case COCOA: {
-                    return new Action().setSides((Direction) getPropertyByName(requiredState, "FACING"));
+                    return new Action().setSides(requiredState.get(Properties.FACING));
                 }
-                case LEVER:
+                //#if MC >= 12003
+                case CRAFTER: {
+                    Direction facing = requiredState.get(Properties.ORIENTATION).getFacing().getOpposite();
+                    Direction rotation = requiredState.get(Properties.ORIENTATION).getRotation().getOpposite();
+                    client.inGameHud.getChatHud().addMessage(Text.of("方块facing: " + facing + " rotation: " + rotation));
+                    return new Action().setLookDirection(facing).setLookDirection2(rotation);
+                }
+                //#endif
+
+                case OBSERVER: {
+                    Direction side = requiredState.get(Properties.FACING).getOpposite();
+                    Direction look = requiredState.get(Properties.FACING);
+
+                    return new Action().setSides(side).setLookDirection(look);
+                }
+
                 case BUTTON: {
                     Direction side;
                     switch ((BlockFace) getPropertyByName(requiredState, "FACE")) {
@@ -234,13 +269,13 @@ public class PlacementGuide extends PrinterUtils {
                             break;
                         }
                         default: {
-                            side = ((Direction) getPropertyByName(requiredState, "FACING")).getOpposite();
+                            side = (requiredState.get(Properties.FACING)).getOpposite();
                             break;
                         }
                     }
 
                     Direction look = getPropertyByName(requiredState, "FACE") == WALL ?
-                            null : (Direction) getPropertyByName(requiredState, "FACING");
+                            null : requiredState.get(Properties.FACING);
 
                     return new Action().setSides(side).setLookDirection(look).setRequiresSupport();
                 }
@@ -248,11 +283,11 @@ public class PlacementGuide extends PrinterUtils {
                     Direction side = switch ((BlockFace) getPropertyByName(requiredState, "FACE")) {
                         case FLOOR -> Direction.DOWN;
                         case CEILING -> Direction.UP;
-                        default -> (Direction) getPropertyByName(requiredState, "FACING");
+                        default -> requiredState.get(Properties.FACING);
                     };
 
                     Direction look = getPropertyByName(requiredState, "FACE") == WALL ?
-                            null : (Direction) getPropertyByName(requiredState, "FACING");
+                            null : requiredState.get(Properties.FACING);
 
                     Map<Direction, Vec3d> sides = new HashMap<>();
                     sides.put(Direction.DOWN, Vec3d.of(side.getVector()).multiply(0.5));
@@ -260,10 +295,9 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setSides(sides).setLookDirection(look);
                 }
                 case GATE:
-                case OBSERVER:
                 case CAMPFIRE: {
                     return new Action()
-                            .setLookDirection((Direction) getPropertyByName(requiredState, "FACING"));
+                            .setLookDirection(requiredState.get(Properties.FACING));
                 }
                 case BED: {
                     if (requiredState.get(BedBlock.PART) != BedPart.FOOT) {
@@ -331,7 +365,6 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setItem(Items.GLOW_BERRIES);
                 }
 
-                //花盆修复
                 case FLOWER_POT: {
                     return new Action().setItem(Items.FLOWER_POT);
                 }
@@ -342,7 +375,7 @@ public class PlacementGuide extends PrinterUtils {
 
                 }
                 case DEFAULT:
-                default: { // Try to guess how the rest of the blocks are placed.
+                default: { // 尝试猜测剩余方块如何放置
                     Direction look = null;
 
                     for (Property<?> prop : requiredState.getProperties()) {
@@ -467,6 +500,16 @@ public class PlacementGuide extends PrinterUtils {
 
                     break;
                 }
+                //#if MC >= 11904
+                case FLOWERBED: {
+                    client.inGameHud.getChatHud().addMessage(Text.of("所需花瓣数量: " + requiredState.get(FlowerbedBlock.FLOWER_AMOUNT)));
+                    if (currentState.get(FlowerbedBlock.FLOWER_AMOUNT) <= requiredState.get(FlowerbedBlock.FLOWER_AMOUNT)) {
+                        client.inGameHud.getChatHud().addMessage(Text.of("尝试放置" + requiredState.getBlock().asItem().toString()));
+                        return new ClickAction().setItem(requiredState.getBlock().asItem());
+                    }
+                    break;
+                }
+                //#endif
                 case DEFAULT: {
                     if (currentState.getBlock().equals(Blocks.DIRT) && requiredState.getBlock().equals(Blocks.FARMLAND)) {
                         return new ClickAction().setItems(Implementation.HOES);
@@ -501,89 +544,13 @@ public class PlacementGuide extends PrinterUtils {
                     break;
                 }
                 case FLOWER_POT: {
-                    String blockTranslationKey = requiredState.getBlock().getTranslationKey();
-                    if (blockTranslationKey != null && blockTranslationKey.contains("potted")) {
-                        //利用字符串判断，一一对应方块
-                        //potted_dandelion, potted_poppy, potted_blue_orchid, potted_allium, potted_azure_bluet, potted_red_tulip, potted_orange_tulip, potted_white_tulip, potted_pink_tulip, potted_oxeye_daisy, potted_cornflower, potted_lily_of_the_valley, potted_wither_rose, potted_oak_sapling,potted_spruce_sapling,potted_birch_sapling,potted_jungle_sapling,potted_acacia_sapling,potted_dark_oak_sapling,potted_red_mushroom,potted_brown_mushroom,potted_fern,potted_dead_bush,potted_cactus,potted_bamboo,potted_azalea_bush,potted_flowering_azalea_bush,potted_crimson_fungus,potted_crimson_roots,potted_warped_roots,potted_mangrove_propagule,potted_cherry_sapling,potted_torchflower
-                        switch (blockTranslationKey) {
-                            case "block.minecraft.potted_dandelion":
-                                return new ClickAction().setItem(Items.DANDELION);
-                            case "block.minecraft.potted_poppy":
-                                return new ClickAction().setItem(Items.POPPY);
-                            case "block.minecraft.potted_blue_orchid":
-                                return new ClickAction().setItem(Items.BLUE_ORCHID);
-                            case "block.minecraft.potted_allium":
-                                return new ClickAction().setItem(Items.ALLIUM);
-                            case "block.minecraft.potted_azure_bluet":
-                                return new ClickAction().setItem(Items.AZURE_BLUET);
-                            case "block.minecraft.potted_red_tulip":
-                                return new ClickAction().setItem(Items.RED_TULIP);
-                            case "block.minecraft.potted_orange_tulip":
-                                return new ClickAction().setItem(Items.ORANGE_TULIP);
-                            case "block.minecraft.potted_white_tulip":
-                                return new ClickAction().setItem(Items.WHITE_TULIP);
-                            case "block.minecraft.potted_pink_tulip":
-                                return new ClickAction().setItem(Items.PINK_TULIP);
-                            case "block.minecraft.potted_oxeye_daisy":
-                                return new ClickAction().setItem(Items.OXEYE_DAISY);
-                            case "block.minecraft.potted_cornflower":
-                                return new ClickAction().setItem(Items.CORNFLOWER);
-                            case "block.minecraft.potted_lily_of_the_valley":
-                                return new ClickAction().setItem(Items.LILY_OF_THE_VALLEY);
-                            case "block.minecraft.potted_wither_rose":
-                                return new ClickAction().setItem(Items.WITHER_ROSE);
-                            case "block.minecraft.potted_oak_sapling":
-                                return new ClickAction().setItem(Items.OAK_SAPLING);
-                            case "block.minecraft.potted_spruce_sapling":
-                                return new ClickAction().setItem(Items.SPRUCE_SAPLING);
-                            case "block.minecraft.potted_birch_sapling":
-                                return new ClickAction().setItem(Items.BIRCH_SAPLING);
-                            case "block.minecraft.potted_jungle_sapling":
-                                return new ClickAction().setItem(Items.JUNGLE_SAPLING);
-                            case "block.minecraft.potted_acacia_sapling":
-                                return new ClickAction().setItem(Items.ACACIA_SAPLING);
-                            case "block.minecraft.potted_dark_oak_sapling":
-                                return new ClickAction().setItem(Items.DARK_OAK_SAPLING);
-                            case "block.minecraft.potted_red_mushroom":
-                                return new ClickAction().setItem(Items.RED_MUSHROOM);
-                            case "block.minecraft.potted_brown_mushroom":
-                                return new ClickAction().setItem(Items.BROWN_MUSHROOM);
-                            case "block.minecraft.potted_fern":
-                                return new ClickAction().setItem(Items.FERN);
-                            case "block.minecraft.potted_dead_bush":
-                                return new ClickAction().setItem(Items.DEAD_BUSH);
-                            case "block.minecraft.potted_cactus":
-                                return new ClickAction().setItem(Items.CACTUS);
-                            case "block.minecraft.potted_bamboo":
-                                return new ClickAction().setItem(Items.BAMBOO);
-                            case "block.minecraft.potted_azalea_bush":
-                                return new ClickAction().setItem(Items.AZALEA);
-                            case "block.minecraft.potted_flowering_azalea_bush":
-                                return new ClickAction().setItem(Items.FLOWERING_AZALEA);
-                            case "block.minecraft.potted_crimson_fungus":
-                                return new ClickAction().setItem(Items.CRIMSON_FUNGUS);
-                            case "block.minecraft.potted_crimson_roots":
-                                return new ClickAction().setItem(Items.CRIMSON_ROOTS);
-                            case "block.minecraft.potted_warped_roots":
-                                return new ClickAction().setItem(Items.WARPED_ROOTS);
-                            //#if MC > 11904
-                            case "block.minecraft.potted_torchflower":
-                                return new ClickAction().setItem(Items.TORCHFLOWER);
-                            case "block.minecraft.potted_mangrove_propagule":
-                                return new ClickAction().setItem(Items.MANGROVE_PROPAGULE);
-                            case "block.minecraft.potted_cherry_sapling":
-                                return new ClickAction().setItem(Items.CHERRY_SAPLING);
-                            //#endif
-                            //#if MC > 12101
-                            case "block.minecraft.potted_plae_oak_sapling":
-                                return new ClickAction().setItem(Items.PALE_OAK_SAPLING);
-                            //#endif
-                            default:
-                                return null;
+                    //所以aleksilassila你在这里干了什么？明明这么简单还要再mixin个访问器
+                    if (requiredState.getBlock() instanceof FlowerPotBlock potBlock) {
+                        Block content = potBlock.getContent();
+                        if (content != Blocks.AIR) {
+                            return new ClickAction().setItem(content.asItem());
                         }
                     }
-
-                    break;
                 }
                 case WATER: {
 
@@ -600,7 +567,7 @@ public class PlacementGuide extends PrinterUtils {
 
     enum ClassHook {
         // 放置
-        ROD(Implementation.NewBlocks.ROD.clazz), // 杆
+        ROD(RodBlock.class), // 杆
         WALLTORCH(WallTorchBlock.class, WallRedstoneTorchBlock.class), // 墙上的火把
         TORCH(TorchBlock.class), // 火把
         SLAB(SlabBlock.class), // 台阶
@@ -609,29 +576,35 @@ public class PlacementGuide extends PrinterUtils {
         PILLAR(PillarBlock.class), // 柱子
         ANVIL(AnvilBlock.class), // 铁砧
         HOPPER(HopperBlock.class), // 漏斗
-        GRINDSTONE(GrindstoneBlock.class), // 磨石
+        GRINDSTONE(GrindstoneBlock.class), // 砂轮
         BUTTON(ButtonBlock.class), // 按钮
         CAMPFIRE(CampfireBlock.class), // 营火
         SHULKER(ShulkerBoxBlock.class), // 潜影盒
         BED(BedBlock.class), // 床
         BELL(BellBlock.class), // 钟
-        AMETHYST(Implementation.NewBlocks.AMETHYST.clazz), // 紫水晶
+        AMETHYST(AmethystBlock.class), // 紫水晶
         DOOR(DoorBlock.class), // 门
         COCOA(CocoaBlock.class), // 可可豆
-        OBSERVER(ObserverBlock.class), // 观察者
         WALLSKULL(WallSkullBlock.class), // 墙上的头颅
         NETHER_PORTAL(NetherPortalBlock.class), // 下界传送门
+        //#if MC >= 12003
+        CRAFTER(CrafterBlock.class), // 合成器
+        //#endif
+        OBSERVER(ObserverBlock.class), // 侦测器
 
         // 仅点击
         FLOWER_POT(FlowerPotBlock.class), // 花盆
         BIG_DRIPLEAF_STEM(BigDripleafStemBlock.class), // 大垂叶茎
         SNOW(SnowBlock.class), // 雪
-        CANDLES(Implementation.NewBlocks.CANDLES.clazz), // 蜡烛
+        CANDLES(CandleBlock.class), // 蜡烛
         REPEATER(RepeaterBlock.class), // 中继器
         COMPARATOR(ComparatorBlock.class), // 比较器
         PICKLES(SeaPickleBlock.class), // 海泡菜
         NOTE_BLOCK(NoteBlock.class), // 音符盒
         END_PORTAL_FRAME(EndPortalFrameBlock.class), // 末地传送门框架
+        //#if MC >= 11904
+        FLOWERBED(FlowerbedBlock.class), // 花簇（ojng你看看你这是什么抽象命名）
+        //#endif
 
         // 两者皆有
         GATE(FenceGateBlock.class), // 栅栏门
@@ -655,6 +628,7 @@ public class PlacementGuide extends PrinterUtils {
     public static class Action {
         protected Map<Direction, Vec3d> sides;
         protected Direction lookDirection;
+        protected Direction lookDirection2;
         @Nullable
         protected Item[] clickItems; // null == any
 
@@ -681,15 +655,12 @@ public class PlacementGuide extends PrinterUtils {
         }
 
         /**
-         * @param side     The side pointing to the block that should be clicked
-         * @param modifier defines where should be clicked exactly. Vector's
-         *                 x component defines left and right offset, y
-         *                 defines height variation and z how far away from
-         *                 player. (0, 0, 0) means click happens in the middle
-         *                 of the side that is being clicked. (0.5, -0.5, 0)
-         *                 would mean right bottom corner when clicking a
-         *                 vertical side. Therefore, z should only be used when
-         *                 clicking horizontal surface.
+         * @param side     要点击的方块的哪一面
+         * @param modifier  点击位置的偏移量。
+         *                  x: 左右偏移, y: 上下偏移, z: 前后偏移。
+         *                  (0, 0, 0): 点击面的中心,
+         *                  (0.5, -0.5, 0): 垂直面右下角。
+         *                  水平面只需调整 z 轴。
          */
         public Action(Direction side, Vec3d modifier) {
             this.sides = new HashMap<>();
@@ -717,6 +688,20 @@ public class PlacementGuide extends PrinterUtils {
             }
         }
 
+        /**
+         * 检查一个方块是否可以被替换。
+         * <p>
+         *   简单来说，就是判断这个方块是否“碍事”，能不能直接在上面放新的方块。
+         *   例如，草是可以直接被覆盖放置的，而石头、木头这些则不行。
+         * </p>
+         * <p>
+         *   在老版本（Minecraft 1.19.4 之前）会检查方块的材质是否被认为是可替换的。
+         *   新版本则直接使用方块状态自带的 {@code isReplaceable()} 方法来判断。
+         * </p>
+         *
+         * @param state 要检查的方块状态
+         * @return 如果方块状态可以被替换，则返回 {@code true}；否则返回 {@code false}
+         */
         public static boolean isReplaceable(BlockState state) {
             //#if MC < 11904
             //$$ return state.getMaterial().isReplaceable();
@@ -729,7 +714,22 @@ public class PlacementGuide extends PrinterUtils {
             return lookDirection;
         }
 
+        public @Nullable Direction getLookDirection2() {
+            return lookDirection2;
+        }
+
+        /**
+         * 设置放置时玩家的视角朝向
+         *
+         * @param lookDirection 视角朝向
+         * @return 当前 Action 实例
+         */
         public Action setLookDirection(Direction lookDirection) {
+            this.lookDirection = lookDirection;
+            return this;
+        }
+
+        public Action setLookDirection2(Direction lookDirection) {
             this.lookDirection = lookDirection;
             return this;
         }
@@ -749,6 +749,15 @@ public class PlacementGuide extends PrinterUtils {
             return this.sides;
         }
 
+        /**
+         * 设置操作动作的所有有效方向。
+         * <p>
+         * 该方法会遍历所有给定的轴，收集每个轴上所有对应的方向，
+         * 并为每个方向生成默认的偏移值（0,0,0）。
+         *
+         * @param axis 要设置的方向轴列表
+         * @return 当前操作动作实例
+         */
         public Action setSides(Direction.Axis... axis) {
             Map<Direction, Vec3d> sides = new HashMap<>();
 
@@ -764,18 +773,18 @@ public class PlacementGuide extends PrinterUtils {
             return this;
         }
 
-//        public Action setInvalidNeighbors(Direction... neighbors) {
-//            List<Direction> dirs = Arrays.asList(Direction.values());
-//            dirs.removeAll(Arrays.asList(neighbors));
-//            this.neighbors = dirs.toArray(Direction[]::new);
-//            return this;
-//        }
-
         public Action setSides(Map<Direction, Vec3d> sides) {
             this.sides = sides;
             return this;
         }
-
+        /**
+         * 设置操作的有效方向。
+         * <p>
+         * 为每个传入的方向设置默认的偏移值 (0, 0, 0)。
+         *
+         * @param directions 要设置的方向数组
+         * @return 当前 Action 实例，便于链式调用
+         */
         public Action setSides(Direction... directions) {
             Map<Direction, Vec3d> sides = new HashMap<>();
 
@@ -787,6 +796,16 @@ public class PlacementGuide extends PrinterUtils {
             return this;
         }
 
+        /**
+         * 获取有效的侧面。
+         * <p>
+         * 遍历所有侧面并返回第一个可用的方向，
+         * 如果没有可用的侧面，则返回 null 。
+         *
+         * @param world 当前的客户端世界
+         * @param pos   方块的位置
+         * @return 第一个有效侧面，如果不存在则返回 null
+         */
         public @Nullable Direction getValidSide(ClientWorld world, BlockPos pos) {
             Map<Direction, Vec3d> sides = getSides();
 
@@ -865,12 +884,21 @@ public class PlacementGuide extends PrinterUtils {
             return this.clickItems;
         }
 
+        /**
+         * 获取有效的侧面。
+         * <p>
+         * 遍历所有侧面并返回第一个可用的方向，
+         * 如果没有可用的侧面，则返回 null 。
+         *
+         * @param world 当前的 ClientWorld 实例
+         * @param pos   块的位置
+         * @return 第一个有效侧面，如果不存在则返回 null
+         */
         @Override
         public @Nullable Direction getValidSide(ClientWorld world, BlockPos pos) {
             for (Direction side : getSides().keySet()) {
                 return side;
             }
-
             return null;
         }
     }
