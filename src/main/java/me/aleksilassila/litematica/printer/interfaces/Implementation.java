@@ -12,8 +12,6 @@ import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.util.math.Direction;
 
-import static me.aleksilassila.litematica.printer.printer.Printer.itemPos;
-
 /**
  * Dirty class that contains anything and everything that is
  * required to access variables and functions that are inconsistent
@@ -38,18 +36,21 @@ public class Implementation {
         return playerEntity.getAbilities();
     }
 
-    public static float getYaw(ClientPlayerEntity playerEntity) {
-        return playerEntity.getYaw();
-    }
-
-    public static float getPitch(ClientPlayerEntity playerEntity) {
-        return playerEntity.getPitch();
-    }
-
     public static void sendLookPacket(ClientPlayerEntity playerEntity, Direction playerShouldBeFacing) {
         playerEntity.networkHandler.sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(
-                Implementation.getRequiredYaw(playerEntity, playerShouldBeFacing),
-                Implementation.getRequiredPitch(playerEntity, playerShouldBeFacing),
+                Implementation.getRequiredYaw(playerShouldBeFacing),
+                Implementation.getRequiredPitch(playerShouldBeFacing),
+                playerEntity.isOnGround()
+                //#if MC > 12101
+                ,playerEntity.horizontalCollision
+                //#endif
+        ));
+    }
+
+    public static void sendLookPacket(ClientPlayerEntity playerEntity, Direction playerShouldBeFacing1, Direction playerShouldBeFacing2) {
+        playerEntity.networkHandler.sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(
+                Implementation.getRequiredYaw(playerShouldBeFacing1),
+                Implementation.getRequiredPitch(playerShouldBeFacing2),
                 playerEntity.isOnGround()
                 //#if MC > 12101
                 ,playerEntity.horizontalCollision
@@ -68,8 +69,8 @@ public class Implementation {
     public static Packet<?> getFixedLookPacket(ClientPlayerEntity playerEntity, Packet<?> packet, Direction direction) {
         if (direction == null) return packet;
 
-        float yaw = Implementation.getRequiredYaw(playerEntity, direction);
-        float pitch = Implementation.getRequiredPitch(playerEntity, direction);
+        float yaw = Implementation.getRequiredYaw(direction);
+        float pitch = Implementation.getRequiredPitch(direction);
 
         double x = ((PlayerMoveC2SPacketAccessor) packet).getX();
         double y = ((PlayerMoveC2SPacketAccessor) packet).getY();
@@ -82,20 +83,19 @@ public class Implementation {
         );
     }
 
-    protected static float getRequiredYaw(ClientPlayerEntity playerEntity, Direction playerShouldBeFacing) {
+    public static float getRequiredYaw(Direction playerShouldBeFacing) {
         if (playerShouldBeFacing.getAxis().isHorizontal()) {
             return playerShouldBeFacing.getPositiveHorizontalDegrees();
         } else {
-            return Implementation.getYaw(playerEntity);
+            return 0;
         }
     }
 
-    protected static float getRequiredPitch(ClientPlayerEntity playerEntity, Direction playerShouldBeFacing) {
+    public static float getRequiredPitch(Direction playerShouldBeFacing) {
         if (playerShouldBeFacing.getAxis().isVertical()) {
-            return playerShouldBeFacing == Direction.DOWN ? 90 : -90; // FIXME make this less sus too
+            return playerShouldBeFacing == Direction.DOWN ? 90 : -90;
         } else {
-            float pitch = Implementation.getPitch(playerEntity);
-            return Math.abs(pitch) < 40 ? pitch : pitch / Math.abs(pitch) * 40;
+            return 0;
         }
     }
 
@@ -107,19 +107,6 @@ public class Implementation {
         }
 
         return false;
-    }
-
-    public enum NewBlocks {
-//        LICHEN(AbstractLichenBlock.class),
-        ROD(RodBlock.class),
-        CANDLES(CandleBlock.class),
-        AMETHYST(AmethystClusterBlock.class);
-
-        public final Class<?> clazz;
-
-        NewBlocks(Class<?> clazz) {
-            this.clazz = clazz;
-        }
     }
 
     public static Class<?>[] interactiveBlocks = {
@@ -160,9 +147,9 @@ public class Implementation {
             FletchingTableBlock.class, // 制箭台
             SmokerBlock.class, // 烟熏炉
             BlastFurnaceBlock.class, // 高炉
-            //if MC >= 12003
+            //#if MC >= 12003
             CrafterBlock.class //合成器
-            //endif
+            //#endif
 
     };
 
