@@ -166,18 +166,20 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setSides(getSlabSides(world, pos, requiredState.get(SlabBlock.TYPE)));
                 }
                 case STAIR: {
-                    Direction half = getHalf(requiredState.get(StairsBlock.HALF));
+                    Direction facing = requiredState.get(StairsBlock.FACING);
+                    BlockHalf half = requiredState.get(StairsBlock.HALF);
 
                     Map<Direction, Vec3d> sides = new HashMap<>();
-                    for (Direction direction : horizontalDirections) {
-                        sides.put(direction, Vec3d.of(half.getVector()).multiply(0.25));
+                    if (half == BlockHalf.BOTTOM) {
+                        sides.put(Direction.DOWN, new Vec3d(0, 0, 0));
+                    } else {
+                        sides.put(Direction.UP, new Vec3d(0, 0, 0));
                     }
-
-                    sides.put(half, new Vec3d(0, 0, 0));
+                    sides.put(facing.getOpposite(), new Vec3d(0, 0, 0));
 
                     return new Action()
                             .setSides(sides)
-                            .setLookDirection(requiredState.get(StairsBlock.FACING));
+                            .setLookDirection(facing);
                 }
                 case TRAPDOOR: {
                     Direction half = getHalf(requiredState.get(TrapdoorBlock.HALF));
