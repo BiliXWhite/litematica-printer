@@ -27,7 +27,7 @@ Litematica 打印机
 * 运行 `gradlew build` 编译
 * 生成文件位于 `build/libs/`
 
-# LiteMatica Printer 使用文档
+# Litematica Printer 使用文档
 
 >[!WARNING]  
 >此说明文档基于 [BiliXWhite 修改版打印机](https://github.com/BiliXWhite/litematica-printer)，该版本新增多项特性。
