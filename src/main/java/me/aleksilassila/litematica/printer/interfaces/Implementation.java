@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.interfaces;
 
 import me.aleksilassila.litematica.printer.mixin.PlayerMoveC2SPacketAccessor;
 import net.minecraft.block.*;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerAbilities;
 import net.minecraft.entity.player.PlayerInventory;
@@ -36,21 +37,10 @@ public class Implementation {
         return playerEntity.getAbilities();
     }
 
-    public static void sendLookPacket(ClientPlayerEntity playerEntity, Direction playerShouldBeFacing) {
+    public static void sendLookPacket(ClientPlayerEntity playerEntity, Direction playerShouldBeFacingYaw, Direction playerShouldBeFacingPitch) {
         playerEntity.networkHandler.sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(
-                Implementation.getRequiredYaw(playerShouldBeFacing),
-                Implementation.getRequiredPitch(playerShouldBeFacing),
-                playerEntity.isOnGround()
-                //#if MC > 12101
-                ,playerEntity.horizontalCollision
-                //#endif
-        ));
-    }
-
-    public static void sendLookPacket(ClientPlayerEntity playerEntity, Direction playerShouldBeFacing1, Direction playerShouldBeFacing2) {
-        playerEntity.networkHandler.sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(
-                Implementation.getRequiredYaw(playerShouldBeFacing1),
-                Implementation.getRequiredPitch(playerShouldBeFacing2),
+                Implementation.getRequiredYaw(playerShouldBeFacingYaw),
+                Implementation.getRequiredPitch(playerShouldBeFacingPitch),
                 playerEntity.isOnGround()
                 //#if MC > 12101
                 ,playerEntity.horizontalCollision
@@ -66,11 +56,11 @@ public class Implementation {
         return packet instanceof PlayerMoveC2SPacket.Full;
     }
 
-    public static Packet<?> getFixedLookPacket(ClientPlayerEntity playerEntity, Packet<?> packet, Direction direction) {
-        if (direction == null) return packet;
+    public static Packet<?> getFixedLookPacket(ClientPlayerEntity playerEntity, Packet<?> packet, Direction directionYaw, Direction directionPitch) {
+        if (directionYaw == null || directionPitch == null) return packet;
 
-        float yaw = Implementation.getRequiredYaw(direction);
-        float pitch = Implementation.getRequiredPitch(direction);
+        float yaw = Implementation.getRequiredYaw(directionYaw);
+        float pitch = Implementation.getRequiredPitch(directionPitch);
 
         double x = ((PlayerMoveC2SPacketAccessor) packet).getX();
         double y = ((PlayerMoveC2SPacketAccessor) packet).getY();

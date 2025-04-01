@@ -104,7 +104,6 @@ import static fi.dy.masa.malilib.util.InventoryUtils.areStacksEqualIgnoreNbt;
 //#endif
 
 public class Printer extends PrinterUtils {
-    public static Vec3d itemPos = null;
     public static HashSet<Item> remoteItem = new HashSet<>();
     public static HashSet<Item> fluidList = new HashSet<>();
     public static boolean printerMemorySync = false;
@@ -126,12 +125,9 @@ public class Printer extends PrinterUtils {
     public int range2;
     //强制循环半径
     public boolean reSetRange1 = true;
-    //正常循环
-    public boolean reSetRange2 = true;
     public boolean usingRange1 = true;
     public BlockPos basePos = null;
     public MyBox myBox;
-    int x1, y1, z1, x2, y2, z2;
     int range1;
     boolean yDegression = false;
     BlockPos tempPos = null;
@@ -260,101 +256,30 @@ public class Printer extends PrinterUtils {
         return false;
     }
 
-    // 执行一次获取一个pos
-    @Deprecated
     BlockPos getBlockPos() {
-        if (!usingRange1 && timedOut()) return null;
-        ClientPlayerEntity player = client.player;
-        if (player == null) return null;
-        if (reSetRange1) {
-            x1 = -range1;
-            z1 = -range1;
-            y1 = yDegression ? range1 : -range1;
-            reSetRange1 = false;
-        }
-        if (reSetRange2) {
-            x2 = -range2;
-            z2 = -range2;
-            y2 = yDegression ? range2 : -range2;
-            reSetRange2 = false;
-        }
-
-        BlockPos pos;
-        if (usingRange1) {
-            pos = player.getBlockPos().north(x1).west(z1).up(y1);
-        } else {
-            pos = player.getBlockPos().north(x2).west(z2).up(y2);
-        }
-
-        if ((usingRange1 && x1 >= range1 && z1 >= range1 && (yDegression ? y1 < -range1 : y1 > range1)) ||
-                (!usingRange1 && x2 >= range2 && z2 >= range2 && (yDegression ? y2 < -range2 : y2 > range2))) {
-            // 当前范围迭代完成
-            if (usingRange1) {
-                usingRange1 = false; // 切换到使用 range2
-                if (range2 <= range1) return null;
-                return pos;
-            } else {
-                reSetRange2 = true;
-                return null;
-            }
-        }
-
-        if (usingRange1) {
-            x1++;
-            if (x1 > range1) {
-                x1 = -range1;
-                z1++;
-            }
-            if (z1 > range1) {
-                z1 = -range1;
-                if (yDegression) {
-                    y1--;
-                } else {
-                    y1++;
-                }
-            }
-        } else {
-            x2++;
-            if (x2 > range2) {
-                x2 = -range2;
-                z2++;
-            }
-            if (z2 > range2) {
-                z2 = -range2;
-                if (yDegression) {
-                    y2--;
-                } else {
-                    y2++;
-                }
-            }
-        }
-        return pos;
-    }
-
-    BlockPos getBlockPos2() {
         if (timedOut()) return null;
         ClientPlayerEntity player = client.player;
         if (player == null) return null;
+        BlockPos playerPos = player.getBlockPos();
         if (basePos == null) {
-            BlockPos blockPos = player.getBlockPos();
-            basePos = blockPos;
-            myBox = new MyBox(blockPos).expand(range1);
+            basePos = playerPos;
+            myBox = new MyBox(basePos).expand(range1);
         }
-        //移动后会触发，频繁重置pos会浪费性能
-        double num = range1 * 0.7;
-        if (!basePos.isWithinDistance(player.getBlockPos(), num)) {
+        // 避免重复获取玩家位置，提升效率
+        double threshold = range1 * 0.7;
+        if (!basePos.isWithinDistance(playerPos, threshold)) {
             basePos = null;
             return null;
         }
         myBox.yIncrement = !yDegression;
         myBox.initIterator();
+        // 缓存获取的配置值，减少循环中重复调用
+        IConfigOptionListEntry rangeMode = LitematicaMixinMod.RANGE_MODE.getOptionListValue();
         Iterator<BlockPos> iterator = myBox.iterator;
         while (iterator.hasNext()) {
             BlockPos pos = iterator.next();
-            IConfigOptionListEntry optionListValue = LitematicaMixinMod.RANGE_MODE.getOptionListValue();
-            if (optionListValue == State.ListType.SPHERE && !basePos.isWithinDistance(pos, range1)) {
+            if (rangeMode == State.ListType.SPHERE && !basePos.isWithinDistance(pos, range1))
                 continue;
-            }
             return pos;
         }
         basePos = null;
@@ -378,7 +303,7 @@ public class Printer extends PrinterUtils {
         }
         Item[] array = fluidList.toArray(new Item[fluidList.size()]);
         BlockPos pos;
-        while ((pos = getBlockPos2()) != null && client.world != null && client.player != null) {
+        while ((pos = getBlockPos()) != null && client.world != null && client.player != null) {
             BlockState currentState = client.world.getBlockState(pos);
             if (client.player != null && !canInteracted(pos)) continue;
             if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
@@ -400,7 +325,7 @@ public class Printer extends PrinterUtils {
 
     void miningMode() {
         BlockPos pos;
-        while ((pos = tempPos == null ? getBlockPos2() : tempPos) != null) {
+        while ((pos = tempPos == null ? getBlockPos() : tempPos) != null) {
             if (client.player != null && (!canInteracted(pos) || isLimitedByTheNumberOfLayers(pos))) {
                 if (tempPos == null) continue;
                 tempPos = null;
@@ -424,7 +349,7 @@ public class Printer extends PrinterUtils {
         int maxy = -9999;
         range2 = bedrockModeRange();
         BlockPos pos;
-        while ((pos = getBlockPos2()) != null && client.world != null) {
+        while ((pos = getBlockPos()) != null && client.world != null) {
             if (!ZxyUtils.bedrockCanInteracted(pos, getRage())) continue;
             if (isLimitedByTheNumberOfLayers(pos)) continue;
             BlockState currentState = client.world.getBlockState(pos);
@@ -606,7 +531,7 @@ public class Printer extends PrinterUtils {
 
         // 遍历所有区域内的方块位置
         BlockPos pos;
-        while ((pos = getBlockPos2()) != null) {
+        while ((pos = getBlockPos()) != null) {
             // 检查玩家是否能与该位置进行互动修复
             if (player != null && !canInteracted(pos)) continue;
             BlockState requiredState = worldSchematic.getBlockState(pos);
@@ -657,7 +582,8 @@ public class Printer extends PrinterUtils {
                     useShift = true;
                 }
 
-                Direction lookDir = action.getLookDirection();
+                Direction lookDirYaw = action.getLookDirectionYaw();
+                Direction lookDirPitch = action.getLookDirectionPitch();
 
                 // 对于特殊互动方块，若已处于装备切换状态，则跳过重复处理
                 if (!LitematicaMixinMod.EASY_MODE.getBooleanValue() &&
@@ -672,7 +598,7 @@ public class Printer extends PrinterUtils {
 
                 // 对观察者方块进行额外检测，确保放置方向正确
                 if (requiredState.isOf(Blocks.OBSERVER) && PUT_TESTING.getBooleanValue()) {
-                    BlockPos offset = pos.offset(lookDir);
+                    BlockPos offset = pos.offset(lookDirYaw);
                     BlockState state1 = world.getBlockState(offset);
                     BlockState state2 = worldSchematic.getBlockState(offset);
                     if (isSchematicBlock(offset)) {
@@ -682,16 +608,8 @@ public class Printer extends PrinterUtils {
                 }
                 if (LitematicaMixinMod.FORCED_PLACEMENT.getBooleanValue()) useShift = true;
                 // 发送放置前的准备操作
-                sendPlacementPreparation(player, requiredItems, lookDir);
-
-                //TODO)) 针对合成器的特殊处理
-                //#if MC >= 12003
-                if (requiredState.isOf(Blocks.CRAFTER)) {
-                    sendLook(player, lookDir, action.lookDirection2);
-                }
-                //#endif
-
-                action.queueAction(queue, pos, side, useShift, lookDir != null);
+                sendPlacementPreparation(player, requiredItems, lookDirYaw, lookDirPitch);
+                action.queueAction(queue, pos, side, useShift, lookDirYaw != null);
 
                 // 应用精确点击的修正偏移（若有）
                 Vec3d hitModifier = usePrecisionPlacement(pos, requiredState);
@@ -772,7 +690,7 @@ public class Printer extends PrinterUtils {
 
     private void sendPlacementPreparation(ClientPlayerEntity player, Item[] requiredItems, Direction lookDir) {
         switchToItems(player, requiredItems);
-        sendLook(player, lookDir);
+        sendLook(player, lookDirYaw, lookDirPitch);
     }
 
     public void switchInv() {
@@ -978,17 +896,12 @@ public class Printer extends PrinterUtils {
         }
     }
 
-    public void sendLook(ClientPlayerEntity player, Direction direction) {
-        if (direction != null) {
-            Implementation.sendLookPacket(player, direction);
+    public void sendLook(ClientPlayerEntity player, Direction directionYaw, Direction directionPitch) {
+        if (directionYaw != null || directionPitch != null) {
+            Implementation.sendLookPacket(player, directionYaw, directionPitch);
         }
-        queue.lookDir = direction;
-    }
-
-    public void sendLook(ClientPlayerEntity player, Direction direction1, Direction direction2) {
-        if (direction1 != null && direction2 != null) {
-            Implementation.sendLookPacket(player, direction1, direction2);
-        }
+        queue.lookDirYaw = directionYaw;
+        queue.lookDirPitch = directionPitch;
     }
 
     public static class TempData {
@@ -1031,7 +944,8 @@ public class Printer extends PrinterUtils {
         public boolean shift = false;
         public boolean didSendLook = true;
         public boolean termsOfUse = false;
-        public Direction lookDir = null;
+        public Direction lookDirYaw = null;
+        public Direction lookDirPitch = null;
 
         public Queue(Printer printerInstance) {
             this.printerInstance = printerInstance;
@@ -1057,9 +971,18 @@ public class Printer extends PrinterUtils {
             if (target == null || side == null || hitModifier == null) return;
 
             boolean wasSneaking = player.isSneaking();
-            Direction direction = side.getAxis() == Direction.Axis.Y
-                    ? ((lookDir == null || !lookDir.getAxis().isHorizontal()) ? Direction.NORTH : lookDir)
-                    : side;
+            Direction direction;
+            if (side.getAxis() == Direction.Axis.Y) {
+                if (lookDirYaw != null && lookDirYaw.getAxis().isHorizontal()) {
+                    direction = lookDirYaw;
+                } else if (lookDirPitch != null && lookDirPitch.getAxis().isHorizontal()) {
+                    direction = lookDirPitch;
+                } else {
+                    direction = Direction.NORTH;
+                }
+            } else {
+                direction = side;
+            }
 
             Vec3d actualHitModifier;
             Vec3d hitVec = hitModifier;
@@ -1084,6 +1007,8 @@ public class Printer extends PrinterUtils {
                     SwitchItem.syncUseTime(yxcfItem);
                 }
             }
+
+            printerInstance.sendLook(player ,lookDirYaw, lookDirPitch);
 
             if (PLACE_USE_PACKET.getBooleanValue()) {
                 //#if MC >= 11904
@@ -1118,7 +1043,7 @@ public class Printer extends PrinterUtils {
             this.target = null;
             this.side = null;
             this.hitModifier = null;
-            this.lookDir = null;
+            this.lookDirYaw = null;
             this.shift = false;
             this.didSendLook = true;
         }
