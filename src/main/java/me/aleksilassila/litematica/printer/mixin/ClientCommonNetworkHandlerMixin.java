@@ -6,19 +6,13 @@ import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.printer.Printer;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.cancelMovePack;
 
 //#if MC > 12001
 import net.minecraft.client.network.ClientCommonNetworkHandler;
@@ -47,14 +41,15 @@ public class ClientCommonNetworkHandlerMixin {
     @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket")
     //#endif
     public void sendPacket(ClientConnection instance, Packet<?> packet, Operation<Void> original) {
-        Direction direction = Printer.getPrinter().queue.lookDir;
-        if (direction != null && Implementation.isLookAndMovePacket(packet)) {
-            Packet<?> fixedPacket = Implementation.getFixedLookPacket(client.player, packet, direction);
+        Direction directionYaw = Printer.getPrinter().queue.lookDirYaw;
+        Direction directionPitch = Printer.getPrinter().queue.lookDirPitch;
+        if ((directionYaw != null || directionPitch != null) && Implementation.isLookAndMovePacket(packet)) {
+            Packet<?> fixedPacket = Implementation.getFixedLookPacket(client.player, packet, directionYaw, directionPitch);
             if (fixedPacket != null) {
                 this.connection.send(fixedPacket);
                 return;
             }
-        } else if (direction == null || !Implementation.isLookOnlyPacket(packet)) {
+        } else if (directionYaw == null || directionPitch == null || !Implementation.isLookOnlyPacket(packet)) {
             this.connection.send(packet);
             return;
         }

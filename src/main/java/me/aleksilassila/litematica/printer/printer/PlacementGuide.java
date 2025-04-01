@@ -245,16 +245,22 @@ public class PlacementGuide extends PrinterUtils {
                 }
                 //#if MC >= 12003
                 case CRAFTER: {
-                    Direction facing = requiredState.get(Properties.ORIENTATION).getFacing().getOpposite();
-                    Direction rotation = requiredState.get(Properties.ORIENTATION).getRotation().getOpposite();
-                    client.inGameHud.getChatHud().addMessage(Text.of("方块facing: " + facing + " rotation: " + rotation));
-                    return new Action().setLookDirection(facing).setLookDirection2(rotation);
+                    var orientation = requiredState.get(Properties.ORIENTATION);
+                    Direction facing = orientation.getFacing().getOpposite();
+                    Direction rotation = orientation.getRotation().getOpposite();
+                    if (facing == Direction.UP) {
+                        return new Action().setSides(rotation).setLookDirection(rotation, Direction.UP);
+                    } else if (facing == Direction.DOWN) {
+                        return new Action().setSides(rotation.getOpposite()).setLookDirection(rotation.getOpposite(), Direction.DOWN);
+                    } else {
+                        return new Action().setSides(facing).setLookDirection(facing, facing);
+                    }
                 }
                 //#endif
 
                 case OBSERVER: {
-                    Direction side = requiredState.get(Properties.FACING).getOpposite();
                     Direction look = requiredState.get(Properties.FACING);
+                    Direction side = look.getOpposite();
 
                     return new Action().setSides(side).setLookDirection(look);
                 }
@@ -504,9 +510,7 @@ public class PlacementGuide extends PrinterUtils {
                 }
                 //#if MC >= 11904
                 case FLOWERBED: {
-                    client.inGameHud.getChatHud().addMessage(Text.of("所需花瓣数量: " + requiredState.get(FlowerbedBlock.FLOWER_AMOUNT)));
                     if (currentState.get(FlowerbedBlock.FLOWER_AMOUNT) <= requiredState.get(FlowerbedBlock.FLOWER_AMOUNT)) {
-                        client.inGameHud.getChatHud().addMessage(Text.of("尝试放置" + requiredState.getBlock().asItem().toString()));
                         return new ClickAction().setItem(requiredState.getBlock().asItem());
                     }
                     break;
@@ -629,8 +633,8 @@ public class PlacementGuide extends PrinterUtils {
 
     public static class Action {
         protected Map<Direction, Vec3d> sides;
-        protected Direction lookDirection;
-        protected Direction lookDirection2;
+        protected Direction lookDirectionYaw;
+        protected Direction lookDirectionPitch;
         @Nullable
         protected Item[] clickItems; // null == any
 
@@ -712,12 +716,12 @@ public class PlacementGuide extends PrinterUtils {
             //#endif
         }
 
-        public @Nullable Direction getLookDirection() {
-            return lookDirection;
+        public @Nullable Direction getLookDirectionYaw() {
+            return lookDirectionYaw;
         }
 
-        public @Nullable Direction getLookDirection2() {
-            return lookDirection2;
+        public @Nullable Direction getLookDirectionPitch() {
+            return lookDirectionPitch;
         }
 
         /**
@@ -727,12 +731,21 @@ public class PlacementGuide extends PrinterUtils {
          * @return 当前 Action 实例
          */
         public Action setLookDirection(Direction lookDirection) {
-            this.lookDirection = lookDirection;
+            this.lookDirectionYaw = lookDirection;
+            this.lookDirectionPitch = lookDirection;
             return this;
         }
 
-        public Action setLookDirection2(Direction lookDirection) {
-            this.lookDirection = lookDirection;
+        /**
+         * 设置放置时玩家的视角朝向
+         *
+         * @param lookDirectionYaw 横轴视角朝向
+         * @param lookDirectionPitch 纵轴视角朝向
+         * @return 当前 Action 实例
+         */
+        public Action setLookDirection(Direction lookDirectionYaw, Direction lookDirectionPitch) {
+            this.lookDirectionYaw = lookDirectionYaw;
+            this.lookDirectionPitch = lookDirectionPitch;
             return this;
         }
 
@@ -752,13 +765,14 @@ public class PlacementGuide extends PrinterUtils {
         }
 
         /**
-         * 设置操作动作的所有有效方向。
+         * 设置可以和方块交互的所有方向（例如：上下左右）。
          * <p>
-         * 该方法会遍历所有给定的轴，收集每个轴上所有对应的方向，
-         * 并为每个方向生成默认的偏移值（0,0,0）。
+         * 这个方法会找到所有指定的方向轴（比如：X轴、Y轴、Z轴）上的所有方向，
+         * 然后把这些方向都设置为可以交互的方向，并且设置默认的点击偏移量为 (0,0,0)。
+         * 简单来说，就是设置你可以从哪些方向点击这个方块。
          *
-         * @param axis 要设置的方向轴列表
-         * @return 当前操作动作实例
+         * @param axis 要设置的方向轴列表（例如：只允许上下方向，不允许左、右方向）
+         * @return 当前 Action 实例，方便你继续设置其他属性
          */
         public Action setSides(Direction.Axis... axis) {
             Map<Direction, Vec3d> sides = new HashMap<>();
@@ -775,10 +789,27 @@ public class PlacementGuide extends PrinterUtils {
             return this;
         }
 
+        /**
+         * 设置操作的有效方向，并指定每个方向对应的偏移量。
+         * <p>
+         *   这个方法允许你详细地指定在放置方块时，哪些方向是可以进行交互的。
+         *   例如，你可以设置只有在方块的上方或下方才能进行放置，并为这些方向设置特定的偏移量。
+         * </p>
+         * <p>
+         *   通过调整偏移量，你可以更精确的控制点击的位置，从而实现一些特殊的放置效果。
+         *   例如，你可以通过偏移量来点击方块的边缘，而不是中心。
+         * </p>
+         *
+         * @param sides 包含方向和偏移量的 Map，其中 Key 是方向 (Direction)，Value 是偏移量 (Vec3d)。
+         *              如果某个方向没有对应的偏移量，则使用默认的 (0, 0, 0)。
+         * @return 当前 Action 实例，便于链式调用。
+         *         通过链式调用，你可以连续设置多个属性，使代码更加简洁易读。
+         */
         public Action setSides(Map<Direction, Vec3d> sides) {
             this.sides = sides;
             return this;
         }
+
         /**
          * 设置操作的有效方向。
          * <p>
