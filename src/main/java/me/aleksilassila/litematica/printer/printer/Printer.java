@@ -688,7 +688,33 @@ public class Printer extends PrinterUtils {
         return blocks;
     }
 
-    private void sendPlacementPreparation(ClientPlayerEntity player, Item[] requiredItems, Direction lookDir) {
+    //todo)) 没修好呢（
+    public double getPrintProgress() {
+        // 从当前放置图纸中获取区域选择和图纸状态
+        WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
+        AreaSelection selection = DataManager.getSelectionManager().getCurrentSelection();
+        if (selection == null || schematic == null) return 0.0;
+
+        int totalBlocks = 0;
+        int placedBlocks = 0;
+        List<Box> boxes = selection.getAllSubRegionBoxes();
+        for (Box box : boxes) {
+            MyBox myBox = new MyBox(box);
+            for (BlockPos pos : myBox) {
+                BlockState requiredState = schematic.getBlockState(pos);
+                // 忽略空气
+                if (requiredState == null || requiredState.isAir()) continue;
+                totalBlocks++;
+                BlockState currentState = client.world.getBlockState(pos);
+                if (currentState.equals(requiredState)) {
+                    placedBlocks++;
+                }
+            }
+        }
+        return totalBlocks == 0 ? 100.0 : (placedBlocks * 100.0 / totalBlocks);
+    }
+
+    private void sendPlacementPreparation(ClientPlayerEntity player, Item[] requiredItems, Direction lookDirYaw, Direction lookDirPitch) {
         switchToItems(player, requiredItems);
         sendLook(player, lookDirYaw, lookDirPitch);
     }

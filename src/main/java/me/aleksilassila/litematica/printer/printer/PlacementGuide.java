@@ -13,8 +13,6 @@ import net.minecraft.item.Items;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.state.property.Property;
-import net.minecraft.text.Text;
-import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -141,431 +139,445 @@ public class PlacementGuide extends PrinterUtils {
             return null;
         }
 
-        if (state == State.MISSING_BLOCK) {
-            switch (requiredType) {
-                case WALLTORCH:{
-                    Direction facing = (Direction)getPropertyByName(requiredState, "FACING");
-                    if(facing != null){
-                        return new Action().setSides(facing.getOpposite()).setRequiresSupport();
-                    }
-                    break;
+        if (state == State.MISSING_BLOCK) switch (requiredType) {
+            case WALLTORCH: {
+                Direction facing = (Direction) getPropertyByName(requiredState, "FACING");
+                if (facing != null) {
+                    return new Action().setSides(facing.getOpposite()).setRequiresSupport();
                 }
-                case AMETHYST: {
-                    return new Action()
-                            .setSides((requiredState.get(Properties.FACING))
-                                    .getOpposite())
-                            .setRequiresSupport();
+                break;
+            }
+            case AMETHYST: {
+                return new Action()
+                        .setSides((requiredState.get(Properties.FACING))
+                                .getOpposite())
+                        .setRequiresSupport();
+            }
+            case ROD:
+            case SHULKER: {
+                return new Action().setSides(
+                        (requiredState.get(Properties.FACING))
+                                .getOpposite());
+            }
+            case SLAB: {
+                return new Action().setSides(getSlabSides(world, pos, requiredState.get(SlabBlock.TYPE)));
+            }
+            case STAIR: {
+                Direction facing = requiredState.get(StairsBlock.FACING);
+                BlockHalf half = requiredState.get(StairsBlock.HALF);
+
+                Map<Direction, Vec3d> sides = new HashMap<>();
+                if (half == BlockHalf.BOTTOM) {
+                    sides.put(Direction.DOWN, new Vec3d(0, 0, 0));
+                } else {
+                    sides.put(Direction.UP, new Vec3d(0, 0, 0));
                 }
-                case ROD:
-                case SHULKER: {
-                    return new Action().setSides(
-                            (requiredState.get(Properties.FACING))
-                                    .getOpposite());
-                }
-                case SLAB: {
-                    return new Action().setSides(getSlabSides(world, pos, requiredState.get(SlabBlock.TYPE)));
-                }
-                case STAIR: {
-                    Direction facing = requiredState.get(StairsBlock.FACING);
-                    BlockHalf half = requiredState.get(StairsBlock.HALF);
+                sides.put(facing.getOpposite(), new Vec3d(0, 0, 0));
 
-                    Map<Direction, Vec3d> sides = new HashMap<>();
-                    if (half == BlockHalf.BOTTOM) {
-                        sides.put(Direction.DOWN, new Vec3d(0, 0, 0));
-                    } else {
-                        sides.put(Direction.UP, new Vec3d(0, 0, 0));
-                    }
-                    sides.put(facing.getOpposite(), new Vec3d(0, 0, 0));
+                return new Action()
+                        .setSides(sides)
+                        .setLookDirection(facing);
+            }
+            case TRAPDOOR: {
+                Direction half = getHalf(requiredState.get(TrapdoorBlock.HALF));
 
-                    return new Action()
-                            .setSides(sides)
-                            .setLookDirection(facing);
-                }
-                case TRAPDOOR: {
-                    Direction half = getHalf(requiredState.get(TrapdoorBlock.HALF));
+                Map<Direction, Vec3d> sides = new HashMap<>() {{
+                    put(half, new Vec3d(0, 0, 0));
+                }};
 
-                    Map<Direction, Vec3d> sides = new HashMap<>() {{
-                        put(half, new Vec3d(0, 0, 0));
-                    }};
+                return new Action()
+                        .setSides(sides)
+                        .setLookDirection(requiredState.get(TrapdoorBlock.FACING).getOpposite());
+            }
+            case PILLAR: {
+                Action action = new Action().setSides(requiredState.get(PillarBlock.AXIS));
 
-                    return new Action()
-                            .setSides(sides)
-                            .setLookDirection(requiredState.get(TrapdoorBlock.FACING).getOpposite());
-                }
-                case PILLAR: {
-                    Action action = new Action().setSides(requiredState.get(PillarBlock.AXIS));
+                //如果是剥皮原木且应该使用普通原木替换
+                if (AxeItemAccessor.getStrippedBlocks().containsValue(requiredState.getBlock()) &&
+                        LitematicaMixinMod.STRIP_LOGS.getBooleanValue()) {
+                    Block stripped = requiredState.getBlock();
 
-                    //如果是剥皮原木且应该使用普通原木替换
-                    if (AxeItemAccessor.getStrippedBlocks().containsValue(requiredState.getBlock()) &&
-                            LitematicaMixinMod.STRIP_LOGS.getBooleanValue()) {
-                        Block stripped = requiredState.getBlock();
+                    for (Block log : AxeItemAccessor.getStrippedBlocks().keySet()) {
+                        if (AxeItemAccessor.getStrippedBlocks().get(log) != stripped) continue;
 
-                        for (Block log : AxeItemAccessor.getStrippedBlocks().keySet()) {
-                            if (AxeItemAccessor.getStrippedBlocks().get(log) != stripped) continue;
-
-                            if (!playerHasAccessToItem(client.player, stripped.asItem()) &&
-                                    playerHasAccessToItem(client.player, log.asItem())) {
-                                action.setItem(log.asItem());
-                            }
-                            break;
-
+                        if (!playerHasAccessToItem(client.player, stripped.asItem()) &&
+                                playerHasAccessToItem(client.player, log.asItem())) {
+                            action.setItem(log.asItem());
                         }
-                    }
-
-                    return action;
-                }
-                case ANVIL: {
-                    return new Action().setLookDirection(requiredState.get(AnvilBlock.FACING).rotateYCounterclockwise()).setSides(Direction.UP);
-                }
-                //FIXME)) add all sides
-                case HOPPER: {
-                    Map<Direction, Vec3d> sides = new HashMap<>();
-                    for (Direction direction : Direction.values()) {
-                        if (direction.getAxis() == Direction.Axis.Y) {
-                            sides.put(direction, new Vec3d(0, 0, 0));
-                        } else {
-                            sides.put(direction, Vec3d.of(direction.getVector()).multiply(0.5));
-                        }
-                    }
-
-                    return new Action()
-                            .setSides(sides)
-                            .setLookDirection(requiredState.get(HopperBlock.FACING).getOpposite());
-                }
-                case NETHER_PORTAL: {
-
-                    boolean canCreatePortal = net.minecraft.world.dimension.NetherPortal.getNewPortal(world, pos, Direction.Axis.X).isPresent();
-                    if (canCreatePortal) {
-                        return new Action().setItems(Items.FLINT_AND_STEEL,Items.FIRE_CHARGE).setRequiresSupport();
-                    }
-                    break;
-                }
-                case COCOA: {
-                    return new Action().setSides(requiredState.get(Properties.FACING));
-                }
-                //#if MC >= 12003
-                case CRAFTER: {
-                    var orientation = requiredState.get(Properties.ORIENTATION);
-                    Direction facing = orientation.getFacing().getOpposite();
-                    Direction rotation = orientation.getRotation().getOpposite();
-                    if (facing == Direction.UP) {
-                        return new Action().setSides(rotation).setLookDirection(rotation, Direction.UP);
-                    } else if (facing == Direction.DOWN) {
-                        return new Action().setSides(rotation.getOpposite()).setLookDirection(rotation.getOpposite(), Direction.DOWN);
-                    } else {
-                        return new Action().setSides(facing).setLookDirection(facing, facing);
-                    }
-                }
-                //#endif
-
-                case OBSERVER: {
-                    Direction look = requiredState.get(Properties.FACING);
-                    Direction side = look.getOpposite();
-
-                    return new Action().setSides(side).setLookDirection(look);
-                }
-
-                case BUTTON: {
-                    Direction side;
-                    switch ((BlockFace) getPropertyByName(requiredState, "FACE")) {
-                        case FLOOR: {
-                            side = Direction.DOWN;
-                            break;
-                        }
-                        case CEILING: {
-                            side = Direction.UP;
-                            break;
-                        }
-                        default: {
-                            side = (requiredState.get(Properties.FACING)).getOpposite();
-                            break;
-                        }
-                    }
-
-                    Direction look = getPropertyByName(requiredState, "FACE") == WALL ?
-                            null : requiredState.get(Properties.FACING);
-
-                    return new Action().setSides(side).setLookDirection(look).setRequiresSupport();
-                }
-                case GRINDSTONE: { // Tese are broken
-                    Direction side = switch ((BlockFace) getPropertyByName(requiredState, "FACE")) {
-                        case FLOOR -> Direction.DOWN;
-                        case CEILING -> Direction.UP;
-                        default -> requiredState.get(Properties.FACING);
-                    };
-
-                    Direction look = getPropertyByName(requiredState, "FACE") == WALL ?
-                            null : requiredState.get(Properties.FACING);
-
-                    Map<Direction, Vec3d> sides = new HashMap<>();
-                    sides.put(Direction.DOWN, Vec3d.of(side.getVector()).multiply(0.5));
-
-                    return new Action().setSides(sides).setLookDirection(look);
-                }
-                case GATE:
-                case CAMPFIRE: {
-                    return new Action()
-                            .setLookDirection(requiredState.get(Properties.FACING));
-                }
-                case BED: {
-                    if (requiredState.get(BedBlock.PART) != BedPart.FOOT) {
                         break;
+
+                    }
+                }
+
+                return action;
+            }
+            case ANVIL: {
+                return new Action().setLookDirection(requiredState.get(AnvilBlock.FACING).rotateYCounterclockwise()).setSides(Direction.UP);
+            }
+            //FIXME)) add all sides
+            case HOPPER: {
+                Map<Direction, Vec3d> sides = new HashMap<>();
+                for (Direction direction : Direction.values()) {
+                    if (direction.getAxis() == Direction.Axis.Y) {
+                        sides.put(direction, new Vec3d(0, 0, 0));
                     } else {
-                        return new Action().setLookDirection(requiredState.get(BedBlock.FACING));
+                        sides.put(direction, Vec3d.of(direction.getVector()).multiply(0.5));
                     }
                 }
-                case BELL: {
-                    Direction side;
-                    switch (requiredState.get(BellBlock.ATTACHMENT)) {
-                        case FLOOR: {
-                            side = Direction.DOWN;
-                            break;
-                        }
-                        case CEILING: {
-                            side = Direction.UP;
-                            break;
-                        }
-                        default: {
-                            side = requiredState.get(BellBlock.FACING);
-                            break;
-                        }
-                    }
 
-                    Direction look = requiredState.get(BellBlock.ATTACHMENT) != Attachment.SINGLE_WALL &&
-                            requiredState.get(BellBlock.ATTACHMENT) != Attachment.DOUBLE_WALL ?
-                            requiredState.get(BellBlock.FACING) : null;
+                return new Action()
+                        .setSides(sides)
+                        .setLookDirection(requiredState.get(HopperBlock.FACING).getOpposite());
+            }
+            case NETHER_PORTAL: {
 
-                    return new Action().setSides(side).setLookDirection(look);
+                boolean canCreatePortal = net.minecraft.world.dimension.NetherPortal.getNewPortal(world, pos, Direction.Axis.X).isPresent();
+                if (canCreatePortal) {
+                    return new Action().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
                 }
-                case DOOR: {
-                    Map<Direction, Vec3d> sides = new HashMap<>();
-
-                    Direction facing = requiredState.get(DoorBlock.FACING);
-                    Direction hinge = requiredState.get(DoorBlock.HINGE) == DoorHinge.RIGHT
-                            ? facing.rotateYClockwise()
-                            : facing.rotateYCounterclockwise();
-
-                    Vec3d hingeVec = new Vec3d(0.25, 0, 0.25);
-
-                    sides.put(hinge, hingeVec);
-                    sides.put(Direction.DOWN, hingeVec);
-                    sides.put(facing, hingeVec);
-
-                    return new Action()
-                            .setLookDirection(facing)
-                            .setSides(sides)
-                            .setRequiresSupport();
-                }
-                case WALLSKULL: {
-                    return new Action().setSides(requiredState.get(WallSkullBlock.FACING).getOpposite());
-                }
-                case FARMLAND:
-                case DIRT_PATH: {
-                    return new Action().setItem(Items.DIRT);
-                }
-                case BIG_DRIPLEAF_STEM: {
-                    return new Action().setItem(Items.BIG_DRIPLEAF);
-                }
-
-                //主要修复两种方块类型的物品选择问题
-                case CAVE_VINES: {
-                    //发光浆果
-                    return new Action().setItem(Items.GLOW_BERRIES);
-                }
-
-                case FLOWER_POT: {
-                    return new Action().setItem(Items.FLOWER_POT);
-                }
-                case SKIP: {
-                    break;
-                }
-                case WATER: {
-
-                }
-                case DEFAULT:
-                default: { // 尝试猜测剩余方块如何放置
-                    Direction look = null;
-
-                    for (Property<?> prop : requiredState.getProperties()) {
-                        //#if MC > 12101
-                        if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
-                            //#else
-                            //$$ if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
-                            //#endif
-                            look = ((Direction) requiredState.get(prop)).getOpposite();
-                        }
-
-                    }
-
-                    Action placement = new Action().setLookDirection(look);
-
-                    // If required == dirt path place dirt
-                    if (requiredState.getBlock().equals(Blocks.DIRT_PATH) && !playerHasAccessToItem(client.player, requiredState.getBlock().asItem())) {
-                        placement.setItem(Items.DIRT);
-                    }
-
-                    return placement;
+                break;
+            }
+            case COCOA: {
+                return new Action().setSides(requiredState.get(Properties.FACING));
+            }
+            //#if MC >= 12003
+            case CRAFTER: {
+                var orientation = requiredState.get(Properties.ORIENTATION);
+                Direction facing = orientation.getFacing().getOpposite();
+                Direction rotation = orientation.getRotation().getOpposite();
+                if (facing == Direction.UP) {
+                    return new Action().setSides(rotation).setLookDirection(rotation, Direction.UP);
+                } else if (facing == Direction.DOWN) {
+                    return new Action().setSides(rotation.getOpposite()).setLookDirection(rotation.getOpposite(), Direction.DOWN);
+                } else {
+                    return new Action().setSides(facing).setLookDirection(facing, facing);
                 }
             }
-        } else if (state == State.WRONG_STATE) {
-            switch (requiredType) {
-                case SLAB: {
-                    if (requiredState.get(SlabBlock.TYPE) == SlabType.DOUBLE) {
+            //#endif
+
+            case OBSERVER: {
+                Direction look = requiredState.get(Properties.FACING);
+                return new Action().setSides(look.getOpposite()).setLookDirection(look);
+            }
+
+            case BUTTON: {
+                Direction side;
+                switch (requiredState.get(Properties.BLOCK_FACE)) {
+                    case FLOOR: {
+                        side = Direction.DOWN;
+                        break;
+                    }
+                    case CEILING: {
+                        side = Direction.UP;
+                        break;
+                    }
+                    default: {
+                        side = (requiredState.get(Properties.HORIZONTAL_FACING)).getOpposite();
+                        break;
+                    }
+                }
+
+                Direction look = getPropertyByName(requiredState, "FACE") == WALL ?
+                        null : requiredState.get(Properties.FACING);
+
+                return new Action().setSides(side).setLookDirection(look).setRequiresSupport();
+            }
+            case GRINDSTONE: {
+                Direction side = requiredState.get(Properties.HORIZONTAL_FACING);
+                BlockFace face = requiredState.get(Properties.BLOCK_FACE);
+                Direction sidePitch = switch (face) {
+                    case CEILING -> Direction.UP;
+                    case FLOOR -> Direction.DOWN;
+                    default -> side;
+                };
+                if (face != BlockFace.WALL) {
+                    side = side.getOpposite();
+                }
+                return new Action().setSides(side).setLookDirection(side.getOpposite(), sidePitch);
+            }
+            case GATE:
+            case CAMPFIRE: {
+                return new Action()
+                        .setLookDirection(requiredState.get(Properties.FACING));
+            }
+            case BED: {
+                if (requiredState.get(BedBlock.PART) != BedPart.FOOT) {
+                    break;
+                } else {
+                    return new Action().setLookDirection(requiredState.get(BedBlock.FACING));
+                }
+            }
+            case BELL: {
+                Direction side;
+                switch (requiredState.get(BellBlock.ATTACHMENT)) {
+                    case FLOOR: {
+                        side = Direction.DOWN;
+                        break;
+                    }
+                    case CEILING: {
+                        side = Direction.UP;
+                        break;
+                    }
+                    default: {
+                        side = requiredState.get(BellBlock.FACING);
+                        break;
+                    }
+                }
+
+                Direction look = requiredState.get(BellBlock.ATTACHMENT) != Attachment.SINGLE_WALL &&
+                        requiredState.get(BellBlock.ATTACHMENT) != Attachment.DOUBLE_WALL ?
+                        requiredState.get(BellBlock.FACING) : null;
+
+                return new Action().setSides(side).setLookDirection(look);
+            }
+            case DOOR: {
+                Map<Direction, Vec3d> sides = new HashMap<>();
+
+                Direction facing = requiredState.get(DoorBlock.FACING);
+                Direction hinge = requiredState.get(DoorBlock.HINGE) == DoorHinge.RIGHT
+                        ? facing.rotateYClockwise()
+                        : facing.rotateYCounterclockwise();
+
+                Vec3d hingeVec = new Vec3d(0.25, 0, 0.25);
+
+                sides.put(hinge, hingeVec);
+                sides.put(Direction.DOWN, hingeVec);
+                sides.put(facing, hingeVec);
+
+                return new Action()
+                        .setLookDirection(facing)
+                        .setSides(sides)
+                        .setRequiresSupport();
+            }
+            case WALLSKULL: {
+                return new Action().setSides(requiredState.get(WallSkullBlock.FACING).getOpposite());
+            }
+            case FARMLAND:
+            case DIRT_PATH: {
+                return new Action().setItem(Items.DIRT);
+            }
+            case BIG_DRIPLEAF_STEM: {
+                return new Action().setItem(Items.BIG_DRIPLEAF);
+            }
+
+            case CAVE_VINES: {
+                return new Action().setItem(Items.GLOW_BERRIES);
+            }
+
+            case WEEPING_VINES: {
+                return new Action().setItem(Items.WEEPING_VINES);
+            }
+
+            case TWISTING_VINES: {
+                return new Action().setItem(Items.TWISTING_VINES);
+            }
+
+            case FLOWER_POT: {
+                return new Action().setItem(Items.FLOWER_POT);
+            }
+            case VINES, GLOW_LICHEN: {
+                for (Direction direction : Direction.values()) {
+                    if (direction == Direction.DOWN && requiredState.getBlock() == Blocks.VINE) continue;
+                    if ((Boolean) getPropertyByName(requiredState, direction.getName())) {
+                        return new Action().setSides(direction);
+                    }
+                }
+                break;
+            }
+            case SKIP: {
+                break;
+            }
+            case WATER: {
+
+            }
+            case DEFAULT:
+            default: { // 尝试猜测剩余方块如何放置
+                Direction look = null;
+
+                for (Property<?> prop : requiredState.getProperties()) {
+                    //#if MC > 12101
+                    if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
+                        //#else
+                        //$$ if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
+                        //#endif
+                        look = ((Direction) requiredState.get(prop)).getOpposite();
+                    }
+
+                }
+
+                Action placement = new Action().setLookDirection(look);
+
+                // If required == dirt path place dirt
+                if (requiredState.getBlock().equals(Blocks.DIRT_PATH) && !playerHasAccessToItem(client.player, requiredState.getBlock().asItem())) {
+                    placement.setItem(Items.DIRT);
+                }
+
+                return placement;
+            }
+        }
+        else if (state == State.WRONG_STATE) switch (requiredType) {
+            case SLAB: {
+                if (requiredState.get(SlabBlock.TYPE) == SlabType.DOUBLE) {
 //                        SlabType requiredHalf1 = currentState.get(SlabBlock.TYPE) == SlabType.TOP ? SlabType.BOTTOM : SlabType.TOP;
 //                        return new Action().setSides(getSlabSides(world, pos, requiredHalf1));
-                        Direction requiredHalf = currentState.get(SlabBlock.TYPE) == SlabType.BOTTOM ? Direction.DOWN : Direction.UP;
+                    Direction requiredHalf = currentState.get(SlabBlock.TYPE) == SlabType.BOTTOM ? Direction.DOWN : Direction.UP;
 
-                        return new Action().setSides(requiredHalf);
+                    return new Action().setSides(requiredHalf);
+                }
+
+                break;
+            }
+            case SNOW: {
+                int layers = currentState.get(SnowBlock.LAYERS);
+                if (layers < requiredState.get(SnowBlock.LAYERS)) {
+                    Map<Direction, Vec3d> sides = new HashMap<>() {{
+                        put(Direction.UP, new Vec3d(0, (layers / 8d) - 1, 0));
+                    }};
+                    return new ClickAction().setItem(Items.SNOW).setSides(sides);
+                }
+
+                break;
+            }
+            case DOOR: {
+                //判断门是不是铁制的，如果是就直接返回
+                if (requiredState.isOf(Blocks.IRON_DOOR)) break;
+                if (requiredState.get(DoorBlock.OPEN) != currentState.get(DoorBlock.OPEN))
+                    return new ClickAction();
+
+                break;
+            }
+            case LEVER: {
+                if (requiredState.get(LeverBlock.POWERED) != currentState.get(LeverBlock.POWERED))
+                    return new ClickAction();
+
+                break;
+            }
+            case CANDLES: {
+                if (currentState.get(Properties.CANDLES) < requiredState.get(Properties.CANDLES))
+                    return new ClickAction().setItem(requiredState.getBlock().asItem());
+
+                break;
+            }
+            case PICKLES: {
+                if (currentState.get(SeaPickleBlock.PICKLES) < requiredState.get(SeaPickleBlock.PICKLES))
+                    return new ClickAction().setItem(Items.SEA_PICKLE);
+
+                break;
+            }
+            case REPEATER: {
+                if (!Objects.equals(requiredState.get(RepeaterBlock.DELAY), currentState.get(RepeaterBlock.DELAY)))
+                    return new ClickAction();
+
+                break;
+            }
+            case COMPARATOR: {
+                if (requiredState.get(ComparatorBlock.MODE) != currentState.get(ComparatorBlock.MODE))
+                    return new ClickAction();
+
+                break;
+            }
+            case TRAPDOOR: {
+                //判断活版门是不是铁制的，如果是就直接返回
+                if (requiredState.isOf(Blocks.IRON_TRAPDOOR)) break;
+                if (requiredState.get(TrapdoorBlock.OPEN) != currentState.get(TrapdoorBlock.OPEN))
+                    return new ClickAction();
+
+                break;
+            }
+            case GATE: {
+                if (requiredState.get(FenceGateBlock.OPEN) != currentState.get(FenceGateBlock.OPEN))
+                    return new ClickAction();
+
+                break;
+            }
+            case NOTE_BLOCK: {
+                if (!Objects.equals(requiredState.get(NoteBlock.NOTE), currentState.get(NoteBlock.NOTE)))
+                    return new ClickAction();
+
+                break;
+            }
+            case CAMPFIRE: {
+                if (requiredState.get(CampfireBlock.LIT) != currentState.get(CampfireBlock.LIT))
+                    return new ClickAction().setItems(Implementation.SHOVELS);
+
+                break;
+            }
+            case PILLAR: {
+                Block stripped = AxeItemAccessor.getStrippedBlocks().get(currentState.getBlock());
+                if (stripped != null && stripped == requiredState.getBlock()) {
+                    return new ClickAction().setItems(Implementation.AXES);
+                }
+                break;
+            }
+            case END_PORTAL_FRAME: {
+                if (requiredState.get(EndPortalFrameBlock.EYE) && !currentState.get(EndPortalFrameBlock.EYE))
+                    return new ClickAction().setItem(Items.ENDER_EYE);
+
+                break;
+            }
+            //#if MC >= 11904
+            case FLOWERBED: {
+                if (currentState.get(FlowerbedBlock.FLOWER_AMOUNT) <= requiredState.get(FlowerbedBlock.FLOWER_AMOUNT)) {
+                    return new ClickAction().setItem(requiredState.getBlock().asItem());
+                }
+                break;
+            }
+            //#endif
+            case VINES: {
+                for (Direction direction : Direction.values()) {
+                    if (direction == Direction.DOWN) continue;
+                    if ((Boolean) getPropertyByName(requiredState, direction.getName())) {
+                        return new Action().setSides(direction);
                     }
+                }
+                break;
+            }
+            case DEFAULT: {
+                if (currentState.getBlock().equals(Blocks.DIRT) && requiredState.getBlock().equals(Blocks.FARMLAND)) {
+                    return new ClickAction().setItems(Implementation.HOES);
+                } else if (currentState.getBlock().equals(Blocks.DIRT) && requiredState.getBlock().equals(Blocks.DIRT_PATH)) {
+                    return new ClickAction().setItems(Implementation.SHOVELS);
+                }
 
-                    break;
-                }
-                case SNOW: {
-                    int layers = currentState.get(SnowBlock.LAYERS);
-                    if (layers < requiredState.get(SnowBlock.LAYERS)) {
-                        Map<Direction, Vec3d> sides = new HashMap<>() {{
-                            put(Direction.UP, new Vec3d(0, (layers / 8d) - 1, 0));
-                        }};
-                        return new ClickAction().setItem(Items.SNOW).setSides(sides);
-                    }
+                break;
+            }
+        }
+        else if (state == State.WRONG_BLOCK) switch (requiredType) {
+            case FARMLAND: {
+                Block[] soilBlocks = new Block[]{Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.DIRT_PATH};
 
-                    break;
-                }
-                case DOOR: {
-                    //判断门是不是铁制的，如果是就直接返回
-                    if (requiredState.isOf(Blocks.IRON_DOOR)) break;
-                    if (requiredState.get(DoorBlock.OPEN) != currentState.get(DoorBlock.OPEN))
-                        return new ClickAction();
-
-                    break;
-                }
-                case LEVER: {
-                    if (requiredState.get(LeverBlock.POWERED) != currentState.get(LeverBlock.POWERED))
-                        return new ClickAction();
-
-                    break;
-                }
-                case CANDLES: {
-                    if ((Integer) getPropertyByName(currentState, "CANDLES") < (Integer) getPropertyByName(requiredState, "CANDLES"))
-                        return new ClickAction().setItem(requiredState.getBlock().asItem());
-
-                    break;
-                }
-                case PICKLES: {
-                    if (currentState.get(SeaPickleBlock.PICKLES) < requiredState.get(SeaPickleBlock.PICKLES))
-                        return new ClickAction().setItem(Items.SEA_PICKLE);
-
-                    break;
-                }
-                case REPEATER: {
-                    if (!Objects.equals(requiredState.get(RepeaterBlock.DELAY), currentState.get(RepeaterBlock.DELAY)))
-                        return new ClickAction();
-
-                    break;
-                }
-                case COMPARATOR: {
-                    if (requiredState.get(ComparatorBlock.MODE) != currentState.get(ComparatorBlock.MODE))
-                        return new ClickAction();
-
-                    break;
-                }
-                case TRAPDOOR: {
-                    //判断活版门是不是铁制的，如果是就直接返回
-                    if (requiredState.isOf(Blocks.IRON_TRAPDOOR)) break;
-                    if (requiredState.get(TrapdoorBlock.OPEN) != currentState.get(TrapdoorBlock.OPEN))
-                        return new ClickAction();
-
-                    break;
-                }
-                case GATE: {
-                    if (requiredState.get(FenceGateBlock.OPEN) != currentState.get(FenceGateBlock.OPEN))
-                        return new ClickAction();
-
-                    break;
-                }
-                case NOTE_BLOCK: {
-                    if (!Objects.equals(requiredState.get(NoteBlock.NOTE), currentState.get(NoteBlock.NOTE)))
-                        return new ClickAction();
-
-                    break;
-                }
-                case CAMPFIRE: {
-                    if (requiredState.get(CampfireBlock.LIT) != currentState.get(CampfireBlock.LIT))
-                        return new ClickAction().setItems(Implementation.SHOVELS);
-
-                    break;
-                }
-                case PILLAR: {
-                    Block stripped = AxeItemAccessor.getStrippedBlocks().get(currentState.getBlock());
-                    if (stripped != null && stripped == requiredState.getBlock()) {
-                        return new ClickAction().setItems(Implementation.AXES);
-                    }
-                    break;
-                }
-                case END_PORTAL_FRAME: {
-                    if (requiredState.get(EndPortalFrameBlock.EYE) && !currentState.get(EndPortalFrameBlock.EYE))
-                        return new ClickAction().setItem(Items.ENDER_EYE);
-
-                    break;
-                }
-                //#if MC >= 11904
-                case FLOWERBED: {
-                    if (currentState.get(FlowerbedBlock.FLOWER_AMOUNT) <= requiredState.get(FlowerbedBlock.FLOWER_AMOUNT)) {
-                        return new ClickAction().setItem(requiredState.getBlock().asItem());
-                    }
-                    break;
-                }
-                //#endif
-                case DEFAULT: {
-                    if (currentState.getBlock().equals(Blocks.DIRT) && requiredState.getBlock().equals(Blocks.FARMLAND)) {
+                for (Block soilBlock : soilBlocks) {
+                    if (currentState.getBlock().equals(soilBlock))
                         return new ClickAction().setItems(Implementation.HOES);
-                    } else if (currentState.getBlock().equals(Blocks.DIRT) && requiredState.getBlock().equals(Blocks.DIRT_PATH)) {
+                }
+
+                break;
+            }
+            case DIRT_PATH: {
+                Block[] soilBlocks = new Block[]{Blocks.GRASS_BLOCK, Blocks.DIRT,
+                        Blocks.COARSE_DIRT, Blocks.ROOTED_DIRT, Blocks.MYCELIUM, Blocks.PODZOL};
+
+                for (Block soilBlock : soilBlocks) {
+                    if (currentState.getBlock().equals(soilBlock))
                         return new ClickAction().setItems(Implementation.SHOVELS);
-                    }
+                }
 
-                    break;
+                break;
+            }
+            case FLOWER_POT: {
+                if (requiredState.getBlock() instanceof FlowerPotBlock potBlock) {
+                    Block content = potBlock.getContent();
+                    if (content != Blocks.AIR) {
+                        return new ClickAction().setItem(content.asItem());
+                    }
                 }
             }
-        } else if (state == State.WRONG_BLOCK) {
-            switch (requiredType) {
-                case FARMLAND: {
-                    Block[] soilBlocks = new Block[]{Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.DIRT_PATH};
+            case WATER: {
 
-                    for (Block soilBlock : soilBlocks) {
-                        if (currentState.getBlock().equals(soilBlock))
-                            return new ClickAction().setItems(Implementation.HOES);
-                    }
-
-                    break;
-                }
-                case DIRT_PATH: {
-                    Block[] soilBlocks = new Block[]{Blocks.GRASS_BLOCK, Blocks.DIRT,
-                            Blocks.COARSE_DIRT, Blocks.ROOTED_DIRT, Blocks.MYCELIUM, Blocks.PODZOL};
-
-                    for (Block soilBlock : soilBlocks) {
-                        if (currentState.getBlock().equals(soilBlock))
-                            return new ClickAction().setItems(Implementation.SHOVELS);
-                    }
-
-                    break;
-                }
-                case FLOWER_POT: {
-                    //所以aleksilassila你在这里干了什么？明明这么简单还要再mixin个访问器
-                    if (requiredState.getBlock() instanceof FlowerPotBlock potBlock) {
-                        Block content = potBlock.getContent();
-                        if (content != Blocks.AIR) {
-                            return new ClickAction().setItem(content.asItem());
-                        }
-                    }
-                }
-                case WATER: {
-
-                }
-                default: {
-                    return null;
-                }
             }
-
+            default: {
+                return null;
+            }
         }
 
         return null;
@@ -601,6 +613,9 @@ public class PlacementGuide extends PrinterUtils {
         // 仅点击
         FLOWER_POT(FlowerPotBlock.class), // 花盆
         BIG_DRIPLEAF_STEM(BigDripleafStemBlock.class), // 大垂叶茎
+        CAVE_VINES(CaveVinesHeadBlock.class, CaveVinesBodyBlock.class), // 洞穴藤蔓
+        WEEPING_VINES(WeepingVinesBlock.class, WeepingVinesPlantBlock.class), // 垂泪藤
+        TWISTING_VINES(TwistingVinesBlock.class, TwistingVinesPlantBlock.class), // 缠怨藤
         SNOW(SnowBlock.class), // 雪
         CANDLES(CandleBlock.class), // 蜡烛
         REPEATER(RepeaterBlock.class), // 中继器
@@ -611,6 +626,8 @@ public class PlacementGuide extends PrinterUtils {
         //#if MC >= 11904
         FLOWERBED(FlowerbedBlock.class), // 花簇（ojng你看看你这是什么抽象命名）
         //#endif
+        VINES(VineBlock.class), // 藤蔓
+        GLOW_LICHEN(GlowLichenBlock.class), // 荧光地衣
 
         // 两者皆有
         GATE(FenceGateBlock.class), // 栅栏门
@@ -619,9 +636,8 @@ public class PlacementGuide extends PrinterUtils {
         // 其他
         FARMLAND(FarmlandBlock.class), // 耕地
         DIRT_PATH(DirtPathBlock.class), // 泥土小径
-        SKIP(SkullBlock.class, GrindstoneBlock.class, SignBlock.class,VineBlock.class, EndPortalBlock.class), // 跳过
+        SKIP(SkullBlock.class, GrindstoneBlock.class, SignBlock.class), // 跳过
         WATER(FluidBlock.class), // 水
-        CAVE_VINES(CaveVinesHeadBlock.class, CaveVinesBodyBlock.class), // 洞穴藤蔓
         DEFAULT; // 默认
 
         private final Class<?>[] classes;
@@ -646,51 +662,6 @@ public class PlacementGuide extends PrinterUtils {
             this.sides = new HashMap<>();
             for (Direction direction : Direction.values()) {
                 sides.put(direction, new Vec3d(0, 0, 0));
-            }
-        }
-
-        public Action(Direction side) {
-            this(side, new Vec3d(0, 0, 0));
-        }
-
-        /**
-         * {@link Action#Action(Direction, Vec3d)}
-         */
-        public Action(Map<Direction, Vec3d> sides) {
-            this.sides = sides;
-        }
-
-        /**
-         * @param side     要点击的方块的哪一面
-         * @param modifier  点击位置的偏移量。
-         *                  x: 左右偏移, y: 上下偏移, z: 前后偏移。
-         *                  (0, 0, 0): 点击面的中心,
-         *                  (0.5, -0.5, 0): 垂直面右下角。
-         *                  水平面只需调整 z 轴。
-         */
-        public Action(Direction side, Vec3d modifier) {
-            this.sides = new HashMap<>();
-            this.sides.put(side, modifier);
-        }
-
-        /**
-         * {@link Action#Action(Direction, Vec3d)}
-         */
-        @SafeVarargs
-        public Action(Pair<Direction, Vec3d>... sides) {
-            this.sides = new HashMap<>();
-            for (Pair<Direction, Vec3d> side : sides) {
-                this.sides.put(side.getLeft(), side.getRight());
-            }
-        }
-
-        public Action(Direction.Axis axis) {
-            this.sides = new HashMap<>();
-
-            for (Direction d : Direction.values()) {
-                if (d.getAxis() == axis) {
-                    sides.put(d, new Vec3d(0, 0, 0));
-                }
             }
         }
 
