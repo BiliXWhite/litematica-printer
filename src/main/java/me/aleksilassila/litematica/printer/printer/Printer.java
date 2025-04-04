@@ -716,7 +716,7 @@ public class Printer extends PrinterUtils {
             BlockState requiredState = schematic.getBlockState(pos);
             if (requiredState == null) continue;
             BlockState currentState = client.world.getBlockState(pos);
-            if (currentState.equals(requiredState)) {
+            if (currentState.getBlock().getDefaultState().equals(requiredState.getBlock().getDefaultState())) {
                 printedCount++;
             }
         }
