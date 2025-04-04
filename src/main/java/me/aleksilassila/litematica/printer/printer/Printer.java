@@ -268,31 +268,46 @@ public class Printer extends PrinterUtils {
     }
 
     BlockPos getBlockPos() {
-        if (System.currentTimeMillis() > (startTime + (frameGenerationTime == 0 ? 15 : frameGenerationTime))) return null;
+        // 检查当前时间是否超过了帧生成时间，如果超过则返回 null
+        //if (System.currentTimeMillis() > (startTime + (frameGenerationTime == 0 ? 15 : frameGenerationTime))) return null;
+
+        // 获取当前玩家实例
         ClientPlayerEntity player = client.player;
         if (player == null) return null;
+
+        // 获取玩家当前位置
         BlockPos playerPos = player.getBlockPos();
+
+        // 如果 basePos 为空，则初始化为玩家当前位置，并扩展 myBox 范围
         if (basePos == null) {
             basePos = playerPos;
             myBox = new MyBox(basePos).expand(range1);
         }
-        // 避免重复获取玩家位置，提升效率
+
+        // 检查玩家位置是否在 basePos 的一定范围内，如果不在则重置 basePos 并返回 null
         double threshold = range1 * 0.7;
         if (!basePos.isWithinDistance(playerPos, threshold)) {
             basePos = null;
             return null;
         }
+
+        // 设置 myBox 的 y 轴增量方向，并初始化迭代器
         myBox.yIncrement = !yDegression;
         myBox.initIterator();
-        // 缓存获取的配置值，减少循环中重复调用
+
+        // 缓存配置值，减少循环中重复调用
         IConfigOptionListEntry rangeMode = LitematicaMixinMod.RANGE_MODE.getOptionListValue();
         Iterator<BlockPos> iterator = myBox.iterator;
+
+        // 遍历 myBox 中的所有位置，找到符合条件的位置并返回
         while (iterator.hasNext()) {
             BlockPos pos = iterator.next();
             if (rangeMode == State.ListType.SPHERE && !basePos.isWithinDistance(pos, range1))
                 continue;
             return pos;
         }
+
+        // 如果没有找到符合条件的位置，重置 basePos 并返回 null
         basePos = null;
         return null;
     }
@@ -530,8 +545,6 @@ public class Printer extends PrinterUtils {
             }
             return;
         }
-
-        client.inGameHud.setOverlayMessage(Text.of("进度: " + getPrintProgress()), false);
 
         // 遍历所有区域内的方块位置
         BlockPos pos;

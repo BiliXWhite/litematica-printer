@@ -63,12 +63,13 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 
     public static final ConfigOptionList RANGE_MODE = new ConfigOptionList(
             "半径模式", State.ListType.SPHERE,
-            "立方体建议§63§r，球体建议设置§66§r，破基岩在立方体模式下无法正常使用。"
+            "立方体建议§63§r，球体建议设置§66§r，破基岩在立方体模式下无法正常使用。\n" +
+                    "§l（此功能可能已损坏。）§r"
     );
 
     public static final ConfigOptionList MODE_SWITCH = new ConfigOptionList(
             "模式切换", State.ModeType.SINGLE,
-            "单模：仅运行一个模式。多模：可多个模式同时运行。"
+            "§d单模§r：仅运行一个模式。\n§d多模§r：可多个模式同时运行。"
     );
 
     public static final ConfigOptionList PRINTER_MODE = new ConfigOptionList(
@@ -124,7 +125,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 
     public static final ConfigBoolean REPLACE = new ConfigBoolean(
             "替换列表方块", true,
-            "无视列表中的方块直接替换防止，例如:草、雪片等。"
+            "无视列表中的方块直接替换放置，例如:草、雪片等。"
     );
 
     public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean(
@@ -173,15 +174,15 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 
     public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList(
             "排流体方块名单", ImmutableList.of("minecraft:sand"),
-            "可填入方块或物品ID，例如: minecraft:stone。\n" +
-                    "如果在前面加上#，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
+            "可填入方块或物品ID，例如: §bminecraft:stone§r。\n" +
+                    "如果在前面加上§b#§r，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
                     "如果同时传入文本和过滤条件（以英文逗号分隔），例如：§lstone,c§r。\n" +
                     "其中 “c” 表示使用包含匹配方式，会先尝试拼音或直接匹配。"
     );
 
     public static final ConfigBoolean PUT_SKIP = new ConfigBoolean(
             "跳过放置", false,
-            "开启后会跳过列表内的方块"
+            "开启后会§6§l跳过放置列表§r内的方块。"
     );
 
     public static final ConfigBoolean PUT_TESTING = new ConfigBoolean(
@@ -191,7 +192,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 
     public static final ConfigBoolean QUICK_SHULKER = new ConfigBoolean(
             "快捷潜影盒", false,
-            "在服务器装有AxShulkers的情况下可以直接从背包内的潜影盒取出物品\n" +
+            "在服务器装有§bAxShulkers§r插件的情况下可以直接从背包内的潜影盒取出物品\n" +
                     "替换的位置为Litematica的预设位置,如果所有预设位置都有濳影盒则不会替换。"
     );
 
@@ -209,7 +210,8 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     public static final ConfigBoolean PRINT_CHECK = new ConfigBoolean(
             "有序存放", false,
             "在背包满时将从快捷盒子或打印机库存中取出的物品还原到之前位置，" +
-                    "关闭后将会打乱打印机以及濳影盒"
+                    "关闭后将会打乱打印机以及濳影盒\n" +
+                    "§l（功能可能已损坏。）§r"
     );
 
     public static final ConfigStringList INVENTORY_LIST = new ConfigStringList(
@@ -220,39 +222,39 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     public static final ConfigOptionList EXCAVATE_LIMITER = new ConfigOptionList(
             "挖掘模式限制器", State.ExcavateListMode.CUSTOM,
             "使用Tweakeroo挖掘限制预设或自定义挖掘限制预设。\n" +
-                    "Tweakeroo预设：使用Tweakeroo的挖掘限制预设，" +
-                    "自定义：使用自定义的挖掘限制预设，"
+                    "§dTweakeroo预设§r：使用Tweakeroo的挖掘限制预设，" +
+                    "§d自定义§r：使用自定义的挖掘限制预设。"
     );
 
     public static final ConfigOptionList EXCAVATE_LIMIT = new ConfigOptionList(
             "挖掘模式限制", UsageRestriction.ListType.NONE,
             "挖掘模式限制的过滤方式，有无限制、白名单、黑名单三种。\n" +
-                    "无限制：不限制任何方块\n" +
-                    "白名单：仅允许白名单内的方块被挖掘\n" +
-                    "黑名单：禁止黑名单内的方块被挖掘\n" +
+                    "§d无限制§r：不限制任何方块\n" +
+                    "§d白名单§r：仅允许白名单内的方块被挖掘\n" +
+                    "§d黑名单§r：禁止黑名单内的方块被挖掘\n" +
                     "§l使用Tweakeroo挖掘限制预设时，此项会被忽略。§r"
     );
 
     public static final ConfigStringList EXCAVATE_WHITELIST = new ConfigStringList(
             "挖掘白名单", ImmutableList.of(""),
-            "可填入方块或物品ID，例如: minecraft:stone。\n" +
-                    "如果在前面加上#，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
+            "可填入方块或物品ID，例如: §bminecraft:stone§r。\n" +
+                    "如果在前面加上§b#§r，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
                     "如果同时传入文本和过滤条件（以英文逗号分隔），例如：§lstone,c§r。\n" +
                     "其中 “c” 表示使用包含匹配方式，会先尝试拼音或直接匹配。"
     );
 
     public static final ConfigStringList EXCAVATE_BLACKLIST = new ConfigStringList(
             "挖掘黑名单", ImmutableList.of(""),
-            "可填入方块或物品ID，例如: minecraft:stone。\n" +
-                    "如果在前面加上#，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
+            "可填入方块或物品ID，例如: §bminecraft:stone§r。\n" +
+                    "如果在前面加上§b#§r，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
                     "如果同时传入文本和过滤条件（以英文逗号分隔），例如：§lstone,c§r。\n" +
                     "其中 “c” 表示使用包含匹配方式，会先尝试拼音或直接匹配。"
     );
 
     public static final ConfigStringList PUT_SKIP_LIST = new ConfigStringList(
             "跳过放置名单", ImmutableList.of(),
-            "可填入方块或物品ID，例如: minecraft:stone。\n" +
-                    "如果在前面加上#，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
+            "可填入方块或物品ID，例如: §bminecraft:stone§r。\n" +
+                    "如果在前面加上§b#§r，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
                     "如果同时传入文本和过滤条件（以英文逗号分隔），例如：§lstone,c§r。\n" +
                     "其中 “c” 表示使用包含匹配方式，会先尝试拼音或直接匹配。"
     );
@@ -260,8 +262,8 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     public static final ConfigStringList BEDROCK_LIST = new ConfigStringList(
             "基岩模式白名单", ImmutableList.of("minecraft:bedrock"),
             "破基岩模式的白名单，只有白名单内的方块会被破坏。\n" +
-                    "可填入方块或物品ID，例如: minecraft:stone。\n" +
-                    "如果在前面加上#，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
+                    "可填入方块或物品ID，例如: §bminecraft:stone§r。\n" +
+                    "如果在前面加上§b#§r，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
                     "如果同时传入文本和过滤条件（以英文逗号分隔），例如：§lstone,c§r。\n" +
                     "其中 “c” 表示使用包含匹配方式，会先尝试拼音或直接匹配。"
     );
@@ -272,8 +274,8 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "minecraft:bubble_column", "minecraft:short_grass"
     ),
             "打印时将忽略这些错误方块，直接在该位置打印。\n" +
-                    "可填入方块或物品ID，例如: minecraft:stone。\n" +
-                    "如果在前面加上#，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
+                    "可填入方块或物品ID，例如: §bminecraft:stone§r。\n" +
+                    "如果在前面加上§b#§r，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
                     "如果同时传入文本和过滤条件（以英文逗号分隔），例如：§lstone,c§r。\n" +
                     "其中 “c” 表示使用包含匹配方式，会先尝试拼音或直接匹配。"
     );
@@ -286,12 +288,12 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 
     public static final ConfigBoolean REPLACE_CORAL = new ConfigBoolean(
             "替换珊瑚", false,
-            "启用后打印失活珊瑚时也会自动使用活珊瑚替换。如果背包里同时有活珊瑚和失活珊瑚，则会优先使用失活珊瑚替换。"
+            "启用后打印失活珊瑚时，如果背包里没有失活珊瑚，会自动使用活珊瑚替换。如果背包里同时有活珊瑚和失活珊瑚，则会优先使用失活珊瑚打印。"
     );
 
     public static final ConfigBoolean RENDER_PROGRESS = new ConfigBoolean(
-            "显示打印进度", true,
-            "在打印机工作时在HUD中下的位置显示打印进度。"
+            "显示打印进度(实验性)", true,
+            "在打印机工作时在HUD中下的位置显示打印进度。（§c§l仅在1.21.4版本测试正常，其他版本不保证！§r）"
     );
 
     //========================================
