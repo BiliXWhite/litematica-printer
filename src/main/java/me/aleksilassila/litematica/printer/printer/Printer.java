@@ -200,7 +200,7 @@ public class Printer extends PrinterUtils {
     }
 
     static boolean breakRestriction(BlockState blockState, BlockPos pos) {
-        if (EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.TW)) {
+        if (EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.TWEAKEROO)) {
             if (!FabricLoader.getInstance().isModLoaded("tweakeroo")) return true;
 //            return isPositionAllowedByBreakingRestriction(pos,Direction.UP);
             UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
@@ -240,6 +240,17 @@ public class Printer extends PrinterUtils {
         return LitematicaMixinMod.BEDROCK_LIST.getStrings().stream().anyMatch(string -> Filters.equalsName(string, block));
     }
 
+    /**
+     * 判断给定的位置是否属于当前加载的图纸结构范围内。
+     *
+     * <p>
+     * 该方法通过从数据管理器中获取结构放置管理器，然后查找与给定位置相交的所有图纸结构部分，
+     * 如果其中任一部分包含该位置，则返回 <code>true</code>，否则返回 <code>false</code>。
+     * </p>
+     *
+     * @param offset 要检测的方块位置
+     * @return 如果位置属于图纸结构的一部分，则返回 true，否则返回 false
+     */
     public static boolean isSchematicBlock(BlockPos offset) {
         SchematicPlacementManager schematicPlacementManager = DataManager.getSchematicPlacementManager();
         //#if MC < 11900
@@ -257,7 +268,7 @@ public class Printer extends PrinterUtils {
     }
 
     BlockPos getBlockPos() {
-        if (timedOut()) return null;
+        if (System.currentTimeMillis() > (startTime + (frameGenerationTime == 0 ? 15 : frameGenerationTime))) return null;
         ClientPlayerEntity player = client.player;
         if (player == null) return null;
         BlockPos playerPos = player.getBlockPos();
@@ -284,12 +295,6 @@ public class Printer extends PrinterUtils {
         }
         basePos = null;
         return null;
-    }
-
-    //根据当前毫秒值判断是否超出了屏幕刷新率
-    boolean timedOut() {
-        if (frameGenerationTime == 0) return System.currentTimeMillis() > 15 + startTime;
-        return System.currentTimeMillis() > frameGenerationTime + startTime;
     }
 
     void fluidMode() {
@@ -388,11 +393,11 @@ public class Printer extends PrinterUtils {
             if (!player.currentScreenHandler.equals(player.playerScreenHandler)) return false;
             //排除合成栏 装备栏 副手
             if (PRINT_CHECK.getBooleanValue() && sc.slots.stream().skip(9).limit(sc.slots.size() - 10).noneMatch(slot -> slot.getStack().isEmpty())
-                    && (LitematicaMixinMod.QUICKSHULKER.getBooleanValue() || LitematicaMixinMod.INVENTORY.getBooleanValue())) {
+                    && (LitematicaMixinMod.QUICK_SHULKER.getBooleanValue() || LitematicaMixinMod.INVENTORY.getBooleanValue())) {
                 SwitchItem.checkItems();
                 return true;
             }
-            if (LitematicaMixinMod.QUICKSHULKER.getBooleanValue() && openShulker(remoteItem)) {
+            if (LitematicaMixinMod.QUICK_SHULKER.getBooleanValue() && openShulker(remoteItem)) {
                 return true;
             } else if (LitematicaMixinMod.INVENTORY.getBooleanValue()) {
                 for (Item item : remoteItem) {
@@ -526,8 +531,7 @@ public class Printer extends PrinterUtils {
             return;
         }
 
-        // 设置是否允许在空中放置方块的标志
-        LitematicaMixinMod.shouldPrintInAir = LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue();
+        client.inGameHud.setOverlayMessage(Text.of("进度: " + getPrintProgress()), false);
 
         // 遍历所有区域内的方块位置
         BlockPos pos;
@@ -551,7 +555,7 @@ public class Printer extends PrinterUtils {
                 skipPosMap.put(pos, 0);
             }
 
-            // 简易模式下直接调用易放置操作
+            // 轻松模式下直接调用易放置操作
             if (USE_EASY_MODE.getBooleanValue() && action != null) {
                 easyPos = pos;
                 WorldUtilsAccessor.doEasyPlaceAction(client);
@@ -582,9 +586,6 @@ public class Printer extends PrinterUtils {
                     useShift = true;
                 }
 
-                Direction lookDirYaw = action.getLookDirectionYaw();
-                Direction lookDirPitch = action.getLookDirectionPitch();
-
                 // 对于特殊互动方块，若已处于装备切换状态，则跳过重复处理
                 if (!LitematicaMixinMod.EASY_MODE.getBooleanValue() &&
                         (requiredState.isOf(Blocks.PISTON) ||
@@ -598,7 +599,7 @@ public class Printer extends PrinterUtils {
 
                 // 对观察者方块进行额外检测，确保放置方向正确
                 if (requiredState.isOf(Blocks.OBSERVER) && PUT_TESTING.getBooleanValue()) {
-                    BlockPos offset = pos.offset(lookDirYaw);
+                    BlockPos offset = pos.offset(action.getLookDirectionYaw());
                     BlockState state1 = world.getBlockState(offset);
                     BlockState state2 = worldSchematic.getBlockState(offset);
                     if (isSchematicBlock(offset)) {
@@ -608,8 +609,9 @@ public class Printer extends PrinterUtils {
                 }
                 if (LitematicaMixinMod.FORCED_PLACEMENT.getBooleanValue()) useShift = true;
                 // 发送放置前的准备操作
-                sendPlacementPreparation(player, requiredItems, lookDirYaw, lookDirPitch);
-                action.queueAction(queue, pos, side, useShift, lookDirYaw != null);
+                switchToItems(player, requiredItems);
+                sendLook(player, action.getLookDirectionYaw(), action.getLookDirectionPitch());
+                action.queueAction(queue, pos, side, useShift, action.getLookDirectionYaw() != null);
 
                 // 应用精确点击的修正偏移（若有）
                 Vec3d hitModifier = usePrecisionPlacement(pos, requiredState);
@@ -689,34 +691,27 @@ public class Printer extends PrinterUtils {
     }
 
     //todo)) 没修好呢（
-    public double getPrintProgress() {
-        // 从当前放置图纸中获取区域选择和图纸状态
+    public float getPrintProgress() {
+        // 重置 basePos 以确保重新初始化迭代器
+        basePos = null;
         WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
-        AreaSelection selection = DataManager.getSelectionManager().getCurrentSelection();
-        if (selection == null || schematic == null) return 0.0;
+        if (schematic == null) return 0.0f;
 
-        int totalBlocks = 0;
-        int placedBlocks = 0;
-        List<Box> boxes = selection.getAllSubRegionBoxes();
-        for (Box box : boxes) {
-            MyBox myBox = new MyBox(box);
-            for (BlockPos pos : myBox) {
-                BlockState requiredState = schematic.getBlockState(pos);
-                // 忽略空气
-                if (requiredState == null || requiredState.isAir()) continue;
-                totalBlocks++;
-                BlockState currentState = client.world.getBlockState(pos);
-                if (currentState.equals(requiredState)) {
-                    placedBlocks++;
-                }
+        int printedCount = 0;
+        int totalCount = 0;
+        BlockPos pos;
+        while ((pos = getBlockPos()) != null) {
+            if (!isSchematicBlock(pos)) continue;
+            totalCount++;
+            BlockState requiredState = schematic.getBlockState(pos);
+            if (requiredState == null) continue;
+            BlockState currentState = client.world.getBlockState(pos);
+            if (currentState.equals(requiredState)) {
+                printedCount++;
             }
         }
-        return totalBlocks == 0 ? 100.0 : (placedBlocks * 100.0 / totalBlocks);
-    }
-
-    private void sendPlacementPreparation(ClientPlayerEntity player, Item[] requiredItems, Direction lookDirYaw, Direction lookDirPitch) {
-        switchToItems(player, requiredItems);
-        sendLook(player, lookDirYaw, lookDirPitch);
+        //client.inGameHud.getChatHud().addMessage(Text.of("已放置: " + printedCount + " / " + totalCount));
+        return totalCount == 0 ? 0.0f : ((float) printedCount / totalCount);
     }
 
     public void switchInv() {
@@ -739,7 +734,7 @@ public class Printer extends PrinterUtils {
                         int c = Integer.parseInt(s.trim()) - 1;
                         ItemStack slotStack = inv.getStack(c);
                         if (Registries.ITEM.getId(slotStack.getItem()).toString().contains("shulker_box") &&
-                                LitematicaMixinMod.QUICKSHULKER.getBooleanValue()) {
+                                LitematicaMixinMod.QUICK_SHULKER.getBooleanValue()) {
                             client.inGameHud.setOverlayMessage(Text.of("潜影盒占用了预选栏"), false);
                         }
                         if (OpenInventoryPacket.key != null) {
@@ -836,11 +831,7 @@ public class Printer extends PrinterUtils {
             if (SWITCH_ITEM_USE_PACKET.getBooleanValue()) {
                 // 通过数据包切换热键槽
                 client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(sourceSlot));
-                // 同步物品栏选中的槽位
-                if (AFTER_SWITCH_ITEM_SYNC.getBooleanValue()) {
-                    inventory.selectedSlot = sourceSlot;
-                    MinecraftClient.getInstance().player.getInventory().selectedSlot = sourceSlot;
-                }
+                inventory.selectedSlot = sourceSlot;
             } else {
                 inventory.selectedSlot = sourceSlot;
             }
@@ -855,9 +846,7 @@ public class Printer extends PrinterUtils {
             if (hotbarSlot != -1) {
                 if (SWITCH_ITEM_USE_PACKET.getBooleanValue()) {
                     client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(hotbarSlot));
-                    if (AFTER_SWITCH_ITEM_SYNC.getBooleanValue()) {
-                        inventory.selectedSlot = hotbarSlot;
-                    }
+                    inventory.selectedSlot = hotbarSlot;
                 } else {
                     inventory.selectedSlot = hotbarSlot;
                 }

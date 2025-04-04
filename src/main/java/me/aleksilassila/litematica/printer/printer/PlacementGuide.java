@@ -13,6 +13,7 @@ import net.minecraft.item.Items;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.state.property.Property;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -61,7 +62,6 @@ public class PlacementGuide extends PrinterUtils {
             if (count + 1 > 10) {
                 posMap.remove(pos);
             }
-            // 用普通 for 循环替换 stream 操作，减少额外对象分配
             List<BlockPos> removeList = new ArrayList<>();
             for (BlockPos key : posMap.keySet()) {
                 if (player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(key)) < 36) {
@@ -88,7 +88,6 @@ public class PlacementGuide extends PrinterUtils {
             return null;
         }
 
-        // 在此处直接判断 posMap 是否含有该位置，避免重复计算
         if (posMap.containsKey(pos)) {
             return null;
         }
@@ -118,10 +117,9 @@ public class PlacementGuide extends PrinterUtils {
         if (LitematicaMixinMod.PRINT_WATER_LOGGED_BLOCK.getBooleanValue()
                 && canWaterLogged(requiredState)
                 && !canWaterLogged(currentState)) {
-            Action water = water(requiredState, currentState, pos);
             if (breakIce) {
                 breakIce = false;
-            } else return water;
+            } else return water(requiredState, currentState, pos);
         }
         if (LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue() && canBreakBlock(pos) && isSchematicBlock(pos) && State.get(requiredState, currentState) == State.WRONG_BLOCK) {
             excavateBlock(pos);
@@ -141,7 +139,7 @@ public class PlacementGuide extends PrinterUtils {
 
         if (state == State.MISSING_BLOCK) switch (requiredType) {
             case WALLTORCH: {
-                Direction facing = (Direction) getPropertyByName(requiredState, "FACING");
+                Direction facing = requiredState.get(Properties.HORIZONTAL_FACING);
                 if (facing != null) {
                     return new Action().setSides(facing.getOpposite()).setRequiresSupport();
                 }
@@ -153,7 +151,6 @@ public class PlacementGuide extends PrinterUtils {
                                 .getOpposite())
                         .setRequiresSupport();
             }
-            case ROD:
             case SHULKER: {
                 return new Action().setSides(
                         (requiredState.get(Properties.FACING))
@@ -214,20 +211,9 @@ public class PlacementGuide extends PrinterUtils {
             case ANVIL: {
                 return new Action().setLookDirection(requiredState.get(AnvilBlock.FACING).rotateYCounterclockwise()).setSides(Direction.UP);
             }
-            //FIXME)) add all sides
             case HOPPER: {
-                Map<Direction, Vec3d> sides = new HashMap<>();
-                for (Direction direction : Direction.values()) {
-                    if (direction.getAxis() == Direction.Axis.Y) {
-                        sides.put(direction, new Vec3d(0, 0, 0));
-                    } else {
-                        sides.put(direction, Vec3d.of(direction.getVector()).multiply(0.5));
-                    }
-                }
-
-                return new Action()
-                        .setSides(sides)
-                        .setLookDirection(requiredState.get(HopperBlock.FACING).getOpposite());
+                Direction facing = requiredState.get(Properties.HOPPER_FACING);
+                return new Action().setSides(facing).setLookDirection(facing);
             }
             case NETHER_PORTAL: {
 
@@ -238,7 +224,7 @@ public class PlacementGuide extends PrinterUtils {
                 break;
             }
             case COCOA: {
-                return new Action().setSides(requiredState.get(Properties.FACING));
+                return new Action().setSides(requiredState.get(Properties.HORIZONTAL_FACING));
             }
             //#if MC >= 12003
             case CRAFTER: {
@@ -277,8 +263,8 @@ public class PlacementGuide extends PrinterUtils {
                     }
                 }
 
-                Direction look = getPropertyByName(requiredState, "FACE") == WALL ?
-                        null : requiredState.get(Properties.FACING);
+                Direction look = requiredState.get(Properties.BLOCK_FACE) == WALL ?
+                        null : requiredState.get(Properties.HORIZONTAL_FACING);
 
                 return new Action().setSides(side).setLookDirection(look).setRequiresSupport();
             }
@@ -361,15 +347,15 @@ public class PlacementGuide extends PrinterUtils {
             }
 
             case CAVE_VINES: {
-                return new Action().setItem(Items.GLOW_BERRIES);
+                return new Action().setItem(Items.GLOW_BERRIES).setRequiresSupport();
             }
 
             case WEEPING_VINES: {
-                return new Action().setItem(Items.WEEPING_VINES);
+                return new Action().setItem(Items.WEEPING_VINES).setRequiresSupport();
             }
 
             case TWISTING_VINES: {
-                return new Action().setItem(Items.TWISTING_VINES);
+                return new Action().setItem(Items.TWISTING_VINES).setRequiresSupport();
             }
 
             case FLOWER_POT: {
@@ -379,18 +365,91 @@ public class PlacementGuide extends PrinterUtils {
                 for (Direction direction : Direction.values()) {
                     if (direction == Direction.DOWN && requiredState.getBlock() == Blocks.VINE) continue;
                     if ((Boolean) getPropertyByName(requiredState, direction.getName())) {
-                        return new Action().setSides(direction);
+                        return new Action().setSides(direction).setLookDirection(direction);
                     }
                 }
                 break;
             }
+            //超级无敌写史高手请求出战
+            case CORAL: {
+                boolean isDead = requiredState.getBlock().getTranslationKey().contains("dead");
+                if (isDead) {
+                    if (LitematicaMixinMod.REPLACE_CORAL.getBooleanValue()) {
+                        if (playerHasAccessToItem(client.player, requiredState.getBlock().asItem())) {
+                            return (requiredState.getBlock() instanceof CoralWallFanBlock)
+                                    ? new Action().setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite()).setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                    : new Action();
+                        } else {
+                            String key = requiredState.getBlock().getTranslationKey();
+                            switch (key) {
+                                case "block.minecraft.dead_tube_coral_block":
+                                    return new Action().setItem(Items.TUBE_CORAL_BLOCK);
+                                case "block.minecraft.dead_brain_coral_block":
+                                    return new Action().setItem(Items.BRAIN_CORAL_BLOCK);
+                                case "block.minecraft.dead_bubble_coral_block":
+                                    return new Action().setItem(Items.BUBBLE_CORAL_BLOCK);
+                                case "block.minecraft.dead_fire_coral_block":
+                                    return new Action().setItem(Items.FIRE_CORAL_BLOCK);
+                                case "block.minecraft.dead_horn_coral_block":
+                                    return new Action().setItem(Items.HORN_CORAL_BLOCK);
+                                case "block.minecraft.dead_tube_coral_fan":
+                                case "block.minecraft.dead_tube_coral_wall_fan":
+                                    return new Action().setItem(Items.TUBE_CORAL_FAN)
+                                            .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                            .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                            .setRequiresSupport();
+                                case "block.minecraft.dead_brain_coral_fan":
+                                case "block.minecraft.dead_brain_coral_wall_fan":
+                                    return new Action().setItem(Items.BRAIN_CORAL_FAN)
+                                            .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                            .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                            .setRequiresSupport();
+                                case "block.minecraft.dead_bubble_coral_fan":
+                                case "block.minecraft.dead_bubble_coral_wall_fan":
+                                    return new Action().setItem(Items.BUBBLE_CORAL_FAN)
+                                            .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                            .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                            .setRequiresSupport();
+                                case "block.minecraft.dead_fire_coral_fan":
+                                case "block.minecraft.dead_fire_coral_wall_fan":
+                                    return new Action().setItem(Items.FIRE_CORAL_FAN)
+                                            .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                            .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                            .setRequiresSupport();
+                                case "block.minecraft.dead_horn_coral_fan":
+                                case "block.minecraft.dead_horn_coral_wall_fan":
+                                    return new Action().setItem(Items.HORN_CORAL_FAN)
+                                            .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                            .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                            .setRequiresSupport();
+                                case "block.minecraft.dead_tube_coral":
+                                    return new Action().setItem(Items.TUBE_CORAL);
+                                case "block.minecraft.dead_brain_coral":
+                                    return new Action().setItem(Items.BRAIN_CORAL);
+                                case "block.minecraft.dead_bubble_coral":
+                                    return new Action().setItem(Items.BUBBLE_CORAL);
+                                case "block.minecraft.dead_fire_coral":
+                                    return new Action().setItem(Items.FIRE_CORAL);
+                                case "block.minecraft.dead_horn_coral":
+                                    return new Action().setItem(Items.HORN_CORAL);
+                                default:
+                                    return new Action();
+                            }
+                        }
+                    } else {
+                        return (requiredState.getBlock() instanceof CoralWallFanBlock)
+                                ? new Action().setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite()).setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                : new Action();
+                    }
+                } else {
+                    return (requiredState.getBlock() instanceof CoralWallFanBlock)
+                            ? new Action().setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite()).setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                            : new Action();
+                }
+            }
             case SKIP: {
                 break;
             }
-            case WATER: {
-
-            }
-            case DEFAULT:
             default: { // 尝试猜测剩余方块如何放置
                 Direction look = null;
 
@@ -465,7 +524,7 @@ public class PlacementGuide extends PrinterUtils {
                 break;
             }
             case REPEATER: {
-                if (!Objects.equals(requiredState.get(RepeaterBlock.DELAY), currentState.get(RepeaterBlock.DELAY)))
+                if (!requiredState.get(RepeaterBlock.DELAY).equals(currentState.get(RepeaterBlock.DELAY)))
                     return new ClickAction();
 
                 break;
@@ -523,11 +582,11 @@ public class PlacementGuide extends PrinterUtils {
                 break;
             }
             //#endif
-            case VINES: {
+            case VINES, GLOW_LICHEN: {
                 for (Direction direction : Direction.values()) {
                     if (direction == Direction.DOWN) continue;
                     if ((Boolean) getPropertyByName(requiredState, direction.getName())) {
-                        return new Action().setSides(direction);
+                        return new Action().setSides(direction).setLookDirection(direction);
                     }
                 }
                 break;
@@ -572,8 +631,17 @@ public class PlacementGuide extends PrinterUtils {
                     }
                 }
             }
-            case WATER: {
-
+            case CORAL: {
+                if (currentState.getBlock() instanceof CoralBlock ||
+                currentState.getBlock() instanceof CoralBlockBlock ||
+                currentState.getBlock() instanceof CoralFanBlock ||
+                currentState.getBlock() instanceof CoralWallFanBlock) {
+                    if (currentState.getBlock().getTranslationKey().contains("dead")) {
+                        return null;
+                    } else {
+                        break;
+                    }
+                }
             }
             default: {
                 return null;
@@ -585,9 +653,7 @@ public class PlacementGuide extends PrinterUtils {
 
     enum ClassHook {
         // 放置
-        ROD(RodBlock.class), // 杆
         WALLTORCH(WallTorchBlock.class, WallRedstoneTorchBlock.class), // 墙上的火把
-        TORCH(TorchBlock.class), // 火把
         SLAB(SlabBlock.class), // 台阶
         STAIR(StairsBlock.class), // 楼梯
         TRAPDOOR(TrapdoorBlock.class), // 活板门
@@ -636,8 +702,9 @@ public class PlacementGuide extends PrinterUtils {
         // 其他
         FARMLAND(FarmlandBlock.class), // 耕地
         DIRT_PATH(DirtPathBlock.class), // 泥土小径
-        SKIP(SkullBlock.class, GrindstoneBlock.class, SignBlock.class), // 跳过
-        WATER(FluidBlock.class), // 水
+        //小声bb:为什么有这么多珊瑚类名？
+        CORAL(AbstractBlock.class, CoralBlockBlock.class, CoralBlock.class, CoralFanBlock.class, CoralWallFanBlock.class, DeadCoralBlock.class, DeadCoralFanBlock.class, DeadCoralWallFanBlock.class), // 珊瑚块
+        SKIP(SkullBlock.class, SignBlock.class, FluidBlock.class), // 跳过
         DEFAULT; // 默认
 
         private final Class<?>[] classes;
@@ -816,7 +883,7 @@ public class PlacementGuide extends PrinterUtils {
             List<Direction> validSides = new ArrayList<>();
 
             for (Direction side : sides.keySet()) {
-                if (LitematicaMixinMod.shouldPrintInAir && !this.requiresSupport) {
+                if (LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport) {
                     return side;
                 } else {
                     BlockPos neighborPos = pos.offset(side);
@@ -858,6 +925,15 @@ public class PlacementGuide extends PrinterUtils {
             return this;
         }
 
+        /**
+         * 设置是否需要支撑方块才能放置，默认为需要。
+         * <p>
+         *   如果设置为 {@code true}，则在放置方块时，会检查目标位置的周围是否有其他方块支撑。
+         *   如果设置为 {@code false}，则无论目标位置周围是否有支撑，都可以放置方块。
+         * </p>
+         *
+         * @return 当前 Action 实例，便于链式调用。
+         */
         public Action setRequiresSupport() {
             return this.setRequiresSupport(true);
         }
@@ -865,7 +941,7 @@ public class PlacementGuide extends PrinterUtils {
         public void queueAction(Printer.Queue queue, BlockPos center, Direction side, boolean useShift, boolean didSendLook) {
 //            System.out.println("Queued click?: " + center.offset(side).toString() + ", side: " + side.getOpposite());
 
-            if (LitematicaMixinMod.shouldPrintInAir && !this.requiresSupport) {
+            if (LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport) {
                 queue.queueClick(center, side.getOpposite(), getSides().get(side),
                         useShift, didSendLook);
             } else {

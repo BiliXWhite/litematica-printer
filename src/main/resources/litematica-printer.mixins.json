@@ -17,7 +17,8 @@
     "openinv.MixinPlayerEntity",
     "openinv.MixinServerPlayerEntity",
     "openinv.MixinServerWorld",
-    "openinv.PlayerManagerMixin"
+    "openinv.PlayerManagerMixin",
+    "bilixwhite.MixinInGameHud"
   ],
   "client": [
     "ClientCommonNetworkHandlerMixin",
@@ -47,7 +48,8 @@
     "masa.litematicaSetConfig.GuiConfigsMixin",
     "masa.litematicaSetConfig.InputHandlerMixin",
     "openinv.MixinMinecraftClient",
-    "verify.MixinClientConnection"
+    "verify.MixinClientConnection",
+    "bilixwhite.MixinInGameHud"
   ],
   "injectors": {
     "defaultRequire": 1
