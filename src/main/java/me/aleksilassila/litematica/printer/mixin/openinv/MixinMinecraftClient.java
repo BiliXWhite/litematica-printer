@@ -28,7 +28,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.INVENTORY;
-import static me.aleksilassila.litematica.printer.LitematicaMixinMod.QUICKSHULKER;
+import static me.aleksilassila.litematica.printer.LitematicaMixinMod.QUICK_SHULKER;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 
 @Environment(EnvType.CLIENT)
@@ -58,7 +58,7 @@ public abstract class MixinMinecraftClient {
         }
         Item item = world.getBlockState(pos).getBlock().asItem();
         if (player.playerScreenHandler.slots.stream().noneMatch(slot -> slot.getStack().getItem().equals(item)) &&
-                !player.getAbilities().creativeMode && (INVENTORY.getBooleanValue() || QUICKSHULKER.getBooleanValue())) {
+                !player.getAbilities().creativeMode && (INVENTORY.getBooleanValue() || QUICK_SHULKER.getBooleanValue())) {
             Printer.remoteItem.add(item);
             Printer.getPrinter().switchItem();
             return;
@@ -67,9 +67,9 @@ public abstract class MixinMinecraftClient {
     }
     //#else
     //$$ @WrapOperation(method = "doItemPick",at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerInventory;getSlotWithStack(Lnet/minecraft/item/ItemStack;)I" ))
-    //$$ private int doItemPick(PlayerInventory instance, ItemStack stack, Operation<Integer> original) {
+    //$$ private int doItemPick(PlayerInventory instance, ItemStack stack, Operation<Integer> original, CallbackInfo ci) {
     //$$     int slotWithStack = original.call(instance, stack);
-    //$$     if(!player.getAbilities().creativeMode && (INVENTORY.getBooleanValue() || QUICKSHULKER.getBooleanValue()) && slotWithStack == -1){
+    //$$     if(!player.getAbilities().creativeMode && (INVENTORY.getBooleanValue() || QUICK_SHULKER.getBooleanValue()) && slotWithStack == -1){
     //$$         Item item = stack.getItem();
     //$$         Printer.remoteItem.add(item);
     //$$         Printer.getPrinter().switchItem();

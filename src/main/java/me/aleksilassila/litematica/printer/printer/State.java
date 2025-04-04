@@ -93,8 +93,8 @@ public enum State {
         }
     }
     public enum ExcavateListMode implements IConfigOptionListEntry {
-        TW("tw", "tw"),
-        ME("me", "自带");
+        TWEAKEROO("tweakeroo", "Tweakeroo预设"),
+        CUSTOM("custom", "自定义");
 
         private final String configString;
         private final String translationKey;
@@ -142,7 +142,7 @@ public enum State {
                 }
             }
 
-            return ExcavateListMode.ME;
+            return ExcavateListMode.CUSTOM;
         }
     }
     public enum ModeType implements IConfigOptionListEntry {
@@ -252,5 +252,4 @@ public enum State {
             return ListType.SPHERE;
         }
     }
-
 }

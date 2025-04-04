@@ -8,7 +8,6 @@ import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.util.JsonUtils;
 import me.aleksilassila.litematica.printer.printer.State;
-import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -22,8 +21,9 @@ public class Configs implements IConfigHandler {
     private static final String FILE_PATH = "./config/" + MOD_ID + ".json";
     private static final File CONFIG_DIR = new File("./config");
     //mod
-    public static final ConfigHotkey PRINTER = new ConfigHotkey( "打开设置菜单", "Z,Y","");
+    public static final ConfigHotkey PRINTER = new ConfigHotkey( "打开设置菜单", "Z,Y","打开Litematica Printer设置菜单", "打开Litematica Printer设置菜单");
 
+    //===========通用设置===========
     public static ImmutableList<IConfigBase> addGeneral(){
         List<IConfigBase> list = new ArrayList<>();
         if(loadChestTracker) list.add(INVENTORY);
@@ -34,8 +34,8 @@ public class Configs implements IConfigHandler {
         list.add(PUT_COOLING);
         list.add(PLACE_USE_PACKET);
         list.add(SWITCH_ITEM_USE_PACKET);
-        list.add(AFTER_SWITCH_ITEM_SYNC);
-        list.add(QUICKSHULKER);
+        list.add(RENDER_PROGRESS);
+        list.add(QUICK_SHULKER);
         list.add(RANGE_MODE);
         list.add(MODE_SWITCH);
         if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)) list.add(PRINTER_MODE);
@@ -48,6 +48,7 @@ public class Configs implements IConfigHandler {
         return ImmutableList.copyOf(list);
     }
 
+    //===========放置设置===========
     public static ImmutableList<IConfigBase> addPut(){
         List<IConfigBase> list = new ArrayList<>();
 
@@ -64,14 +65,17 @@ public class Configs implements IConfigHandler {
         list.add(REPLACE);
         list.add(REPLACEABLE_LIST);
         list.add(STRIP_LOGS);
+        list.add(REPLACE_CORAL);
 
         return ImmutableList.copyOf(list);
     }
+
+    //===========挖掘设置===========
     public static ImmutableList<IConfigBase> addExcavate(){
         List<IConfigBase> list = new ArrayList<>();
         if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)) list.add(EXCAVATE);
         list.add(EXCAVATE_LIMITER);
-        if(EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.ME)){
+        if(EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.CUSTOM)){
             list.add(EXCAVATE_LIMIT);
             list.add(EXCAVATE_WHITELIST);
             list.add(EXCAVATE_BLACKLIST);
@@ -80,7 +84,7 @@ public class Configs implements IConfigHandler {
         return ImmutableList.copyOf(list);
     }
 
-    //热键列表
+    //===========热键设置===========
     public static ImmutableList<IConfigBase> addHotkeys(){
         List<IConfigBase> list = new ArrayList<>();
         list.add(PRINTER);
@@ -108,6 +112,7 @@ public class Configs implements IConfigHandler {
         return ImmutableList.copyOf(list);
     }
 
+    //===========颜色设置===========
     public static ImmutableList<IConfigBase> addColor(){
         List<IConfigBase> list = new ArrayList<>();
         list.add(SYNC_INVENTORY_COLOR);
