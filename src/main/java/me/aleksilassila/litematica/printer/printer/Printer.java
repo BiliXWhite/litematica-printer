@@ -268,9 +268,6 @@ public class Printer extends PrinterUtils {
     }
 
     BlockPos getBlockPos() {
-        // 检查当前时间是否超过了帧生成时间，如果超过则返回 null
-        //if (System.currentTimeMillis() > (startTime + (frameGenerationTime == 0 ? 15 : frameGenerationTime))) return null;
-
         // 获取当前玩家实例
         ClientPlayerEntity player = client.player;
         if (player == null) return null;

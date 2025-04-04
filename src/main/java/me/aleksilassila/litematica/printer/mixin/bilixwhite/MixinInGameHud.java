@@ -36,9 +36,9 @@ public abstract class MixinInGameHud {
             // 检查玩家是否是观察者模式
             if (!client.player.isSpectator() && LitematicaMixinMod.RENDER_PROGRESS.getBooleanValue() && LitematicaMixinMod.PRINT_SWITCH.getBooleanValue()) {
                 //#if MC > 11904
-                context.drawCenteredTextWithShadow(client.textRenderer,  (int) (Printer.getPrinter().getPrintProgress() * 100) + "%", (int) (width / 2), (int) (height / 2 + 10), new Color(255, 255, 255, 255).getRGB());
-                context.fill((int) (width / 2 - 20), (int) (height / 2 + 24), (int) (width / 2 + 20), (int) (height / 2 + 30), new Color(0, 0, 0, 150).getRGB());
-                context.fill((int) (width / 2 - 20), (int) (height / 2 + 24), (int) (width / 2 - 20 + Printer.getPrinter().getPrintProgress() * 40), (int) (height / 2 + 30), new Color(0, 255, 0, 255).getRGB());
+                context.drawCenteredTextWithShadow(client.textRenderer,  (int) (Printer.getPrinter().getPrintProgress() * 100) + "%", (int) (width / 2), (int) (height / 2 + 22), new Color(255, 255, 255, 255).getRGB());
+                context.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
+                context.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getPrinter().getPrintProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
                 //#else
                 //$$client.textRenderer.drawWithShadow(matrices, (int) (Printer.getPrinter().getPrintProgress() * 100) + "%", (int) (width / 2), (int) (height / 2 + 10), new Color(255, 255, 255, 255).getRGB());
                 //$$drawRect((width / 2 - 20), (height / 2 + 24), (width / 2 + 20), (height / 2 + 36), new Color(0, 0, 0, 150).getRGB());
