@@ -40,9 +40,9 @@ public abstract class MixinInGameHud {
                 context.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
                 context.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getPrinter().getPrintProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
                 //#else
-                //$$client.textRenderer.drawWithShadow(matrices, (int) (Printer.getPrinter().getPrintProgress() * 100) + "%", (int) (width / 2), (int) (height / 2 + 10), new Color(255, 255, 255, 255).getRGB());
-                //$$drawRect((width / 2 - 20), (height / 2 + 24), (width / 2 + 20), (height / 2 + 36), new Color(0, 0, 0, 150).getRGB());
-                //$$drawRect((width / 2 - 20), (height / 2 + 24), (width / 2 + 20), (height / 2 + 24 + Printer.getPrinter().getPrintProgress() * 12), new Color(0, 255, 0, 255).getRGB());
+                //$$client.textRenderer.drawWithShadow(matrices, (int) (Printer.getPrinter().getPrintProgress() * 100) + "%", (int) (width / 2 - client.textRenderer.getWidth((int) (Printer.getPrinter().getPrintProgress() * 100) + "%")), (int) (height / 2 + 22), new Color(255, 255, 255, 255).getRGB());
+                //$$drawRect((width / 2 - 20), (height / 2 + 36), (width / 2 + 20), (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
+                //$$drawRect((width / 2 - 20), (height / 2 + 36), (width / 2 - 20 + Printer.getPrinter().getPrintProgress() * 40), (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
                 //#endif
             }
         }
