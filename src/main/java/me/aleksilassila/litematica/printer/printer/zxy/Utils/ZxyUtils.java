@@ -376,17 +376,7 @@ public class ZxyUtils {
 //        return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
         return LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue();
     }
-    public static int getCompulsionRange(){
-        return LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue();
-    }
 
-    public static int frameGenerationTime = getMonitorRefreshRate();
-
-    public static int getMonitorRefreshRate() {
-        int refreshRate = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()).refreshRate();
-        return 1000 / refreshRate;
-//        System.out.println("The monitor refresh rate is " + refreshRate);
-    }
     public static void exitGameReSet(){
         SwitchItem.reSet();
         BreakingFlowController.poslist = new ArrayList<>();

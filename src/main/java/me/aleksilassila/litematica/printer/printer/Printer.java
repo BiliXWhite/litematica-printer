@@ -122,13 +122,12 @@ public class Printer extends PrinterUtils {
     public final MinecraftClient client;
     public final PlacementGuide guide;
     public final Queue queue;
-    public int range2;
     //强制循环半径
-    public boolean reSetRange1 = true;
-    public boolean usingRange1 = true;
+    public boolean resetRange = true;
+    public boolean usingRange = true;
     public BlockPos basePos = null;
     public MyBox myBox;
-    int range1;
+    int printRange;
     boolean yDegression = false;
     BlockPos tempPos = null;
     int tickRate;
@@ -278,11 +277,11 @@ public class Printer extends PrinterUtils {
         // 如果 basePos 为空，则初始化为玩家当前位置，并扩展 myBox 范围
         if (basePos == null) {
             basePos = playerPos;
-            myBox = new MyBox(basePos).expand(range1);
+            myBox = new MyBox(basePos).expand(printRange);
         }
 
         // 检查玩家位置是否在 basePos 的一定范围内，如果不在则重置 basePos 并返回 null
-        double threshold = range1 * 0.7;
+        double threshold = printRange * 0.7;
         if (!basePos.isWithinDistance(playerPos, threshold)) {
             basePos = null;
             return null;
@@ -299,7 +298,7 @@ public class Printer extends PrinterUtils {
         // 遍历 myBox 中的所有位置，找到符合条件的位置并返回
         while (iterator.hasNext()) {
             BlockPos pos = iterator.next();
-            if (rangeMode == State.ListType.SPHERE && !basePos.isWithinDistance(pos, range1))
+            if (rangeMode == State.ListType.SPHERE && !basePos.isWithinDistance(pos, printRange))
                 continue;
             return pos;
         }
@@ -364,7 +363,6 @@ public class Printer extends PrinterUtils {
 
         BreakingFlowController.tick();
         int maxy = -9999;
-        range2 = bedrockModeRange();
         BlockPos pos;
         while ((pos = getBlockPos()) != null && client.world != null) {
             if (!ZxyUtils.bedrockCanInteracted(pos, getRage())) continue;
@@ -474,10 +472,9 @@ public class Printer extends PrinterUtils {
         ClientWorld world = client.world;
 
         // 初始化范围、时间及间隔参数
-        reSetRange1 = true;
-        range1 = COMPULSION_RANGE.getIntegerValue();
-        range2 = getPrinterRange();
-        usingRange1 = true;
+        resetRange = true;
+        printRange = COMPULSION_RANGE.getIntegerValue();
+        usingRange = true;
         yDegression = false;
         startTime = System.currentTimeMillis();
         tickRate = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();

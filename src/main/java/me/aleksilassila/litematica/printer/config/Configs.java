@@ -36,7 +36,7 @@ public class Configs implements IConfigHandler {
         list.add(SWITCH_ITEM_USE_PACKET);
         list.add(RENDER_PROGRESS);
         list.add(QUICK_SHULKER);
-        list.add(RANGE_MODE);
+        //list.add(RANGE_MODE);
         list.add(MODE_SWITCH);
         if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)) list.add(PRINTER_MODE);
         else list.add(MULTI_BREAK);

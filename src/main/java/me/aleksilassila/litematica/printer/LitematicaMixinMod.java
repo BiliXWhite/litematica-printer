@@ -292,7 +292,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     );
 
     public static final ConfigBoolean RENDER_PROGRESS = new ConfigBoolean(
-            "显示打印进度(实验性)", true,
+            "显示打印进度(实验性)", false,
             "在打印机工作时在HUD中下的位置显示打印进度。（§c§l仅在1.21.4版本测试正常，其他版本不保证！§r）"
     );
 
