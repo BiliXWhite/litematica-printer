@@ -185,11 +185,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "开启后会§6§l跳过放置列表§r内的方块。"
     );
 
-    public static final ConfigBoolean PUT_TESTING = new ConfigBoolean(
-            "侦测器放置检测", false,
-            "检测侦测器看向的方块是否和投影方块一致，若不一致测跳过放置"
-    );
-
     public static final ConfigBoolean QUICK_SHULKER = new ConfigBoolean(
             "快捷潜影盒", false,
             "在服务器装有§bAxShulkers§r插件的情况下可以直接从背包内的潜影盒取出物品\n" +
