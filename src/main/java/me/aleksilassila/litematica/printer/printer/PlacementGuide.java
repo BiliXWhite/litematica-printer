@@ -119,6 +119,8 @@ public class PlacementGuide extends PrinterUtils {
             if (breakIce) {
                 breakIce = false;
             } else return water(requiredState, currentState, pos);
+        } else if (requiredState.getBlock() instanceof FluidBlock) {
+            return null;
         }
         if (LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue() && canBreakBlock(pos) && isSchematicBlock(pos) && State.get(requiredState, currentState) == State.WRONG_BLOCK) {
             excavateBlock(pos);
@@ -243,6 +245,11 @@ public class PlacementGuide extends PrinterUtils {
                 return new Action().setSides(look.getOpposite()).setLookDirection(look);
             }
 
+            case PISTON -> {
+                Direction look = requiredState.get(Properties.FACING);
+                return new Action().setSides(look).setLookDirection(look.getOpposite());
+            }
+
             case BUTTON -> {
                 Direction side;
                 switch (requiredState.get(Properties.BLOCK_FACE)) {
@@ -291,40 +298,51 @@ public class PlacementGuide extends PrinterUtils {
 
                 return new Action().setSides(side).setLookDirection(look);
             }
-            //TODO)) 修复门的放置
             case DOOR -> {
                 Direction facing = requiredState.get(DoorBlock.FACING);
                 DoorHinge hinge = requiredState.get(DoorBlock.HINGE);
+                BlockPos upperPos = pos.up();
 
-                // 获取门的铰链在玩家哪个方向（门靠墙的一侧）
-                Direction hingeSide = hinge == DoorHinge.RIGHT
-                        ? facing.rotateYClockwise()
-                        : facing.rotateYCounterclockwise();
+                // 获取门铰链方向
+                Direction hingeSide = hinge == DoorHinge.RIGHT ? facing.rotateYClockwise() : facing.rotateYCounterclockwise();
 
-                // hingeVec 是点击点在门面上的偏移（模拟玩家点击靠近铰链的一边）
-                Vec3d hingeVec = switch (hingeSide) {
-                    case NORTH -> new Vec3d(0, 0, -0.25);
-                    case SOUTH -> new Vec3d(0, 0, 0.25);
-                    case WEST -> new Vec3d(-0.25, 0, 0);
-                    case EAST -> new Vec3d(0.25, 0, 0);
-                    default -> Vec3d.ZERO;
-                };
+                double offset = hinge == DoorHinge.RIGHT ? 0.25 : -0.25;
+                Vec3d hingeVec = facing.getAxis() == Direction.Axis.X ? new Vec3d(0, 0, offset) : new Vec3d(offset, 0, 0);
 
                 Map<Direction, Vec3d> sides = new HashMap<>();
-                sides.put(hingeSide, Vec3d.ZERO); // 靠墙的方向要有方块支撑
-                sides.put(Direction.DOWN, hingeVec); // 玩家点击门底部
-                sides.put(facing, hingeVec); // 玩家朝着门的正面看
+                sides.put(hingeSide, Vec3d.ZERO); // 靠墙方向需要支撑
+                sides.put(Direction.DOWN, hingeVec); // 底部点击偏移
+                sides.put(facing, hingeVec); // 正面点击偏移
 
-                return new Action()
-                        .setLookDirection(facing)
-                        .setSides(sides)
-                        .setRequiresSupport();
+                // 获取左右方块状态
+                Direction left = facing.rotateYCounterclockwise();
+                Direction right = facing.rotateYClockwise();
+                BlockState leftState = world.getBlockState(pos.offset(left));
+                BlockState leftUpperState = world.getBlockState(upperPos.offset(left));
+                BlockState rightState = world.getBlockState(pos.offset(right));
+                BlockState rightUpperState = world.getBlockState(upperPos.offset(right));
+
+                int occupancy = (leftState.isFullCube(world, pos.offset(left)) ? -1 : 0)
+                        + (leftUpperState.isFullCube(world, upperPos.offset(left)) ? -1 : 0)
+                        + (rightState.isFullCube(world, pos.offset(right)) ? 1 : 0)
+                        + (rightUpperState.isFullCube(world, upperPos.offset(right)) ? 1 : 0);
+
+                boolean isLeftDoor = leftState.getBlock() instanceof DoorBlock &&
+                        leftState.get(Properties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER;
+                boolean isRightDoor = rightState.getBlock() instanceof DoorBlock &&
+                        rightState.get(Properties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER;
+
+                boolean condition = (hinge == DoorHinge.RIGHT && ((isLeftDoor && !isRightDoor) || occupancy > 0))
+                        || (hinge == DoorHinge.LEFT && ((isRightDoor && !isLeftDoor) || occupancy < 0))
+                        || (occupancy == 0 && (isLeftDoor == isRightDoor));
+                if (condition)
+                    return new Action().setSides(sides).setLookDirection(facing).setRequiresSupport();
             }
             case WALLSKULL -> {
                 return new Action().setSides(requiredState.get(WallSkullBlock.FACING).getOpposite());
             }
-            case DIRT_PATH -> {
-                return new Action().setItem(Items.DIRT);
+            case DIRT_PATH, FARMLAND -> {
+                return new Action().setItems(Items.DIRT, Items.GRASS_BLOCK, Items.COARSE_DIRT, Items.ROOTED_DIRT, Items.MYCELIUM, Items.PODZOL);
             }
             case BIG_DRIPLEAF_STEM -> {
                 return new Action().setItem(Items.BIG_DRIPLEAF);
@@ -430,10 +448,14 @@ public class PlacementGuide extends PrinterUtils {
                             : new Action();
                 }
             }
+            case FIRE -> {
+                return new Action().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
+            }
             case SKIP -> {
+                return null;
             }
             default -> { // 尝试猜测剩余方块如何放置
-                Direction look = null;
+                Direction facing = null;
 
                 for (Property<?> prop : requiredState.getProperties()) {
                     //#if MC > 12101
@@ -441,19 +463,12 @@ public class PlacementGuide extends PrinterUtils {
                         //#else
                         //$$ if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
                         //#endif
-                        look = ((Direction) requiredState.get(prop)).getOpposite();
+                        facing = ((Direction) requiredState.get(prop));
                     }
 
                 }
 
-                Action placement = new Action().setLookDirection(look);
-
-                // If required == dirt path place dirt
-                if (requiredState.getBlock().equals(Blocks.DIRT_PATH) && !playerHasAccessToItem(client.player, requiredState.getBlock().asItem())) {
-                    placement.setItem(Items.DIRT);
-                }
-
-                return placement;
+                return new Action().setSides(facing).setLookDirection(facing.getOpposite());
             }
         }
         else if (state == State.WRONG_STATE) switch (requiredType) {
@@ -551,12 +566,6 @@ public class PlacementGuide extends PrinterUtils {
                 }
             }
             case DEFAULT -> {
-                if (currentState.getBlock().equals(Blocks.DIRT) && requiredState.getBlock().equals(Blocks.FARMLAND)) {
-                    return new ClickAction().setItems(Implementation.HOES);
-                } else if (currentState.getBlock().equals(Blocks.DIRT) && requiredState.getBlock().equals(Blocks.DIRT_PATH)) {
-                    return new ClickAction().setItems(Implementation.SHOVELS);
-                }
-
             }
         }
         else if (state == State.WRONG_BLOCK) switch (requiredType) {
@@ -629,6 +638,7 @@ public class PlacementGuide extends PrinterUtils {
         CRAFTER(CrafterBlock.class), // 合成器
         //#endif
         OBSERVER(ObserverBlock.class), // 侦测器
+        PISTON(PistonBlock.class), // 活塞
 
         // 仅点击
         FLOWER_POT(FlowerPotBlock.class), // 花盆
@@ -648,6 +658,7 @@ public class PlacementGuide extends PrinterUtils {
         //#endif
         VINES(VineBlock.class), // 藤蔓
         GLOW_LICHEN(GlowLichenBlock.class), // 荧光地衣
+        FIRE(FireBlock.class, SoulFireBlock.class), // 火焰
 
         // 两者皆有
         GATE(FenceGateBlock.class), // 栅栏门
@@ -656,7 +667,6 @@ public class PlacementGuide extends PrinterUtils {
         // 其他
         FARMLAND(FarmlandBlock.class), // 耕地
         DIRT_PATH(DirtPathBlock.class), // 泥土小径
-        //小声bb:为什么有这么多珊瑚类名？
         CORAL(AbstractBlock.class, CoralBlockBlock.class, CoralBlock.class, CoralFanBlock.class, CoralWallFanBlock.class, DeadCoralBlock.class, DeadCoralFanBlock.class, DeadCoralWallFanBlock.class), // 珊瑚块
         SKIP(SkullBlock.class, SignBlock.class, FluidBlock.class), // 跳过
         DEFAULT; // 默认
@@ -670,7 +680,7 @@ public class PlacementGuide extends PrinterUtils {
 
     public static class Action {
         protected Map<Direction, Vec3d> sides;
-        protected Direction lookDirectionYaw;
+        protected Direction lookHorizontalDirection;
         protected Direction lookDirectionPitch;
         @Nullable
         protected Item[] clickItems; // null == any
@@ -708,8 +718,8 @@ public class PlacementGuide extends PrinterUtils {
             //#endif
         }
 
-        public @Nullable Direction getLookDirectionYaw() {
-            return lookDirectionYaw;
+        public @Nullable Direction getLookHorizontalDirection() {
+            return lookHorizontalDirection;
         }
 
         public @Nullable Direction getLookDirectionPitch() {
@@ -723,7 +733,7 @@ public class PlacementGuide extends PrinterUtils {
          * @return 当前 Action 实例
          */
         public Action setLookDirection(Direction lookDirection) {
-            this.lookDirectionYaw = lookDirection;
+            this.lookHorizontalDirection = lookDirection;
             this.lookDirectionPitch = lookDirection;
             return this;
         }
@@ -731,12 +741,12 @@ public class PlacementGuide extends PrinterUtils {
         /**
          * 设置放置时玩家的视角朝向
          *
-         * @param lookDirectionYaw 横轴视角朝向
+         * @param lookHorizontalDirection 横轴视角朝向
          * @param lookDirectionPitch 纵轴视角朝向
          * @return 当前 Action 实例
          */
-        public Action setLookDirection(Direction lookDirectionYaw, Direction lookDirectionPitch) {
-            this.lookDirectionYaw = lookDirectionYaw;
+        public Action setLookDirection(Direction lookHorizontalDirection, Direction lookDirectionPitch) {
+            this.lookHorizontalDirection = lookHorizontalDirection;
             this.lookDirectionPitch = lookDirectionPitch;
             return this;
         }

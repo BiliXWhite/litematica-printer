@@ -76,6 +76,6 @@ public abstract class MixinClientPlayerInteractionManager implements IClientPlay
 //			System.out.println("Side: " + side + ", " + a.getSides().get(side).toString());
 //		}
 //		System.out.println("Valid: " + a.getValidSide(player.clientWorld, hitResult.getBlockPos()));
-//		System.out.println("Look: " + a.getLookDirectionYaw());
+//		System.out.println("Look: " + a.getlookHorizontalDirection());
 //	}
 }

@@ -131,7 +131,7 @@ public class Printer extends PrinterUtils {
     boolean yDegression = false;
     BlockPos tempPos = null;
     int tickRate;
-    boolean isFacing = false;
+    boolean pendingItemSwitch = false;
     Item[] item2 = null;
     List<String> fluidBlocklist;
     long startTime;
@@ -317,7 +317,7 @@ public class Printer extends PrinterUtils {
                 fluidList.addAll(list);
             }
         }
-        Item[] array = fluidList.toArray(new Item[fluidList.size()]);
+        Item[] array = fluidList.toArray(new Item[0]);
         BlockPos pos;
         while ((pos = getBlockPos()) != null && client.world != null && client.player != null) {
             BlockState currentState = client.world.getBlockState(pos);
@@ -496,10 +496,10 @@ public class Printer extends PrinterUtils {
         }
 
         // 当需要调整装备时，切换物品并执行队列点击操作
-        if (isFacing) {
+        if (pendingItemSwitch) {
             switchToItems(player, item2);
             queue.sendQueue(player);
-            isFacing = false;
+            pendingItemSwitch = false;
         }
 
         // 如果正在处理打开的容器或切换物品，则直接返回
@@ -547,6 +547,7 @@ public class Printer extends PrinterUtils {
             if (player != null && !canInteracted(pos)) continue;
             BlockState requiredState = worldSchematic.getBlockState(pos);
             PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
+            if (action == null) continue;
 
             // 跳过在放置跳过列表中的方块
             if (LitematicaMixinMod.PUT_SKIP.getBooleanValue() &&
@@ -563,7 +564,7 @@ public class Printer extends PrinterUtils {
             }
 
             // 轻松模式下直接调用易放置操作
-            if (USE_EASY_MODE.getBooleanValue() && action != null) {
+            if (USE_EASY_MODE.getBooleanValue()) {
                 easyPos = pos;
                 WorldUtilsAccessor.doEasyPlaceAction(client);
                 easyPos = null;
@@ -571,54 +572,23 @@ public class Printer extends PrinterUtils {
                 else continue;
             }
 
-            if (action == null) continue;
             Direction side = action.getValidSide(world, pos);
             if (side == null) continue;
 
             Item[] requiredItems = action.getRequiredItems(requiredState.getBlock());
             if (playerHasAccessToItems(player, requiredItems)) {
-                // 处理箱子及其他特殊方块的放置偏移和shift键逻辑
-                boolean useShift = false;
-                if (requiredState.contains(ChestBlock.CHEST_TYPE)) {
-                    switch (requiredState.get(ChestBlock.CHEST_TYPE)) {
-                        case SINGLE, RIGHT -> useShift = true;
-                        case LEFT -> {
-                            if (world.getBlockState(pos.offset(requiredState.get(ChestBlock.FACING).rotateYClockwise())).isAir())
-                                continue;
-                            side = requiredState.get(ChestBlock.FACING).rotateYClockwise();
-                            useShift = true;
-                        }
-                    }
-                } else if (Implementation.isInteractive(world.getBlockState(pos.offset(side)).getBlock())) {
-                    useShift = true;
-                }
+                // 处理其他特殊方块的放置偏移和shift键逻辑
+                boolean useShift = LitematicaMixinMod.FORCED_PLACEMENT.getBooleanValue() ||
+                        Implementation.isInteractive(world.getBlockState(pos.offset(side)).getBlock());
 
                 // 对于特殊互动方块，若已处于装备切换状态，则跳过重复处理
-                if (!LitematicaMixinMod.EASY_MODE.getBooleanValue() &&
-                        (requiredState.isOf(Blocks.PISTON) ||
-                                requiredState.isOf(Blocks.STICKY_PISTON) ||
-                                requiredState.isOf(Blocks.OBSERVER) ||
-                                requiredState.isOf(Blocks.DROPPER) ||
-                                requiredState.isOf(Blocks.DISPENSER)
-                        ) && isFacing) {
+                if (!LitematicaMixinMod.EASY_MODE.getBooleanValue() && pendingItemSwitch) {
                     continue;
                 }
-
-                // 对观察者方块进行额外检测，确保放置方向正确
-                if (requiredState.isOf(Blocks.OBSERVER) && PUT_TESTING.getBooleanValue()) {
-                    BlockPos offset = pos.offset(action.getLookDirectionYaw());
-                    BlockState state1 = world.getBlockState(offset);
-                    BlockState state2 = worldSchematic.getBlockState(offset);
-                    if (isSchematicBlock(offset)) {
-                        State state = State.get(state1, state2);
-                        if (state != State.CORRECT) continue;
-                    }
-                }
-                if (LitematicaMixinMod.FORCED_PLACEMENT.getBooleanValue()) useShift = true;
                 // 发送放置前的准备操作
                 switchToItems(player, requiredItems);
-                sendLook(player, action.getLookDirectionYaw(), action.getLookDirectionPitch());
-                action.queueAction(queue, pos, side, useShift, action.getLookDirectionYaw() != null);
+                sendLook(player, action.getLookHorizontalDirection(), action.getLookDirectionPitch());
+                action.queueAction(queue, pos, side, useShift, action.getLookHorizontalDirection() != null);
 
                 // 应用精确点击的修正偏移（若有）
                 Vec3d hitModifier = usePrecisionPlacement(pos, requiredState);
@@ -628,23 +598,11 @@ public class Printer extends PrinterUtils {
                 }
 
 
-                // 针对音符盒特殊场景，直接发送点击队列操作
-                if (requiredState.isOf(Blocks.NOTE_BLOCK)) {
-                    queue.sendQueue(player);
-                    continue;
-                }
-
-                // 零间隔模式下，处理无法快速放置的特殊方块
+                // 零间隔模式修复
                 if (tickRate == 0) {
-                    if (hitModifier == null &&
-                            (requiredState.isOf(Blocks.PISTON) ||
-                                    requiredState.isOf(Blocks.STICKY_PISTON) ||
-                                    requiredState.isOf(Blocks.OBSERVER) ||
-                                    requiredState.isOf(Blocks.DROPPER) ||
-                                    requiredState.isOf(Blocks.DISPENSER)
-                    )) {
+                    if (hitModifier == null) {
                         item2 = requiredItems;
-                        isFacing = true;
+                        pendingItemSwitch = true;
                         continue;
                     }
                     queue.sendQueue(player);
@@ -687,8 +645,6 @@ public class Printer extends PrinterUtils {
                 if (client.world != null) {
                     state = client.world.getBlockState(pos);
                 }
-//                        Block block = state.getBlock();
-//                        if (Registries.BLOCK.getId(block).toString().contains(blockName)) {
                 if (Filters.equalsName(blockName, state)) {
                     blocks.add(pos);
                 }
