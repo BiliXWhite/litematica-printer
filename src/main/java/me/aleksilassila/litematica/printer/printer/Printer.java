@@ -429,8 +429,7 @@ public class Printer extends PrinterUtils {
 //        return LitematicaMixinMod.BEDROCK_LIST.getStrings().stream().anyMatch(string -> Registries.BLOCK.getId(block.getBlock()).toString().contains(string));
         return LitematicaMixinMod.BEDROCK_LIST.getStrings().stream().anyMatch(string -> Filters.equalsName(string,block));
     }
-
-    //TODO 使用数据包验证
+    
     public boolean verify() {
         if (client.isInSingleplayer() && client.isRealmsEnabled()) return true;
         String address = null;
@@ -444,6 +443,11 @@ public class Printer extends PrinterUtils {
         } else {
             return Verify.getVerify().tick(address);
         }
+    }
+    //TODO 使用数据包验证
+    boolean dataPacketVerify(){
+
+        return true;
     }
 
     public static int tickRate;

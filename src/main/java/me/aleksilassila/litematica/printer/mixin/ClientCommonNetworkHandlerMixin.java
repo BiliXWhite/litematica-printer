@@ -40,6 +40,7 @@ public class ClientCommonNetworkHandlerMixin {
      * @author 6
      * @reason 6
      */
+
     //#if MC < 12004
     //$$ @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket(Lnet/minecraft/network/packet/Packet;)V")
     //#else

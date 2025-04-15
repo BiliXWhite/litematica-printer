@@ -92,7 +92,7 @@ public class Implementation {
 
     protected static float getRequiredPitch(ClientPlayerEntity playerEntity, Direction playerShouldBeFacing) {
         if (playerShouldBeFacing.getAxis().isVertical()) {
-            return playerShouldBeFacing == Direction.DOWN ? 90 : -90; // FIXME make this less sus too
+            return playerShouldBeFacing == Direction.DOWN ? 90 : -90;
         } else {
             float pitch = Implementation.getPitch(playerEntity);
             return Math.abs(pitch) < 40 ? pitch : pitch / Math.abs(pitch) * 40;
