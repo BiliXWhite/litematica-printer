@@ -13,6 +13,7 @@ import net.minecraft.item.Items;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.state.property.Property;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -108,7 +109,6 @@ public class PlacementGuide extends PrinterUtils {
         return new Action().setLookDirection(look).setItem(Items.ICE);
     }
 
-    @SuppressWarnings("EnhancedSwitchMigration")
     private @Nullable Action buildAction(World world, WorldSchematic worldSchematic, BlockPos pos, ClassHook requiredType) {
         BlockState requiredState = worldSchematic.getBlockState(pos);
         BlockState currentState = world.getBlockState(pos);
@@ -139,7 +139,7 @@ public class PlacementGuide extends PrinterUtils {
         }
 
         if (state == State.MISSING_BLOCK) switch (requiredType) {
-            case WALLTORCH -> {
+            case WALL_TORCH -> {
                 Direction facing = requiredState.get(Properties.HORIZONTAL_FACING);
                 if (facing != null) {
                     return new Action().setSides(facing.getOpposite()).setRequiresSupport();
@@ -166,10 +166,11 @@ public class PlacementGuide extends PrinterUtils {
                 Map<Direction, Vec3d> sides = new HashMap<>();
                 if (half == BlockHalf.BOTTOM) {
                     sides.put(Direction.DOWN, new Vec3d(0, 0, 0));
+                    sides.put(facing, new Vec3d(0, 0, 0));
                 } else {
-                    sides.put(Direction.UP, new Vec3d(0, 0, 0));
+                    sides.put(Direction.UP, new Vec3d(0, 0.75, 0));
+                    sides.put(facing.getOpposite(), new Vec3d(0, 0.75, 0));
                 }
-                sides.put(facing.getOpposite(), new Vec3d(0, 0, 0));
 
                 return new Action()
                         .setSides(sides)
@@ -244,12 +245,15 @@ public class PlacementGuide extends PrinterUtils {
                 Direction look = requiredState.get(Properties.FACING);
                 return new Action().setSides(look.getOpposite()).setLookDirection(look);
             }
-
-            case PISTON -> {
-                Direction look = requiredState.get(Properties.FACING);
-                return new Action().setSides(look).setLookDirection(look.getOpposite());
+            case CHEST -> {
+                Direction facing = requiredState.get(Properties.HORIZONTAL_FACING).getOpposite();
+                ChestType type = requiredState.get(Properties.CHEST_TYPE);
+                if (type == ChestType.SINGLE) {
+                    return new Action().setLookDirection(facing, Direction.DOWN).setUseShift();
+                } else {
+                    return new Action().setLookDirection(facing);
+                }
             }
-
             case BUTTON -> {
                 Direction side;
                 switch (requiredState.get(Properties.BLOCK_FACE)) {
@@ -338,7 +342,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (condition)
                     return new Action().setSides(sides).setLookDirection(facing).setRequiresSupport();
             }
-            case WALLSKULL -> {
+            case WALL_SKULL -> {
                 return new Action().setSides(requiredState.get(WallSkullBlock.FACING).getOpposite());
             }
             case DIRT_PATH, FARMLAND -> {
@@ -382,60 +386,74 @@ public class PlacementGuide extends PrinterUtils {
                                     : new Action();
                         } else {
                             String key = requiredState.getBlock().getTranslationKey();
-                            switch (key) {
-                                case "block.minecraft.dead_tube_coral_block":
-                                    return new Action().setItem(Items.TUBE_CORAL_BLOCK);
-                                case "block.minecraft.dead_brain_coral_block":
-                                    return new Action().setItem(Items.BRAIN_CORAL_BLOCK);
-                                case "block.minecraft.dead_bubble_coral_block":
-                                    return new Action().setItem(Items.BUBBLE_CORAL_BLOCK);
-                                case "block.minecraft.dead_fire_coral_block":
-                                    return new Action().setItem(Items.FIRE_CORAL_BLOCK);
-                                case "block.minecraft.dead_horn_coral_block":
-                                    return new Action().setItem(Items.HORN_CORAL_BLOCK);
-                                case "block.minecraft.dead_tube_coral_fan":
-                                case "block.minecraft.dead_tube_coral_wall_fan":
-                                    return new Action().setItem(Items.TUBE_CORAL_FAN)
-                                            .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                            .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                            .setRequiresSupport();
-                                case "block.minecraft.dead_brain_coral_fan":
-                                case "block.minecraft.dead_brain_coral_wall_fan":
-                                    return new Action().setItem(Items.BRAIN_CORAL_FAN)
-                                            .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                            .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                            .setRequiresSupport();
-                                case "block.minecraft.dead_bubble_coral_fan":
-                                case "block.minecraft.dead_bubble_coral_wall_fan":
-                                    return new Action().setItem(Items.BUBBLE_CORAL_FAN)
-                                            .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                            .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                            .setRequiresSupport();
-                                case "block.minecraft.dead_fire_coral_fan":
-                                case "block.minecraft.dead_fire_coral_wall_fan":
-                                    return new Action().setItem(Items.FIRE_CORAL_FAN)
-                                            .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                            .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                            .setRequiresSupport();
-                                case "block.minecraft.dead_horn_coral_fan":
-                                case "block.minecraft.dead_horn_coral_wall_fan":
-                                    return new Action().setItem(Items.HORN_CORAL_FAN)
-                                            .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                            .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                            .setRequiresSupport();
-                                case "block.minecraft.dead_tube_coral":
-                                    return new Action().setItem(Items.TUBE_CORAL);
-                                case "block.minecraft.dead_brain_coral":
-                                    return new Action().setItem(Items.BRAIN_CORAL);
-                                case "block.minecraft.dead_bubble_coral":
-                                    return new Action().setItem(Items.BUBBLE_CORAL);
-                                case "block.minecraft.dead_fire_coral":
-                                    return new Action().setItem(Items.FIRE_CORAL);
-                                case "block.minecraft.dead_horn_coral":
-                                    return new Action().setItem(Items.HORN_CORAL);
-                                default:
-                                    return new Action();
-                            }
+                            return switch (key) {
+                                case "block.minecraft.dead_tube_coral_block" ->
+                                        new Action().setItem(Items.TUBE_CORAL_BLOCK);
+                                case "block.minecraft.dead_brain_coral_block" ->
+                                        new Action().setItem(Items.BRAIN_CORAL_BLOCK);
+                                case "block.minecraft.dead_bubble_coral_block" ->
+                                        new Action().setItem(Items.BUBBLE_CORAL_BLOCK);
+                                case "block.minecraft.dead_fire_coral_block" ->
+                                        new Action().setItem(Items.FIRE_CORAL_BLOCK);
+                                case "block.minecraft.dead_horn_coral_block" ->
+                                        new Action().setItem(Items.HORN_CORAL_BLOCK);
+                                case "block.minecraft.dead_tube_coral_fan" ->
+                                        new Action().setItem(Items.TUBE_CORAL_FAN)
+                                                .setSides(Direction.DOWN)
+                                                .setLookDirection(Direction.UP)
+                                                .setRequiresSupport();
+                                case "block.minecraft.dead_tube_coral_wall_fan" ->
+                                        new Action().setItem(Items.TUBE_CORAL_FAN)
+                                                .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                                .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                                .setRequiresSupport();
+                                case "block.minecraft.dead_brain_coral_fan" ->
+                                        new Action().setItem(Items.BRAIN_CORAL_FAN)
+                                                .setSides(Direction.DOWN)
+                                                .setLookDirection(Direction.UP)
+                                                .setRequiresSupport();
+                                case "block.minecraft.dead_brain_coral_wall_fan" ->
+                                        new Action().setItem(Items.BRAIN_CORAL_FAN)
+                                                .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                                .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                                .setRequiresSupport();
+                                case "block.minecraft.dead_bubble_coral_fan" ->
+                                        new Action().setItem(Items.BUBBLE_CORAL_FAN)
+                                                .setSides(Direction.DOWN)
+                                                .setLookDirection(Direction.UP)
+                                                .setRequiresSupport();
+                                case "block.minecraft.dead_bubble_coral_wall_fan" ->
+                                        new Action().setItem(Items.BUBBLE_CORAL_FAN)
+                                                .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                                .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                                .setRequiresSupport();
+                                case "block.minecraft.dead_fire_coral_fan" ->
+                                        new Action().setItem(Items.FIRE_CORAL_FAN)
+                                                .setSides(Direction.DOWN)
+                                                .setLookDirection(Direction.UP)
+                                                .setRequiresSupport();
+                                case "block.minecraft.dead_fire_coral_wall_fan" ->
+                                        new Action().setItem(Items.FIRE_CORAL_FAN)
+                                                .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                                .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                                .setRequiresSupport();
+                                case "block.minecraft.dead_horn_coral_fan" ->
+                                        new Action().setItem(Items.HORN_CORAL_FAN)
+                                                .setSides(Direction.DOWN)
+                                                .setLookDirection(Direction.UP)
+                                                .setRequiresSupport();
+                                case "block.minecraft.dead_horn_coral_wall_fan" ->
+                                        new Action().setItem(Items.HORN_CORAL_FAN)
+                                                .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                                .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
+                                                .setRequiresSupport();
+                                case "block.minecraft.dead_tube_coral" -> new Action().setItem(Items.TUBE_CORAL);
+                                case "block.minecraft.dead_brain_coral" -> new Action().setItem(Items.BRAIN_CORAL);
+                                case "block.minecraft.dead_bubble_coral" -> new Action().setItem(Items.BUBBLE_CORAL);
+                                case "block.minecraft.dead_fire_coral" -> new Action().setItem(Items.FIRE_CORAL);
+                                case "block.minecraft.dead_horn_coral" -> new Action().setItem(Items.HORN_CORAL);
+                                default -> new Action();
+                            };
                         }
                     } else {
                         return (requiredState.getBlock() instanceof CoralWallFanBlock)
@@ -451,24 +469,26 @@ public class PlacementGuide extends PrinterUtils {
             case FIRE -> {
                 return new Action().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
             }
+            case GATE -> {
+                Direction facing = requiredState.get(Properties.HORIZONTAL_FACING);
+                return new Action().setSides(facing).setLookDirection(facing);
+            }
             case SKIP -> {
                 return null;
             }
-            default -> { // 尝试猜测剩余方块如何放置
-                Direction facing = null;
+            default -> {
+                Direction facing = requiredState.getProperties().stream()
+                        .filter(prop -> prop instanceof EnumProperty<?> enumProp &&
+                                enumProp.getType().equals(Direction.class) &&
+                                prop.getName().equalsIgnoreCase("FACING"))
+                        .findFirst()
+                        .map(prop -> (Direction) requiredState.get(prop))
+                        .orElse(null);
 
-                for (Property<?> prop : requiredState.getProperties()) {
-                    //#if MC > 12101
-                    if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
-                        //#else
-                        //$$ if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
-                        //#endif
-                        facing = ((Direction) requiredState.get(prop));
-                    }
-
+                if (facing != null) {
+                    return new Action().setSides(facing).setLookDirection(facing.getOpposite());
                 }
-
-                return new Action().setSides(facing).setLookDirection(facing.getOpposite());
+                return new Action().setSides(Direction.UP).setLookDirection(Direction.DOWN);
             }
         }
         else if (state == State.WRONG_STATE) switch (requiredType) {
@@ -557,6 +577,22 @@ public class PlacementGuide extends PrinterUtils {
                 }
             }
             //#endif
+            case REDSTONE -> {
+                // 在Java版中，对于没有连接到任何红石元件的十字形的红石线，可以按使用键使其变为点状，从而不与任何方向连接，再按一次可以恢复。
+                boolean allNoneRequired = requiredState.get(RedstoneWireBlock.WIRE_CONNECTION_NORTH) == WireConnection.NONE &&
+                        requiredState.get(RedstoneWireBlock.WIRE_CONNECTION_SOUTH) == WireConnection.NONE &&
+                        requiredState.get(RedstoneWireBlock.WIRE_CONNECTION_EAST) == WireConnection.NONE &&
+                        requiredState.get(RedstoneWireBlock.WIRE_CONNECTION_WEST) == WireConnection.NONE;
+
+                boolean allSideCurrent = currentState.get(RedstoneWireBlock.WIRE_CONNECTION_NORTH) == WireConnection.SIDE &&
+                        currentState.get(RedstoneWireBlock.WIRE_CONNECTION_SOUTH) == WireConnection.SIDE &&
+                        currentState.get(RedstoneWireBlock.WIRE_CONNECTION_EAST) == WireConnection.SIDE &&
+                        currentState.get(RedstoneWireBlock.WIRE_CONNECTION_WEST) == WireConnection.SIDE;
+
+                if (allNoneRequired && allSideCurrent) {
+                    return new ClickAction().setItem(Items.AIR);
+                }
+            }
             case VINES, GLOW_LICHEN -> {
                 for (Direction direction : Direction.values()) {
                     if (direction == Direction.DOWN) continue;
@@ -564,8 +600,6 @@ public class PlacementGuide extends PrinterUtils {
                         return new Action().setSides(direction).setLookDirection(direction);
                     }
                 }
-            }
-            case DEFAULT -> {
             }
         }
         else if (state == State.WRONG_BLOCK) switch (requiredType) {
@@ -616,7 +650,7 @@ public class PlacementGuide extends PrinterUtils {
 
     enum ClassHook {
         // 放置
-        WALLTORCH(WallTorchBlock.class, WallRedstoneTorchBlock.class), // 墙上的火把
+        WALL_TORCH(WallTorchBlock.class, WallRedstoneTorchBlock.class), // 墙上的火把
         SLAB(SlabBlock.class), // 台阶
         STAIR(StairsBlock.class), // 楼梯
         TRAPDOOR(TrapdoorBlock.class), // 活板门
@@ -632,13 +666,13 @@ public class PlacementGuide extends PrinterUtils {
         AMETHYST(AmethystBlock.class), // 紫水晶
         DOOR(DoorBlock.class), // 门
         COCOA(CocoaBlock.class), // 可可豆
-        WALLSKULL(WallSkullBlock.class), // 墙上的头颅
+        WALL_SKULL(WallSkullBlock.class), // 墙上的头颅
         NETHER_PORTAL(NetherPortalBlock.class), // 下界传送门
         //#if MC >= 12003
         CRAFTER(CrafterBlock.class), // 合成器
         //#endif
         OBSERVER(ObserverBlock.class), // 侦测器
-        PISTON(PistonBlock.class), // 活塞
+        CHEST(ChestBlock.class), // 箱子
 
         // 仅点击
         FLOWER_POT(FlowerPotBlock.class), // 花盆
@@ -659,6 +693,7 @@ public class PlacementGuide extends PrinterUtils {
         VINES(VineBlock.class), // 藤蔓
         GLOW_LICHEN(GlowLichenBlock.class), // 荧光地衣
         FIRE(FireBlock.class, SoulFireBlock.class), // 火焰
+        REDSTONE(RedstoneWireBlock.class), //红石粉
 
         // 两者皆有
         GATE(FenceGateBlock.class), // 栅栏门
@@ -686,6 +721,7 @@ public class PlacementGuide extends PrinterUtils {
         protected Item[] clickItems; // null == any
 
         protected boolean requiresSupport = false;
+        protected boolean useShift = false;
 
         // If true, click target block, not neighbor
 
@@ -900,6 +936,24 @@ public class PlacementGuide extends PrinterUtils {
          */
         public Action setRequiresSupport() {
             return this.setRequiresSupport(true);
+        }
+
+        /**
+         * 设置是否需要按住 Shift 键才能放置，默认为需要。
+         * <p>
+         *   如果设置为 {@code true}，则在放置方块时，会检查玩家是否按住了 Shift 键。
+         *   如果设置为 {@code false}，则无论玩家是否按住 Shift 键，都可以放置方块。
+         * </p>
+         *
+         * @return 当前 Action 实例，便于链式调用。
+         */
+        public Action setUseShift(boolean useShift) {
+            this.useShift = useShift;
+            return this;
+        }
+
+        public Action setUseShift() {
+            return this.setUseShift(true);
         }
 
         public void queueAction(Printer.Queue queue, BlockPos center, Direction side, boolean useShift, boolean didSendLook) {

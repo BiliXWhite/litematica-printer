@@ -100,7 +100,6 @@ public class Implementation {
     }
 
     public static Class<?>[] interactiveBlocks = {
-            ChestBlock.class, // 箱子
             AbstractFurnaceBlock.class, // 炉子
             CraftingTableBlock.class, // 工作台
             LeverBlock.class, // 拉杆

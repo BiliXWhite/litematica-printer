@@ -579,7 +579,8 @@ public class Printer extends PrinterUtils {
             if (playerHasAccessToItems(player, requiredItems)) {
                 // 处理其他特殊方块的放置偏移和shift键逻辑
                 boolean useShift = LitematicaMixinMod.FORCED_PLACEMENT.getBooleanValue() ||
-                        Implementation.isInteractive(world.getBlockState(pos.offset(side)).getBlock());
+                        Implementation.isInteractive(world.getBlockState(pos).getBlock()) ||
+                        action.useShift;
 
                 // 对于特殊互动方块，若已处于装备切换状态，则跳过重复处理
                 if (!LitematicaMixinMod.EASY_MODE.getBooleanValue() && pendingItemSwitch) {
@@ -667,7 +668,7 @@ public class Printer extends PrinterUtils {
             if (!isSchematicBlock(pos)) continue;
             totalCount++;
             BlockState requiredState = schematic.getBlockState(pos);
-            if (requiredState == null) continue;
+            if (requiredState == null || requiredState.getBlock() instanceof AirBlock) continue;
             BlockState currentState = client.world.getBlockState(pos);
             if (currentState.getBlock().getDefaultState().equals(requiredState.getBlock().getDefaultState())) {
                 printedCount++;
@@ -973,8 +974,10 @@ public class Printer extends PrinterUtils {
 
             // 在执行操作前切换 SHIFT 键状态
             if (shift && !wasSneaking) {
+                player.setSneaking(true);
                 player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY));
             } else if (!shift && wasSneaking) {
+                player.setSneaking(false);
                 player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY));
             }
 
@@ -1009,8 +1012,10 @@ public class Printer extends PrinterUtils {
 
             // 在执行操作后切换 SHIFT 键状态
             if (shift && !wasSneaking) {
+                player.setSneaking(false);
                 player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY));
             } else if (!shift && wasSneaking) {
+                player.setSneaking(true);
                 player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY));
             }
 
