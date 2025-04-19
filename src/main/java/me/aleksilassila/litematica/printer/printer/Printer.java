@@ -974,11 +974,11 @@ public class Printer extends PrinterUtils {
 
             // 在执行操作前切换 SHIFT 键状态
             if (shift && !wasSneaking) {
-                player.setSneaking(true);
                 player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY));
+                player.setSneaking(true);
             } else if (!shift && wasSneaking) {
-                player.setSneaking(false);
                 player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY));
+                player.setSneaking(false);
             }
 
             if (yxcfItem != null) {
@@ -1012,11 +1012,11 @@ public class Printer extends PrinterUtils {
 
             // 在执行操作后切换 SHIFT 键状态
             if (shift && !wasSneaking) {
-                player.setSneaking(false);
                 player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY));
+                player.setSneaking(false);
             } else if (!shift && wasSneaking) {
-                player.setSneaking(true);
                 player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY));
+                player.setSneaking(true);
             }
 
             clearQueue();

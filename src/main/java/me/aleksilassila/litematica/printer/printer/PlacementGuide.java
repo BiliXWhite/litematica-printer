@@ -13,7 +13,6 @@ import net.minecraft.item.Items;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.state.property.Property;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -244,6 +243,10 @@ public class PlacementGuide extends PrinterUtils {
             case OBSERVER -> {
                 Direction look = requiredState.get(Properties.FACING);
                 return new Action().setSides(look.getOpposite()).setLookDirection(look);
+            }
+            case FIX_BLOCK -> {
+                Direction look = requiredState.get(Properties.FACING);
+                return new Action().setSides(look).setLookDirection(look.getOpposite());
             }
             case CHEST -> {
                 Direction facing = requiredState.get(Properties.HORIZONTAL_FACING).getOpposite();
@@ -672,6 +675,7 @@ public class PlacementGuide extends PrinterUtils {
         CRAFTER(CrafterBlock.class), // 合成器
         //#endif
         OBSERVER(ObserverBlock.class), // 侦测器
+        FIX_BLOCK(PistonBlock.class, DropperBlock.class, DispenserBlock.class), // 活塞，投掷器，发射器
         CHEST(ChestBlock.class), // 箱子
 
         // 仅点击
