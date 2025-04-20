@@ -109,6 +109,7 @@ public class Printer extends PrinterUtils {
     public static boolean printerMemorySync = false;
     public static BlockPos easyPos = null;
     public static boolean isOpenHandler = false;
+    public static boolean updateChecked = false;
     static int tick = 0;
     static BlockPos breakTargetBlock = null;
     static int startTick = -1;
@@ -601,11 +602,6 @@ public class Printer extends PrinterUtils {
 
                 // 零间隔模式修复
                 if (tickRate == 0) {
-                    if (hitModifier == null) {
-                        item2 = requiredItems;
-                        pendingItemSwitch = true;
-                        continue;
-                    }
                     queue.sendQueue(player);
                     continue;
                 }

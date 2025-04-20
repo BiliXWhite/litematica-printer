@@ -184,7 +184,7 @@ dependencies {
     //使用通用版本..大概
     runtimeOnly(project(path: ":fabricWrapper"))
 }
-def time = new Date().format("yyyyMMdd", TimeZone.getTimeZone("GMT+08:00"))
+def time = new Date().format("yyMMdd", TimeZone.getTimeZone("GMT+08:00"))
 version = project.mod_version + "+" + time
 group = project.mod_maven_group
 
