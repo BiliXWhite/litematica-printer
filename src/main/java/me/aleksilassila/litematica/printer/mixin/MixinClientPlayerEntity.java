@@ -75,6 +75,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
             if (!version.equals(newVersion))
 				client.inGameHud.getChatHud().addMessage(Text.of(
 					"检测到更新！当前版本: " + version + " 最新版本: " + newVersion + "\n" +
+							"强烈建议更新到最新版本，旧版本可能有一些恶性bug。" +
 							"下载链接：https://github.com/BiliXWhite/litematica-printer/releases"));
         }).start();
 	}
