@@ -10,6 +10,13 @@ import java.util.Iterator;
 public class MyBox extends Box implements Iterable<BlockPos> {
     public boolean yIncrement = true;
     public Iterator<BlockPos> iterator;
+
+    public void setIterateZFirst(boolean iterateZFirst) {
+        this.iterateZFirst = iterateZFirst;
+    }
+
+    private boolean iterateZFirst;
+
     public MyBox(double x1, double y1, double z1, double x2, double y2, double z2) {
         super(x1, y1, z1, x2, y2, z2);
     }
@@ -53,8 +60,9 @@ public class MyBox extends Box implements Iterable<BlockPos> {
     }
     @Override
     public @NotNull Iterator<BlockPos> iterator() {
-        return new Iterator<BlockPos>() {
+        return new Iterator<>() {
             public BlockPos currPos;
+
             @Override
             public boolean hasNext() {
                 if (currPos == null) return true;
@@ -75,15 +83,30 @@ public class MyBox extends Box implements Iterable<BlockPos> {
                 int x = currPos.getX();
                 int y = currPos.getY();
                 int z = currPos.getZ();
-                x++;
-                if (x > maxX) {
-                    x = (int) minX;
+                if (iterateZFirst) {
                     z++;
                     if (z > maxZ) {
                         z = (int) minZ;
-                        y = yIncrement ? y + 1 : y - 1;
-                        if (yIncrement ? y > maxY : y < minY) {
-                            y = (int) (yIncrement ? minY : maxY);
+                        x++;
+                        if (x > maxX) {
+                            x = (int) minX;
+                            y = yIncrement ? y + 1 : y - 1;
+                            if (yIncrement ? y > maxY : y < minY) {
+                                y = (int) (yIncrement ? minY : maxY);
+                            }
+                        }
+                    }
+                } else {
+                    x++;
+                    if (x > maxX) {
+                        x = (int) minX;
+                        z++;
+                        if (z > maxZ) {
+                            z = (int) minZ;
+                            y = yIncrement ? y + 1 : y - 1;
+                            if (yIncrement ? y > maxY : y < minY) {
+                                y = (int) (yIncrement ? minY : maxY);
+                            }
                         }
                     }
                 }

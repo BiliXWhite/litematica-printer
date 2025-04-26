@@ -33,7 +33,6 @@ public class Configs implements IConfigHandler {
         list.add(COMPULSION_RANGE);
         list.add(PUT_COOLING);
         list.add(PLACE_USE_PACKET);
-        list.add(SWITCH_ITEM_USE_PACKET);
         list.add(RENDER_PROGRESS);
         list.add(QUICK_SHULKER);
         //list.add(RANGE_MODE);

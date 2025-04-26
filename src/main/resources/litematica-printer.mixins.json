@@ -22,7 +22,6 @@
   ],
   "client": [
     "ClientCommonNetworkHandlerMixin",
-    "FlowerPotBlockAccessor",
     "MixinClientPlayerEntity",
     "MixinClientPlayerInteractionManager",
     "MixinClientPlayNetworkHandler",

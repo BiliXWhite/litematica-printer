@@ -37,14 +37,15 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     public @Nullable Action getAction(World world, WorldSchematic worldSchematic, BlockPos pos) {
+        // 提前缓存 blockState 提升性能
+        var blockState = worldSchematic.getBlockState(pos);
         for (ClassHook hook : ClassHook.values()) {
             for (Class<?> clazz : hook.classes) {
-                if (clazz != null && clazz.isInstance(worldSchematic.getBlockState(pos).getBlock())) {
+                if (clazz != null && clazz.isInstance(blockState.getBlock())) {
                     return buildAction(world, worldSchematic, pos, hook);
                 }
             }
         }
-
         return buildAction(world, worldSchematic, pos, ClassHook.DEFAULT);
     }
 
@@ -112,28 +113,34 @@ public class PlacementGuide extends PrinterUtils {
         BlockState requiredState = worldSchematic.getBlockState(pos);
         BlockState currentState = world.getBlockState(pos);
 
+        // 缓存重复调用的结果
+        var waterLoggedRequired = canWaterLogged(requiredState);
+        var waterLoggedCurrent = canWaterLogged(currentState);
+        var canPlace = requiredState.canPlaceAt(world, pos);
+        var state = State.get(requiredState, currentState);
+
         if (LitematicaMixinMod.PRINT_WATER_LOGGED_BLOCK.getBooleanValue()
-                && canWaterLogged(requiredState)
-                && !canWaterLogged(currentState)) {
+                && waterLoggedRequired && !waterLoggedCurrent) {
             if (breakIce) {
                 breakIce = false;
-            } else return water(requiredState, currentState, pos);
+            } else {
+                return water(requiredState, currentState, pos);
+            }
         } else if (requiredState.getBlock() instanceof FluidBlock) {
             return null;
         }
-        if (LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue() && canBreakBlock(pos) && isSchematicBlock(pos) && State.get(requiredState, currentState) == State.WRONG_BLOCK) {
+        if (LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue()
+                && canBreakBlock(pos)
+                && isSchematicBlock(pos)
+                && state == State.WRONG_BLOCK) {
             excavateBlock(pos);
         }
 
-        if (!requiredState.canPlaceAt(world, pos)) {
+        if (!canPlace) {
             return null;
         }
 
-        State state = State.get(requiredState, currentState);
-
-        if (state == State.CORRECT) return null;
-        else if (state == State.MISSING_BLOCK &&
-                !requiredState.canPlaceAt(world, pos)) {
+        if (state == State.CORRECT) {
             return null;
         }
 
@@ -243,10 +250,6 @@ public class PlacementGuide extends PrinterUtils {
             case OBSERVER -> {
                 Direction look = requiredState.get(Properties.FACING);
                 return new Action().setSides(look.getOpposite()).setLookDirection(look);
-            }
-            case FIX_BLOCK -> {
-                Direction look = requiredState.get(Properties.FACING);
-                return new Action().setSides(look).setLookDirection(look.getOpposite());
             }
             case CHEST -> {
                 Direction facing = requiredState.get(Properties.HORIZONTAL_FACING).getOpposite();
@@ -472,26 +475,25 @@ public class PlacementGuide extends PrinterUtils {
             case FIRE -> {
                 return new Action().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
             }
-            case GATE -> {
+            case FACING_BLOCK -> {
+                Direction facing = requiredState.get(Properties.FACING);
+                if (requiredState.getBlock() instanceof ObserverBlock) {
+                    facing = facing.getOpposite();
+                }
+                return new Action().setSides(facing).setLookDirection(facing.getOpposite());
+            }
+            case HORIZONTAL_FACING_BLOCK -> {
                 Direction facing = requiredState.get(Properties.HORIZONTAL_FACING);
-                return new Action().setSides(facing).setLookDirection(facing);
+                if (requiredState.getBlock() instanceof FenceGateBlock) {
+                    return new Action().setSides(facing).setLookDirection(facing);
+                }
+                return new Action().setSides(facing).setLookDirection(facing.getOpposite());
             }
             case SKIP -> {
                 return null;
             }
             default -> {
-                Direction facing = requiredState.getProperties().stream()
-                        .filter(prop -> prop instanceof EnumProperty<?> enumProp &&
-                                enumProp.getType().equals(Direction.class) &&
-                                prop.getName().equalsIgnoreCase("FACING"))
-                        .findFirst()
-                        .map(prop -> (Direction) requiredState.get(prop))
-                        .orElse(null);
-
-                if (facing != null) {
-                    return new Action().setSides(facing).setLookDirection(facing.getOpposite());
-                }
-                return new Action().setSides(Direction.UP).setLookDirection(Direction.DOWN);
+                return new Action();
             }
         }
         else if (state == State.WRONG_STATE) switch (requiredType) {
@@ -675,8 +677,9 @@ public class PlacementGuide extends PrinterUtils {
         CRAFTER(CrafterBlock.class), // 合成器
         //#endif
         OBSERVER(ObserverBlock.class), // 侦测器
-        FIX_BLOCK(PistonBlock.class, DropperBlock.class, DispenserBlock.class), // 活塞，投掷器，发射器
         CHEST(ChestBlock.class), // 箱子
+        FACING_BLOCK(FacingBlock.class, DispenserBlock.class), // 六面朝向方块
+        HORIZONTAL_FACING_BLOCK(HorizontalFacingBlock.class), // 水平朝向方块
 
         // 仅点击
         FLOWER_POT(FlowerPotBlock.class), // 花盆

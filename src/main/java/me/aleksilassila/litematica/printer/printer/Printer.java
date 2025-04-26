@@ -53,8 +53,6 @@ import java.util.*;
 import java.util.List;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
-import static fi.dy.masa.litematica.util.WorldUtils.applyCarpetProtocolHitVec;
-import static fi.dy.masa.litematica.util.WorldUtils.applyPlacementProtocolV3;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
 import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
@@ -133,9 +131,10 @@ public class Printer extends PrinterUtils {
     BlockPos tempPos = null;
     int tickRate;
     boolean pendingItemSwitch = false;
-    Item[] item2 = null;
     List<String> fluidBlocklist;
     long startTime;
+    private boolean needDelay;
+    private Item[] delayedItem;
 
     private Printer(@NotNull MinecraftClient client) {
         this.client = client;
@@ -292,15 +291,20 @@ public class Printer extends PrinterUtils {
         myBox.yIncrement = !yDegression;
         myBox.initIterator();
 
+        // 根据玩家面向来选择迭代器的顺序
+        myBox.setIterateZFirst(player.getHorizontalFacing().getAxis() == Direction.Axis.X);
+
         // 缓存配置值，减少循环中重复调用
         IConfigOptionListEntry rangeMode = LitematicaMixinMod.RANGE_MODE.getOptionListValue();
+        boolean isSphere = rangeMode == State.ListType.SPHERE;
         Iterator<BlockPos> iterator = myBox.iterator;
 
         // 遍历 myBox 中的所有位置，找到符合条件的位置并返回
         while (iterator.hasNext()) {
             BlockPos pos = iterator.next();
-            if (rangeMode == State.ListType.SPHERE && !basePos.isWithinDistance(pos, printRange))
+            if (isSphere && !basePos.isWithinDistance(pos, printRange)) {
                 continue;
+            }
             return pos;
         }
 
@@ -467,40 +471,39 @@ public class Printer extends PrinterUtils {
     }
 
     public void tick() {
-        // 获取当前图纸、玩家及世界信息
-        WorldSchematic worldSchematic = SchematicWorldHandler.getSchematicWorld();
         ClientPlayerEntity player = client.player;
+        if (player == null) return;
         ClientWorld world = client.world;
+        // 预载常用配置值
+        int compulsionRange = COMPULSION_RANGE.getIntegerValue();
+        int interval = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();
+        boolean useEasyMode = LitematicaMixinMod.EASY_MODE.getBooleanValue();
 
-        // 初始化范围、时间及间隔参数
+        // 更新环境参数
         resetRange = true;
-        printRange = COMPULSION_RANGE.getIntegerValue();
+        printRange = compulsionRange;
         usingRange = true;
         yDegression = false;
         startTime = System.currentTimeMillis();
-        tickRate = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();
-
-        // 增加tick计数器（达到最大值时重置）
-        tick = (tick == 0x7fffffff) ? 0 : tick + 1;
-
-        // 处理潜影盒的延迟计时
+        // 更新 tick 计数（避免溢出）
+        tick = (tick == Integer.MAX_VALUE) ? 0 : tick + 1;
         if (shulkerCooldown > 0) {
             shulkerCooldown--;
         }
 
-        // 如果tickRate不为0，先执行队列中的点击操作，并确定是否达到放置时机
-        if (tickRate != 0) {
-            queue.sendQueue(client.player);
-            if (tick % tickRate != 0) {
+        // 优先执行队列中的点击操作
+        if (interval != 0) {
+            queue.sendQueue(player);
+            if (tick % interval != 0) {
                 return;
             }
         }
 
         // 当需要调整装备时，切换物品并执行队列点击操作
-        if (pendingItemSwitch) {
-            switchToItems(player, item2);
+        if (needDelay) {
+            switchToItems(player, delayedItem);
             queue.sendQueue(player);
-            pendingItemSwitch = false;
+            needDelay = false;
         }
 
         // 如果正在处理打开的容器或切换物品，则直接返回
@@ -508,8 +511,9 @@ public class Printer extends PrinterUtils {
             return;
         }
 
-        // 根据模式选择对应的放置逻辑
-        if (LitematicaMixinMod.MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)) {
+        // 模式判断（减少重复调用，提高分支执行效率）
+        Object modeOption = LitematicaMixinMod.MODE_SWITCH.getOptionListValue();
+        if (modeOption.equals(State.ModeType.MULTI)) {
             boolean multiBreak = MULTI_BREAK.getBooleanValue();
             if (LitematicaMixinMod.BEDROCK_SWITCH.getBooleanValue()) {
                 yDegression = true;
@@ -525,108 +529,84 @@ public class Printer extends PrinterUtils {
                 fluidMode();
                 if (multiBreak) return;
             }
-        } else if (LitematicaMixinMod.PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType modeType && modeType != PRINTER) {
-            // 根据打印模式执行不同分支：BEDROCK、EXCAVATE或FLUID
+        } else if (LitematicaMixinMod.PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType modeType
+                && modeType != PRINTER) {
             switch (modeType) {
-                case BEDROCK -> {
-                    yDegression = true;
-                    bedrockMode();
-                }
-                case EXCAVATE -> {
-                    yDegression = true;
-                    miningMode();
-                }
+                case BEDROCK -> { yDegression = true; bedrockMode(); }
+                case EXCAVATE -> { yDegression = true; miningMode(); }
                 case FLUID -> fluidMode();
             }
             return;
         }
 
-        // 遍历所有区域内的方块位置
+        // 遍历当前区域内所有符合条件的位置
+        WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
+        if (schematic == null) return;
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
-            // 检查玩家是否能与该位置进行互动修复
-            if (player != null && !canInteracted(pos)) continue;
-            BlockState requiredState = worldSchematic.getBlockState(pos);
-            PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
+            if (!canInteracted(pos)) continue;
+            BlockState state = schematic.getBlockState(pos);
+            PlacementGuide.Action action = guide.getAction(world, schematic, pos);
             if (action == null) continue;
 
-            // 跳过在放置跳过列表中的方块
-            if (LitematicaMixinMod.PUT_SKIP.getBooleanValue() &&
-                    PUT_SKIP_LIST.getStrings().stream().anyMatch(block -> Filters.equalsName(block, requiredState))) {
-                continue;
-            }
-            // 若该位置超出当前渲染层范围，则跳过
-            if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
-            // 检查该位置是否处于放置冷却中
-            if (skipPosMap.containsKey(pos)) {
-                continue;
-            } else {
-                skipPosMap.put(pos, 0);
+
+
+            // 检查放置跳过列表，使用简单 for 循环替代 stream 提升性能
+            if (LitematicaMixinMod.PUT_SKIP.getBooleanValue()) {
+                boolean skip = false;
+                for (String s : PUT_SKIP_LIST.getStrings()) {
+                    if (Filters.equalsName(s, state)) {
+                        skip = true;
+                        break;
+                    }
+                }
+                if (skip) continue;
             }
 
-            // 轻松模式下直接调用易放置操作
-            if (USE_EASY_MODE.getBooleanValue()) {
+            // 渲染层范围判断
+            if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
+            // 跳过冷却中的位置
+            if (skipPosMap.containsKey(pos)) continue;
+            skipPosMap.put(pos, 0);
+
+            if (useEasyMode) {
                 easyPos = pos;
                 WorldUtilsAccessor.doEasyPlaceAction(client);
                 easyPos = null;
-                if (tickRate != 0) return;
-                else continue;
+                if (interval != 0)
+                    return;
+                else
+                    continue;
             }
 
             Direction side = action.getValidSide(world, pos);
             if (side == null) continue;
 
-            Item[] requiredItems = action.getRequiredItems(requiredState.getBlock());
-            if (playerHasAccessToItems(player, requiredItems)) {
-                // 处理其他特殊方块的放置偏移和shift键逻辑
+            Item[] reqItems = action.getRequiredItems(state.getBlock());
+            if (playerHasAccessToItems(player, reqItems)) {
                 boolean useShift = LitematicaMixinMod.FORCED_PLACEMENT.getBooleanValue() ||
                         Implementation.isInteractive(world.getBlockState(pos).getBlock()) ||
                         action.useShift;
-
-                // 对于特殊互动方块，若已处于装备切换状态，则跳过重复处理
-                if (!LitematicaMixinMod.EASY_MODE.getBooleanValue() && pendingItemSwitch) {
-                    continue;
-                }
-                // 发送放置前的准备操作
-                switchToItems(player, requiredItems);
-                sendLook(player, action.getLookHorizontalDirection(), action.getLookDirectionPitch());
+                if (pendingItemSwitch) continue;
+                switchToItems(player, reqItems);
                 action.queueAction(queue, pos, side, useShift, action.getLookHorizontalDirection() != null);
-
-                // 应用精确点击的修正偏移（若有）
-                Vec3d hitModifier = usePrecisionPlacement(pos, requiredState);
-                if (hitModifier != null) {
-                    queue.hitModifier = hitModifier;
-                    queue.termsOfUse = true;
-                }
-
-
-                // 零间隔模式修复
-                if (tickRate == 0) {
+                sendLook(player, action.getLookHorizontalDirection(), action.getLookDirectionPitch());
+                if (interval == 0) {
+                    var block = schematic.getBlockState(pos).getBlock();
+                    if (block instanceof PistonBlock ||
+                            block instanceof ObserverBlock ||
+                            block instanceof DispenserBlock
+                    ) {
+                        delayedItem = reqItems;
+                        needDelay = true;
+                        continue;
+                    }
                     queue.sendQueue(player);
                     continue;
                 }
                 return;
             }
         }
-    }
-
-    public Vec3d usePrecisionPlacement(BlockPos pos, BlockState stateSchematic) {
-        // 如果开启简单模式，则使用对应的精准放置方案
-        if (LitematicaMixinMod.EASY_MODE.getBooleanValue()) {
-            // 获取当前生效的精准放置协议版本
-            EasyPlaceProtocol protocol = PlacementHandler.getEffectiveProtocolVersion();
-            // 使用目标方块的位置创建初始的点击位置向量
-            Vec3d hitPos = Vec3d.of(pos);
-            // 如果使用的是 V3 协议，则调用 V3 的精准放置方法
-            if (protocol == EasyPlaceProtocol.V3) {
-                return applyPlacementProtocolV3(pos, stateSchematic, hitPos);
-            } else if (protocol == EasyPlaceProtocol.V2) {
-                // 如果使用的是 V2 协议，则调用地毯精准放置方法，支持半砖放置
-                return applyCarpetProtocolHitVec(pos, stateSchematic, hitPos);
-            }
-        }
-        // 如果未启用简单模式或不匹配协议，则返回 null
-        return null;
     }
 
     public LinkedList<BlockPos> siftBlock(String blockName) {
@@ -788,7 +768,7 @@ public class Printer extends PrinterUtils {
         PlayerInventory inventory = player.getInventory();
 
         if (PlayerInventory.isValidHotbarIndex(sourceSlot)) {
-            if (SWITCH_ITEM_USE_PACKET.getBooleanValue()) {
+            if (PLACE_USE_PACKET.getBooleanValue()) {
                 // 通过数据包切换热键槽
                 client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(sourceSlot));
                 inventory.selectedSlot = sourceSlot;
@@ -804,7 +784,7 @@ public class Printer extends PrinterUtils {
                 hotbarSlot = getPickBlockTargetSlot(player);
             }
             if (hotbarSlot != -1) {
-                if (SWITCH_ITEM_USE_PACKET.getBooleanValue()) {
+                if (PLACE_USE_PACKET.getBooleanValue()) {
                     client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(hotbarSlot));
                     inventory.selectedSlot = hotbarSlot;
                 } else {
@@ -837,7 +817,7 @@ public class Printer extends PrinterUtils {
                         int slot1 = fi.dy.masa.malilib.util.InventoryUtils.findSlotWithItem(player.playerScreenHandler, stack.copy(), true);
                         if (slot1 != -1) {
                             // 使用数据包或普通点击方式交换槽位中的物品
-                            if (SWITCH_ITEM_USE_PACKET.getBooleanValue()) {
+                            if (PLACE_USE_PACKET.getBooleanValue()) {
                                 Int2ObjectMap<ItemStack> snapshot = new Int2ObjectOpenHashMap<>();
                                 DefaultedList<Slot> slots = player.currentScreenHandler.slots;
                                 int totalSlots = slots.size();
@@ -946,35 +926,27 @@ public class Printer extends PrinterUtils {
             if (target == null || side == null || hitModifier == null) return;
 
             boolean wasSneaking = player.isSneaking();
-            Direction direction;
-            if (side.getAxis() == Direction.Axis.Y) {
-                if (lookDirYaw != null && lookDirYaw.getAxis().isHorizontal()) {
-                    direction = lookDirYaw;
-                } else if (lookDirPitch != null && lookDirPitch.getAxis().isHorizontal()) {
-                    direction = lookDirPitch;
-                } else {
-                    direction = Direction.NORTH;
-                }
-            } else {
-                direction = side;
-            }
+            Direction direction = side.getAxis() == Direction.Axis.Y
+                    ? (lookDirYaw != null && lookDirYaw.getAxis().isHorizontal()
+                    ? lookDirYaw
+                    : (lookDirPitch != null && lookDirPitch.getAxis().isHorizontal()
+                    ? lookDirPitch
+                    : Direction.NORTH))
+                    : side;
 
-            Vec3d actualHitModifier;
-            Vec3d hitVec = hitModifier;
-            if (!termsOfUse) {
-                actualHitModifier = hitModifier.rotateY((direction.getPositiveHorizontalDegrees() + 90) % 360);
-                hitVec = Vec3d.ofCenter(target)
-                        .add(Vec3d.of(side.getVector()).multiply(0.5))
-                        .add(actualHitModifier.multiply(0.5));
-            }
+            Vec3d hitVec = !termsOfUse
+                    ? Vec3d.ofCenter(target)
+                    .add(Vec3d.of(side.getVector()).multiply(0.5))
+                    .add(hitModifier.rotateY((direction.getPositiveHorizontalDegrees() + 90) % 360).multiply(0.5))
+                    : hitModifier;
 
-            // 在执行操作前切换 SHIFT 键状态
-            if (shift && !wasSneaking) {
-                player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY));
-                player.setSneaking(true);
-            } else if (!shift && wasSneaking) {
-                player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY));
-                player.setSneaking(false);
+            // 切换 SHIFT 状态（仅当当前状态与目标状态不同时处理）
+            if (shift != wasSneaking) {
+                ClientCommandC2SPacket.Mode preMode = shift
+                        ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY
+                        : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY;
+                player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, preMode));
+                player.setSneaking(shift);
             }
 
             if (yxcfItem != null) {
@@ -985,7 +957,7 @@ public class Printer extends PrinterUtils {
                 }
             }
 
-            printerInstance.sendLook(player ,lookDirYaw, lookDirPitch);
+            printerInstance.sendLook(player, lookDirYaw, lookDirPitch);
 
             if (PLACE_USE_PACKET.getBooleanValue()) {
                 //#if MC >= 11904
@@ -1006,13 +978,13 @@ public class Printer extends PrinterUtils {
                         .rightClickBlock(target, side, hitVec);
             }
 
-            // 在执行操作后切换 SHIFT 键状态
-            if (shift && !wasSneaking) {
-                player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY));
-                player.setSneaking(false);
-            } else if (!shift && wasSneaking) {
-                player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY));
-                player.setSneaking(true);
+            // 恢复原有的 SHIFT 状态
+            if (shift != wasSneaking) {
+                ClientCommandC2SPacket.Mode postMode = wasSneaking
+                        ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY
+                        : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY;
+                player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, postMode));
+                player.setSneaking(wasSneaking);
             }
 
             clearQueue();
