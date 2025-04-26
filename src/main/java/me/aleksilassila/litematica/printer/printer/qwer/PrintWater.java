@@ -3,6 +3,7 @@ package me.aleksilassila.litematica.printer.printer.qwer;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.Messager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -52,7 +53,7 @@ public class PrintWater {
             if((stack.isOf(Items.DIAMOND_PICKAXE)||
                     stack.isOf(Items.NETHERITE_PICKAXE)) &&
                     !(getEnchantmentLevel(stack,Enchantments.SILK_TOUCH) > 0)){
-                player.getInventory().selectedSlot = i-36;
+                InventoryUtils.setSelectedSlot(i-36);
                 return;
             }
         }

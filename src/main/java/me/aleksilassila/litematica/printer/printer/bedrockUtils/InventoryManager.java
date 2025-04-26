@@ -4,6 +4,7 @@ package me.aleksilassila.litematica.printer.printer.bedrockUtils;
 //import net.minecraft.client.MinecraftClient;
 
 import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -75,7 +76,7 @@ public class InventoryManager {
             int a = 1;
         }
         if ("diamond_pickaxe".equals(item.toString()) || "minecraft:diamond_pickaxe".equals(item.toString())) {
-            i = getEfficientTool(playerInventory);
+            i = getEfficientTool();
         }else switchPickaxe = false;
         PlayerScreenHandler sc = minecraftClient.player.playerScreenHandler;
         if (i != -1) {
@@ -87,12 +88,12 @@ public class InventoryManager {
                 refresh();
             }else{
                 if (PlayerInventory.isValidHotbarIndex(i)) {
-                    playerInventory.selectedSlot = i;
+                    InventoryUtils.setSelectedSlot(i);
                 } else {
                     {
 //                        minecraftClient.interactionManager.pickFromInventory(i);
 //                        minecraftClient.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(playerInventory.selectedSlot));
-                        minecraftClient.interactionManager.clickSlot(sc.syncId, i, playerInventory.selectedSlot, SlotActionType.SWAP, minecraftClient.player);
+                        minecraftClient.interactionManager.clickSlot(sc.syncId, i, InventoryUtils.getSelectedSlot(), SlotActionType.SWAP, minecraftClient.player);
                         refresh();
                     }
                 }
@@ -102,8 +103,8 @@ public class InventoryManager {
         return false;
     }
 
-    private static int getEfficientTool(PlayerInventory playerInventory) {
-        for (int i = 0; i < playerInventory.main.size(); ++i) {
+    private static int getEfficientTool() {
+        for (int i = 0; i < InventoryUtils.getMainStacks().size(); ++i) {
             if (getBlockBreakingSpeed(Blocks.PISTON.getDefaultState(), i) > 45f) {
                 return i;
             }
@@ -180,7 +181,7 @@ public class InventoryManager {
 
     public static String warningMessage() {
         MinecraftClient minecraftClient = MinecraftClient.getInstance();
-        if (!"survival".equals(minecraftClient.interactionManager.getCurrentGameMode().getName())) {
+        if (!"survival".equals(minecraftClient.interactionManager.getCurrentGameMode().getTranslatableName())) {
             return "bedrockminer.fail.missing.survival";
         }
 

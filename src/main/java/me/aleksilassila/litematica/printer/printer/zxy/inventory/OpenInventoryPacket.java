@@ -3,6 +3,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 import fi.dy.masa.malilib.util.StringUtils;
 import io.netty.buffer.Unpooled;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.mixin.openinv.ChunkTicketTypeMixin;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.Messager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
@@ -62,8 +63,12 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInve
 //#endif
 public class OpenInventoryPacket {
 
-    private static final ChunkTicketType<ChunkPos> OPEN_TICKET =
-            ChunkTicketType.create("openInv", Comparator.comparingLong(ChunkPos::toLong), 2);
+    //#if MC > 12104
+    private static final ChunkTicketType OPEN_TICKET = ChunkTicketType.UNKNOWN;
+    //#else
+    //$$ private static final ChunkTicketType<ChunkPos> OPEN_TICKET = ChunkTicketType.create("openInv", Comparator.comparingLong(ChunkPos::toLong), 2);
+    //#endif
+
     public static HashMap<ServerPlayerEntity, TickList> tickMap = new HashMap<>();
     public static boolean openIng = false;
     public static RegistryKey<World> key = null;
@@ -242,7 +247,12 @@ public class OpenInventoryPacket {
         if (world == null) return;
         BlockState blockState = world.getBlockState(pos);
         if (blockState == null) {
-            world.getChunkManager().addTicket(OPEN_TICKET, new ChunkPos(pos), 2, new ChunkPos(pos));
+            //#if MC > 12104
+            world.getChunkManager().addTicket(OPEN_TICKET, new ChunkPos(pos), 2);
+            //#else
+            //$$ world.getChunkManager().addTicket(OPEN_TICKET, new ChunkPos(pos), 2, new ChunkPos(pos));
+            //#endif
+
         }
         playerlist.add(player);
         if (blockState == null) return;
@@ -252,9 +262,9 @@ public class OpenInventoryPacket {
 
         if (!isInv || blockState.isAir() || (blockEntity instanceof ShulkerBoxBlockEntity entity &&
                 //#if MC > 12101
-                //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F, pos.toBottomCenterPos()).offset(pos).contract(1.0E-6)) &&
+                !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F, pos.toBottomCenterPos()).offset(pos).contract(1.0E-6)) &&
                 //#elseif MC <= 12101 && MC > 12004
-                !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
+                //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
                 //#elseif MC <= 12004
                 //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
                 //#endif
@@ -283,7 +293,7 @@ public class OpenInventoryPacket {
 
         if (r != null && (!r.equals(ActionResult.CONSUME)
                 //#if MC > 12101
-                //$$ && !r.equals(ActionResult.SUCCESS)
+                && !r.equals(ActionResult.SUCCESS)
                 //#endif
         )) {
             System.out.println("openFail" + pos);
@@ -348,9 +358,9 @@ public class OpenInventoryPacket {
                 String translationKey = key.getValue().toTranslationKey();
                 String translate = StringUtils.translate(translationKey);
                     //#if MC > 12101
-                    //$$ if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toCenterPos().toString()),false);
+                    if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toCenterPos().toString()),false);
                     //#else
-                    if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toCenterPos().toString()));
+                    //$$ if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toCenterPos().toString()));
                     //#endif
                 //#endif
 

@@ -19,7 +19,7 @@ public class Test {
         ClientPlayerEntity player = client.player;
         client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(1.0f,0.0f,player.isOnGround()
                 //#if MC > 12101
-                //$$ ,player.horizontalCollision
+                ,player.horizontalCollision
                 //#endif
         ));
         if (client.crosshairTarget == null || client.crosshairTarget.getType() != HitResult.Type.BLOCK) return;

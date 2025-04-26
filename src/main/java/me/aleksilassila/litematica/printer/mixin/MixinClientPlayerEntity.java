@@ -13,6 +13,7 @@ import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.text.Text;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,6 +25,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.HashMap;
 import java.util.HashSet;
 
+//#if MC == 11902
+//$$ import net.minecraft.network.encryption.PlayerPublicKey;
+//#endif
+
 //#if MC >= 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#else
@@ -33,8 +38,12 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import static me.aleksilassila.litematica.printer.printer.Printer.isEnablePrinter;
 @Mixin(ClientPlayerEntity.class)
 public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
-    public MixinClientPlayerEntity(ClientWorld world, GameProfile profile) {
-        super(world, profile);
+    public MixinClientPlayerEntity(ClientWorld world, GameProfile profile
+	//#if MC == 11902
+	//$$ , @Nullable PlayerPublicKey publicKey) {super(world, profile, publicKey);
+	//#else
+	) {super(world, profile);
+	//#endif
 	}
 
     @Final
@@ -47,7 +56,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
  		if(Statistics.loadChestTracker) MemoryUtils.saveMemory(this.currentScreenHandler);
  		OpenInventoryPacket.reSet();
 		//#else
-//$$
+		//$$
 		//#endif
 	}
 	@Inject(at = @At("TAIL"), method = "tick")

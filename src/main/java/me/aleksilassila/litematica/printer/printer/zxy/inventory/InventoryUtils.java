@@ -12,6 +12,7 @@ import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.mob.ShulkerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
@@ -30,14 +31,14 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#else
-
-    //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
-    //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
-    //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
-    //#if MC > 11802
-    //$$ import net.minecraft.registry.RegistryKeys;
-    //#else
-    //#endif
+//$$
+//$$     import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
+//$$     import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
+//$$     import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
+//#if MC > 11902
+//$$ import net.minecraft.registry.RegistryKeys;
+//#else
+//#endif
 //#endif
 
 
@@ -52,40 +53,42 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInve
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
 
 public class InventoryUtils {
-    public static boolean isInventory(World world, BlockPos pos){
-        return fi.dy.masa.malilib.util.InventoryUtils.getInventory(world,pos) != null;
+    public static boolean isInventory(World world, BlockPos pos) {
+        return fi.dy.masa.malilib.util.InventoryUtils.getInventory(world, pos) != null;
     }
-    public static boolean canOpenInv(BlockPos pos){
+
+    public static boolean canOpenInv(BlockPos pos) {
         if (client.world != null) {
             BlockState blockState = client.world.getBlockState(pos);
             BlockEntity blockEntity = client.world.getBlockEntity(pos);
-            boolean isInventory = InventoryUtils.isInventory(client.world,pos);
+            boolean isInventory = InventoryUtils.isInventory(client.world, pos);
             try {
-                if ((isInventory && blockState.createScreenHandlerFactory(client.world,pos) == null) ||
+                if ((isInventory && blockState.createScreenHandlerFactory(client.world, pos) == null) ||
                         (blockEntity instanceof ShulkerBoxBlockEntity entity &&
                                 //#if MC > 12101
-                                //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F, pos.toBottomCenterPos()).offset(pos).contract(1.0E-6)) &&
+                                !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F, pos.toBottomCenterPos()).offset(pos).contract(1.0E-6)) &&
                                 //#elseif MC <= 12101 && MC > 12004
-                                !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
+                                //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
                                 //#elseif MC <= 12004
                                 //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
                                 //#endif
                                 entity.getAnimationStage() == ShulkerBoxBlockEntity.AnimationStage.CLOSED)) {
                     return false;
-                }else if(!isInventory){
+                } else if (!isInventory) {
                     return false;
                 }
             } catch (Exception e) {
                 return false;
             }
             return true;
-        }else {
+        } else {
             return false;
         }
     }
 
     public static HashSet<Item> remoteItem = new HashSet<>();
     public static boolean isOpenHandler = false;
+
     public static boolean switchItem() {
         if (!remoteItem.isEmpty() && !isOpenHandler && !openIng && OpenInventoryPacket.key == null) {
             ClientPlayerEntity player = client.player;
@@ -141,7 +144,9 @@ public class InventoryUtils {
         }
         return false;
     }
+
     static int shulkerBoxSlot = -1;
+
     public static void switchInv() {
 //        if(true) return;
 
@@ -176,7 +181,7 @@ public class InventoryUtils {
                             c = a == -1 ? c : a;
                             ZxyUtils.switchPlayerInvToHotbarAir(c);
                             fi.dy.masa.malilib.util.InventoryUtils.swapSlots(sc, y, c);
-                            player.getInventory().selectedSlot = c;
+                            InventoryUtils.setSelectedSlot(c);
                             player.closeHandledScreen();
                             //刷新濳影盒
                             if (shulkerBoxSlot != -1) {
@@ -203,7 +208,37 @@ public class InventoryUtils {
         }
     }
 
+    public static void setSelectedSlot(int slot) {
 
+        if (client.player != null) {
+            //#if MC > 12104
+            client.player.getInventory().setSelectedSlot(slot);
+            //#else
+            //$$ client.player.getInventory().selectedSlot = slot;
+            //#endif
+        }
+    }
+
+    public static int getSelectedSlot() {
+
+        if (client.player != null) {
+            //#if MC > 12104
+            return client.player.getInventory().getSelectedSlot();
+            //#else
+            //$$ return client.player.getInventory().selectedSlot;
+            //#endif
+        } else return -1;
+    }
+
+    public static DefaultedList<ItemStack> getMainStacks() {
+        if (client.player != null) {
+            //#if MC > 12104
+            return client.player.getInventory().getMainStacks();
+            //#else
+            //$$ return client.player.getInventory().main;
+            //#endif
+        }else return DefaultedList.of();
+    }
 
     private static Method method;
 
@@ -228,7 +263,7 @@ public class InventoryUtils {
                             shulkerBoxSlot = i;
 //                            ClientUtil.CheckAndSend(stack,i);
                             //#if MC >= 12001
-                            if(loadChestTracker) InteractionTracker.INSTANCE.clear();
+                            if (loadChestTracker) InteractionTracker.INSTANCE.clear();
                             //#endif
                             method.invoke(method, stack, i);
                             closeScreen++;

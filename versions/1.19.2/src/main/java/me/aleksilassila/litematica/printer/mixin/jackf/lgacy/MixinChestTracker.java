@@ -2,11 +2,12 @@ package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 
 
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
-import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryKey;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -14,12 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import red.jackf.chesttracker.ChestTracker;
 import red.jackf.chesttracker.memory.Memory;
 import red.jackf.chesttracker.memory.MemoryDatabase;
-//#if MC < 11904
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryKey;
-//#else
-//$$ import net.minecraft.registry.RegistryKeys;
-//#endif
+
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.key;
 @Mixin(ChestTracker.class)
 public class MixinChestTracker {

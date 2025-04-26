@@ -1,4 +1,2 @@
-net.minecraft.util.math.Matrix4f org.joml.Matrix4f
 net.minecraft.util.registry.RegistryKey net.minecraft.registry.RegistryKey
-net.minecraft.util.registry.Registry net.minecraft.registry.Registries
 net.minecraft.world.dimension.AreaHelper net.minecraft.world.dimension.NetherPortal

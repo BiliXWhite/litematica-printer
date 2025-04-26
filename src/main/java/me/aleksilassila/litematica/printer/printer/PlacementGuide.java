@@ -12,9 +12,9 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 //#if MC < 12104
-import net.minecraft.state.property.DirectionProperty;
+//$$ import net.minecraft.state.property.DirectionProperty;
 //#else
-//$$
+
 //#endif
 
 import net.minecraft.state.property.EnumProperty;
@@ -95,9 +95,9 @@ public class PlacementGuide extends PrinterUtils {
         Direction look = null;
         for (Property<?> prop : requiredState.getProperties()) {
             //#if MC > 12101
-            //$$ if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
+            if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
             //#else
-            if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
+            //$$ if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
             //#endif
                 look = ((Direction) requiredState.get(prop)).getOpposite();
             }
@@ -342,9 +342,9 @@ public class PlacementGuide extends PrinterUtils {
 
                     for (Property<?> prop : requiredState.getProperties()) {
                         //#if MC > 12101
-                        //$$ if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
+                        if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
                         //#else
-                        if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
+                        //$$ if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
                         //#endif
                             look = ((Direction) requiredState.get(prop)).getOpposite();
                         }

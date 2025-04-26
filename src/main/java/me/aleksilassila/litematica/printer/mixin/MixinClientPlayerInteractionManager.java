@@ -30,13 +30,13 @@ public abstract class MixinClientPlayerInteractionManager implements IClientPlay
 	public void rightClickBlock(BlockPos pos, Direction side, Vec3d hitVec)
 	{
 		interactBlock(client.player,
-				//#if MC < 11904
+				//#if MC < 11902
 //$$ 				client.world,
 				//#endif
 				Hand.MAIN_HAND,
 			new BlockHitResult(hitVec, side, pos, false));
 		interactItem(client.player,
-				//#if MC < 11904
+				//#if MC < 11902
 //$$ 				client.world,
 				//#endif
 				Hand.MAIN_HAND);
@@ -56,14 +56,14 @@ public abstract class MixinClientPlayerInteractionManager implements IClientPlay
 	@Shadow
 	public abstract ActionResult interactBlock(
             ClientPlayerEntity clientPlayerEntity_1,
-			//#if MC < 11904
+			//#if MC < 11902
 //$$ 			ClientWorld world,
 			//#endif
             Hand hand_1, BlockHitResult blockHitResult_1);
 
 	@Shadow
 	public abstract ActionResult interactItem(PlayerEntity playerEntity_1,
-											  //#if MC < 11904
+											  //#if MC < 11902
 //$$ 											   World world,
 											  //#endif
                                                Hand hand_1);

@@ -17,7 +17,6 @@ int mcVersion = 1
 
 preprocess {
     mcVersion = vars.get().get("MC")
-    tabIndentation.set(false)
 }
 
 repositories {
@@ -111,8 +110,8 @@ configurations {
         }
     }
 
-    register("productionRuntimeServer")
-    register("productionRuntimeMods")
+//    register("productionRuntimeServer")
+//    register("productionRuntimeMods")
 }
 def sakura = mcVersion > 12006
 //  1 = modImplementation 2 = modImplementation include 	3 = modApi	4 = modCompileOnly  5 = modImplementation file
@@ -121,13 +120,13 @@ def mod_dependencies = [
         [(sakura ? "com.github.sakura-ryoko:itemscroller" : "curse.maven:item-scroller-242064"), "item_scrolle", 1],
         [(sakura ? "com.github.sakura-ryoko:tweakeroo" : "curse.maven:tweakeroo-297344"), "tweakeroo", 1],
         [(sakura ? "com.github.sakura-ryoko:litematica" : "curse.maven:litematica-308892"), "litematica", 1],
-        [getQuiShulkerBox(), "quick_shulker", mcVersion > 12004 ? 5 : 1],
+        [getQuiShulkerBox(), "quick_shulker", mcVersion > 12004 ? (mcVersion >= 12105 ? 45 : 5) : 1],
         [(mcVersion > 12004 ? "curse.maven:carpet-349239" : "maven.modrinth:carpet"), "carpet", 1],
         ["net.kyrptonaught:kyrptconfig", "kyrptconfig", 1],
         ["net.kyrptonaught:shulkerutils", "shulkerutils", mcVersion > 12004 ? 0 : 1],
         [getSbYacl(), "yacl", mcVersion >= 12001 ? 1 : 0],
-        ["maven.modrinth:chest-tracker", "chesttracker", 1],
-        ["maven.modrinth:where-is-it", "whereisit", 1],
+        ["maven.modrinth:chest-tracker", "chesttracker", mcVersion < 12105 ? 1 : 4],   //TODO 箱子追踪未更新21.5
+        ["maven.modrinth:where-is-it", "whereisit", mcVersion < 12105 ? 1 : 4],
         ["red.jackf.jackfredlib:jackfredlib", "jackfredlib", mcVersion >= 12001 ? 1 : 0],
         ["com.blamejared.searchables", "searchables", mcVersion >= 12001 ? 1 : 0],
         ["maven.modrinth:modmenu", "modmenu", 1],
@@ -144,19 +143,18 @@ String getSbYacl() {
 
 String getQuiShulkerBox() {
     String path = "curse.maven:quick-shulker-362669";
-    if (mcVersion == 12006) {
-        path = "build/libs/quickshulker-1.4.3-1.20.6.jar"
-    } else if (mcVersion == 12101) {
-        path = "build/libs/quickshulker-1.4.5-1.21.jar"
-    } else if (mcVersion == 12104) {
-        path = "build/libs/quickshulker-1.4.5-1.21.4.jar"
+    if (mcVersion == 12006) { path = "build/libs/quickshulker-1.4.3-1.20.6.jar"
+    } else if (mcVersion == 12101) { path = "build/libs/quickshulker-1.4.5-1.21.jar"
+    } else if (mcVersion == 12104) { path = "build/libs/quickshulker-1.4.5-1.21.4.jar"
+//    } else if (mcVersion == 12105) { path = "build/libs/quickshulker-1.4.5-1.21.4.jar"
+    } else if (mcVersion == 12105) { path = "build/libs/quickshulker-1.7.0-1.21.5.jar"
     }
     return path;
 }
 
 dependencies {
     //拼音
-    implementation include("com.belerweb:pinyin4j:${project.pinyin_verson}")
+    implementation include("com.belerweb:pinyin4j:${project.pinyin_version}")
 
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -175,12 +173,13 @@ dependencies {
         def idFix = mode != 5 ? "${dependencyNotation}:${project.property("${id}")}" : ""
         if (mode == 1) {
             modImplementation idFix
+        } else if (mode == 3) {
         } else if (mode == 2) {
             modImplementation include(idFix)
-        } else if (mode == 3) {
-            modApi idFix
         } else if (mode == 4) {
-            modCompileOnly idFix
+            modApi idFix
+        } else if (mode == 45) {
+            modCompileOnly files(dependencyNotation)
         } else if (mode == 5) {
             modImplementation files(dependencyNotation)
         }
@@ -216,7 +215,6 @@ loom {
     }
 
     runConfigs.named("client") {
-
         programArgs([
                 "--width", "1280",
                 "--height", "720",
@@ -250,9 +248,9 @@ loom {
     runClient {
         defaultCharacterEncoding("UTF-8")
 
-        if (!new File("${projectDir}/run/client/options.txt").exists()) {
-            new File("${projectDir}/run/client").mkdirs()
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("${projectDir}/run/client/options.txt"))
+        if (!new File("${project.projectDir}/run/client/options.txt").exists()) {
+            new File("${project.projectDir}/run/client").mkdirs()
+            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("${project.projectDir}/run/client/options.txt"))
             bufferedWriter.writeLine("autoJump:false")
             bufferedWriter.writeLine("enableVsync:false")
             bufferedWriter.writeLine("forceUnicodeFont:false")
@@ -273,71 +271,71 @@ loom {
         defaultCharacterEncoding("UTF-8")
 
         // Agree eula before server init.
-        if (!new File("${projectDir}/run/server/eula.txt").exists()) {
-            new File("${projectDir}/run/server").mkdirs()
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("${projectDir}/run/server/eula.txt"))
+        if (!new File("${project.projectDir}/run/server/eula.txt").exists()) {
+            new File("${project.projectDir}/run/server").mkdirs()
+            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("${project.projectDir}/run/server/eula.txt"))
             bufferedWriter.writeLine("eula=true")
             bufferedWriter.close()
         }
     }
 }
 
-tasks.register("serverPropertiesJar", Jar) {
-    File propsFile = file("build/tmp/install.properties")
+//tasks.register("serverPropertiesJar", Jar) {
+//    File propsFile = file("build/tmp/install.properties")
+//
+//    doFirst {
+//        if (propsFile.exists()) {
+//            propsFile.delete()
+//        }
+//
+//        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(propsFile))
+//        bufferedWriter.writeLine("fabric-loader-version=${project.loader_version}")
+//        bufferedWriter.writeLine("game-version=${project.minecraft_version}")
+//        bufferedWriter.close()
+//    }
+//
+//    archiveFileName.set("server-properties.jar")
+//    destinationDirectory.set(file("build/tmp"))
+//    from(propsFile)
+//}
 
-    doFirst {
-        if (propsFile.exists()) {
-            propsFile.delete()
-        }
+//tasks.register("runProductionClient", JavaExec) {
+//    dependsOn(tasks.remapJar)
+//    classpath.from(configurations.productionRuntimeClient)
+//    mainClass.set("net.fabricmc.loader.impl.launch.knot.KnotClient")
+//    workingDir(file("run/client"))
+//
+//    doFirst {
+//        classpath.from(loom.minecraftProvider.minecraftClientJar)
+//        args(
+//                "--assetIndex", loom.minecraftProvider.versionInfo.assetIndex().fabricId(loom.minecraftProvider.minecraftVersion()),
+//                "--assetsDir", file("${loom.files.userCache}/assets").absolutePath,
+//                "--gameDir", workingDir.absolutePath,
+//                "--width", "1280",
+//                "--height", "720",
+//        )
+//        jvmArgs("-Dmixin.debug.export=true")
+//        jvmArgs("-Dfabric.addMods=${configurations.productionRuntimeMods.files.join(File.pathSeparator)}${File.pathSeparator}${tasks.remapJar.archiveFile.get().asFile.absolutePath}")
+//
+//
+//        if (Platform.CURRENT.operatingSystem.isMacOS()) {
+//            jvmArgs("-XstartOnFirstThread")
+//        }
+//    }
+//}
 
-        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(propsFile))
-        bufferedWriter.writeLine("fabric-loader-version=${project.loader_version}")
-        bufferedWriter.writeLine("game-version=${project.minecraft_version}")
-        bufferedWriter.close()
-    }
-
-    archiveFileName.set("server-properties.jar")
-    destinationDirectory.set(file("build/tmp"))
-    from(propsFile)
-}
-
-tasks.register("runProductionClient", JavaExec) {
-    dependsOn(tasks.remapJar)
-    classpath.from(configurations.productionRuntimeClient)
-    mainClass.set("net.fabricmc.loader.impl.launch.knot.KnotClient")
-    workingDir(file("run/client"))
-
-    doFirst {
-        classpath.from(loom.minecraftProvider.minecraftClientJar)
-        args(
-                "--assetIndex", loom.minecraftProvider.versionInfo.assetIndex().fabricId(loom.minecraftProvider.minecraftVersion()),
-                "--assetsDir", file("${loom.files.userCache}/assets").absolutePath,
-                "--gameDir", workingDir.absolutePath,
-                "--width", "1280",
-                "--height", "720",
-        )
-        jvmArgs("-Dmixin.debug.export=true")
-        jvmArgs("-Dfabric.addMods=${configurations.productionRuntimeMods.files.join(File.pathSeparator)}${File.pathSeparator}${tasks.remapJar.archiveFile.get().asFile.absolutePath}")
-
-
-        if (Platform.CURRENT.operatingSystem.isMacOS()) {
-            jvmArgs("-XstartOnFirstThread")
-        }
-    }
-}
-
-tasks.register("runProductionServer", JavaExec) {
-    dependsOn(tasks.remapJar)
-    classpath.from(configurations.productionRuntimeServer, tasks.named("serverPropertiesJar"))
-    mainClass.set("net.fabricmc.installer.ServerLauncher")
-    workingDir(file("run/server"))
-
-    doFirst {
-        args("nogui")
-        jvmArgs("-Dmixin.debug.export=true")
-        jvmArgs("-Dfabric.addMods=${configurations.productionRuntimeMods.files.join(File.pathSeparator)}${File.pathSeparator}${tasks.remapJar.archiveFile.get().asFile.absolutePath}")
-    }
-}
+//tasks.register("runProductionServer", JavaExec) {
+//    dependsOn(tasks.remapJar)
+//    classpath.from(configurations.productionRuntimeServer, tasks.named("serverPropertiesJar"))
+//    mainClass.set("net.fabricmc.installer.ServerLauncher")
+//    workingDir(file("run/server"))
+//
+//    doFirst {
+//        args("nogui")
+//        jvmArgs("-Dmixin.debug.export=true")
+//        jvmArgs("-Dfabric.addMods=${configurations.productionRuntimeMods.files.join(File.pathSeparator)}${File.pathSeparator}${tasks.remapJar.archiveFile.get().asFile.absolutePath}")
+//    }
+//}
 
 //["serverPropertiesJar",
 // "runClient", "runServer",
@@ -357,7 +355,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 remapJar {
-    remapperIsolation.set(true)
+//    remapperIsolation.set(true)
 }
 
 def MIXIN_CONFIG_PATHS = ['litematica-printer.mixins.json']

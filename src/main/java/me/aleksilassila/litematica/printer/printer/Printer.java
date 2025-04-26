@@ -743,7 +743,7 @@ public class Printer extends PrinterUtils {
         for (Item item : items) {
             if (Implementation.getAbilities(player).creativeMode) {
                 InventoryUtils.setPickedItemToHand(new ItemStack(item), client);
-                client.interactionManager.clickCreativeStack(client.player.getStackInHand(Hand.MAIN_HAND), 36 + inv.selectedSlot);
+                client.interactionManager.clickCreativeStack(client.player.getStackInHand(Hand.MAIN_HAND), 36 + me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.getSelectedSlot());
                 return true;
             } else {
                 int slot = -1;
@@ -820,7 +820,7 @@ public class Printer extends PrinterUtils {
 //            hitModifier = new Vec3d(hitModifier.x, hitModifier.y, hitModifier.z);
             Vec3d hitVec = hitModifier;
             if(!termsOfUse){
-                hitModifier = hitModifier.rotateY((direction.asRotation() + 90) % 360);
+                hitModifier = hitModifier.rotateY((direction.getPositiveHorizontalDegrees() + 90) % 360);
                  hitVec = Vec3d.ofCenter(target)
                         .add(Vec3d.of(side.getVector()).multiply(0.5))
                         .add(hitModifier.multiply(0.5));

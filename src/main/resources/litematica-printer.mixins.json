@@ -11,6 +11,7 @@
     "masa.MixinInventoryUtils",
     "masa.WorldUtilsAccessor",
     "masa.WorldUtilsMixin",
+    "openinv.ChunkTicketTypeMixin",
     "openinv.ClientPlayNetworkHandlerMixin",
     "openinv.InventoryMixin",
     "openinv.MixinGenericContainerScreenHandler",

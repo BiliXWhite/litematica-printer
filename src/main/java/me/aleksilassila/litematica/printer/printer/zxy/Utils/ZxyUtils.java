@@ -45,6 +45,10 @@ import java.util.*;
 //$$ import net.minecraft.enchantment.EnchantmentHelper;
 //#endif
 
+//#if MC >= 12105
+import net.minecraft.screen.sync.ItemStackHash;
+//#endif
+
 //#if MC >= 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#else
@@ -174,7 +178,7 @@ public class ZxyUtils {
                 return false;
             }
             if (client.interactionManager != null){
-                //#if MC < 11904
+                //#if MC < 11902
                 //$$ client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
                 //#else
                 client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
@@ -398,7 +402,7 @@ public class ZxyUtils {
     }
 
     public static void interactBlock1(Hand hand, Vec3d vec3d, Direction direction, BlockPos pos, boolean insideBlock){
-        //#if MC < 11904
+        //#if MC < 11902
         //$$ client.interactionManager.interactBlock(client.player, client.world, hand,new BlockHitResult(vec3d, direction,pos,insideBlock));
         //#else
         client.interactionManager.interactBlock(client.player, hand,new BlockHitResult(vec3d, direction,pos,insideBlock));
@@ -423,13 +427,23 @@ public class ZxyUtils {
         //$$ uniqueItem.getOrCreateNbt().putDouble("force_resync", Double.NaN);
         //#endif
 
+        //#if MC >= 12105
+        ItemStackHash itemStackHash = ItemStackHash.fromItemStack(uniqueItem, networkHandler.method_68823());
+        //#endif
+
         networkHandler.sendPacket(new ClickSlotC2SPacket(
                 player.currentScreenHandler.syncId,
                 player.currentScreenHandler.getRevision(),
-                -999, 2,
+                (short) -999, (byte) 2,
                 SlotActionType.QUICK_CRAFT,
-                uniqueItem,
-                new Int2ObjectOpenHashMap<>()
+                //#if MC < 12105
+                //$$ uniqueItem,
+                //$$ new Int2ObjectOpenHashMap<>()
+                //#else
+                new Int2ObjectOpenHashMap<>(),
+                itemStackHash
+                //#endif
+
 
         ));
     }

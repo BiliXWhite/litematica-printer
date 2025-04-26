@@ -22,12 +22,20 @@ import java.util.Map;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.playerlist;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.tickMap;
 
+//#if MC == 11902
+//$$ import org.jetbrains.annotations.Nullable;
+//$$ import net.minecraft.network.encryption.PlayerPublicKey;
+//#endif
 
 @Mixin(ServerPlayerEntity.class)
 public abstract class MixinServerPlayerEntity extends PlayerEntity{
 
-    public MixinServerPlayerEntity(World world, BlockPos pos, float yaw, GameProfile profile) {
-        super(world, pos, yaw, profile);
+    public MixinServerPlayerEntity(World world, BlockPos pos, float yaw, GameProfile profile
+    //#if MC == 11902
+    //$$ , @Nullable PlayerPublicKey publicKey) { super(world, pos, yaw, profile, publicKey);
+    //#else
+    ) {super(world, pos, yaw, profile);
+    //#endif
     }
     //#if MC < 11904
     //$$ @Inject(at = @At("HEAD"), method = "closeScreenHandler")
