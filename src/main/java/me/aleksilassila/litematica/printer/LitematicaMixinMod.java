@@ -39,15 +39,17 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
                     "在值为§b0§r时可能在服务器中表现效果不佳，需开启§6§l使用数据包放置方块§r。"
     );
 
-    public static final ConfigInteger COMPULSION_RANGE = new ConfigInteger(
-            "打印机工作半径", 6, 1, 256,
-            "每次放置到的最远距离，以玩家中心为半径。数值越高意味着打印的范围越大。\n" +
-                    "此参数与§6§l半径模式§r有关联。"
-    );
-
     public static final ConfigInteger PUT_COOLING = new ConfigInteger(
             "放置冷却", 2, 0, 256,
             "当同一位置的方块没有成功放置时，等待§6所设置的时长§r(游戏刻为单位)才会再次放置。"
+    );
+
+    public static final ConfigInteger COMPULSION_RANGE = new ConfigInteger(
+            "打印机工作半径", 6, 1, 256,
+            "每次放置到的最远距离，以玩家中心为半径。数值越高意味着打印的范围越大。\n" +
+                    "此参数与§6§l半径模式§r有关联。\n" +
+                    "在设置为0的时候，为避免打印活塞、粘性活塞、侦测器、投掷器和发射器出现方向错误，会自动添加一些延迟。\n" +
+                    "如果你打印的建筑主要为红石机器，那么不建议设置为0。"
     );
 
     public static final ConfigBoolean PLACE_USE_PACKET = new ConfigBoolean(
@@ -55,16 +57,10 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "可以得到更快的放置速度，并且不会出现'幽灵方块'的情况。§6§l但是无法听到放置方块的声音。§r"
     );
 
-    public static final ConfigBoolean SWITCH_ITEM_USE_PACKET = new ConfigBoolean(
-            "使用数据包切换物品", false,
-            "避免在开启§b使用数据包放置方块§r时因客户端同步不及时导致误放方块。\n" +
-                    "对于不使用数据包放置且§6§l打印机工作间隔§r大于§61§r的用户无需开启。"
-    );
-
     public static final ConfigOptionList RANGE_MODE = new ConfigOptionList(
             "半径模式", State.ListType.SPHERE,
             "立方体建议§63§r，球体建议设置§66§r，破基岩在立方体模式下无法正常使用。\n" +
-                    "§l（此功能可能已损坏。）§r"
+                    "§l（此功能未实现。）§r"
     );
 
     public static final ConfigOptionList MODE_SWITCH = new ConfigOptionList(
