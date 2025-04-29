@@ -181,7 +181,7 @@ public class InventoryManager {
 
     public static String warningMessage() {
         MinecraftClient minecraftClient = MinecraftClient.getInstance();
-        if (!"survival".equals(minecraftClient.interactionManager.getCurrentGameMode().getTranslatableName())) {
+        if (minecraftClient.interactionManager.getCurrentGameMode().isCreative()) {
             return "bedrockminer.fail.missing.survival";
         }
 
