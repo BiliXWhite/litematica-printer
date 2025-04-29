@@ -387,7 +387,7 @@ public class ZxyUtils {
     public static int frameGenerationTime = getMonitorRefreshRate();
 
     public static int getMonitorRefreshRate() {
-        int refreshRate = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()).refreshRate();
+        int refreshRate = Math.min(GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()).refreshRate(),320);
         maximumFrameRate = refreshRate;
         return 1000 / refreshRate;
 //        System.out.println("The monitor refresh rate is " + refreshRate);

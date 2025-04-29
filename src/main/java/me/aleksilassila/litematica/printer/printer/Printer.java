@@ -194,7 +194,7 @@ public class Printer extends PrinterUtils {
     //根据当前毫秒值判断是否超出了屏幕刷新率
     boolean timedOut() {
         return ((AccessorMinecraftClient) client).getCurrentFps() < maximumFrameRate - 5 ||
-                System.currentTimeMillis() > frameGenerationTime -5 + startTime;
+                System.currentTimeMillis() > frameGenerationTime -1 + startTime;
     }
 
     void fluidMode() {
@@ -431,7 +431,7 @@ public class Printer extends PrinterUtils {
     }
     
     public boolean verify() {
-        if (client.isInSingleplayer() && client.isRealmsEnabled()) return true;
+        if (client.isInSingleplayer() || client.isRealmsEnabled()) return true;
         String address = null;
         try {
             address = Objects.requireNonNull(client.getCurrentServerEntry()).address.split(":")[0];
