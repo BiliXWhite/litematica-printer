@@ -14,24 +14,18 @@ public enum State {
     CORRECT;
 
     public static State get(BlockState schematicBlockState, BlockState currentBlockState) {
-//        if(currentBlockState.getBlock() instanceof FluidBlock){
-//            System.out.println(Registries.BLOCK.getId(currentBlockState.getBlock()));
-//        }
         if (!schematicBlockState.isAir() && (currentBlockState.isAir() ||
                 (LitematicaMixinMod.REPLACEABLE_LIST.getStrings().stream()
                         .anyMatch(string -> !Filters.equalsName(string,schematicBlockState) &&
-//                        .anyMatch(string -> !Registries.BLOCK.getId(schematicBlockState.getBlock()).toString().contains(string) &&
-//                                Registries.BLOCK.getId(currentBlockState.getBlock()).toString().contains(string)) &&
                                 Filters.equalsName(string,currentBlockState)) &&
-                        LitematicaMixinMod.REPLACE.getBooleanValue())))
-//        if (!schematicBlockState.isAir() && (currentBlockState.isAir() || currentBlockState.getBlock() instanceof FluidBlock || currentBlockState.isOf(Blocks.SNOW) || currentBlockState.isOf(Blocks.BUBBLE_COLUMN)))
-//        if (!schematicBlockState.isAir() && (currentBlockState.isAir())
+                        LitematicaMixinMod.REPLACE.getBooleanValue()))) {
             return State.MISSING_BLOCK;
-        else if (schematicBlockState.getBlock().equals(currentBlockState.getBlock())
-                && !schematicBlockState.equals(currentBlockState))
+        } else if (schematicBlockState.getBlock().equals(currentBlockState.getBlock())
+                && !schematicBlockState.equals(currentBlockState)) {
             return State.WRONG_STATE;
-        else if (!schematicBlockState.getBlock().equals(currentBlockState.getBlock()))
+        } else if (!schematicBlockState.getBlock().equals(currentBlockState.getBlock())) {
             return WRONG_BLOCK;
+        }
 
         return State.CORRECT;
     }
@@ -253,58 +247,58 @@ public enum State {
         }
     }
 
-    public enum PrintOrderType implements IConfigOptionListEntry {
-        NORMAL("normal", "正常"),
-        DISTANCE("distance", "由近到远");
-
-        private final String configString;
-        private final String translationKey;
-
-        PrintOrderType(String configString, String translationKey) {
-            this.configString = configString;
-            this.translationKey = translationKey;
-        }
-
-        @Override
-        public String getStringValue() {
-            return this.configString;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return StringUtils.translate(this.translationKey);
-        }
-
-        @Override
-        public IConfigOptionListEntry cycle(boolean forward) {
-            int id = this.ordinal();
-
-            if (forward) {
-                if (++id >= values().length) {
-                    id = 0;
-                }
-            } else {
-                if (--id < 0) {
-                    id = values().length - 1;
-                }
-            }
-
-            return values()[id % values().length];
-        }
-
-        @Override
-        public PrintOrderType fromString(String name) {
-            return fromStringStatic(name);
-        }
-
-        public static PrintOrderType fromStringStatic(String name) {
-            for (PrintOrderType mode : PrintOrderType.values()) {
-                if (mode.configString.equalsIgnoreCase(name)) {
-                    return mode;
-                }
-            }
-
-            return PrintOrderType.NORMAL;
-        }
-    }
+//    public enum IteratorMode implements IConfigOptionListEntry {
+//        DEFAULT("default", "正常"),
+//        BY_DISTANCE("by_distance", "由近到远");
+//
+//        private final String configString;
+//        private final String translationKey;
+//
+//        IteratorMode(String configString, String translationKey) {
+//            this.configString = configString;
+//            this.translationKey = translationKey;
+//        }
+//
+//        @Override
+//        public String getStringValue() {
+//            return this.configString;
+//        }
+//
+//        @Override
+//        public String getDisplayName() {
+//            return StringUtils.translate(this.translationKey);
+//        }
+//
+//        @Override
+//        public IConfigOptionListEntry cycle(boolean forward) {
+//            int id = this.ordinal();
+//
+//            if (forward) {
+//                if (++id >= values().length) {
+//                    id = 0;
+//                }
+//            } else {
+//                if (--id < 0) {
+//                    id = values().length - 1;
+//                }
+//            }
+//
+//            return values()[id % values().length];
+//        }
+//
+//        @Override
+//        public IteratorMode fromString(String name) {
+//            return fromStringStatic(name);
+//        }
+//
+//        public static IteratorMode fromStringStatic(String name) {
+//            for (IteratorMode mode : IteratorMode.values()) {
+//                if (mode.configString.equalsIgnoreCase(name)) {
+//                    return mode;
+//                }
+//            }
+//
+//            return IteratorMode.DEFAULT;
+//        }
+//    }
 }

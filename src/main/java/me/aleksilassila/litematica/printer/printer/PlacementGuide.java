@@ -477,7 +477,8 @@ public class PlacementGuide extends PrinterUtils {
             }
             case FACING_BLOCK -> {
                 Direction facing = requiredState.get(Properties.FACING);
-                if (requiredState.getBlock() instanceof ObserverBlock) {
+                if (requiredState.getBlock() instanceof ObserverBlock ||
+                    requiredState.getBlock() instanceof RodBlock) {
                     facing = facing.getOpposite();
                 }
                 return new Action().setSides(facing).setLookDirection(facing.getOpposite());

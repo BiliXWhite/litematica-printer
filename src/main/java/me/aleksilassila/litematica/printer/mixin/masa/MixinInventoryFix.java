@@ -12,8 +12,8 @@ public interface MixinInventoryFix {
     static int getPickBlockTargetSlot(PlayerEntity player){
         return -1;
     }
-    @Invoker("getEmptyPickBlockableHotbarSlot")
 
+    @Invoker("getEmptyPickBlockableHotbarSlot")
     static int getEmptyPickBlockableHotbarSlot(PlayerInventory inventory){
         return -1;
     }
