@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.mixin.bilixwhite;
 
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.printer.State;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
@@ -34,15 +35,13 @@ public abstract class MixinInGameHud {
         float height = client.getWindow().getScaledHeight();
         if (client.player != null) {
             // 检查玩家是否是观察者模式
-            if (!client.player.isSpectator() && LitematicaMixinMod.RENDER_PROGRESS.getBooleanValue() && LitematicaMixinMod.PRINT_SWITCH.getBooleanValue()) {
+            if (!client.player.isSpectator() && LitematicaMixinMod.RENDER_PROGRESS.getBooleanValue() && LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() && LitematicaMixinMod.PRINTER_MODE.getOptionListValue().equals(State.PrintModeType.PRINTER)) {
                 //#if MC > 11904
                 context.drawCenteredTextWithShadow(client.textRenderer,  (int) (Printer.getPrinter().getPrintProgress() * 100) + "%", (int) (width / 2), (int) (height / 2 + 22), new Color(255, 255, 255, 255).getRGB());
                 context.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
                 context.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getPrinter().getPrintProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
                 //#else
                 //$$client.textRenderer.drawWithShadow(matrices, (int) (Printer.getPrinter().getPrintProgress() * 100) + "%", (int) (width / 2 - client.textRenderer.getWidth((int) (Printer.getPrinter().getPrintProgress() * 100) + "%")), (int) (height / 2 + 22), new Color(255, 255, 255, 255).getRGB());
-                //$$drawRect((width / 2 - 20), (height / 2 + 36), (width / 2 + 20), (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
-                //$$drawRect((width / 2 - 20), (height / 2 + 36), (width / 2 - 20 + Printer.getPrinter().getPrintProgress() * 40), (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
                 //#endif
             }
         }

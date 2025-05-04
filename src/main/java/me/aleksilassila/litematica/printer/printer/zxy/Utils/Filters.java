@@ -25,7 +25,7 @@ public class Filters {
         });
         return b.get() || str1.equals(str2);
     }
-    public static boolean equalsBlockName(String blockName, BlockState blockState, BlockPos pos){
+    public static boolean equalsBlockName(String blockName, BlockState blockState){
         return equalsName(blockName,blockState);
     }
     public static boolean equalsItemName(String itemName, ItemStack itemStack){

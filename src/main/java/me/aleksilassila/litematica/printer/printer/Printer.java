@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.printer;
 
-import com.google.common.collect.Lists;
 import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
@@ -11,8 +10,6 @@ import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
@@ -33,10 +30,8 @@ import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
-import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
@@ -98,12 +93,13 @@ import net.minecraft.registry.Registries;
 //#if MC <= 12004
 //$$import static fi.dy.masa.malilib.util.InventoryUtils.areStacksEqual;
 //#else
-import static fi.dy.masa.malilib.util.InventoryUtils.areStacksEqualIgnoreNbt;
+
 //#endif
 
 public class Printer extends PrinterUtils {
     public static HashSet<Item> remoteItem = new HashSet<>();
-    public static HashSet<Item> fluidList = new HashSet<>();
+    public static HashSet<Item> fluidModeItemList = new HashSet<>();
+    public static HashSet<Item> fillModeItemList = new HashSet<>();
     public static boolean printerMemorySync = false;
     public static BlockPos easyPos = null;
     public static boolean isOpenHandler = false;
@@ -130,11 +126,12 @@ public class Printer extends PrinterUtils {
     boolean yDegression = false;
     BlockPos tempPos = null;
     int tickRate;
-    boolean pendingItemSwitch = false;
     List<String> fluidBlocklist;
+    List<String> fillBlocklist;
     long startTime;
     private boolean needDelay;
     private Item[] delayedItem;
+    private int printPerTick;
 
     private Printer(@NotNull MinecraftClient client) {
         this.client = client;
@@ -198,17 +195,17 @@ public class Printer extends PrinterUtils {
         return null;
     }
 
-    static boolean breakRestriction(BlockState blockState, BlockPos pos) {
+    static boolean breakRestriction(BlockState blockState) {
         if (EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.TWEAKEROO)) {
             if (!FabricLoader.getInstance().isModLoaded("tweakeroo")) return true;
 //            return isPositionAllowedByBreakingRestriction(pos,Direction.UP);
             UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
                 return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> equalsBlockName(string, blockState, pos));
+                        .noneMatch(string -> equalsBlockName(string, blockState));
             } else if (listType == UsageRestriction.ListType.WHITELIST) {
                 return BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> equalsBlockName(string, blockState, pos));
+                        .anyMatch(string -> equalsBlockName(string, blockState));
             } else {
                 return true;
             }
@@ -216,10 +213,10 @@ public class Printer extends PrinterUtils {
             IConfigOptionListEntry optionListValue = EXCAVATE_LIMIT.getOptionListValue();
             if (optionListValue == UsageRestriction.ListType.BLACKLIST) {
                 return EXCAVATE_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> equalsBlockName(string, blockState, pos));
+                        .noneMatch(string -> equalsBlockName(string, blockState));
             } else if (optionListValue == UsageRestriction.ListType.WHITELIST) {
                 return EXCAVATE_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> equalsBlockName(string, blockState, pos));
+                        .anyMatch(string -> equalsBlockName(string, blockState));
             } else {
                 return true;
             }
@@ -316,31 +313,76 @@ public class Printer extends PrinterUtils {
     void fluidMode() {
         fluidBlocklist = LitematicaMixinMod.FLUID_BLOCK_LIST.getStrings();
         if (fluidBlocklist.isEmpty()) return;
-        if (fluidList.isEmpty()) {
-            for (String itemName : fluidBlocklist) {
-                List<Item> list = Registries.ITEM.stream().filter(item -> equalsItemName(itemName, new ItemStack(item))).toList();
-                fluidList.addAll(list);
-            }
+        fluidModeItemList.clear();
+        for (String itemName : fluidBlocklist) {
+            List<Item> list = Registries.ITEM.stream().filter(item -> equalsItemName(itemName, new ItemStack(item))).toList();
+            fluidModeItemList.addAll(list);
         }
-        Item[] array = fluidList.toArray(new Item[0]);
+        Item[] array = fluidModeItemList.toArray(new Item[0]);
+
         BlockPos pos;
-        while ((pos = getBlockPos()) != null && client.world != null && client.player != null) {
+        while ((pos = getBlockPos()) != null) {
+            if (PRINT_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
+            if (!canInteracted(pos) || !TempData.xuanQuFanWeiNei_p(pos) || isLimitedByTheNumberOfLayers(pos)) {
+                continue;
+            }
+
+            // 跳过冷却中的位置
+            if (skipPosMap.containsKey(pos)) continue;
+            skipPosMap.put(pos, 0);
+
             BlockState currentState = client.world.getBlockState(pos);
-            if (client.player != null && !canInteracted(pos)) continue;
-            if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
-            if (isLimitedByTheNumberOfLayers(pos)) continue;
             if (currentState.getFluidState().isOf(Fluids.LAVA) || currentState.getFluidState().isOf(Fluids.WATER)) {
-                if (!switchToItems(client.player, array)) {
-                    remoteItem.addAll(fluidList);
+                if (playerHasAccessToItems(client.player, array)) {
+                    switchToItems(client.player, array);
+                    new PlacementGuide.Action().queueAction(queue, pos, Direction.UP, false);
+                    if (tickRate == 0) {
+                        queue.sendQueue(client.player);
+                        if (PRINT_PER_TICK.getIntegerValue() != 0) printPerTick--;
+                        continue;
+                    }
                     return;
                 }
-
-                ((IClientPlayerInteractionManager) client.interactionManager).rightClickBlock(pos, Direction.UP, Vec3d.ofCenter(pos));
-                if (tickRate == 0) {
-                    continue;
-                }
-                return;
             }
+        }
+    }
+
+    void fillMode() {
+        fillBlocklist = LitematicaMixinMod.FILL_BLOCK_LIST.getStrings();
+        if (fillBlocklist.isEmpty()) return;
+        fillModeItemList.clear();
+        for (String itemName : fillBlocklist) {
+            List<Item> list = Registries.ITEM.stream().filter(item -> equalsItemName(itemName, new ItemStack(item))).toList();
+            fillModeItemList.addAll(list);
+        }
+        Item[] array = fillModeItemList.toArray(new Item[0]);
+
+        BlockPos pos;
+        while ((pos = getBlockPos()) != null) {
+            if (PRINT_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
+
+            if (!canInteracted(pos) || !TempData.xuanQuFanWeiNei_p(pos) || isLimitedByTheNumberOfLayers(pos)) {
+                continue;
+            }
+
+            // 跳过冷却中的位置
+            if (skipPosMap.containsKey(pos)) continue;
+            skipPosMap.put(pos, 0);
+
+            var currentState = client.world.getBlockState(pos);
+            if (currentState.isAir() || (currentState.getBlock() instanceof FluidBlock) || REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> equalsBlockName(s, currentState))) {
+                if (playerHasAccessToItems(client.player, array)) {
+                    switchToItems(client.player, array);
+                    new PlacementGuide.Action().queueAction(queue, pos, Direction.UP, false);
+                    if (tickRate == 0) {
+                        queue.sendQueue(client.player);
+                        if (PRINT_PER_TICK.getIntegerValue() != 0) printPerTick--;
+                        continue;
+                    }
+                    return;
+                }
+            }
+
         }
     }
 
@@ -354,7 +396,7 @@ public class Printer extends PrinterUtils {
             }
             if (client.world != null &&
                     TempData.xuanQuFanWeiNei_p(pos) &&
-                    breakRestriction(client.world.getBlockState(pos), pos) &&
+                    breakRestriction(client.world.getBlockState(pos)) &&
                     waJue(pos)) {
                 tempPos = pos;
                 return;
@@ -401,6 +443,22 @@ public class Printer extends PrinterUtils {
         }
     }
 
+    /**
+     *  <h1>切换物品操作</h1>
+     *
+     * <p>
+     * 该方法用于根据当前虚拟库存状态和配置，执行物品切换操作。当满足以下条件时：
+     * <ul>
+     *   <li>{@code remoteItem} 不为空且未处于打开处理状态以及其他冲突状态；</li>
+     *   <li>当前屏幕为玩家主界面（非其他容器界面）；</li>
+     *   <li>依据配置，可能会先检查合成栏、潜影盒或直接搜索库存中的目标物品；</li>
+     *   <li>若搜索或检查到目标物品，则进行相应的库存切换或打开操作。</li>
+     * </ul>
+     * 执行成功时，方法会设置相应的状态并返回 {@code true}，否则返回 {@code false}。
+     * </p>
+     *
+     * @return 成功切换物品时返回 {@code true}，否则返回 {@code false}
+     */
     public boolean switchItem() {
         if (!remoteItem.isEmpty() && !isOpenHandler && !openIng && OpenInventoryPacket.key == null) {
             ClientPlayerEntity player = client.player;
@@ -458,6 +516,10 @@ public class Printer extends PrinterUtils {
     }
 
     public void myTick() {
+        if (shulkerCooldown > 0) {
+            shulkerCooldown--;
+        }
+
         ArrayList<BlockPos> deletePosList = new ArrayList<>();
         skipPosMap.forEach((k, v) -> {
             skipPosMap.put(k, v + 1);
@@ -476,7 +538,8 @@ public class Printer extends PrinterUtils {
         ClientWorld world = client.world;
         // 预载常用配置值
         int compulsionRange = COMPULSION_RANGE.getIntegerValue();
-        int interval = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();
+        int placementTickInterval = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();
+        printPerTick = LitematicaMixinMod.PRINT_PER_TICK.getIntegerValue();
         boolean useEasyMode = LitematicaMixinMod.EASY_MODE.getBooleanValue();
 
         // 更新环境参数
@@ -487,28 +550,26 @@ public class Printer extends PrinterUtils {
         startTime = System.currentTimeMillis();
         // 更新 tick 计数（避免溢出）
         tick = (tick == Integer.MAX_VALUE) ? 0 : tick + 1;
-        if (shulkerCooldown > 0) {
-            shulkerCooldown--;
-        }
 
         // 优先执行队列中的点击操作
-        if (interval != 0) {
+        if (placementTickInterval != 0) {
             queue.sendQueue(player);
-            if (tick % interval != 0) {
+            if (tick % placementTickInterval != 0) {
                 return;
             }
         }
 
-        // 当需要调整装备时，切换物品并执行队列点击操作
-        if (needDelay) {
-            switchToItems(player, delayedItem);
-            queue.sendQueue(player);
-            needDelay = false;
-        }
 
         // 如果正在处理打开的容器或切换物品，则直接返回
         if (isOpenHandler || switchItem()) {
             return;
+        }
+
+        // 0tick修复
+        if (needDelay) {
+            switchToItems(player, delayedItem);
+            queue.sendQueue(player);
+            needDelay = false;
         }
 
         // 模式判断（减少重复调用，提高分支执行效率）
@@ -529,12 +590,17 @@ public class Printer extends PrinterUtils {
                 fluidMode();
                 if (multiBreak) return;
             }
+            if (LitematicaMixinMod.FILL.getBooleanValue()) {
+                fillMode();
+                if (multiBreak) return;
+            }
         } else if (LitematicaMixinMod.PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType modeType
                 && modeType != PRINTER) {
             switch (modeType) {
                 case BEDROCK -> { yDegression = true; bedrockMode(); }
                 case EXCAVATE -> { yDegression = true; miningMode(); }
                 case FLUID -> fluidMode();
+                case FILL -> fillMode();
             }
             return;
         }
@@ -544,6 +610,7 @@ public class Printer extends PrinterUtils {
         if (schematic == null) return;
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
+            if (PRINT_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
             if (!canInteracted(pos)) continue;
             BlockState state = schematic.getBlockState(pos);
             PlacementGuide.Action action = guide.getAction(world, schematic, pos);
@@ -573,7 +640,7 @@ public class Printer extends PrinterUtils {
                 easyPos = pos;
                 WorldUtilsAccessor.doEasyPlaceAction(client);
                 easyPos = null;
-                if (interval != 0)
+                if (placementTickInterval != 0)
                     return;
                 else
                     continue;
@@ -587,21 +654,25 @@ public class Printer extends PrinterUtils {
                 boolean useShift = LitematicaMixinMod.FORCED_PLACEMENT.getBooleanValue() ||
                         Implementation.isInteractive(world.getBlockState(pos).getBlock()) ||
                         action.useShift;
-                if (pendingItemSwitch) continue;
+                if (needDelay) continue;
                 switchToItems(player, reqItems);
-                action.queueAction(queue, pos, side, useShift, action.getLookHorizontalDirection() != null);
+                action.queueAction(queue, pos, side, useShift);
                 sendLook(player, action.getLookHorizontalDirection(), action.getLookDirectionPitch());
-                if (interval == 0) {
+                if (placementTickInterval == 0) {
                     var block = schematic.getBlockState(pos).getBlock();
                     if (block instanceof PistonBlock ||
                             block instanceof ObserverBlock ||
                             block instanceof DispenserBlock
+                            //#if MC >= 12101
+                            || block instanceof CrafterBlock
+                            //#endif
                     ) {
                         delayedItem = reqItems;
                         needDelay = true;
-                        continue;
+                        return;
                     }
                     queue.sendQueue(player);
+                    if (PRINT_PER_TICK.getIntegerValue() != 0) printPerTick--;
                     continue;
                 }
                 return;
@@ -630,7 +701,6 @@ public class Printer extends PrinterUtils {
         return blocks;
     }
 
-    //todo)) 没修好呢（
     public float getPrintProgress() {
         // 重置 basePos 以确保重新初始化迭代器
         basePos = null;
@@ -641,16 +711,14 @@ public class Printer extends PrinterUtils {
         int totalCount = 0;
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
-            if (!isSchematicBlock(pos)) continue;
-            totalCount++;
             BlockState requiredState = schematic.getBlockState(pos);
-            if (requiredState == null || requiredState.getBlock() instanceof AirBlock) continue;
             BlockState currentState = client.world.getBlockState(pos);
+            if (!isSchematicBlock(pos) || requiredState == null || requiredState.getBlock() instanceof AirBlock) continue;
+            totalCount++;
             if (currentState.getBlock().getDefaultState().equals(requiredState.getBlock().getDefaultState())) {
                 printedCount++;
             }
         }
-        //client.inGameHud.getChatHud().addMessage(Text.of("已放置: " + printedCount + " / " + totalCount));
         return totalCount == 0 ? 0.0f : ((float) printedCount / totalCount);
     }
 
@@ -727,7 +795,7 @@ public class Printer extends PrinterUtils {
                             client.interactionManager.clickSlot(sc.syncId, i, 1, SlotActionType.PICKUP, client.player);
                             closeScreen++;
                             isOpenHandler = true;
-                            shulkerCooldown = 20; // AxShulkers的潜影盒延迟
+                            shulkerCooldown = QUICK_SHULKER_COOLING.getIntegerValue(); // AxShulkers的潜影盒延迟，单位为tick
                             return true;
                         } catch (Exception ignored) {
                         }
@@ -764,91 +832,7 @@ public class Printer extends PrinterUtils {
 
     public void swapHandWithSlot(ClientPlayerEntity player, int slot) {
         ItemStack stack = Implementation.getInventory(player).getStack(slot);
-        int sourceSlot = client.player.getInventory().getSlotWithStack(stack);
-        PlayerInventory inventory = player.getInventory();
-
-        if (PlayerInventory.isValidHotbarIndex(sourceSlot)) {
-            if (PLACE_USE_PACKET.getBooleanValue()) {
-                // 通过数据包切换热键槽
-                client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(sourceSlot));
-                inventory.selectedSlot = sourceSlot;
-            } else {
-                inventory.selectedSlot = sourceSlot;
-            }
-        } else {
-            int hotbarSlot = sourceSlot;
-            if (sourceSlot == -1 || !PlayerInventory.isValidHotbarIndex(sourceSlot)) {
-                hotbarSlot = getEmptyPickBlockableHotbarSlot(inventory);
-            }
-            if (hotbarSlot == -1) {
-                hotbarSlot = getPickBlockTargetSlot(player);
-            }
-            if (hotbarSlot != -1) {
-                if (PLACE_USE_PACKET.getBooleanValue()) {
-                    client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(hotbarSlot));
-                    inventory.selectedSlot = hotbarSlot;
-                } else {
-                    inventory.selectedSlot = hotbarSlot;
-                }
-                if (EntityUtils.isCreativeMode(player)) {
-                    inventory.main.set(hotbarSlot, stack.copy());
-                } else {
-                    if (
-                        //#if MC <= 12004
-                        //$$areStacksEqual(stack.copy(), player.getMainHandStack())
-                        //#else
-                            areStacksEqualIgnoreNbt(stack.copy(), player.getMainHandStack())
-                        //#endif
-                    )
-                    {
-                        return;
-                    }
-
-                    if (player.isCreative())
-                    {
-                        //#if MC <= 12101
-                        //$$player.getInventory().addPickBlock(stack.copy());
-                        //#else
-                        player.getInventory().swapStackWithHotbar(stack.copy());
-                        //#endif
-                        client.interactionManager.clickCreativeStack(player.getMainHandStack(), 36 + player.getInventory().selectedSlot);
-                        return;
-                    } else {
-                        int slot1 = fi.dy.masa.malilib.util.InventoryUtils.findSlotWithItem(player.playerScreenHandler, stack.copy(), true);
-                        if (slot1 != -1) {
-                            // 使用数据包或普通点击方式交换槽位中的物品
-                            if (PLACE_USE_PACKET.getBooleanValue()) {
-                                Int2ObjectMap<ItemStack> snapshot = new Int2ObjectOpenHashMap<>();
-                                DefaultedList<Slot> slots = player.currentScreenHandler.slots;
-                                int totalSlots = slots.size();
-                                List<ItemStack> copies = Lists.newArrayListWithCapacity(totalSlots);
-                                for (Slot slotItem : slots) {
-                                    copies.add(slotItem.getStack().copy());
-                                }
-                                for (int j = 0; j < totalSlots; j++) {
-                                    ItemStack original = copies.get(j);
-                                    ItemStack current = slots.get(j).getStack();
-                                    if (!ItemStack.areEqual(original, current)) {
-                                        snapshot.put(j, current.copy());
-                                    }
-                                }
-                                client.getNetworkHandler().sendPacket(new ClickSlotC2SPacket(
-                                        player.playerScreenHandler.syncId,
-                                        player.currentScreenHandler.getRevision(),
-                                        slot1,
-                                        hotbarSlot,
-                                        SlotActionType.SWAP,
-                                        stack.copy(),
-                                        snapshot));
-                            } else {
-                                client.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot1, hotbarSlot, SlotActionType.SWAP, player);
-                            }
-                        }
-                    }
-                }
-                WorldUtils.setEasyPlaceLastPickBlockTime();
-            }
-        }
+        InventoryUtils.setPickedItemToHand(stack, client);
     }
 
     public void sendLook(ClientPlayerEntity player, Direction directionYaw, Direction directionPitch) {
@@ -906,7 +890,7 @@ public class Printer extends PrinterUtils {
             this.printerInstance = printerInstance;
         }
 
-        public void queueClick(@NotNull BlockPos target, @NotNull Direction side, @NotNull Vec3d hitModifier, boolean shift, boolean didSendLook) {
+        public void queueClick(@NotNull BlockPos target, @NotNull Direction side, @NotNull Vec3d hitModifier, boolean shift) {
             if (LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue() != 0) {
                 if (this.target != null) {
                     System.out.println("Was not ready yet.");
@@ -914,7 +898,6 @@ public class Printer extends PrinterUtils {
                 }
             }
 
-            this.didSendLook = didSendLook;
             this.target = target;
             this.side = side;
             this.hitModifier = hitModifier;
@@ -961,7 +944,6 @@ public class Printer extends PrinterUtils {
 
             if (PLACE_USE_PACKET.getBooleanValue()) {
                 //#if MC >= 11904
-                // 1.19.4 及以上版本
                 player.networkHandler.sendPacket(new PlayerInteractBlockC2SPacket(
                         Hand.MAIN_HAND,
                         new BlockHitResult(hitVec, side, target, false),
@@ -996,7 +978,6 @@ public class Printer extends PrinterUtils {
             this.hitModifier = null;
             this.lookDirYaw = null;
             this.shift = false;
-            this.didSendLook = true;
         }
     }
 }

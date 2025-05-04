@@ -964,26 +964,21 @@ public class PlacementGuide extends PrinterUtils {
             return this.setUseShift(true);
         }
 
-        public void queueAction(Printer.Queue queue, BlockPos center, Direction side, boolean useShift, boolean didSendLook) {
+        public void queueAction(Printer.Queue queue, BlockPos center, Direction side, boolean useShift) {
 //            System.out.println("Queued click?: " + center.offset(side).toString() + ", side: " + side.getOpposite());
 
             if (LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport) {
                 queue.queueClick(center, side.getOpposite(), getSides().get(side),
-                        useShift, didSendLook);
+                        useShift);
             } else {
                 queue.queueClick(center.offset(side), side.getOpposite(), getSides().get(side),
-                        useShift, didSendLook);
+                        useShift);
             }
 
         }
     }
 
     public static class ClickAction extends Action {
-        @Override
-        public void queueAction(Printer.Queue queue, BlockPos center, Direction side, boolean useShift, boolean didSendLook) {
-//            System.out.println("Queued click?: " + center.toString() + ", side: " + side);
-            queue.queueClick(center, side, getSides().get(side), false, false);
-        }
 
         @Override
         public @Nullable Item[] getRequiredItems(Block backup) {

@@ -13,7 +13,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,12 +22,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
 
 public class SwitchItem {
-//    public static boolean switchIng = false;
     public static ItemStack reSwitchItem = null;
     public static Map<ItemStack,ItemStatistics> itemStacks = new HashMap<>();
     public static void removeItem(ItemStack itemStack){
         itemStacks.remove(itemStack);
-//        itemStacks.entrySet().removeIf(var -> var.getKey().getItem().equals(itemStack.getItem()));
     }
     public static void syncUseTime(ItemStack itemStack){
         ItemStatistics itemStatistics = itemStacks.get(itemStack);
@@ -53,8 +50,7 @@ public class SwitchItem {
             if (itemStatistics.key != null && OpenInventoryPacket.key == null) {
                 OpenInventoryPacket.sendOpenInventory(itemStatistics.pos, itemStatistics.key);
             } else {
-                //中文：自定义逻辑直接从库存中打开潜影盒
-                client.interactionManager.clickSlot(client.player.playerScreenHandler.syncId, itemStatistics.slot, 1, SlotActionType.PICKUP, client.player);
+                client.interactionManager.clickSlot(client.player.playerScreenHandler.syncId, itemStatistics.shulkerBoxSlot, 1, SlotActionType.PICKUP, client.player);
             }
             Statistics.closeScreen++;
         } else {

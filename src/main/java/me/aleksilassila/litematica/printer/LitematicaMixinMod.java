@@ -36,7 +36,14 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger(
             "打印机工作间隔", 1, 0, 20,
             "每次放置的间隔，以§b游戏刻§r为单位。数值越低意味着打印速度越快。\n" +
-                    "在值为§b0§r时可能在服务器中表现效果不佳，需开启§6§l使用数据包放置方块§r。"
+                    "在值为§b0§r时可能在服务器中表现效果不佳，需开启§6§l使用数据包放置方块§r。\n" +
+                    "在值为§b0§r时会提供§6§l每刻执行方块数§r的选项，需要重新打开设置菜单才能出现。"
+    );
+
+    public static final ConfigInteger PRINT_PER_TICK = new ConfigInteger(
+            "每刻执行方块数", 1, 0, 16,
+            "当§6§l打印机工作间隔§r为§b0§r时每个游戏刻打印的方块数量。数值越高意味着打印速度越快。\n" +
+                    "在值为§b0§r时无上限，可能在服务器中表现不佳，可开启§6§l使用数据包放置方块§r缓解。"
     );
 
     public static final ConfigInteger PUT_COOLING = new ConfigInteger(
@@ -53,9 +60,10 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     );
 
     public static final ConfigBoolean PLACE_USE_PACKET = new ConfigBoolean(
-            "使用数据包放置方块", false,
+            "使用数据包进行打印", false,
             "可以得到更快的放置速度，并且不会出现'幽灵方块'的情况。§6§l但是无法听到放置方块的声音。§r"
     );
+
 
     public static final ConfigOptionList RANGE_MODE = new ConfigOptionList(
             "半径模式", State.ListType.SPHERE,
@@ -65,12 +73,19 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 
     public static final ConfigOptionList MODE_SWITCH = new ConfigOptionList(
             "模式切换", State.ModeType.SINGLE,
-            "§d单模§r：仅运行一个模式。\n§d多模§r：可多个模式同时运行。"
+            "§d单模§r：仅运行一个模式。\n§d多模§r：可多个模式同时运行。\n" +
+                    "切换后需要重新打开设置菜单才能显示模式的。"
     );
 
     public static final ConfigOptionList PRINTER_MODE = new ConfigOptionList(
             "打印机模式", State.PrintModeType.PRINTER,
-            "打印机的工作模式。"
+            "打印机的工作模式。\n" +
+                    "§d打印§r：还原投影里的方块，包括方块的部分数据(如方向，开关等)。\n" +
+                    "§d挖掘§r：挖掘选区范围内的方块，不包括液体。\n" +
+                    "§d基岩§r：利用bug破坏选区范围内的基岩，可能只在特定条件下有效。\n" +
+                    "§d流体§r：在选区范围内放置方块，流体会被替换为§6排流体方块名单§r里的方块。\n" +
+                    "§d填充§r：在范围内打印§6填充方块列表§r里的方块。\n" +
+                    "\n§b§lTips:§r 除了§d打印§r模式外，操作区域范围是基于Litematica的选区范围进行的。"
     );
 
     public static final ConfigBoolean MULTI_BREAK = new ConfigBoolean(
@@ -149,6 +164,11 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "在岩浆源、水源处放方块默认是§6排流体方块名单§r里的方块。"
     );
 
+    public static final ConfigBooleanHotkeyed FILL = new ConfigBooleanHotkeyed(
+            "填充", false, "",
+            "在选区范围内放置§6填充方块名单§r里的方块。"
+    );
+
     public static final ConfigHotkey CLOSE_ALL_MODE = new ConfigHotkey(
             "关闭全部模式", "LEFT_CONTROL,G",
             "关闭全部模式，若此时为单模模式将模式恢复为打印。"
@@ -176,6 +196,14 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
                     "其中 “c” 表示使用包含匹配方式，会先尝试拼音或直接匹配。"
     );
 
+    public static final ConfigStringList FILL_BLOCK_LIST = new ConfigStringList(
+            "填充方块名单", ImmutableList.of("minecraft:cobblestone"),
+            "可填入方块或物品ID，例如: §bminecraft:stone§r。\n" +
+                    "如果在前面加上§b#§r，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
+                    "如果同时传入文本和过滤条件（以英文逗号分隔），例如：§lstone,c§r。\n" +
+                    "其中 “c” 表示使用包含匹配方式，会先尝试拼音或直接匹配。"
+    );
+
     public static final ConfigBoolean PUT_SKIP = new ConfigBoolean(
             "跳过放置", false,
             "开启后会§6§l跳过放置列表§r内的方块。"
@@ -184,7 +212,13 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     public static final ConfigBoolean QUICK_SHULKER = new ConfigBoolean(
             "快捷潜影盒", false,
             "在服务器装有§bAxShulkers§r插件的情况下可以直接从背包内的潜影盒取出物品\n" +
-                    "替换的位置为Litematica的预设位置,如果所有预设位置都有濳影盒则不会替换。"
+                    "替换的位置为Litematica的预设位置,如果所有预设位置都有濳影盒则无法替换。"
+    );
+
+    public static final ConfigInteger QUICK_SHULKER_COOLING = new ConfigInteger(
+            "潜影盒冷却", 10, 0, 20,
+            "在使用快捷潜影盒时，打开潜影盒的间隔，以§b游戏刻§r为单位。\n" +
+                    "应该没有服务器会恶心到把延迟调到1000ms以上吧？"
     );
 
     public static final ConfigBoolean INVENTORY = new ConfigBoolean(
@@ -200,9 +234,10 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 
     public static final ConfigBoolean PRINT_CHECK = new ConfigBoolean(
             "有序存放", false,
-            "在背包满时将从快捷盒子或打印机库存中取出的物品还原到之前位置，" +
-                    "关闭后将会打乱打印机以及濳影盒\n" +
-                    "§l（功能可能已损坏。）§r"
+            "在背包满时尝试将从远程交互容器或快捷潜影盒中取出的物品还原到之前位置。"
+                    //#if MC == 11802
+                    + "\n在1.18.2版本表现不好，甚至会导致卡顿，建议关闭。"
+                    //#endif
     );
 
     public static final ConfigStringList INVENTORY_LIST = new ConfigStringList(
@@ -283,8 +318,8 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     );
 
     public static final ConfigBoolean RENDER_PROGRESS = new ConfigBoolean(
-            "显示打印进度(实验性)", false,
-            "在打印机工作时在HUD中下的位置显示打印进度。（§c§l仅在1.21.4版本测试正常，其他版本不保证！§r）"
+            "显示打印进度", false,
+            "在打印机工作并且模式为§d打印§r时在HUD中显示打印进度。（§c§l1.18.2版本不会显示进度条§r）"
     );
 
     //========================================
