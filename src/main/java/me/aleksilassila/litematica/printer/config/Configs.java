@@ -30,17 +30,20 @@ public class Configs implements IConfigHandler {
         if(loadChestTracker) list.add(AUTO_INVENTORY);
         list.add(PRINT_SWITCH);
         list.add(PRINT_INTERVAL);
+        if (PRINT_INTERVAL.getIntegerValue() == 0) list.add(PRINT_PER_TICK);
         list.add(COMPULSION_RANGE);
         list.add(PUT_COOLING);
         list.add(PLACE_USE_PACKET);
         list.add(RENDER_PROGRESS);
         list.add(QUICK_SHULKER);
+        if (QUICK_SHULKER.getBooleanValue()) list.add(QUICK_SHULKER_COOLING);
         //list.add(RANGE_MODE);
         list.add(MODE_SWITCH);
         if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)) list.add(PRINTER_MODE);
         else list.add(MULTI_BREAK);
         list.add(RENDER_LAYER_LIMIT);
         list.add(FLUID_BLOCK_LIST);
+        list.add(FILL_BLOCK_LIST);
         if(loadChestTracker) list.add(INVENTORY_LIST);
         list.add(BEDROCK_LIST);
 
@@ -94,6 +97,7 @@ public class Configs implements IConfigHandler {
             list.add(BEDROCK_SWITCH);
             list.add(EXCAVATE);
             list.add(FLUID);
+            list.add(FILL);
         }
         list.add(CLOSE_ALL_MODE);
         list.add(SYNC_INVENTORY);
@@ -143,6 +147,7 @@ public class Configs implements IConfigHandler {
         list.add(BEDROCK_SWITCH);
         list.add(EXCAVATE);
         list.add(FLUID);
+        list.add(FILL);
         list.add(BREAK_ERROR_BLOCK);
         list.add(PRINT_WATER_LOGGED_BLOCK);
         list.add(USE_EASY_MODE);

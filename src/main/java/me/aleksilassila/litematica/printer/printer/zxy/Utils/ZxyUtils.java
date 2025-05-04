@@ -184,7 +184,7 @@ public class ZxyUtils {
             OpenInventoryPacket.sendOpenInventory(pos, client.world.getRegistryKey());
             return true;
         } else {
-            if (client.player != null && !canInteracted(5,Vec3d.ofCenter(pos))) {
+            if (client.player != null && !canInteracted(Vec3d.ofCenter(pos), LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue())) {
                 if(!ignoreThePrompt) client.inGameHud.setOverlayMessage(Text.of("距离过远无法打开容器"), false);
                 return false;
             }
@@ -351,11 +351,7 @@ public class ZxyUtils {
         }
     }
 
-    public static boolean canInteracted(Vec3d d, double range) {
-        IConfigOptionListEntry optionListValue = LitematicaMixinMod.RANGE_MODE.getOptionListValue();
-        return optionListValue != State.ListType.SPHERE || canInteracted(range,d);
-    }
-    public static boolean canInteracted(double range,Vec3d d){
+    public static boolean canInteracted(Vec3d d,double range){
         return client.player != null &&
                 d != null &&
                 client.player.getEyePos().squaredDistanceTo(d) < range * range;
