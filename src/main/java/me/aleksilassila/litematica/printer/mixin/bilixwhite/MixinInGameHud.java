@@ -38,10 +38,12 @@ public abstract class MixinInGameHud {
             if (!client.player.isSpectator() && LitematicaMixinMod.RENDER_PROGRESS.getBooleanValue() && LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() && LitematicaMixinMod.PRINTER_MODE.getOptionListValue().equals(State.PrintModeType.PRINTER)) {
                 //#if MC > 11904
                 context.drawCenteredTextWithShadow(client.textRenderer,  (int) (Printer.getPrinter().getPrintProgress() * 100) + "%", (int) (width / 2), (int) (height / 2 + 22), new Color(255, 255, 255, 255).getRGB());
+                context.drawCenteredTextWithShadow(client.textRenderer, Math.round(client.getNetworkHandler().getConnection().getAveragePacketsReceived()) + "ms", (int) (width / 2), (int) (height / 2 - 22), new Color(255, 255, 255, 255).getRGB());
                 context.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
                 context.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getPrinter().getPrintProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
                 //#else
                 //$$client.textRenderer.drawWithShadow(matrices, (int) (Printer.getPrinter().getPrintProgress() * 100) + "%", (int) (width / 2 - client.textRenderer.getWidth((int) (Printer.getPrinter().getPrintProgress() * 100) + "%")), (int) (height / 2 + 22), new Color(255, 255, 255, 255).getRGB());
+                //$$client.textRenderer.drawWithShadow(matrices, Math.round(client.getNetworkHandler().getConnection().getAveragePacketsReceived()) + "ms", (int) (width / 2 - client.textRenderer.getWidth(Math.round(client.getNetworkHandler().getConnection().getAveragePacketsReceived()) + "ms")), (int) (height / 2 - 22), new Color(255, 255, 255, 255).getRGB());
                 //#endif
             }
         }
