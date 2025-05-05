@@ -24,7 +24,6 @@ import java.util.*;
 
 import static me.aleksilassila.litematica.printer.printer.Printer.*;
 import static me.aleksilassila.litematica.printer.printer.qwer.PrintWater.*;
-import static net.minecraft.block.enums.BlockFace.WALL;
 
 public class PlacementGuide extends PrinterUtils {
     public static Map<BlockPos, Integer> posMap = new HashMap<>();
@@ -230,7 +229,7 @@ public class PlacementGuide extends PrinterUtils {
                 }
             }
             case COCOA -> {
-                return new Action().setSides(requiredState.get(Properties.HORIZONTAL_FACING));
+                return new Action().setSides(requiredState.get(Properties.HORIZONTAL_FACING)).setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING));
             }
             //#if MC >= 12003
             case CRAFTER -> {
@@ -246,11 +245,6 @@ public class PlacementGuide extends PrinterUtils {
                 }
             }
             //#endif
-
-            case OBSERVER -> {
-                Direction look = requiredState.get(Properties.FACING);
-                return new Action().setSides(look.getOpposite()).setLookDirection(look);
-            }
             case CHEST -> {
                 Direction facing = requiredState.get(Properties.HORIZONTAL_FACING).getOpposite();
                 ChestType type = requiredState.get(Properties.CHEST_TYPE);
@@ -260,20 +254,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setLookDirection(facing);
                 }
             }
-            case BUTTON -> {
-                Direction side;
-                switch (requiredState.get(Properties.BLOCK_FACE)) {
-                    case FLOOR -> side = Direction.DOWN;
-                    case CEILING -> side = Direction.UP;
-                    default -> side = (requiredState.get(Properties.HORIZONTAL_FACING)).getOpposite();
-                }
-
-                Direction look = requiredState.get(Properties.BLOCK_FACE) == WALL ?
-                        null : requiredState.get(Properties.HORIZONTAL_FACING);
-
-                return new Action().setSides(side).setLookDirection(look).setRequiresSupport();
-            }
-            case GRINDSTONE -> {
+            case WALL_MOUNTED_BLOCK -> {
                 Direction side = requiredState.get(Properties.HORIZONTAL_FACING);
                 BlockFace face = requiredState.get(Properties.BLOCK_FACE);
                 Direction sidePitch = switch (face) {
@@ -494,7 +475,7 @@ public class PlacementGuide extends PrinterUtils {
                 return null;
             }
             default -> {
-                return new Action();
+                return new Action().setLookDirection(Direction.DOWN);
             }
         }
         else if (state == State.WRONG_STATE) switch (requiredType) {
@@ -518,7 +499,7 @@ public class PlacementGuide extends PrinterUtils {
                 }
 
             }
-            case DOOR, TRAPDOOR -> {
+            case DOOR, TRAPDOOR, FENCE_GATE -> {
                 //判断门是不是铁制的，如果是就直接返回
                 if (requiredState.isOf(Blocks.IRON_DOOR) || requiredState.isOf(Blocks.IRON_TRAPDOOR)) break;
                 if (requiredState.get(Properties.OPEN) != currentState.get(Properties.OPEN))
@@ -547,11 +528,6 @@ public class PlacementGuide extends PrinterUtils {
             }
             case COMPARATOR -> {
                 if (requiredState.get(ComparatorBlock.MODE) != currentState.get(ComparatorBlock.MODE))
-                    return new ClickAction();
-
-            }
-            case GATE -> {
-                if (requiredState.get(FenceGateBlock.OPEN) != currentState.get(FenceGateBlock.OPEN))
                     return new ClickAction();
 
             }
@@ -660,11 +636,9 @@ public class PlacementGuide extends PrinterUtils {
         SLAB(SlabBlock.class), // 台阶
         STAIR(StairsBlock.class), // 楼梯
         TRAPDOOR(TrapdoorBlock.class), // 活板门
-        PILLAR(PillarBlock.class), // 柱子
+        PILLAR(PillarBlock.class), // 去皮原木
         ANVIL(AnvilBlock.class), // 铁砧
         HOPPER(HopperBlock.class), // 漏斗
-        GRINDSTONE(GrindstoneBlock.class), // 砂轮
-        BUTTON(ButtonBlock.class), // 按钮
         CAMPFIRE(CampfireBlock.class), // 营火
         SHULKER(ShulkerBoxBlock.class), // 潜影盒
         BED(BedBlock.class), // 床
@@ -677,12 +651,12 @@ public class PlacementGuide extends PrinterUtils {
         //#if MC >= 12003
         CRAFTER(CrafterBlock.class), // 合成器
         //#endif
-        OBSERVER(ObserverBlock.class), // 侦测器
         CHEST(ChestBlock.class), // 箱子
         FACING_BLOCK(FacingBlock.class, DispenserBlock.class), // 六面朝向方块
         HORIZONTAL_FACING_BLOCK(HorizontalFacingBlock.class), // 水平朝向方块
+        WALL_MOUNTED_BLOCK(WallMountedBlock.class), // 墙上挂载方块
 
-        // 仅点击
+        // 点击
         FLOWER_POT(FlowerPotBlock.class), // 花盆
         BIG_DRIPLEAF_STEM(BigDripleafStemBlock.class), // 大垂叶茎
         CAVE_VINES(CaveVinesHeadBlock.class, CaveVinesBodyBlock.class), // 洞穴藤蔓
@@ -704,7 +678,7 @@ public class PlacementGuide extends PrinterUtils {
         REDSTONE(RedstoneWireBlock.class), //红石粉
 
         // 两者皆有
-        GATE(FenceGateBlock.class), // 栅栏门
+        FENCE_GATE(FenceGateBlock.class), // 栅栏门
         LEVER(LeverBlock.class), // 拉杆
 
         // 其他
@@ -979,6 +953,10 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     public static class ClickAction extends Action {
+        @Override
+        public void queueAction(Printer.Queue queue, BlockPos center, Direction side, boolean useShift) {
+            queue.queueClick(center, side, getSides().get(side), false);
+        }
 
         @Override
         public @Nullable Item[] getRequiredItems(Block backup) {

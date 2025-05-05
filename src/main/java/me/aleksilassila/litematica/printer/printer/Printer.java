@@ -103,7 +103,6 @@ public class Printer extends PrinterUtils {
     public static boolean printerMemorySync = false;
     public static BlockPos easyPos = null;
     public static boolean isOpenHandler = false;
-    public static boolean updateChecked = false;
     static int tick = 0;
     static BlockPos breakTargetBlock = null;
     static int startTick = -1;
@@ -881,7 +880,6 @@ public class Printer extends PrinterUtils {
         public Direction side;
         public Vec3d hitModifier;
         public boolean shift = false;
-        public boolean didSendLook = true;
         public boolean termsOfUse = false;
         public Direction lookDirYaw = null;
         public Direction lookDirPitch = null;
