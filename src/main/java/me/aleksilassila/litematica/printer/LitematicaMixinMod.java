@@ -322,6 +322,11 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "在打印机工作并且模式为§d打印§r时在HUD中显示打印进度。（§c§l1.18.2版本不会显示进度条§r）"
     );
 
+    public static final ConfigBoolean LAG_CHECK = new ConfigBoolean(
+            "延迟检查", true,
+            "在打印机工作时检查每个数据包之间的平均间隔，如果间隔低于20ms，将自动关闭打印机。"
+    );
+
     //========================================
     //              Hotkeys
     //========================================
