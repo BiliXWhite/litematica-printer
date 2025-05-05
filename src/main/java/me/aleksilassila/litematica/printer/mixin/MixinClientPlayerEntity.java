@@ -64,12 +64,12 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 		printer.myTick();
 		var tickReceived = client.getNetworkHandler().getConnection().getAveragePacketsReceived();
 		if(!(LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed())){
+			if (tickReceived < 20 && LitematicaMixinMod.LAG_CHECK.getBooleanValue()) {
+				return;
+			}
 			PlacementGuide.posMap = new HashMap<>();
 			printer.basePos = null;
 			Printer.fluidModeItemList = new HashSet<>();
-			return;
-		}
-		if (tickReceived < 20 && LitematicaMixinMod.LAG_CHECK.getBooleanValue()) {
 			return;
 		}
 		if(!updateChecked && client.player != null && client.world != null) {
@@ -95,8 +95,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 												.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/BiliXWhite/litematica-printer"))
 												.withUnderline(true)
 												.withColor(Formatting.BLUE)))
-								.append(Text.of("分流下载地址："))
-								.append(Text.literal("https://xeno.lanzoue.com/b00l1v20vi\n")
+								.append(Text.literal(">>点击此处获取最新版本<<\n")
 										.setStyle(Style.EMPTY
 												.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi\n"))
 												.withUnderline(true)
@@ -111,8 +110,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 				//$$						.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/BiliXWhite/litematica-printer"))
 				//$$						.withUnderline(true)
 				//$$						.withColor(Formatting.BLUE))
-				//$$				.append("分流下载地址：")
-				//$$				.append(new LiteralText("https://xeno.lanzoue.com/b00l1v20vi\n"))
+				//$$				.append(new LiteralText(">>点击此处获取最新版本<<\n"))
 				//$$				.setStyle(Style.EMPTY
 				//$$						.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi"))
 				//$$						.withUnderline(true)
