@@ -94,3 +94,47 @@ tasks.register("cleanPreprocessSources") {
         }
     }
 }
+def detectSystemProxy() {
+    // 优先尝试通过 netsh winhttp show advproxy 获取 WinHTTP 代理
+    if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+        try {
+            def proc = ["cmd", "/c", "netsh winhttp show advproxy"].execute()
+            def output = proc.text
+            def enabledMatcher = output =~ /"ProxyIsEnabled":\s*(true|false)/
+            if (enabledMatcher.find()) {
+                def isEnabled = enabledMatcher.group(1).toBoolean()
+                if (!isEnabled) {
+                    return 'disabled'
+                }
+            } else {
+                println "[系统代理检测]未检测到 ProxyIsEnabled 字段。"
+                return false
+            }
+            def matcher = output =~ /"Proxy":\s*"([^"]+)"/
+            if (matcher.find()) {
+                def proxy = matcher.group(1)
+                if (proxy && proxy.contains(":")) {
+                    def (host, port) = proxy.split(":", 2)
+                    return [host: host, port: port as int]
+                }
+            }
+        } catch (Exception e) {
+            println "[系统代理检测]WinHTTP 代理检测失败: ${e.message}"
+            return false
+        }
+    }
+    return false
+}
+
+def proxy = detectSystemProxy()
+if (proxy == 'disabled') {
+    println "[系统代理检测]系统代理已禁用。"
+} else if (proxy) {
+    System.setProperty("http.proxyHost", proxy.host)
+    System.setProperty("http.proxyPort", proxy.port.toString())
+    System.setProperty("https.proxyHost", proxy.host)
+    System.setProperty("https.proxyPort", proxy.port.toString())
+    println "[系统代理检测]发现系统代理: ${proxy.host}:${proxy.port}"
+} else {
+    println "[系统代理检测]未检测到系统代理。"
+}
