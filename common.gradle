@@ -63,13 +63,6 @@ repositories {
             }
     }
 
-
-    maven {
-        url 'https://jitpack.io'
-    }
-
-
-
     // YACL
     maven {
         name = "Xander Maven"
@@ -88,6 +81,11 @@ repositories {
             includeGroupAndSubgroups("dev.isxander")
             includeGroupAndSubgroups("org.quiltmc")
         }
+    }
+
+    // 从上同步jitpack乱下崽的问题
+    maven {
+        url 'https://jitpack.io'
     }
 //	maven { url = "https://mvnrepository.com/artifact/com.github.open-android/pinyin4j " }
     // Add repositories to retrieve artifacts from in here.
@@ -138,7 +136,7 @@ def mod_dependencies = [
 
 String getSbYacl(){
 //    return "maven.modrinth:yacl";
-    return mcVersion == 12002 ? "maven.modrinth:yacl" : "dev.isxander:yet-another-config-lib";
+    return mcVersion == 12002 ? "maven.modrinth:yacl" : "dev.isxander:yet-another-config-lib"
 //    return mcVersion == 12002 ? "dev.isxander.yacl:yet-another-config-lib-fabric" : "dev.isxander:yet-another-config-lib";
 }
 
@@ -159,7 +157,7 @@ dependencies {
         def dependencyNotation = item[0]
         def id = item[1]
         def mode = item[2]
-        if (mode == 0) return;
+        if (mode == 0) return
         def idFix= mode != 5 ? "${dependencyNotation}:${project.property("${id}")}" : ""
         if (mode == 1) {
             modImplementation idFix
