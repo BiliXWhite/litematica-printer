@@ -927,7 +927,6 @@ public class Printer extends PrinterUtils {
                         ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY
                         : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY;
                 player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, preMode));
-                player.setSneaking(shift);
             }
 
             if (yxcfItem != null) {
@@ -937,8 +936,6 @@ public class Printer extends PrinterUtils {
                     SwitchItem.syncUseTime(yxcfItem);
                 }
             }
-
-            printerInstance.sendLook(player, lookDirYaw, lookDirPitch);
 
             if (PLACE_USE_PACKET.getBooleanValue()) {
                 //#if MC >= 11904
@@ -964,7 +961,6 @@ public class Printer extends PrinterUtils {
                         ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY
                         : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY;
                 player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, postMode));
-                player.setSneaking(wasSneaking);
             }
 
             clearQueue();
