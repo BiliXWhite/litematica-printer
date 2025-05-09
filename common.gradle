@@ -1,11 +1,9 @@
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
-import net.fabricmc.loom.util.Platform
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.LdcInsnNode
-
 
 apply(plugin: "fabric-loom")
 apply(plugin: "maven-publish")
@@ -20,20 +18,28 @@ preprocess {
 
 repositories {
 
-    maven { url = 'https://masa.dy.fi/maven' }
+    // 国内镜像源
+
+    maven { url = "https://maven.aliyun.com/repository/public" }
+    maven { url = "https://maven.aliyun.com/repository/google" }
+    maven { url = "https://maven.aliyun.com/repository/gradle-plugin" }
+    maven { url = "https://mirrors.huaweicloud.com/repository/maven/" }
+    maven { url = "https://repository.hanbings.io/proxy" }
+
+    // 海外源
+    maven { url = "https://masa.dy.fi/maven" }
     maven { url = "https://www.cursemaven.com" }
+    maven { url = "https://maven.fabricmc.net" }
+    maven { url = "https://maven.kyrptonaught.dev" }
+    maven { url = "https://maven.terraformersmc.com/releases" }
+    maven { url = "https://maven.shedaniel.me/" }
+    maven { url = "https://api.modrinth.com/maven" }
+
+    // 特定用途仓库
     maven {
         name = "CottonMC"
         url = "https://server.bbkr.space/artifactory/libs-release"
     }
-    maven { url = 'https://maven.fabricmc.net' }
-    maven { url = "https://maven.kyrptonaught.dev" }
-    maven { url = "https://maven.terraformersmc.com/releases" }
-    maven { url = "https://maven.shedaniel.me/" }
-    maven {
-        url = "https://api.modrinth.com/maven"
-    }
-
     maven {
         name = "jackfredReleases"
         url = "https://maven.jackf.red/releases"
@@ -56,11 +62,12 @@ repositories {
         }
     }
 
-    //拼音搜索
-    maven { url = "https://mvnrepository.com/artifact/com.belerweb/pinyin4j"
-            content {
-                includeGroupAndSubgroups("com.belerweb")
-            }
+    // 拼音搜索
+    maven {
+        url = "https://mvnrepository.com/artifact/com.belerweb/pinyin4j"
+        content {
+            includeGroupAndSubgroups("com.belerweb")
+        }
     }
 
     // YACL
@@ -72,8 +79,6 @@ repositories {
             includeGroupAndSubgroups("org.quiltmc")
         }
     }
-
-    // YACL Snapshots
     maven {
         name = "Xander Snapshot Maven"
         url = uri("https://maven.isxander.dev/snapshots")
@@ -83,16 +88,7 @@ repositories {
         }
     }
 
-    // 从上同步jitpack乱下崽的问题
-    maven {
-        url 'https://jitpack.io'
-    }
-//	maven { url = "https://mvnrepository.com/artifact/com.github.open-android/pinyin4j " }
-    // Add repositories to retrieve artifacts from in here.
-    // You should only use this when depending on other mods because
-    // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-    // See https://docs.gradle.org/current/userguide/declaring_repositories.html
-    // for more information about repositories.
+    maven { url = 'https://jitpack.io' }
 }
 
 configurations {
@@ -107,9 +103,6 @@ configurations {
             configuration.extendsFrom(superConfigurations)
         }
     }
-
-    register("productionRuntimeServer")
-    register("productionRuntimeMods")
 }
 def sakura = mcVersion > 12006
 //  1 = modImplementation 2 = modImplementation include 	3 = modApi	4 = modCompileOnly  5 = modImplementation file
@@ -233,23 +226,6 @@ loom {
     // Setup client default settings.
     runClient {
         defaultCharacterEncoding("UTF-8")
-
-        if (!new File("${projectDir}/run/client/options.txt").exists()) {
-            new File("${projectDir}/run/client").mkdirs()
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("${projectDir}/run/client/options.txt"))
-            bufferedWriter.writeLine("autoJump:false")
-            bufferedWriter.writeLine("enableVsync:false")
-            bufferedWriter.writeLine("forceUnicodeFont:false")
-            bufferedWriter.writeLine("fov:0.25")
-            bufferedWriter.writeLine("screenEffectScale:1.0")
-            bufferedWriter.writeLine("gamma:16.0")
-            bufferedWriter.writeLine("guiScale:3")
-            bufferedWriter.writeLine("lang:${Locale.getDefault().toString()}")
-            bufferedWriter.writeLine("maxFps:260")
-            bufferedWriter.writeLine("renderDistance:10")
-            bufferedWriter.writeLine("soundCategory_master:0.0")
-            bufferedWriter.close()
-        }
     }
 
     // Setup server default settings.
@@ -262,50 +238,6 @@ loom {
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("${projectDir}/run/server/eula.txt"))
             bufferedWriter.writeLine("eula=true")
             bufferedWriter.close()
-        }
-    }
-}
-
-tasks.register("serverPropertiesJar", Jar) {
-    File propsFile = file("build/tmp/install.properties")
-
-    doFirst {
-        if (propsFile.exists()) {
-            propsFile.delete()
-        }
-
-        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(propsFile))
-        bufferedWriter.writeLine("fabric-loader-version=${project.loader_version}")
-        bufferedWriter.writeLine("game-version=${project.minecraft_version}")
-        bufferedWriter.close()
-    }
-
-    archiveFileName.set("server-properties.jar")
-    destinationDirectory.set(file("build/tmp"))
-    from(propsFile)
-}
-
-tasks.register("runProductionClient", JavaExec) {
-    dependsOn(tasks.remapJar)
-    classpath.from(configurations.productionRuntimeClient)
-    mainClass.set("net.fabricmc.loader.impl.launch.knot.KnotClient")
-    workingDir(file("run/client"))
-
-    doFirst {
-        classpath.from(loom.minecraftProvider.minecraftClientJar)
-        args(
-                "--assetIndex", loom.minecraftProvider.versionInfo.assetIndex().fabricId(loom.minecraftProvider.minecraftVersion()),
-                "--assetsDir", file("${loom.files.userCache}/assets").absolutePath,
-                "--gameDir", workingDir.absolutePath,
-                "--width", "1280",
-                "--height", "720"
-        )
-        jvmArgs("-Dmixin.debug.export=true")
-        jvmArgs("-Dfabric.addMods=${configurations.productionRuntimeMods.files.join(File.pathSeparator)}${File.pathSeparator}${tasks.remapJar.archiveFile.get().asFile.absolutePath}")
-
-
-        if (Platform.CURRENT.operatingSystem.isMacOS()) {
-            jvmArgs("-XstartOnFirstThread")
         }
     }
 }
@@ -338,6 +270,8 @@ tasks.register("runProductionServer", JavaExec) {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding("UTF-8")
+    options.fork = true
+    options.incremental = true
 }
 
 remapJar {
@@ -358,13 +292,13 @@ if (mcVersion >= 12005) {
 JavaVersion MIXIN_COMPATIBILITY_LEVEL = JAVA_COMPATIBILITY
 
 tasks.withType(JavaCompile).configureEach {
-    if(mcVersion >= 12005){
+    if (mcVersion >= 12005) {
         it.options.release = 21
-    }else if(mcVersion >=11800){
+    } else if (mcVersion >= 11800) {
         it.options.release = 17
-    }else if(mcVersion >=11700){
+    } else if (mcVersion >= 11700) {
         it.options.release = 16
-    }else{
+    } else {
         it.options.release = 8
     }
 
@@ -414,12 +348,17 @@ processResources {
     }
 }
 
-//jar {
-////	from("${rootDir}/LICENSE")
-//	from("LICENSE") {
-//		rename { "${it}_${project.archivesBaseName}"}
-//	}
-//}
+jar {
+    manifest {
+        attributes(
+                'Implementation-Title': project.name,
+                'Implementation-Version': project.version,
+                'Built-By': System.properties['user.name'],
+                'Build-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                'Created-By': "Gradle ${gradle.gradleVersion}"
+        )
+    }
+}
 
 // configure the maven publication
 publishing {
