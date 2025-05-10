@@ -323,8 +323,8 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     );
 
     public static final ConfigBoolean LAG_CHECK = new ConfigBoolean(
-            "延迟检查", true,
-            "在打印机工作时检查每个数据包之间的平均间隔，如果间隔低于20ms，将自动关闭打印机。"
+            "延迟检测", true,
+            "打印机工作时会检测数据包的接收时间，如果超过20个游戏刻还没收到新数据包，打印机会自动暂停，直到收到数据包后再继续。"
     );
 
     //========================================

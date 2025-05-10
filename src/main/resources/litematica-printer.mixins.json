@@ -4,6 +4,8 @@
   "package": "me.aleksilassila.litematica.printer.mixin",
   "compatibilityLevel": "{{COMPATIBILITY_LEVEL}}",
   "mixins": [
+    "bilixwhite.MixinClientConnection",
+    "bilixwhite.MixinInGameHud",
     "masa.BlockItemMixin",
     "masa.KeyCallbackToggleBooleanConfigWithMessageMixin",
     "masa.MixinInventoryFix",
@@ -17,8 +19,7 @@
     "openinv.MixinPlayerEntity",
     "openinv.MixinServerPlayerEntity",
     "openinv.MixinServerWorld",
-    "openinv.PlayerManagerMixin",
-    "bilixwhite.MixinInGameHud"
+    "openinv.PlayerManagerMixin"
   ],
   "client": [
     "ClientCommonNetworkHandlerMixin",
@@ -26,6 +27,7 @@
     "MixinClientPlayerInteractionManager",
     "MixinClientPlayNetworkHandler",
     "PlayerMoveC2SPacketAccessor",
+    "bilixwhite.MixinInGameHud",
     "jackf.ChestTrackerScreenMixin",
     "jackf.EditMemoryBankScreenMixin",
     "jackf.ItemStackUtilMixin",
@@ -47,8 +49,7 @@
     "masa.litematicaSetConfig.GuiConfigsMixin",
     "masa.litematicaSetConfig.InputHandlerMixin",
     "openinv.MixinMinecraftClient",
-    "verify.MixinClientConnection",
-    "bilixwhite.MixinInGameHud"
+    "verify.MixinClientConnection"
   ],
   "injectors": {
     "defaultRequire": 1
