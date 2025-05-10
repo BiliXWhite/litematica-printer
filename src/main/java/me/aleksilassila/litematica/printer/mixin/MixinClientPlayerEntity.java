@@ -36,6 +36,9 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //$$ import net.minecraft.text.LiteralText;
 //#else
 import net.minecraft.text.Text;
+
+import static me.aleksilassila.litematica.printer.printer.Printer.updateChecked;
+
 //#endif
 @Mixin(ClientPlayerEntity.class)
 public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
@@ -46,9 +49,6 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 	@Final
 	@Shadow
 	protected MinecraftClient client;
-
-	@Unique
-	private boolean updateChecked = false;
 
 	@Inject(at = @At("HEAD"), method = "closeHandledScreen")
 	public void close(CallbackInfo ci) {

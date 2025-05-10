@@ -133,6 +133,7 @@ public class Printer extends PrinterUtils {
     private int printPerTick;
 
     public static int packetTick;
+    public static boolean updateChecked = false;
 
     private Printer(@NotNull MinecraftClient client) {
         this.client = client;
