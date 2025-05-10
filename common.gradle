@@ -233,9 +233,9 @@ loom {
         defaultCharacterEncoding("UTF-8")
 
         // Agree eula before server init.
-        if (!new File("${projectDir}/run/server/eula.txt").exists()) {
-            new File("${projectDir}/run/server").mkdirs()
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("${projectDir}/run/server/eula.txt"))
+        if (!new File("${project.projectDir}/run/server/eula.txt").exists()) {
+            new File("${project.projectDir}/run/server").mkdirs()
+            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("${project.projectDir}/run/server/eula.txt"))
             bufferedWriter.writeLine("eula=true")
             bufferedWriter.close()
         }
@@ -255,27 +255,10 @@ tasks.register("runProductionServer", JavaExec) {
     }
 }
 
-//["serverPropertiesJar",
-// "runClient", "runServer",
-// "runMixinAuditClient", "runMixinAuditServer",
-// "runProductionClient", "runProductionServer",
-// "preprocessCode", "preprocessResources",
-// "preprocessTestCode", "preprocessTestResources"].forEach {
-//    if (tasks.getNames().contains(it)) {
-//        tasks.named(it) {
-//            it.group("${mod_id}")
-//        }
-//    }
-//}
-
 tasks.withType(JavaCompile).configureEach {
     options.encoding("UTF-8")
     options.fork = true
     options.incremental = true
-}
-
-remapJar {
-    remapperIsolation.set(true)
 }
 
 def MIXIN_CONFIG_PATHS = ['litematica-printer.mixins.json']
@@ -314,7 +297,6 @@ java {
 
 
 processResources {
-    outputs.upToDateWhen { false }
 
     from("${rootDir}/LICENSE")
 
@@ -341,22 +323,10 @@ processResources {
         ])
     }
 
-    MIXIN_CONFIG_PATHS.each {mixinConfigPath ->
+    MIXIN_CONFIG_PATHS.each { mixinConfigPath ->
         filesMatching(mixinConfigPath) {
             filter { s -> s.replace('{{COMPATIBILITY_LEVEL}}', "JAVA_${MIXIN_COMPATIBILITY_LEVEL.ordinal() + 1}") }
         }
-    }
-}
-
-jar {
-    manifest {
-        attributes(
-                'Implementation-Title': project.name,
-                'Implementation-Version': project.version,
-                'Built-By': System.properties['user.name'],
-                'Build-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                'Created-By': "Gradle ${gradle.gradleVersion}"
-        )
     }
 }
 

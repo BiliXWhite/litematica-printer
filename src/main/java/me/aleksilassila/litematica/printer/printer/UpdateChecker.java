@@ -44,7 +44,7 @@ public class UpdateChecker {
 
     private static String getVersionFromModJson() {
         ModContainer container = FabricLoader.getInstance()
-                .getModContainer("litematicaprinter")
+                .getModContainer("litematica-printer")
                 .orElseThrow(() -> new IllegalStateException("未找到对应 mod"));
         Path modPath = container.getRootPath().resolve("fabric.mod.json");
         try (InputStream inputStream = modPath.toUri().toURL().openStream();

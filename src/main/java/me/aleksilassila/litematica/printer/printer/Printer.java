@@ -132,6 +132,8 @@ public class Printer extends PrinterUtils {
     private Item[] delayedItem;
     private int printPerTick;
 
+    public static int packetTick;
+
     private Printer(@NotNull MinecraftClient client) {
         this.client = client;
 
@@ -532,6 +534,11 @@ public class Printer extends PrinterUtils {
     }
 
     public void tick() {
+        if (LitematicaMixinMod.LAG_CHECK.getBooleanValue()) {
+            if (packetTick > 20)
+                return;
+            packetTick++;
+        }
         ClientPlayerEntity player = client.player;
         if (player == null) return;
         ClientWorld world = client.world;
@@ -656,7 +663,8 @@ public class Printer extends PrinterUtils {
                 if (needDelay) continue;
                 switchToItems(player, reqItems);
                 action.queueAction(queue, pos, side, useShift);
-                sendLook(player, action.getLookHorizontalDirection(), action.getLookDirectionPitch());
+                if (action.getLookHorizontalDirection() != null)
+                    sendLook(player, action.getLookHorizontalDirection(), action.getLookDirectionPitch());
                 if (placementTickInterval == 0) {
                     var block = schematic.getBlockState(pos).getBlock();
                     if (block instanceof PistonBlock ||
@@ -805,14 +813,14 @@ public class Printer extends PrinterUtils {
         return false;
     }
 
-    public boolean switchToItems(ClientPlayerEntity player, Item[] items) {
-        if (items == null) return false;
+    public void switchToItems(ClientPlayerEntity player, Item[] items) {
+        if (items == null) return;
         PlayerInventory inv = Implementation.getInventory(player);
         for (Item item : items) {
             if (Implementation.getAbilities(player).creativeMode) {
                 InventoryUtils.setPickedItemToHand(new ItemStack(item), client);
                 client.interactionManager.clickCreativeStack(client.player.getStackInHand(Hand.MAIN_HAND), 36 + inv.selectedSlot);
-                return true;
+                return;
             } else {
                 int slot = -1;
                 for (int i = 0; i < inv.size(); i++) {
@@ -822,11 +830,10 @@ public class Printer extends PrinterUtils {
                 if (slot != -1) {
                     yxcfItem = inv.getStack(slot);
                     swapHandWithSlot(player, slot);
-                    return true;
+                    return;
                 }
             }
         }
-        return false;
     }
 
     public void swapHandWithSlot(ClientPlayerEntity player, int slot) {

@@ -475,7 +475,7 @@ public class PlacementGuide extends PrinterUtils {
                 return null;
             }
             default -> {
-                return new Action().setLookDirection(Direction.DOWN);
+                return new Action();
             }
         }
         else if (state == State.WRONG_STATE) switch (requiredType) {

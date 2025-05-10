@@ -62,11 +62,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 		Printer printer = Printer.getPrinter();
 		ZxyUtils.tick();
 		printer.myTick();
-		var tickReceived = client.getNetworkHandler().getConnection().getAveragePacketsReceived();
-		if(!(LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed())){
-			if (tickReceived < 20 && LitematicaMixinMod.LAG_CHECK.getBooleanValue()) {
-				return;
-			}
+		if (!(LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed())) {
 			PlacementGuide.posMap = new HashMap<>();
 			printer.basePos = null;
 			Printer.fluidModeItemList = new HashSet<>();
@@ -88,7 +84,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
             if (!version.equals(newVersion))
 				//#if MC > 11802
 				client.inGameHud.getChatHud().addMessage(
-						Text.literal("检测到更新！当前版本: " + version + " 最新版本: " + newVersion + "\n强烈建议更新到最新版本，旧版本可能有一些恶性bug。\n" +
+						Text.literal("投影打印机检测到更新！当前版本: " + version + " 最新版本: " + newVersion + "\n强烈建议更新到最新版本，旧版本可能有一些恶性bug。\n" +
 										"仓库地址：")
 								.append(Text.literal("https://github.com/BiliXWhite/litematica-printer\n")
 										.setStyle(Style.EMPTY
@@ -97,13 +93,13 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 												.withColor(Formatting.BLUE)))
 								.append(Text.literal(">>点击此处获取最新版本<<\n")
 										.setStyle(Style.EMPTY
-												.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi\n"))
+												.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi"))
 												.withUnderline(true)
-												.withColor(Formatting.BLUE)))
+												.withColor(Formatting.GREEN)))
 								.append("密码:cgxw"));
 				//#else
 				//$$client.inGameHud.getChatHud().addMessage(
-				//$$		new LiteralText("检测到更新！当前版本: " + version + " 最新版本: " + newVersion + "\n强烈建议更新到最新版本，旧版本可能有一些恶性bug。\n" +
+				//$$		new LiteralText("投影打印机检测到更新！当前版本: " + version + " 最新版本: " + newVersion + "\n强烈建议更新到最新版本，旧版本可能有一些恶性bug。\n" +
 				//$$				"仓库地址：")
 				//$$				.append(new LiteralText("https://github.com/BiliXWhite/litematica-printer\n"))
 				//$$				.setStyle(Style.EMPTY
@@ -114,7 +110,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 				//$$				.setStyle(Style.EMPTY
 				//$$						.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi"))
 				//$$						.withUnderline(true)
-				//$$						.withColor(Formatting.BLUE))
+				//$$						.withColor(Formatting.GREEN))
 				//$$				.append("密码:cgxw"));
 			    //#endif
         }).start();

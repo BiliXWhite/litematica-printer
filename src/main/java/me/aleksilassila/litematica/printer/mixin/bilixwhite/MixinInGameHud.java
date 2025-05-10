@@ -37,39 +37,17 @@ public abstract class MixinInGameHud {
             // 检查玩家是否是观察者模式
             if (!client.player.isSpectator() && LitematicaMixinMod.RENDER_PROGRESS.getBooleanValue() && LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() && LitematicaMixinMod.PRINTER_MODE.getOptionListValue().equals(State.PrintModeType.PRINTER)) {
                 //#if MC > 11904
+                if (LitematicaMixinMod.LAG_CHECK.getBooleanValue())
+                    context.drawCenteredTextWithShadow(client.textRenderer, Printer.packetTick + "Tick", (int) (width / 2), (int) (height / 2 - 22), new Color(255, 255, 255, 255).getRGB());
                 context.drawCenteredTextWithShadow(client.textRenderer,  (int) (Printer.getPrinter().getPrintProgress() * 100) + "%", (int) (width / 2), (int) (height / 2 + 22), new Color(255, 255, 255, 255).getRGB());
-                context.drawCenteredTextWithShadow(client.textRenderer, Math.round(client.getNetworkHandler().getConnection().getAveragePacketsReceived()) + "ms", (int) (width / 2), (int) (height / 2 - 22), new Color(255, 255, 255, 255).getRGB());
                 context.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
                 context.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getPrinter().getPrintProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
                 //#else
                 //$$client.textRenderer.drawWithShadow(matrices, (int) (Printer.getPrinter().getPrintProgress() * 100) + "%", (int) (width / 2 - client.textRenderer.getWidth((int) (Printer.getPrinter().getPrintProgress() * 100) + "%")), (int) (height / 2 + 22), new Color(255, 255, 255, 255).getRGB());
-                //$$client.textRenderer.drawWithShadow(matrices, Math.round(client.getNetworkHandler().getConnection().getAveragePacketsReceived()) + "ms", (int) (width / 2 - client.textRenderer.getWidth(Math.round(client.getNetworkHandler().getConnection().getAveragePacketsReceived()) + "ms")), (int) (height / 2 - 22), new Color(255, 255, 255, 255).getRGB());
+                //$$if (LitematicaMixinMod.LAG_CHECK.getBooleanValue())
+                //$$    client.textRenderer.drawWithShadow(matrices, Printer.packetTick + "Tick", (int) (width / 2 - client.textRenderer.getWidth(Math.round(client.getNetworkHandler().getConnection().getAveragePacketsReceived()) + "ms")), (int) (height / 2 - 22), new Color(255, 255, 255, 255).getRGB());
                 //#endif
             }
         }
     }
-
-
-//#if MC <= 11904
-//$$    private static void drawRect(double x1, double y1, double x2, double y2, int color) {
-//$$        float a = (color >> 24 & 0xFF) / 255.0F;
-//$$        float r = (color >> 16 & 0xFF) / 255.0F;
-//$$        float g = (color >> 8 & 0xFF) / 255.0F;
-//$$        float b = (color & 0xFF) / 255.0F;
-//$$        RenderSystem.enableBlend();
-//$$        GL11C.glDisable(GL11.GL_TEXTURE_2D);
-//$$        RenderSystem.defaultBlendFunc();
-//$$        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
-//$$        Tessellator tess = Tessellator.getInstance();
-//$$        BufferBuilder buffer = tess.getBuffer();
-//$$        buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-//$$        buffer.vertex(x1, y2, 0).color(r, g, b, a);
-//$$        buffer.vertex(x2, y2, 0).color(r, g, b, a);
-//$$        buffer.vertex(x2, y1, 0).color(r, g, b, a);
-//$$        buffer.vertex(x1, y1, 0).color(r, g, b, a);
-//$$        tess.getBuffer().end();
-//$$        GL11C.glEnable(GL11.GL_TEXTURE_2D);
-//$$        RenderSystem.disableBlend();
-//$$    }
-//#endif
 }
