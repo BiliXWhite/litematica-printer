@@ -114,6 +114,7 @@ def detectSystemProxy() {
             if (matcher.find()) {
                 def proxy = matcher.group(1)
                 if (proxy && proxy.contains(":")) {
+                    proxy = proxy.replaceFirst(/^https?:\/\//, "")
                     def (host, port) = proxy.split(":", 2)
                     return [host: host, port: port as int]
                 }

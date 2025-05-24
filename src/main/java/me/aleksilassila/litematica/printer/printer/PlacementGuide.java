@@ -128,12 +128,6 @@ public class PlacementGuide extends PrinterUtils {
         } else if (requiredState.getBlock() instanceof FluidBlock) {
             return null;
         }
-        if (LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue()
-                && canBreakBlock(pos)
-                && isSchematicBlock(pos)
-                && state == State.WRONG_BLOCK) {
-            excavateBlock(pos);
-        }
 
         if (!canPlace) {
             return null;
@@ -623,7 +617,9 @@ public class PlacementGuide extends PrinterUtils {
                 }
             }
             default -> {
-                return null;
+                if (LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue() && isSchematicBlock(pos) && waJue(pos)) {
+                    return null;
+                }
             }
         }
 
