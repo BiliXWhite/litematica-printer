@@ -5,7 +5,7 @@ import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
-import fi.dy.masa.litematica.util.*;
+import fi.dy.masa.litematica.util.InventoryUtils;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
@@ -16,10 +16,10 @@ import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.mixin.masa.WorldUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
-import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
@@ -45,7 +45,6 @@ import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.List;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST;
@@ -117,17 +116,14 @@ public class Printer extends PrinterUtils {
     public final PlacementGuide guide;
     public final Queue queue;
     //强制循环半径
-    public boolean resetRange = true;
-    public boolean usingRange = true;
     public BlockPos basePos = null;
     public MyBox myBox;
     int printRange;
     boolean yDegression = false;
     BlockPos tempPos = null;
-    int tickRate;
+    int tickRate = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();
     List<String> fluidBlocklist;
     List<String> fillBlocklist;
-    long startTime;
     private boolean needDelay;
     private Item[] delayedItem;
     private int printPerTick;
@@ -446,7 +442,7 @@ public class Printer extends PrinterUtils {
     }
 
     /**
-     *  <h1>切换物品操作</h1>
+     * <h1>切换物品操作</h1>
      *
      * <p>
      * 该方法用于根据当前虚拟库存状态和配置，执行物品切换操作。当满足以下条件时：
@@ -545,23 +541,19 @@ public class Printer extends PrinterUtils {
         ClientWorld world = client.world;
         // 预载常用配置值
         int compulsionRange = COMPULSION_RANGE.getIntegerValue();
-        int placementTickInterval = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();
         printPerTick = LitematicaMixinMod.PRINT_PER_TICK.getIntegerValue();
         boolean useEasyMode = LitematicaMixinMod.EASY_MODE.getBooleanValue();
 
         // 更新环境参数
-        resetRange = true;
         printRange = compulsionRange;
-        usingRange = true;
         yDegression = false;
-        startTime = System.currentTimeMillis();
         // 更新 tick 计数（避免溢出）
         tick = (tick == Integer.MAX_VALUE) ? 0 : tick + 1;
 
         // 优先执行队列中的点击操作
-        if (placementTickInterval != 0) {
+        if (tickRate != 0) {
             queue.sendQueue(player);
-            if (tick % placementTickInterval != 0) {
+            if (tick % tickRate != 0) {
                 return;
             }
         }
@@ -604,8 +596,14 @@ public class Printer extends PrinterUtils {
         } else if (LitematicaMixinMod.PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType modeType
                 && modeType != PRINTER) {
             switch (modeType) {
-                case BEDROCK -> { yDegression = true; bedrockMode(); }
-                case EXCAVATE -> { yDegression = true; miningMode(); }
+                case BEDROCK -> {
+                    yDegression = true;
+                    bedrockMode();
+                }
+                case EXCAVATE -> {
+                    yDegression = true;
+                    miningMode();
+                }
                 case FLUID -> fluidMode();
                 case FILL -> fillMode();
             }
@@ -622,7 +620,6 @@ public class Printer extends PrinterUtils {
             BlockState state = schematic.getBlockState(pos);
             PlacementGuide.Action action = guide.getAction(world, schematic, pos);
             if (action == null) continue;
-
 
 
             // 检查放置跳过列表，使用简单 for 循环替代 stream 提升性能
@@ -647,7 +644,7 @@ public class Printer extends PrinterUtils {
                 easyPos = pos;
                 WorldUtilsAccessor.doEasyPlaceAction(client);
                 easyPos = null;
-                if (placementTickInterval != 0)
+                if (tickRate != 0)
                     return;
                 else
                     continue;
@@ -666,14 +663,14 @@ public class Printer extends PrinterUtils {
                 action.queueAction(queue, pos, side, useShift);
                 if (action.getLookHorizontalDirection() != null)
                     sendLook(player, action.getLookHorizontalDirection(), action.getLookDirectionPitch());
-                if (placementTickInterval == 0) {
+                if (tickRate == 0) {
                     var block = schematic.getBlockState(pos).getBlock();
                     if (block instanceof PistonBlock ||
                             block instanceof ObserverBlock ||
                             block instanceof DispenserBlock
                             //#if MC >= 12101
                             || block instanceof CrafterBlock
-                            //#endif
+                        //#endif
                     ) {
                         delayedItem = reqItems;
                         needDelay = true;
@@ -721,7 +718,8 @@ public class Printer extends PrinterUtils {
         while ((pos = getBlockPos()) != null) {
             BlockState requiredState = schematic.getBlockState(pos);
             BlockState currentState = client.world.getBlockState(pos);
-            if (!isSchematicBlock(pos) || requiredState == null || requiredState.getBlock() instanceof AirBlock) continue;
+            if (!isSchematicBlock(pos) || requiredState == null || requiredState.getBlock() instanceof AirBlock)
+                continue;
             totalCount++;
             if (currentState.getBlock().getDefaultState().equals(requiredState.getBlock().getDefaultState())) {
                 printedCount++;

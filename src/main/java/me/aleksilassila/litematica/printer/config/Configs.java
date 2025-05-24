@@ -75,7 +75,6 @@ public class Configs implements IConfigHandler {
     //===========挖掘设置===========
     public static ImmutableList<IConfigBase> addExcavate(){
         List<IConfigBase> list = new ArrayList<>();
-        if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)) list.add(EXCAVATE);
         list.add(EXCAVATE_LIMITER);
         if(EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.CUSTOM)){
             list.add(EXCAVATE_LIMIT);
