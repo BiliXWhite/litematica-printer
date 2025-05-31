@@ -121,7 +121,7 @@ public class Printer extends PrinterUtils {
     int printRange;
     boolean yDegression = false;
     BlockPos tempPos = null;
-    int tickRate = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();
+    int tickRate;
     List<String> fluidBlocklist;
     List<String> fillBlocklist;
     private boolean needDelay;
@@ -287,7 +287,9 @@ public class Printer extends PrinterUtils {
         myBox.initIterator();
 
         // 根据玩家面向来选择迭代器的顺序
-        myBox.setIterateZFirst(player.getHorizontalFacing().getAxis() == Direction.Axis.X);
+        myBox.setIterateZFirst(
+                player.getHorizontalFacing().getAxis() == (VERTICAL_ITERATION.getBooleanValue() ? Direction.Axis.Z : Direction.Axis.X)
+        );
 
         // 缓存配置值，减少循环中重复调用
         IConfigOptionListEntry rangeMode = LitematicaMixinMod.RANGE_MODE.getOptionListValue();
@@ -541,6 +543,7 @@ public class Printer extends PrinterUtils {
         ClientWorld world = client.world;
         // 预载常用配置值
         int compulsionRange = COMPULSION_RANGE.getIntegerValue();
+        tickRate = PRINT_INTERVAL.getIntegerValue();
         printPerTick = LitematicaMixinMod.PRINT_PER_TICK.getIntegerValue();
         boolean useEasyMode = LitematicaMixinMod.EASY_MODE.getBooleanValue();
 
