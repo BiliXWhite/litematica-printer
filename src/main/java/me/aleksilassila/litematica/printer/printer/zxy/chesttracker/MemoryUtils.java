@@ -80,13 +80,9 @@ public class MemoryUtils {
         });
 
         //加载打印机库存
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> client.execute(() -> {
-            createPrinterMemory();
-        }));
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> client.execute(MemoryUtils::createPrinterMemory));
         //保存打印机库存
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
-            unLoad();
-        });
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> unLoad());
     }
     public static void saveMemory(ScreenHandler sc){
         if(PRINTER_MEMORY != null && ZxyUtils.printerMemoryAdding || Printer.printerMemorySync)

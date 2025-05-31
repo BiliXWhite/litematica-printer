@@ -58,15 +58,9 @@ public class BlockPlacer {
                 PlayerEntity player = minecraftClient.player;
                 float pitch;
                 switch (direction) {
-                    case UP:
-                        pitch = 90f;
-                        break;
-                    case DOWN:
-                        pitch = -90f;
-                        break;
-                    default:
-                        pitch = 90f;
-                        break;
+                    case UP -> pitch = 90f;
+                    case DOWN -> pitch = -90f;
+                    default -> pitch = 90f;
                 }
                 yaw = player.getYaw();
                 BlockPlacer.pitch = player.getPitch();

@@ -22,7 +22,6 @@ public class KeyCallbackHotkeys implements IHotkeyCallback {
 
     @Override
     public boolean onKeyAction(KeyAction action, IKeybind key) {
-        if (this.client.player == null || this.client.world == null) return false;
 
         return false;
     }

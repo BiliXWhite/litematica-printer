@@ -110,6 +110,7 @@ public class Printer extends PrinterUtils {
     static ItemStack yxcfItem; //有序存放临时存储
     private static Printer INSTANCE = null;
     private int shulkerCooldown = 0;
+    public static int swapSlotDelay = 0;
 
     @NotNull
     public final MinecraftClient client;
@@ -519,6 +520,9 @@ public class Printer extends PrinterUtils {
         if (shulkerCooldown > 0) {
             shulkerCooldown--;
         }
+        if (swapSlotDelay > 0) {
+            swapSlotDelay--;
+        }
 
         ArrayList<BlockPos> deletePosList = new ArrayList<>();
         skipPosMap.forEach((k, v) -> {
@@ -663,6 +667,10 @@ public class Printer extends PrinterUtils {
                         action.useShift;
                 if (needDelay) continue;
                 switchToItems(player, reqItems);
+                if (swapSlotDelay > 0) {
+                    client.inGameHud.getChatHud().addMessage(Text.of("正在切换物品，请稍等..."));
+                    return;
+                }
                 action.queueAction(queue, pos, side, useShift);
                 if (action.getLookHorizontalDirection() != null)
                     sendLook(player, action.getLookHorizontalDirection(), action.getLookDirectionPitch());
@@ -805,6 +813,8 @@ public class Printer extends PrinterUtils {
                             closeScreen++;
                             isOpenHandler = true;
                             shulkerCooldown = QUICK_SHULKER_COOLING.getIntegerValue(); // AxShulkers的潜影盒延迟，单位为tick
+                            // TODO)) 这里应该不需要延迟
+                            //swapSlotDelay = 1;
                             return true;
                         } catch (Exception ignored) {
                         }

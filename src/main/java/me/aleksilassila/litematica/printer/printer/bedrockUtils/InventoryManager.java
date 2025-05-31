@@ -142,21 +142,12 @@ public class InventoryManager {
         }
 
         if (player.hasStatusEffect(StatusEffects.MINING_FATIGUE)) {
-            float k;
-            switch (player.getStatusEffect(StatusEffects.MINING_FATIGUE).getAmplifier()) {
-                case 0:
-                    k = 0.3F;
-                    break;
-                case 1:
-                    k = 0.09F;
-                    break;
-                case 2:
-                    k = 0.0027F;
-                    break;
-                case 3:
-                default:
-                    k = 8.1E-4F;
-            }
+            float k = switch (player.getStatusEffect(StatusEffects.MINING_FATIGUE).getAmplifier()) {
+                case 0 -> 0.3F;
+                case 1 -> 0.09F;
+                case 2 -> 0.0027F;
+                default -> 8.1E-4F;
+            };
 
             f *= k;
         }

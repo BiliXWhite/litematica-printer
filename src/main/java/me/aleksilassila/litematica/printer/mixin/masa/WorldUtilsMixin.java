@@ -26,20 +26,6 @@ public class WorldUtilsMixin {
     public static Vec3d applyBlockSlabProtocol(BlockPos pos, BlockState state, Vec3d hitVecIn) {
         return null;
     }
-
-    @Inject(at = @At("HEAD"), method = "applyCarpetProtocolHitVec")
-    private static void applyCarpetProtocolHitVec(BlockPos pos, BlockState state, Vec3d hitVecIn, CallbackInfoReturnable<Vec3d> cir) {
-        Direction facing = fi.dy.masa.malilib.util.BlockUtils.getFirstPropertyFacingValue(state);
-        int id = 0;
-        if (facing != null) {
-            id = facing.getId();
-        }
-    }
-    //#if MC >= 12100
-
-    //#else
-    //$$
-    //#endif
     @WrapOperation(at= @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/util/RayTraceUtils;getGenericTrace(Lnet/minecraft/world/World;Lnet/minecraft/entity/Entity;DZZZ)Lfi/dy/masa/litematica/util/RayTraceUtils$RayTraceWrapper;"),method = "doEasyPlaceAction")
     private static RayTraceUtils.RayTraceWrapper doSchematicWorldPickBlock(World world, Entity dist2, double verifier, boolean posList, boolean traceMismatch, boolean worldClient, Operation<RayTraceUtils.RayTraceWrapper> original){
         if (USE_EASY_MODE.getBooleanValue() && easyPos != null) {

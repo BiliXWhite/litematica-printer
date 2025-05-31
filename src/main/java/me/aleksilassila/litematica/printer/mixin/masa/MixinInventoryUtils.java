@@ -36,7 +36,6 @@ import static me.aleksilassila.litematica.printer.printer.Printer.remoteItem;
 public class MixinInventoryUtils {
     @Inject(at = @At("TAIL"),method = "schematicWorldPickBlock")
     private static void schematicWorldPickBlock(ItemStack stack, BlockPos pos, World schematicWorld, MinecraftClient mc, CallbackInfo ci){
-//        System.out.println(cir.getReturnValue().booleanValue());
         if (mc.player != null && !ItemStack.areItemsAndComponentsEqual(mc.player.getMainHandStack(),stack) && (LitematicaMixinMod.INVENTORY.getBooleanValue() || LitematicaMixinMod.QUICK_SHULKER.getBooleanValue())) {
             remoteItem.add(stack.getItem());
             Printer.getPrinter().switchItem();
@@ -111,6 +110,7 @@ public class MixinInventoryUtils {
                                     SlotActionType.SWAP,
                                     stack.copy(),
                                     snapshot));
+                            Printer.swapSlotDelay = 1;
                         } else {
                             mc.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot1, hotbarSlot, SlotActionType.SWAP, player);
                         }

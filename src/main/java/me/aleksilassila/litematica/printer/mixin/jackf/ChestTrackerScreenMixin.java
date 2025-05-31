@@ -52,15 +52,14 @@ public abstract class ChestTrackerScreenMixin extends Screen {
         new Thread(() -> {
             //        SearchablesUtil a;
             //濳影盒等搜索
-            List<ItemStack> filtered = new ArrayList<>(items.stream().filter(stack -> {
-                return InventoryUtils.getStoredItems(stack, -1).stream().anyMatch((stack2) -> {
+            List<ItemStack> filtered = new ArrayList<>(items.stream().filter(stack -> InventoryUtils.getStoredItems(stack, -1).stream().anyMatch((stack2) -> {
 
-                    //#if MC > 12004
+                //#if MC > 12004
 
-                    //#else
-                    //$$
-                    //#endif
-                    return ItemStacks.defaultPredicate(stack2,filter);
+                //#else
+                //$$
+                //#endif
+                return ItemStacks.defaultPredicate(stack2,filter);
 
 //                return stack2.getName().getString().toLowerCase().contains(filter) ||
 //                        //#if MC > 12004
@@ -90,8 +89,7 @@ public abstract class ChestTrackerScreenMixin extends Screen {
 //                        ||  stack2.getNbt() != null && PinYinSearch.hasPinYin(stack2.getNbt().toString().toLowerCase(), filter)
 //                        //#endif
 //                ;
-                });
-            }).toList());
+            })).toList());
 
 //        List<ItemStack> filteredItems = items.stream().filter((stack) -> {
 //            return stack.getName().getString().toLowerCase().contains(filter) ||

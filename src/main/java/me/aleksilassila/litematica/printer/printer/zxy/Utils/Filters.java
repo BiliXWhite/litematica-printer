@@ -18,9 +18,7 @@ public class Filters {
         AtomicBoolean b = new AtomicBoolean(false);
         strArr.forEach(str -> {
             switch (str){
-                case "c" -> {
-                    b.set(str1.contains(str2));
-                }
+                case "c" -> b.set(str1.contains(str2));
             }
         });
         return b.get() || str1.equals(str2);
