@@ -469,6 +469,7 @@ public class PlacementGuide extends PrinterUtils {
                 return null;
             }
             default -> {
+
                 return new Action();
             }
         }
@@ -617,8 +618,8 @@ public class PlacementGuide extends PrinterUtils {
                 }
             }
             default -> {
-                if (LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue() && isSchematicBlock(pos) && waJue(pos)) {
-                    return null;
+                if (LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue() && canBreakBlock(pos) && isSchematicBlock(pos)) {
+                    excavateBlock(pos);
                 }
             }
         }
@@ -648,7 +649,7 @@ public class PlacementGuide extends PrinterUtils {
         CRAFTER(CrafterBlock.class), // 合成器
         //#endif
         CHEST(ChestBlock.class), // 箱子
-        FACING_BLOCK(FacingBlock.class, DispenserBlock.class), // 六面朝向方块
+        FACING_BLOCK(FacingBlock.class, DispenserBlock.class, BarrelBlock.class), // 六面朝向方块
         HORIZONTAL_FACING_BLOCK(HorizontalFacingBlock.class), // 水平朝向方块
         WALL_MOUNTED_BLOCK(WallMountedBlock.class), // 墙上挂载方块
 
@@ -857,36 +858,40 @@ public class PlacementGuide extends PrinterUtils {
          */
         public @Nullable Direction getValidSide(ClientWorld world, BlockPos pos) {
             Map<Direction, Vec3d> sides = getSides();
-
             List<Direction> validSides = new ArrayList<>();
 
+            // 优先判断是否有有效侧面
             for (Direction side : sides.keySet()) {
-                if (LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport) {
-                    return side;
-                } else {
-                    BlockPos neighborPos = pos.offset(side);
-                    BlockState neighborState = world.getBlockState(neighborPos);
+                BlockPos neighborPos = pos.offset(side);
+                BlockState neighborState = world.getBlockState(neighborPos);
 
-                    if (neighborState.contains(SlabBlock.TYPE) && neighborState.get(SlabBlock.TYPE) != SlabType.DOUBLE) {
-                        continue;
+                if (neighborState.contains(SlabBlock.TYPE) && neighborState.get(SlabBlock.TYPE) != SlabType.DOUBLE) {
+                    continue;
+                }
+
+                if (canBeClicked(world, neighborPos) && !isReplaceable(neighborState)) {
+                    validSides.add(side);
+                }
+            }
+
+            if (!validSides.isEmpty()) {
+                // 优先返回不需要 shift 的侧面
+                for (Direction validSide : validSides) {
+                    if (!Implementation.isInteractive(world.getBlockState(pos.offset(validSide)).getBlock())) {
+                        return validSide;
                     }
+                }
+                return validSides.get(0).getOpposite();
+            }
 
-                    if (canBeClicked(world, pos.offset(side)) && // Handle unclickable grass for example
-                            !isReplaceable(world.getBlockState(pos.offset(side))))
-                        validSides.add(side);
+            // 没有有效侧面时，判断是否允许空中放置
+            if (LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport) {
+                for (Direction side : sides.keySet()) {
+                    return side;
                 }
             }
 
-            if (validSides.isEmpty()) return null;
-
-            // Try to pick a side that doesn't require shift
-            for (Direction validSide : validSides) {
-                if (!Implementation.isInteractive(world.getBlockState(pos.offset(validSide)).getBlock())) {
-                    return validSide;
-                }
-            }
-
-            return validSides.get(0);
+            return null;
         }
 
         public Action setItem(Item item) {

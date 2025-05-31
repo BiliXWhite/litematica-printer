@@ -38,6 +38,7 @@ public class Configs implements IConfigHandler {
         list.add(QUICK_SHULKER);
         if (QUICK_SHULKER.getBooleanValue()) list.add(QUICK_SHULKER_COOLING);
         list.add(LAG_CHECK);
+        list.add(VERTICAL_ITERATION);
         //list.add(RANGE_MODE);
         list.add(MODE_SWITCH);
         if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)) list.add(PRINTER_MODE);
