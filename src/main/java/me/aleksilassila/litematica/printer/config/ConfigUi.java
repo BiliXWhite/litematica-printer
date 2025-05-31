@@ -81,23 +81,16 @@ public class ConfigUi extends GuiConfigsBase {
         return ConfigOptionWrapper.createFor(configs);
     }
 
-    private static class ButtonListener implements IButtonActionListener {
-        private final ConfigUi parent;
-        private final Tab tab;
-
-        public ButtonListener(Tab tab, ConfigUi parent) {
-            this.tab = tab;
-            this.parent = parent;
-        }
+    private record ButtonListener(Tab tab, ConfigUi parent) implements IButtonActionListener {
 
         @Override
-        public void actionPerformedWithButton(ButtonBase button, int mouseButton) {
-            ConfigUi.tab = this.tab;
-            this.parent.reCreateListWidget();
-            this.parent.getListWidget().resetScrollbarPosition();
-            this.parent.initGui();
+            public void actionPerformedWithButton(ButtonBase button, int mouseButton) {
+                ConfigUi.tab = this.tab;
+                this.parent.reCreateListWidget();
+                this.parent.getListWidget().resetScrollbarPosition();
+                this.parent.initGui();
+            }
         }
-    }
 
     public enum Tab {
         ALL("全部"),

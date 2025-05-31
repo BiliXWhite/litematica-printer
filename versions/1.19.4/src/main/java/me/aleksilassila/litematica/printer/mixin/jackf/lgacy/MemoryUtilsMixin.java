@@ -77,9 +77,7 @@ package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
      public static boolean areStacksEquivalent(@NotNull ItemStack stack1, @NotNull ItemStack stack2, boolean ignoreNbt) {
          return stack1.getItem() == stack2.getItem() && (ignoreNbt || !stack1.hasNbt() && !stack2.hasNbt() || Objects.equals(stack1.getNbt(), stack2.getNbt()))
                  ||
-                 fi.dy.masa.malilib.util.InventoryUtils.getStoredItems(stack2, -1).stream().anyMatch((candidate) -> {
-                     return me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils.areStacksEquivalent(stack1, candidate, stack1.getNbt() == null);
-                 });
+                 fi.dy.masa.malilib.util.InventoryUtils.getStoredItems(stack2, -1).stream().anyMatch((candidate) -> me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils.areStacksEquivalent(stack1, candidate, stack1.getNbt() == null));
 
      }
 

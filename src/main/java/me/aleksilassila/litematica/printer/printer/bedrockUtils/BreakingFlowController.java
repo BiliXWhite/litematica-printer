@@ -119,7 +119,7 @@ public class BreakingFlowController {
             }
             //玩家切换世界，或离目标方块太远时，删除所有缓存的任务
             if (selectedBlock.getWorld() != MinecraftClient.getInstance().world) {
-                cachedTargetBlockList = new ArrayList<TargetBlock>();
+                cachedTargetBlockList = new ArrayList<>();
                 break;
             }
 
@@ -130,9 +130,7 @@ public class BreakingFlowController {
             cachedTargetBlockList.stream().filter( targetBlock -> targetBlock.getStatus() == TargetBlock.Status.EXTENDED).forEach(TargetBlock::tick);
             //#endif
             TargetBlock.Status status = cachedTargetBlockList.get(i).tick();
-            if (status == TargetBlock.Status.RETRACTING) {
-                continue;
-            } else if (status == TargetBlock.Status.FAILED || status == TargetBlock.Status.RETRACTED) {
+            if (status == TargetBlock.Status.FAILED || status == TargetBlock.Status.RETRACTED) {
                 for (BlockPos temppo : cachedTargetBlockList.get(i).temppos) {
                     if (!minecraftClient.world.getBlockState(temppo).isAir()) addPosList(temppo);
                 }
@@ -160,19 +158,6 @@ public class BreakingFlowController {
             return WorkingMode.CARPET_EXTRA;
         }else return WorkingMode.VANILLA;
     }
-
-    private static boolean shouldAddNewTargetBlock(BlockPos pos) {
-        for (int i = 0; i < cachedTargetBlockList.size(); i++) {
-            if (cachedTargetBlockList.get(i).getBlockPos().getManhattanDistance(pos) == 0) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public static void switchOnOff() {
-    }
-
 
     //测试用的。使用原版模式已经足以满足大多数需求。
     //just for test. The VANILLA mode is powerful enough.

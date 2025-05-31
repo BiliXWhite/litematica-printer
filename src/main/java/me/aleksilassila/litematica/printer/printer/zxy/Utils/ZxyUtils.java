@@ -157,9 +157,7 @@ public class ZxyUtils {
                 }
             }
             String blockName = Registries.BLOCK.getId(block).toString();
-            if (Printer.getPrinter() != null) {
-                syncPosList.addAll(Printer.getPrinter().siftBlock(blockName));
-            }
+            syncPosList.addAll(Printer.getPrinter().siftBlock(blockName));
             if (!syncPosList.isEmpty()) {
                 if (client.player == null) return;
                 client.player.closeHandledScreen();
@@ -172,7 +170,7 @@ public class ZxyUtils {
                 num = 1;
             }
         } else if(!syncPosList.isEmpty()){
-            highlightPosList.removeAll(syncPosList);
+            syncPosList.forEach(highlightPosList::remove);
             syncPosList = new LinkedList<>();
             if (client.player != null) client.player.closeScreen();
             num = 0;

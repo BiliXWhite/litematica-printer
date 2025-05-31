@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -45,29 +46,25 @@ public abstract class MixinMemoryDatabase {
 
     @Overwrite
     public List<Memory> findItems(ItemStack toFind, Identifier worldId) {
-        List<Memory> found = new ArrayList();
+        List<Memory> found = new ArrayList<>();
         Map<BlockPos, Memory> location = locations.get(worldId);
         ClientPlayerEntity playerEntity = MinecraftClient.getInstance().player;
         if (location != null && playerEntity != null) {
-            Iterator var6 = location.entrySet().iterator();
+            Iterator<Map.Entry<BlockPos, Memory>> var6 = location.entrySet().iterator();
 
             while(true) {
-                Map.Entry entry;
-                do {
-                    while(true) {
+                Entry entry;
+                do while (true) {
+                    do {
                         do {
-                            do {
-                                if (!var6.hasNext()) {
-                                    return found;
-                                }
+                            if (!var6.hasNext()) {
+                                return found;
+                            }
 
-                                entry = (Map.Entry)var6.next();
-                            } while(entry.getKey() == null);
-                        } while(!((Memory)entry.getValue()).getItems().stream().anyMatch((candidate) -> {
-                            return MemoryUtils.areStacksEquivalent(toFind, candidate, toFind.getNbt() == null || toFind.getNbt().equals(FULL_DURABILITY_TAG));
-                        }));
-                        break;
-                    }
+                            entry = var6.next();
+                        } while (entry.getKey() == null);
+                    } while (!((Memory) entry.getValue()).getItems().stream().anyMatch((candidate) -> MemoryUtils.areStacksEquivalent(toFind, candidate, toFind.getNbt() == null || toFind.getNbt().equals(FULL_DURABILITY_TAG))));
+                    break;
                 } while(((Memory)entry.getValue()).getPosition() != null && ChestTracker.getSquareSearchRange() != Integer.MAX_VALUE && !(((Memory)entry.getValue()).getPosition().getSquaredDistance(playerEntity.getBlockPos()) <= (double)ChestTracker.getSquareSearchRange()));
                 found.add((Memory)entry.getValue());
             }
@@ -85,12 +82,12 @@ public abstract class MixinMemoryDatabase {
 //        System.out.println(worldId);
         if(key!=null) worldId = key.getValue();
 //        MinecraftClient.getInstance().player.closeHandledScreen();
-        Map<BlockPos, Memory> location = (Map)this.locations.get(worldId);
+        Map<BlockPos, Memory> location = this.locations.get(worldId);
         if (location != null) {
             location.remove(pos);
         }
 
-        Map<BlockPos, Memory> namedLocation = (Map)this.namedLocations.get(worldId);
+        Map<BlockPos, Memory> namedLocation = this.namedLocations.get(worldId);
         if (namedLocation != null) {
             namedLocation.remove(pos);
         }
