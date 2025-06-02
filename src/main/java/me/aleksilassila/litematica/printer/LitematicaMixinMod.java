@@ -120,7 +120,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "在打印去皮原木的时候，会选择原木并用背包里的斧头进行去皮操作。"
     );
     public static final ConfigHotkey SWITCH_PRINTER_MODE = new ConfigHotkey(
-            "切换工作模式", "J",
+            "切换工作模式", "",
             "切换打印机工作模式。"
     );
     public static final ConfigBooleanHotkeyed BEDROCK_SWITCH = new ConfigBooleanHotkeyed(
@@ -167,7 +167,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
                     "替换的位置为Litematica的预设位置,如果所有预设位置都有濳影盒则无法替换。"
     );
     public static final ConfigInteger QUICK_SHULKER_COOLING = new ConfigInteger(
-            "潜影盒冷却", 10, 0, 20,
+            "潜影盒冷却", 11, 0, 20,
             "在使用快捷潜影盒时，打开潜影盒的间隔，以§b游戏刻§r为单位。\n" +
                     "应该没有服务器会恶心到把延迟调到1000ms以上吧？"
     );
@@ -255,8 +255,8 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "启用后打印失活珊瑚时，如果背包里没有失活珊瑚，会自动使用活珊瑚替换。如果背包里同时有活珊瑚和失活珊瑚，则会优先使用失活珊瑚打印。"
     );
     public static final ConfigBoolean RENDER_PROGRESS = new ConfigBoolean(
-            "显示打印进度", false,
-            "在打印机工作并且模式为§d打印§r时在HUD中显示打印进度。（§c§l1.18.2版本不会显示进度条§r）"
+            "显示打印进度", true,
+            "在打印机工作并且模式为§d打印§r时在HUD中显示打印进度。"
     );
     public static final ConfigBoolean LAG_CHECK = new ConfigBoolean(
             "延迟检测", true,
@@ -265,20 +265,20 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     public static final ConfigBoolean VERTICAL_ITERATION = new ConfigBoolean(
             "竖向迭代", false,
             "开启后，打印顺序会以面向顺序§b竖向§r打印，而不是面向顺序§b横向§r打印。\n" +
-                    "这会使得打印机在打印时更符合玩家的习惯。"
+                    "这会使得打印机在打印时更符合部分玩家的习惯。"
     );
     public static final ConfigInteger SWAP_ITEM_DELAY = new ConfigInteger(
-            "背包拿取物品延迟", 1, 0, 20,
+            "背包拿取物品延迟", 4, 0, 20,
             "在打印机工作时，切换背包物品的延迟，以§b游戏刻§r为单位。\n" +
                     "如果设置为0，则不进行延迟。\n" +
-                    "只有在§6§l使用数据包放置方块§r时才会生效。"
+                    "只有在§6§l使用数据包放置方块§r启用时才会生效。"
     );
     //========================================
     //              Hotkeys
     //========================================
     public static final ConfigHotkey PRINT = new ConfigHotkey(
             "打印", "", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY,
-            "在按着热键的时候打印方块"
+            "在按着绑定按键的时候打印方块。"
     );
     public static final ConfigHotkey TOGGLE_PRINTING_MODE = new ConfigHotkey(
             "打印状态开关", "CAPS_LOCK", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY,
