@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 
-import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
@@ -35,7 +34,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
-import org.lwjgl.glfw.GLFW;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import java.util.*;
@@ -52,7 +50,6 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.nbt.NbtCompound;
 //#endif
-import net.minecraft.enchantment.EnchantmentHelper;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_COLOR;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
@@ -356,19 +353,13 @@ public class ZxyUtils {
     }
 
     public static boolean canInteracted(BlockPos blockPos) {
-        return blockPos != null && canInteracted(Vec3d.ofCenter(blockPos),getRage());
+        return blockPos != null && canInteracted(Vec3d.ofCenter(blockPos), LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue());
+        //        return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
+        //        return Math.max(getPrinterRange(),getCompulsionRange());
     }
 
     public static boolean bedrockCanInteracted(BlockPos blockPos,double range) {
         return client.player != null && client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(blockPos)) < range * range;
-    }
-    public static int getRage(){
-        return getPrinterRange();
-//        return Math.max(getPrinterRange(),getCompulsionRange());
-    }
-    public static int getPrinterRange() {
-//        return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
-        return LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue();
     }
 
     public static void exitGameReSet(){

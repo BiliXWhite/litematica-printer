@@ -5,7 +5,6 @@ import fi.dy.masa.litematica.util.PlacementHandler;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
-import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
@@ -113,7 +112,9 @@ public class BreakingFlowController {
             TargetBlock selectedBlock = cachedTargetBlockList.get(i);
 
 //            if (!blockInPlayerRange(selectedBlock.getBlockPos(), player, 5f)) {
-            if (!ZxyUtils.bedrockCanInteracted(selectedBlock.getBlockPos(), getRage() - 1.5)) {
+            //        return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
+            //        return Math.max(getPrinterRange(),getCompulsionRange());
+            if (!ZxyUtils.bedrockCanInteracted(selectedBlock.getBlockPos(), LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue() - 1.5)) {
                 cachedTargetBlockList.remove(i);
                 continue;
             }
@@ -154,7 +155,7 @@ public class BreakingFlowController {
     }
 
     public static WorkingMode getWorkingMode() {
-        if (LitematicaMixinMod.EASY_MODE.getBooleanValue() && PlacementHandler.getEffectiveProtocolVersion() == EasyPlaceProtocol.V2) {
+        if (LitematicaMixinMod.PRECISE_PLACE.getBooleanValue() && PlacementHandler.getEffectiveProtocolVersion() == EasyPlaceProtocol.V2) {
             return WorkingMode.CARPET_EXTRA;
         }else return WorkingMode.VANILLA;
     }

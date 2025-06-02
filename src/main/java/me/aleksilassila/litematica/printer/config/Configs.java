@@ -34,6 +34,7 @@ public class Configs implements IConfigHandler {
         list.add(COMPULSION_RANGE);
         list.add(PUT_COOLING);
         list.add(PLACE_USE_PACKET);
+        if (PLACE_USE_PACKET.getBooleanValue()) list.add(SWAP_ITEM_DELAY);
         list.add(RENDER_PROGRESS);
         list.add(QUICK_SHULKER);
         if (QUICK_SHULKER.getBooleanValue()) list.add(QUICK_SHULKER_COOLING);
@@ -59,7 +60,7 @@ public class Configs implements IConfigHandler {
         list.add(PUT_SKIP);
         list.add(PUT_SKIP_LIST);
         list.add(PRINT_CHECK);
-        list.add(EASY_MODE);
+        list.add(PRECISE_PLACE);
         list.add(USE_EASY_MODE);
         list.add(FORCED_PLACEMENT);
         list.add(PRINT_IN_AIR);

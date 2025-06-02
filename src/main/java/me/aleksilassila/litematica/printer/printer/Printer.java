@@ -56,8 +56,7 @@ import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.g
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.*;
 import static me.aleksilassila.litematica.printer.printer.State.PrintModeType.*;
 import static me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController.cachedTargetBlockList;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsItemName;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
@@ -126,7 +125,6 @@ public class Printer extends PrinterUtils {
     List<String> fluidBlocklist;
     List<String> fillBlocklist;
     private boolean needDelay;
-    private Item[] delayedItem;
     private int printPerTick;
 
     public static int packetTick;
@@ -227,7 +225,9 @@ public class Printer extends PrinterUtils {
     }
 
     public static int bedrockModeRange() {
-        return LitematicaMixinMod.RANGE_MODE.getOptionListValue() == State.ListType.SPHERE ? getRage() : 6;
+        //        return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
+        //        return Math.max(getPrinterRange(),getCompulsionRange());
+        return LitematicaMixinMod.RANGE_MODE.getOptionListValue() == State.ListType.SPHERE ? COMPULSION_RANGE.getIntegerValue() : 6;
     }
 
     public static boolean bedrockModeTarget(BlockState block) {
@@ -413,7 +413,9 @@ public class Printer extends PrinterUtils {
         int maxy = -9999;
         BlockPos pos;
         while ((pos = getBlockPos()) != null && client.world != null) {
-            if (!ZxyUtils.bedrockCanInteracted(pos, getRage())) continue;
+            //        return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
+            //        return Math.max(getPrinterRange(),getCompulsionRange());
+            if (!ZxyUtils.bedrockCanInteracted(pos, COMPULSION_RANGE.getIntegerValue())) continue;
             if (isLimitedByTheNumberOfLayers(pos)) continue;
             BlockState currentState = client.world.getBlockState(pos);
             BlockPos finalPos = pos;
@@ -430,8 +432,7 @@ public class Printer extends PrinterUtils {
             }
 
             if (TempData.xuanQuFanWeiNei_p(pos) &&
-                    bedrockModeTarget(currentState) &&
-                    ZxyUtils.bedrockCanInteracted(pos, getRage() - 1.5) &&
+                    bedrockModeTarget(currentState) && ZxyUtils.bedrockCanInteracted(pos, COMPULSION_RANGE.getIntegerValue() - 1.5) &&
                     !bedrockModeTarget(client.world.getBlockState(pos.up()))) {
                 if (maxy == -9999) maxy = pos.getY();
                 if (pos.getY() < maxy) {
@@ -542,6 +543,9 @@ public class Printer extends PrinterUtils {
                 return;
             packetTick++;
         }
+        if (swapSlotDelay > 0) {
+            return;
+        }
         ClientPlayerEntity player = client.player;
         if (player == null) return;
         ClientWorld world = client.world;
@@ -549,7 +553,7 @@ public class Printer extends PrinterUtils {
         int compulsionRange = COMPULSION_RANGE.getIntegerValue();
         tickRate = PRINT_INTERVAL.getIntegerValue();
         printPerTick = LitematicaMixinMod.PRINT_PER_TICK.getIntegerValue();
-        boolean useEasyMode = LitematicaMixinMod.EASY_MODE.getBooleanValue();
+        boolean useEasyMode = USE_EASY_MODE.getBooleanValue();
 
         // 更新环境参数
         printRange = compulsionRange;
@@ -573,7 +577,6 @@ public class Printer extends PrinterUtils {
 
         // 0tick修复
         if (needDelay) {
-            switchToItems(player, delayedItem);
             queue.sendQueue(player);
             needDelay = false;
         }
@@ -660,20 +663,23 @@ public class Printer extends PrinterUtils {
             Direction side = action.getValidSide(world, pos);
             if (side == null) continue;
 
+            // 检查背包里是否有要打印的方块
             Item[] reqItems = action.getRequiredItems(state.getBlock());
             if (playerHasAccessToItems(player, reqItems)) {
                 boolean useShift = LitematicaMixinMod.FORCED_PLACEMENT.getBooleanValue() ||
                         Implementation.isInteractive(world.getBlockState(pos).getBlock()) ||
                         action.useShift;
-                if (needDelay) continue;
-                switchToItems(player, reqItems);
-                if (swapSlotDelay > 0) {
-                    client.inGameHud.getChatHud().addMessage(Text.of("正在切换物品，请稍等..."));
-                    return;
+                //if (needDelay) continue;
+                //如果当前手持的物品不等于所需物品，则切换物品
+                if (!player.getMainHandStack().isOf(reqItems[0]) && swapSlotDelay == 0) {
+                    switchToItems(player, reqItems);
+                } else if (swapSlotDelay > 0) {
+                    continue;
                 }
                 action.queueAction(queue, pos, side, useShift);
-                if (action.getLookHorizontalDirection() != null)
+                if (action.getLookHorizontalDirection() != null) {
                     sendLook(player, action.getLookHorizontalDirection(), action.getLookDirectionPitch());
+                }
                 if (tickRate == 0) {
                     var block = schematic.getBlockState(pos).getBlock();
                     if (block instanceof PistonBlock ||
@@ -683,7 +689,6 @@ public class Printer extends PrinterUtils {
                             || block instanceof CrafterBlock
                         //#endif
                     ) {
-                        delayedItem = reqItems;
                         needDelay = true;
                         return;
                     }
@@ -813,7 +818,7 @@ public class Printer extends PrinterUtils {
                             closeScreen++;
                             isOpenHandler = true;
                             shulkerCooldown = QUICK_SHULKER_COOLING.getIntegerValue(); // AxShulkers的潜影盒延迟，单位为tick
-                            // TODO)) 这里应该不需要延迟
+                            // 这里应该不需要延迟
                             //swapSlotDelay = 1;
                             return true;
                         } catch (Exception ignored) {
