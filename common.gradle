@@ -242,23 +242,21 @@ loom {
     }
 }
 
-tasks.register("runProductionServer", JavaExec) {
-    dependsOn(tasks.remapJar)
-    classpath.from(configurations.productionRuntimeServer, tasks.named("serverPropertiesJar"))
-    mainClass.set("net.fabricmc.installer.ServerLauncher")
-    workingDir(file("run/server"))
+// tasks.register("runProductionServer", JavaExec) {
+//     dependsOn(tasks.remapJar)
+//     classpath.from(configurations.productionRuntimeServer, tasks.named("serverPropertiesJar"))
+//     mainClass.set("net.fabricmc.installer.ServerLauncher")
+//     workingDir(file("run/server"))
 
-    doFirst {
-        args("nogui")
-        jvmArgs("-Dmixin.debug.export=true")
-        jvmArgs("-Dfabric.addMods=${configurations.productionRuntimeMods.files.join(File.pathSeparator)}${File.pathSeparator}${tasks.remapJar.archiveFile.get().asFile.absolutePath}")
-    }
-}
+//     doFirst {
+//         args("nogui")
+//         jvmArgs("-Dmixin.debug.export=true")
+//         jvmArgs("-Dfabric.addMods=${configurations.productionRuntimeMods.files.join(File.pathSeparator)}${File.pathSeparator}${tasks.remapJar.archiveFile.get().asFile.absolutePath}")
+//     }
+// }
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding("UTF-8")
-    options.fork = true
-    options.incremental = true
 }
 
 def MIXIN_CONFIG_PATHS = ['litematica-printer.mixins.json']
