@@ -35,7 +35,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
                     "在值为§b0§r时会提供§6§l每刻执行方块数§r的选项，需要重新打开设置菜单才能出现。"
     );
     public static final ConfigInteger PRINT_PER_TICK = new ConfigInteger(
-            "每刻执行方块数", 1, 0, 16,
+            "每刻执行方块数", 4, 0, 16,
             "当§6§l打印机工作间隔§r为§b0§r时每个游戏刻打印的方块数量。数值越高意味着打印速度越快。\n" +
                     "在值为§b0§r时无上限，可能在服务器中表现不佳，可开启§6§l使用数据包放置方块§r缓解。"
     );
@@ -98,7 +98,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "打印状态", false,
             "打印的开关状态。"
     );
-    public static final ConfigBoolean EASY_MODE = new ConfigBoolean(
+    public static final ConfigBoolean PRECISE_PLACE = new ConfigBoolean(
             "精准放置", false,
             "根据投影的设置使用对应的协议。"
     );
@@ -267,6 +267,12 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "开启后，打印顺序会以面向顺序§b竖向§r打印，而不是面向顺序§b横向§r打印。\n" +
                     "这会使得打印机在打印时更符合玩家的习惯。"
     );
+    public static final ConfigInteger SWAP_ITEM_DELAY = new ConfigInteger(
+            "背包拿取物品延迟", 1, 0, 20,
+            "在打印机工作时，切换背包物品的延迟，以§b游戏刻§r为单位。\n" +
+                    "如果设置为0，则不进行延迟。\n" +
+                    "只有在§6§l使用数据包放置方块§r时才会生效。"
+    );
     //========================================
     //              Hotkeys
     //========================================
@@ -315,7 +321,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     public static ImmutableList<IConfigBase> getConfigList() {
         List<IConfigBase> list = new java.util.ArrayList<>(Configs.Generic.OPTIONS);
         list.add(PRINT_SWITCH);
-        list.add(EASY_MODE);
+        list.add(PRECISE_PLACE);
         list.add(PRINT_INTERVAL);
         list.add(COMPULSION_RANGE);
 
