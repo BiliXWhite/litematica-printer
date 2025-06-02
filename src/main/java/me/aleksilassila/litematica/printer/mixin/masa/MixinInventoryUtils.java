@@ -16,6 +16,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
+import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.collection.DefaultedList;
@@ -110,7 +111,8 @@ public class MixinInventoryUtils {
                                     SlotActionType.SWAP,
                                     stack.copy(),
                                     snapshot));
-                            Printer.swapSlotDelay = 1;
+                            player.playerScreenHandler.onSlotClick(sourceSlot, hotbarSlot, SlotActionType.SWAP, player);
+                            Printer.swapSlotDelay = LitematicaMixinMod.SWAP_ITEM_DELAY.getIntegerValue();
                         } else {
                             mc.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot1, hotbarSlot, SlotActionType.SWAP, player);
                         }

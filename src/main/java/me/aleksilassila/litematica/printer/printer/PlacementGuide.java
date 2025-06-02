@@ -248,19 +248,6 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setLookDirection(facing);
                 }
             }
-            case WALL_MOUNTED_BLOCK -> {
-                Direction side = requiredState.get(Properties.HORIZONTAL_FACING);
-                BlockFace face = requiredState.get(Properties.BLOCK_FACE);
-                Direction sidePitch = switch (face) {
-                    case CEILING -> Direction.UP;
-                    case FLOOR -> Direction.DOWN;
-                    default -> side;
-                };
-                if (face != BlockFace.WALL) {
-                    side = side.getOpposite();
-                }
-                return new Action().setSides(side).setLookDirection(side.getOpposite(), sidePitch);
-            }
             case CAMPFIRE -> {
                 return new Action()
                         .setLookDirection(requiredState.get(Properties.FACING));
@@ -358,119 +345,130 @@ public class PlacementGuide extends PrinterUtils {
             }
             //超级无敌写史高手请求出战
             case CORAL -> {
-                boolean isDead = requiredState.getBlock().getTranslationKey().contains("dead");
-                if (isDead) {
-                    if (LitematicaMixinMod.REPLACE_CORAL.getBooleanValue()) {
-                        if (playerHasAccessToItem(client.player, requiredState.getBlock().asItem())) {
-                            return (requiredState.getBlock() instanceof CoralWallFanBlock)
-                                    ? new Action().setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite()).setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                    : new Action();
-                        } else {
-                            String key = requiredState.getBlock().getTranslationKey();
-                            return switch (key) {
-                                case "block.minecraft.dead_tube_coral_block" ->
-                                        new Action().setItem(Items.TUBE_CORAL_BLOCK);
-                                case "block.minecraft.dead_brain_coral_block" ->
-                                        new Action().setItem(Items.BRAIN_CORAL_BLOCK);
-                                case "block.minecraft.dead_bubble_coral_block" ->
-                                        new Action().setItem(Items.BUBBLE_CORAL_BLOCK);
-                                case "block.minecraft.dead_fire_coral_block" ->
-                                        new Action().setItem(Items.FIRE_CORAL_BLOCK);
-                                case "block.minecraft.dead_horn_coral_block" ->
-                                        new Action().setItem(Items.HORN_CORAL_BLOCK);
-                                case "block.minecraft.dead_tube_coral_fan" ->
-                                        new Action().setItem(Items.TUBE_CORAL_FAN)
-                                                .setSides(Direction.DOWN)
-                                                .setLookDirection(Direction.UP)
-                                                .setRequiresSupport();
-                                case "block.minecraft.dead_tube_coral_wall_fan" ->
-                                        new Action().setItem(Items.TUBE_CORAL_FAN)
-                                                .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                                .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                                .setRequiresSupport();
-                                case "block.minecraft.dead_brain_coral_fan" ->
-                                        new Action().setItem(Items.BRAIN_CORAL_FAN)
-                                                .setSides(Direction.DOWN)
-                                                .setLookDirection(Direction.UP)
-                                                .setRequiresSupport();
-                                case "block.minecraft.dead_brain_coral_wall_fan" ->
-                                        new Action().setItem(Items.BRAIN_CORAL_FAN)
-                                                .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                                .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                                .setRequiresSupport();
-                                case "block.minecraft.dead_bubble_coral_fan" ->
-                                        new Action().setItem(Items.BUBBLE_CORAL_FAN)
-                                                .setSides(Direction.DOWN)
-                                                .setLookDirection(Direction.UP)
-                                                .setRequiresSupport();
-                                case "block.minecraft.dead_bubble_coral_wall_fan" ->
-                                        new Action().setItem(Items.BUBBLE_CORAL_FAN)
-                                                .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                                .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                                .setRequiresSupport();
-                                case "block.minecraft.dead_fire_coral_fan" ->
-                                        new Action().setItem(Items.FIRE_CORAL_FAN)
-                                                .setSides(Direction.DOWN)
-                                                .setLookDirection(Direction.UP)
-                                                .setRequiresSupport();
-                                case "block.minecraft.dead_fire_coral_wall_fan" ->
-                                        new Action().setItem(Items.FIRE_CORAL_FAN)
-                                                .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                                .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                                .setRequiresSupport();
-                                case "block.minecraft.dead_horn_coral_fan" ->
-                                        new Action().setItem(Items.HORN_CORAL_FAN)
-                                                .setSides(Direction.DOWN)
-                                                .setLookDirection(Direction.UP)
-                                                .setRequiresSupport();
-                                case "block.minecraft.dead_horn_coral_wall_fan" ->
-                                        new Action().setItem(Items.HORN_CORAL_FAN)
-                                                .setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                                .setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                                .setRequiresSupport();
-                                case "block.minecraft.dead_tube_coral" -> new Action().setItem(Items.TUBE_CORAL);
-                                case "block.minecraft.dead_brain_coral" -> new Action().setItem(Items.BRAIN_CORAL);
-                                case "block.minecraft.dead_bubble_coral" -> new Action().setItem(Items.BUBBLE_CORAL);
-                                case "block.minecraft.dead_fire_coral" -> new Action().setItem(Items.FIRE_CORAL);
-                                case "block.minecraft.dead_horn_coral" -> new Action().setItem(Items.HORN_CORAL);
-                                default -> new Action();
-                            };
-                        }
-                    } else {
-                        return (requiredState.getBlock() instanceof CoralWallFanBlock)
-                                ? new Action().setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite()).setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                                : new Action();
-                    }
-                } else {
-                    return (requiredState.getBlock() instanceof CoralWallFanBlock)
-                            ? new Action().setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite()).setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite())
-                            : new Action();
+                // 获取基本属性
+                Block block = requiredState.getBlock();
+                boolean isDead = block.getTranslationKey().contains("dead");
+                boolean isWallFan = block instanceof CoralWallFanBlock;
+
+                // 如果是墙面珊瑚扇，需要特殊处理方向
+                if (isWallFan) {
+                    Direction facing = requiredState.get(Properties.HORIZONTAL_FACING);
+                    return new Action()
+                            .setSides(facing.getOpposite())
+                            .setLookDirection(facing.getOpposite());
                 }
+
+                // 如果不是死亡珊瑚或不需要替换，直接返回基础Action
+                if (!isDead || !LitematicaMixinMod.REPLACE_CORAL.getBooleanValue()) {
+                    return new Action();
+                }
+
+                // 如果玩家已有对应的死亡珊瑚物品，直接使用
+                if (playerHasAccessToItem(client.player, block.asItem())) {
+                    return new Action();
+                }
+
+                // 根据死亡珊瑚类型获取对应的活珊瑚
+                String key = block.getTranslationKey();
+                // 珊瑚块的替换
+                if (key.endsWith("_coral_block")) {
+                    String type = key.replace("block.minecraft.dead_", "").replace("_coral_block", "");
+                    return new Action().setItem(switch (type) {
+                        case "tube" -> Items.TUBE_CORAL_BLOCK;
+                        case "brain" -> Items.BRAIN_CORAL_BLOCK;
+                        case "bubble" -> Items.BUBBLE_CORAL_BLOCK;
+                        case "fire" -> Items.FIRE_CORAL_BLOCK;
+                        case "horn" -> Items.HORN_CORAL_BLOCK;
+                        default -> null;
+                    });
+                }
+
+                // 珊瑚扇的替换
+                if (key.contains("coral_fan")) {
+                    String type = key.replace("block.minecraft.dead_", "")
+                            .replace("_coral_wall_fan", "")
+                            .replace("_coral_fan", "");
+
+                    Item fanItem = switch (type) {
+                        case "tube" -> Items.TUBE_CORAL_FAN;
+                        case "brain" -> Items.BRAIN_CORAL_FAN;
+                        case "bubble" -> Items.BUBBLE_CORAL_FAN;
+                        case "fire" -> Items.FIRE_CORAL_FAN;
+                        case "horn" -> Items.HORN_CORAL_FAN;
+                        default -> null;
+                    };
+
+                    boolean isWallFan1 = key.contains("wall_fan");
+                    Action action = new Action().setItem(fanItem);
+
+                    if (isWallFan1) {
+                        Direction facing = requiredState.get(Properties.HORIZONTAL_FACING);
+                        return action.setSides(facing.getOpposite())
+                                .setLookDirection(facing.getOpposite())
+                                .setRequiresSupport();
+                    } else {
+                        return action.setSides(Direction.DOWN)
+                                .setLookDirection(Direction.UP)
+                                .setRequiresSupport();
+                    }
+                }
+
+                // 普通珊瑚的替换
+                if (key.endsWith("_coral")) {
+                    String type = key.replace("block.minecraft.dead_", "").replace("_coral", "");
+                    return new Action().setItem(switch (type) {
+                        case "tube" -> Items.TUBE_CORAL;
+                        case "brain" -> Items.BRAIN_CORAL;
+                        case "bubble" -> Items.BUBBLE_CORAL;
+                        case "fire" -> Items.FIRE_CORAL;
+                        case "horn" -> Items.HORN_CORAL;
+                        default -> null;
+                    });
+                }
+
+                return new Action();
             }
             case FIRE -> {
                 return new Action().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
-            }
-            case FACING_BLOCK -> {
-                Direction facing = requiredState.get(Properties.FACING);
-                if (requiredState.getBlock() instanceof ObserverBlock ||
-                    requiredState.getBlock() instanceof RodBlock) {
-                    facing = facing.getOpposite();
-                }
-                return new Action().setSides(facing).setLookDirection(facing.getOpposite());
-            }
-            case HORIZONTAL_FACING_BLOCK -> {
-                Direction facing = requiredState.get(Properties.HORIZONTAL_FACING);
-                if (requiredState.getBlock() instanceof FenceGateBlock) {
-                    return new Action().setSides(facing).setLookDirection(facing);
-                }
-                return new Action().setSides(facing).setLookDirection(facing.getOpposite());
             }
             case SKIP -> {
                 return null;
             }
             default -> {
+                Block block = requiredState.getBlock();
+                Direction facing;
+
+                if (block instanceof WallMountedBlock) {
+                    Direction side = requiredState.get(Properties.HORIZONTAL_FACING);
+                    BlockFace face = requiredState.get(Properties.BLOCK_FACE);
+
+                    // 简化方向判断逻辑
+                    Direction sidePitch = face == BlockFace.CEILING ? Direction.UP
+                            : face == BlockFace.FLOOR ? Direction.DOWN
+                            : side;
+
+                    if (face != BlockFace.WALL) {
+                        side = side.getOpposite();
+                    }
+
+                    return new Action().setSides(side).setLookDirection(side.getOpposite(), sidePitch);
+                }
+
+                if (block instanceof HorizontalFacingBlock) {
+                    facing = requiredState.get(Properties.HORIZONTAL_FACING);
+                    return new Action().setSides(facing).setLookDirection(facing.getOpposite());
+                }
+
+                if (block instanceof FacingBlock || block instanceof DispenserBlock || block instanceof BarrelBlock) {
+                    facing = requiredState.get(Properties.FACING);
+                    if (block instanceof ObserverBlock || block instanceof RodBlock) {
+                        facing = facing.getOpposite();
+                    }
+                    return new Action().setSides(facing).setLookDirection(facing.getOpposite());
+                }
 
                 return new Action();
+
             }
         }
         else if (state == State.WRONG_STATE) switch (requiredType) {
@@ -617,17 +615,36 @@ public class PlacementGuide extends PrinterUtils {
                     }
                 }
             }
-            default -> {
-                if (LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue() && canBreakBlock(pos) && isSchematicBlock(pos)) {
-                    excavateBlock(pos);
-                }
-            }
         }
 
         return null;
     }
 
     enum ClassHook {
+        // 点击
+        FLOWER_POT(FlowerPotBlock.class), // 花盆
+        BIG_DRIPLEAF_STEM(BigDripleafStemBlock.class), // 大垂叶茎
+        CAVE_VINES(CaveVinesHeadBlock.class, CaveVinesBodyBlock.class), // 洞穴藤蔓
+        WEEPING_VINES(WeepingVinesBlock.class, WeepingVinesPlantBlock.class), // 垂泪藤
+        TWISTING_VINES(TwistingVinesBlock.class, TwistingVinesPlantBlock.class), // 缠怨藤
+        SNOW(SnowBlock.class), // 雪
+        CANDLES(CandleBlock.class), // 蜡烛
+        REPEATER(RepeaterBlock.class), // 中继器
+        COMPARATOR(ComparatorBlock.class), // 比较器
+        PICKLES(SeaPickleBlock.class), // 海泡菜
+        NOTE_BLOCK(NoteBlock.class), // 音符盒
+        END_PORTAL_FRAME(EndPortalFrameBlock.class), // 末地传送门框架
+        //#if MC >= 11904
+        FLOWERBED(FlowerbedBlock.class), // 花簇（ojng你看看你这是什么抽象命名）
+        //#endif
+        VINES(VineBlock.class), // 藤蔓
+        GLOW_LICHEN(GlowLichenBlock.class), // 荧光地衣
+        FIRE(FireBlock.class, SoulFireBlock.class), // 火焰
+        REDSTONE(RedstoneWireBlock.class), //红石粉
+        FENCE_GATE(FenceGateBlock.class), // 栅栏门
+        LEVER(LeverBlock.class), // 拉杆
+
+
         // 放置
         WALL_TORCH(WallTorchBlock.class, WallRedstoneTorchBlock.class), // 墙上的火把
         SLAB(SlabBlock.class), // 台阶
@@ -649,34 +666,6 @@ public class PlacementGuide extends PrinterUtils {
         CRAFTER(CrafterBlock.class), // 合成器
         //#endif
         CHEST(ChestBlock.class), // 箱子
-        FACING_BLOCK(FacingBlock.class, DispenserBlock.class, BarrelBlock.class), // 六面朝向方块
-        HORIZONTAL_FACING_BLOCK(HorizontalFacingBlock.class), // 水平朝向方块
-        WALL_MOUNTED_BLOCK(WallMountedBlock.class), // 墙上挂载方块
-
-        // 点击
-        FLOWER_POT(FlowerPotBlock.class), // 花盆
-        BIG_DRIPLEAF_STEM(BigDripleafStemBlock.class), // 大垂叶茎
-        CAVE_VINES(CaveVinesHeadBlock.class, CaveVinesBodyBlock.class), // 洞穴藤蔓
-        WEEPING_VINES(WeepingVinesBlock.class, WeepingVinesPlantBlock.class), // 垂泪藤
-        TWISTING_VINES(TwistingVinesBlock.class, TwistingVinesPlantBlock.class), // 缠怨藤
-        SNOW(SnowBlock.class), // 雪
-        CANDLES(CandleBlock.class), // 蜡烛
-        REPEATER(RepeaterBlock.class), // 中继器
-        COMPARATOR(ComparatorBlock.class), // 比较器
-        PICKLES(SeaPickleBlock.class), // 海泡菜
-        NOTE_BLOCK(NoteBlock.class), // 音符盒
-        END_PORTAL_FRAME(EndPortalFrameBlock.class), // 末地传送门框架
-        //#if MC >= 11904
-        FLOWERBED(FlowerbedBlock.class), // 花簇（ojng你看看你这是什么抽象命名）
-        //#endif
-        VINES(VineBlock.class), // 藤蔓
-        GLOW_LICHEN(GlowLichenBlock.class), // 荧光地衣
-        FIRE(FireBlock.class, SoulFireBlock.class), // 火焰
-        REDSTONE(RedstoneWireBlock.class), //红石粉
-
-        // 两者皆有
-        FENCE_GATE(FenceGateBlock.class), // 栅栏门
-        LEVER(LeverBlock.class), // 拉杆
 
         // 其他
         FARMLAND(FarmlandBlock.class), // 耕地

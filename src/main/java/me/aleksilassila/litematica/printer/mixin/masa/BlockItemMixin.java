@@ -27,7 +27,7 @@ public abstract class BlockItemMixin extends Item
     @Inject(method = "getPlacementState", at = @At("HEAD"), cancellable = true)
     private void modifyPlacementState(ItemPlacementContext ctx, CallbackInfoReturnable<BlockState> cir)
     {
-        if (LitematicaMixinMod.EASY_MODE.getBooleanValue())
+        if (LitematicaMixinMod.PRECISE_PLACE.getBooleanValue())
         {
             BlockState stateOrig = this.getBlock().getPlacementState(ctx);
 

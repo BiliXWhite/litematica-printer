@@ -58,6 +58,11 @@ public class SwitchItem {
             reSwitchItem = null;
         }
     }
+    /**
+     * 检查所有已记录的物品，找到最近一次被使用的物品（useTime最小），
+     * 并尝试自动打开该物品的背包界面进行操作。
+     * 如果没有可用物品，则在游戏界面显示“背包已满，请先清理”的提示。
+     */
     public static void checkItems(){
         final long[] min = {System.currentTimeMillis()};
         AtomicReference<ItemStack> key = new AtomicReference<>();
