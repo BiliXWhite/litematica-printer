@@ -176,11 +176,11 @@ dependencies {
     runtimeOnly(project(path: ":fabricWrapper"))
 }
 def time = new Date().format("yyMMdd", TimeZone.getTimeZone("GMT+08:00"))
-version = project.mod_version + "+" + time
+version = project.mod_version
 group = project.mod_maven_group
 
 base {
-    archivesName.set("${project.mod_archives_base_name}-${project.minecraft_version}")
+    archivesName.set("$project.mod_archives_base_name-$project.minecraft_version+$time")
 }
 
 loom {
@@ -199,6 +199,8 @@ loom {
                 "1280",
                 "--height",
                 "720",
+                "--username",
+                "PrinterTest",
         ])
         runDir("run/client")
     }

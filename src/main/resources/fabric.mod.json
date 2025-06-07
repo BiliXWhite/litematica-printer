@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "${mod_id}-${minecraft_version_id}",
+  "id": "${mod_id}",
   "version": "${mod_version}",
   "name": "${mod_name}",
   "description": "Litematica的一个分支，增加了缺失的打印功能",
