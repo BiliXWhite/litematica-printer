@@ -42,11 +42,15 @@ import net.minecraft.text.Text;
 //#endif
 @Mixin(ClientPlayerEntity.class)
 public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
-	public MixinClientPlayerEntity(ClientWorld world, GameProfile profile) {
-		super(world, profile);
+	public MixinClientPlayerEntity(ClientWorld world, GameProfile profile
+	//#if MC == 11902
+	//$$ , @Nullable PlayerPublicKey publicKey) {super(world, profile, publicKey);
+	//#else
+	) {super(world, profile);
+	//#endif
 	}
 
-	@Final
+    @Final
 	@Shadow
 	protected MinecraftClient client;
 

@@ -56,7 +56,8 @@ import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.g
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.*;
 import static me.aleksilassila.litematica.printer.printer.State.PrintModeType.*;
 import static me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController.cachedTargetBlockList;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.*;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsItemName;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
@@ -224,12 +225,6 @@ public class Printer extends PrinterUtils {
         return LitematicaMixinMod.RENDER_LAYER_LIMIT.getBooleanValue() && !DataManager.getRenderLayerRange().isPositionWithinRange(pos);
     }
 
-    public static int bedrockModeRange() {
-        //        return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
-        //        return Math.max(getPrinterRange(),getCompulsionRange());
-        return LitematicaMixinMod.RANGE_MODE.getOptionListValue() == State.ListType.SPHERE ? COMPULSION_RANGE.getIntegerValue() : 6;
-    }
-
     public static boolean bedrockModeTarget(BlockState block) {
 //        return LitematicaMixinMod.BEDROCK_LIST.getStrings().stream().anyMatch(string -> Registries.BLOCK.getId(block.getBlock()).toString().contains(string));
         return LitematicaMixinMod.BEDROCK_LIST.getStrings().stream().anyMatch(string -> Filters.equalsName(string, block));
@@ -263,11 +258,9 @@ public class Printer extends PrinterUtils {
     }
 
     BlockPos getBlockPos() {
-        // 获取当前玩家实例
         ClientPlayerEntity player = client.player;
         if (player == null) return null;
 
-        // 获取玩家当前位置
         BlockPos playerPos = player.getBlockPos();
 
         // 如果 basePos 为空，则初始化为玩家当前位置，并扩展 myBox 范围
@@ -276,14 +269,12 @@ public class Printer extends PrinterUtils {
             myBox = new MyBox(basePos).expand(printRange);
         }
 
-        // 检查玩家位置是否在 basePos 的一定范围内，如果不在则重置 basePos 并返回 null
         double threshold = printRange * 0.7;
         if (!basePos.isWithinDistance(playerPos, threshold)) {
             basePos = null;
             return null;
         }
 
-        // 设置 myBox 的 y 轴增量方向，并初始化迭代器
         myBox.yIncrement = !yDegression;
         myBox.initIterator();
 
@@ -292,21 +283,14 @@ public class Printer extends PrinterUtils {
                 player.getHorizontalFacing().getAxis() == (VERTICAL_ITERATION.getBooleanValue() ? Direction.Axis.Z : Direction.Axis.X)
         );
 
-        // 缓存配置值，减少循环中重复调用
-        IConfigOptionListEntry rangeMode = LitematicaMixinMod.RANGE_MODE.getOptionListValue();
-        boolean isSphere = rangeMode == State.ListType.SPHERE;
         Iterator<BlockPos> iterator = myBox.iterator;
 
-        // 遍历 myBox 中的所有位置，找到符合条件的位置并返回
         while (iterator.hasNext()) {
             BlockPos pos = iterator.next();
-            if (isSphere && !basePos.isWithinDistance(pos, printRange)) {
-                continue;
-            }
+            if (!basePos.isWithinDistance(pos, printRange)) continue;
             return pos;
         }
 
-        // 如果没有找到符合条件的位置，重置 basePos 并返回 null
         basePos = null;
         return null;
     }
@@ -413,8 +397,6 @@ public class Printer extends PrinterUtils {
         int maxy = -9999;
         BlockPos pos;
         while ((pos = getBlockPos()) != null && client.world != null) {
-            //        return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
-            //        return Math.max(getPrinterRange(),getCompulsionRange());
             if (!ZxyUtils.bedrockCanInteracted(pos, COMPULSION_RANGE.getIntegerValue())) continue;
             if (isLimitedByTheNumberOfLayers(pos)) continue;
             BlockState currentState = client.world.getBlockState(pos);
@@ -525,16 +507,24 @@ public class Printer extends PrinterUtils {
             swapSlotDelay--;
         }
 
-        ArrayList<BlockPos> deletePosList = new ArrayList<>();
-        skipPosMap.forEach((k, v) -> {
-            skipPosMap.put(k, v + 1);
-            if (v >= PUT_COOLING.getIntegerValue()) {
-                deletePosList.add(k);
-            }
-        });
-        for (BlockPos blockPos : deletePosList) {
-            skipPosMap.remove(blockPos);
+        // 优化 tick 方法，减少帧率波动
+        if (!LitematicaMixinMod.PUT_SKIP.getBooleanValue()) {
+            skipPosMap.clear(); // 如果未开启 PUT_SKIP，直接清理 skipPosMap，避免不必要的开销
         }
+
+        // 优化 skipPosMap 的更新逻辑
+        ArrayList<BlockPos> deletePosList = new ArrayList<>();
+        for (Map.Entry<BlockPos, Integer> entry : skipPosMap.entrySet()) {
+            BlockPos k = entry.getKey();
+            Integer v = entry.getValue();
+            int newValue = v + 1;
+            if (newValue >= PUT_COOLING.getIntegerValue()) {
+                deletePosList.add(k);
+            } else {
+                skipPosMap.put(k, newValue);
+            }
+        }
+        deletePosList.forEach(skipPosMap::remove);
     }
 
     public void tick() {
@@ -543,9 +533,6 @@ public class Printer extends PrinterUtils {
                 return;
             packetTick++;
         }
-        if (swapSlotDelay > 0) {
-            return;
-        }
         ClientPlayerEntity player = client.player;
         if (player == null) return;
         ClientWorld world = client.world;
@@ -553,18 +540,18 @@ public class Printer extends PrinterUtils {
         int compulsionRange = COMPULSION_RANGE.getIntegerValue();
         tickRate = PRINT_INTERVAL.getIntegerValue();
         printPerTick = LitematicaMixinMod.PRINT_PER_TICK.getIntegerValue();
-        boolean useEasyMode = USE_EASY_MODE.getBooleanValue();
+        boolean usePrecisePlace = PRECISE_PLACE.getBooleanValue();
 
         // 更新环境参数
-        printRange = compulsionRange;
+        if (compulsionRange != printRange) {
+            printRange = compulsionRange;
+        }
         yDegression = false;
-        // 更新 tick 计数（避免溢出）
-        tick = (tick == Integer.MAX_VALUE) ? 0 : tick + 1;
 
         // 优先执行队列中的点击操作
         if (tickRate != 0) {
             queue.sendQueue(player);
-            if (tick % tickRate != 0) {
+            if ((System.currentTimeMillis() / 50) % tickRate != 0) {
                 return;
             }
         }
@@ -625,32 +612,25 @@ public class Printer extends PrinterUtils {
         if (schematic == null) return;
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
-            if (PRINT_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
+            // 跳过冷却中的位置
+            if (skipPosMap.containsKey(pos)) continue;
+            // 渲染层范围判断
             if (!canInteracted(pos)) continue;
+            if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
+            if (PRINT_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
             BlockState state = schematic.getBlockState(pos);
             PlacementGuide.Action action = guide.getAction(world, schematic, pos);
             if (action == null) continue;
 
-
-            // 检查放置跳过列表，使用简单 for 循环替代 stream 提升性能
+            // 检查放置跳过列表，优化性能
             if (LitematicaMixinMod.PUT_SKIP.getBooleanValue()) {
-                boolean skip = false;
-                for (String s : PUT_SKIP_LIST.getStrings()) {
-                    if (Filters.equalsName(s, state)) {
-                        skip = true;
-                        break;
-                    }
+                Set<String> skipSet = new HashSet<>(PUT_SKIP_LIST.getStrings()); // 转换为 HashSet
+                if (skipSet.stream().anyMatch(s -> Filters.equalsName(s, state))) {
+                    continue;
                 }
-                if (skip) continue;
             }
-
-            // 渲染层范围判断
-            if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
-            // 跳过冷却中的位置
-            if (skipPosMap.containsKey(pos)) continue;
             skipPosMap.put(pos, 0);
-
-            if (useEasyMode) {
+            if (usePrecisePlace) {
                 easyPos = pos;
                 WorldUtilsAccessor.doEasyPlaceAction(client);
                 easyPos = null;
@@ -663,23 +643,16 @@ public class Printer extends PrinterUtils {
             Direction side = action.getValidSide(world, pos);
             if (side == null) continue;
 
-            // 检查背包里是否有要打印的方块
             Item[] reqItems = action.getRequiredItems(state.getBlock());
             if (playerHasAccessToItems(player, reqItems)) {
                 boolean useShift = LitematicaMixinMod.FORCED_PLACEMENT.getBooleanValue() ||
                         Implementation.isInteractive(world.getBlockState(pos).getBlock()) ||
                         action.useShift;
-                //if (needDelay) continue;
-                //如果当前手持的物品不等于所需物品，则切换物品
-                if (!player.getMainHandStack().isOf(reqItems[0]) && swapSlotDelay == 0) {
-                    switchToItems(player, reqItems);
-                } else if (swapSlotDelay > 0) {
-                    continue;
-                }
+                if (needDelay) continue;
+                switchToItems(player, reqItems);
                 action.queueAction(queue, pos, side, useShift);
-                if (action.getLookHorizontalDirection() != null) {
+                if (action.getLookHorizontalDirection() != null)
                     sendLook(player, action.getLookHorizontalDirection(), action.getLookDirectionPitch());
-                }
                 if (tickRate == 0) {
                     var block = schematic.getBlockState(pos).getBlock();
                     if (block instanceof PistonBlock ||
@@ -818,7 +791,7 @@ public class Printer extends PrinterUtils {
                             closeScreen++;
                             isOpenHandler = true;
                             shulkerCooldown = QUICK_SHULKER_COOLING.getIntegerValue(); // AxShulkers的潜影盒延迟，单位为tick
-                            // 这里应该不需要延迟
+                            // TODO)) 这里应该不需要延迟
                             //swapSlotDelay = 1;
                             return true;
                         } catch (Exception ignored) {

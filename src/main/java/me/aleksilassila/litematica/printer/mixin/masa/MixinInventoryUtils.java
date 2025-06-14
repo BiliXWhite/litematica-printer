@@ -111,8 +111,6 @@ public class MixinInventoryUtils {
                                     SlotActionType.SWAP,
                                     stack.copy(),
                                     snapshot));
-                            player.playerScreenHandler.onSlotClick(sourceSlot, hotbarSlot, SlotActionType.SWAP, player);
-                            Printer.swapSlotDelay = LitematicaMixinMod.SWAP_ITEM_DELAY.getIntegerValue();
                         } else {
                             mc.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot1, hotbarSlot, SlotActionType.SWAP, player);
                         }

@@ -16,9 +16,7 @@ import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,7 +29,11 @@ import static me.aleksilassila.litematica.printer.LitematicaMixinMod.INVENTORY;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.QUICK_SHULKER;
 import static me.aleksilassila.litematica.printer.printer.Printer.remoteItem;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.*;
+
+//#if MC <= 12101
+//$$ import net.minecraft.entity.player.PlayerInventory;
+//$$ import net.minecraft.item.ItemStack;
+//#endif
 
 @Environment(EnvType.CLIENT)
 @Mixin({MinecraftClient.class})
