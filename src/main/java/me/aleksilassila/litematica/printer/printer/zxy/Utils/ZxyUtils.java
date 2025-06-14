@@ -35,6 +35,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
 //#if MC >= 12001
@@ -358,8 +359,6 @@ public class ZxyUtils {
 
     public static boolean canInteracted(BlockPos blockPos) {
         return blockPos != null && canInteracted(Vec3d.ofCenter(blockPos), LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue());
-        //        return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
-        //        return Math.max(getPrinterRange(),getCompulsionRange());
     }
 
     public static boolean bedrockCanInteracted(BlockPos blockPos,double range) {

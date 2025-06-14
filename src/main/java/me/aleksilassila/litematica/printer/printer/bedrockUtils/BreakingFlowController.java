@@ -7,7 +7,6 @@ import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.Hand;
@@ -18,7 +17,6 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
 
-import static me.aleksilassila.litematica.printer.printer.Printer.bedrockModeRange;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 //import java.util.List;
 
@@ -67,7 +65,7 @@ public class BreakingFlowController {
         for (int i = 0; i < poslist.size(); i++) {
             BlockPos blockPos = poslist.get(i);
 
-            if (MinecraftClient.getInstance().world.getBlockState(blockPos).isAir() && ZxyUtils.bedrockCanInteracted(blockPos, bedrockModeRange())) {
+            if (MinecraftClient.getInstance().world.getBlockState(blockPos).isAir() && ZxyUtils.bedrockCanInteracted(blockPos, LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue())) {
                 InventoryManager.switchToItem(Items.DIAMOND_PICKAXE);
                 //#if MC < 11904
                 //$$ client.interactionManager.interactBlock(client.player,client.world, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(blockPos), Direction.UP, poslist.get(i), false));
@@ -80,16 +78,14 @@ public class BreakingFlowController {
                     continue;
                 }
             }
-            if (!ZxyUtils.bedrockCanInteracted(blockPos, bedrockModeRange() * 2)) {
+            if (!ZxyUtils.bedrockCanInteracted(blockPos, LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue() * 2)) {
                 poslist.remove(i);
                 i--;
                 continue;
             }
 
 
-            Printer printer = Printer.getPrinter();
-            if (printer == null) return;
-            if (!ZxyUtils.bedrockCanInteracted(blockPos, bedrockModeRange())) continue;
+            if (!ZxyUtils.bedrockCanInteracted(blockPos, LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue())) continue;
             if (!MinecraftClient.getInstance().world.getBlockState(blockPos).isAir()) {
 //                BlockBreaker.breakBlock(MinecraftClient.getInstance().world, poslist.get(i));
                 InventoryManager.switchToItem(Items.DIAMOND_PICKAXE);
@@ -112,8 +108,6 @@ public class BreakingFlowController {
             TargetBlock selectedBlock = cachedTargetBlockList.get(i);
 
 //            if (!blockInPlayerRange(selectedBlock.getBlockPos(), player, 5f)) {
-            //        return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
-            //        return Math.max(getPrinterRange(),getCompulsionRange());
             if (!ZxyUtils.bedrockCanInteracted(selectedBlock.getBlockPos(), LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue() - 1.5)) {
                 cachedTargetBlockList.remove(i);
                 continue;
@@ -148,10 +142,6 @@ public class BreakingFlowController {
             TargetBlock.switchPickaxe = true;
         }
         //#endif
-    }
-
-    private static boolean blockInPlayerRange(BlockPos blockPos, PlayerEntity player, float range) {
-        return blockPos.isWithinDistance(player.getPos(), range);
     }
 
     public static WorkingMode getWorkingMode() {

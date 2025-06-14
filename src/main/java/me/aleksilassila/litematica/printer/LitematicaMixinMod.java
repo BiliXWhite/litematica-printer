@@ -167,7 +167,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
                     "替换的位置为Litematica的预设位置,如果所有预设位置都有濳影盒则无法替换。"
     );
     public static final ConfigInteger QUICK_SHULKER_COOLING = new ConfigInteger(
-            "潜影盒冷却", 11, 0, 20,
+            "潜影盒冷却", 10, 0, 20,
             "在使用快捷潜影盒时，打开潜影盒的间隔，以§b游戏刻§r为单位。\n" +
                     "应该没有服务器会恶心到把延迟调到1000ms以上吧？"
     );
@@ -266,12 +266,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "竖向迭代", false,
             "开启后，打印顺序会以面向顺序§b竖向§r打印，而不是面向顺序§b横向§r打印。\n" +
                     "这会使得打印机在打印时更符合部分玩家的习惯。"
-    );
-    public static final ConfigInteger SWAP_ITEM_DELAY = new ConfigInteger(
-            "背包拿取物品延迟", 4, 0, 20,
-            "在打印机工作时，切换背包物品的延迟，以§b游戏刻§r为单位。\n" +
-                    "如果设置为0，则不进行延迟。\n" +
-                    "只有在§6§l使用数据包放置方块§r启用时才会生效。"
     );
     //========================================
     //              Hotkeys

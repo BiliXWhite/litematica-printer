@@ -13,6 +13,7 @@ import net.minecraft.item.Items;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.state.property.Property;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -344,47 +345,33 @@ public class PlacementGuide extends PrinterUtils {
                 }
             }
             //超级无敌写史高手请求出战
-            case CORAL -> {
+            case DEAD_CORAL -> {
                 // 获取基本属性
                 Block block = requiredState.getBlock();
-                boolean isDead = block.getTranslationKey().contains("dead");
-                boolean isWallFan = block instanceof CoralWallFanBlock;
-
-                // 如果是墙面珊瑚扇，需要特殊处理方向
-                if (isWallFan) {
-                    Direction facing = requiredState.get(Properties.HORIZONTAL_FACING);
-                    return new Action()
-                            .setSides(facing.getOpposite())
-                            .setLookDirection(facing.getOpposite());
-                }
+                boolean isWallFan = block instanceof DeadCoralWallFanBlock;
+                Direction facing = isWallFan ? requiredState.get(Properties.HORIZONTAL_FACING).getOpposite()
+                        : Direction.UP;
 
                 // 如果不是死亡珊瑚或不需要替换，直接返回基础Action
-                if (!isDead || !LitematicaMixinMod.REPLACE_CORAL.getBooleanValue()) {
-                    return new Action();
+                if (!LitematicaMixinMod.REPLACE_CORAL.getBooleanValue()) {
+                    return new Action()
+                            .setSides(facing)
+                            .setLookDirection(facing)
+                            .setRequiresSupport();
                 }
 
-                // 如果玩家已有对应的死亡珊瑚物品，直接使用
-                if (playerHasAccessToItem(client.player, block.asItem())) {
-                    return new Action();
+                if (playerHasAccessToItem(client.player, block.asItem()) || client.player.isCreative()) {
+                    return new Action()
+                            .setSides(facing)
+                            .setLookDirection(facing)
+                            .setRequiresSupport();
                 }
 
-                // 根据死亡珊瑚类型获取对应的活珊瑚
                 String key = block.getTranslationKey();
-                // 珊瑚块的替换
-                if (key.endsWith("_coral_block")) {
-                    String type = key.replace("block.minecraft.dead_", "").replace("_coral_block", "");
-                    return new Action().setItem(switch (type) {
-                        case "tube" -> Items.TUBE_CORAL_BLOCK;
-                        case "brain" -> Items.BRAIN_CORAL_BLOCK;
-                        case "bubble" -> Items.BUBBLE_CORAL_BLOCK;
-                        case "fire" -> Items.FIRE_CORAL_BLOCK;
-                        case "horn" -> Items.HORN_CORAL_BLOCK;
-                        default -> null;
-                    });
-                }
-
-                // 珊瑚扇的替换
-                if (key.contains("coral_fan")) {
+                //珊瑚扇
+                if (block instanceof DeadCoralFanBlock) {
+                    //例子：block.minecraft.dead_tube_coral_wall_fan
+                    //例子：block.minecraft.dead_tube_coral_fan
                     String type = key.replace("block.minecraft.dead_", "")
                             .replace("_coral_wall_fan", "")
                             .replace("_coral_fan", "");
@@ -398,24 +385,19 @@ public class PlacementGuide extends PrinterUtils {
                         default -> null;
                     };
 
-                    boolean isWallFan1 = key.contains("wall_fan");
-                    Action action = new Action().setItem(fanItem);
-
-                    if (isWallFan1) {
-                        Direction facing = requiredState.get(Properties.HORIZONTAL_FACING);
-                        return action.setSides(facing.getOpposite())
-                                .setLookDirection(facing.getOpposite())
-                                .setRequiresSupport();
-                    } else {
-                        return action.setSides(Direction.DOWN)
-                                .setLookDirection(Direction.UP)
-                                .setRequiresSupport();
-                    }
+                    return new Action()
+                            .setItem(fanItem)
+                            .setSides(facing)
+                            .setLookDirection(facing)
+                            .setRequiresSupport();
                 }
 
-                // 普通珊瑚的替换
-                if (key.endsWith("_coral")) {
+                client.player.sendMessage(Text.of("尝试替换: " + block), true);
+                //非方块型珊瑚
+                if (block instanceof DeadCoralBlock) {
+                    //例子：block.minecraft.dead_tube_coral
                     String type = key.replace("block.minecraft.dead_", "").replace("_coral", "");
+                    client.player.sendMessage(Text.of("尝试替换珊瑚: " + type), true);
                     return new Action().setItem(switch (type) {
                         case "tube" -> Items.TUBE_CORAL;
                         case "brain" -> Items.BRAIN_CORAL;
@@ -423,10 +405,9 @@ public class PlacementGuide extends PrinterUtils {
                         case "fire" -> Items.FIRE_CORAL;
                         case "horn" -> Items.HORN_CORAL;
                         default -> null;
-                    });
+                    }).setRequiresSupport();
                 }
 
-                return new Action();
             }
             case FIRE -> {
                 return new Action().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
@@ -467,8 +448,21 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setSides(facing).setLookDirection(facing.getOpposite());
                 }
 
-                return new Action();
+                //方块型珊瑚的替换
+                if (LitematicaMixinMod.REPLACE_CORAL.getBooleanValue() && block.getTranslationKey().endsWith("_coral_block")) {
+                    //例子：block.minecraft.dead_tube_coral
+                    String type = block.getTranslationKey().replace("block.minecraft.dead_", "").replace("_coral_block", "");
+                    return new Action().setItem(switch (type) {
+                        case "tube" -> Items.TUBE_CORAL_BLOCK;
+                        case "brain" -> Items.BRAIN_CORAL_BLOCK;
+                        case "bubble" -> Items.BUBBLE_CORAL_BLOCK;
+                        case "fire" -> Items.FIRE_CORAL_BLOCK;
+                        case "horn" -> Items.HORN_CORAL_BLOCK;
+                        default -> null;
+                    }).setRequiresSupport();
+                }
 
+                return new Action();
             }
         }
         else if (state == State.WRONG_STATE) switch (requiredType) {
@@ -605,46 +599,12 @@ public class PlacementGuide extends PrinterUtils {
                     }
                 }
             }
-            case CORAL -> {
-                if (currentState.getBlock() instanceof CoralBlock ||
-                currentState.getBlock() instanceof CoralBlockBlock ||
-                currentState.getBlock() instanceof CoralFanBlock ||
-                currentState.getBlock() instanceof CoralWallFanBlock) {
-                    if (currentState.getBlock().getTranslationKey().contains("dead")) {
-                        return null;
-                    }
-                }
-            }
         }
 
         return null;
     }
 
     enum ClassHook {
-        // 点击
-        FLOWER_POT(FlowerPotBlock.class), // 花盆
-        BIG_DRIPLEAF_STEM(BigDripleafStemBlock.class), // 大垂叶茎
-        CAVE_VINES(CaveVinesHeadBlock.class, CaveVinesBodyBlock.class), // 洞穴藤蔓
-        WEEPING_VINES(WeepingVinesBlock.class, WeepingVinesPlantBlock.class), // 垂泪藤
-        TWISTING_VINES(TwistingVinesBlock.class, TwistingVinesPlantBlock.class), // 缠怨藤
-        SNOW(SnowBlock.class), // 雪
-        CANDLES(CandleBlock.class), // 蜡烛
-        REPEATER(RepeaterBlock.class), // 中继器
-        COMPARATOR(ComparatorBlock.class), // 比较器
-        PICKLES(SeaPickleBlock.class), // 海泡菜
-        NOTE_BLOCK(NoteBlock.class), // 音符盒
-        END_PORTAL_FRAME(EndPortalFrameBlock.class), // 末地传送门框架
-        //#if MC >= 11904
-        FLOWERBED(FlowerbedBlock.class), // 花簇（ojng你看看你这是什么抽象命名）
-        //#endif
-        VINES(VineBlock.class), // 藤蔓
-        GLOW_LICHEN(GlowLichenBlock.class), // 荧光地衣
-        FIRE(FireBlock.class, SoulFireBlock.class), // 火焰
-        REDSTONE(RedstoneWireBlock.class), //红石粉
-        FENCE_GATE(FenceGateBlock.class), // 栅栏门
-        LEVER(LeverBlock.class), // 拉杆
-
-
         // 放置
         WALL_TORCH(WallTorchBlock.class, WallRedstoneTorchBlock.class), // 墙上的火把
         SLAB(SlabBlock.class), // 台阶
@@ -666,11 +626,38 @@ public class PlacementGuide extends PrinterUtils {
         CRAFTER(CrafterBlock.class), // 合成器
         //#endif
         CHEST(ChestBlock.class), // 箱子
+        FACING_BLOCK(FacingBlock.class, DispenserBlock.class, BarrelBlock.class), // 六面朝向方块
+        HORIZONTAL_FACING_BLOCK(HorizontalFacingBlock.class), // 水平朝向方块
+        WALL_MOUNTED_BLOCK(WallMountedBlock.class), // 墙上挂载方块
+
+        // 点击
+        FLOWER_POT(FlowerPotBlock.class), // 花盆
+        BIG_DRIPLEAF_STEM(BigDripleafStemBlock.class), // 大垂叶茎
+        CAVE_VINES(CaveVinesHeadBlock.class, CaveVinesBodyBlock.class), // 洞穴藤蔓
+        WEEPING_VINES(WeepingVinesBlock.class, WeepingVinesPlantBlock.class), // 垂泪藤
+        TWISTING_VINES(TwistingVinesBlock.class, TwistingVinesPlantBlock.class), // 缠怨藤
+        SNOW(SnowBlock.class), // 雪
+        CANDLES(CandleBlock.class), // 蜡烛
+        REPEATER(RepeaterBlock.class), // 中继器
+        COMPARATOR(ComparatorBlock.class), // 比较器
+        PICKLES(SeaPickleBlock.class), // 海泡菜
+        NOTE_BLOCK(NoteBlock.class), // 音符盒
+        END_PORTAL_FRAME(EndPortalFrameBlock.class), // 末地传送门框架
+        //#if MC >= 11904
+        FLOWERBED(FlowerbedBlock.class), // 花簇（ojng你看看你这是什么抽象命名）
+        //#endif
+        VINES(VineBlock.class), // 藤蔓
+        GLOW_LICHEN(GlowLichenBlock.class), // 发光地衣
+        FIRE(FireBlock.class, SoulFireBlock.class), // 火，灵魂火
+        REDSTONE(RedstoneWireBlock.class), //红石粉
+        FENCE_GATE(FenceGateBlock.class), // 栅栏门
+        LEVER(LeverBlock.class), // 拉杆
 
         // 其他
         FARMLAND(FarmlandBlock.class), // 耕地
         DIRT_PATH(DirtPathBlock.class), // 泥土小径
-        CORAL(AbstractBlock.class, CoralBlockBlock.class, CoralBlock.class, CoralFanBlock.class, CoralWallFanBlock.class, DeadCoralBlock.class, DeadCoralFanBlock.class, DeadCoralWallFanBlock.class), // 珊瑚块
+        //操你妈珊瑚真几把难搞
+        DEAD_CORAL(AbstractCoralBlock.class), // 死珊瑚
         SKIP(SkullBlock.class, SignBlock.class, FluidBlock.class), // 跳过
         DEFAULT; // 默认
 

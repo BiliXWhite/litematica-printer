@@ -3,7 +3,7 @@
   "id": "${mod_id}",
   "version": "${mod_version}",
   "name": "${mod_name}",
-  "description": "Litematica的一个分支，增加了缺失的打印功能",
+  "description": "Litematica的一个附属模组，增加了缺失的打印功能",
   "authors": [
     "aleksilassila",
     "zhaixianyu",
