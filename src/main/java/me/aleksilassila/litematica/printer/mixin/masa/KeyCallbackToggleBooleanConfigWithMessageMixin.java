@@ -24,6 +24,7 @@ public class KeyCallbackToggleBooleanConfigWithMessageMixin extends KeyCallbackT
     public void onKeyAction(KeyAction action, IKeybind key, CallbackInfoReturnable<Boolean> cir){
         String name = config.getName();
         if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE) &&
-                (name.equals("破基岩") || name.equals("挖掘") || name.equals("排流体"))) cir.setReturnValue(false);
+                (name.equals("挖掘") || name.equals("排流体") || name.equals("填充"))) cir.setReturnValue(false);
     }
 }
+

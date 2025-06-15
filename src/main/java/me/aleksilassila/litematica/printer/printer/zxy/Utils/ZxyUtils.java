@@ -1,10 +1,15 @@
 package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 
+import com.google.common.collect.Lists;
+import fi.dy.masa.litematica.util.WorldUtils;
+import fi.dy.masa.malilib.gui.Message;
+import fi.dy.masa.malilib.util.InfoUtils;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 
-import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
@@ -13,14 +18,14 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.mob.ShulkerEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
+import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
@@ -34,8 +39,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
 //#if MC >= 12001
@@ -47,9 +50,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.nbt.NbtCompound;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 //#endif
 
 //#if MC <= 12006
@@ -57,19 +58,24 @@ import net.minecraft.nbt.NbtCompound;
 //#endif
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_COLOR;
+import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.getEmptyPickBlockableHotbarSlot;
+import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.getPickBlockTargetSlot;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
 
 public class ZxyUtils {
     //旧版箱子追踪
+    @SuppressWarnings("unused")
     public static boolean qw = false;
+    @SuppressWarnings("unused")
     public static int currWorldId = 0;
 
     @NotNull
     public static MinecraftClient client = MinecraftClient.getInstance();
     public static LinkedList<BlockPos> invBlockList = new LinkedList<>();
     public static boolean printerMemoryAdding = false;
+    @SuppressWarnings("unused")
     public static boolean syncPrinterInventory = false;
     public static String syncInventoryId = "syncInventory";
 
@@ -327,7 +333,6 @@ public class ZxyUtils {
         addInv();
 
         if (LitematicaMixinMod.CLOSE_ALL_MODE.getKeybind().isPressed()) {
-            LitematicaMixinMod.BEDROCK_SWITCH.setBooleanValue(false);
             LitematicaMixinMod.EXCAVATE.setBooleanValue(false);
             LitematicaMixinMod.FLUID.setBooleanValue(false);
             LitematicaMixinMod.PRINT_SWITCH.setBooleanValue(false);
@@ -361,53 +366,11 @@ public class ZxyUtils {
         return blockPos != null && canInteracted(Vec3d.ofCenter(blockPos), LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue());
     }
 
-    public static boolean bedrockCanInteracted(BlockPos blockPos,double range) {
-        return client.player != null && client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(blockPos)) < range * range;
-    }
-
     public static void exitGameReSet(){
         SwitchItem.reSet();
-        BreakingFlowController.poslist = new ArrayList<>();
         isRemote = false;
         clientTry = false;
         remoteTime = 0;
-    }
-
-    public static void useBlock(Hand hand,Vec3d vec3d,Direction direction,BlockPos pos,boolean insideBlock){
-        //#if MC < 11904
-        //$$ client.interactionManager.interactBlock(client.player, client.world, hand,new BlockHitResult(vec3d, direction,pos,insideBlock));
-        //#else
-        client.interactionManager.interactBlock(client.player, hand,new BlockHitResult(vec3d, direction,pos,insideBlock));
-        //#endif
-    }
-    public static Optional<ClientPlayerEntity> getPlayer(){
-        return Optional.ofNullable(client.player);
-    }
-    public static void refreshPlayerInventory(){
-        ClientPlayNetworkHandler networkHandler = client.getNetworkHandler();
-        if (getPlayer().isEmpty()) return;
-        ClientPlayerEntity player = getPlayer().get();
-        if(networkHandler == null) return;
-        ItemStack uniqueItem = new ItemStack(Items.STONE);
-
-        // Tags with NaN are not equal, so the server will find an inventory desync and send an inventory refresh to the client
-        //#if MC >= 12006
-        var nbt = new NbtCompound();
-        nbt.putDouble("force_sync", Double.NaN);
-        NbtComponent.set(DataComponentTypes.CUSTOM_DATA, uniqueItem, nbt);
-        //#else
-        //$$ uniqueItem.getOrCreateNbt().putDouble("force_resync", Double.NaN);
-        //#endif
-
-        networkHandler.sendPacket(new ClickSlotC2SPacket(
-                player.currentScreenHandler.syncId,
-                player.currentScreenHandler.getRevision(),
-                -999, 2,
-                SlotActionType.QUICK_CRAFT,
-                uniqueItem,
-                new Int2ObjectOpenHashMap<>()
-
-        ));
     }
 
     public static int getEnchantmentLevel(ItemStack itemStack,
@@ -435,6 +398,88 @@ public class ZxyUtils {
 
     public static int getSequence() {
         return sequence++;
+    }
+
+    public static void setPickedItemToHand(int sourceSlot, ItemStack stack, MinecraftClient mc) {
+        PlayerEntity player = mc.player;
+        PlayerInventory inventory = player.getInventory();
+        var usePacket = LitematicaMixinMod.PLACE_USE_PACKET.getBooleanValue();
+
+        if (PlayerInventory.isValidHotbarIndex(sourceSlot))
+        {
+            if (usePacket)
+                mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(sourceSlot));
+            inventory.selectedSlot = sourceSlot;
+        }
+        else
+        {
+            int hotbarSlot = sourceSlot;
+
+            if (sourceSlot == -1 || !PlayerInventory.isValidHotbarIndex(sourceSlot))
+            {
+                hotbarSlot = getEmptyPickBlockableHotbarSlot(inventory);
+            }
+
+            if (hotbarSlot == -1)
+            {
+                hotbarSlot = getPickBlockTargetSlot(player);
+            }
+
+            if (hotbarSlot != -1)
+            {
+                if (usePacket)
+                    mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(hotbarSlot));
+                inventory.selectedSlot = hotbarSlot;
+
+                if (player.isCreative())
+                {
+                    //#if MC <= 12101
+                    //$$player.getInventory().addPickBlock(stack.copy());
+                    //#else
+                    player.getInventory().swapStackWithHotbar(stack.copy());
+                    //#endif
+                    mc.interactionManager.clickCreativeStack(player.getMainHandStack(), 36 + player.getInventory().selectedSlot);
+                    return;
+                } else {
+                    int slot1 = fi.dy.masa.malilib.util.InventoryUtils.findSlotWithItem(player.playerScreenHandler, stack.copy(), true);
+                    if (slot1 != -1) {
+                        // 使用数据包或普通点击方式交换槽位中的物品
+                        if (usePacket) {
+                            Int2ObjectMap<ItemStack> snapshot = new Int2ObjectOpenHashMap<>();
+                            DefaultedList<Slot> slots = player.currentScreenHandler.slots;
+                            int totalSlots = slots.size();
+                            List<ItemStack> copies = Lists.newArrayListWithCapacity(totalSlots);
+                            for (Slot slotItem : slots) {
+                                copies.add(slotItem.getStack().copy());
+                            }
+                            for (int j = 0; j < totalSlots; j++) {
+                                ItemStack original = copies.get(j);
+                                ItemStack current = slots.get(j).getStack();
+                                if (!ItemStack.areEqual(original, current)) {
+                                    snapshot.put(j, current.copy());
+                                }
+                            }
+                            mc.getNetworkHandler().sendPacket(new ClickSlotC2SPacket(
+                                    player.playerScreenHandler.syncId,
+                                    player.currentScreenHandler.getRevision(),
+                                    slot1,
+                                    hotbarSlot,
+                                    SlotActionType.SWAP,
+                                    stack.copy(),
+                                    snapshot));
+                        } else {
+                            mc.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot1, hotbarSlot, SlotActionType.SWAP, player);
+                        }
+                    }
+                }
+
+                WorldUtils.setEasyPlaceLastPickBlockTime();
+            }
+            else
+            {
+                InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");
+            }
+        }
     }
 
     //右键单击

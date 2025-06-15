@@ -33,8 +33,7 @@ public enum State {
 
     public enum PrintModeType implements IConfigOptionListEntry {
         PRINTER("printer", "打印"),
-        BEDROCK("bedrock", "基岩"),
-        EXCAVATE("excavate", "挖掘"),
+        MINING("mining", "挖掘"),
         FLUID("fluid", "流体"),
         FILL("fill", "填充");
 

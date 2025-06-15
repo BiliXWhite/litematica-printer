@@ -19,10 +19,8 @@ import red.jackf.chesttracker.memory.Memory;
 import red.jackf.chesttracker.memory.MemoryDatabase;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -49,28 +47,34 @@ public abstract class MixinMemoryDatabase {
         List<Memory> found = new ArrayList<>();
         Map<BlockPos, Memory> location = locations.get(worldId);
         ClientPlayerEntity playerEntity = MinecraftClient.getInstance().player;
-        if (location != null && playerEntity != null) {
-            Iterator<Map.Entry<BlockPos, Memory>> var6 = location.entrySet().iterator();
-
-            while(true) {
-                Entry entry;
-                do while (true) {
-                    do {
-                        do {
-                            if (!var6.hasNext()) {
-                                return found;
-                            }
-
-                            entry = var6.next();
-                        } while (entry.getKey() == null);
-                    } while (!((Memory) entry.getValue()).getItems().stream().anyMatch((candidate) -> MemoryUtils.areStacksEquivalent(toFind, candidate, toFind.getNbt() == null || toFind.getNbt().equals(FULL_DURABILITY_TAG))));
-                    break;
-                } while(((Memory)entry.getValue()).getPosition() != null && ChestTracker.getSquareSearchRange() != Integer.MAX_VALUE && !(((Memory)entry.getValue()).getPosition().getSquaredDistance(playerEntity.getBlockPos()) <= (double)ChestTracker.getSquareSearchRange()));
-                found.add((Memory)entry.getValue());
-            }
-        } else {
+        if (location == null || playerEntity == null) {
             return found;
         }
+
+        double maxRange = ChestTracker.getSquareSearchRange();
+        BlockPos playerPos = playerEntity.getBlockPos();
+
+        for (Map.Entry<BlockPos, Memory> entry : location.entrySet()) {
+            BlockPos pos = entry.getKey();
+            Memory memory = entry.getValue();
+            if (pos == null || memory == null) continue;
+
+            boolean matches = memory.getItems().stream()
+                    .anyMatch(candidate -> MemoryUtils.areStacksEquivalent(
+                            toFind, candidate, toFind.getNbt() == null || toFind.getNbt().equals(FULL_DURABILITY_TAG)
+                    ));
+
+            if (!matches) continue;
+
+            if (memory.getPosition() != null && maxRange != Integer.MAX_VALUE) {
+                if (memory.getPosition().getSquaredDistance(playerPos) > maxRange) {
+                    continue;
+                }
+            }
+
+            found.add(memory);
+        }
+        return found;
     }
     /**
      * @author 2

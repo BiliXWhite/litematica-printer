@@ -121,7 +121,7 @@ package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
                      Collection<BlockPos> connected = getConnected(mc.world, latestPos);
  //                    System.out.println(stacks);
  //                    System.out.println("Save" + key.getValue() + latestPos);
-                     database.mergeItems(key.getValue(), red.jackf.chesttracker.memory.Memory.of(latestPos, stacks, title, connected.size() > 0 ? getAveragePos(latestPos, connected) : null), connected);
+                     database.mergeItems(key.getValue(), red.jackf.chesttracker.memory.Memory.of(latestPos, stacks, title, !connected.isEmpty() ? getAveragePos(latestPos, connected) : null), connected);
                  }
              }
              if (ChestTracker.CONFIG.miscOptions.printGuiClassNames)

@@ -834,40 +834,36 @@ public class PlacementGuide extends PrinterUtils {
          */
         public @Nullable Direction getValidSide(ClientWorld world, BlockPos pos) {
             Map<Direction, Vec3d> sides = getSides();
+
             List<Direction> validSides = new ArrayList<>();
 
-            // 优先判断是否有有效侧面
             for (Direction side : sides.keySet()) {
-                BlockPos neighborPos = pos.offset(side);
-                BlockState neighborState = world.getBlockState(neighborPos);
-
-                if (neighborState.contains(SlabBlock.TYPE) && neighborState.get(SlabBlock.TYPE) != SlabType.DOUBLE) {
-                    continue;
-                }
-
-                if (canBeClicked(world, neighborPos) && !isReplaceable(neighborState)) {
-                    validSides.add(side);
-                }
-            }
-
-            if (!validSides.isEmpty()) {
-                // 优先返回不需要 shift 的侧面
-                for (Direction validSide : validSides) {
-                    if (!Implementation.isInteractive(world.getBlockState(pos.offset(validSide)).getBlock())) {
-                        return validSide;
-                    }
-                }
-                return validSides.get(0).getOpposite();
-            }
-
-            // 没有有效侧面时，判断是否允许空中放置
-            if (LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport) {
-                for (Direction side : sides.keySet()) {
+                if (LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport) {
                     return side;
+                } else {
+                    BlockPos neighborPos = pos.offset(side);
+                    BlockState neighborState = world.getBlockState(neighborPos);
+
+                    if (neighborState.contains(SlabBlock.TYPE) && neighborState.get(SlabBlock.TYPE) != SlabType.DOUBLE) {
+                        continue;
+                    }
+
+                    if (canBeClicked(world, pos.offset(side)) && // Handle unclickable grass for example
+                            !isReplaceable(world.getBlockState(pos.offset(side))))
+                        validSides.add(side);
                 }
             }
 
-            return null;
+            if (validSides.isEmpty()) return null;
+
+            // Try to pick a side that doesn't require shift
+            for (Direction validSide : validSides) {
+                if (!Implementation.isInteractive(world.getBlockState(pos.offset(validSide)).getBlock())) {
+                    return validSide;
+                }
+            }
+
+            return validSides.get(0);
         }
 
         public Action setItem(Item item) {
