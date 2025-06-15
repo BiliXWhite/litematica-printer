@@ -54,11 +54,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "使用数据包进行打印", false,
             "可以得到更快的放置速度，并且不会出现'幽灵方块'的情况。§6§l但是无法听到放置方块的声音。§r"
     );
-    public static final ConfigOptionList RANGE_MODE = new ConfigOptionList(
-            "半径模式", State.ListType.SPHERE,
-            "立方体建议§63§r，球体建议设置§66§r，破基岩在立方体模式下无法正常使用。\n" +
-                    "§l（此功能未实现。）§r"
-    );
     public static final ConfigOptionList MODE_SWITCH = new ConfigOptionList(
             "模式切换", State.ModeType.SINGLE,
             "§d单模§r：仅运行一个模式。\n§d多模§r：可多个模式同时运行。\n" +
@@ -122,10 +117,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     public static final ConfigHotkey SWITCH_PRINTER_MODE = new ConfigHotkey(
             "切换工作模式", "",
             "切换打印机工作模式。"
-    );
-    public static final ConfigBooleanHotkeyed BEDROCK_SWITCH = new ConfigBooleanHotkeyed(
-            "破基岩", false, "",
-            "切换为破基岩模式,此模式下y轴会从上往下判定。"
     );
     public static final ConfigBooleanHotkeyed EXCAVATE = new ConfigBooleanHotkeyed(
             "挖掘", false, "",
@@ -222,14 +213,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     public static final ConfigStringList PUT_SKIP_LIST = new ConfigStringList(
             "跳过放置名单", ImmutableList.of(),
             "可填入方块或物品ID，例如: §bminecraft:stone§r。\n" +
-                    "如果在前面加上§b#§r，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
-                    "如果同时传入文本和过滤条件（以英文逗号分隔），例如：§lstone,c§r。\n" +
-                    "其中 “c” 表示使用包含匹配方式，会先尝试拼音或直接匹配。"
-    );
-    public static final ConfigStringList BEDROCK_LIST = new ConfigStringList(
-            "基岩模式白名单", ImmutableList.of("minecraft:bedrock"),
-            "破基岩模式的白名单，只有白名单内的方块会被破坏。\n" +
-                    "可填入方块或物品ID，例如: §bminecraft:stone§r。\n" +
                     "如果在前面加上§b#§r，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
                     "如果同时传入文本和过滤条件（以英文逗号分隔），例如：§lstone,c§r。\n" +
                     "其中 “c” 表示使用包含匹配方式，会先尝试拼音或直接匹配。"

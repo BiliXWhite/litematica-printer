@@ -87,9 +87,7 @@ public class MemoryUtils {
     public static void saveMemory(ScreenHandler sc){
         if(PRINTER_MEMORY != null && ZxyUtils.printerMemoryAdding || Printer.printerMemorySync)
             save(sc , PRINTER_MEMORY);
-        MemoryBankImpl memoryBank = MemoryBankAccessImpl.INSTANCE.getLoadedInternal().orElse(null);
-        if(memoryBank != null)
-            save(sc , memoryBank);
+        MemoryBankAccessImpl.INSTANCE.getLoadedInternal().ifPresent(memoryBank -> save(sc, memoryBank));
         Printer.printerMemorySync = false;
     }
     public static void createPrinterMemory(){

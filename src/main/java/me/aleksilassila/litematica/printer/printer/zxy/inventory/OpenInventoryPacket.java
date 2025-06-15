@@ -8,9 +8,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.mob.ShulkerEntity;
@@ -24,7 +22,6 @@ import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.*;
@@ -51,14 +48,16 @@ import static me.aleksilassila.litematica.printer.printer.Printer.printerMemoryS
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
 //#if MC > 12004
+import net.minecraft.block.Block;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.HelloPackage.HELLO_REMOTE_INTERACTIONS_ID;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.OpenPackage.OPEN_INVENTORY_ID;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.ReturnPackage.OPEN_RETURN_ID;
+//#else
+//$$import net.minecraft.util.Hand;
 //#endif
 public class OpenInventoryPacket {
 
@@ -179,7 +178,7 @@ public class OpenInventoryPacket {
         //$$     try {
         //$$         MyPacket packet = MyPacket.decode(packetByteBuf);
         //$$         client.execute(() -> {
-        //$$             client.execute(() -> openReturn(packet.getIsOpen(), packet.getBlockState()));
+        //$$             client.execute(() -> openReturn(packet.isOpen(), packet.blockState()));
         //$$         });
         //$$     } catch (Exception ignored) {
         //$$         Messager.actionBar("服务端回复异常，箱子追踪库存无法更新");

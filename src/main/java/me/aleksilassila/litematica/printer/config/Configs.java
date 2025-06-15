@@ -34,7 +34,7 @@ public class Configs implements IConfigHandler {
         list.add(COMPULSION_RANGE);
         list.add(PUT_COOLING);
         list.add(PLACE_USE_PACKET);
-        if (PLACE_USE_PACKET.getBooleanValue()) list.add(SWAP_ITEM_DELAY);
+        if (PLACE_USE_PACKET.getBooleanValue())
         list.add(RENDER_PROGRESS);
         list.add(QUICK_SHULKER);
         if (QUICK_SHULKER.getBooleanValue()) list.add(QUICK_SHULKER_COOLING);
@@ -48,7 +48,6 @@ public class Configs implements IConfigHandler {
         list.add(FLUID_BLOCK_LIST);
         list.add(FILL_BLOCK_LIST);
         if(loadChestTracker) list.add(INVENTORY_LIST);
-        list.add(BEDROCK_LIST);
 
         return ImmutableList.copyOf(list);
     }
@@ -96,7 +95,6 @@ public class Configs implements IConfigHandler {
         if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)){
             list.add(SWITCH_PRINTER_MODE);
         }else {
-            list.add(BEDROCK_SWITCH);
             list.add(EXCAVATE);
             list.add(FLUID);
             list.add(FILL);
@@ -146,7 +144,6 @@ public class Configs implements IConfigHandler {
     //切换型开关
     public static ImmutableList<IHotkeyTogglable> addSwitchKey(){
         ArrayList<IHotkeyTogglable> list = new ArrayList<>();
-        list.add(BEDROCK_SWITCH);
         list.add(EXCAVATE);
         list.add(FLUID);
         list.add(FILL);

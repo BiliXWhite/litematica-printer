@@ -14,7 +14,6 @@ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.mixin.masa.WorldUtilsAccessor;
-import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
@@ -29,7 +28,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.screen.ScreenHandler;
@@ -53,9 +51,7 @@ import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTR
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
 import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.getEmptyPickBlockableHotbarSlot;
 import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.getPickBlockTargetSlot;
-import static me.aleksilassila.litematica.printer.printer.Printer.TempData.*;
 import static me.aleksilassila.litematica.printer.printer.State.PrintModeType.*;
-import static me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController.cachedTargetBlockList;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsItemName;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.*;
@@ -225,11 +221,6 @@ public class Printer extends PrinterUtils {
         return LitematicaMixinMod.RENDER_LAYER_LIMIT.getBooleanValue() && !DataManager.getRenderLayerRange().isPositionWithinRange(pos);
     }
 
-    public static boolean bedrockModeTarget(BlockState block) {
-//        return LitematicaMixinMod.BEDROCK_LIST.getStrings().stream().anyMatch(string -> Registries.BLOCK.getId(block.getBlock()).toString().contains(string));
-        return LitematicaMixinMod.BEDROCK_LIST.getStrings().stream().anyMatch(string -> Filters.equalsName(string, block));
-    }
-
     /**
      * 判断给定的位置是否属于当前加载的图纸结构范围内。
      *
@@ -390,43 +381,6 @@ public class Printer extends PrinterUtils {
         }
     }
 
-    //此模式依赖bug运行 请勿随意修改
-    public void bedrockMode() {
-
-        BreakingFlowController.tick();
-        int maxy = -9999;
-        BlockPos pos;
-        while ((pos = getBlockPos()) != null && client.world != null) {
-            if (!ZxyUtils.bedrockCanInteracted(pos, COMPULSION_RANGE.getIntegerValue())) continue;
-            if (isLimitedByTheNumberOfLayers(pos)) continue;
-            BlockState currentState = client.world.getBlockState(pos);
-            BlockPos finalPos = pos;
-            if ((currentState.isOf(Blocks.PISTON) || (currentState.isOf(Blocks.SLIME_BLOCK) &&
-                    cachedTargetBlockList.stream().allMatch(
-                            targetBlock -> targetBlock.temppos.stream().noneMatch(
-                                    blockPos -> blockPos.equals(finalPos)))))
-                    && !bedrockModeTarget(client.world.getBlockState(pos.down())) && xuanQuFanWeiNei_p(pos, 3)) {
-                BreakingFlowController.addPosList(pos);
-            } else if (currentState.isOf(Blocks.PISTON_HEAD)) {
-                switchToItems(client.player, new Item[]{Items.AIR, Items.DIAMOND_PICKAXE});
-                ((IClientPlayerInteractionManager) client.interactionManager)
-                        .rightClickBlock(pos, Direction.UP, Vec3d.ofCenter(pos));
-            }
-
-            if (TempData.xuanQuFanWeiNei_p(pos) &&
-                    bedrockModeTarget(currentState) && ZxyUtils.bedrockCanInteracted(pos, COMPULSION_RANGE.getIntegerValue() - 1.5) &&
-                    !bedrockModeTarget(client.world.getBlockState(pos.up()))) {
-                if (maxy == -9999) maxy = pos.getY();
-                if (pos.getY() < maxy) {
-                    //重置迭代器 如果不重置 继续根据上次结束的y轴递减会出事
-                    myBox.resetIterator();
-                    return;
-                }
-                BreakingFlowController.addBlockPosToList(pos);
-            }
-        }
-    }
-
     /**
      * <h1>切换物品操作</h1>
      *
@@ -572,11 +526,6 @@ public class Printer extends PrinterUtils {
         Object modeOption = LitematicaMixinMod.MODE_SWITCH.getOptionListValue();
         if (modeOption.equals(State.ModeType.MULTI)) {
             boolean multiBreak = MULTI_BREAK.getBooleanValue();
-            if (LitematicaMixinMod.BEDROCK_SWITCH.getBooleanValue()) {
-                yDegression = true;
-                bedrockMode();
-                if (multiBreak) return;
-            }
             if (LitematicaMixinMod.EXCAVATE.getBooleanValue()) {
                 yDegression = true;
                 miningMode();
@@ -593,11 +542,7 @@ public class Printer extends PrinterUtils {
         } else if (LitematicaMixinMod.PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType modeType
                 && modeType != PRINTER) {
             switch (modeType) {
-                case BEDROCK -> {
-                    yDegression = true;
-                    bedrockMode();
-                }
-                case EXCAVATE -> {
+                case MINING -> {
                     yDegression = true;
                     miningMode();
                 }
@@ -614,9 +559,10 @@ public class Printer extends PrinterUtils {
         while ((pos = getBlockPos()) != null) {
             // 跳过冷却中的位置
             if (skipPosMap.containsKey(pos)) continue;
-            // 渲染层范围判断
-            if (!canInteracted(pos)) continue;
+            // 渲染层范围判断（先判断是否在渲染层范围内，再判断是否为图纸方块，减少不必要的判断）
             if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
+            if (!isSchematicBlock(pos)) continue;
+            if (!canInteracted(pos)) continue;
             if (PRINT_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
             BlockState state = schematic.getBlockState(pos);
             PlacementGuide.Action action = guide.getAction(world, schematic, pos);
@@ -828,7 +774,8 @@ public class Printer extends PrinterUtils {
 
     public void swapHandWithSlot(ClientPlayerEntity player, int slot) {
         ItemStack stack = Implementation.getInventory(player).getStack(slot);
-        InventoryUtils.setPickedItemToHand(stack, client);
+        int slotNum = client.player.getInventory().getSlotWithStack(stack);
+        ZxyUtils.setPickedItemToHand(slotNum, stack, client);
     }
 
     public void sendLook(ClientPlayerEntity player, Direction directionYaw, Direction directionPitch) {

@@ -14,10 +14,8 @@ import net.minecraft.client.MinecraftClient;
 
 
 public class KeyCallbackHotkeys implements IHotkeyCallback {
-    private final MinecraftClient client;
 
     public KeyCallbackHotkeys(MinecraftClient client) {
-        this.client = client;
     }
 
     @Override
