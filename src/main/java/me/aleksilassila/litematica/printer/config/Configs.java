@@ -89,7 +89,7 @@ public class Configs implements IConfigHandler {
         }else {
             list.add(BEDROCK_SWITCH);
             list.add(EXCAVATE);
-            list.add(FLUID);
+            list.add(REPLACE_BLOCK);
         }
         list.add(CLOSE_ALL_MODE);
         list.add(SYNC_INVENTORY);
@@ -141,7 +141,7 @@ public class Configs implements IConfigHandler {
         list.add(SYNC_INVENTORY_CHECK);
         list.add(BEDROCK_SWITCH);
         list.add(EXCAVATE);
-        list.add(FLUID);
+        list.add(REPLACE_BLOCK);
         list.add(BREAK_ERROR_BLOCK);
         list.add(PRINT_WATER_LOGGED_BLOCK);
         list.add(USE_EASY_MODE);

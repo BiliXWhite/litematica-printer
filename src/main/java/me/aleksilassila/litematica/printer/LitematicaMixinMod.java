@@ -48,13 +48,13 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigBoolean EASY_MODE = new ConfigBoolean("精准放置",false, "根据投影的设置使用对应的协议");
 	public static final ConfigBooleanHotkeyed USE_EASY_MODE = new ConfigBooleanHotkeyed("轻松放置模式",false,"", "打印模式下放置方块将由投影轻松放置接管");
 	public static final ConfigBoolean FORCED_PLACEMENT = new ConfigBoolean("强制潜行",false, "打印时会强制shift避免一些方块的交互");
-	public static final ConfigBoolean REPLACE = new ConfigBoolean("替换列表方块",true, "可以直接在一些可替换方块放置，例如 草 雪片");
+	public static final ConfigBoolean REPLACE = new ConfigBoolean("覆盖列表方块",true, "可以直接在一些可覆盖方块放置，例如 草 雪片");
 	public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean("原木去皮",false, "去皮木头可以通过放置原木后去皮，但你需要一把斧子");
 	public static boolean shouldPrintInAir = PRINT_IN_AIR.getBooleanValue();
 	public static final ConfigHotkey SWITCH_PRINTER_MODE = new ConfigHotkey("切换模式", "J", "切换打印机工作模式");
 	public static final ConfigBooleanHotkeyed BEDROCK_SWITCH = new ConfigBooleanHotkeyed("破基岩", false,"", "啊吧啊吧");
 	public static final ConfigBooleanHotkeyed EXCAVATE = new ConfigBooleanHotkeyed("挖掘", false,"", "挖掘所选区内的方块");
-	public static final ConfigBooleanHotkeyed FLUID = new ConfigBooleanHotkeyed("排流体", false,"", "在岩浆源、水源处放方块默认是沙子");
+	public static final ConfigBooleanHotkeyed REPLACE_BLOCK = new ConfigBooleanHotkeyed("替换", false,"", "替换方块，通过替换名单配置");
 	public static final ConfigHotkey CLOSE_ALL_MODE = new ConfigHotkey("关闭全部模式", "LEFT_CONTROL,G","关闭全部模式，若此时为单模模式将模式恢复为打印");
 
 	//#if MC >= 12001
@@ -63,14 +63,14 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigHotkey DELETE = new ConfigHotkey("删除当前容器", "",GUI_NO_ORDER,"");
 	//#endif
 
-	public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList("排流体方块名单", ImmutableList.of("minecraft:sand"), "此项需严格填写");
+	public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList("替换方块名单", ImmutableList.of("minecraft:water|minecraft:lava => minecraft:sand|minecraft:dirt"), "更改后需关闭打印机一次才会使用新的名单。\n格式：要替换的方块 > 替换成什么方块，多个用|分隔");
 	public static final ConfigBoolean PUT_SKIP = new ConfigBoolean("跳过放置", false, "开启后会跳过列表内的方块");
 	public static final ConfigBoolean PUT_TESTING = new ConfigBoolean("侦测器放置检测", false, "检测侦测器看向的方块是否和投影方块一致，若不一致测跳过放置");
 	public static final ConfigBoolean QUICKSHULKER = new ConfigBoolean("快捷潜影盒", false, "在有快捷潜影盒mod的情况下可以直接从背包内的潜影盒取出物品\n替换的位置为投影的预设位置,如果所有预设位置都有濳影盒则不会替换。");
 	public static final ConfigBoolean INVENTORY = new ConfigBoolean("远程交互容器", false, "在服务器支持远程交互容器或单机的情况下可以远程交互\n替换的位置为投影的预设位置。");
 	public static final ConfigBoolean AUTO_INVENTORY = new ConfigBoolean("自动设置远程交互", false, "在服务器若允许使用则自动开启远程交互容器，反之则自动关闭");
 
-	public static final ConfigBoolean PRINT_CHECK = new ConfigBoolean("有序存放", false, "在背包满时将从快捷盒子或打印机库存中取出的物品还原到之前位置，关闭后将会打乱打印机以及濳影盒");
+	public static final ConfigBoolean PRINT_CHECK = new ConfigBoolean("有序存放", false, "在背包满时将从快捷盒子或打印机库存中取出的物品还原到之前位置，关闭后将会打乱打印机库存以及濳影盒");
 
 	public static final ConfigStringList INVENTORY_LIST = new ConfigStringList("库存白名单", ImmutableList.of("minecraft:chest"), "");
 	public static final ConfigOptionList EXCAVATE_LIMITER = new ConfigOptionList("挖掘模式限制器",State.ExcavateListMode.ME,"使用tw挖掘限制预设或自带的限制");
@@ -81,7 +81,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 			"c:包含（例如 橡树树叶 填入 叶,c 那么此项条件成立）");
 	public static final ConfigStringList PUT_SKIP_LIST = new ConfigStringList("跳过放置名单", ImmutableList.of(), "");
 	public static final ConfigStringList BEDROCK_LIST = new ConfigStringList("基岩模式白名单", ImmutableList.of("minecraft:bedrock"), "");
-	public static final ConfigStringList REPLACEABLE_LIST = new ConfigStringList("可替换方块",
+	public static final ConfigStringList REPLACEABLE_LIST = new ConfigStringList("可覆盖方块",
 			ImmutableList.of("minecraft:snow","minecraft:lava","minecraft:water","minecraft:bubble_column","minecraft:short_grass"), "打印时将忽略这些错误方块 直接替换。");
 	public static final ConfigHotkey TEST = new ConfigHotkey("test", "","测试用的，别乱设置");
 
@@ -106,9 +106,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigHotkey PRINT = new ConfigHotkey("打印", "", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "按下时打印机开始工作，松开时停止");
 	public static final ConfigBooleanHotkeyed TOGGLE_PRINTING_MODE =
 			new ConfigBooleanHotkeyed("打印机开关", false,"CAPS_LOCK", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY, "控制打印机是否工作","打印机开关");
-
-//	public static final ConfigHotkey BEDROCK_MODE = new ConfigHotkey("破基岩模式", "J", "切换为破基岩模式 此模式下 y轴会从上往下判定.");
-//	public static final ConfigHotkey EXE_MODE= new ConfigHotkey("挖掘模式", "K", "挖掘所选区的方块");
 	public static final ConfigHotkey SYNC_INVENTORY = new ConfigHotkey("容器同步", "", "按下热键后会记录看向容器的物品。\n将投影选区内的同类型容器中的物品，同步至记录的容器。");
 	public static final ConfigBooleanHotkeyed SYNC_INVENTORY_CHECK = new ConfigBooleanHotkeyed("同步时检查背包", false,"", "容器同步时检查背包，如果填充物不足，则不会打开容器");
 	public static final ConfigHotkey PRINTER_INVENTORY= new ConfigHotkey("打印机库存", "", "如果远程取物的目标是未加载的区块将会增加取物品的时间，用投影选区后按下热键\n" +
@@ -147,22 +144,9 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		if(loadChestTracker) MemoryUtils.setup();
 		//#endif
 
-//		TOGGLE_PRINTING_MODE.getKeybind().setCallback();
-//		SYNC_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
-//		SWITCH_PRINTER_MODE.getKeybind().setCallback(keyCallbackHotkeys);
-//		if(loadChestTracker){
-//			PRINTER_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
-//			REMOVE_PRINT_INVENTORY.getKeybind().setCallback(keyCallbackHotkeys);
-//			//#if MC > 12001
-//			LAST.getKeybind().setCallback(keyCallbackHotkeys);
-//			NEXT.getKeybind().setCallback(keyCallbackHotkeys);
-//			DELETE.getKeybind().setCallback(keyCallbackHotkeys);
-//			//#endif
 //		}
 		me.aleksilassila.litematica.printer.config.Configs.init();
 		HighlightBlockRenderer.init();
-//		BEDROCK_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(BEDROCK_SWITCH));
-//		EXE_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(EXCAVATE));
 	}
 
 	@Override

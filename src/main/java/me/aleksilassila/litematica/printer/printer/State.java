@@ -41,7 +41,7 @@ public enum State {
         PRINTER("printer", "打印"),
         BEDROCK("bedrock", "基岩"),
         EXCAVATE("excavate", "挖掘"),
-        FLUID("fluid", "流体");
+        REPLACE_BLOCK("replace", "替换");
 
         private final String configString;
         private final String translationKey;

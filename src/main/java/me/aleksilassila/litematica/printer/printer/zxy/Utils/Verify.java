@@ -3,11 +3,16 @@ package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.Messager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.resource.ResourcePackManager;
+import net.minecraft.resource.ResourcePackProfile;
+import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.text.Text;
 
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
 
 
 public class Verify {
@@ -43,7 +48,7 @@ public class Verify {
                 if ("Y".equals(str = br.readLine())) {
                     result = true;
                 }else if(str != null){
-                    MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of(str),false);
+                    Messager.actionBar(str);
                 }else {
                     step = 3;
                     return;
@@ -64,7 +69,26 @@ public class Verify {
     }
 
     public boolean tick(String address) {
+        switch (dataPacketVerify()){
+            //0未通过验证 1通过验证 2获取验证器错误
+            case 0 -> {
+                result = false;
+                return false;
+            }
+            case 1 -> {
+                result = true;
+                return true;
+            }
+            case 2 ->{
+
+            }
+            default -> {
+                return result;
+            }
+        }
+
         switch (step){
+            //0未验证 1验证中 2验证完成 3验证失败
             case 0 ->{
                 verifyRequest(address);
                 step = 1;
@@ -85,4 +109,23 @@ public class Verify {
         }
         return false;
     }
+    int dataPacketVerify(){
+        //0未通过验证 1通过验证 2获取验证器错误
+        //TODO 客户端怎么获取服务端的数据包信息???
+        ResourcePackManager resourcePackManager = client.getResourcePackManager();
+
+        ResourcePackProfile profile = resourcePackManager.getProfile("file/printer_verify");
+        if(profile == null) return 2;
+        String str = profile.getDescription().getString();
+        String[] ids = str.split("\\r?\\n");
+        for (String id : ids) {
+            id = id.trim();
+            if (id.equals(client.player.getUuidAsString()) || id.equals(client.player.getName().getString())) {
+                return 1;
+            }
+        }
+        Messager.actionBar(ids[0]);
+        return 0;
+    }
+
 }

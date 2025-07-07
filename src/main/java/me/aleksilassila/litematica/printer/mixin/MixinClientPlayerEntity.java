@@ -12,6 +12,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -37,14 +38,8 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 
 import static me.aleksilassila.litematica.printer.printer.Printer.isEnablePrinter;
 @Mixin(ClientPlayerEntity.class)
-public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
-    public MixinClientPlayerEntity(ClientWorld world, GameProfile profile
-	//#if MC == 11902
-	//$$ , @Nullable PlayerPublicKey publicKey) {super(world, profile, publicKey);
-	//#else
-	) {super(world, profile);
-	//#endif
-	}
+public class MixinClientPlayerEntity {
+
 
     @Final
 	@Shadow
@@ -53,7 +48,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 	@Inject(at = @At("HEAD"), method = "closeHandledScreen")
 	public void close(CallbackInfo ci) {
 		//#if MC >= 12001
- 		if(Statistics.loadChestTracker) MemoryUtils.saveMemory(this.currentScreenHandler);
+ 		if(Statistics.loadChestTracker) MemoryUtils.saveMemory(((ClientPlayerEntity)(Object)this).currentScreenHandler);
  		OpenInventoryPacket.reSet();
 		//#else
 		//$$
@@ -67,7 +62,8 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 		if(!(isEnablePrinter())){
 			PlacementGuide.posMap = new HashMap<>();
 			printer.basePos = null;
-			Printer.fluidList = new HashSet<>();
+			Printer.replaceTargetBlockList = new HashSet<>();
+			Printer.replaceOriginBlockList = new HashSet<>();
 			return;
 		}
 		if(Printer.up){
@@ -79,10 +75,6 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 	@Unique
 	public void checkForUpdates() {
         new Thread(() -> {
-//            String version = UpdateChecker.version;
-//            String newVersion = UpdateChecker.getPrinterVersion();
-
-//            if (!version.equals(newVersion)) {
                 client.inGameHud.getChatHud().addMessage(
 						Text.of("Printer: 此版本为宅闲鱼二改最初版BV号：BV1q44y1T7hE\n" +
 								"投影打印机原作 https://github.com/aleksilassila/litematica-printer/releases\n" +

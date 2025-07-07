@@ -38,7 +38,7 @@ public class PinYinSearch {
         return getStrings();
     }
     public static boolean hasPinYin(String zh,String py){
-        return getPinYin(zh).stream().anyMatch(s->s.contains(py));
+        return getPinYin(zh).stream().anyMatch(s -> s.contains(py));
     }
 
     @NotNull

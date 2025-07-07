@@ -11,6 +11,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -18,6 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.playerlist;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.tickMap;
@@ -28,15 +30,19 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInve
 //#endif
 
 @Mixin(ServerPlayerEntity.class)
-public abstract class MixinServerPlayerEntity extends PlayerEntity{
+public abstract class MixinServerPlayerEntity{
 
-    public MixinServerPlayerEntity(World world, BlockPos pos, float yaw, GameProfile profile
-    //#if MC == 11902
-    //$$ , @Nullable PlayerPublicKey publicKey) { super(world, pos, yaw, profile, publicKey);
-    //#else
-    ) {super(world, pos, yaw, profile);
-    //#endif
-    }
+//    public MixinServerPlayerEntity(World world, BlockPos pos, float yaw, GameProfile profile
+//    //#if MC == 11902
+//    //$$ , @Nullable PlayerPublicKey publicKey) { super(world, pos, yaw, profile, publicKey);
+//    //#elseif MC > 12105
+//    ) {super(world,  profile);
+//    //#else
+//    //$$ ) {super(world, pos, yaw, profile);
+//    //#endif
+//    }
+//
+//
     //#if MC < 11904
     //$$ @Inject(at = @At("HEAD"), method = "closeScreenHandler")
     //#else
@@ -49,10 +55,15 @@ public abstract class MixinServerPlayerEntity extends PlayerEntity{
     public void onDisconnect(CallbackInfo ci) {
         deletePlayerList();
     }
+
+    @Unique
+    private UUID getUuid1(){
+        return ((ServerPlayerEntity)(Object)this).getUuid();
+    }
     @Unique
     private void deletePlayerList(){
-        playerlist.removeIf(player -> player.getUuid().equals(getUuid()));
-        List<Map.Entry<ServerPlayerEntity, TickList>> list = tickMap.entrySet().stream().filter(k -> k.getKey().getUuid().equals(getUuid())).toList();
+        playerlist.removeIf(player -> player.getUuid().equals(getUuid1()));
+        List<Map.Entry<ServerPlayerEntity, TickList>> list = tickMap.entrySet().stream().filter(k -> k.getKey().getUuid().equals(getUuid1())).toList();
         for (Map.Entry<ServerPlayerEntity, TickList> serverPlayerEntityTickListEntry : list) {
             tickMap.remove(serverPlayerEntityTickListEntry.getKey());
         }

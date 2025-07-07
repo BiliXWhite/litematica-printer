@@ -9,6 +9,7 @@ import net.minecraft.util.math.BlockPos;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class Filters {
@@ -33,6 +34,7 @@ public class Filters {
     }
 
     public static boolean equalsName(String blockName, Object o){
+        if(blockName.equals("all")) return true;
         BlockState blockState = null;
         ItemStack itemStack = null;
 
@@ -44,22 +46,22 @@ public class Filters {
 
         String string = blockState != null ?
                 Registries.BLOCK.getId(blockState.getBlock()).toString() : Registries.ITEM.getId(itemStack.getItem()).toString();
-        String[] strs = blockName.split(",");
-        String args = strs[0];
-        if(strs.length > 1){
-            strs = Arrays.copyOfRange(strs,1,strs.length);
-        }else strs = new String[]{};
+        String[] args = blockName.split(",");
+        String oName = args[0];
+        if(args.length > 1){
+            args = Arrays.copyOfRange(args,1,args.length);
+        }else args = new String[]{};
 
         try {
-           return blockState !=null ? getTag(blockState.streamTags(),blockName,strs) : getTag(itemStack.streamTags(),blockName,strs);
+           return blockState != null ? getTag(blockState.streamTags(),blockName,args) : getTag(itemStack.streamTags(),blockName,args);
         }catch (Exception ignored){}
 
         //中文 、 拼音
         String name = blockState != null ?  blockState.getBlock().getName().getString() : itemStack.getName().getString();
         ArrayList<String> pinYin = PinYinSearch.getPinYin(name);
-        String[] finalStrs1 = strs;
-        boolean py = pinYin.stream().anyMatch(p -> Filters.filters(p,args, finalStrs1));
-        return Filters.filters(name,args,strs) || py || Filters.filters(string,args,strs);
+        String[] finalStrs1 = args;
+        boolean py = pinYin.stream().anyMatch(p -> Filters.filters(p,oName, finalStrs1));
+        return Filters.filters(name,oName,args) || py || Filters.filters(string,oName,args);
     }
 
     private static<T> boolean getTag(Stream<TagKey<T>> t, String name, String[] tags) throws NoTag {

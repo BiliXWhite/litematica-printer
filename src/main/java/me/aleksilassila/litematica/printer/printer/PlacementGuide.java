@@ -330,8 +330,8 @@ public class PlacementGuide extends PrinterUtils {
                 case SKIP: {
                     break;
                 }
-                case WATER: {
-
+                case FLUID: {
+                    break;
                 }
                 case TORCH: {
 
@@ -499,11 +499,11 @@ public class PlacementGuide extends PrinterUtils {
                     }
                     break;
                 }
-                case WATER:{
+                case FLUID:{
 
                 }
                 default: {
-                    if(canBreakBlock(pos) && LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue()) excavateBlock(pos);
+                    if(isSchematicBlock(pos) && canBreakBlock(pos) && LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue()) excavateBlock(pos);
                     return null;
                 }
             }
@@ -781,7 +781,7 @@ public class PlacementGuide extends PrinterUtils {
         FARMLAND(FarmlandBlock.class),
         DIRT_PATH(DirtPathBlock.class),
         SKIP(SkullBlock.class, GrindstoneBlock.class, SignBlock.class, VineBlock.class,EndPortalBlock.class),
-        WATER(FluidBlock.class),
+        FLUID(FluidBlock.class),
         DEFAULT;
 
         private final Class<?>[] classes;

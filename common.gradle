@@ -148,6 +148,7 @@ String getQuiShulkerBox() {
     } else if (mcVersion == 12104) { path = "build/libs/quickshulker-1.4.5-1.21.4.jar"
 //    } else if (mcVersion == 12105) { path = "build/libs/quickshulker-1.4.5-1.21.4.jar"
     } else if (mcVersion == 12105) { path = "build/libs/quickshulker-1.7.0-1.21.5.jar"
+    } else if (mcVersion == 12106) { path = "build/libs/quickshulker-2.5.0-1.21.6.jar"
     }
     return path;
 }
@@ -174,10 +175,11 @@ dependencies {
         if (mode == 1) {
             modImplementation idFix
         } else if (mode == 3) {
+            modApi idFix
         } else if (mode == 2) {
             modImplementation include(idFix)
         } else if (mode == 4) {
-            modApi idFix
+            modCompileOnly idFix
         } else if (mode == 45) {
             modCompileOnly files(dependencyNotation)
         } else if (mode == 5) {
@@ -192,7 +194,6 @@ dependencies {
 
     // modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
 
-    //使用通用版本..大概
     runtimeOnly(project(path: ":fabricWrapper"))
 }
 def time = new Date().format("yyyyMMdd", TimeZone.getTimeZone("GMT+08:00"))

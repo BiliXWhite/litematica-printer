@@ -20,12 +20,13 @@ import net.minecraft.util.shape.VoxelShapes;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
-import java.lang.reflect.Method;
 import java.util.*;
 
 
 //#if MC > 12104
-import com.mojang.blaze3d.buffers.BufferUsage;
+    //#if MC < 12106
+    //$$ import com.mojang.blaze3d.buffers.BufferUsage;
+    //#endif
 import com.mojang.blaze3d.vertex.VertexFormat;
 import fi.dy.masa.malilib.render.MaLiLibPipelines;
 import fi.dy.masa.malilib.render.RenderContext;
@@ -63,7 +64,6 @@ public class HighlightBlockRenderer implements IRenderer {
             setMap.put(id,posSet);
         }
     }
-    public static Method method;
 
     //#if MC > 12004
     public void test3(Matrix4f matrices, Color4f color4f, Set<BlockPos> posSet){
@@ -72,14 +72,21 @@ public class HighlightBlockRenderer implements IRenderer {
     //#endif
         for (BlockPos pos : posSet) {
             //#if MC > 12104
-            RenderUtils.renderAreaSides(pos,pos,color4f,matrices);
+                //#if MC == 12105
+                //$$ RenderUtils.renderAreaSides(pos,pos,color4f,matrices);
+                //#endif
+            RenderSystem.setShaderFog(RenderSystem.getShaderFog());
             //#else
             //$$ RenderUtils.renderAreaSides(pos,pos,color4f,matrices,client);
             //#endif
         }
 
         //#if MC > 12104
-        RenderSystem.setShaderFog(Fog.DUMMY);
+            //#if MC > 12105
+            RenderSystem.setShaderFog(RenderSystem.getShaderFog());
+            //#else
+            //$$ RenderSystem.setShaderFog(Fog.DUMMY);
+            //#endif
         //#else
         //$$ RenderSystem.enableBlend();
         //$$ RenderSystem.disableCull();
@@ -93,7 +100,11 @@ public class HighlightBlockRenderer implements IRenderer {
 
         //#if MC > 12006
             //#if MC > 12104
-            RenderContext ctx = new RenderContext(MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT, BufferUsage.STATIC_WRITE);
+                //#if MC == 12105
+                //$$ RenderContext ctx = new RenderContext(MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT, BufferUsage.STATIC_WRITE);
+                //#else
+                RenderContext ctx = new RenderContext(() -> threadName, MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT);
+                //#endif
             BufferBuilder buffer = ctx.getBuilder();
             //#else
             //$$ BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);

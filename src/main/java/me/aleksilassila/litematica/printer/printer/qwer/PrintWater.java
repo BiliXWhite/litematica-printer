@@ -38,14 +38,13 @@ public class PrintWater {
         }
     }// 潜行右键单击
     private static void rightClickBlock(@NotNull ClientPlayerEntity player, BlockPos pos,Printer printer) {
-
-        player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY));
+        Printer.getPrinter().queue.setShift(player, true);
         //#if MC > 11802
         printer.client.interactionManager.interactBlock(player, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN, pos, true));
         //#else
         //$$ printer.client.interactionManager.interactBlock(player, player.clientWorld, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN, pos, true));
         //#endif
-        player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY));
+        Printer.getPrinter().queue.setShift(player, true);
     }
     public static void searchPickaxes(@NotNull ClientPlayerEntity player){
         for (int i = 36; i < player.playerScreenHandler.slots.size()-2; i++) {
