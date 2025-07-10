@@ -56,6 +56,14 @@ public class InventoryUtils {
     public static boolean isInventory(World world, BlockPos pos) {
         return fi.dy.masa.malilib.util.InventoryUtils.getInventory(world, pos) != null;
     }
+    public static boolean hasItem(Item item){
+        if (client.player.isCreative()) return true;
+        PlayerInventory inventory = client.player.getInventory();
+        for (int i = 0; i < inventory.size(); i++) {
+            if (inventory.getStack(i).getItem().equals(item)) return true;
+        }
+        return false;
+    }
 
     public static boolean canOpenInv(BlockPos pos) {
         if (client.world != null) {
@@ -66,9 +74,9 @@ public class InventoryUtils {
                 if ((isInventory && blockState.createScreenHandlerFactory(client.world, pos) == null) ||
                         (blockEntity instanceof ShulkerBoxBlockEntity entity &&
                                 //#if MC > 12101
-                                !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F, pos.toBottomCenterPos()).offset(pos).contract(1.0E-6)) &&
+                                //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F, pos.toBottomCenterPos()).offset(pos).contract(1.0E-6)) &&
                                 //#elseif MC <= 12101 && MC > 12004
-                                //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
+                                !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
                                 //#elseif MC <= 12004
                                 //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
                                 //#endif
@@ -212,9 +220,9 @@ public class InventoryUtils {
 
         if (client.player != null) {
             //#if MC > 12104
-            client.player.getInventory().setSelectedSlot(slot);
+            //$$ client.player.getInventory().setSelectedSlot(slot);
             //#else
-            //$$ client.player.getInventory().selectedSlot = slot;
+            client.player.getInventory().selectedSlot = slot;
             //#endif
         }
     }
@@ -223,9 +231,9 @@ public class InventoryUtils {
 
         if (client.player != null) {
             //#if MC > 12104
-            return client.player.getInventory().getSelectedSlot();
+            //$$ return client.player.getInventory().getSelectedSlot();
             //#else
-            //$$ return client.player.getInventory().selectedSlot;
+            return client.player.getInventory().selectedSlot;
             //#endif
         } else return -1;
     }
@@ -233,9 +241,9 @@ public class InventoryUtils {
     public static DefaultedList<ItemStack> getMainStacks() {
         if (client.player != null) {
             //#if MC > 12104
-            return client.player.getInventory().getMainStacks();
+            //$$ return client.player.getInventory().getMainStacks();
             //#else
-            //$$ return client.player.getInventory().main;
+            return client.player.getInventory().main;
             //#endif
         }else return DefaultedList.of();
     }

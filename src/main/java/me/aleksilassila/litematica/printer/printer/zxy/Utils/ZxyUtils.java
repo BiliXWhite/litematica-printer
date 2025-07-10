@@ -46,7 +46,7 @@ import java.util.*;
 //#endif
 
 //#if MC >= 12105
-import net.minecraft.screen.sync.ItemStackHash;
+//$$ import net.minecraft.screen.sync.ItemStackHash;
 //#endif
 
 //#if MC >= 12001
@@ -372,14 +372,6 @@ public class ZxyUtils {
         return client.player != null && client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(blockPos)) < range * range;
     }
     public static int getRage(){
-        return getPrinterRange();
-//        return Math.max(getPrinterRange(),getCompulsionRange());
-    }
-    public static int getPrinterRange() {
-//        return LitematicaMixinMod.PRINTING_RANGE.getIntegerValue();
-        return LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue();
-    }
-    public static int getCompulsionRange(){
         return LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue();
     }
 
@@ -432,7 +424,7 @@ public class ZxyUtils {
         //#endif
 
         //#if MC >= 12105
-        ItemStackHash itemStackHash = ItemStackHash.fromItemStack(uniqueItem, networkHandler.getComponentHasher());
+        //$$ ItemStackHash itemStackHash = ItemStackHash.fromItemStack(uniqueItem, networkHandler.method_68823());
         //#endif
 
         networkHandler.sendPacket(new ClickSlotC2SPacket(
@@ -441,11 +433,11 @@ public class ZxyUtils {
                 (short) -999, (byte) 2,
                 SlotActionType.QUICK_CRAFT,
                 //#if MC < 12105
-                //$$ uniqueItem,
-                //$$ new Int2ObjectOpenHashMap<>()
+                uniqueItem,
+                new Int2ObjectOpenHashMap<>()
                 //#else
-                new Int2ObjectOpenHashMap<>(),
-                itemStackHash
+                //$$ new Int2ObjectOpenHashMap<>(),
+                //$$ itemStackHash
                 //#endif
 
 

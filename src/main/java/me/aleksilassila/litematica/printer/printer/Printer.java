@@ -40,6 +40,9 @@ import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static fi.dy.masa.litematica.util.WorldUtils.applyCarpetProtocolHitVec;
@@ -59,7 +62,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 //#if MC >= 12001
     //#if MC > 12105
-    import net.minecraft.util.PlayerInput;
+    //$$ import net.minecraft.util.PlayerInput;
     //#endif
 //#else
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
@@ -113,8 +116,8 @@ public class Printer extends PrinterUtils {
             if(box == null || box.getPos1() == null || box.getPos2() == null || pos == null) return false;
             net.minecraft.util.math.Box box1 = new MyBox(box);
             box1 = box1.expand(p);
-            //因为麻将的Box.contains方法内部用的 x >= this.minX && x < this.maxX ... 使得最小边界能被覆盖，但是最大边界不行
-            //因此 我重写了该方法
+            //因为麻将的Box.contains方法内部用的 x >= this.minX && x < this.maxX ... 最小边界能被覆盖，但是最大边界不行
+            //因此 重写了该方法
             return box1.contains(Vec3d.of(pos));
         }
     }
@@ -129,14 +132,6 @@ public class Printer extends PrinterUtils {
     public final Queue queue;
 
     public static int tick = 0;
-
-    public static void init(MinecraftClient client) {
-        if (client == null || client.player == null || client.world == null) {
-            return;
-        }
-        INSTANCE = new Printer(client);
-
-    }
 
     public static @NotNull Printer getPrinter() {
         if (INSTANCE == null) {
@@ -177,7 +172,7 @@ public class Printer extends PrinterUtils {
         myBox.yIncrement = !yDegression;
         myBox.initIterator();
         Iterator<BlockPos> iterator = myBox.iterator;
-        while (iterator.hasNext()) {
+        while (!timedOut() && iterator.hasNext()) {
             BlockPos pos = iterator.next();
             IConfigOptionListEntry optionListValue = LitematicaMixinMod.RANGE_MODE.getOptionListValue();
             if (optionListValue == State.ListType.SPHERE && !basePos.isWithinDistance(pos,range1)) {
@@ -191,81 +186,111 @@ public class Printer extends PrinterUtils {
 
     //根据当前毫秒值判断是否超出了屏幕刷新率
     boolean timedOut() {
-        //不太好限制 如果帧率低于显示器刷新率就不会运行
-//        return (((AccessorMinecraftClient) client).getCurrentFps() < maximumFrameRate - 5 && ((AccessorMinecraftClient) client).getCurrentFps() < 30) ||
         return System.currentTimeMillis() > printTimedOut + startTime;
     }
+    public class ItemConfig {
+        public ItemConfig(List<Item> itemList, boolean holdRequired) {
+            this.itemList = itemList;
+            this.holdRequired = holdRequired;
+        }
 
-    public static HashSet<Item> replaceTargetBlockList = new HashSet<>();
-    public static HashSet<Block> replaceOriginBlockList = new HashSet<>();
-    public static HashSet<BlockPos> replaceTargetBlockPosList = new HashSet<>();
+        public List<Item> itemList;
+        public boolean holdRequired;
+    }
+
+    public HashMap<List<String>, ItemConfig> replaceTaskMap = new HashMap<>();
+    public BlockPos replacePos = null;
 
     public void initReplaceTask(){
         List<String> replaceTaskList = LitematicaMixinMod.FLUID_BLOCK_LIST.getStrings();
         if (replaceTaskList.isEmpty()) return;
-        String[] originBlock = new String[]{};
-        String[] newBlock = new String[]{};
-        // replaceTaskList 元素格式案例 minecraft:stone|minecraft:dirt > minecraft:grass_block
+        // replaceTaskList 元素格式案例 minecraft:stone|minecraft:dirt => minecraft:grass_block
         for (String replace : replaceTaskList) {
+            if (replace.length() < 2 || "//".equals(replace.substring(0,2))) continue;
+            boolean holdRequired = false;
+            if (replace.length() > 2 && "&&".equals(replace.substring(0,2))) {
+                holdRequired = true;
+                replace = replace.substring(2);
+            }
             String[] split = replace.replaceAll("\\s","").split("=>|->");
             if(split.length > 2) continue;
-            originBlock = split[0].split("\\|");
-            newBlock = split[1].split("\\|");
+            String[] originBlock = split[0].split("\\|");
+            String[] newBlock = split[1].split("\\|");
+
+            replaceTaskMap.put(new ArrayList<>(List.of(originBlock)),new ItemConfig(Registries.ITEM.stream().filter(item ->
+                    Arrays.stream(newBlock).anyMatch(targetBlockName -> equalsItemName(targetBlockName, new ItemStack(item)))).toList(),holdRequired));
         }
 
-        if (replaceOriginBlockList.isEmpty()) {
-            for (String itemName : originBlock) {
-                List<Block> list = Registries.BLOCK.stream().filter(block -> equalsItemName(itemName,new ItemStack(block))).toList();
-                replaceOriginBlockList.addAll(list);
-            }
-        }
-
-        if(replaceTargetBlockList.isEmpty()){
-            for (String itemName : newBlock) {
-                List<Item> list = Registries.ITEM.stream().filter(item -> equalsItemName(itemName,new ItemStack(item))).toList();
-                replaceTargetBlockList.addAll(list);
-            }
-        }
     }
 
     public void replaceMode() {
-        if (replaceOriginBlockList.isEmpty()) initReplaceTask();
+        if (replaceTaskMap.isEmpty()) initReplaceTask();
 
-        Item[] array = replaceTargetBlockList.toArray(new Item[0]);
-        Iterator<Item> targetIterator = replaceTargetBlockList.iterator();
-        Iterator<Block> originIterator = replaceOriginBlockList.iterator();
-        Iterator<BlockPos> blockPosIterator = replaceTargetBlockPosList.iterator();
         BlockPos pos;
-        while ((pos = getBlockPos2()) != null && client.world != null && client.player != null) {
+        while ((pos = replacePos != null ? replacePos : getBlockPos2()) != null && client.world != null && client.player != null) {
             BlockState currentState = client.world.getBlockState(pos);
-            if (client.player != null && !canInteracted(pos)) continue;
-            if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
-            if (isLimitedByTheNumberOfLayers(pos)) continue;
+            if (client.player != null && !canInteracted(pos) || !TempData.xuanQuFanWeiNei_p(pos) || isLimitedByTheNumberOfLayers(pos)) {
+                replacePos = null;
+                continue;
+            }
 //            if (currentState.getFluidState().isOf(Fluids.LAVA) || currentState.getFluidState().isOf(Fluids.WATER)) {
-            for (Block block : replaceOriginBlockList) {
-                if (!currentState.isOf(block)) continue;
-                replaceTargetBlockPosList.add(pos);
-            }
-            for (BlockPos blockPos : replaceTargetBlockPosList) {
-                if (excavateBlock(blockPos) == null) {
-
+            BlockPos finalPos = pos;
+            Predicate<String> findFluid = blockName -> {
+                if (equalsBlockName(blockName, Blocks.WATER) || equalsBlockName(blockName, Blocks.LAVA)) {
+                    if (client.world.getBlockState(finalPos.up()).getFluidState().isEmpty() &&
+                            client.world.getBlockState(finalPos.down()).getFluidState().isEmpty() &&
+                            client.world.getBlockState(finalPos.north()).getFluidState().isEmpty() &&
+                            client.world.getBlockState(finalPos.south()).getFluidState().isEmpty() &&
+                            client.world.getBlockState(finalPos.east()).getFluidState().isEmpty() &&
+                            client.world.getBlockState(finalPos.west()).getFluidState().isEmpty()) {
+                        return true;
+                    }
                 }
-            }
+                return false;
+            };
 
-            if (!switchToItems(client.player, array)) {
-                remoteItem.addAll(replaceTargetBlockList);
-                return;
-            }
-            if (originIterator.hasNext() && currentState.isOf(originIterator.next())) {
+            // map中的k是源方块名，v是目标方块
+            boolean b = replaceTaskMap.entrySet().stream().anyMatch(entry -> {
+                for (String blockName : entry.getKey()) {
+                    // 为排流体破坏多余方块特殊处理
+                    if (equalsBlockName(blockName, currentState, finalPos) && entry.getKey().stream().filter(name -> !blockName.equals(name)).anyMatch(findFluid::test)) {
+                        if(excavateBlock(finalPos) == null){
+                            replacePos = finalPos;
+                            return true;
+                        }
+                        replacePos = null;
+                    }
 
-                replaceTargetBlockPosList.add(pos);
+                    if ((!entry.getValue().holdRequired || entry.getValue().itemList.stream().anyMatch(item -> hasItem(item))) &&
+                            ("all".equals(blockName) || equalsBlockName(blockName, currentState, finalPos)) &&
+                            entry.getValue().itemList.stream().noneMatch(item -> equalsBlockName(item.getName().getString(), currentState, finalPos))) {
+                        if (((Predicate<List<Item>>) items -> {
+                            if (excavateBlock(finalPos) == null) {
+                                replacePos = finalPos;
+                                return true;
+                            }
+                            replacePos = null;
 
-                ((IClientPlayerInteractionManager) client.interactionManager).rightClickBlock(pos, Direction.UP, Vec3d.ofCenter(pos));
-                if (tickRate == 0) {
-                    continue;
+                            if (items.stream().noneMatch(item -> item.equals(Items.AIR))) {
+                                // 要么不是流体，要么是源
+                                if ((currentState.getFluidState().isEmpty() || currentState.getFluidState().isStill()) &&
+                                        Printer.this.switchToItems(client.player, items.toArray(new Item[0]))) {
+                                    ((IClientPlayerInteractionManager) client.interactionManager).rightClickBlock(finalPos, Direction.UP, Vec3d.ofCenter(finalPos));
+                                } else {
+                                    remoteItem.addAll(items);
+                                    return true;
+                                }
+                            }
+                            return false;
+                        }).test(entry.getValue().itemList)) return true;
+                    }
+                    replacePos = null;
                 }
-                return;
-            }
+                return false;
+            });
+            if (b) return;
+            if (tickRate == 0) continue;
+            return;
         }
     }
 
@@ -318,25 +343,23 @@ public class Printer extends PrinterUtils {
 
     static BlockPos breakTargetBlock = null;
     static int startTick = -1;
-    //如果返回了pos则表示正在挖掘该方块
+    //如果返回了null则表示正在挖掘该方块
     public static BlockPos excavateBlock(BlockPos pos){
         if (!canInteracted(pos)) {
             breakTargetBlock = null;
             return null;
         }
         //一个游戏刻挖一次就好
-        if(startTick == tick){
+        if (startTick == tick) {
             return null;
-        }else if(breakTargetBlock != null){
-            if (!Printer.waJue(breakTargetBlock)) {
-                BlockPos breakTargetBlock1 = breakTargetBlock;
-                breakTargetBlock = null;
-                return breakTargetBlock1;
-            }
-            else return null;
+        }
+        breakTargetBlock = breakTargetBlock != null ? breakTargetBlock : pos;
+        if (!Printer.waJue(breakTargetBlock)) {
+            BlockPos breakTargetBlock1 = breakTargetBlock;
+            breakTargetBlock = null;
+            return breakTargetBlock1;
         }
         startTick = tick;
-        breakTargetBlock = pos;
         return null;
     }
 
@@ -803,7 +826,7 @@ public class Printer extends PrinterUtils {
 //            hitModifier = new Vec3d(hitModifier.x, hitModifier.y, hitModifier.z);
             Vec3d hitVec = hitModifier;
             if(!termsOfUse){
-                hitModifier = hitModifier.rotateY((direction.getPositiveHorizontalDegrees() + 90) % 360);
+                hitModifier = hitModifier.rotateY((direction.asRotation() + 90) % 360);
                  hitVec = Vec3d.ofCenter(target)
                         .add(Vec3d.of(side.getVector()).multiply(0.5))
                         .add(hitModifier.multiply(0.5));
@@ -837,10 +860,10 @@ public class Printer extends PrinterUtils {
 
         public void setShift(ClientPlayerEntity player , boolean shift){
             //#if MC > 12105
-            PlayerInput input = new PlayerInput(player.input.playerInput.forward(), player.input.playerInput.backward(), player.input.playerInput.left(), player.input.playerInput.right(), player.input.playerInput.jump(), shift, player.input.playerInput.sprint());
-            PlayerInputC2SPacket packet = new PlayerInputC2SPacket(input);
+            //$$ PlayerInput input = new PlayerInput(player.input.playerInput.forward(), player.input.playerInput.backward(), player.input.playerInput.left(), player.input.playerInput.right(), player.input.playerInput.jump(), shift, player.input.playerInput.sprint());
+            //$$ PlayerInputC2SPacket packet = new PlayerInputC2SPacket(input);
             //#else
-            //$$ ClientCommandC2SPacket packet = new ClientCommandC2SPacket(player, shift ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY);
+            ClientCommandC2SPacket packet = new ClientCommandC2SPacket(player, shift ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY);
             //#endif
 
             player.networkHandler.sendPacket(packet);

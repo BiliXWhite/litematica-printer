@@ -22,9 +22,9 @@ public class MixinServerWorld {
             TickList list = tickMap.get(s);
             if (!list.world.isChunkLoaded(ChunkPos.toLong(list.pos))) {
                 //#if MC > 12104
-                list.world.shouldTickBlockPos(list.pos);
+                //$$ list.world.shouldTickBlockPos(list.pos);
                 //#else
-                //$$ list.world.shouldTick(list.pos);
+                list.world.shouldTick(list.pos);
                 //#endif
             }
 //            BlockState state =  list.state;

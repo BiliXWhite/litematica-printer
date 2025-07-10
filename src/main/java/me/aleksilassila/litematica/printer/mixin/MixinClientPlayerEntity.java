@@ -1,20 +1,13 @@
 package me.aleksilassila.litematica.printer.mixin;
 
-import com.mojang.authlib.GameProfile;
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
-import me.aleksilassila.litematica.printer.printer.UpdateChecker;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,23 +17,15 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.HashMap;
-import java.util.HashSet;
-
-//#if MC == 11902
-//$$ import net.minecraft.network.encryption.PlayerPublicKey;
-//#endif
+import java.util.LinkedHashSet;
 
 //#if MC >= 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-//#else
-//$$ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 //#endif
 
 import static me.aleksilassila.litematica.printer.printer.Printer.isEnablePrinter;
 @Mixin(ClientPlayerEntity.class)
 public class MixinClientPlayerEntity {
-
-
     @Final
 	@Shadow
 	protected MinecraftClient client;
@@ -62,8 +47,7 @@ public class MixinClientPlayerEntity {
 		if(!(isEnablePrinter())){
 			PlacementGuide.posMap = new HashMap<>();
 			printer.basePos = null;
-			Printer.replaceTargetBlockList = new HashSet<>();
-			Printer.replaceOriginBlockList = new HashSet<>();
+			printer.replaceTaskMap = new HashMap<>();
 			return;
 		}
 		if(Printer.up){

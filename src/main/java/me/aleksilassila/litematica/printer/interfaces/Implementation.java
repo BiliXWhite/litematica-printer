@@ -52,7 +52,7 @@ public class Implementation {
                 Implementation.getRequiredPitch(playerEntity, playerShouldBeFacing),
                 playerEntity.isOnGround()
                 //#if MC > 12101
-                ,playerEntity.horizontalCollision
+                //$$ ,playerEntity.horizontalCollision
                 //#endif
         ));
     }
@@ -77,14 +77,14 @@ public class Implementation {
         boolean onGround = ((PlayerMoveC2SPacketAccessor) packet).getOnGround();
         return new PlayerMoveC2SPacket.Full(x, y, z, yaw, pitch, onGround
                 //#if MC > 12101
-                ,playerEntity.horizontalCollision
+                //$$ ,playerEntity.horizontalCollision
                 //#endif
         );
     }
 
     protected static float getRequiredYaw(ClientPlayerEntity playerEntity, Direction playerShouldBeFacing) {
         if (playerShouldBeFacing.getAxis().isHorizontal()) {
-            return playerShouldBeFacing.getPositiveHorizontalDegrees();
+            return playerShouldBeFacing.asRotation();
         } else {
             return Implementation.getYaw(playerEntity);
         }
