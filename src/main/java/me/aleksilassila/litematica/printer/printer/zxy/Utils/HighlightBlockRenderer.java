@@ -127,7 +127,7 @@ public class HighlightBlockRenderer implements IRenderer {
         }
         catch (Exception e)
         {
-            Litematica.logger.error("renderSchematicMismatches: Failed to draw Schematic Mismatches (Step 2) (Error: {})", e.getLocalizedMessage());
+//            Litematica.logger.error("renderSchematicMismatches: Failed to draw Schematic Mismatches (Step 2) (Error: {})", e.getLocalizedMessage());
         }
 
         RenderSystem.enableCull();
