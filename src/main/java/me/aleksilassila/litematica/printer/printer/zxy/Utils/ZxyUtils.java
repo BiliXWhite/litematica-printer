@@ -50,11 +50,16 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.registry.entry.RegistryEntry;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 //#endif
 
 //#if MC <= 12006
 //$$import net.minecraft.enchantment.EnchantmentHelper;
+//#endif
+
+//#if MC >= 12105
+//$$ import com.google.common.primitives.Shorts;
+//$$ import com.google.common.primitives.SignedBytes;
+//$$ import net.minecraft.screen.sync.ItemStackHash;
 //#endif
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_COLOR;
@@ -409,7 +414,11 @@ public class ZxyUtils {
         {
             if (usePacket)
                 mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(sourceSlot));
-            inventory.selectedSlot = sourceSlot;
+            //#if MC > 12101
+            inventory.setSelectedSlot(sourceSlot);
+            //#else
+            //$$ inventory.selectedSlot = sourceSlot;
+            //#endif
         }
         else
         {
@@ -429,7 +438,11 @@ public class ZxyUtils {
             {
                 if (usePacket)
                     mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(hotbarSlot));
-                inventory.selectedSlot = hotbarSlot;
+                //#if MC > 12101
+                inventory.setSelectedSlot(hotbarSlot);
+                //#else
+                //$$ inventory.selectedSlot = hotbarSlot;
+                //#endif
 
                 if (player.isCreative())
                 {
@@ -445,28 +458,56 @@ public class ZxyUtils {
                     if (slot1 != -1) {
                         // 使用数据包或普通点击方式交换槽位中的物品
                         if (usePacket) {
-                            Int2ObjectMap<ItemStack> snapshot = new Int2ObjectOpenHashMap<>();
                             DefaultedList<Slot> slots = player.currentScreenHandler.slots;
                             int totalSlots = slots.size();
                             List<ItemStack> copies = Lists.newArrayListWithCapacity(totalSlots);
                             for (Slot slotItem : slots) {
                                 copies.add(slotItem.getStack().copy());
                             }
+
+                            Int2ObjectMap<
+                                    //#if MC >= 12105
+                                    //$$ ItemStackHash
+                                    //#else
+                                    ItemStack
+                                    //#endif
+                                    > snapshot = new Int2ObjectOpenHashMap<>();
                             for (int j = 0; j < totalSlots; j++) {
                                 ItemStack original = copies.get(j);
                                 ItemStack current = slots.get(j).getStack();
                                 if (!ItemStack.areEqual(original, current)) {
-                                    snapshot.put(j, current.copy());
+                                    snapshot.put(j,
+                                            //#if MC >=12105
+                                            //$$ ItemStackHash.fromItemStack(current, client.getNetworkHandler().method_68823())
+                                            //#else
+                                            current.copy()
+                                            //#endif
+                                    );
                                 }
                             }
+
+                            //#if MC >= 12105
+                            //$$ItemStackHash itemStackHash = ItemStackHash.fromItemStack(player.currentScreenHandler.getCursorStack(), client.getNetworkHandler().method_68823());
+                            //#endif
                             mc.getNetworkHandler().sendPacket(new ClickSlotC2SPacket(
                                     player.playerScreenHandler.syncId,
                                     player.currentScreenHandler.getRevision(),
+                                    //#if MC >= 12105
+                                    //$$ Shorts.checkedCast((long)slot1),
+                                    //$$ SignedBytes.checkedCast((long)hotbarSlot),
+                                    //#else
                                     slot1,
                                     hotbarSlot,
+                                    //#endif
                                     SlotActionType.SWAP,
+                                    //#if MC >= 12105
+                                    //$$ snapshot,
+                                    //$$ itemStackHash
+                                    //#else
                                     stack.copy(),
-                                    snapshot));
+                                    snapshot
+                                    //#endif
+                            ));
                         } else {
                             mc.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot1, hotbarSlot, SlotActionType.SWAP, player);
                         }

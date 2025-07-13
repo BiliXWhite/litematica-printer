@@ -696,7 +696,11 @@ public class Printer extends PrinterUtils {
                         c = (targetSlot == -1 ? c : targetSlot);
                         ZxyUtils.switchPlayerInvToHotbarAir(c);
                         fi.dy.masa.malilib.util.InventoryUtils.swapSlots(sc, y, c);
-                        inv.selectedSlot = c;
+                        //#if MC > 12101
+                        inv.setSelectedSlot(c);
+                        //#else
+                        //$$inv.selectedSlot = c;
+                        //#endif
                         player.closeHandledScreen();
                         if (shulkerBoxSlot != -1) {
                             client.interactionManager.clickSlot(sc.syncId, shulkerBoxSlot, 1, SlotActionType.PICKUP, client.player);

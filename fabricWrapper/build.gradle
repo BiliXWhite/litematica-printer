@@ -107,8 +107,9 @@ java {
 publishing {
     publications {
         register("mavenJava", MavenPublication) {
+            groupId("${project.mod_maven_group}")
             artifactId("${project.mod_id}")
-            version("${rootProject.getMavenArtifactVersion()}")
+            version("all-" + version)
             from(components.java)
         }
     }
