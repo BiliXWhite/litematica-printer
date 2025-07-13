@@ -13,19 +13,9 @@ int mcVersion = 1
 
 preprocess {
     mcVersion = vars.get().get("MC")
-    tabIndentation.set(false)
 }
 
 repositories {
-
-    // 国内镜像源
-
-    maven { url = "https://maven.aliyun.com/repository/public" }
-    maven { url = "https://maven.aliyun.com/repository/google" }
-    maven { url = "https://maven.aliyun.com/repository/gradle-plugin" }
-    maven { url = "https://mirrors.huaweicloud.com/repository/maven/" }
-    maven { url = "https://repository.hanbings.io/proxy" }
-
     // 海外源
     maven { url = "https://masa.dy.fi/maven" }
     maven { url = "https://www.cursemaven.com" }
@@ -116,8 +106,8 @@ def mod_dependencies = [
 //        ["red.jackf:whereisit"                                  , "whereisit",          mcVersion >= 12001 ? 1 : 0],
 //        ["maven.modrinth:yacl"                                  , "yacl",               mcVersion >= 12001 ? 1 : 0],
         [getSbYacl()                                            , "yacl",               mcVersion >= 12001 ? 1 : 0],
-        ["maven.modrinth:chest-tracker"                         , "chesttracker",       1],
-        ["maven.modrinth:where-is-it"                           , "whereisit",          1],
+        ["maven.modrinth:chest-tracker", "chesttracker", mcVersion < 12105 ? 1 : 4],   //TODO 箱子追踪未更新21.5
+        ["maven.modrinth:where-is-it", "whereisit", mcVersion < 12105 ? 1 : 4],
         ["red.jackf.jackfredlib:jackfredlib"                    , "jackfredlib",        mcVersion >= 12001 ? 1 : 0],
         ["com.blamejared.searchables"                           , "searchables",        mcVersion >= 12001 ? 1 : 0],
         ["maven.modrinth:modmenu"                               , "modmenu",            1],
@@ -135,7 +125,7 @@ String getSbYacl(){
 
 dependencies {
     //拼音
-    implementation include("com.belerweb:pinyin4j:${project.pinyin_verson}")
+    implementation include("com.belerweb:pinyin4j:${project.pinyin_version}")
 
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -297,6 +287,7 @@ java {
 
 
 processResources {
+    outputs.upToDateWhen { false }
 
     from("${rootDir}/LICENSE")
 
@@ -335,7 +326,7 @@ publishing {
     publications {
         register("mavenJava", MavenPublication) {
             artifactId("${project.mod_id}-${project.minecraft_version.replace(".", "_")}")
-            version("${rootProject.getMavenArtifactVersion()}")
+            version("${project.minecraft_version}-" + version)
             from(components.java)
         }
     }

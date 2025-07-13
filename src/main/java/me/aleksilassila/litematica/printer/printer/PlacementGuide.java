@@ -339,7 +339,7 @@ public class PlacementGuide extends PrinterUtils {
             case VINES, GLOW_LICHEN -> {
                 for (Direction direction : Direction.values()) {
                     if (direction == Direction.DOWN && requiredState.getBlock() == Blocks.VINE) continue;
-                    if ((Boolean) getPropertyByName(requiredState, direction.getName())) {
+                    if ((Boolean) getPropertyByName(requiredState, direction.name())) {
                         return new Action().setSides(direction).setLookDirection(direction);
                     }
                 }
@@ -565,7 +565,7 @@ public class PlacementGuide extends PrinterUtils {
             case VINES, GLOW_LICHEN -> {
                 for (Direction direction : Direction.values()) {
                     if (direction == Direction.DOWN) continue;
-                    if ((Boolean) getPropertyByName(requiredState, direction.getName())) {
+                    if ((Boolean) getPropertyByName(requiredState, direction.name())) {
                         return new Action().setSides(direction).setLookDirection(direction);
                     }
                 }

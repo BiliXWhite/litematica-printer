@@ -61,8 +61,11 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInve
 //#endif
 public class OpenInventoryPacket {
 
-    private static final ChunkTicketType<ChunkPos> OPEN_TICKET =
-            ChunkTicketType.create("openInv", Comparator.comparingLong(ChunkPos::toLong), 2);
+    //#if MC > 12104
+    //$$ private static final ChunkTicketType OPEN_TICKET = ChunkTicketType.UNKNOWN;
+    //#else
+    private static final ChunkTicketType<ChunkPos> OPEN_TICKET = ChunkTicketType.create("openInv", Comparator.comparingLong(ChunkPos::toLong), 2);
+    //#endif
     public static HashMap<ServerPlayerEntity, TickList> tickMap = new HashMap<>();
     public static boolean openIng = false;
     public static RegistryKey<World> key = null;
@@ -239,7 +242,11 @@ public class OpenInventoryPacket {
         if (world == null) return;
         BlockState blockState = world.getBlockState(pos);
         if (blockState == null) {
+            //#if MC > 12104
+            //$$ world.getChunkManager().addTicket(OPEN_TICKET, new ChunkPos(pos), 2);
+            //#else
             world.getChunkManager().addTicket(OPEN_TICKET, new ChunkPos(pos), 2, new ChunkPos(pos));
+            //#endif
         }
         playerlist.add(player);
         if (blockState == null) return;

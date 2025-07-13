@@ -1,19 +1,13 @@
 plugins {
     id("maven-publish")
-    id("fabric-loom").version("1.7-SNAPSHOT").apply(false)
+    id("fabric-loom").version("1.11-SNAPSHOT").apply(false)
     id("org.ajoberstar.grgit").version("5.2.0")
-    id("com.replaymod.preprocess").version("ce1aeb2b")
+    id("com.replaymod.preprocess").version("9d21b334a7")
 
 }
 
 preprocess {
-//    def mc11404 = createNode("1.14.4", 1_14_04, "mojang")
-//    def mc11502 = createNode("1.15.2", 1_15_02, "mojang")
-//    def mc11605 = createNode("1.16.5", 1_16_05, "mojang")
-//    def mc11701 = createNode("1.17.1", 1_17_01, "mojang")
     def mc11802 = createNode("1.18.2", 1_18_02, "mojang")
-//    def mc11902 = createNode("1.19.2", 1_19_02, "mojang")
-//    def mc11903 = createNode("1.19.3", 1_19_03, "mojang")
     def mc11904 = createNode("1.19.4", 1_19_04, "mojang")
     def mc12001 = createNode("1.20.1", 1_20_01, "mojang")
     def mc12002 = createNode("1.20.2", 1_20_02, "mojang")
@@ -21,68 +15,21 @@ preprocess {
     def mc12006 = createNode("1.20.6", 1_20_06, "mojang")
     def mc12101 = createNode("1.21.1", 1_21_01, "mojang")
     def mc12104 = createNode("1.21.4", 1_21_04, "mojang")
+    def mc12105 = createNode("1.21.5", 1_21_05, "mojang")
+    //def mc12106 = createNode("1.21.6", 1_21_06, "mojang")
 
-//    mc11404.link(mc11502, null)
-//    mc11502.link(mc11605, null)
-//    mc11605.link(mc11701, null)
-//    mc11701.link(mc11802, null)
     mc11802.link(mc11904,file("versions/mapping-1.18.2-1.19.4.txt"))
-////    mc11902.link(mc11903, null)
-////    mc11903.link(mc11904, null)
     mc11904.link(mc12001, file("versions/mapping-1.19.4-1.20.1.txt"))
     mc12001.link(mc12002, file("versions/mapping-1.20.1-1.20.2.txt"))
     mc12002.link(mc12004, file("versions/mapping-1.20.2-1.20.4.txt"))
     mc12004.link(mc12006, file("versions/mapping-1.20.4-1.20.6.txt"))
     mc12006.link(mc12101, file("versions/mapping-1.20.6-1.21.1.txt"))
     mc12101.link(mc12104, file("versions/mapping-1.21.1-1.21.4.txt"))
+    mc12104.link(mc12105, file("versions/mapping-1.21.4-1.21.5.txt"))
+    //mc12105.link(mc12106, file("versions/mapping-1.21.5-1.21.6.txt"))
+
+    strictExtraMappings.set(false)
 }
-
-ext {
-    env = System.getenv()
-
-    getVersionGit = { List paths ->
-        if (grgit == null) {
-            return "nogit"
-        }
-
-        List latestCommits = paths.isEmpty() ? grgit.log(maxCommits: 1) : grgit.log(paths: paths, maxCommits: 1)
-        return latestCommits.isEmpty() ? "uncommited" : "${latestCommits.get(0).id.substring(0, 7)}"
-    }
-
-    getBuildNumber = {
-        return ext.env.GITHUB_RUN_NUMBER ? ext.env.GITHUB_RUN_NUMBER : Integer.MAX_VALUE
-    }
-
-    getVersionType = {
-        switch (ext.env.BUILD_TYPE) {
-            case "RELEASE":
-                return "stable"
-            case "BETA":
-                return "beta"
-            default:
-                return "dev"
-        }
-    }
-
-    getVersionPatch = { List paths ->
-        if (grgit == null) {
-            return 0
-        }
-
-        List latestCommits = paths.isEmpty() ? grgit.log() : grgit.log(paths: paths)
-        return latestCommits.size()
-    }
-
-    getMavenArtifactVersion = {
-        return ext.getVersionType() == "stable" ? "${project.mod_version}.${ext.getVersionPatch([])}" : project.version
-    }
-
-    getModVersion = {
-        return "${project.mod_version}.${getVersionPatch([])}+${getVersionGit([])}-${getVersionType()}"
-    }
-}
-
-setVersion(project.getModVersion())
 
 tasks.register("cleanPreprocessSources") {
     it.group("${project.mod_id}")

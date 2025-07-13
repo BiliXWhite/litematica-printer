@@ -34,7 +34,11 @@ public class PrintWater {
             if((stack.isOf(Items.DIAMOND_PICKAXE)||
                     stack.isOf(Items.NETHERITE_PICKAXE)) &&
                     !(getEnchantmentLevel(stack,Enchantments.SILK_TOUCH) > 0)){
-                player.getInventory().selectedSlot = i-36;
+                //#if MC > 12101
+                player.getInventory().setSelectedSlot(i-36);
+                //#else
+                //$$ player.getInventory().selectedSlot = i-36;
+                //#endif
                 return;
             }
         }

@@ -1,4 +1,4 @@
-> [!WARNING]  
+> [!TIPS]  
 > 该README正在重构，目前的内容可能不完整或有误。请耐心等待更新或者Pull Request以贡献这个项目。
 
 Litematica Printer

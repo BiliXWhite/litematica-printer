@@ -38,7 +38,10 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //$$ import net.minecraft.text.LiteralText;
 //#else
 import net.minecraft.text.Text;
+//#endif
 
+//#if MC >= 12105
+//$$ import java.net.URI;
 //#endif
 @Mixin(ClientPlayerEntity.class)
 public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
@@ -92,12 +95,20 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 										"仓库地址：")
 								.append(Text.literal("https://github.com/BiliXWhite/litematica-printer\n")
 										.setStyle(Style.EMPTY
+												//#if MC >= 12105
+												//$$.withClickEvent(new ClickEvent.OpenUrl(URI.create("https://github.com/BiliXWhite/litematica-printer")))
+												//#else
 												.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/BiliXWhite/litematica-printer"))
+												//#endif
 												.withUnderline(true)
 												.withColor(Formatting.BLUE)))
 								.append(Text.literal(">>点击此处获取最新版本<<\n")
 										.setStyle(Style.EMPTY
+												//#if MC >= 12105
+												//$$.withClickEvent(new ClickEvent.OpenUrl(URI.create("https://xeno.lanzoue.com/b00l1v20vi")))
+												//#else
 												.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi"))
+												//#endif
 												.withUnderline(true)
 												.withColor(Formatting.GREEN)))
 								.append("密码:cgxw"));
