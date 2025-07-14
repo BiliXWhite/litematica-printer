@@ -101,7 +101,7 @@ public class Printer extends PrinterUtils {
     static int tick = 0;
     static BlockPos breakTargetBlock = null;
     static int startTick = -1;
-    static Map<BlockPos, Integer> skipPosMap = new HashMap<>();
+    static Map<BlockPos, Integer> placeCooldownList = new HashMap<>();
     static int shulkerBoxSlot = -1;
     static ItemStack yxcfItem; //有序存放临时存储
     private static Printer INSTANCE = null;
@@ -109,14 +109,14 @@ public class Printer extends PrinterUtils {
     public static int swapSlotDelay = 0;
 
     @NotNull
-    public final MinecraftClient client;
+    public static final MinecraftClient client = MinecraftClient.getInstance();
     public final PlacementGuide guide;
     public final Queue queue;
     //强制循环半径
     public BlockPos basePos = null;
     public MyBox myBox;
     int printRange;
-    boolean yDegression = false;
+    boolean yReverse = false;
     BlockPos tempPos = null;
     int tickRate;
     List<String> fluidBlocklist;
@@ -128,7 +128,6 @@ public class Printer extends PrinterUtils {
     public static boolean updateChecked = false;
 
     private Printer(@NotNull MinecraftClient client) {
-        this.client = client;
 
         this.guide = new PlacementGuide(client);
         this.queue = new Queue(this);
@@ -138,13 +137,12 @@ public class Printer extends PrinterUtils {
 
     public static @NotNull Printer getPrinter() {
         if (INSTANCE == null) {
-            INSTANCE = new Printer(ZxyUtils.client);
+            INSTANCE = new Printer(client);
         }
         return INSTANCE;
     }
 
     public static boolean waJue(BlockPos pos) {
-        MinecraftClient client = MinecraftClient.getInstance();
         ClientWorld world = client.world;
         BlockState currentState = world.getBlockState(pos);
         Block block = currentState.getBlock();
@@ -157,7 +155,6 @@ public class Printer extends PrinterUtils {
     }
 
     public static boolean canBreakBlock(BlockPos pos) {
-        MinecraftClient client = ZxyUtils.client;
         ClientWorld world = client.world;
         BlockState currentState = world.getBlockState(pos);
         return !currentState.isAir() &&
@@ -265,14 +262,11 @@ public class Printer extends PrinterUtils {
             basePos = null;
             return null;
         }
-
-        myBox.yIncrement = !yDegression;
         myBox.initIterator();
-
-        // 根据玩家面向来选择迭代器的顺序
-        myBox.setIterateZFirst(
-                player.getHorizontalFacing().getAxis() == (VERTICAL_ITERATION.getBooleanValue() ? Direction.Axis.Z : Direction.Axis.X)
-        );
+        myBox.setIterationMode(ITERATION_ORDER.getOptionListValue());
+        myBox.xIncrement = !X_REVERSE.getBooleanValue();
+        myBox.yIncrement = !Y_REVERSE.getBooleanValue() || yReverse;
+        myBox.zIncrement = !Z_REVERSE.getBooleanValue();
 
         Iterator<BlockPos> iterator = myBox.iterator;
 
@@ -304,8 +298,8 @@ public class Printer extends PrinterUtils {
             }
 
             // 跳过冷却中的位置
-            if (skipPosMap.containsKey(pos)) continue;
-            skipPosMap.put(pos, 0);
+            if (placeCooldownList.containsKey(pos)) continue;
+            placeCooldownList.put(pos, 0);
 
             BlockState currentState = client.world.getBlockState(pos);
             if (currentState.getFluidState().isOf(Fluids.LAVA) || currentState.getFluidState().isOf(Fluids.WATER)) {
@@ -342,8 +336,8 @@ public class Printer extends PrinterUtils {
             }
 
             // 跳过冷却中的位置
-            if (skipPosMap.containsKey(pos)) continue;
-            skipPosMap.put(pos, 0);
+            if (placeCooldownList.containsKey(pos)) continue;
+            placeCooldownList.put(pos, 0);
 
             var currentState = client.world.getBlockState(pos);
             if (currentState.isAir() || (currentState.getBlock() instanceof FluidBlock) || REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> equalsBlockName(s, currentState))) {
@@ -461,24 +455,16 @@ public class Printer extends PrinterUtils {
             swapSlotDelay--;
         }
 
-        // 优化 tick 方法，减少帧率波动
-        if (!LitematicaMixinMod.PUT_SKIP.getBooleanValue()) {
-            skipPosMap.clear(); // 如果未开启 PUT_SKIP，直接清理 skipPosMap，避免不必要的开销
-        }
-
-        // 优化 skipPosMap 的更新逻辑
-        ArrayList<BlockPos> deletePosList = new ArrayList<>();
-        for (Map.Entry<BlockPos, Integer> entry : skipPosMap.entrySet()) {
-            BlockPos k = entry.getKey();
-            Integer v = entry.getValue();
-            int newValue = v + 1;
+        Iterator<Map.Entry<BlockPos, Integer>> iterator = placeCooldownList.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<BlockPos, Integer> entry = iterator.next();
+            int newValue = entry.getValue() + 1;
             if (newValue >= PUT_COOLING.getIntegerValue()) {
-                deletePosList.add(k);
+                iterator.remove();
             } else {
-                skipPosMap.put(k, newValue);
+                entry.setValue(newValue);
             }
         }
-        deletePosList.forEach(skipPosMap::remove);
     }
 
     public void tick() {
@@ -500,7 +486,6 @@ public class Printer extends PrinterUtils {
         if (compulsionRange != printRange) {
             printRange = compulsionRange;
         }
-        yDegression = false;
 
         // 优先执行队列中的点击操作
         if (tickRate != 0) {
@@ -527,7 +512,7 @@ public class Printer extends PrinterUtils {
         if (modeOption.equals(State.ModeType.MULTI)) {
             boolean multiBreak = MULTI_BREAK.getBooleanValue();
             if (LitematicaMixinMod.EXCAVATE.getBooleanValue()) {
-                yDegression = true;
+                yReverse = true;
                 miningMode();
                 if (multiBreak) return;
             }
@@ -543,7 +528,7 @@ public class Printer extends PrinterUtils {
                 && modeType != PRINTER) {
             switch (modeType) {
                 case MINING -> {
-                    yDegression = true;
+                    yReverse = true;
                     miningMode();
                 }
                 case FLUID -> fluidMode();
@@ -558,7 +543,7 @@ public class Printer extends PrinterUtils {
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
             // 跳过冷却中的位置
-            if (skipPosMap.containsKey(pos)) continue;
+            if (placeCooldownList.containsKey(pos)) continue;
             // 渲染层范围判断（先判断是否在渲染层范围内，再判断是否为图纸方块，减少不必要的判断）
             if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
             if (!isSchematicBlock(pos)) continue;
@@ -575,7 +560,9 @@ public class Printer extends PrinterUtils {
                     continue;
                 }
             }
-            skipPosMap.put(pos, 0);
+
+            // 放置冷却
+            placeCooldownList.put(pos, 0);
             if (usePrecisePlace) {
                 easyPos = pos;
                 WorldUtilsAccessor.doEasyPlaceAction(client);
@@ -899,7 +886,7 @@ public class Printer extends PrinterUtils {
                 //$$));
                 //#endif
             } else {
-                ((IClientPlayerInteractionManager) printerInstance.client.interactionManager)
+                ((IClientPlayerInteractionManager) client.interactionManager)
                         .rightClickBlock(target, side, hitVec);
             }
 

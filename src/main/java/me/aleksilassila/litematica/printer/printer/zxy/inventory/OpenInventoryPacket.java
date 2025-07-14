@@ -3,8 +3,8 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 import fi.dy.masa.malilib.util.StringUtils;
 import io.netty.buffer.Unpooled;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
-import me.aleksilassila.litematica.printer.printer.bedrockUtils.Messager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.BlockState;
@@ -26,6 +26,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
 
 
 //#if MC >= 12001
@@ -45,7 +46,6 @@ import java.util.HashMap;
 
 import static me.aleksilassila.litematica.printer.printer.Printer.isOpenHandler;
 import static me.aleksilassila.litematica.printer.printer.Printer.printerMemorySync;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
 //#if MC > 12004
 import net.minecraft.block.Block;
@@ -60,6 +60,9 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInve
 //$$import net.minecraft.util.Hand;
 //#endif
 public class OpenInventoryPacket {
+
+    @NotNull
+    static MinecraftClient client = MinecraftClient.getInstance();
 
     //#if MC > 12104
     //$$ private static final ChunkTicketType OPEN_TICKET = ChunkTicketType.UNKNOWN;
@@ -164,14 +167,14 @@ public class OpenInventoryPacket {
                     client.execute(() -> openReturn(isOpen,state));
                 }
             } catch (Exception ignored) {
-                Messager.actionBar("服务端回复异常，箱子追踪库存无法更新");
+                ZxyUtils.actionBar("服务端回复异常，箱子追踪库存无法更新");
             }
         });
         ClientPlayNetworking.registerGlobalReceiver(HELLO_REMOTE_INTERACTIONS_ID,(openInventoryPacket,context) -> {
             isRemote = true;
             client.execute(() -> {
                 if (LitematicaMixinMod.AUTO_INVENTORY.getBooleanValue()) {
-                    Messager.actionBar("已自动启用远程交互容器!!!");
+                    ZxyUtils.actionBar("已自动启用远程交互容器!!!");
                     LitematicaMixinMod.INVENTORY.setBooleanValue(true);
                 }
             });
@@ -184,14 +187,14 @@ public class OpenInventoryPacket {
         //$$             client.execute(() -> openReturn(packet.isOpen(), packet.blockState()));
         //$$         });
         //$$     } catch (Exception ignored) {
-        //$$         Messager.actionBar("服务端回复异常，箱子追踪库存无法更新");
+        //$$         ZxyUtils.actionBar("服务端回复异常，箱子追踪库存无法更新");
         //$$     }
         //$$ });
         //$$ ClientPlayNetworking.registerGlobalReceiver(HELLO_REMOTE_INTERACTIONS, (client, playNetworkHandler, packetByteBuf, packetSender) -> {
         //$$     isRemote = true;
         //$$     client.execute(() -> {
         //$$         if (LitematicaMixinMod.AUTO_INVENTORY.getBooleanValue()) {
-        //$$             Messager.actionBar("已自动启用远程交互容器!!!");
+        //$$             ZxyUtils.actionBar("已自动启用远程交互容器!!!");
         //$$             LitematicaMixinMod.INVENTORY.setBooleanValue(true);
         //$$         }
         //$$     });
@@ -329,7 +332,7 @@ public class OpenInventoryPacket {
 
     public static void openReturn(boolean open, BlockState state) {
         if(clientTry){
-            Messager.actionBar("已自动启用远程交互容器!!!");
+            ZxyUtils.actionBar("已自动启用远程交互容器!!!");
             LitematicaMixinMod.INVENTORY.setBooleanValue(true);
             key = null;
             pos = null;
@@ -406,7 +409,7 @@ public class OpenInventoryPacket {
             }
             clientTry = true;
             if(clientTryTime + 3000L < System.currentTimeMillis() && clientTry){
-                Messager.actionBar("已自动关闭远程交互容器");
+                ZxyUtils.actionBar("已自动关闭远程交互容器");
                 LitematicaMixinMod.INVENTORY.setBooleanValue(false);
                 remoteTime = 0;
                 clientTry = false;

@@ -6,6 +6,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPa
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.ShulkerBoxBlock;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
@@ -29,6 +30,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class SearchItem {
+    @NotNull
+    static MinecraftClient client = MinecraftClient.getInstance();
     static AtomicBoolean hasItem = new AtomicBoolean(false);
     static boolean isPrinterMemory = false;
     static Map<Identifier,Map<BlockPos, Memory>> currItems = new LinkedHashMap<>();
@@ -44,8 +47,8 @@ public class SearchItem {
         });
     }
     public static void openInventory(int p){
-        if(currItems.isEmpty() || ZxyUtils.client.player == null)return;
-        ZxyUtils.client.player.closeHandledScreen();
+        if(currItems.isEmpty() || client.player == null)return;
+        client.player.closeHandledScreen();
         final int[] pageFix = {p};
         currItems.forEach((k,v) -> {
             if(OpenInventoryPacket.key!=null || v == null || k == null) return;
@@ -99,7 +102,7 @@ public class SearchItem {
 
     public static Map<BlockPos,Memory> memoriesSearch(Identifier key, ItemStack itemStack, MemoryBankImpl memoryBank) {
         if (key == null || itemStack == null) return null;
-        ClientPlayerEntity player = ZxyUtils.client.player;
+        ClientPlayerEntity player = client.player;
         if (player == null) return null;
         if (memoryBank != null && memoryBank.getMemories() != null &&
                 memoryBank.getMemories().get(key) != null &&

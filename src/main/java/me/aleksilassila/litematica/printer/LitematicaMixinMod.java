@@ -245,10 +245,27 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "延迟检测", true,
             "打印机工作时会检测数据包的接收时间，如果超过20个游戏刻还没收到新数据包，打印机会自动暂停，直到收到数据包后再继续。"
     );
-    public static final ConfigBoolean VERTICAL_ITERATION = new ConfigBoolean(
-            "竖向迭代", false,
-            "开启后，打印顺序会以面向顺序§b竖向§r打印，而不是面向顺序§b横向§r打印。\n" +
-                    "这会使得打印机在打印时更符合部分玩家的习惯。"
+    public static final ConfigOptionList ITERATION_ORDER = new ConfigOptionList(
+            "迭代顺序", State.IterationOrderType.XZY,
+            "打印机遍历方块的顺序。\n" +
+                    "§dXYZ§r：先X轴，后Y轴，最后Z轴\n" +
+                    "§dXZY§r：先X轴，后Z轴，最后Y轴\n" +
+                    "§dYXZ§r：先Y轴，后X轴，最后Z轴\n" +
+                    "§dYZX§r：先Y轴，后Z轴，最后X轴\n" +
+                    "§dZXY§r：先Z轴，后X轴，最后Y轴\n" +
+                    "§dZYX§r：先Z轴，后Y轴，最后X轴"
+    );
+    public static final ConfigBooleanHotkeyed X_REVERSE = new ConfigBooleanHotkeyed(
+            "X轴反向", false, "",
+            "启用后X轴方向的遍历将从大到小进行"
+    );
+    public static final ConfigBooleanHotkeyed Y_REVERSE = new ConfigBooleanHotkeyed(
+            "Y轴反向", false, "",
+            "启用后Y轴方向的遍历将从大到小进行"
+    );
+    public static final ConfigBooleanHotkeyed Z_REVERSE = new ConfigBooleanHotkeyed(
+            "Z轴反向", false, "",
+            "启用后Z轴方向的遍历将从大到小进行"
     );
     //========================================
     //              Hotkeys
@@ -377,3 +394,4 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
         }
     }
 }
+

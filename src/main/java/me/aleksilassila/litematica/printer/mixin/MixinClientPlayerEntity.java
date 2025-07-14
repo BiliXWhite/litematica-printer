@@ -89,45 +89,45 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
             String newVersion = UpdateChecker.getPrinterVersion();
 
             if (!version.equals(newVersion))
-				//#if MC > 11802
-				client.inGameHud.getChatHud().addMessage(
-						Text.literal("投影打印机检测到更新！当前版本: " + version + " 最新版本: " + newVersion + "\n强烈建议更新到最新版本，旧版本可能有一些恶性bug。\n" +
-										"仓库地址：")
-								.append(Text.literal("https://github.com/BiliXWhite/litematica-printer\n")
-										.setStyle(Style.EMPTY
-												//#if MC >= 12105
-												//$$.withClickEvent(new ClickEvent.OpenUrl(URI.create("https://github.com/BiliXWhite/litematica-printer")))
-												//#else
-												.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/BiliXWhite/litematica-printer"))
-												//#endif
-												.withUnderline(true)
-												.withColor(Formatting.BLUE)))
-								.append(Text.literal(">>点击此处获取最新版本<<\n")
-										.setStyle(Style.EMPTY
-												//#if MC >= 12105
-												//$$.withClickEvent(new ClickEvent.OpenUrl(URI.create("https://xeno.lanzoue.com/b00l1v20vi")))
-												//#else
-												.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi"))
-												//#endif
-												.withUnderline(true)
-												.withColor(Formatting.GREEN)))
-								.append("密码:cgxw"));
-				//#else
-				//$$client.inGameHud.getChatHud().addMessage(
-				//$$		new LiteralText("投影打印机检测到更新！当前版本: " + version + " 最新版本: " + newVersion + "\n强烈建议更新到最新版本，旧版本可能有一些恶性bug。\n" +
-				//$$				"仓库地址：")
-				//$$				.append(new LiteralText("https://github.com/BiliXWhite/litematica-printer\n"))
-				//$$				.setStyle(Style.EMPTY
-				//$$						.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/BiliXWhite/litematica-printer"))
-				//$$						.withUnderline(true)
-				//$$						.withColor(Formatting.BLUE))
-				//$$				.append(new LiteralText(">>点击此处获取最新版本<<\n"))
-				//$$				.setStyle(Style.EMPTY
-				//$$						.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi"))
-				//$$						.withUnderline(true)
-				//$$						.withColor(Formatting.GREEN))
-				//$$				.append("密码:cgxw"));
-			    //#endif
+//#if MC > 11802
+				client.inGameHud.getChatHud().addMessage(Text.literal("投影打印机检测到更新！当前版本: " + version + " 最新版本: " + newVersion));
+			client.inGameHud.getChatHud().addMessage(Text.literal("强烈建议更新到最新版本，旧版本可能有一些恶性bug。"));
+			client.inGameHud.getChatHud().addMessage(Text.literal("仓库地址："));
+			client.inGameHud.getChatHud().addMessage(Text.literal("https://github.com/BiliXWhite/litematica-printer")
+					.setStyle(Style.EMPTY
+							//#if MC >= 12105
+							//$$.withClickEvent(new ClickEvent.OpenUrl(URI.create("https://github.com/BiliXWhite/litematica-printer")))
+							//#else
+							.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/BiliXWhite/litematica-printer"))
+							//#endif
+							.withUnderline(true)
+							.withColor(Formatting.BLUE)));
+			client.inGameHud.getChatHud().addMessage(Text.literal(">>点击此处获取最新版本<<")
+					.setStyle(Style.EMPTY
+							//#if MC >= 12105
+							//$$.withClickEvent(new ClickEvent.OpenUrl(URI.create("https://xeno.lanzoue.com/b00l1v20vi")))
+							//#else
+							.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi"))
+							//#endif
+							.withBold(true)
+							.withColor(Formatting.GREEN)));
+			client.inGameHud.getChatHud().addMessage(Text.literal("密码:cgxw"));
+//#else
+//$$client.inGameHud.getChatHud().addMessage(new LiteralText("投影打印机检测到更新！当前版本: " + version + " 最新版本: " + newVersion));
+//$$client.inGameHud.getChatHud().addMessage(new LiteralText("强烈建议更新到最新版本，旧版本可能有一些恶性bug。"));
+//$$client.inGameHud.getChatHud().addMessage(new LiteralText("仓库地址："));
+//$$client.inGameHud.getChatHud().addMessage(new LiteralText("https://github.com/BiliXWhite/litematica-printer")
+//$$        .setStyle(Style.EMPTY
+//$$                .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/BiliXWhite/litematica-printer"))
+//$$                .withUnderline(true)
+//$$                .withColor(Formatting.BLUE)));
+//$$client.inGameHud.getChatHud().addMessage(new LiteralText(">>点击此处获取最新版本<<")
+//$$        .setStyle(Style.EMPTY
+//$$                .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi"))
+//$$                .withBold(true)
+//$$                .withColor(Formatting.GREEN)));
+//$$client.inGameHud.getChatHud().addMessage(new LiteralText("密码:cgxw"));
+//#endif
         }).start();
 	}
 }
