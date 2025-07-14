@@ -4,12 +4,12 @@ import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.client.MinecraftClient;
 
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import me.aleksilassila.litematica.printer.printer.State;
-import me.aleksilassila.litematica.printer.printer.bedrockUtils.Messager;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 
 //#if MC >= 12001
@@ -49,7 +49,7 @@ public class HotkeysCallback implements IHotkeyCallback {
         }else if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE) && key == SWITCH_PRINTER_MODE.getKeybind()){
             IConfigOptionListEntry cycle = PRINTER_MODE.getOptionListValue().cycle(true);
             PRINTER_MODE.setOptionListValue(cycle);
-            Messager.actionBar(PRINTER_MODE.getOptionListValue().getDisplayName());
+            ZxyUtils.actionBar(PRINTER_MODE.getOptionListValue().getDisplayName());
         }else if(key == PRINTER_INVENTORY.getKeybind()){
             startAddPrinterInventory();
             return true;

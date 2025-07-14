@@ -34,13 +34,14 @@ public class Configs implements IConfigHandler {
         list.add(COMPULSION_RANGE);
         list.add(PUT_COOLING);
         list.add(PLACE_USE_PACKET);
-        if (PLACE_USE_PACKET.getBooleanValue())
         list.add(RENDER_PROGRESS);
         list.add(QUICK_SHULKER);
         if (QUICK_SHULKER.getBooleanValue()) list.add(QUICK_SHULKER_COOLING);
         list.add(LAG_CHECK);
-        list.add(VERTICAL_ITERATION);
-        //list.add(RANGE_MODE);
+        list.add(ITERATION_ORDER);
+        list.add(X_REVERSE);
+        list.add(Y_REVERSE);
+        list.add(Z_REVERSE);
         list.add(MODE_SWITCH);
         if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)) list.add(PRINTER_MODE);
         else list.add(MULTI_BREAK);

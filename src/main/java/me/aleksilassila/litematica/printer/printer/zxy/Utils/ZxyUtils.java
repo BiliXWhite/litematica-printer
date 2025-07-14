@@ -61,6 +61,12 @@ import net.minecraft.registry.entry.RegistryEntry;
 //$$ import com.google.common.primitives.SignedBytes;
 //$$ import net.minecraft.screen.sync.ItemStackHash;
 //#endif
+
+//#if MC > 11802
+import net.minecraft.text.MutableText;
+//#else
+//$$ import net.minecraft.text.TranslatableText;
+//#endif
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_COLOR;
 import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.getEmptyPickBlockableHotbarSlot;
@@ -77,7 +83,7 @@ public class ZxyUtils {
     public static int currWorldId = 0;
 
     @NotNull
-    public static MinecraftClient client = MinecraftClient.getInstance();
+    static MinecraftClient client = MinecraftClient.getInstance();
     public static LinkedList<BlockPos> invBlockList = new LinkedList<>();
     public static boolean printerMemoryAdding = false;
     @SuppressWarnings("unused")
@@ -115,8 +121,6 @@ public class ZxyUtils {
                     //#endif
                     closeScreen++;
                     OpenInventoryPacket.sendOpenInventory(pos, client.world.getRegistryKey());
-//                    ((IClientPlayerInteractionManager) client.interactionManager)
-//                            .rightClickBlock(pos,Direction.UP ,new Vec3d(pos.getX(), pos.getY(), pos.getZ()) );
                 }
                 invBlockList.remove(pos);
                 highlightPosList.remove(pos);
@@ -521,6 +525,15 @@ public class ZxyUtils {
                 InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");
             }
         }
+    }
+
+    public static void actionBar(String message){
+        //#if MC > 11802
+        MutableText translatable = Text.translatable(message);
+        //#else
+        //$$ TranslatableText translatable = new TranslatableText(message);
+        //#endif
+        client.inGameHud.setOverlayMessage(translatable,false);
     }
 
     //右键单击

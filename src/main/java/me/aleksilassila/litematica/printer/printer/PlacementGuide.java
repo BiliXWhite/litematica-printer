@@ -626,9 +626,6 @@ public class PlacementGuide extends PrinterUtils {
         CRAFTER(CrafterBlock.class), // 合成器
         //#endif
         CHEST(ChestBlock.class), // 箱子
-        FACING_BLOCK(FacingBlock.class, DispenserBlock.class, BarrelBlock.class), // 六面朝向方块
-        HORIZONTAL_FACING_BLOCK(HorizontalFacingBlock.class), // 水平朝向方块
-        WALL_MOUNTED_BLOCK(WallMountedBlock.class), // 墙上挂载方块
 
         // 点击
         FLOWER_POT(FlowerPotBlock.class), // 花盆

@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.malilib.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -12,6 +13,7 @@ import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,9 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
-
 public class SwitchItem {
+    @NotNull
+    static MinecraftClient client = MinecraftClient.getInstance();
     public static ItemStack reSwitchItem = null;
     public static Map<ItemStack,ItemStatistics> itemStacks = new HashMap<>();
     public static void removeItem(ItemStack itemStack){

@@ -246,59 +246,60 @@ public enum State {
             return ListType.SPHERE;
         }
     }
+    public enum IterationOrderType implements IConfigOptionListEntry {
+        XYZ("xyz", "X→Y→Z"),
+        XZY("xzy", "X→Z→Y"),
+        YXZ("yxz", "Y→X→Z"),
+        YZX("yzx", "Y→Z→X"),
+        ZXY("zxy", "Z→X→Y"),
+        ZYX("zyx", "Z→Y→X");
 
-//    public enum IteratorMode implements IConfigOptionListEntry {
-//        DEFAULT("default", "正常"),
-//        BY_DISTANCE("by_distance", "由近到远");
-//
-//        private final String configString;
-//        private final String translationKey;
-//
-//        IteratorMode(String configString, String translationKey) {
-//            this.configString = configString;
-//            this.translationKey = translationKey;
-//        }
-//
-//        @Override
-//        public String getStringValue() {
-//            return this.configString;
-//        }
-//
-//        @Override
-//        public String getDisplayName() {
-//            return StringUtils.translate(this.translationKey);
-//        }
-//
-//        @Override
-//        public IConfigOptionListEntry cycle(boolean forward) {
-//            int id = this.ordinal();
-//
-//            if (forward) {
-//                if (++id >= values().length) {
-//                    id = 0;
-//                }
-//            } else {
-//                if (--id < 0) {
-//                    id = values().length - 1;
-//                }
-//            }
-//
-//            return values()[id % values().length];
-//        }
-//
-//        @Override
-//        public IteratorMode fromString(String name) {
-//            return fromStringStatic(name);
-//        }
-//
-//        public static IteratorMode fromStringStatic(String name) {
-//            for (IteratorMode mode : IteratorMode.values()) {
-//                if (mode.configString.equalsIgnoreCase(name)) {
-//                    return mode;
-//                }
-//            }
-//
-//            return IteratorMode.DEFAULT;
-//        }
-//    }
+        private final String configString;
+        private final String displayName;
+
+        IterationOrderType(String configString, String displayName) {
+            this.configString = configString;
+            this.displayName = displayName;
+        }
+
+        @Override
+        public String getStringValue() {
+            return this.configString;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return StringUtils.translate(this.displayName);
+        }
+
+        @Override
+        public IConfigOptionListEntry cycle(boolean forward) {
+            int id = this.ordinal();
+            if (forward) {
+                if (++id >= values().length) {
+                    id = 0;
+                }
+            } else {
+                if (--id < 0) {
+                    id = values().length - 1;
+                }
+            }
+            return values()[id];
+        }
+
+        @Override
+        public IterationOrderType fromString(String name) {
+            return fromStringStatic(name);
+        }
+
+        public static IterationOrderType fromStringStatic(String name) {
+            for (IterationOrderType type : IterationOrderType.values()) {
+                if (type.configString.equalsIgnoreCase(name)) {
+                    return type;
+                }
+            }
+            return IterationOrderType.XYZ;
+        }
+    }
 }
+

@@ -50,7 +50,7 @@ public class UpdateChecker {
         try (InputStream inputStream = modPath.toUri().toURL().openStream();
              InputStreamReader reader = new InputStreamReader(inputStream)) {
             JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
-            return json.get("version").getAsString().substring(0, json.get("version").getAsString().length() - 7);
+            return json.get("version").getAsString();
         } catch (Exception e) {
             System.out.println("无法读取 mod 版本: ");
             e.printStackTrace();

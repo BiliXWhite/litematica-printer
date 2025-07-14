@@ -28,8 +28,8 @@ public abstract class MixinClientPlayNetworkHandler {
             SwitchItem.reSwitchItem();
         }
 
-        if (client.player != null && printerMemoryAdding) {
-            client.player.closeHandledScreen();
+        if (MinecraftClient.getInstance().player != null && printerMemoryAdding) {
+            MinecraftClient.getInstance().player.closeHandledScreen();
         }
 //        if(QuickShulkerUtils.waitForTheItemToBeSwitched != null) QuickShulkerUtils.switchItem(QuickShulkerUtils.targetSlot);
         if(num == 1 || num == 3)ZxyUtils.syncInv();

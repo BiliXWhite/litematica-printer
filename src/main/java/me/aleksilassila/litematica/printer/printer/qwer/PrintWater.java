@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.printer.qwer;
 
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -15,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.getEnchantmentLevel;
 
 public class PrintWater {
+    @NotNull
+    static MinecraftClient client = MinecraftClient.getInstance();
     // 判断方块是否含水
     public static boolean canWaterLogged(BlockState blockState) {
         try {
@@ -45,7 +46,6 @@ public class PrintWater {
         MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of("快捷栏中没有可用镐子，碎冰速度较慢"),false);
     }
     public static boolean spawnWater(BlockPos pos){
-        MinecraftClient client = ZxyUtils.client;
         //冰碎后无法产生水
         //#if MC > 11904
         BlockState material = client.world.getBlockState(pos.down());
