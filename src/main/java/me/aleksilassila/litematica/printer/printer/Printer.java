@@ -582,7 +582,7 @@ public class Printer extends PrinterUtils {
                         Implementation.isInteractive(world.getBlockState(pos).getBlock()) ||
                         action.useShift;
                 if (needDelay) continue;
-                switchToItems(player, reqItems);
+                if (!switchToItems(player, reqItems)) return;
                 action.queueAction(queue, pos, side, useShift);
                 if (action.getLookHorizontalDirection() != null)
                     sendLook(player, action.getLookHorizontalDirection(), action.getLookDirectionPitch());
@@ -740,33 +740,32 @@ public class Printer extends PrinterUtils {
         return false;
     }
 
-    public void switchToItems(ClientPlayerEntity player, Item[] items) {
-        if (items == null) return;
+    public boolean switchToItems(ClientPlayerEntity player, Item[] items) {
+        if (items == null) return true;
         PlayerInventory inv = Implementation.getInventory(player);
         for (Item item : items) {
+            int slot = -1;
+            for (int i = 0; i < inv.size(); i++) {
+                if (inv.getStack(i).getItem() == item && inv.getStack(i).getCount() > 0)
+                    slot = i;
+            }
+            if (slot != -1) {
+                yxcfItem = inv.getStack(slot);
+                return swapHandWithSlot(player, slot);
+            }
             if (Implementation.getAbilities(player).creativeMode) {
                 InventoryUtils.setPickedItemToHand(new ItemStack(item), client);
                 client.interactionManager.clickCreativeStack(client.player.getStackInHand(Hand.MAIN_HAND), 36 + inv.selectedSlot);
-                return;
-            } else {
-                int slot = -1;
-                for (int i = 0; i < inv.size(); i++) {
-                    if (inv.getStack(i).getItem() == item && inv.getStack(i).getCount() > 0)
-                        slot = i;
-                }
-                if (slot != -1) {
-                    yxcfItem = inv.getStack(slot);
-                    swapHandWithSlot(player, slot);
-                    return;
-                }
+                return true;
             }
         }
+        return true;
     }
 
-    public void swapHandWithSlot(ClientPlayerEntity player, int slot) {
+    public boolean swapHandWithSlot(ClientPlayerEntity player, int slot) {
         ItemStack stack = Implementation.getInventory(player).getStack(slot);
         int slotNum = client.player.getInventory().getSlotWithStack(stack);
-        ZxyUtils.setPickedItemToHand(slotNum, stack, client);
+        return ZxyUtils.setPickedItemToHand(slotNum, stack, client);
     }
 
     public void sendLook(ClientPlayerEntity player, Direction directionYaw, Direction directionPitch) {

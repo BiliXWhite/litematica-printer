@@ -91,6 +91,7 @@ public class ZxyUtils {
     public static String syncInventoryId = "syncInventory";
 
     private static int sequence = 0;
+    private static boolean isSwitching = false;
 
     public static void startAddPrinterInventory(){
         getReadyColor();
@@ -409,13 +410,14 @@ public class ZxyUtils {
         return sequence++;
     }
 
-    public static void setPickedItemToHand(int sourceSlot, ItemStack stack, MinecraftClient mc) {
+    public static boolean setPickedItemToHand(int sourceSlot, ItemStack stack, MinecraftClient mc) {
         PlayerEntity player = mc.player;
         PlayerInventory inventory = player.getInventory();
         var usePacket = LitematicaMixinMod.PLACE_USE_PACKET.getBooleanValue();
 
         if (PlayerInventory.isValidHotbarIndex(sourceSlot))
         {
+            mc.inGameHud.getChatHud().addMessage(Text.of("物品在物品栏，切换至热键槽位 " + sourceSlot));
             if (usePacket)
                 mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(sourceSlot));
             //#if MC > 12101
@@ -423,6 +425,7 @@ public class ZxyUtils {
             //#else
             //$$ inventory.selectedSlot = sourceSlot;
             //#endif
+            return true;
         }
         else
         {
@@ -440,13 +443,13 @@ public class ZxyUtils {
 
             if (hotbarSlot != -1)
             {
-                if (usePacket)
-                    mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(hotbarSlot));
-                //#if MC > 12101
-                inventory.setSelectedSlot(hotbarSlot);
-                //#else
-                //$$ inventory.selectedSlot = hotbarSlot;
-                //#endif
+//                if (usePacket)
+//                    mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(hotbarSlot));
+//                //#if MC > 12101
+//                inventory.setSelectedSlot(hotbarSlot);
+//                //#else
+//                //$$ inventory.selectedSlot = hotbarSlot;
+//                //#endif
 
                 if (player.isCreative())
                 {
@@ -456,73 +459,77 @@ public class ZxyUtils {
                     player.getInventory().swapStackWithHotbar(stack.copy());
                     //#endif
                     mc.interactionManager.clickCreativeStack(player.getMainHandStack(), 36 + player.getInventory().selectedSlot);
-                    return;
                 } else {
                     int slot1 = fi.dy.masa.malilib.util.InventoryUtils.findSlotWithItem(player.playerScreenHandler, stack.copy(), true);
                     if (slot1 != -1) {
                         // 使用数据包或普通点击方式交换槽位中的物品
-                        if (usePacket) {
-                            DefaultedList<Slot> slots = player.currentScreenHandler.slots;
-                            int totalSlots = slots.size();
-                            List<ItemStack> copies = Lists.newArrayListWithCapacity(totalSlots);
-                            for (Slot slotItem : slots) {
-                                copies.add(slotItem.getStack().copy());
-                            }
-
-                            Int2ObjectMap<
-                                    //#if MC >= 12105
-                                    //$$ ItemStackHash
-                                    //#else
-                                    ItemStack
-                                    //#endif
-                                    > snapshot = new Int2ObjectOpenHashMap<>();
-                            for (int j = 0; j < totalSlots; j++) {
-                                ItemStack original = copies.get(j);
-                                ItemStack current = slots.get(j).getStack();
-                                if (!ItemStack.areEqual(original, current)) {
-                                    snapshot.put(j,
-                                            //#if MC >=12105
-                                            //$$ ItemStackHash.fromItemStack(current, client.getNetworkHandler().method_68823())
-                                            //#else
-                                            current.copy()
-                                            //#endif
-                                    );
-                                }
-                            }
-
-                            //#if MC >= 12105
-                            //$$ItemStackHash itemStackHash = ItemStackHash.fromItemStack(player.currentScreenHandler.getCursorStack(), client.getNetworkHandler().method_68823());
-                            //#endif
-                            mc.getNetworkHandler().sendPacket(new ClickSlotC2SPacket(
-                                    player.playerScreenHandler.syncId,
-                                    player.currentScreenHandler.getRevision(),
-                                    //#if MC >= 12105
-                                    //$$ Shorts.checkedCast((long)slot1),
-                                    //$$ SignedBytes.checkedCast((long)hotbarSlot),
-                                    //#else
-                                    slot1,
-                                    hotbarSlot,
-                                    //#endif
-                                    SlotActionType.SWAP,
-                                    //#if MC >= 12105
-                                    //$$ snapshot,
-                                    //$$ itemStackHash
-                                    //#else
-                                    stack.copy(),
-                                    snapshot
-                                    //#endif
-                            ));
-                        } else {
+//                        if (usePacket) {
+//                            isSwitching = isSwitching ? false : true;
+//                            DefaultedList<Slot> slots = player.currentScreenHandler.slots;
+//                            int totalSlots = slots.size();
+//                            List<ItemStack> copies = Lists.newArrayListWithCapacity(totalSlots);
+//                            for (Slot slotItem : slots) {
+//                                copies.add(slotItem.getStack().copy());
+//                            }
+//
+//                            Int2ObjectMap<
+//                                    //#if MC >= 12105
+//                                    //$$ ItemStackHash
+//                                    //#else
+//                                    ItemStack
+//                                    //#endif
+//                                    > snapshot = new Int2ObjectOpenHashMap<>();
+//                            for (int j = 0; j < totalSlots; j++) {
+//                                ItemStack original = copies.get(j);
+//                                ItemStack current = slots.get(j).getStack();
+//                                if (!ItemStack.areEqual(original, current)) {
+//                                    snapshot.put(j,
+//                                            //#if MC >=12105
+//                                            //$$ ItemStackHash.fromItemStack(current, client.getNetworkHandler().method_68823())
+//                                            //#else
+//                                            current.copy()
+//                                            //#endif
+//                                    );
+//                                }
+//                            }
+//
+//                            //#if MC >= 12105
+//                            //$$ItemStackHash itemStackHash = ItemStackHash.fromItemStack(player.currentScreenHandler.getCursorStack(), client.getNetworkHandler().method_68823());
+//                            //#endif
+//                            mc.getNetworkHandler().sendPacket(new ClickSlotC2SPacket(
+//                                    player.playerScreenHandler.syncId,
+//                                    player.currentScreenHandler.getRevision(),
+//                                    //#if MC >= 12105
+//                                    //$$ Shorts.checkedCast((long)slot1),
+//                                    //$$ SignedBytes.checkedCast((long)hotbarSlot),
+//                                    //#else
+//                                    slot1,
+//                                    hotbarSlot,
+//                                    //#endif
+//                                    SlotActionType.SWAP,
+//                                    //#if MC >= 12105
+//                                    //$$ snapshot,
+//                                    //$$ itemStackHash
+//                                    //#else
+//                                    stack.copy(),
+//                                    snapshot
+//                                    //#endif
+//                            ));
+//                            WorldUtils.setEasyPlaceLastPickBlockTime();
+//                            return !isSwitching;
+//                        } else {
                             mc.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot1, hotbarSlot, SlotActionType.SWAP, player);
-                        }
+//                        }
                     }
                 }
 
                 WorldUtils.setEasyPlaceLastPickBlockTime();
+                return true;
             }
             else
             {
                 InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");
+                return false;
             }
         }
     }
