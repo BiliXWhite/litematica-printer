@@ -462,6 +462,16 @@ public class PlacementGuide extends PrinterUtils {
                     }).setRequiresSupport();
                 }
 
+                if (block instanceof FallingBlock) {
+                    //检查方块下面是否有方块，否则跳过放置
+                    BlockPos downPos = pos.down();
+                    BlockState downState = world.getBlockState(downPos);
+                    if (downState.isAir()) {
+                        client.player.sendMessage(Text.of("方块 " + block.getTranslationKey() + " 需要支撑，跳过放置"), true);
+                        return null;
+                    }
+                }
+
                 return new Action();
             }
         }
