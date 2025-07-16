@@ -249,10 +249,6 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setLookDirection(facing);
                 }
             }
-            case CAMPFIRE -> {
-                return new Action()
-                        .setLookDirection(requiredState.get(Properties.FACING));
-            }
             case BED -> {
                 if (requiredState.get(BedBlock.PART) == BedPart.FOOT)
                     return new Action().setLookDirection(requiredState.get(BedBlock.FACING));
@@ -435,8 +431,9 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setSides(side).setLookDirection(side.getOpposite(), sidePitch);
                 }
 
-                if (block instanceof HorizontalFacingBlock) {
+                if (block instanceof HorizontalFacingBlock || block instanceof CampfireBlock) {
                     facing = requiredState.get(Properties.HORIZONTAL_FACING);
+                    if (block instanceof FenceGateBlock || block instanceof CampfireBlock) facing = facing.getOpposite();
                     return new Action().setSides(facing).setLookDirection(facing.getOpposite());
                 }
 
@@ -462,12 +459,12 @@ public class PlacementGuide extends PrinterUtils {
                     }).setRequiresSupport();
                 }
 
-                if (block instanceof FallingBlock) {
+                if (LitematicaMixinMod.FALLING_CHECK.getBooleanValue() && block instanceof FallingBlock) {
                     //检查方块下面是否有方块，否则跳过放置
                     BlockPos downPos = pos.down();
                     BlockState downState = world.getBlockState(downPos);
                     if (downState.isAir()) {
-                        client.player.sendMessage(Text.of("方块 " + block.getTranslationKey() + " 需要支撑，跳过放置"), true);
+                        client.player.sendMessage(Text.of("方块 " + block.getName() + " 需要支撑，跳过放置"), true);
                         return null;
                     }
                 }

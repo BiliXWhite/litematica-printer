@@ -6,11 +6,9 @@
   "mixins": [
     "bilixwhite.MixinClientConnection",
     "bilixwhite.MixinInGameHud",
-    "masa.BlockItemMixin",
     "masa.KeyCallbackToggleBooleanConfigWithMessageMixin",
     "masa.MixinInventoryFix",
     "masa.MixinInventoryUtils",
-    "masa.WorldUtilsAccessor",
     "masa.WorldUtilsMixin",
     "openinv.ClientPlayNetworkHandlerMixin",
     "openinv.InventoryMixin",

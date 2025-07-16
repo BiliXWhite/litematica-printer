@@ -85,17 +85,9 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "启用打印水",  false, "",
             "启用后会自动放置冰,破坏冰来生成水。"
     );
-    public static final ConfigBooleanHotkeyed BREAK_ERROR_BLOCK = new ConfigBooleanHotkeyed(
-            "破坏错误方块", false, "",
-            "打印过程中自动破坏投影中错误的方块。"
-    );
     public static final ConfigBoolean PRINT_SWITCH = new ConfigBoolean(
             "打印状态", false,
             "打印的开关状态。"
-    );
-    public static final ConfigBoolean PRECISE_PLACE = new ConfigBoolean(
-            "精准放置", false,
-            "根据投影的设置使用对应的协议。"
     );
     public static final ConfigBooleanHotkeyed USE_EASY_MODE = new ConfigBooleanHotkeyed(
             "轻松放置模式", false, "",
@@ -107,7 +99,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "在打印过程中，会自动潜行以防止对方块进行交互。"
     );
     public static final ConfigBoolean REPLACE = new ConfigBoolean(
-            "替换列表方块", true,
+            "覆盖打印", true,
             "无视列表中的方块直接替换放置，例如:草、雪片等。"
     );
     public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean(
@@ -115,8 +107,8 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "在打印去皮原木的时候，会选择原木并用背包里的斧头进行去皮操作。"
     );
     public static final ConfigHotkey SWITCH_PRINTER_MODE = new ConfigHotkey(
-            "切换工作模式", "",
-            "切换打印机工作模式。"
+            "切换模式", "",
+            "切换打印机的工作模式。"
     );
     public static final ConfigBooleanHotkeyed EXCAVATE = new ConfigBooleanHotkeyed(
             "挖掘", false, "",
@@ -255,17 +247,21 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
                     "§dZXY§r：先Z轴，后X轴，最后Y轴\n" +
                     "§dZYX§r：先Z轴，后Y轴，最后X轴"
     );
-    public static final ConfigBooleanHotkeyed X_REVERSE = new ConfigBooleanHotkeyed(
+    public static final ConfigBoolean X_REVERSE = new ConfigBoolean(
             "X轴反向", false, "",
             "启用后X轴方向的遍历将从大到小进行"
     );
-    public static final ConfigBooleanHotkeyed Y_REVERSE = new ConfigBooleanHotkeyed(
+    public static final ConfigBoolean Y_REVERSE = new ConfigBoolean(
             "Y轴反向", false, "",
             "启用后Y轴方向的遍历将从大到小进行"
     );
-    public static final ConfigBooleanHotkeyed Z_REVERSE = new ConfigBooleanHotkeyed(
+    public static final ConfigBoolean Z_REVERSE = new ConfigBoolean(
             "Z轴反向", false, "",
             "启用后Z轴方向的遍历将从大到小进行"
+    );
+    public static final ConfigBoolean FALLING_CHECK = new ConfigBoolean(
+            "下落方块检查", true,
+            "启用后会检查下落方块的下方是否有方块支撑，如果没有支撑则不会放置该方块"
     );
     //========================================
     //              Hotkeys
@@ -315,9 +311,19 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     public static ImmutableList<IConfigBase> getConfigList() {
         List<IConfigBase> list = new java.util.ArrayList<>(Configs.Generic.OPTIONS);
         list.add(PRINT_SWITCH);
-        list.add(PRECISE_PLACE);
         list.add(PRINT_INTERVAL);
+        if (PRINT_INTERVAL.getIntegerValue() == 0) list.add(PRINT_PER_TICK);
         list.add(COMPULSION_RANGE);
+        list.add(PUT_COOLING);
+        list.add(PLACE_USE_PACKET);
+        list.add(RENDER_PROGRESS);
+        list.add(QUICK_SHULKER);
+        if (QUICK_SHULKER.getBooleanValue()) list.add(QUICK_SHULKER_COOLING);
+        list.add(LAG_CHECK);
+        list.add(ITERATION_ORDER);
+        list.add(X_REVERSE);
+        list.add(Y_REVERSE);
+        list.add(Z_REVERSE);
 
         if (PRINTER_MODE.getOptionListValue().equals(State.ModeType.SINGLE)) {
             list.add(PRINTER_MODE);
@@ -331,7 +337,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 
         list.add(PRINT_IN_AIR);
         list.add(PRINT_WATER_LOGGED_BLOCK);
-        list.add(BREAK_ERROR_BLOCK);
 
         return ImmutableList.copyOf(list);
     }

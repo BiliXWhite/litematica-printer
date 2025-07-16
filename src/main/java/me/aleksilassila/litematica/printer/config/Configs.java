@@ -60,16 +60,15 @@ public class Configs implements IConfigHandler {
         list.add(PUT_SKIP);
         list.add(PUT_SKIP_LIST);
         list.add(PRINT_CHECK);
-        list.add(PRECISE_PLACE);
         list.add(USE_EASY_MODE);
         list.add(FORCED_PLACEMENT);
         list.add(PRINT_IN_AIR);
         list.add(PRINT_WATER_LOGGED_BLOCK);
-        list.add(BREAK_ERROR_BLOCK);
         list.add(REPLACE);
         list.add(REPLACEABLE_LIST);
         list.add(STRIP_LOGS);
         list.add(REPLACE_CORAL);
+        list.add(FALLING_CHECK);
 
         return ImmutableList.copyOf(list);
     }
@@ -148,7 +147,6 @@ public class Configs implements IConfigHandler {
         list.add(EXCAVATE);
         list.add(FLUID);
         list.add(FILL);
-        list.add(BREAK_ERROR_BLOCK);
         list.add(PRINT_WATER_LOGGED_BLOCK);
         list.add(USE_EASY_MODE);
 
