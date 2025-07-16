@@ -1,0 +1,61 @@
+name: 功能建议
+description: 为模组提出新的功能建议
+title: "[建议] （将此栏【替换】为建议名称）"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您为模组提出新的功能建议。请详细描述您的想法，这将帮助我们更好地理解和实现它。
+        但是，该模组暂不接受与其他不会冲突的模组的功能集成建议。
+
+  - type: textarea
+    id: feature_description
+    attributes:
+      label: 功能描述
+      description: 请详细描述您想要的新功能
+      placeholder: |
+        例如：
+        - 添加一个快捷键来切换打印模式
+        - 在界面上显示当前打印进度的百分比
+    validations:
+      required: true
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: 使用场景
+      description: 描述这个功能在什么情况下会很有用
+      placeholder: |
+        例如：在建造填海建筑时，需要频繁切换打印模式，使用快捷键可以提高效率
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 优先级
+      description: 您认为这个功能的重要程度如何？
+      options:
+        - 低（可以慢慢来）
+        - 中（比较需要）
+        - 高（非常需要）
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 确认事项
+      options:
+        - label: 我已经检查过现有的 Issue，确认这不是重复的建议
+          required: true
+        - label: 这个功能符合模组的主要目标和用途
+          required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: 补充说明
+      description: 还有什么想补充的内容吗？（可选）
+      placeholder: 比如：参考截图、其他模组类似功能的示例等
