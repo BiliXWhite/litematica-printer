@@ -1,12 +1,13 @@
 name: 打印方块请求
 description: 请求添加新的可打印方块。
-title: "[方块请求] （将此栏【替换】为方块名称）"
+title: "[方块请求] （将此位置【替换】为方块名称）"
 labels: ["enhancement", "block-request"]
 body:
   - type: markdown
     attributes:
       value: |
         感谢您提出方块打印请求。请提供以下方块的详细信息，以便我们添加到支持列表中。
+        您可以填写多个方块请求，无需提交多个 issue。
 
   - type: input
     id: block_name
@@ -46,6 +47,6 @@ body:
     attributes:
       label: 方块类名（可选）
       description: 如果您知道这个方块的类名以及继承类，可以在这里填写
-      placeholder: "例如：AnvilBlock-FallingBlock"
+      placeholder: "例如：SlabBlock"
     validations:
       required: false
