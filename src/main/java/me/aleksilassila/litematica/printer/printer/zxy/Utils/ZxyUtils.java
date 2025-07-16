@@ -417,7 +417,6 @@ public class ZxyUtils {
 
         if (PlayerInventory.isValidHotbarIndex(sourceSlot))
         {
-            mc.inGameHud.getChatHud().addMessage(Text.of("物品在物品栏，切换至热键槽位 " + sourceSlot));
             if (usePacket)
                 mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(sourceSlot));
             //#if MC > 12101
@@ -464,7 +463,7 @@ public class ZxyUtils {
                     if (slot1 != -1) {
                         // 使用数据包或普通点击方式交换槽位中的物品
 //                        if (usePacket) {
-//                            isSwitching = isSwitching ? false : true;
+                            isSwitching = !isSwitching;
 //                            DefaultedList<Slot> slots = player.currentScreenHandler.slots;
 //                            int totalSlots = slots.size();
 //                            List<ItemStack> copies = Lists.newArrayListWithCapacity(totalSlots);
@@ -519,6 +518,7 @@ public class ZxyUtils {
 //                            return !isSwitching;
 //                        } else {
                             mc.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot1, hotbarSlot, SlotActionType.SWAP, player);
+                            return !isSwitching;
 //                        }
                     }
                 }

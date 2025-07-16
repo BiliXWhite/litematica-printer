@@ -13,7 +13,6 @@ import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
-import me.aleksilassila.litematica.printer.mixin.masa.WorldUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
@@ -480,7 +479,6 @@ public class Printer extends PrinterUtils {
         int compulsionRange = COMPULSION_RANGE.getIntegerValue();
         tickRate = PRINT_INTERVAL.getIntegerValue();
         printPerTick = LitematicaMixinMod.PRINT_PER_TICK.getIntegerValue();
-        boolean usePrecisePlace = PRECISE_PLACE.getBooleanValue();
 
         // 更新环境参数
         if (compulsionRange != printRange) {
@@ -563,15 +561,6 @@ public class Printer extends PrinterUtils {
 
             // 放置冷却
             placeCooldownList.put(pos, 0);
-            if (usePrecisePlace) {
-                easyPos = pos;
-                WorldUtilsAccessor.doEasyPlaceAction(client);
-                easyPos = null;
-                if (tickRate != 0)
-                    return;
-                else
-                    continue;
-            }
 
             Direction side = action.getValidSide(world, pos);
             if (side == null) continue;
