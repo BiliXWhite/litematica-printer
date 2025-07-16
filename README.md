@@ -1,4 +1,4 @@
-> [!TIPS]  
+> [!WARNING]  
 > 该README正在重构，目前的内容可能不完整或有误。请耐心等待更新或者Pull Request以贡献这个项目。
 
 Litematica Printer
@@ -49,7 +49,7 @@ Litematica Printer
 2. 在Gradle面板中，找到`Tasks -> build`，双击`build`任务进行编译。
 3. 编译完成后，构建出来的多版本jar文件位于 `./fabricWrapper/build/libs/`内，单独版本位于`./fabricWrapper/build/tmp/submods/META-INF/jars`内。
 
-> [!TIPS]
+> [!TIP]
 > 在中国大陆环境可能会导致支持库下载失败。请尝试使用**代理**进行下载。
 > 如果您是 Windows 11 系统及以上，则无需开启代理的全局网卡模式，该项目配置自动识别代理。
 
