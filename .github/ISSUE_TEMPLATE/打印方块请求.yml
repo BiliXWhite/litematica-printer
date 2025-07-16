@@ -1,0 +1,51 @@
+name: 打印方块请求
+description: 请求添加新的可打印方块。
+title: "[方块请求] （将此栏【替换】为方块名称）"
+labels: ["enhancement", "block-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您提出方块打印请求。请提供以下方块的详细信息，以便我们添加到支持列表中。
+
+  - type: input
+    id: block_name
+    attributes:
+      label: 方块名称
+      description: 请填写方块在游戏中显示的名称
+      placeholder: "例如：橡木台阶"
+    validations:
+      required: true
+
+  - type: input
+    id: block_id
+    attributes:
+      label: 方块命名空间ID
+      description: 请填写方块的完整命名空间ID
+      placeholder: "例如：minecraft:oak_slab"
+    validations:
+      required: true
+
+  - type: textarea
+    id: block_nbt
+    attributes:
+      label: NBT数据标签
+      description: 如果这个方块需要特殊的NBT数据，请在这里填写（可选）
+      placeholder: |
+        例如：
+        {
+          BlockState: {
+            type: "double"
+          }
+        }
+    validations:
+      required: false
+
+  - type: input
+    id: block_class
+    attributes:
+      label: 方块类名（可选）
+      description: 如果您知道这个方块的类名以及继承类，可以在这里填写
+      placeholder: "例如：AnvilBlock-FallingBlock"
+    validations:
+      required: false

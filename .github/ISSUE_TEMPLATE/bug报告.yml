@@ -1,7 +1,7 @@
 name: Bug 反馈
 description: 在使用投影打印机的过程中遇到了 Bug。
 title: （将此栏【替换】为你的标题）
-labels: ["Bug"]
+labels: ["Bug", "bug-report"]
 body:
  - type: markdown
    attributes:
@@ -19,7 +19,7 @@ body:
     label: 检查清单
     description: 在开始反馈这个问题之前，请先检查：
     options:
-     - label: 我已更新到最新版 ![最新的版本号](https://img.shields.io/github/v/release/BiliXWhite/litematica-printer?include_prereleases&style=flat-square&label=)测试，并在 [Issues](https://github.com/BiliXWhite/litematica-printer/issues?q=type%3ABug) 中检索，确认这一 Bug 未被提交过，并且在 [常见问题](https://github.com/BiliXWhite/litematica-printer#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98) 中没有解决方案。
+     - label: 我已更新到最新版 ![最新的版本号](https://img.shields.io/github/v/release/BiliXWhite/litematica-printer?include_prereleases&style=flat-square&label=) 测试，并在 [Issues](https://github.com/BiliXWhite/litematica-printer/issues?q=type%3ABug) 中检索，确认这一 Bug 未被提交过，并且在 [常见问题](https://github.com/BiliXWhite/litematica-printer#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98) 中没有解决方案。
        required: true
      - label: 我已经仔细阅读过选项里的内容，并且知道这个选项不用勾选。
        required: true
@@ -69,12 +69,7 @@ body:
    attributes:
     label: Java 版本
     description: 请填写您使用的 Java 版本。
-    placeholder: |
-     如：
-     - Java 17
-     - Java 21
-     - Java 23
-     - Java 25
+    placeholder: 如：Java 17
  - type: checkboxes
    id: revision
    attributes:
