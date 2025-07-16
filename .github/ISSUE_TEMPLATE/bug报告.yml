@@ -2,7 +2,6 @@ name: Bug 反馈
 description: 在使用投影打印机的过程中遇到了 Bug。
 title: （将此栏【替换】为你的标题）
 labels: ["Bug"]
-type: Bug
 body:
  - type: markdown
    attributes:
