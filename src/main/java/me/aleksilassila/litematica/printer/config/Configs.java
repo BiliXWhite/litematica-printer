@@ -69,6 +69,7 @@ public class Configs implements IConfigHandler {
         list.add(STRIP_LOGS);
         list.add(REPLACE_CORAL);
         list.add(FALLING_CHECK);
+        list.add(BREAK_ERROR_BLOCK);
 
         return ImmutableList.copyOf(list);
     }

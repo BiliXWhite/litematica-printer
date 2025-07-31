@@ -20,9 +20,9 @@ body:
     description: 在开始反馈这个问题之前，请先检查：
     options:
      - label: 我已更新到最新版 ![最新的版本号](https://img.shields.io/github/v/release/BiliXWhite/litematica-printer?include_prereleases&style=flat-square&label=) 测试，并在 [Issues](https://github.com/BiliXWhite/litematica-printer/issues?q=type%3ABug) 中检索，确认这一 Bug 未被提交过，并且在 [常见问题](https://github.com/BiliXWhite/litematica-printer#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98) 中没有解决方案。
-       required: true
+       required: false
      - label: 我已经仔细阅读过选项里的内容，并且知道这个选项不用勾选。
-       required: true
+       required: false
  - type: markdown
    attributes:
     value: |
@@ -77,4 +77,4 @@ body:
     description: 回顾您的回答
     options:
      - label: 我认为上述的描述已经足以详细，以允许开发人员能复现该问题。如果我的 issue 没有按照上述的要求填写，可能会被无条件关闭。
-       required: true
+       required: false
