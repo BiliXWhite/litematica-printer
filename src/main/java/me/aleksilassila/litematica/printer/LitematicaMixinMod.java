@@ -248,20 +248,25 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
                     "§dZYX§r：先Z轴，后Y轴，最后X轴"
     );
     public static final ConfigBoolean X_REVERSE = new ConfigBoolean(
-            "X轴反向", false, "",
-            "启用后X轴方向的遍历将从大到小进行"
+            "X轴反向", false,
+            "启用后X轴方向的遍历将从大到小进行。"
     );
     public static final ConfigBoolean Y_REVERSE = new ConfigBoolean(
-            "Y轴反向", false, "",
-            "启用后Y轴方向的遍历将从大到小进行"
+            "Y轴反向", false,
+            "启用后Y轴方向的遍历将从大到小进行。"
     );
     public static final ConfigBoolean Z_REVERSE = new ConfigBoolean(
-            "Z轴反向", false, "",
-            "启用后Z轴方向的遍历将从大到小进行"
+            "Z轴反向", false,
+            "启用后Z轴方向的遍历将从大到小进行。"
     );
     public static final ConfigBoolean FALLING_CHECK = new ConfigBoolean(
             "下落方块检查", true,
-            "启用后会检查下落方块的下方是否有方块支撑，如果没有支撑则不会放置该方块"
+            "启用后会检查下落方块的下方是否有方块支撑，如果没有支撑则不会放置该方块。"
+    );
+    public static final ConfigBoolean BREAK_ERROR_BLOCK = new ConfigBoolean(
+            "破坏错误方块（实验性）", false,
+            "启用后在打印时，如果碰到了实际与投影不符的方块（仅包名判断），那么将会破坏这个方块。\n" +
+                    "（目前只能在创造模式破坏，或者是一些秒破方块）"
     );
     //========================================
     //              Hotkeys

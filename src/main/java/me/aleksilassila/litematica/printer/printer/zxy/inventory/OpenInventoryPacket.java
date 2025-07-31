@@ -216,17 +216,19 @@ public class OpenInventoryPacket {
         //#if MC > 12004
         ServerPlayNetworking.registerGlobalReceiver(OPEN_INVENTORY_ID, (payload,context) -> {
             if (payload instanceof OpenPackage packetByteBuf) {
-                context.player().server.execute(() -> openInv(context.player().server, context.player(), packetByteBuf.pos, packetByteBuf.world));
+                context.player().getServer().execute(() -> {
+                    openInv(context.player().getServer(), context.player(), packetByteBuf.pos, packetByteBuf.world);
+                });
             }
         });
         //#else
         //$$ ServerPlayNetworking.registerGlobalReceiver(OPEN_INVENTORY, (server, player, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
         //$$     BlockPos pos = packetByteBuf.readBlockPos();
-            //#if MC < 11904
-            //$$ RegistryKey<World> key = RegistryKey.of(Registry.WORLD_KEY, packetByteBuf.readIdentifier());
-            //#else
-            //$$ RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, packetByteBuf.readIdentifier());
-            //#endif
+        //#if MC < 11904
+        //$$ RegistryKey<World> key = RegistryKey.of(Registry.WORLD_KEY, packetByteBuf.readIdentifier());
+        //#else
+        //$$ RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, packetByteBuf.readIdentifier());
+        //#endif
         //$$     server.execute(() -> openInv(server, player, pos, key));
         //$$ });
         //#endif

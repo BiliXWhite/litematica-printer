@@ -27,7 +27,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
@@ -86,8 +85,13 @@ import net.minecraft.registry.Registries;
 
 //#if MC <= 12004
 //$$import static fi.dy.masa.malilib.util.InventoryUtils.areStacksEqual;
-//#else
+//#endif
 
+//#if MC >= 12105
+//$$import net.minecraft.util.PlayerInput;
+//$$import net.minecraft.network.packet.c2s.play.PlayerInputC2SPacket;
+//#else
+import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 //#endif
 
 public class Printer extends PrinterUtils {
@@ -141,10 +145,19 @@ public class Printer extends PrinterUtils {
         return INSTANCE;
     }
 
+    /**
+     * 挖掘指定位置的方块
+     *
+     * @param pos 要挖掘的方块位置
+     * @return 如果挖掘成功且方块状态未改变则返回true，否则返回false
+     */
     public static boolean waJue(BlockPos pos) {
+        // 获取客户端世界对象和方块状态
         ClientWorld world = client.world;
         BlockState currentState = world.getBlockState(pos);
         Block block = currentState.getBlock();
+
+        // 检查方块是否可以破坏，如果可以则执行挖掘操作
         if (canBreakBlock(pos)) {
             client.interactionManager.updateBlockBreakingProgress(pos, Direction.DOWN);
             client.interactionManager.cancelBlockBreaking();
@@ -152,6 +165,7 @@ public class Printer extends PrinterUtils {
         }
         return false;
     }
+
 
     public static boolean canBreakBlock(BlockPos pos) {
         ClientWorld world = client.world;
@@ -165,25 +179,38 @@ public class Printer extends PrinterUtils {
                 !client.player.isBlockBreakingRestricted(client.world, pos, client.interactionManager.getCurrentGameMode());
     }
 
+    /**
+     * 挖掘指定位置的方块
+     *
+     * @param pos 要挖掘的方块位置
+     * @return 如果挖掘完成则返回挖掘的方块位置，否则返回null
+     */
     public static BlockPos excavateBlock(BlockPos pos) {
+        // 检查指定位置的方块是否可以交互
         if (!canInteracted(pos)) {
             breakTargetBlock = null;
             return null;
         }
-        //一个游戏刻挖一次就好
+
+        // 一个游戏刻只挖掘一次
         if (startTick == tick) {
             return null;
         } else if (breakTargetBlock != null) {
+            // 如果已有目标方块，则继续挖掘
             if (!Printer.waJue(breakTargetBlock)) {
+                // 挖掘完成，返回挖掘的方块位置
                 BlockPos breakTargetBlock1 = breakTargetBlock;
                 breakTargetBlock = null;
                 return breakTargetBlock1;
             } else return null;
         }
+
+        // 设置新的挖掘目标
         startTick = tick;
         breakTargetBlock = pos;
         return null;
     }
+
 
     static boolean breakRestriction(BlockState blockState) {
         if (EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.TWEAKEROO)) {
@@ -357,12 +384,16 @@ public class Printer extends PrinterUtils {
 
     void miningMode() {
         BlockPos pos;
+        // 循环处理方块位置，直到找到可挖掘的目标或遍历完成
         while ((pos = tempPos == null ? getBlockPos() : tempPos) != null) {
+            // 检查玩家状态和位置限制条件
             if (client.player != null && (!canInteracted(pos) || isLimitedByTheNumberOfLayers(pos))) {
+                // 重置临时位置并继续循环
                 if (tempPos == null) continue;
                 tempPos = null;
                 continue;
             }
+            // 检查世界状态和挖掘条件，如果满足则执行挖掘
             if (client.world != null &&
                     TempData.xuanQuFanWeiNei_p(pos) &&
                     breakRestriction(client.world.getBlockState(pos)) &&
@@ -370,9 +401,11 @@ public class Printer extends PrinterUtils {
                 tempPos = pos;
                 return;
             }
+            // 清空临时位置
             tempPos = null;
         }
     }
+
 
     /**
      * <h1>切换物品操作</h1>
@@ -541,17 +574,20 @@ public class Printer extends PrinterUtils {
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
             // 跳过冷却中的位置
-            if (placeCooldownList.containsKey(pos)) continue;
-            // 渲染层范围判断（先判断是否在渲染层范围内，再判断是否为图纸方块，减少不必要的判断）
-            if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
-            if (!isSchematicBlock(pos)) continue;
-            if (!canInteracted(pos)) continue;
+            // 检查每刻放置方块是否超出限制
             if (PRINT_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
+            if (placeCooldownList.containsKey(pos)) continue;
+            // 是否在渲染层内
+            if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
+            // 是否是投影方块
+            if (!isSchematicBlock(pos)) continue;
+            // 是否可接触到
+            if (!canInteracted(pos)) continue;
             BlockState state = schematic.getBlockState(pos);
-            PlacementGuide.Action action = guide.getAction(world, schematic, pos);
-            if (action == null) continue;
+            // 放置冷却
+            placeCooldownList.put(pos, 0);
 
-            // 检查放置跳过列表，优化性能
+            // 检查放置跳过列表
             if (LitematicaMixinMod.PUT_SKIP.getBooleanValue()) {
                 Set<String> skipSet = new HashSet<>(PUT_SKIP_LIST.getStrings()); // 转换为 HashSet
                 if (skipSet.stream().anyMatch(s -> Filters.equalsName(s, state))) {
@@ -559,8 +595,9 @@ public class Printer extends PrinterUtils {
                 }
             }
 
-            // 放置冷却
-            placeCooldownList.put(pos, 0);
+            // 检查放置条件
+            PlacementGuide.Action action = guide.getAction(world, schematic, pos);
+            if (action == null) continue;
 
             Direction side = action.getValidSide(world, pos);
             if (side == null) continue;
@@ -844,13 +881,10 @@ public class Printer extends PrinterUtils {
                     .add(hitModifier.rotateY((direction.getPositiveHorizontalDegrees() + 90) % 360).multiply(0.5))
                     : hitModifier;
 
-            // 切换 SHIFT 状态（仅当当前状态与目标状态不同时处理）
-            if (shift != wasSneaking) {
-                ClientCommandC2SPacket.Mode preMode = shift
-                        ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY
-                        : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY;
-                player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, preMode));
-            }
+            if (shift && !wasSneaking)
+                setShift(player, true);
+            else if (!shift && wasSneaking)
+                setShift(player, false);
 
             if (yxcfItem != null) {
                 if (yxcfItem.isEmpty()) {
@@ -878,15 +912,24 @@ public class Printer extends PrinterUtils {
                         .rightClickBlock(target, side, hitVec);
             }
 
-            // 恢复原有的 SHIFT 状态
-            if (shift != wasSneaking) {
-                ClientCommandC2SPacket.Mode postMode = wasSneaking
-                        ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY
-                        : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY;
-                player.networkHandler.sendPacket(new ClientCommandC2SPacket(player, postMode));
-            }
+            if (shift && !wasSneaking)
+                setShift(player, true);
+            else if (!shift && wasSneaking)
+                setShift(player, false);
 
             clearQueue();
+        }
+
+        public void setShift(ClientPlayerEntity player , boolean shift){
+            //#if MC >= 12105
+            //$$ PlayerInput input = new PlayerInput(player.input.playerInput.forward(), player.input.playerInput.backward(), player.input.playerInput.left(), player.input.playerInput.right(), player.input.playerInput.jump(), shift, player.input.playerInput.sprint());
+            //$$ PlayerInputC2SPacket packet = new PlayerInputC2SPacket(input);
+            //#else
+            ClientCommandC2SPacket packet = new ClientCommandC2SPacket(player, shift ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY);
+            //#endif
+
+            player.networkHandler.sendPacket(packet);
+
         }
 
         public void clearQueue() {

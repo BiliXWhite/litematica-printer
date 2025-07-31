@@ -496,8 +496,11 @@ public class PlacementGuide extends PrinterUtils {
             case DOOR, TRAPDOOR, FENCE_GATE -> {
                 //判断门是不是铁制的，如果是就直接返回
                 if (requiredState.isOf(Blocks.IRON_DOOR) || requiredState.isOf(Blocks.IRON_TRAPDOOR)) break;
-                if (requiredState.get(Properties.OPEN) != currentState.get(Properties.OPEN))
+                if (requiredState.get(Properties.OPEN) != currentState.get(Properties.OPEN)) {
+                    if (requiredState.getBlock() instanceof FenceGateBlock)
+                        return new ClickAction().setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite()).setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING));
                     return new ClickAction();
+                }
 
             }
             case LEVER -> {
@@ -605,6 +608,10 @@ public class PlacementGuide extends PrinterUtils {
                         return new ClickAction().setItem(content.asItem());
                     }
                 }
+            }
+            default -> {
+                //TODO 实现生存模式破坏错误方块
+                if (LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue()) client.interactionManager.attackBlock(pos, Direction.DOWN);
             }
         }
 
