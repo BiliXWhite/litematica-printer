@@ -4,11 +4,18 @@
 Litematica Printer
 ==================
 
-为 Litematica 模组的 Minecraft Fabric 1.18.2 至 1.21.5 版本添加了自动建造功能。打印机允许玩家通过自动放置周围正确方块来快速还原投影。
+该模组为 Litematica 的 Minecraft Fabric 1.18.2 至 1.21.8 版本添加了自动建造功能。允许玩家通过自动放置周围正确方块来快速还原投影。
 
-这个仓库分支于[宅咸鱼二改版](https://github.com/zhaixianyu/litematica-printer)，添加了一些实用的功能。
+这个版本基于[宅咸鱼二改版](https://github.com/zhaixianyu/litematica-printer)修改，添加了一些实用的功能。
 
-下载发布版本请前往 [**Releases**](https://github.com/BiliXWhite/litematica-printer/releases)。安装前请先下载 **Litematica** 和 **MaLiLib** 两个模组，并确保已安装 **Fabric API**，最后将 jar 文件放入 `mods` 文件夹。
+
+下载
+----------
+目前官方提供的下载渠道有两种: 
+- [**Releases**](https://github.com/BiliXWhite/litematica-printer/releases)
+- [**蓝奏云分流(密码cgxw)**](https://xeno.lanzoue.com/b00l1v20vi)
+
+该模组必须先安装 **Fabric API** , **MaLiLib** 和 **Litematica** 作为前置。可选前置有**Twrakeroo**,**Chest Tracker**(≤1.21.4)
 
 特性
 ----------
@@ -16,10 +23,10 @@ Litematica Printer
 - [x] 更流畅的打印体验。
 - [x] 删除了已经无法使用的破基岩功能。
 - [x] 拥有填充功能(可以填充选区范围)。
-- [x] 拥有使用数据包打印的功能(更快，出错更少)。
-- [x] 支持服务器快捷潜影盒功能(需要服务器安装AxShulkers插件)。
+- [x] 拥有使用数据包打印的功能(更快，出错更少，不会出现幽灵方块)。
+- [x] 支持服务器级快捷潜影盒功能(需要服务器安装例如AxShulkers等插件)。
 - [x] 修复合成器、拉杆、红石粉不连接模式，枯叶和各种花簇的方向数量、发光浆果、带花的花盆、楼梯、藤蔓、缠怨藤、垂泪藤、砂轮、门、活版门、漏斗和箱子等等的放置问题。
-- [x] 拥有放置进度条的功能。
+- [x] 拥有可视化放置进度条。
 - [x] 支持服务器卡顿检测，防止因为卡顿造成的大量方块放置错误。
 - [x] 多达 48 种范围迭代逻辑。
 - [x] 不会因为没水的情况下迭代到水会卡死不打印的bug
@@ -29,13 +36,14 @@ Litematica Printer
 ----------
 
 1. 在 Litematica 中加载一个投影。
-2. 使你身在可以接触到投影方块的地方。
+2. 身移到可以接触到投影方块的地方。
 3. 按下`大写锁定（Caps Lock）`键开启打印机。
-4. 享受自动的打印:)。
+4. 享受自动的打印:)
 
 ### 未支持方块列表
 以下方块由于特殊原因暂未实现，打印机将自动跳过，亦或者是呈现错误的打印状态。如果发现其他方块放置错误，请尝试降低建造速度。若问题依旧存在，请提交 [issue](https://github.com/BiliXWhite/litematica-printer/issues)。
-- 头颅,告示牌(以及具有16个朝向的任何方块)
+- 头颅，告示牌，旗帜(以及具有16个朝向的任何方块)
+- 装有液体的炼药锅
 - 实体方块（包括但不限于物品展示框、盔甲架、画等等）
 
 编译
@@ -57,10 +65,10 @@ Litematica Printer
 
 ### 为什么开启打印后，打印机不工作？
 - 服务器装有反作弊插件，可能会导致打印机无法工作。
-- `打印机工作间隔`设置过小，导致服务器无法及时响应，请尝试开启`使用数据包打印`功能打印。 
+- `打印机工作间隔`设置过小，导致服务器无法及时响应，请尝试开启`使用数据包打印`功能打印或者调高`打印机工作间隔`。 
 - 某些玄学问题，在开启正版验证的服务器里打印数据交互不正常。可尝试重新登陆游戏账号。（推荐使用[AuthMe](https://modrinth.com/mod/auth-me)模组） 
 
-如果以上方法都无法解决问题，请尝试提交[Issue](https://github.com/BiliXWhite/litematica-printer/issues)，并附上详细的错误描述和日志。
+如果以上方法都无法解决问题，请尝试提交[Issue](https://github.com/BiliXWhite/litematica-printer/issues)，开发者会协助您解决问题。
 
 ### 为什么打印机放置的方块是错的？
 
@@ -70,8 +78,8 @@ Litematica Printer
 
 ### 快捷潜影盒功能无法使用？
 
-1. 服务器未装有AxShulkers插件，无法使用快捷潜影盒功能。
-2. 未设置好预设位置，无法使用快捷潜影盒功能。须在Litematica设置中设置好`pickBlockableSlots`值。如图所示：
+1. 服务器未装有右键快捷打开潜影盒的插件(推荐使用AxShulkers)，无法使用快捷潜影盒功能。
+2. 预设物品栏位置不足，无法使用快捷潜影盒功能。须在Litematica设置中设置好`pickBlockableSlots`值。如图所示：
 ![预设位置](预设位置.png)
 
 快捷潜影盒仍处于测试阶段，可能会有一些问题，如果遇到问题请提交[Issue](https://github.com/BiliXWhite/litematica-printer/issues)。
