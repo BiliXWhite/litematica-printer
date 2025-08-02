@@ -14,26 +14,18 @@ public enum State {
     CORRECT;
 
     public static State get(BlockState schematicBlockState, BlockState currentBlockState) {
-//        if(currentBlockState.getBlock() instanceof FluidBlock){
-//            System.out.println(Registries.BLOCK.getId(currentBlockState.getBlock()));
-//        }
-        if (!schematicBlockState.isAir() && (currentBlockState.isAir() ||
-                (LitematicaMixinMod.REPLACEABLE_LIST.getStrings().stream()
-                        .anyMatch(string -> !Filters.equalsName(string,schematicBlockState) &&
-//                        .anyMatch(string -> !Registries.BLOCK.getId(schematicBlockState.getBlock()).toString().contains(string) &&
-//                                Registries.BLOCK.getId(currentBlockState.getBlock()).toString().contains(string)) &&
-                                Filters.equalsName(string,currentBlockState)) &&
-                        LitematicaMixinMod.REPLACE.getBooleanValue())))
-//        if (!schematicBlockState.isAir() && (currentBlockState.isAir() || currentBlockState.getBlock() instanceof FluidBlock || currentBlockState.isOf(Blocks.SNOW) || currentBlockState.isOf(Blocks.BUBBLE_COLUMN)))
-//        if (!schematicBlockState.isAir() && (currentBlockState.isAir())
-            return State.MISSING_BLOCK;
-        else if (schematicBlockState.getBlock().equals(currentBlockState.getBlock())
-                && !schematicBlockState.equals(currentBlockState))
-            return State.WRONG_STATE;
-        else if (!schematicBlockState.getBlock().equals(currentBlockState.getBlock()))
-            return WRONG_BLOCK;
 
-        return State.CORRECT;
+        Set<String> replaceSet = new HashSet<>(LitematicaMixinMod.REPLACEABLE_LIST.getStrings());
+
+        if (schematicBlockState == currentBlockState)
+            return CORRECT;
+        else if (schematicBlockState.getBlock().getDefaultState() == currentBlockState.getBlock().getDefaultState())
+            return WRONG_STATE;
+        else if (!schematicBlockState.isAir() && currentBlockState.isAir())
+            return MISSING_BLOCK;
+        else if (LitematicaMixinMod.REPLACE.getBooleanValue() && replaceSet.contains(schematicBlockState.getBlock().getTranslationKey()))
+            return MISSING_BLOCK;
+        else return WRONG_BLOCK;
     }
 
 
