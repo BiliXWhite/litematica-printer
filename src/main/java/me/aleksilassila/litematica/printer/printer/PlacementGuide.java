@@ -42,6 +42,10 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     public @Nullable Action getAction(World world, WorldSchematic worldSchematic, BlockPos pos) {
+		//提前判断方块状态避免无用循环
+		State state = State.get(worldSchematic.getBlockState(pos), world.getBlockState(pos));
+		if (state == State.CORRECT)
+            return null;
         for (ClassHook hook : ClassHook.values()) {
             for (Class<?> clazz : hook.classes) {
                 if (clazz != null  && clazz.isInstance(worldSchematic.getBlockState(pos).getBlock())) {
