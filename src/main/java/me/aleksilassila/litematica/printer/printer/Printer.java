@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.printer;
 
+import fi.dy.masa.litematica.Litematica;
 import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
@@ -106,7 +107,7 @@ public class Printer extends PrinterUtils {
     static int startTick = -1;
     static Map<BlockPos, Integer> placeCooldownList = new HashMap<>();
     static int shulkerBoxSlot = -1;
-    static ItemStack yxcfItem; //有序存放临时存储
+    static ItemStack orderlyStoreItem; //有序存放临时存储
     private static Printer INSTANCE = null;
     private int shulkerCooldown = 0;
     public static int swapSlotDelay = 0;
@@ -574,35 +575,47 @@ public class Printer extends PrinterUtils {
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
             // 跳过冷却中的位置
+            if (placeCooldownList.containsKey(pos)) continue;
             // 检查每刻放置方块是否超出限制
             if (PRINT_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
-            if (placeCooldownList.containsKey(pos)) continue;
-            // 是否在渲染层内
-            if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
             // 是否是投影方块
             if (!isSchematicBlock(pos)) continue;
+            // 是否在渲染层内
+            if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
             // 是否可接触到
             if (!canInteracted(pos)) continue;
-            BlockState state = schematic.getBlockState(pos);
             // 放置冷却
             placeCooldownList.put(pos, 0);
 
+            BlockState requiredState = schematic.getBlockState(pos);
             // 检查放置跳过列表
             if (LitematicaMixinMod.PUT_SKIP.getBooleanValue()) {
                 Set<String> skipSet = new HashSet<>(PUT_SKIP_LIST.getStrings()); // 转换为 HashSet
-                if (skipSet.stream().anyMatch(s -> Filters.equalsName(s, state))) {
+                if (skipSet.stream().anyMatch(s -> Filters.equalsName(s, requiredState))) {
                     continue;
                 }
             }
 
             // 检查放置条件
-            PlacementGuide.Action action = guide.getAction(world, schematic, pos);
+            PlacementGuide.Action action = guide.getAction(world, requiredState, pos);
             if (action == null) continue;
+            // 调试输出
+            if (DEBUG_OUTPUT.getBooleanValue()) {
+                //#if MC < 12104 && MC != 12101
+                //$$Litematica.logger.info("[Printer] 方块名: {}", requiredState.getBlock().getName().getString());
+                //$$Litematica.logger.info("[Printer] 方块类名: {}", requiredState.getBlock().getClass().getName());
+                //$$Litematica.logger.info("[Printer] 方块ID: {}", Registries.BLOCK.getId(requiredState.getBlock()));
+                //#else
+                Litematica.LOGGER.info("[Printer] 方块名: {}", requiredState.getBlock().getName().getString());
+                Litematica.LOGGER.info("[Printer] 方块类名: {}", requiredState.getBlock().getClass().getName());
+                Litematica.LOGGER.info("[Printer] 方块ID: {}", Registries.BLOCK.getId(requiredState.getBlock()));
+                //#endif
+            }
 
             Direction side = action.getValidSide(world, pos);
             if (side == null) continue;
 
-            Item[] reqItems = action.getRequiredItems(state.getBlock());
+            Item[] reqItems = action.getRequiredItems(requiredState.getBlock());
             if (playerHasAccessToItems(player, reqItems)) {
                 boolean useShift = LitematicaMixinMod.FORCED_PLACEMENT.getBooleanValue() ||
                         Implementation.isInteractive(world.getBlockState(pos).getBlock()) ||
@@ -776,7 +789,7 @@ public class Printer extends PrinterUtils {
                     slot = i;
             }
             if (slot != -1) {
-                yxcfItem = inv.getStack(slot);
+                orderlyStoreItem = inv.getStack(slot);
                 return swapHandWithSlot(player, slot);
             }
             if (Implementation.getAbilities(player).creativeMode) {
@@ -886,13 +899,16 @@ public class Printer extends PrinterUtils {
             else if (!shift && wasSneaking)
                 setShift(player, false);
 
-            if (yxcfItem != null) {
-                if (yxcfItem.isEmpty()) {
-                    SwitchItem.removeItem(yxcfItem);
+            if (orderlyStoreItem != null) {
+                if (orderlyStoreItem.isEmpty()) {
+                    SwitchItem.removeItem(orderlyStoreItem);
                 } else {
-                    SwitchItem.syncUseTime(yxcfItem);
+                    SwitchItem.syncUseTime(orderlyStoreItem);
                 }
             }
+
+            if (PRINT_INTERVAL.getIntegerValue() >= 1 && lookDirYaw != null)
+                Implementation.sendLookPacket(player, lookDirYaw, lookDirPitch);
 
             if (PLACE_USE_PACKET.getBooleanValue()) {
                 //#if MC >= 11904

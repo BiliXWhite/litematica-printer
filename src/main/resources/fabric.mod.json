@@ -2,6 +2,7 @@
   "schemaVersion": 1,
   "id": "${mod_id}",
   "version": "${mod_version}",
+  "icon": "assets/litematica-printer/icon.png",
   "name": "${mod_name}",
   "description": "Litematica的一个附属模组，增加了缺失的打印功能",
   "authors": [
@@ -16,7 +17,6 @@
   },
 
   "license": "${mod_license}",
-  "icon": "assets/litematica-printer/icon.png",
 
   "environment": "*",
   "entrypoints": {
@@ -38,7 +38,9 @@
     "minecraft": "${minecraft_dependency}"
   },
   "custom": {
-
+    "modmenu": {
+      "parent": "${mod_id}-wrapper"
+    }
   }
 }
 

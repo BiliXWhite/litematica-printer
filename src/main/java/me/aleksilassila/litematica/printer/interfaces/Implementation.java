@@ -123,7 +123,7 @@ public class Implementation {
             RepeaterBlock.class, // 中继器
             DropperBlock.class, // 投掷器
             DispenserBlock.class, // 发射器
-            ShulkerBoxBlock.class, // 潮涌盒
+            ShulkerBoxBlock.class, // 潜影盒
             LecternBlock.class, // 讲台
             FlowerPotBlock.class, // 花盆
             BarrelBlock.class, // 桶

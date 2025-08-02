@@ -91,7 +91,6 @@ public class ZxyUtils {
     public static String syncInventoryId = "syncInventory";
 
     private static int sequence = 0;
-    private static boolean isSwitching = false;
 
     public static void startAddPrinterInventory(){
         getReadyColor();
@@ -442,13 +441,13 @@ public class ZxyUtils {
 
             if (hotbarSlot != -1)
             {
-//                if (usePacket)
-//                    mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(hotbarSlot));
-//                //#if MC > 12101
-//                inventory.setSelectedSlot(hotbarSlot);
-//                //#else
-//                //$$ inventory.selectedSlot = hotbarSlot;
-//                //#endif
+                if (usePacket)
+                    mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(hotbarSlot));
+                //#if MC > 12101
+                inventory.setSelectedSlot(hotbarSlot);
+                //#else
+                //$$ inventory.selectedSlot = hotbarSlot;
+                //#endif
 
                 if (player.isCreative())
                 {
@@ -463,7 +462,7 @@ public class ZxyUtils {
                     if (slot1 != -1) {
                         // 使用数据包或普通点击方式交换槽位中的物品
 //                        if (usePacket) {
-                            isSwitching = !isSwitching;
+//                            isSwitching = !isSwitching;
 //                            DefaultedList<Slot> slots = player.currentScreenHandler.slots;
 //                            int totalSlots = slots.size();
 //                            List<ItemStack> copies = Lists.newArrayListWithCapacity(totalSlots);
@@ -518,7 +517,8 @@ public class ZxyUtils {
 //                            return !isSwitching;
 //                        } else {
                             mc.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot1, hotbarSlot, SlotActionType.SWAP, player);
-                            return !isSwitching;
+//                            return !isSwitching;
+                            return false;
 //                        }
                     }
                 }
