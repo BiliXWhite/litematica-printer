@@ -3,9 +3,9 @@ package me.aleksilassila.litematica.printer.printer;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.StringUtils;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
 import net.minecraft.block.BlockState;
-//import net.minecraft.util.registry.Registry;
+import java.util.HashSet;
+import java.util.Set;
 
 public enum State {
     MISSING_BLOCK,
