@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.printer;
 
-import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
@@ -14,6 +13,7 @@ import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.state.property.Property;
 import net.minecraft.text.Text;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -36,17 +36,19 @@ public class PlacementGuide extends PrinterUtils {
         this.client = client;
     }
 
-    public @Nullable Action getAction(World world, WorldSchematic worldSchematic, BlockPos pos) {
-        // 提前缓存 blockState 提升性能
-        var blockState = worldSchematic.getBlockState(pos);
+    public @Nullable Action getAction(World world, BlockState requiredState, BlockPos pos) {
+        // 提前缓存 requiredState 提升性能
+        var state = State.get(requiredState, world.getBlockState(pos));
+        if (!requiredState.canPlaceAt(world, pos) || state == State.CORRECT)
+            return null;
         for (ClassHook hook : ClassHook.values()) {
             for (Class<?> clazz : hook.classes) {
-                if (clazz != null && clazz.isInstance(blockState.getBlock())) {
-                    return buildAction(world, worldSchematic, pos, hook);
+                if (clazz != null && clazz.isInstance(requiredState.getBlock())) {
+                    return buildAction(world, pos, hook, requiredState, state);
                 }
             }
         }
-        return buildAction(world, worldSchematic, pos, ClassHook.DEFAULT);
+        return buildAction(world, pos, ClassHook.DEFAULT, requiredState, state);
     }
 
     public @Nullable Action water(BlockState requiredState, BlockState currentState, BlockPos pos) {
@@ -109,15 +111,12 @@ public class PlacementGuide extends PrinterUtils {
         return new Action().setLookDirection(look).setItem(Items.ICE);
     }
 
-    private @Nullable Action buildAction(World world, WorldSchematic worldSchematic, BlockPos pos, ClassHook requiredType) {
-        BlockState requiredState = worldSchematic.getBlockState(pos);
+    private @Nullable Action buildAction(World world, BlockPos pos, ClassHook requiredType, BlockState requiredState, State state) {
         BlockState currentState = world.getBlockState(pos);
 
         // 缓存重复调用的结果
         var waterLoggedRequired = canWaterLogged(requiredState);
         var waterLoggedCurrent = canWaterLogged(currentState);
-        var canPlace = requiredState.canPlaceAt(world, pos);
-        var state = State.get(requiredState, currentState);
 
         if (LitematicaMixinMod.PRINT_WATER_LOGGED_BLOCK.getBooleanValue()
                 && waterLoggedRequired && !waterLoggedCurrent) {
@@ -130,13 +129,6 @@ public class PlacementGuide extends PrinterUtils {
             return null;
         }
 
-        if (!canPlace) {
-            return null;
-        }
-
-        if (state == State.CORRECT) {
-            return null;
-        }
 
         if (state == State.MISSING_BLOCK) switch (requiredType) {
             case WALL_TORCH -> {
@@ -150,11 +142,6 @@ public class PlacementGuide extends PrinterUtils {
                         .setSides((requiredState.get(Properties.FACING))
                                 .getOpposite())
                         .setRequiresSupport();
-            }
-            case SHULKER -> {
-                return new Action().setSides(
-                        (requiredState.get(Properties.FACING))
-                                .getOpposite());
             }
             case SLAB -> {
                 return new Action().setSides(getSlabSides(world, pos, requiredState.get(SlabBlock.TYPE)));
@@ -307,9 +294,6 @@ public class PlacementGuide extends PrinterUtils {
                 if (condition)
                     return new Action().setSides(sides).setLookDirection(facing).setRequiresSupport();
             }
-            case WALL_SKULL -> {
-                return new Action().setSides(requiredState.get(WallSkullBlock.FACING).getOpposite());
-            }
             case DIRT_PATH, FARMLAND -> {
                 return new Action().setItems(Items.DIRT, Items.GRASS_BLOCK, Items.COARSE_DIRT, Items.ROOTED_DIRT, Items.MYCELIUM, Items.PODZOL);
             }
@@ -388,12 +372,12 @@ public class PlacementGuide extends PrinterUtils {
                             .setRequiresSupport();
                 }
 
-                client.player.sendMessage(Text.of("尝试替换: " + block), true);
+                client.inGameHud.setOverlayMessage(Text.of("尝试替换: " + block), false);
                 //非方块型珊瑚
                 if (block instanceof DeadCoralBlock) {
                     //例子：block.minecraft.dead_tube_coral
                     String type = key.replace("block.minecraft.dead_", "").replace("_coral", "");
-                    client.player.sendMessage(Text.of("尝试替换珊瑚: " + type), true);
+                    client.inGameHud.setOverlayMessage(Text.of("尝试替换珊瑚: " + type), false);
                     return new Action().setItem(switch (type) {
                         case "tube" -> Items.TUBE_CORAL;
                         case "brain" -> Items.BRAIN_CORAL;
@@ -415,6 +399,16 @@ public class PlacementGuide extends PrinterUtils {
                 Block block = requiredState.getBlock();
                 Direction facing;
 
+                if (LitematicaMixinMod.FALLING_CHECK.getBooleanValue() && block instanceof FallingBlock) {
+                    //检查方块下面是否有方块，否则跳过放置
+                    BlockPos downPos = pos.down();
+                    BlockState downState = world.getBlockState(downPos);
+                    if (downState.isAir()) {
+                        client.inGameHud.setOverlayMessage(Text.of("方块 " + block.getName().toString() + " 需要支撑，跳过放置"), false);
+                        return null;
+                    }
+                }
+
                 if (block instanceof WallMountedBlock) {
                     Direction side = requiredState.get(Properties.HORIZONTAL_FACING);
                     BlockFace face = requiredState.get(Properties.BLOCK_FACE);
@@ -431,18 +425,30 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setSides(side).setLookDirection(side.getOpposite(), sidePitch);
                 }
 
-                if (block instanceof HorizontalFacingBlock || block instanceof CampfireBlock) {
+                if (block instanceof HorizontalFacingBlock || block instanceof StonecutterBlock) { // 操你妈ojng切石机你他妈为什么不是BlockWithEntity?
                     facing = requiredState.get(Properties.HORIZONTAL_FACING);
-                    if (block instanceof FenceGateBlock || block instanceof CampfireBlock) facing = facing.getOpposite();
+                    if (block instanceof FenceGateBlock) facing = facing.getOpposite(); // 栅栏门
                     return new Action().setSides(facing).setLookDirection(facing.getOpposite());
                 }
 
-                if (block instanceof FacingBlock || block instanceof DispenserBlock || block instanceof BarrelBlock) {
+                if (block instanceof FacingBlock) {
                     facing = requiredState.get(Properties.FACING);
-                    if (block instanceof ObserverBlock || block instanceof RodBlock) {
+                    if (block instanceof ObserverBlock || block instanceof RodBlock) // 侦测器和末地烛，避雷针类的物品
                         facing = facing.getOpposite();
-                    }
                     return new Action().setSides(facing).setLookDirection(facing.getOpposite());
+                }
+
+                if (block instanceof BlockWithEntity) {
+                    if (requiredState.getProperties().contains(Properties.FACING)) {
+                        facing = requiredState.get(Properties.FACING);
+                        return new Action().setSides(facing).setLookDirection(facing.getOpposite());
+                    }
+                    if (requiredState.getProperties().contains(Properties.HORIZONTAL_FACING)) {
+                        facing = requiredState.get(Properties.HORIZONTAL_FACING);
+                        if (block instanceof CampfireBlock)
+                            facing = facing.getOpposite(); // 营火方向需要旋转
+                        return new Action().setSides(facing).setLookDirection(facing.getOpposite());
+                    }
                 }
 
                 //方块型珊瑚的替换
@@ -459,15 +465,6 @@ public class PlacementGuide extends PrinterUtils {
                     }).setRequiresSupport();
                 }
 
-                if (LitematicaMixinMod.FALLING_CHECK.getBooleanValue() && block instanceof FallingBlock) {
-                    //检查方块下面是否有方块，否则跳过放置
-                    BlockPos downPos = pos.down();
-                    BlockState downState = world.getBlockState(downPos);
-                    if (downState.isAir()) {
-                        client.player.sendMessage(Text.of("方块 " + block.getName() + " 需要支撑，跳过放置"), true);
-                        return null;
-                    }
-                }
 
                 return new Action();
             }
@@ -475,8 +472,6 @@ public class PlacementGuide extends PrinterUtils {
         else if (state == State.WRONG_STATE) switch (requiredType) {
             case SLAB -> {
                 if (requiredState.get(SlabBlock.TYPE) == SlabType.DOUBLE) {
-//                        SlabType requiredHalf1 = currentState.get(SlabBlock.TYPE) == SlabType.TOP ? SlabType.BOTTOM : SlabType.TOP;
-//                        return new Action().setSides(getSlabSides(world, pos, requiredHalf1));
                     Direction requiredHalf = currentState.get(SlabBlock.TYPE) == SlabType.BOTTOM ? Direction.DOWN : Direction.UP;
 
                     return new Action().setSides(requiredHalf);
@@ -493,15 +488,19 @@ public class PlacementGuide extends PrinterUtils {
                 }
 
             }
-            case DOOR, TRAPDOOR, FENCE_GATE -> {
+            case DOOR, TRAPDOOR -> {
                 //判断门是不是铁制的，如果是就直接返回
                 if (requiredState.isOf(Blocks.IRON_DOOR) || requiredState.isOf(Blocks.IRON_TRAPDOOR)) break;
                 if (requiredState.get(Properties.OPEN) != currentState.get(Properties.OPEN)) {
-                    if (requiredState.getBlock() instanceof FenceGateBlock)
-                        return new ClickAction().setSides(requiredState.get(Properties.HORIZONTAL_FACING).getOpposite()).setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING));
                     return new ClickAction();
                 }
 
+            }
+            case FENCE_GATE -> {
+                var facing = requiredState.get(Properties.HORIZONTAL_FACING);
+                if (facing.getOpposite() == currentState.get(Properties.HORIZONTAL_FACING) ||
+                        requiredState.get(Properties.OPEN) != currentState.get(Properties.OPEN))
+                    return new ClickAction().setSides(facing.getOpposite()).setLookDirection(facing);
             }
             case LEVER -> {
                 if (requiredState.get(LeverBlock.POWERED) != currentState.get(LeverBlock.POWERED))
@@ -510,7 +509,7 @@ public class PlacementGuide extends PrinterUtils {
             }
             case CANDLES -> {
                 if (currentState.get(Properties.CANDLES) < requiredState.get(Properties.CANDLES))
-                    return new ClickAction().setItem(requiredState.getBlock().asItem());
+                    return new ClickAction().setItem(requiredState.getBlock().asItem()).setRequiresSupport();
 
             }
             case PICKLES -> {
@@ -535,7 +534,7 @@ public class PlacementGuide extends PrinterUtils {
             }
             case CAMPFIRE -> {
                 if (requiredState.get(CampfireBlock.LIT) != currentState.get(CampfireBlock.LIT))
-                    return new ClickAction().setItems(Implementation.SHOVELS);
+                    return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
 
             }
             case PILLAR -> {
@@ -580,6 +579,19 @@ public class PlacementGuide extends PrinterUtils {
                     }
                 }
             }
+            case CAULDRON -> {
+                if (currentState.get(LeveledCauldronBlock.LEVEL) > requiredState.get(LeveledCauldronBlock.LEVEL)) {
+                    if (playerHasAccessToItem(client.player, Items.GLASS_BOTTLE))
+                        return new ClickAction().setItem(Items.GLASS_BOTTLE);
+                    else
+                        client.inGameHud.setOverlayMessage(Text.of("降低炼药锅内水位需要 §l§6" + Items.GLASS_BOTTLE.getName().toString()), false);
+                }
+                if (currentState.get(LeveledCauldronBlock.LEVEL) < requiredState.get(LeveledCauldronBlock.LEVEL))
+                    if (playerHasAccessToItem(client.player, Items.POTION))
+                        return new ClickAction().setItem(Items.POTION);
+                    else
+                        client.inGameHud.setOverlayMessage(Text.of("增加炼药锅内水位需要 §l§6" + Items.POTION.getName().toString()), false);
+            }
         }
         else if (state == State.WRONG_BLOCK) switch (requiredType) {
             case FARMLAND -> {
@@ -609,6 +621,25 @@ public class PlacementGuide extends PrinterUtils {
                     }
                 }
             }
+//            case CAULDRON -> {
+//                var targetBlock = world.getBlockState(((BlockHitResult) client.crosshairTarget).getBlockPos()).getBlock();
+//                if (!(targetBlock instanceof LeveledCauldronBlock) &&
+//                        !(targetBlock instanceof LavaCauldronBlock) &&
+//                        !(targetBlock instanceof CauldronBlock)) {
+//                    client.inGameHud.setOverlayMessage(Text.of("你需要注视炼药锅才可以填充液体"), false);
+//                    return null;
+//                }
+//                if (requiredState.getBlock() instanceof LavaCauldronBlock)
+//                    return new ClickAction().setItem(Items.LAVA_BUCKET);
+//                if (requiredState.getBlock() instanceof LeveledCauldronBlock) {
+//                    Block block = requiredState.getBlock();
+//                    if (block.getTranslationKey().contains("water"))
+//                        return new ClickAction().setItem(Items.WATER_BUCKET);
+//                    if (block.getTranslationKey().contains("snow"))
+//                        return new ClickAction().setItem(Items.POWDER_SNOW_BUCKET);
+//                }
+//            }
+
             default -> {
                 //TODO 实现生存模式破坏错误方块
                 if (LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue()) client.interactionManager.attackBlock(pos, Direction.DOWN);
@@ -628,13 +659,11 @@ public class PlacementGuide extends PrinterUtils {
         ANVIL(AnvilBlock.class), // 铁砧
         HOPPER(HopperBlock.class), // 漏斗
         CAMPFIRE(CampfireBlock.class), // 营火
-        SHULKER(ShulkerBoxBlock.class), // 潜影盒
         BED(BedBlock.class), // 床
         BELL(BellBlock.class), // 钟
         AMETHYST(AmethystBlock.class), // 紫水晶
         DOOR(DoorBlock.class), // 门
         COCOA(CocoaBlock.class), // 可可豆
-        WALL_SKULL(WallSkullBlock.class), // 墙上的头颅
         NETHER_PORTAL(NetherPortalBlock.class), // 下界传送门
         //#if MC >= 12003
         CRAFTER(CrafterBlock.class), // 合成器
@@ -663,6 +692,7 @@ public class PlacementGuide extends PrinterUtils {
         REDSTONE(RedstoneWireBlock.class), //红石粉
         FENCE_GATE(FenceGateBlock.class), // 栅栏门
         LEVER(LeverBlock.class), // 拉杆
+        CAULDRON(CauldronBlock.class, LavaCauldronBlock.class, LeveledCauldronBlock.class), // 炼药锅
 
         // 其他
         FARMLAND(FarmlandBlock.class), // 耕地
@@ -688,8 +718,6 @@ public class PlacementGuide extends PrinterUtils {
 
         protected boolean requiresSupport = false;
         protected boolean useShift = false;
-
-        // If true, click target block, not neighbor
 
         public Action() {
             this.sides = new HashMap<>();
@@ -867,13 +895,14 @@ public class PlacementGuide extends PrinterUtils {
 
             if (validSides.isEmpty()) return null;
 
-            // Try to pick a side that doesn't require shift
+            // 尝试选择不需要潜行放置的一侧
             for (Direction validSide : validSides) {
                 if (!Implementation.isInteractive(world.getBlockState(pos.offset(validSide)).getBlock())) {
                     return validSide;
                 }
             }
 
+            setUseShift();
             return validSides.get(0);
         }
 
@@ -892,7 +921,7 @@ public class PlacementGuide extends PrinterUtils {
         }
 
         /**
-         * 设置是否需要支撑方块才能放置，默认为需要。
+         * 设置是否需要支撑方块才能放置，默认调用为需要。
          * <p>
          *   如果设置为 {@code true}，则在放置方块时，会检查目标位置的周围是否有其他方块支撑。
          *   如果设置为 {@code false}，则无论目标位置周围是否有支撑，都可以放置方块。

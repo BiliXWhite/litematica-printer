@@ -268,6 +268,10 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "启用后在打印时，如果碰到了实际与投影不符的方块（仅包名判断），那么将会破坏这个方块。\n" +
                     "（目前只能在创造模式破坏，或者是一些秒破方块）"
     );
+    public static final ConfigBoolean DEBUG_OUTPUT = new ConfigBoolean(
+            "调试输出", false,
+            "启用后会在聊天框输出调试信息，供反馈时使用。"
+    );
     //========================================
     //              Hotkeys
     //========================================

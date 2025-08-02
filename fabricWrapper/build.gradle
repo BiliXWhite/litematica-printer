@@ -8,10 +8,12 @@ plugins {
 def time = new Date().format("yyMMdd", TimeZone.getTimeZone("GMT+08:00"))
 
 group(project.mod_maven_group)
-version(project.mod_version+"+"+time)
+// 这里是wrapper里lib拉出来的东西，以及wrapper里fabric.mod.json内version的内容
+version(project.mod_version+"+" + time)
 
 base {
-    archivesName.set("${project.mod_archives_base_name}-all")
+    // 这是文件初始名字，但是我也不知道为什么会无缘无故加上时间
+    archivesName.set("${project.mod_archives_base_name}-versionpack")
 }
 
 def fabric_subprojects = project.parent.subprojects.findAll({
@@ -84,6 +86,7 @@ processResources {
 
         fabric_subprojects.each({
             mc_condition.add("${it.minecraft_dependency}")
+            // 添加子模块的 JAR 文件列表
             jars.add(["file": "META-INF/jars/${project.mod_archives_base_name}-${it.minecraft_version}-${project.version}.jar"])
         })
 
@@ -109,7 +112,7 @@ publishing {
         register("mavenJava", MavenPublication) {
             groupId("${project.mod_maven_group}")
             artifactId("${project.mod_id}")
-            version("all-" + version)
+            version("versionpack-" + version)
             from(components.java)
         }
     }

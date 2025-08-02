@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.bilixwhite;
 
+import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;

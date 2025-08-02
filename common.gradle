@@ -150,6 +150,8 @@ dependencies {
             modApi idFix
         } else if (mode == 4) {
             modCompileOnly idFix
+        } else if (mode == 45) {
+            modCompileOnly files(dependencyNotation)
         } else if (mode == 5) {
             modImplementation files(dependencyNotation)
         }
@@ -166,11 +168,12 @@ dependencies {
     runtimeOnly(project(path: ":fabricWrapper"))
 }
 def time = new Date().format("yyMMdd", TimeZone.getTimeZone("GMT+08:00"))
-version = project.mod_version
+version(project.mod_version+"+" + time)
 group = project.mod_maven_group
 
 base {
-    archivesName.set("$project.mod_archives_base_name-$project.minecraft_version+$time")
+    // 这是文件初始名字，但是我也不知道为什么会无缘无故加上时间
+    archivesName.set("$project.mod_archives_base_name-$project.minecraft_version")
 }
 
 loom {
@@ -310,7 +313,7 @@ processResources {
                 "mod_license"         : project.mod_license,
                 "mod_name"            : project.mod_name,
                 "mod_sources"         : project.mod_sources,
-                "mod_version"         : project.version
+                "mod_version"         : project.mod_version
         ])
     }
 
@@ -325,8 +328,8 @@ processResources {
 publishing {
     publications {
         register("mavenJava", MavenPublication) {
-            artifactId("${project.mod_id}-${project.minecraft_version.replace(".", "_")}")
-            version("${project.minecraft_version}-" + version)
+            artifactId("${project.mod_id}")
+            version("${project.minecraft_version}")
             from(components.java)
         }
     }

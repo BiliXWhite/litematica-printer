@@ -49,6 +49,7 @@ public class Configs implements IConfigHandler {
         list.add(FLUID_BLOCK_LIST);
         list.add(FILL_BLOCK_LIST);
         if(loadChestTracker) list.add(INVENTORY_LIST);
+        list.add(DEBUG_OUTPUT);
 
         return ImmutableList.copyOf(list);
     }
