@@ -557,7 +557,6 @@ public class Printer extends PrinterUtils {
         while ((pos = getBlockPos2()) != null) {
             if (client.player != null && !canInteracted(pos)) continue;
             BlockState requiredState = worldSchematic.getBlockState(pos);
-            PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
 
             //跳过放置
             if (LitematicaMixinMod.PUT_SKIP.getBooleanValue() &&
@@ -572,6 +571,8 @@ public class Printer extends PrinterUtils {
             }else {
                 skipPosMap.put(pos,0);
             }
+
+           PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
 
             if(USE_EASY_MODE.getBooleanValue() && action != null) {
                 easyPos = pos;
