@@ -21,7 +21,7 @@ public class Configs implements IConfigHandler {
     private static final String FILE_PATH = "./config/" + MOD_ID + ".json";
     private static final File CONFIG_DIR = new File("./config");
     //mod
-    public static final ConfigHotkey PRINTER = new ConfigHotkey( "打开设置菜单", "Z,Y","打开Litematica Printer设置菜单", "打开Litematica Printer设置菜单");
+    public static final ConfigHotkey OPEN_SCREEN = new ConfigHotkey( "打开菜单", "Z,Y","也就是你现在看到的这个界面的热键。");
 
     //===========通用设置===========
     public static ImmutableList<IConfigBase> addGeneral(){
@@ -91,7 +91,7 @@ public class Configs implements IConfigHandler {
     //===========热键设置===========
     public static ImmutableList<IConfigBase> addHotkeys(){
         List<IConfigBase> list = new ArrayList<>();
-        list.add(PRINTER);
+        list.add(OPEN_SCREEN);
         list.add(PRINT);
         list.add(TOGGLE_PRINTING_MODE);
         if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)){
@@ -127,7 +127,7 @@ public class Configs implements IConfigHandler {
     //按下时激活
     public static ImmutableList<ConfigHotkey> addKeyList(){
         ArrayList<ConfigHotkey> list = new ArrayList<>();
-        list.add(PRINTER);
+        list.add(OPEN_SCREEN);
         list.add(SYNC_INVENTORY);
         list.add(SWITCH_PRINTER_MODE);
 

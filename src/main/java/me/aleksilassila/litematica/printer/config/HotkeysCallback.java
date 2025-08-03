@@ -4,6 +4,7 @@ import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
+import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.client.MinecraftClient;
 
@@ -30,7 +31,7 @@ import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.startAddPrinterInventory;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.startOrOffSyncInventory;
 
-import static me.aleksilassila.litematica.printer.config.Configs.PRINTER;
+import static me.aleksilassila.litematica.printer.config.Configs.OPEN_SCREEN;
 
 //监听按键
 public class HotkeysCallback implements IHotkeyCallback {
@@ -40,7 +41,7 @@ public class HotkeysCallback implements IHotkeyCallback {
     @Override
     public boolean onKeyAction(KeyAction action, IKeybind key) {
         if (this.client.player == null || this.client.world == null) return false;
-        if(key == PRINTER.getKeybind()){
+        if(key == OPEN_SCREEN.getKeybind()){
             client.setScreen(new ConfigUi());
             return true;
         }else if(key == SYNC_INVENTORY.getKeybind()){
@@ -68,7 +69,7 @@ public class HotkeysCallback implements IHotkeyCallback {
             return true;
         }
         //#if MC >= 12001
-        else if(GuiUtils.getCurrentScreen() instanceof HandledScreen<?> gui &&
+        else if(GuiUtils.getCurrentScreen() instanceof HandledScreen<?> &&
                 !(GuiUtils.getCurrentScreen() instanceof CreativeInventoryScreen))
         {
             if(key == LAST.getKeybind()){
@@ -89,6 +90,9 @@ public class HotkeysCallback implements IHotkeyCallback {
             }
         }
         //#endif
+        else if (key == TOGGLE_PRINTING_MODE.getKeybind()) {
+            Printer.getPrinter().clearQueue();
+        }
         return false;
     }
 
