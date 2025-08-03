@@ -778,20 +778,24 @@ public class Printer extends PrinterUtils {
         }
         return false;
     }
-
     public boolean switchToItems(ClientPlayerEntity player, Item[] items) {
         if (items == null) return true;
         PlayerInventory inv = Implementation.getInventory(player);
+
+        // 遍历物品列表，查找玩家背包中可用的物品
         for (Item item : items) {
             int slot = -1;
+            // 在玩家背包中查找指定物品的槽位
             for (int i = 0; i < inv.size(); i++) {
                 if (inv.getStack(i).getItem() == item && inv.getStack(i).getCount() > 0)
                     slot = i;
             }
+            // 如果找到物品槽位，则交换手持物品与该槽位物品
             if (slot != -1) {
                 orderlyStoreItem = inv.getStack(slot);
                 return swapHandWithSlot(player, slot);
             }
+            // 如果玩家处于创造模式，则直接设置选中的物品到手中
             if (Implementation.getAbilities(player).creativeMode) {
                 InventoryUtils.setPickedItemToHand(new ItemStack(item), client);
                 client.interactionManager.clickCreativeStack(client.player.getStackInHand(Hand.MAIN_HAND), 36 + inv.selectedSlot);
@@ -801,10 +805,11 @@ public class Printer extends PrinterUtils {
         return true;
     }
 
+
     public boolean swapHandWithSlot(ClientPlayerEntity player, int slot) {
         ItemStack stack = Implementation.getInventory(player).getStack(slot);
         int slotNum = client.player.getInventory().getSlotWithStack(stack);
-        return ZxyUtils.setPickedItemToHand(slotNum, stack, client);
+        return ZxyUtils.setPickedItemToHand(slotNum, stack);
     }
 
     public void sendLook(ClientPlayerEntity player, Direction directionYaw, Direction directionPitch) {
@@ -814,6 +819,8 @@ public class Printer extends PrinterUtils {
         queue.lookDirYaw = directionYaw;
         queue.lookDirPitch = directionPitch;
     }
+
+    public void clearQueue() { queue.clearQueue();}
 
     public static class TempData {
         public static boolean xuanQuFanWeiNei_p(BlockPos pos) {
@@ -852,7 +859,7 @@ public class Printer extends PrinterUtils {
         public BlockPos target;
         public Direction side;
         public Vec3d hitModifier;
-        public boolean shift = false;
+        public boolean needSneak = false;
         public boolean termsOfUse = false;
         public Direction lookDirYaw = null;
         public Direction lookDirPitch = null;
@@ -872,7 +879,7 @@ public class Printer extends PrinterUtils {
             this.target = target;
             this.side = side;
             this.hitModifier = hitModifier;
-            this.shift = shift;
+            this.needSneak = shift;
 
         }
 
@@ -894,9 +901,9 @@ public class Printer extends PrinterUtils {
                     .add(hitModifier.rotateY((direction.getPositiveHorizontalDegrees() + 90) % 360).multiply(0.5))
                     : hitModifier;
 
-            if (shift && !wasSneaking)
+            if (needSneak && !wasSneaking)
                 setShift(player, true);
-            else if (!shift && wasSneaking)
+            else if (!needSneak && wasSneaking)
                 setShift(player, false);
 
             if (orderlyStoreItem != null) {
@@ -907,8 +914,8 @@ public class Printer extends PrinterUtils {
                 }
             }
 
-            if (PRINT_INTERVAL.getIntegerValue() >= 1 && lookDirYaw != null)
-                Implementation.sendLookPacket(player, lookDirYaw, lookDirPitch);
+//            if (PRINT_INTERVAL.getIntegerValue() >= 1 && lookDirYaw != null)
+//                Implementation.sendLookPacket(player, lookDirYaw, lookDirPitch);
 
             if (PLACE_USE_PACKET.getBooleanValue()) {
                 //#if MC >= 11904
@@ -928,9 +935,9 @@ public class Printer extends PrinterUtils {
                         .rightClickBlock(target, side, hitVec);
             }
 
-            if (shift && !wasSneaking)
+            if (needSneak && !wasSneaking)
                 setShift(player, true);
-            else if (!shift && wasSneaking)
+            else if (!needSneak && wasSneaking)
                 setShift(player, false);
 
             clearQueue();
@@ -945,7 +952,6 @@ public class Printer extends PrinterUtils {
             //#endif
 
             player.networkHandler.sendPacket(packet);
-
         }
 
         public void clearQueue() {
@@ -953,7 +959,7 @@ public class Printer extends PrinterUtils {
             this.side = null;
             this.hitModifier = null;
             this.lookDirYaw = null;
-            this.shift = false;
+            this.needSneak = false;
         }
     }
 }

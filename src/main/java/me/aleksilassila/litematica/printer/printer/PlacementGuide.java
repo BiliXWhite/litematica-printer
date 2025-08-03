@@ -219,9 +219,9 @@ public class PlacementGuide extends PrinterUtils {
                 Direction facing = orientation.getFacing().getOpposite();
                 Direction rotation = orientation.getRotation().getOpposite();
                 if (facing == Direction.UP) {
-                    return new Action().setSides(rotation).setLookDirection(rotation, Direction.UP);
+                    return new Action().setSides(rotation.getOpposite()).setLookDirection(rotation, Direction.UP);
                 } else if (facing == Direction.DOWN) {
-                    return new Action().setSides(rotation.getOpposite()).setLookDirection(rotation.getOpposite(), Direction.DOWN);
+                    return new Action().setSides(rotation).setLookDirection(rotation.getOpposite(), Direction.DOWN);
                 } else {
                     return new Action().setSides(facing).setLookDirection(facing, facing);
                 }
@@ -425,7 +425,9 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setSides(side).setLookDirection(side.getOpposite(), sidePitch);
                 }
 
-                if (block instanceof HorizontalFacingBlock || block instanceof StonecutterBlock) { // 操你妈ojng切石机你他妈为什么不是BlockWithEntity?
+                if (block instanceof HorizontalFacingBlock ||
+                        block instanceof StonecutterBlock ||
+                        block instanceof FlowerbedBlock) { // 操你妈ojng切石机你他妈为什么不是BlockWithEntity?
                     facing = requiredState.get(Properties.HORIZONTAL_FACING);
                     if (block instanceof FenceGateBlock) facing = facing.getOpposite(); // 栅栏门
                     return new Action().setSides(facing).setLookDirection(facing.getOpposite());
@@ -661,7 +663,7 @@ public class PlacementGuide extends PrinterUtils {
         CAMPFIRE(CampfireBlock.class), // 营火
         BED(BedBlock.class), // 床
         BELL(BellBlock.class), // 钟
-        AMETHYST(AmethystBlock.class), // 紫水晶
+        AMETHYST(AmethystBlock.class, AmethystClusterBlock.class), // 紫水晶
         DOOR(DoorBlock.class), // 门
         COCOA(CocoaBlock.class), // 可可豆
         NETHER_PORTAL(NetherPortalBlock.class), // 下界传送门
@@ -903,6 +905,7 @@ public class PlacementGuide extends PrinterUtils {
             }
 
             setUseShift();
+            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("需要潜行放置"));
             return validSides.get(0);
         }
 

@@ -25,6 +25,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
+import net.minecraft.network.packet.c2s.play.CreativeInventoryActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
@@ -91,6 +92,7 @@ public class ZxyUtils {
     public static String syncInventoryId = "syncInventory";
 
     private static int sequence = 0;
+    private static boolean isSwitching = true;
 
     public static void startAddPrinterInventory(){
         getReadyColor();
@@ -409,130 +411,147 @@ public class ZxyUtils {
         return sequence++;
     }
 
-    public static boolean setPickedItemToHand(int sourceSlot, ItemStack stack, MinecraftClient mc) {
-        PlayerEntity player = mc.player;
+    /**
+     * 将指定槽位的物品设置为玩家当前手持物品。
+     * <p>
+     * 如果目标槽位是快捷栏槽位，则直接选中该槽位；
+     * 否则尝试寻找一个合适的快捷栏槽位来放置该物品：
+     * 1. 若 sourceSlot 为 -1 或无效，则优先使用空的可拾取槽位；
+     * 2. 若没有空槽，则根据配置选择一个目标槽位；
+     * 3. 在创造模式下通过交换方式将物品放入快捷栏；
+     * 4. 在生存模式下通过点击槽位交换的方式进行操作。
+     *
+     * @param sourceSlot 源物品所在的槽位索引（若为 -1 表示未指定）
+     * @param stack      要设置到手中的物品堆栈
+     * @return 是否成功设置了手持物品
+     */
+    public static boolean setPickedItemToHand(int sourceSlot, ItemStack stack) {
+        PlayerEntity player = client.player;
         PlayerInventory inventory = player.getInventory();
         var usePacket = LitematicaMixinMod.PLACE_USE_PACKET.getBooleanValue();
 
-        if (PlayerInventory.isValidHotbarIndex(sourceSlot))
-        {
-            if (usePacket)
-                mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(sourceSlot));
-            //#if MC > 12101
-            inventory.setSelectedSlot(sourceSlot);
-            //#else
-            //$$ inventory.selectedSlot = sourceSlot;
-            //#endif
+        // 如果源槽位是有效的快捷栏索引，直接切换选中该槽位
+        if (PlayerInventory.isValidHotbarIndex(sourceSlot)) {
+            selectHotbarSlot(sourceSlot, inventory, usePacket);
             return true;
-        }
-        else
-        {
+        } else {
             int hotbarSlot = sourceSlot;
 
-            if (sourceSlot == -1 || !PlayerInventory.isValidHotbarIndex(sourceSlot))
-            {
+            // 如果源槽位无效，尝试获取一个空的可用于拾取的快捷栏槽位
+            if (sourceSlot == -1 || !PlayerInventory.isValidHotbarIndex(sourceSlot)) {
                 hotbarSlot = getEmptyPickBlockableHotbarSlot(inventory);
             }
 
-            if (hotbarSlot == -1)
-            {
+            // 如果仍然没有找到合适槽位，则根据规则获取一个目标槽位
+            if (hotbarSlot == -1) {
                 hotbarSlot = getPickBlockTargetSlot(player);
             }
 
-            if (hotbarSlot != -1)
-            {
-                if (usePacket)
-                    mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(hotbarSlot));
-                //#if MC > 12101
-                inventory.setSelectedSlot(hotbarSlot);
-                //#else
-                //$$ inventory.selectedSlot = hotbarSlot;
-                //#endif
+            // 如果找到了一个合适的快捷栏槽位
+            if (hotbarSlot != -1) {
+                // 先选中槽位
+                selectHotbarSlot(hotbarSlot, inventory, usePacket);
 
-                if (player.isCreative())
-                {
+                // 如果是创造模式，直接交换物品到快捷栏
+                if (player.isCreative()) {
                     //#if MC <= 12101
                     //$$player.getInventory().addPickBlock(stack.copy());
                     //#else
                     player.getInventory().swapStackWithHotbar(stack.copy());
                     //#endif
-                    mc.interactionManager.clickCreativeStack(player.getMainHandStack(), 36 + player.getInventory().selectedSlot);
+                    if (usePacket)
+                        client.getNetworkHandler().sendPacket(new CreativeInventoryActionC2SPacket(36 + player.getInventory().selectedSlot, stack));
+                    else
+                        client.interactionManager.clickCreativeStack(stack, 36 + player.getInventory().selectedSlot);
+
                 } else {
+                    // 生存模式处理逻辑：查找物品所在槽位，并执行交换操作
                     int slot1 = fi.dy.masa.malilib.util.InventoryUtils.findSlotWithItem(player.playerScreenHandler, stack.copy(), true);
                     if (slot1 != -1) {
                         // 使用数据包或普通点击方式交换槽位中的物品
-//                        if (usePacket) {
-//                            isSwitching = !isSwitching;
-//                            DefaultedList<Slot> slots = player.currentScreenHandler.slots;
-//                            int totalSlots = slots.size();
-//                            List<ItemStack> copies = Lists.newArrayListWithCapacity(totalSlots);
-//                            for (Slot slotItem : slots) {
-//                                copies.add(slotItem.getStack().copy());
-//                            }
-//
-//                            Int2ObjectMap<
-//                                    //#if MC >= 12105
-//                                    //$$ ItemStackHash
-//                                    //#else
-//                                    ItemStack
-//                                    //#endif
-//                                    > snapshot = new Int2ObjectOpenHashMap<>();
-//                            for (int j = 0; j < totalSlots; j++) {
-//                                ItemStack original = copies.get(j);
-//                                ItemStack current = slots.get(j).getStack();
-//                                if (!ItemStack.areEqual(original, current)) {
-//                                    snapshot.put(j,
-//                                            //#if MC >=12105
-//                                            //$$ ItemStackHash.fromItemStack(current, client.getNetworkHandler().method_68823())
-//                                            //#else
-//                                            current.copy()
-//                                            //#endif
-//                                    );
-//                                }
-//                            }
-//
-//                            //#if MC >= 12105
-//                            //$$ItemStackHash itemStackHash = ItemStackHash.fromItemStack(player.currentScreenHandler.getCursorStack(), client.getNetworkHandler().method_68823());
-//                            //#endif
-//                            mc.getNetworkHandler().sendPacket(new ClickSlotC2SPacket(
-//                                    player.playerScreenHandler.syncId,
-//                                    player.currentScreenHandler.getRevision(),
-//                                    //#if MC >= 12105
-//                                    //$$ Shorts.checkedCast((long)slot1),
-//                                    //$$ SignedBytes.checkedCast((long)hotbarSlot),
-//                                    //#else
-//                                    slot1,
-//                                    hotbarSlot,
-//                                    //#endif
-//                                    SlotActionType.SWAP,
-//                                    //#if MC >= 12105
-//                                    //$$ snapshot,
-//                                    //$$ itemStackHash
-//                                    //#else
-//                                    stack.copy(),
-//                                    snapshot
-//                                    //#endif
-//                            ));
-//                            WorldUtils.setEasyPlaceLastPickBlockTime();
-//                            return !isSwitching;
-//                        } else {
-                            mc.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot1, hotbarSlot, SlotActionType.SWAP, player);
-//                            return !isSwitching;
-                            return false;
-//                        }
+                        if (usePacket) {
+                            isSwitching = !isSwitching;
+                            DefaultedList<Slot> slots = player.currentScreenHandler.slots;
+                            int totalSlots = slots.size();
+                            List<ItemStack> copies = Lists.newArrayListWithCapacity(totalSlots);
+                            for (Slot slotItem : slots) {
+                                copies.add(slotItem.getStack().copy());
+                            }
+
+                            Int2ObjectMap<
+                                    //#if MC >= 12105
+                                    //$$ ItemStackHash
+                                    //#else
+                                    ItemStack
+                                    //#endif
+                                    > snapshot = new Int2ObjectOpenHashMap<>();
+                            for (int j = 0; j < totalSlots; j++) {
+                                ItemStack original = copies.get(j);
+                                ItemStack current = slots.get(j).getStack();
+                                if (!ItemStack.areEqual(original, current)) {
+                                    snapshot.put(j,
+                                            //#if MC >=12105
+                                            //$$ ItemStackHash.fromItemStack(current, client.getNetworkHandler().method_68823())
+                                            //#else
+                                            current.copy()
+                                            //#endif
+                                    );
+                                }
+                            }
+
+                            //#if MC >= 12105
+                            //$$ItemStackHash itemStackHash = ItemStackHash.fromItemStack(player.currentScreenHandler.getCursorStack(), client.getNetworkHandler().method_68823());
+                            //#endif
+                            client.getNetworkHandler().sendPacket(new ClickSlotC2SPacket(
+                                    player.playerScreenHandler.syncId,
+                                    player.currentScreenHandler.getRevision(),
+                                    //#if MC >= 12105
+                                    //$$ Shorts.checkedCast((long)slot1),
+                                    //$$ SignedBytes.checkedCast((long)hotbarSlot),
+                                    //#else
+                                    slot1,
+                                    hotbarSlot,
+                                    //#endif
+                                    SlotActionType.SWAP,
+                                    //#if MC >= 12105
+                                    //$$ snapshot,
+                                    //$$ itemStackHash
+                                    //#else
+                                    stack.copy(),
+                                    snapshot
+                                    //#endif
+                            ));
+                            client.player.currentScreenHandler.onSlotClick(slot1, hotbarSlot, SlotActionType.SWAP, player);
+                            WorldUtils.setEasyPlaceLastPickBlockTime();
+                            return !isSwitching;
+                        } else {
+                            client.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot1, hotbarSlot, SlotActionType.SWAP, player);
+                            return true;
+                        }
                     }
                 }
 
                 WorldUtils.setEasyPlaceLastPickBlockTime();
                 return true;
-            }
-            else
-            {
+            } else {
                 InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");
                 return false;
             }
         }
     }
+
+    private static void selectHotbarSlot(int slot, PlayerInventory inventory, boolean usePacket) {
+        if (usePacket) {
+            client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
+        }
+        //#if MC > 12101
+        inventory.setSelectedSlot(slot);
+        //#else
+        //$$ inventory.selectedSlot = slot;
+        //#endif
+    }
+
+
 
     public static void actionBar(String message){
         //#if MC > 11802
