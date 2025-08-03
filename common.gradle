@@ -1,6 +1,5 @@
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
-import net.fabricmc.loom.util.Platform
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.tree.ClassNode
@@ -124,7 +123,7 @@ def mod_dependencies = [
         [(mcVersion > 12004 ? "curse.maven:carpet-349239" : "maven.modrinth:carpet"), "carpet", 1],
         ["net.kyrptonaught:kyrptconfig", "kyrptconfig", 1],
         ["net.kyrptonaught:shulkerutils", "shulkerutils", mcVersion > 12004 ? 0 : 1],
-        [getSbYacl(), "yacl", mcVersion >= 12001 ? 1 : 0],
+        [getYacl(), "yacl", mcVersion >= 12001 ? 1 : 0],
         ["maven.modrinth:chest-tracker", "chesttracker", mcVersion < 12105 ? 1 : 4],   //TODO 箱子追踪未更新21.5
         ["maven.modrinth:where-is-it", "whereisit", mcVersion < 12105 ? 1 : 4],
         ["red.jackf.jackfredlib:jackfredlib", "jackfredlib", mcVersion >= 12001 ? 1 : 0],
@@ -135,10 +134,9 @@ def mod_dependencies = [
         ["io.github.cottonmc:LibGui", "LibGui", mcVersion < 12001 ? 1 : 0],
 ]
 
-String getSbYacl() {
+String getYacl() {
 //    return "maven.modrinth:yacl";
     return mcVersion == 12002 ? "maven.modrinth:yacl" : "dev.isxander:yet-another-config-lib";
-//    return"maven.modrinth:yacl";
 }
 
 String getQuiShulkerBox() {
@@ -280,76 +278,6 @@ loom {
         }
     }
 }
-
-//tasks.register("serverPropertiesJar", Jar) {
-//    File propsFile = file("build/tmp/install.properties")
-//
-//    doFirst {
-//        if (propsFile.exists()) {
-//            propsFile.delete()
-//        }
-//
-//        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(propsFile))
-//        bufferedWriter.writeLine("fabric-loader-version=${project.loader_version}")
-//        bufferedWriter.writeLine("game-version=${project.minecraft_version}")
-//        bufferedWriter.close()
-//    }
-//
-//    archiveFileName.set("server-properties.jar")
-//    destinationDirectory.set(file("build/tmp"))
-//    from(propsFile)
-//}
-
-//tasks.register("runProductionClient", JavaExec) {
-//    dependsOn(tasks.remapJar)
-//    classpath.from(configurations.productionRuntimeClient)
-//    mainClass.set("net.fabricmc.loader.impl.launch.knot.KnotClient")
-//    workingDir(file("run/client"))
-//
-//    doFirst {
-//        classpath.from(loom.minecraftProvider.minecraftClientJar)
-//        args(
-//                "--assetIndex", loom.minecraftProvider.versionInfo.assetIndex().fabricId(loom.minecraftProvider.minecraftVersion()),
-//                "--assetsDir", file("${loom.files.userCache}/assets").absolutePath,
-//                "--gameDir", workingDir.absolutePath,
-//                "--width", "1280",
-//                "--height", "720",
-//        )
-//        jvmArgs("-Dmixin.debug.export=true")
-//        jvmArgs("-Dfabric.addMods=${configurations.productionRuntimeMods.files.join(File.pathSeparator)}${File.pathSeparator}${tasks.remapJar.archiveFile.get().asFile.absolutePath}")
-//
-//
-//        if (Platform.CURRENT.operatingSystem.isMacOS()) {
-//            jvmArgs("-XstartOnFirstThread")
-//        }
-//    }
-//}
-
-//tasks.register("runProductionServer", JavaExec) {
-//    dependsOn(tasks.remapJar)
-//    classpath.from(configurations.productionRuntimeServer, tasks.named("serverPropertiesJar"))
-//    mainClass.set("net.fabricmc.installer.ServerLauncher")
-//    workingDir(file("run/server"))
-//
-//    doFirst {
-//        args("nogui")
-//        jvmArgs("-Dmixin.debug.export=true")
-//        jvmArgs("-Dfabric.addMods=${configurations.productionRuntimeMods.files.join(File.pathSeparator)}${File.pathSeparator}${tasks.remapJar.archiveFile.get().asFile.absolutePath}")
-//    }
-//}
-
-//["serverPropertiesJar",
-// "runClient", "runServer",
-// "runMixinAuditClient", "runMixinAuditServer",
-// "runProductionClient", "runProductionServer",
-// "preprocessCode", "preprocessResources",
-// "preprocessTestCode", "preprocessTestResources"].forEach {
-//    if (tasks.getNames().contains(it)) {
-//        tasks.named(it) {
-//            it.group("${mod_id}")
-//        }
-//    }
-//}
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding("UTF-8")

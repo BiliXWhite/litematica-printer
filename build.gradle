@@ -42,53 +42,6 @@ preprocess {
     mc12105.link(mc12106, file("versions/mapping-1.21.5-1.21.6.txt"))
 }
 
-//ext {
-//    env = System.getenv()
-//
-//    getVersionGit = { List paths ->
-//        if (grgit == null) {
-//            return "nogit"
-//        }
-//
-//        List latestCommits = paths.isEmpty() ? grgit.log(maxCommits: 1) : grgit.log(paths: paths, maxCommits: 1)
-//        return latestCommits.isEmpty() ? "uncommited" : "${latestCommits.get(0).id.substring(0, 7)}"
-//    }
-//
-//    getBuildNumber = {
-//        return ext.env.GITHUB_RUN_NUMBER ? ext.env.GITHUB_RUN_NUMBER : Integer.MAX_VALUE
-//    }
-//
-//    getVersionType = {
-//        switch (ext.env.BUILD_TYPE) {
-//            case "RELEASE":
-//                return "stable"
-//            case "BETA":
-//                return "beta"
-//            default:
-//                return "dev"
-//        }
-//    }
-//
-//    getVersionPatch = { List paths ->
-//        if (grgit == null) {
-//            return 0
-//        }
-//
-//        List latestCommits = paths.isEmpty() ? grgit.log() : grgit.log(paths: paths)
-//        return latestCommits.size()
-//    }
-//
-//    getMavenArtifactVersion = {
-//        return ext.getVersionType() == "stable" ? "${project.mod_version}.${ext.getVersionPatch([])}" : project.version
-//    }
-//
-//    getModVersion = {
-//        return "${project.mod_version}.${getVersionPatch([])}+${getVersionGit([])}-${getVersionType()}"
-//    }
-//}
-//
-//setVersion(project.getModVersion())
-
 tasks.register("cleanPreprocessSources") {
     it.group("${project.mod_id}")
 

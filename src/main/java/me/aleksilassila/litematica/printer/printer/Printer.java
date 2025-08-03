@@ -27,22 +27,20 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInputC2SPacket;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.function.BooleanSupplier;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
-import java.util.stream.IntStream;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static fi.dy.masa.litematica.util.WorldUtils.applyCarpetProtocolHitVec;
@@ -122,7 +120,7 @@ public class Printer extends PrinterUtils {
         }
     }
     public static boolean isEnablePrinter(){
-        return LitematicaMixinMod.TOGGLE_PRINTING_MODE.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed();
+        return TOGGLE_PRINTING_MODE.getBooleanValue() || PRINT.getKeybind().isPressed();
     }
 
     private static Printer INSTANCE = null;
@@ -174,7 +172,7 @@ public class Printer extends PrinterUtils {
         Iterator<BlockPos> iterator = myBox.iterator;
         while (!timedOut() && iterator.hasNext()) {
             BlockPos pos = iterator.next();
-            IConfigOptionListEntry optionListValue = LitematicaMixinMod.RANGE_MODE.getOptionListValue();
+            IConfigOptionListEntry optionListValue = RANGE_MODE.getOptionListValue();
             if (optionListValue == State.ListType.SPHERE && !basePos.isWithinDistance(pos,range1)) {
                 continue;
             }
@@ -202,7 +200,7 @@ public class Printer extends PrinterUtils {
     public BlockPos replacePos = null;
 
     public void initReplaceTask(){
-        List<String> replaceTaskList = LitematicaMixinMod.FLUID_BLOCK_LIST.getStrings();
+        List<String> replaceTaskList = FLUID_BLOCK_LIST.getStrings();
         if (replaceTaskList.isEmpty()) return;
         // replaceTaskList 元素格式案例 minecraft:stone|minecraft:dirt => minecraft:grass_block
         for (String replace : replaceTaskList) {
@@ -229,7 +227,7 @@ public class Printer extends PrinterUtils {
         BlockPos pos;
         while ((pos = replacePos != null ? replacePos : getBlockPos2()) != null && client.world != null && client.player != null) {
             BlockState currentState = client.world.getBlockState(pos);
-            if (client.player != null && !canInteracted(pos) || !TempData.xuanQuFanWeiNei_p(pos) || isLimitedByTheNumberOfLayers(pos)) {
+            if (client.player != null && !canInteracted(pos) || !xuanQuFanWeiNei_p(pos) || isLimitedByTheNumberOfLayers(pos)) {
                 replacePos = null;
                 continue;
             }
@@ -248,23 +246,26 @@ public class Printer extends PrinterUtils {
                 }
                 return false;
             };
-
+            AtomicReference<PlacementGuide.Action> action = new AtomicReference<>();
+            final boolean[] skip = {false}; // 跳过方块名不符合的方块
             // map中的k是源方块名，v是目标方块
             boolean b = replaceTaskMap.entrySet().stream().anyMatch(entry -> {
                 for (String blockName : entry.getKey()) {
                     // 为排流体破坏多余方块特殊处理
                     if (equalsBlockName(blockName, currentState, finalPos) && entry.getKey().stream().filter(name -> !blockName.equals(name)).anyMatch(findFluid::test)) {
-                        if(excavateBlock(finalPos) == null){
+                        if (excavateBlock(finalPos) == null) {
                             replacePos = finalPos;
                             return true;
                         }
                         replacePos = null;
+                        return false;
                     }
 
                     if ((!entry.getValue().holdRequired || entry.getValue().itemList.stream().anyMatch(item -> hasItem(item))) &&
                             ("all".equals(blockName) || equalsBlockName(blockName, currentState, finalPos)) &&
                             entry.getValue().itemList.stream().noneMatch(item -> equalsBlockName(item.getName().getString(), currentState, finalPos))) {
                         if (((Predicate<List<Item>>) items -> {
+                            action.set(guide.buildAction(client.world, Blocks.AIR.getDefaultState(), currentState, finalPos, guide.getClassHook(currentState)));
                             if (excavateBlock(finalPos) == null) {
                                 replacePos = finalPos;
                                 return true;
@@ -275,7 +276,13 @@ public class Printer extends PrinterUtils {
                                 // 要么不是流体，要么是源
                                 if ((currentState.getFluidState().isEmpty() || currentState.getFluidState().isStill()) &&
                                         Printer.this.switchToItems(client.player, items.toArray(new Item[0]))) {
-                                    ((IClientPlayerInteractionManager) client.interactionManager).rightClickBlock(finalPos, Direction.UP, Vec3d.ofCenter(finalPos));
+                                    if (action.get() != null) {
+                                        action.get().queueAction(queue, finalPos, action.get().getValidSide(client.world, finalPos), true, false);
+                                        queue.sendQueue(client.player);
+                                    } else if (action.get() == null) {
+                                        ((IClientPlayerInteractionManager) client.interactionManager).rightClickBlock(finalPos, Direction.UP, Vec3d.ofCenter(finalPos));
+                                    }
+                                    return false;
                                 } else {
                                     remoteItem.addAll(items);
                                     return true;
@@ -283,11 +290,14 @@ public class Printer extends PrinterUtils {
                             }
                             return false;
                         }).test(entry.getValue().itemList)) return true;
+                        return false;
                     }
                     replacePos = null;
                 }
+                skip[0] = true;
                 return false;
             });
+            if (skip[0]) continue;
             if (b) return;
             if (tickRate == 0) continue;
             return;
@@ -305,7 +315,7 @@ public class Printer extends PrinterUtils {
                 continue;
             }
             if (client.world != null &&
-                    TempData.xuanQuFanWeiNei_p(pos) &&
+                    xuanQuFanWeiNei_p(pos) &&
                     breakRestriction(client.world.getBlockState(pos),pos) &&
                     waJue(pos)) {
                 tempPos = pos;
@@ -403,7 +413,7 @@ public class Printer extends PrinterUtils {
         int maxy = -9999;
         BlockPos pos;
         while ((pos = getBlockPos2()) != null && client.world != null) {
-            if (!ZxyUtils.bedrockCanInteracted(pos,getRage())) continue;
+            if (!bedrockCanInteracted(pos,getRage())) continue;
             if (isLimitedByTheNumberOfLayers(pos)) continue;
             BlockState currentState = client.world.getBlockState(pos);
 //                    if (currentState.isOf(Blocks.PISTON) && !data.world.getBlockState(pos.down()).isOf(Blocks.BEDROCK)) {
@@ -421,9 +431,9 @@ public class Printer extends PrinterUtils {
             }
 
 //                    if (TempData.xuanQuFanWeiNei_p(pos) && currentState.isOf(Blocks.BEDROCK)  && ZxyUtils.canInteracted(pos,range-1.5) && !client.world.getBlockState(pos.up()).isOf(Blocks.BEDROCK)) {
-            if (TempData.xuanQuFanWeiNei_p(pos) &&
+            if (xuanQuFanWeiNei_p(pos) &&
                     bedrockModeTarget(currentState) &&
-                    ZxyUtils.bedrockCanInteracted(pos, getRage() - 1.5) &&
+                    bedrockCanInteracted(pos, getRage() - 1.5) &&
                     !bedrockModeTarget(client.world.getBlockState(pos.up()))) {
                 if (maxy == -9999) maxy = pos.getY();
                 if (pos.getY() < maxy){
@@ -437,16 +447,16 @@ public class Printer extends PrinterUtils {
     }
 
     static boolean isLimitedByTheNumberOfLayers(BlockPos pos){
-        return LitematicaMixinMod.RENDER_LAYER_LIMIT.getBooleanValue() && !DataManager.getRenderLayerRange().isPositionWithinRange(pos);
+        return RENDER_LAYER_LIMIT.getBooleanValue() && !DataManager.getRenderLayerRange().isPositionWithinRange(pos);
     }
 
     public static int bedrockModeRange() {
-        return LitematicaMixinMod.RANGE_MODE.getOptionListValue() == State.ListType.SPHERE ? getRage() : 6;
+        return RANGE_MODE.getOptionListValue() == State.ListType.SPHERE ? getRage() : 6;
     }
 
     public static boolean bedrockModeTarget(BlockState block) {
 //        return LitematicaMixinMod.BEDROCK_LIST.getStrings().stream().anyMatch(string -> Registries.BLOCK.getId(block.getBlock()).toString().contains(string));
-        return LitematicaMixinMod.BEDROCK_LIST.getStrings().stream().anyMatch(string -> Filters.equalsName(string,block));
+        return BEDROCK_LIST.getStrings().stream().anyMatch(string -> equalsBlockName(string,block.getBlock()));
     }
     
     public boolean verify() {
@@ -498,11 +508,11 @@ public class Printer extends PrinterUtils {
         range1 = COMPULSION_RANGE.getIntegerValue();
         yDegression = false;
         startTime = System.currentTimeMillis();
-        tickRate = LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue();
+        tickRate = PRINT_INTERVAL.getIntegerValue();
 
         tick = tick == 0x7fffffff ? 0 : tick + 1;
-        boolean easyModeBooleanValue = LitematicaMixinMod.EASY_MODE.getBooleanValue();
-        boolean forcedPlacementBooleanValue = LitematicaMixinMod.FORCED_PLACEMENT.getBooleanValue();
+        boolean easyModeBooleanValue = EASY_MODE.getBooleanValue();
+        boolean forcedPlacementBooleanValue = FORCED_PLACEMENT.getBooleanValue();
 
         if (tickRate != 0) {
             queue.sendQueue(client.player);
@@ -519,9 +529,9 @@ public class Printer extends PrinterUtils {
         if (isOpenHandler) return;
         if (switchItem()) return;
 
-        if(LitematicaMixinMod.MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)){
+        if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)){
             boolean multiBreakBooleanValue = MULTI_BREAK.getBooleanValue();
-            if (LitematicaMixinMod.BEDROCK_SWITCH.getBooleanValue()) {
+            if (BEDROCK_SWITCH.getBooleanValue()) {
                 yDegression = true;
                 bedrockMode();
                 if(multiBreakBooleanValue) return;
@@ -535,7 +545,7 @@ public class Printer extends PrinterUtils {
                 replaceMode();
                 if(multiBreakBooleanValue) return;
             }
-        }else if (LitematicaMixinMod.PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType modeType && modeType != PRINTER) {
+        }else if (PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType modeType && modeType != PRINTER) {
             switch (modeType){
                 case BEDROCK -> {
                     yDegression = true;
@@ -550,7 +560,7 @@ public class Printer extends PrinterUtils {
             return;
         }
 
-        LitematicaMixinMod.shouldPrintInAir = LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue();
+        shouldPrintInAir = PRINT_IN_AIR.getBooleanValue();
 
         // forEachBlockInRadius:
         BlockPos pos;
@@ -560,8 +570,8 @@ public class Printer extends PrinterUtils {
             PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
 
             //跳过放置
-            if (LitematicaMixinMod.PUT_SKIP.getBooleanValue() &&
-                    PUT_SKIP_LIST.getStrings().stream().anyMatch(block -> Filters.equalsName(block,requiredState)))
+            if (PUT_SKIP.getBooleanValue() &&
+                    PUT_SKIP_LIST.getStrings().stream().anyMatch(block -> equalsBlockName(block,requiredState.getBlock())))
             {
                 continue;
             }
@@ -691,7 +701,7 @@ public class Printer extends PrinterUtils {
     }
 
     public Vec3d usePrecisionPlacement(BlockPos pos,BlockState stateSchematic){
-        if (LitematicaMixinMod.EASY_MODE.getBooleanValue()) {
+        if (EASY_MODE.getBooleanValue()) {
             EasyPlaceProtocol protocol = PlacementHandler.getEffectiveProtocolVersion();
             Vec3d hitPos = Vec3d.of(pos);
             if (protocol == EasyPlaceProtocol.V3)
@@ -722,7 +732,7 @@ public class Printer extends PrinterUtils {
                 }
 //                        Block block = state.getBlock();
 //                        if (Registries.BLOCK.getId(block).toString().contains(blockName)) {
-                if (Filters.equalsName(blockName, state)) {
+                if (state != null && equalsBlockName(blockName, state.getBlock())) {
                     blocks.add(pos);
                 }
             }
@@ -749,7 +759,7 @@ public class Printer extends PrinterUtils {
         for (Item item : items) {
             if (Implementation.getAbilities(player).creativeMode) {
                 InventoryUtils.setPickedItemToHand(new ItemStack(item), client);
-                client.interactionManager.clickCreativeStack(client.player.getStackInHand(Hand.MAIN_HAND), 36 + me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.getSelectedSlot());
+                client.interactionManager.clickCreativeStack(client.player.getStackInHand(Hand.MAIN_HAND), 36 + getSelectedSlot());
                 return true;
             } else {
                 int slot = -1;
@@ -800,7 +810,7 @@ public class Printer extends PrinterUtils {
         }
 
         public void queueClick(@NotNull BlockPos target, @NotNull Direction side, @NotNull Vec3d hitModifier, boolean shift, boolean didSendLook) {
-            if (LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue() != 0) {
+            if (PRINT_INTERVAL.getIntegerValue() != 0) {
                 if (this.target != null) {
                     System.out.println("Was not ready yet.");
                     return;

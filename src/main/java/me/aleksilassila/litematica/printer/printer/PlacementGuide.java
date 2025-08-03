@@ -52,6 +52,16 @@ public class PlacementGuide extends PrinterUtils {
 
         return buildAction(world, worldSchematic, pos, ClassHook.DEFAULT);
     }
+    public @Nullable ClassHook getClassHook(BlockState requiredState) {
+        for (ClassHook hook : ClassHook.values()) {
+            for (Class<?> clazz : hook.classes) {
+                if (clazz != null  && clazz.isInstance(requiredState.getBlock())) {
+                    return hook;
+                }
+            }
+        }
+        return ClassHook.DEFAULT;
+    }
 
 //    public static Placement getPlacement(BlockState requiredState, MinecraftClient client) {
 //        Placement placement = _getPlacement(requiredState, client);
@@ -107,10 +117,11 @@ public class PlacementGuide extends PrinterUtils {
         return placement;
     }
 
+    public @Nullable Action buildAction(World world, WorldSchematic worldSchematic, BlockPos pos, ClassHook requiredType) {
+        return buildAction(world, world.getBlockState(pos), worldSchematic.getBlockState(pos), pos, requiredType);
+    }
     @SuppressWarnings("EnhancedSwitchMigration")
-    private @Nullable Action buildAction(World world, WorldSchematic worldSchematic, BlockPos pos, ClassHook requiredType) {
-        BlockState requiredState = worldSchematic.getBlockState(pos);
-        BlockState currentState = world.getBlockState(pos);
+    public @Nullable Action buildAction(World world, BlockState currentState, BlockState requiredState, BlockPos pos, ClassHook requiredType) {
 
         if (LitematicaMixinMod.PRINT_WATER_LOGGED_BLOCK.getBooleanValue()
                 && canWaterLogged(requiredState)

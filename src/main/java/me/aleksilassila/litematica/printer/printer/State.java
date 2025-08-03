@@ -19,10 +19,10 @@ public enum State {
 //        }
         if (!schematicBlockState.isAir() && (currentBlockState.isAir() ||
                 (LitematicaMixinMod.REPLACEABLE_LIST.getStrings().stream()
-                        .anyMatch(string -> !Filters.equalsName(string,schematicBlockState) &&
+                        .anyMatch(string -> !Filters.equalsBlockName(string,schematicBlockState.getBlock()) &&
 //                        .anyMatch(string -> !Registries.BLOCK.getId(schematicBlockState.getBlock()).toString().contains(string) &&
 //                                Registries.BLOCK.getId(currentBlockState.getBlock()).toString().contains(string)) &&
-                                Filters.equalsName(string,currentBlockState)) &&
+                                Filters.equalsBlockName(string,currentBlockState.getBlock())) &&
                         LitematicaMixinMod.REPLACE.getBooleanValue())))
 //        if (!schematicBlockState.isAir() && (currentBlockState.isAir() || currentBlockState.getBlock() instanceof FluidBlock || currentBlockState.isOf(Blocks.SNOW) || currentBlockState.isOf(Blocks.BUBBLE_COLUMN)))
 //        if (!schematicBlockState.isAir() && (currentBlockState.isAir())
