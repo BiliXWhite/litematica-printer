@@ -905,7 +905,6 @@ public class PlacementGuide extends PrinterUtils {
             }
 
             setUseShift();
-            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("需要潜行放置"));
             return validSides.get(0);
         }
 
