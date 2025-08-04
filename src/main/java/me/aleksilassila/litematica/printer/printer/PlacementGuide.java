@@ -587,7 +587,7 @@ public class PlacementGuide extends PrinterUtils {
         CAMPFIRE(CampfireBlock.class), // 营火
         BED(BedBlock.class), // 床
         BELL(BellBlock.class), // 钟
-        AMETHYST(AmethystBlock.class, AmethystClusterBlock.class), // 紫水晶
+        AMETHYST(AmethystClusterBlock.class), // 紫水晶
         DOOR(DoorBlock.class), // 门
         COCOA(CocoaBlock.class), // 可可豆
         NETHER_PORTAL(NetherPortalBlock.class), // 下界传送门
