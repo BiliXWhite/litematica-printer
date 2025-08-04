@@ -1,0 +1,8 @@
+{
+  "litematica_printer.config.name.autoTuning": "autoTuning",
+  "litematica_printer.config.comment.autoTuning": "Automatically tune note blocks during printing.",
+  "litematica_printer.config.name.safelyObserver": "safelyObserver",
+  "litematica_printer.config.comment.safelyObserver": "When enabled, it will first check if the block on the detection face of the observer is correct, and only place the block if it is correct.",
+  "litematica_printer.config.name.printWater": "printWater",
+  "litematica_printer.config.comment.printWater": "Place the ice and then destroy it to print the water."
+}

@@ -21,6 +21,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 
 import java.util.List;
 
+import static me.aleksilassila.litematica.printer.printer.bilixwhite.utils.I18nUtils.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
 
 public class LitematicaMixinMod implements ModInitializer, ClientModInitializer {
@@ -81,9 +82,9 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "凭空放置", true,
             "无视是否有方块面支撑，直接放置方块。"
     );
-    public static final ConfigBooleanHotkeyed PRINT_WATER_LOGGED_BLOCK = new ConfigBooleanHotkeyed(
-            "启用打印水",  false, "",
-            "启用后会自动放置冰,破坏冰来生成水。"
+    public static final ConfigBooleanHotkeyed PRINT_WATER = new ConfigBooleanHotkeyed(
+            getName("printWater"),  false, "",
+            getComment("printWater")
     );
     public static final ConfigBoolean PRINT_SWITCH = new ConfigBoolean(
             "打印状态", false,
@@ -272,8 +273,18 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "调试输出", false,
             "启用后会在聊天框输出调试信息，供反馈时使用。"
     );
+    // 音符盒自动调音
+    public static final ConfigBoolean NOTE_BLOCK_TUNING = new ConfigBoolean(
+            getName("autoTuning"), true,
+            getComment("autoTuning")
+    );
+    public static final ConfigBoolean SAFELY_OBSERVER = new ConfigBoolean(
+            getName("safelyObserver"), true,
+            getComment("safelyObserver")
+    );
+
     //========================================
-    //              Hotkeys
+    //                  热键
     //========================================
     public static final ConfigHotkey PRINT = new ConfigHotkey(
             "打印", "", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY,
@@ -345,7 +356,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
         }
 
         list.add(PRINT_IN_AIR);
-        list.add(PRINT_WATER_LOGGED_BLOCK);
+        list.add(PRINT_WATER);
 
         return ImmutableList.copyOf(list);
     }
@@ -396,6 +407,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     @Override
     public void onInitializeClient() {
         // Client-side initialization
+        System.out.println(getName("autoTuning"));
     }
 
     //========================================

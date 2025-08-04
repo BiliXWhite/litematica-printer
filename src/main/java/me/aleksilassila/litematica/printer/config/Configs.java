@@ -64,11 +64,13 @@ public class Configs implements IConfigHandler {
         list.add(USE_EASY_MODE);
         list.add(FORCED_PLACEMENT);
         list.add(PRINT_IN_AIR);
-        list.add(PRINT_WATER_LOGGED_BLOCK);
+        list.add(PRINT_WATER);
         list.add(REPLACE);
         list.add(REPLACEABLE_LIST);
         list.add(STRIP_LOGS);
         list.add(REPLACE_CORAL);
+        list.add(NOTE_BLOCK_TUNING);
+        list.add(SAFELY_OBSERVER);
         list.add(FALLING_CHECK);
         list.add(BREAK_ERROR_BLOCK);
 
@@ -149,7 +151,7 @@ public class Configs implements IConfigHandler {
         list.add(EXCAVATE);
         list.add(FLUID);
         list.add(FILL);
-        list.add(PRINT_WATER_LOGGED_BLOCK);
+        list.add(PRINT_WATER);
         list.add(USE_EASY_MODE);
 
         return ImmutableList.copyOf(list);

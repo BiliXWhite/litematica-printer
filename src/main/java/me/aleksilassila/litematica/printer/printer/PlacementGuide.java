@@ -1,7 +1,9 @@
 package me.aleksilassila.litematica.printer.printer;
 
+import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.*;
@@ -9,11 +11,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
-import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
-import net.minecraft.state.property.Property;
 import net.minecraft.text.Text;
-import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -23,12 +22,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static me.aleksilassila.litematica.printer.printer.Printer.*;
-import static me.aleksilassila.litematica.printer.printer.qwer.PrintWater.*;
-
 public class PlacementGuide extends PrinterUtils {
     public static Map<BlockPos, Integer> posMap = new HashMap<>();
-    public static boolean breakIce = false;
     @NotNull
     protected final MinecraftClient client;
 
@@ -36,7 +31,8 @@ public class PlacementGuide extends PrinterUtils {
         this.client = client;
     }
 
-    public @Nullable Action getAction(World world, BlockState requiredState, BlockPos pos) {
+    public @Nullable Action getAction(World world, WorldSchematic worldSchematic, BlockPos pos) {
+        var requiredState = worldSchematic.getBlockState(pos);
         // 提前缓存 requiredState 提升性能
         var state = State.get(requiredState, world.getBlockState(pos));
         if (!requiredState.canPlaceAt(world, pos) || state == State.CORRECT)
@@ -44,91 +40,24 @@ public class PlacementGuide extends PrinterUtils {
         for (ClassHook hook : ClassHook.values()) {
             for (Class<?> clazz : hook.classes) {
                 if (clazz != null && clazz.isInstance(requiredState.getBlock())) {
-                    return buildAction(world, pos, hook, requiredState, state);
+                    return buildAction(world, worldSchematic, hook, pos, state);
                 }
             }
         }
-        return buildAction(world, pos, ClassHook.DEFAULT, requiredState, state);
+        return buildAction(world, worldSchematic, ClassHook.DEFAULT, pos, state);
     }
 
-    public @Nullable Action water(BlockState requiredState, BlockState currentState, BlockPos pos) {
-        // 缓存 player 避免重复访问 client.player
-        var player = client.player;
-        if (player == null) {
-            return null;
-        }
-
-        Integer count = posMap.get(pos);
-        if (count != null) {
-            posMap.put(pos, count + 1);
-            if (count + 1 > 10) {
-                posMap.remove(pos);
-            }
-            List<BlockPos> removeList = new ArrayList<>();
-            for (BlockPos key : posMap.keySet()) {
-                if (player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(key)) < 36) {
-                    removeList.add(key);
-                }
-            }
-            for (BlockPos key : removeList) {
-                posMap.remove(key);
-            }
-        }
-
-        if (currentState.isOf(Blocks.ICE)) {
-            searchPickaxes(player);
-            BlockPos tempPos = excavateBlock(pos);
-            if (tempPos != null && !posMap.containsKey(pos)) {
-                posMap.put(tempPos, 0);
-                breakIce = true;
-                return null;
-            }
-            return null;
-        }
-
-        if (!spawnWater(pos)) {
-            return null;
-        }
-
-        if (posMap.containsKey(pos)) {
-            return null;
-        }
-
-        State state = State.get(requiredState, currentState);
-        if (state != State.MISSING_BLOCK) {
-            return null;
-        }
-
-        Direction look = null;
-        for (Property<?> prop : requiredState.getProperties()) {
-            if (prop instanceof EnumProperty<?> enumProperty &&
-                    enumProperty.getType().equals(Direction.class) &&
-                    prop.getName().equalsIgnoreCase("FACING")) {
-                look = ((Direction) requiredState.get(prop)).getOpposite();
-                break;
-            }
-        }
-        return new Action().setLookDirection(look).setItem(Items.ICE);
-    }
-
-    private @Nullable Action buildAction(World world, BlockPos pos, ClassHook requiredType, BlockState requiredState, State state) {
+    private @Nullable Action buildAction(World world, WorldSchematic worldSchematic, ClassHook requiredType, BlockPos pos, State state) {
         BlockState currentState = world.getBlockState(pos);
+        BlockState requiredState = worldSchematic.getBlockState(pos);
 
-        // 缓存重复调用的结果
-        var waterLoggedRequired = canWaterLogged(requiredState);
-        var waterLoggedCurrent = canWaterLogged(currentState);
-
-        if (LitematicaMixinMod.PRINT_WATER_LOGGED_BLOCK.getBooleanValue()
-                && waterLoggedRequired && !waterLoggedCurrent) {
-            if (breakIce) {
-                breakIce = false;
-            } else {
-                return water(requiredState, currentState, pos);
+        if (LitematicaMixinMod.PRINT_WATER.getBooleanValue())
+            if (requiredState.isOf(Blocks.WATER) || (requiredState.getProperties().contains(Properties.WATERLOGGED) && requiredState.get(Properties.WATERLOGGED).booleanValue())) {
+                if (currentState.isOf(Blocks.ICE)) {
+                    Printer.waJue(pos);
+                }
+                return new Action().setItem(Items.ICE);
             }
-        } else if (requiredState.getBlock() instanceof FluidBlock) {
-            return null;
-        }
-
 
         if (state == State.MISSING_BLOCK) switch (requiredType) {
             case WALL_TORCH -> {
@@ -392,6 +321,16 @@ public class PlacementGuide extends PrinterUtils {
             case FIRE -> {
                 return new Action().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
             }
+            case OBSERVER -> {
+                var facing = requiredState.get(Properties.FACING);
+                var detectBlockPos = pos.offset(facing);
+                if (LitematicaMixinMod.SAFELY_OBSERVER.getBooleanValue() &&
+                    world.getBlockState(detectBlockPos) != worldSchematic.getBlockState(detectBlockPos)) {
+                    ZxyUtils.actionBar("[侦测器安全放置] 侦测面方块不正确，跳过放置！");
+                    return null;
+                }
+                return new Action().setSides(facing).setLookDirection(facing);
+            }
             case SKIP -> {
                 return null;
             }
@@ -426,8 +365,11 @@ public class PlacementGuide extends PrinterUtils {
                 }
 
                 if (block instanceof HorizontalFacingBlock ||
-                        block instanceof StonecutterBlock ||
-                        block instanceof FlowerbedBlock) { // 操你妈ojng切石机你他妈为什么不是BlockWithEntity?
+                        block instanceof StonecutterBlock
+                        //#if MC >= 11904
+                        || block instanceof FlowerbedBlock
+                        //#endif
+                ) { // 操你妈ojng切石机你他妈为什么不是BlockWithEntity?
                     facing = requiredState.get(Properties.HORIZONTAL_FACING);
                     if (block instanceof FenceGateBlock) facing = facing.getOpposite(); // 栅栏门
                     return new Action().setSides(facing).setLookDirection(facing.getOpposite());
@@ -435,7 +377,7 @@ public class PlacementGuide extends PrinterUtils {
 
                 if (block instanceof FacingBlock) {
                     facing = requiredState.get(Properties.FACING);
-                    if (block instanceof ObserverBlock || block instanceof RodBlock) // 侦测器和末地烛，避雷针类的物品
+                    if ( block instanceof RodBlock) // 侦测器和末地烛，避雷针类的物品
                         facing = facing.getOpposite();
                     return new Action().setSides(facing).setLookDirection(facing.getOpposite());
                 }
@@ -530,7 +472,7 @@ public class PlacementGuide extends PrinterUtils {
 
             }
             case NOTE_BLOCK -> {
-                if (!Objects.equals(requiredState.get(NoteBlock.NOTE), currentState.get(NoteBlock.NOTE)))
+                if (LitematicaMixinMod.NOTE_BLOCK_TUNING.getBooleanValue() && !Objects.equals(requiredState.get(NoteBlock.NOTE), currentState.get(NoteBlock.NOTE)))
                     return new ClickAction();
 
             }
@@ -623,28 +565,10 @@ public class PlacementGuide extends PrinterUtils {
                     }
                 }
             }
-//            case CAULDRON -> {
-//                var targetBlock = world.getBlockState(((BlockHitResult) client.crosshairTarget).getBlockPos()).getBlock();
-//                if (!(targetBlock instanceof LeveledCauldronBlock) &&
-//                        !(targetBlock instanceof LavaCauldronBlock) &&
-//                        !(targetBlock instanceof CauldronBlock)) {
-//                    client.inGameHud.setOverlayMessage(Text.of("你需要注视炼药锅才可以填充液体"), false);
-//                    return null;
-//                }
-//                if (requiredState.getBlock() instanceof LavaCauldronBlock)
-//                    return new ClickAction().setItem(Items.LAVA_BUCKET);
-//                if (requiredState.getBlock() instanceof LeveledCauldronBlock) {
-//                    Block block = requiredState.getBlock();
-//                    if (block.getTranslationKey().contains("water"))
-//                        return new ClickAction().setItem(Items.WATER_BUCKET);
-//                    if (block.getTranslationKey().contains("snow"))
-//                        return new ClickAction().setItem(Items.POWDER_SNOW_BUCKET);
-//                }
-//            }
 
             default -> {
                 //TODO 实现生存模式破坏错误方块
-                if (LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue()) client.interactionManager.attackBlock(pos, Direction.DOWN);
+                if (LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue()) Printer.waJue(pos);
             }
         }
 
@@ -671,6 +595,7 @@ public class PlacementGuide extends PrinterUtils {
         CRAFTER(CrafterBlock.class), // 合成器
         //#endif
         CHEST(ChestBlock.class), // 箱子
+        OBSERVER(ObserverBlock.class), // 侦测器
 
         // 点击
         FLOWER_POT(FlowerPotBlock.class), // 花盆
