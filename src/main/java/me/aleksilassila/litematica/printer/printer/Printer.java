@@ -574,8 +574,6 @@ public class Printer extends PrinterUtils {
         if (schematic == null) return;
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
-            // 跳过冷却中的位置
-            if (placeCooldownList.containsKey(pos)) continue;
             // 检查每刻放置方块是否超出限制
             if (PRINT_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
             // 是否是投影方块
@@ -584,10 +582,9 @@ public class Printer extends PrinterUtils {
             if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
             // 是否可接触到
             if (!canInteracted(pos)) continue;
-            // 放置冷却
-            placeCooldownList.put(pos, 0);
 
             BlockState requiredState = schematic.getBlockState(pos);
+
             // 检查放置跳过列表
             if (LitematicaMixinMod.PUT_SKIP.getBooleanValue()) {
                 Set<String> skipSet = new HashSet<>(PUT_SKIP_LIST.getStrings()); // 转换为 HashSet
@@ -597,8 +594,14 @@ public class Printer extends PrinterUtils {
             }
 
             // 检查放置条件
-            PlacementGuide.Action action = guide.getAction(world, requiredState, pos);
+            PlacementGuide.Action action = guide.getAction(world, schematic, pos);
             if (action == null) continue;
+
+            // 跳过冷却中的位置
+            if (placeCooldownList.containsKey(pos)) continue;
+            // 放置冷却
+            placeCooldownList.put(pos, 0);
+
             // 调试输出
             if (DEBUG_OUTPUT.getBooleanValue()) {
                 //#if MC < 12104 && MC != 12101
@@ -892,7 +895,7 @@ public class Printer extends PrinterUtils {
                     ? lookDirYaw
                     : (lookDirPitch != null && lookDirPitch.getAxis().isHorizontal()
                     ? lookDirPitch
-                    : Direction.NORTH))
+                    : Direction.UP))
                     : side;
 
             Vec3d hitVec = !termsOfUse

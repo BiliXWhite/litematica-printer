@@ -98,13 +98,8 @@ def sakura = mcVersion > 12006
 //  1 = modImplementation 2 = modImplementation include 	3 = modApi	4 = modCompileOnly  5 = modImplementation file
 def mod_dependencies = [
         [(sakura ? "com.github.sakura-ryoko:malilib" : "fi.dy.masa.malilib")                        , "malilib",            1],
-        [(sakura ? "com.github.sakura-ryoko:itemscroller" :"curse.maven:item-scroller-242064")     , "item_scrolle",       1],
         [(sakura ? "com.github.sakura-ryoko:tweakeroo" :"curse.maven:tweakeroo-297344")             , "tweakeroo",          1],
         [(sakura ? "com.github.sakura-ryoko:litematica" :"curse.maven:litematica-308892")           , "litematica",         1],
-
-//        ["red.jackf:chesttracker"                               , "chesttracker",       mcVersion >= 12001 ? 1 : 0],
-//        ["red.jackf:whereisit"                                  , "whereisit",          mcVersion >= 12001 ? 1 : 0],
-//        ["maven.modrinth:yacl"                                  , "yacl",               mcVersion >= 12001 ? 1 : 0],
         [getSbYacl()                                            , "yacl",               mcVersion >= 12001 ? 1 : 0],
         ["maven.modrinth:chest-tracker", "chesttracker", mcVersion < 12105 ? 1 : 4],   //TODO 箱子追踪未更新21.5
         ["maven.modrinth:where-is-it", "whereisit", mcVersion < 12105 ? 1 : 4],

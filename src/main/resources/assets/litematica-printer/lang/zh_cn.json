@@ -1,0 +1,8 @@
+{
+  "litematica_printer.config.name.autoTuning": "音符盒自动调音",
+  "litematica_printer.config.comment.autoTuning": "在打印时自动调整音符盒的音调。",
+  "litematica_printer.config.name.safelyObserver": "侦测器安全放置",
+  "litematica_printer.config.comment.safelyObserver": "启用后，将首先检查观察者的检测面方块是否正确，仅在确认正确时进行放置。",
+  "litematica_printer.config.name.printWater": "破冰放水",
+  "litematica_printer.config.comment.printWater": "使用放置并破坏冰的方式来打印水。"
+}
