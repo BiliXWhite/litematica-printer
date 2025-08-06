@@ -28,6 +28,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
@@ -88,7 +89,7 @@ import net.minecraft.registry.Registries;
 //$$import static fi.dy.masa.malilib.util.InventoryUtils.areStacksEqual;
 //#endif
 
-//#if MC >= 12105
+//#if MC > 12105
 //$$import net.minecraft.util.PlayerInput;
 //$$import net.minecraft.network.packet.c2s.play.PlayerInputC2SPacket;
 //#else
@@ -109,6 +110,8 @@ public class Printer extends PrinterUtils {
     static int shulkerBoxSlot = -1;
     static ItemStack orderlyStoreItem; //有序存放临时存储
     private static Printer INSTANCE = null;
+    private static BlockPos currentBreakingPos;
+    private static float currentBreakingProgress;
     private int shulkerCooldown = 0;
     public static int swapSlotDelay = 0;
 
@@ -167,6 +170,56 @@ public class Printer extends PrinterUtils {
         return false;
     }
 
+    public static boolean civBreakBlock(BlockPos pos) {
+        ClientWorld world = client.world;
+        BlockState currentState = world.getBlockState(pos);
+        Block block = currentState.getBlock();
+
+        if (currentBreakingPos != null) {
+            ZxyUtils.actionBar("方块：" + block.getName().toString() + " 位置：" + pos.toShortString() + " 挖掘进度：" + currentBreakingProgress);
+            currentBreakingProgress += currentState.calcBlockBreakingDelta(client.player, world, pos);
+            if (currentBreakingProgress == 1f) {
+                currentBreakingProgress = 0f;
+                currentBreakingPos = null;
+                return true;
+            } else return false;
+        }
+
+        // 只对硬度 > 0 的方块启用快速挖掘
+        if (currentState.getHardness(client.world, pos) <= 0.0f) {
+            new PlayerActionC2SPacket(
+                    PlayerActionC2SPacket.Action.START_DESTROY_BLOCK,
+                    pos,
+                    Direction.DOWN
+            );
+            return true;
+        }
+
+        if (client.getNetworkHandler() != null) {
+            client.inGameHud.getChatHud().addMessage(Text.of("发送START_DESTORY_BLOCK"));
+            client.getNetworkHandler().sendPacket(
+                    new PlayerActionC2SPacket(
+                            PlayerActionC2SPacket.Action.START_DESTROY_BLOCK,
+                            pos,
+                            Direction.DOWN
+                    )
+            );
+            client.getNetworkHandler().sendPacket(
+                    new PlayerActionC2SPacket(
+                            PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK,
+                            pos,
+                            Direction.DOWN
+                    )
+            );
+        }
+
+        // 模拟挥手动画
+        client.player.swingHand(Hand.MAIN_HAND);
+
+        // 标记为挖掘中
+        currentBreakingPos = pos;
+        return false;
+    }
 
     public static boolean canBreakBlock(BlockPos pos) {
         ClientWorld world = client.world;
@@ -292,7 +345,7 @@ public class Printer extends PrinterUtils {
         myBox.initIterator();
         myBox.setIterationMode(ITERATION_ORDER.getOptionListValue());
         myBox.xIncrement = !X_REVERSE.getBooleanValue();
-        myBox.yIncrement = !Y_REVERSE.getBooleanValue() || yReverse;
+        myBox.yIncrement = Y_REVERSE.getBooleanValue() == yReverse;
         myBox.zIncrement = !Z_REVERSE.getBooleanValue();
 
         Iterator<BlockPos> iterator = myBox.iterator;
@@ -569,6 +622,7 @@ public class Printer extends PrinterUtils {
             return;
         }
 
+        if (!yReverse) yReverse = true;
         // 遍历当前区域内所有符合条件的位置
         WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
         if (schematic == null) return;
@@ -602,6 +656,9 @@ public class Printer extends PrinterUtils {
             // 放置冷却
             placeCooldownList.put(pos, 0);
 
+            Direction side = action.getValidSide(world, pos);
+            if (side == null) continue;
+
             // 调试输出
             if (DEBUG_OUTPUT.getBooleanValue()) {
                 //#if MC < 12104 && MC != 12101
@@ -615,13 +672,9 @@ public class Printer extends PrinterUtils {
                 //#endif
             }
 
-            Direction side = action.getValidSide(world, pos);
-            if (side == null) continue;
-
             Item[] reqItems = action.getRequiredItems(requiredState.getBlock());
             if (playerHasAccessToItems(player, reqItems)) {
-                boolean useShift = LitematicaMixinMod.FORCED_PLACEMENT.getBooleanValue() ||
-                        Implementation.isInteractive(world.getBlockState(pos).getBlock()) ||
+                boolean useShift = LitematicaMixinMod.FORCED_SNEAK.getBooleanValue() ||
                         action.useShift;
                 if (needDelay) continue;
                 if (!switchToItems(player, reqItems)) return;
@@ -871,7 +924,7 @@ public class Printer extends PrinterUtils {
             this.printerInstance = printerInstance;
         }
 
-        public void queueClick(@NotNull BlockPos target, @NotNull Direction side, @NotNull Vec3d hitModifier, boolean shift) {
+        public void queueClick(@NotNull BlockPos target, @NotNull Direction side, @NotNull Vec3d hitModifier, boolean needSneak) {
             if (LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue() != 0) {
                 if (this.target != null) {
                     System.out.println("Was not ready yet.");
@@ -882,7 +935,7 @@ public class Printer extends PrinterUtils {
             this.target = target;
             this.side = side;
             this.hitModifier = hitModifier;
-            this.needSneak = shift;
+            this.needSneak = needSneak;
 
         }
 
@@ -904,10 +957,6 @@ public class Printer extends PrinterUtils {
                     .add(hitModifier.rotateY((direction.getPositiveHorizontalDegrees() + 90) % 360).multiply(0.5))
                     : hitModifier;
 
-            if (needSneak && !wasSneaking)
-                setShift(player, true);
-            else if (!needSneak && wasSneaking)
-                setShift(player, false);
 
             if (orderlyStoreItem != null) {
                 if (orderlyStoreItem.isEmpty()) {
@@ -917,8 +966,15 @@ public class Printer extends PrinterUtils {
                 }
             }
 
-//            if (PRINT_INTERVAL.getIntegerValue() >= 1 && lookDirYaw != null)
-//                Implementation.sendLookPacket(player, lookDirYaw, lookDirPitch);
+            if (PRINT_INTERVAL.getIntegerValue() >= 1 && lookDirYaw != null)
+                Implementation.sendLookPacket(player, lookDirYaw, lookDirPitch);
+
+            if (needSneak && !wasSneaking) {
+                setShift(player, true);
+            }
+            else if (!needSneak && wasSneaking) {
+                setShift(player, false);
+            }
 
             if (PLACE_USE_PACKET.getBooleanValue()) {
                 //#if MC >= 11904
@@ -946,14 +1002,13 @@ public class Printer extends PrinterUtils {
             clearQueue();
         }
 
-        public void setShift(ClientPlayerEntity player , boolean shift){
-            //#if MC >= 12105
+        public void setShift(ClientPlayerEntity player , boolean shift) {
+            //#if MC > 12105
             //$$ PlayerInput input = new PlayerInput(player.input.playerInput.forward(), player.input.playerInput.backward(), player.input.playerInput.left(), player.input.playerInput.right(), player.input.playerInput.jump(), shift, player.input.playerInput.sprint());
             //$$ PlayerInputC2SPacket packet = new PlayerInputC2SPacket(input);
             //#else
             ClientCommandC2SPacket packet = new ClientCommandC2SPacket(player, shift ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY);
             //#endif
-
             player.networkHandler.sendPacket(packet);
         }
 

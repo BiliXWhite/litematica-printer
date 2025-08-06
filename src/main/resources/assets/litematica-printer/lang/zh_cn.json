@@ -1,8 +1,18 @@
 {
+  "litematica_printer.update.available": "投影打印机有新版本！当前版本：%s，最新版本：%s",
+  "litematica_printer.update.recommendation": "强烈建议升级到最新版本，以修复潜在的严重问题。",
+  "litematica_printer.update.repository": "代码仓库：",
+  "litematica_printer.update.download": ">> 点击此处下载最新版本 <<",
+  "litematica_printer.update.password": "下载密码：%s",
+  "litematica_printer.update.failed": "无法检查更新，请稍后重试。",
+
+
   "litematica_printer.config.name.autoTuning": "音符盒自动调音",
   "litematica_printer.config.comment.autoTuning": "在打印时自动调整音符盒的音调。",
+
   "litematica_printer.config.name.safelyObserver": "侦测器安全放置",
   "litematica_printer.config.comment.safelyObserver": "启用后，将首先检查观察者的检测面方块是否正确，仅在确认正确时进行放置。",
+
   "litematica_printer.config.name.printWater": "破冰放水",
   "litematica_printer.config.comment.printWater": "使用放置并破坏冰的方式来打印水。"
 }

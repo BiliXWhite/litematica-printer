@@ -16,7 +16,7 @@ public class ConfigUi extends GuiConfigsBase {
     private static Tab tab = Tab.ALL;
 
     public ConfigUi() {
-        super(10, 50, LitematicaMixinMod.MOD_ID, null, "litematica-printer");
+        super(10, 50, "Litematica Printer", null, "litematica-printer");
     }
 
     @Override

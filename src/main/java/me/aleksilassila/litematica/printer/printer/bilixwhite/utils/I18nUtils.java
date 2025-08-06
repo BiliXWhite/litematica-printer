@@ -9,19 +9,26 @@ import net.minecraft.text.Text;
 //#endif
 
 public class I18nUtils {
-    public static final String PREFIX = LitematicaMixinMod.MOD_ID + ".config";
     public static String getName(String key) {
         //#if MC > 11802
-        return Text.translatable(PREFIX + ".name." + key).getString();
+        return Text.translatable(LitematicaMixinMod.MOD_ID + ".config.name." + key).getString();
         //#else
-        //$$ return new TranslatableText(PREFIX + ".name." + key).getString();
+        //$$ return new TranslatableText(LitematicaMixinMod.MOD_ID + ".config.name." + key).getString();
         //#endif
     }
     public static String getComment(String key) {
         //#if MC > 11802
-        return Text.translatable(PREFIX + ".comment." + key).getString();
+        return Text.translatable(LitematicaMixinMod.MOD_ID + ".config.comment." + key).getString();
         //#else
-        //$$ return new TranslatableText(PREFIX + ".comment." + key).getString();
+        //$$ return new TranslatableText(LitematicaMixinMod.MOD_ID + ".config.comment." + key).getString();
+        //#endif
+    }
+
+    public static String get(String key) {
+        //#if MC > 11802
+        return Text.translatable(LitematicaMixinMod.MOD_ID + "." + key).getString();
+        //#else
+        //$$ return new TranslatableText(LitematicaMixinMod.MOD_ID + "." + key).getString();
         //#endif
     }
 }

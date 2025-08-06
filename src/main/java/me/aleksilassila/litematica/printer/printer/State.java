@@ -34,10 +34,7 @@ public enum State {
         else if (LitematicaMixinMod.REPLACE.getBooleanValue() &&
                 replaceSet.stream().anyMatch(string -> !Filters.equalsName(string,schematicBlockState) &&
                         Filters.equalsName(string,currentBlockState))
-        ) {
-            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("方块 " + currentBlockState.getBlock().getName().toString() + " 可以进行替换"));
-            return MISSING_BLOCK;
-        }
+        ) return MISSING_BLOCK;
         // 其他情况返回错误方块状态
         else return WRONG_BLOCK;
     }
