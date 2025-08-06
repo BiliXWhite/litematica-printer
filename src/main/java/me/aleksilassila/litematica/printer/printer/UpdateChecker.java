@@ -1,16 +1,22 @@
 package me.aleksilassila.litematica.printer.printer;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import me.aleksilassila.litematica.printer.printer.bilixwhite.utils.I18nUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
+import java.net.HttpURLConnection;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class UpdateChecker {
@@ -18,8 +24,8 @@ public class UpdateChecker {
 
     public static String getPrinterVersion() {
         try {
-            URL url = new URL("https://api.github.com/repos/BiliXWhite/litematica-printer/tags");
-            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            URI uri = URI.create("https://api.github.com/repos/BiliXWhite/litematica-printer/releases/latest");
+            HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
             conn.setConnectTimeout(20000);
             conn.setReadTimeout(20000);
 
@@ -28,14 +34,15 @@ public class UpdateChecker {
                 scanner.useDelimiter("\\A");
                 if (scanner.hasNext()) {
                     String response = scanner.next();
-                    JsonArray tags = JsonParser.parseString(response).getAsJsonArray();
-                    if (!tags.isEmpty()) {
-                        return ((JsonObject) tags.get(0)).get("name").getAsString();
-                    }
+                    // 解析为 JsonObject，而不是 JsonArray
+                    JsonObject release = JsonParser.parseString(response).getAsJsonObject();
+                    // 直接获取 tag_name 字段
+                    return release.get("tag_name").getAsString();
                 }
             }
         } catch (Exception exception) {
             System.out.println("无法检查更新: " + exception.getMessage());
+            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of(I18nUtils.get("update.failed")));
         }
         return "";
     }
@@ -44,8 +51,13 @@ public class UpdateChecker {
         ModContainer container = FabricLoader.getInstance()
                 .getModContainer("litematica-printer")
                 .orElseThrow(() -> new IllegalStateException("未找到对应 mod"));
-        Path modPath = container.getRootPath().resolve("fabric.mod.json");
-        try (InputStream inputStream = modPath.toUri().toURL().openStream();
+        Optional<Path> modPathOptional = container.findPath("fabric.mod.json");
+        if (modPathOptional.isEmpty()) {
+            System.out.println("无法找到 fabric.mod.json 文件");
+            return "unknown";
+        }
+        Path modPath = modPathOptional.get();
+        try (InputStream inputStream = Files.newInputStream(modPath);
              InputStreamReader reader = new InputStreamReader(inputStream)) {
             JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
             return json.get("version").getAsString();

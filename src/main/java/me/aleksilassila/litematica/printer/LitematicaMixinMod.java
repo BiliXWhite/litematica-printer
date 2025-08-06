@@ -95,7 +95,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "启用后会调用轻松放置来进行放置，因为轻松放置本身会使用放置协议，" +
                     "所以在开启了这个功能后无需启用§6§l精准放置§r。"
     );
-    public static final ConfigBoolean FORCED_PLACEMENT = new ConfigBoolean(
+    public static final ConfigBoolean FORCED_SNEAK = new ConfigBoolean(
             "打印时潜行", false,
             "在打印过程中，会自动潜行以防止对方块进行交互。"
     );

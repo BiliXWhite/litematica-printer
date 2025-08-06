@@ -25,8 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.HashMap;
 import java.util.HashSet;
-
-import static me.aleksilassila.litematica.printer.printer.Printer.updateChecked;
+import java.util.concurrent.CompletableFuture;
 
 //#if MC >= 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
@@ -36,6 +35,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 
 //#if MC < 11904
 //$$ import net.minecraft.text.LiteralText;
+//$$ import me.aleksilassila.litematica.printer.printer.bilixwhite.utils.I18nUtils;
 //#else
 import net.minecraft.text.Text;
 //#endif
@@ -43,6 +43,7 @@ import net.minecraft.text.Text;
 //#if MC >= 12105
 //$$ import java.net.URI;
 //#endif
+
 @Mixin(ClientPlayerEntity.class)
 public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 	public MixinClientPlayerEntity(ClientWorld world, GameProfile profile
@@ -53,9 +54,16 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 	//#endif
 	}
 
-    @Final
+	@Final
 	@Shadow
 	protected MinecraftClient client;
+
+	@Inject(at = @At("HEAD"), method = "init")
+	public void init(CallbackInfo ci) {
+		if (!Printer.updateChecked)
+			CompletableFuture.runAsync(this::checkForUpdates);
+		Printer.updateChecked = true;
+	}
 
 	@Inject(at = @At("HEAD"), method = "closeHandledScreen")
 	public void close(CallbackInfo ci) {
@@ -64,6 +72,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 		OpenInventoryPacket.reSet();
 		//#endif
 	}
+
 	@Inject(at = @At("TAIL"), method = "tick")
 	public void tick(CallbackInfo ci) {
 		Printer printer = Printer.getPrinter();
@@ -75,59 +84,82 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 			Printer.fluidModeItemList = new HashSet<>();
 			return;
 		}
-		if(!updateChecked && client.player != null && client.world != null) {
-			checkForUpdates();
-			updateChecked = true;
-		}
 		printer.tick();
 	}
 
 	@Unique
 	public void checkForUpdates() {
-		new Thread(() -> {
-            String version = UpdateChecker.version;
-            String newVersion = UpdateChecker.getPrinterVersion();
+		CompletableFuture.runAsync(() -> {
+			String version = UpdateChecker.version;
+			String newVersion = UpdateChecker.getPrinterVersion();
 
-            if (!version.equals(newVersion))
-//#if MC > 11802
-				client.inGameHud.getChatHud().addMessage(Text.literal("投影打印机检测到更新！当前版本: " + version + " 最新版本: " + newVersion));
-			client.inGameHud.getChatHud().addMessage(Text.literal("强烈建议更新到最新版本，旧版本可能有一些恶性bug。"));
-			client.inGameHud.getChatHud().addMessage(Text.literal("仓库地址："));
-			client.inGameHud.getChatHud().addMessage(Text.literal("https://github.com/BiliXWhite/litematica-printer")
-					.setStyle(Style.EMPTY
-							//#if MC >= 12105
-							//$$.withClickEvent(new ClickEvent.OpenUrl(URI.create("https://github.com/BiliXWhite/litematica-printer")))
-							//#else
-							.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/BiliXWhite/litematica-printer"))
-							//#endif
-							.withUnderline(true)
-							.withColor(Formatting.BLUE)));
-			client.inGameHud.getChatHud().addMessage(Text.literal(">>点击此处获取最新版本<<")
-					.setStyle(Style.EMPTY
-							//#if MC >= 12105
-							//$$.withClickEvent(new ClickEvent.OpenUrl(URI.create("https://xeno.lanzoue.com/b00l1v20vi")))
-							//#else
-							.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi"))
-							//#endif
-							.withBold(true)
-							.withColor(Formatting.GREEN)));
-			client.inGameHud.getChatHud().addMessage(Text.literal("密码:cgxw"));
-//#else
-//$$client.inGameHud.getChatHud().addMessage(new LiteralText("投影打印机检测到更新！当前版本: " + version + " 最新版本: " + newVersion));
-//$$client.inGameHud.getChatHud().addMessage(new LiteralText("强烈建议更新到最新版本，旧版本可能有一些恶性bug。"));
-//$$client.inGameHud.getChatHud().addMessage(new LiteralText("仓库地址："));
-//$$client.inGameHud.getChatHud().addMessage(new LiteralText("https://github.com/BiliXWhite/litematica-printer")
-//$$        .setStyle(Style.EMPTY
-//$$                .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/BiliXWhite/litematica-printer"))
-//$$                .withUnderline(true)
-//$$                .withColor(Formatting.BLUE)));
-//$$client.inGameHud.getChatHud().addMessage(new LiteralText(">>点击此处获取最新版本<<")
-//$$        .setStyle(Style.EMPTY
-//$$                .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi"))
-//$$                .withBold(true)
-//$$                .withColor(Formatting.GREEN)));
-//$$client.inGameHud.getChatHud().addMessage(new LiteralText("密码:cgxw"));
-//#endif
-        }).start();
+			if (!version.equals(newVersion)) {
+				client.execute(() -> {
+					//#if MC > 11802
+					client.inGameHud.getChatHud().addMessage(
+							Text.translatable("litematica_printer.update.available", version, newVersion)
+									.formatted(Formatting.YELLOW));
+					client.inGameHud.getChatHud().addMessage(
+							Text.translatable("litematica_printer.update.recommendation")
+									.formatted(Formatting.RED));
+					client.inGameHud.getChatHud().addMessage(
+							Text.translatable("litematica_printer.update.repository")
+									.formatted(Formatting.WHITE));
+					client.inGameHud.getChatHud().addMessage(
+							Text.literal("https://github.com/BiliXWhite/litematica-printer")
+									.setStyle(Style.EMPTY
+											//#if MC >= 12105
+											//$$ .withClickEvent(new ClickEvent.OpenUrl(URI.create("https://github.com/BiliXWhite/litematica-printer")))
+											//#else
+											.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/BiliXWhite/litematica-printer"))
+											//#endif
+											.withUnderline(true)
+											.withColor(Formatting.BLUE)));
+					client.inGameHud.getChatHud().addMessage(
+							Text.translatable("litematica_printer.update.download")
+									.setStyle(Style.EMPTY
+											//#if MC >= 12105
+											//$$ .withClickEvent(new ClickEvent.OpenUrl(URI.create("https://xeno.lanzoue.com/b00l1v20vi")))
+											//#else
+											.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi"))
+											//#endif
+											.withBold(true)
+											.withColor(Formatting.GREEN)));
+					client.inGameHud.getChatHud().addMessage(
+							Text.translatable("litematica_printer.update.password", "cgxw")
+									.formatted(Formatting.WHITE));
+					client.inGameHud.getChatHud().addMessage(
+							Text.literal("------------------------").formatted(Formatting.GRAY));
+					//#else
+					//$$ client.inGameHud.getChatHud().addMessage(
+					//$$         new LiteralText(String.format(I18nUtils.get("update.available"), version, newVersion))
+					//$$                 .formatted(Formatting.YELLOW));
+					//$$ client.inGameHud.getChatHud().addMessage(
+					//$$         new LiteralText(I18nUtils.get("update.recommendation"))
+					//$$                 .formatted(Formatting.RED));
+					//$$ client.inGameHud.getChatHud().addMessage(
+					//$$         new LiteralText(I18nUtils.get("update.repository"))
+					//$$                 .formatted(Formatting.WHITE));
+					//$$ client.inGameHud.getChatHud().addMessage(
+					//$$         new LiteralText("https://github.com/BiliXWhite/litematica-printer")
+					//$$                 .setStyle(Style.EMPTY
+					//$$                         .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/BiliXWhite/litematica-printer"))
+					//$$                         .withUnderline(true)
+					//$$                         .withColor(Formatting.BLUE)));
+					//$$ client.inGameHud.getChatHud().addMessage(
+					//$$         new LiteralText(I18nUtils.get("update.download"))
+					//$$                 .setStyle(Style.EMPTY
+					//$$                         .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi"))
+					//$$                         .withBold(true)
+					//$$                         .withColor(Formatting.GREEN)));
+					//$$ client.inGameHud.getChatHud().addMessage(
+					//$$         new LiteralText(String.format(I18nUtils.get("update.password"), "cgxw")
+					//$$                 .formatted(Formatting.WHITE)));
+					//$$ client.inGameHud.getChatHud().addMessage(
+					//$$         new LiteralText("------------------------").formatted(Formatting.GRAY));
+					//#endif
+				});
+			}
+		});
 	}
 }
