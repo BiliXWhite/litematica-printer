@@ -5,6 +5,7 @@ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
+import me.aleksilassila.litematica.printer.printer.bilixwhite.utils.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
@@ -73,7 +74,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 		//#endif
 	}
 
-	@Inject(at = @At("TAIL"), method = "tick")
+	@Inject(at = @At("HEAD"), method = "tick")
 	public void tick(CallbackInfo ci) {
 		Printer printer = Printer.getPrinter();
 		ZxyUtils.tick();
@@ -84,6 +85,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 			Printer.fluidModeItemList = new HashSet<>();
 			return;
 		}
+		BreakManager.instance().onTick();
 		printer.tick();
 	}
 

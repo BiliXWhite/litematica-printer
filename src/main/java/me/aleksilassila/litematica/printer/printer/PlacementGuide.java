@@ -3,6 +3,7 @@ package me.aleksilassila.litematica.printer.printer;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
+import me.aleksilassila.litematica.printer.printer.bilixwhite.utils.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.block.*;
@@ -19,6 +20,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import oshi.jna.platform.mac.SystemB;
 
 import java.util.*;
 
@@ -60,7 +62,8 @@ public class PlacementGuide extends PrinterUtils {
                             requiredState.get(Properties.WATERLOGGED)
                     )) {
                 if (currentState.isOf(Blocks.ICE)) {
-                    Printer.civBreakBlock(pos);
+                    BreakManager.addBlockToBreak(pos);
+                    Printer.placeCooldownList.put(pos, -2);
                     return null;
                 }
                 if (currentState != requiredState && !currentState.isOf(Blocks.WATER))
@@ -601,7 +604,7 @@ public class PlacementGuide extends PrinterUtils {
 
             default -> {
                 //TODO 实现生存模式破坏错误方块
-                if (LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue()) Printer.civBreakBlock(pos);
+                if (LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue() && BreakManager.canBreakBlock(pos)) BreakManager.addBlockToBreak(pos);
             }
         }
 

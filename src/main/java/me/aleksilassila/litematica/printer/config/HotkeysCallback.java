@@ -5,6 +5,7 @@ import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.printer.bilixwhite.utils.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.client.MinecraftClient;
 
@@ -92,6 +93,7 @@ public class HotkeysCallback implements IHotkeyCallback {
         //#endif
         else if (key == TOGGLE_PRINTING_MODE.getKeybind()) {
             Printer.getPrinter().clearQueue();
+            BreakManager.instance().clear();
         }
         return false;
     }
