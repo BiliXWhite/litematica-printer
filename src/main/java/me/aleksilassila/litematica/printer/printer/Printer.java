@@ -9,17 +9,15 @@ import fi.dy.masa.litematica.selection.Box;
 import fi.dy.masa.litematica.util.InventoryUtils;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
-import fi.dy.masa.malilib.config.IConfigOptionListEntry;
-import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
+import me.aleksilassila.litematica.printer.printer.bilixwhite.utils.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -28,7 +26,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
@@ -45,9 +42,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
-import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST;
-import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
-import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
 import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.getEmptyPickBlockableHotbarSlot;
 import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.getPickBlockTargetSlot;
@@ -103,15 +97,10 @@ public class Printer extends PrinterUtils {
     public static boolean printerMemorySync = false;
     public static BlockPos easyPos = null;
     public static boolean isOpenHandler = false;
-    static int tick = 0;
-    static BlockPos breakTargetBlock = null;
-    static int startTick = -1;
     static Map<BlockPos, Integer> placeCooldownList = new HashMap<>();
     static int shulkerBoxSlot = -1;
     static ItemStack orderlyStoreItem; //有序存放临时存储
     private static Printer INSTANCE = null;
-    private static BlockPos currentBreakingPos;
-    private static float currentBreakingProgress;
     private int shulkerCooldown = 0;
     public static int swapSlotDelay = 0;
 
@@ -119,6 +108,7 @@ public class Printer extends PrinterUtils {
     public static final MinecraftClient client = MinecraftClient.getInstance();
     public final PlacementGuide guide;
     public final Queue queue;
+    public final BreakManager breakManager = BreakManager.instance();
     //强制循环半径
     public BlockPos basePos = null;
     public MyBox myBox;
@@ -149,150 +139,6 @@ public class Printer extends PrinterUtils {
         return INSTANCE;
     }
 
-    /**
-     * 挖掘指定位置的方块
-     *
-     * @param pos 要挖掘的方块位置
-     * @return 如果挖掘成功且方块状态未改变则返回true，否则返回false
-     */
-    public static boolean waJue(BlockPos pos) {
-        // 获取客户端世界对象和方块状态
-        ClientWorld world = client.world;
-        BlockState currentState = world.getBlockState(pos);
-        Block block = currentState.getBlock();
-
-        // 检查方块是否可以破坏，如果可以则执行挖掘操作
-        if (canBreakBlock(pos)) {
-            client.interactionManager.updateBlockBreakingProgress(pos, Direction.DOWN);
-            client.interactionManager.cancelBlockBreaking();
-            return world.getBlockState(pos).isOf(block);
-        }
-        return false;
-    }
-
-    public static boolean civBreakBlock(BlockPos pos) {
-        ClientWorld world = client.world;
-        BlockState currentState = world.getBlockState(pos);
-        Block block = currentState.getBlock();
-
-        if (currentBreakingPos != null) {
-            ZxyUtils.actionBar("方块：" + block.getName().toString() + " 位置：" + pos.toShortString() + " 挖掘进度：" + currentBreakingProgress);
-            currentBreakingProgress += currentState.calcBlockBreakingDelta(client.player, world, pos);
-            if (currentBreakingProgress == 1f) {
-                currentBreakingProgress = 0f;
-                currentBreakingPos = null;
-                return true;
-            } else return false;
-        }
-
-        // 只对硬度 > 0 的方块启用快速挖掘
-        if (currentState.getHardness(client.world, pos) <= 0.0f) {
-            new PlayerActionC2SPacket(
-                    PlayerActionC2SPacket.Action.START_DESTROY_BLOCK,
-                    pos,
-                    Direction.DOWN
-            );
-            return true;
-        }
-
-        if (client.getNetworkHandler() != null) {
-            client.inGameHud.getChatHud().addMessage(Text.of("发送START_DESTORY_BLOCK"));
-            client.getNetworkHandler().sendPacket(
-                    new PlayerActionC2SPacket(
-                            PlayerActionC2SPacket.Action.START_DESTROY_BLOCK,
-                            pos,
-                            Direction.DOWN
-                    )
-            );
-            client.getNetworkHandler().sendPacket(
-                    new PlayerActionC2SPacket(
-                            PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK,
-                            pos,
-                            Direction.DOWN
-                    )
-            );
-        }
-
-        // 模拟挥手动画
-        client.player.swingHand(Hand.MAIN_HAND);
-
-        // 标记为挖掘中
-        currentBreakingPos = pos;
-        return false;
-    }
-
-    public static boolean canBreakBlock(BlockPos pos) {
-        ClientWorld world = client.world;
-        BlockState currentState = world.getBlockState(pos);
-        return !currentState.isAir() &&
-                !currentState.isOf(Blocks.AIR) &&
-                !currentState.isOf(Blocks.CAVE_AIR) &&
-                !currentState.isOf(Blocks.VOID_AIR) &&
-                !(currentState.getBlock().getHardness() == -1) &&
-                !(currentState.getBlock() instanceof FluidBlock) &&
-                !client.player.isBlockBreakingRestricted(client.world, pos, client.interactionManager.getCurrentGameMode());
-    }
-
-    /**
-     * 挖掘指定位置的方块
-     *
-     * @param pos 要挖掘的方块位置
-     * @return 如果挖掘完成则返回挖掘的方块位置，否则返回null
-     */
-    public static BlockPos excavateBlock(BlockPos pos) {
-        // 检查指定位置的方块是否可以交互
-        if (!canInteracted(pos)) {
-            breakTargetBlock = null;
-            return null;
-        }
-
-        // 一个游戏刻只挖掘一次
-        if (startTick == tick) {
-            return null;
-        } else if (breakTargetBlock != null) {
-            // 如果已有目标方块，则继续挖掘
-            if (!Printer.waJue(breakTargetBlock)) {
-                // 挖掘完成，返回挖掘的方块位置
-                BlockPos breakTargetBlock1 = breakTargetBlock;
-                breakTargetBlock = null;
-                return breakTargetBlock1;
-            } else return null;
-        }
-
-        // 设置新的挖掘目标
-        startTick = tick;
-        breakTargetBlock = pos;
-        return null;
-    }
-
-
-    static boolean breakRestriction(BlockState blockState) {
-        if (EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.TWEAKEROO)) {
-            if (!FabricLoader.getInstance().isModLoaded("tweakeroo")) return true;
-//            return isPositionAllowedByBreakingRestriction(pos,Direction.UP);
-            UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
-            if (listType == UsageRestriction.ListType.BLACKLIST) {
-                return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> equalsBlockName(string, blockState));
-            } else if (listType == UsageRestriction.ListType.WHITELIST) {
-                return BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> equalsBlockName(string, blockState));
-            } else {
-                return true;
-            }
-        } else {
-            IConfigOptionListEntry optionListValue = EXCAVATE_LIMIT.getOptionListValue();
-            if (optionListValue == UsageRestriction.ListType.BLACKLIST) {
-                return EXCAVATE_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> equalsBlockName(string, blockState));
-            } else if (optionListValue == UsageRestriction.ListType.WHITELIST) {
-                return EXCAVATE_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> equalsBlockName(string, blockState));
-            } else {
-                return true;
-            }
-        }
-    }
 
     static boolean isLimitedByTheNumberOfLayers(BlockPos pos) {
         return LitematicaMixinMod.RENDER_LAYER_LIMIT.getBooleanValue() && !DataManager.getRenderLayerRange().isPositionWithinRange(pos);
@@ -450,8 +296,8 @@ public class Printer extends PrinterUtils {
             // 检查世界状态和挖掘条件，如果满足则执行挖掘
             if (client.world != null &&
                     TempData.xuanQuFanWeiNei_p(pos) &&
-                    breakRestriction(client.world.getBlockState(pos)) &&
-                    waJue(pos)) {
+                    BreakManager.breakRestriction(client.world.getBlockState(pos)) &&
+                    breakManager.breakBlock(pos)) {
                 tempPos = pos;
                 return;
             }
