@@ -20,7 +20,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import oshi.jna.platform.mac.SystemB;
 
 import java.util.*;
 
@@ -603,8 +602,16 @@ public class PlacementGuide extends PrinterUtils {
             }
 
             default -> {
-                //TODO 实现生存模式破坏错误方块
-                if (LitematicaMixinMod.BREAK_ERROR_BLOCK.getBooleanValue() && BreakManager.canBreakBlock(pos)) BreakManager.addBlockToBreak(pos);
+                if (LitematicaMixinMod.BREAK_WRONG_BLOCK.getBooleanValue() || LitematicaMixinMod.BREAK_EXTRA_BLOCK.getBooleanValue()) {
+                    if (BreakManager.canBreakBlock(pos)) {
+                        if (LitematicaMixinMod.BREAK_WRONG_BLOCK.getBooleanValue() && !requiredState.isOf(Blocks.AIR)) {
+                            BreakManager.addBlockToBreak(pos);
+                        } else if (LitematicaMixinMod.BREAK_EXTRA_BLOCK.getBooleanValue() && requiredState.isOf(Blocks.AIR)) {
+                            BreakManager.addBlockToBreak(pos);
+                        }
+                    }
+                }
+
             }
         }
 

@@ -239,35 +239,28 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "打印机工作时会检测数据包的接收时间，如果超过20个游戏刻还没收到新数据包，打印机会自动暂停，直到收到数据包后再继续。"
     );
     public static final ConfigOptionList ITERATION_ORDER = new ConfigOptionList(
-            "迭代顺序", State.IterationOrderType.XZY,
-            "打印机遍历方块的顺序。\n" +
-                    "§dXYZ§r：先X轴，后Y轴，最后Z轴\n" +
-                    "§dXZY§r：先X轴，后Z轴，最后Y轴\n" +
-                    "§dYXZ§r：先Y轴，后X轴，最后Z轴\n" +
-                    "§dYZX§r：先Y轴，后Z轴，最后X轴\n" +
-                    "§dZXY§r：先Z轴，后X轴，最后Y轴\n" +
-                    "§dZYX§r：先Z轴，后Y轴，最后X轴"
+            getName("iteratorMode"), State.IterationOrderType.XZY,
+            getComment("iteratorMode")
     );
     public static final ConfigBoolean X_REVERSE = new ConfigBoolean(
-            "X轴反向", false,
-            "启用后X轴方向的遍历将从大到小进行。"
+            getName("xReverse"), false,
+            getComment("xReverse")
     );
     public static final ConfigBoolean Y_REVERSE = new ConfigBoolean(
-            "Y轴反向", false,
-            "启用后Y轴方向的遍历将从大到小进行。"
+            getName("yReverse"), false,
+            getComment("yReverse")
     );
     public static final ConfigBoolean Z_REVERSE = new ConfigBoolean(
-            "Z轴反向", false,
-            "启用后Z轴方向的遍历将从大到小进行。"
+            getName("zReverse"), false,
+            getComment("zReverse")
     );
     public static final ConfigBoolean FALLING_CHECK = new ConfigBoolean(
-            "下落方块检查", true,
-            "启用后会检查下落方块的下方是否有方块支撑，如果没有支撑则不会放置该方块。"
+            getName("fallingBlockCheck"), true,
+            getComment("fallingBlockCheck")
     );
-    public static final ConfigBoolean BREAK_ERROR_BLOCK = new ConfigBoolean(
-            "破坏错误方块（实验性）", false,
-            "启用后在打印时，如果碰到了实际与投影不符的方块（仅包名判断），那么将会破坏这个方块。\n" +
-                    "（目前只能在创造模式破坏，或者是一些秒破方块）"
+    public static final ConfigBoolean BREAK_WRONG_BLOCK = new ConfigBoolean(
+            getName("breakWrongBlock"), false,
+            getComment("breakWrongBlock")
     );
     public static final ConfigBoolean DEBUG_OUTPUT = new ConfigBoolean(
             "调试输出", false,
@@ -281,6 +274,11 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     public static final ConfigBoolean SAFELY_OBSERVER = new ConfigBoolean(
             getName("safelyObserver"), true,
             getComment("safelyObserver")
+    );
+    // 也破坏掉多余方块
+    public static final ConfigBoolean BREAK_EXTRA_BLOCK = new ConfigBoolean(
+            getName("breakExtraBlock"), true,
+            getComment("breakExtraBlock")
     );
 
     //========================================

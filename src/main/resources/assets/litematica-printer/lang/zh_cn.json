@@ -14,5 +14,31 @@
   "litematica_printer.config.comment.safelyObserver": "启用后，将首先检查观察者的检测面方块是否正确，仅在确认正确时进行放置。",
 
   "litematica_printer.config.name.printWater": "破冰放水",
-  "litematica_printer.config.comment.printWater": "使用放置并破坏冰的方式来打印水。"
+  "litematica_printer.config.comment.printWater": "使用放置并破坏冰的方式来打印水。",
+
+  "litematica_printer.config.name.iteratorMode": "遍历顺序",
+  "litematica_printer.config.comment.iteratorMode": "打印时遍历方块的顺序：\n§dXYZ§r：先X轴，后Y轴，最后Z轴\n§dXZY§r：先X轴，后Z轴，最后Y轴\n§dYXZ§r：先Y轴，后X轴，最后Z轴\n§dYZX§r：先Y轴，后Z轴，最后X轴\n§dZXY§r：先Z轴，后X轴，最后Y轴\n§dZYX§r：先Z轴，后Y轴，最后X轴",
+
+  "litematica_printer.config.name.xReverse": "X轴反向",
+  "litematica_printer.config.comment.xReverse": "启用后X轴方向的遍历将从大到小进行。",
+
+  "litematica_printer.config.name.yReverse": "Y轴反向",
+  "litematica_printer.config.comment.yReverse": "启用后Y轴方向的遍历将从大到小进行。\n破坏模式默认是反向的，启用后则变回正向。",
+
+  "litematica_printer.config.name.zReverse": "Z轴反向",
+  "litematica_printer.config.comment.zReverse": "启用后Z轴方向的遍历将从大到小进行。",
+
+  "litematica_printer.config.name.fallingBlockCheck": "下落方块检查",
+  "litematica_printer.config.comment.fallingBlockCheck": "启用后会检查下落方块的下方是否有方块支撑，如果没有支撑则不会放置该方块。",
+
+  "litematica_printer.config.name.debugOutput": "调试输出",
+  "litematica_printer.config.comment.debugOutput": "启用后会在控制台输出调试信息。",
+
+  "litematica_printer.config.name.breakWrongBlock": "破坏错误方块",
+  "litematica_printer.config.comment.breakWrongBlock": "启用后，在打印时会破坏掉与实际不符的方块。\n采用全新的破坏引擎，可能存在一些错误。",
+
+  "litematica_printer.config.name.breakExtraBlock": "破坏多余方块",
+    "litematica_printer.config.comment.breakExtraBlock": "启用后，在打印时会破坏投影中不存在的多余方块。"
+
+
 }

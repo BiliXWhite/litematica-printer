@@ -15,8 +15,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST;
@@ -34,7 +34,6 @@ public class BreakManager {
     private BlockState state;
 
     private BreakManager() {
-
         INSTANCE = this;
     }
 
@@ -47,67 +46,70 @@ public class BreakManager {
 
     // 添加需要挖掘的方块
     public static void addBlockToBreak(BlockPos pos) {
-        DebugUtils.printChatMessage(Arrays.toString(blocksToBreak.toArray()));
         blocksToBreak.add(pos);
-    }
-
-    // 移除需要挖掘的方块
-    public static void removeBlockToBreak(BlockPos pos) {
-        DebugUtils.printChatMessage("移除" + client.world.getBlockState(pos).getBlock().getClass().getName());
-        blocksToBreak.remove(pos);
     }
 
     // 每tick调用一次的方法
     public void onTick() {
         if (client.player == null || client.world == null || client.interactionManager == null) return;
 
-        if (!blocksToBreak.isEmpty()) {
-            // 初始化 breakPos 和 state
-            if (breakPos == null) {
-                updateBreakTarget();
-                if (breakPos != null) {
-                    state = client.world.getBlockState(breakPos);
-                }
+        // 性能优化：提前检查是否有必要继续执行
+        if (blocksToBreak.isEmpty()) {
+            // 确保清理状态
+            if (breakPos != null) {
+                breakPos = null;
+                state = null;
             }
+            return;
+        }
 
-            if (breakPos == null) return;
-
-            // 检查方块是否已消失或变为流体
-            if (state.isAir() ||
-                    !breakRestriction(state) ||
-                    !canBreakBlock(breakPos) ||
-                    !ZxyUtils.canInteracted(breakPos)
-            ) {
-                resetBreakTarget();
-                return;
+        // 初始化 breakPos 和 state
+        if (breakPos == null) {
+            updateBreakTarget();
+            if (breakPos != null) {
+                state = client.world.getBlockState(breakPos);
             }
+        }
 
-            ZxyUtils.actionBar(state.getBlock().getClass().getName());
+        if (breakPos == null) return;
 
-            // 执行挖掘进度更新
-            boolean success;
-            try {
-                success = client.interactionManager.updateBlockBreakingProgress(breakPos, Direction.DOWN);
-            } catch (Exception e) {
-                // 防止外部方法异常导致 tick 中断
-                success = false;
-            }
+        // 检查方块是否已消失或变为流体
+        // 性能优化：重新排列检查顺序，将最可能失败的检查放在前面
+        if (!ZxyUtils.canInteracted(breakPos) ||
+            !canBreakBlock(breakPos) ||
+            !breakRestriction(state) ||
+            state.isAir()
+        ) {
+            resetBreakTarget();
+            return;
+        }
 
-            // 新增逻辑：即使success为true，也需要检查方块是否已经改变
-            if (success && !client.world.getBlockState(breakPos).equals(state)) {
-                resetBreakTarget();
-                return;
-            }
+        // 执行挖掘进度更新
+        boolean success;
+        try {
+            success = client.interactionManager.updateBlockBreakingProgress(breakPos, Direction.DOWN);
+        } catch (Exception e) {
+            // 防止外部方法异常导致 tick 中断
+            success = false;
+        }
 
-            if (!success) {
-                resetBreakTarget();
-            }
+        // 新增逻辑：即使success为true，也需要检查方块是否已经改变
+        if (success && !client.world.getBlockState(breakPos).equals(state)) {
+            resetBreakTarget();
+            return;
+        }
+
+        if (!success) {
+            resetBreakTarget();
         }
     }
 
     // 提取重复逻辑为私有方法
     private void resetBreakTarget() {
-        removeBlockToBreak(breakPos);
+        // 性能优化：避免不必要的remove操作
+        if (breakPos != null) {
+            blocksToBreak.remove(breakPos);
+        }
         updateBreakTarget();
         if (breakPos != null) {
             state = client.world.getBlockState(breakPos);
@@ -116,16 +118,20 @@ public class BreakManager {
         }
     }
 
-
     private void updateBreakTarget() {
         if (blocksToBreak.isEmpty()) {
             breakPos = null;
             state = null;
             return;
         }
-        breakPos = blocksToBreak.iterator().next();
+        // 性能优化：使用迭代器直接获取第一个元素，避免创建新的集合
+        Iterator<BlockPos> iterator = blocksToBreak.iterator();
+        if (iterator.hasNext()) {
+            breakPos = iterator.next();
+        } else {
+            breakPos = null;
+        }
     }
-
 
     // 获取待挖掘方块数量
     public int getBlocksToBreakCount() {
@@ -135,24 +141,25 @@ public class BreakManager {
     // 清空所有待挖掘方块
     public void clear() {
         blocksToBreak.clear();
+        breakPos = null;
+        state = null;
     }
 
     public static boolean canBreakBlock(BlockPos pos) {
         ClientWorld world = client.world;
         BlockState currentState = world.getBlockState(pos);
         return !currentState.isAir() &&
+                !(currentState.getBlock() instanceof FluidBlock) &&
                 !currentState.isOf(Blocks.AIR) &&
                 !currentState.isOf(Blocks.CAVE_AIR) &&
                 !currentState.isOf(Blocks.VOID_AIR) &&
                 !(currentState.getBlock().getHardness() == -1) &&
-                !(currentState.getBlock() instanceof FluidBlock) &&
                 !client.player.isBlockBreakingRestricted(client.world, pos, client.interactionManager.getCurrentGameMode());
     }
 
     public static boolean breakRestriction(BlockState blockState) {
         if (EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.TWEAKEROO)) {
             if (!FabricLoader.getInstance().isModLoaded("tweakeroo")) return true;
-//            return isPositionAllowedByBreakingRestriction(pos,Direction.UP);
             UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
                 return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
