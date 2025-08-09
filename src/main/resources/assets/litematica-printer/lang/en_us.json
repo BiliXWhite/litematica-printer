@@ -14,5 +14,29 @@
   "litematica_printer.config.comment.safelyObserver": "When enabled, it will first check if the block on the detection face of the observer is correct, and only place the block if it is correct.",
 
   "litematica_printer.config.name.printWater": "printWater",
-  "litematica_printer.config.comment.printWater": "Place the ice and then destroy it to print the water."
+  "litematica_printer.config.comment.printWater": "Place the ice and then destroy it to print the water.",
+
+  "litematica_printer.config.name.iteratorMode": "iteratorMode",
+  "litematica_printer.config.comment.iteratorMode": "The order in which blocks are traversed during printing:\n§dXYZ§r: First X, then Y, finally Z\n§dXZY§r: First X, then Z, finally Y\n§dYXZ§r: First Y, then X, finally Z\n§dYZX§r: First Y, then Z, finally X\n§dZXY§r: First Z, then X, finally Y\n§dZYX§r: First Z, then Y, finally X",
+
+  "litematica_printer.config.name.xReverse": "xReverse",
+  "litematica_printer.config.comment.xReverse": "When enabled, X-axis traversal will be performed from high to low.",
+
+  "litematica_printer.config.name.yReverse": "yReverse",
+  "litematica_printer.config.comment.yReverse": "When enabled, Y-axis traversal will be performed from high to low.\nDestruction mode is reversed by default; enabling this will make it normal direction.",
+
+  "litematica_printer.config.name.zReverse": "zReverse",
+  "litematica_printer.config.comment.zReverse": "When enabled, Z-axis traversal will be performed from high to low.",
+
+  "litematica_printer.config.name.fallingBlockCheck": "Falling Block Check",
+  "litematica_printer.config.comment.fallingBlockCheck": "When enabled, it will check if there is block support under falling blocks before placing them.",
+
+  "litematica_printer.config.name.debugOutput": "debugOutput",
+  "litematica_printer.config.comment.debugOutput": "When enabled, printer working information is output in the console.",
+
+  "litematica_printer.config.name.breakWrongBlock": "breakWrongBlock",
+  "litematica_printer.config.comment.breakWrongBlock": "When printing, if you touch a block that does not match the projection, it will destroy the block. \nWith a new engine, it's powerful in efficiency and performance, but there may be some bugs.",
+
+  "litematica_printer.config.name.breakExtraBlock": "breakExtraBlock",
+  "litematica_printer.config.comment.breakExtraBlock": "When enabled, it will break any extra blocks that are not part of the projection during printing."
 }
