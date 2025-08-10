@@ -1,44 +1,58 @@
 {
-  "litematica_printer.update.available": "投影打印机有新版本！当前版本：%s，最新版本：%s",
-  "litematica_printer.update.recommendation": "强烈建议升级到最新版本，以修复潜在的严重问题。",
-  "litematica_printer.update.repository": "代码仓库：",
-  "litematica_printer.update.download": ">> 点击此处下载最新版本 <<",
-  "litematica_printer.update.password": "下载密码：%s",
-  "litematica_printer.update.failed": "无法检查更新，请稍后重试。",
+    "litematica_printer.update.available": "投影打印机有新版本！当前版本：%s，最新版本：%s",
+    "litematica_printer.update.recommendation": "强烈建议升级到最新版本，以修复潜在的严重问题。",
+    "litematica_printer.update.repository": "代码仓库：",
+    "litematica_printer.update.download": ">> 点击此处下载最新版本 <<",
+    "litematica_printer.update.password": "下载密码：%s",
+    "litematica_printer.update.failed": "无法检查更新，请稍后重试。",
+    "litematica_printer.config.comment.blocklist": "可以输入方块或物品ID，例如: §bminecraft:stone§r。\n如果在前面加上§b#§r，则会使用标签匹配，列表将根据标签匹配对应的方块，例如：§l#log§r。\n如果同时输入文本和过滤条件（以英文逗号分隔），例如：§lstone,c§r。\n其中 “c” 表示使用包含匹配方式，会先尝试拼音或直接匹配。",
+    "litematica_printer.config.name.autoTuning": "音符盒自动调音",
+    "litematica_printer.config.comment.autoTuning": "在打印时自动调整音符盒的音调。",
 
+    "litematica_printer.config.name.safelyObserver": "侦测器安全放置",
+    "litematica_printer.config.comment.safelyObserver": "启用后，将首先检查观察者的检测面方块是否正确，仅在确认正确时进行放置。",
 
-  "litematica_printer.config.name.autoTuning": "音符盒自动调音",
-  "litematica_printer.config.comment.autoTuning": "在打印时自动调整音符盒的音调。",
+    "litematica_printer.config.name.printWater": "破冰放水",
+    "litematica_printer.config.comment.printWater": "使用放置并破坏冰的方式来打印水。",
 
-  "litematica_printer.config.name.safelyObserver": "侦测器安全放置",
-  "litematica_printer.config.comment.safelyObserver": "启用后，将首先检查观察者的检测面方块是否正确，仅在确认正确时进行放置。",
+    "litematica_printer.config.name.iteratorMode": "遍历顺序",
+    "litematica_printer.config.comment.iteratorMode": "打印时遍历方块的顺序：\n§dXYZ§r：先X轴，后Y轴，最后Z轴\n§dXZY§r：先X轴，后Z轴，最后Y轴\n§dYXZ§r：先Y轴，后X轴，最后Z轴\n§dYZX§r：先Y轴，后Z轴，最后X轴\n§dZXY§r：先Z轴，后X轴，最后Y轴\n§dZYX§r：先Z轴，后Y轴，最后X轴",
 
-  "litematica_printer.config.name.printWater": "破冰放水",
-  "litematica_printer.config.comment.printWater": "使用放置并破坏冰的方式来打印水。",
+    "litematica_printer.config.name.xReverse": "X轴反向",
+    "litematica_printer.config.comment.xReverse": "启用后X轴方向的遍历将从大到小进行。",
 
-  "litematica_printer.config.name.iteratorMode": "遍历顺序",
-  "litematica_printer.config.comment.iteratorMode": "打印时遍历方块的顺序：\n§dXYZ§r：先X轴，后Y轴，最后Z轴\n§dXZY§r：先X轴，后Z轴，最后Y轴\n§dYXZ§r：先Y轴，后X轴，最后Z轴\n§dYZX§r：先Y轴，后Z轴，最后X轴\n§dZXY§r：先Z轴，后X轴，最后Y轴\n§dZYX§r：先Z轴，后Y轴，最后X轴",
+    "litematica_printer.config.name.yReverse": "Y轴反向",
+    "litematica_printer.config.comment.yReverse": "启用后Y轴方向的遍历将从大到小进行。\n破坏模式默认是反向的，启用后则变回正向。",
 
-  "litematica_printer.config.name.xReverse": "X轴反向",
-  "litematica_printer.config.comment.xReverse": "启用后X轴方向的遍历将从大到小进行。",
+    "litematica_printer.config.name.zReverse": "Z轴反向",
+    "litematica_printer.config.comment.zReverse": "启用后Z轴方向的遍历将从大到小进行。",
 
-  "litematica_printer.config.name.yReverse": "Y轴反向",
-  "litematica_printer.config.comment.yReverse": "启用后Y轴方向的遍历将从大到小进行。\n破坏模式默认是反向的，启用后则变回正向。",
+    "litematica_printer.config.name.fallingBlockCheck": "下落方块检查",
+    "litematica_printer.config.comment.fallingBlockCheck": "启用后会检查下落方块的下方是否有方块支撑，如果没有支撑则不会放置该方块。",
 
-  "litematica_printer.config.name.zReverse": "Z轴反向",
-  "litematica_printer.config.comment.zReverse": "启用后Z轴方向的遍历将从大到小进行。",
+    "litematica_printer.config.name.debugOutput": "调试输出",
+    "litematica_printer.config.comment.debugOutput": "启用后会在控制台输出调试信息。",
 
-  "litematica_printer.config.name.fallingBlockCheck": "下落方块检查",
-  "litematica_printer.config.comment.fallingBlockCheck": "启用后会检查下落方块的下方是否有方块支撑，如果没有支撑则不会放置该方块。",
+    "litematica_printer.config.name.breakWrongBlock": "破坏错误方块",
+    "litematica_printer.config.comment.breakWrongBlock": "启用后，在打印时会破坏掉与实际不符的方块。\n采用全新的破坏引擎，可能存在一些错误。",
 
-  "litematica_printer.config.name.debugOutput": "调试输出",
-  "litematica_printer.config.comment.debugOutput": "启用后会在控制台输出调试信息。",
+    "litematica_printer.config.name.breakExtraBlock": "破坏多余方块",
+    "litematica_printer.config.comment.breakExtraBlock": "启用后，在打印时会破坏投影中不存在的多余方块。",
 
-  "litematica_printer.config.name.breakWrongBlock": "破坏错误方块",
-  "litematica_printer.config.comment.breakWrongBlock": "启用后，在打印时会破坏掉与实际不符的方块。\n采用全新的破坏引擎，可能存在一些错误。",
+    "litematica_printer.config.name.quickShulker": "快捷潜影盒",
+    "litematica_printer.config.comment.quickShulker": "直接从背包内的潜影盒取出物品\n替换的位置为Litematica的预设位置,如果所有预设位置都有濳影盒则无法替换。",
 
-  "litematica_printer.config.name.breakExtraBlock": "破坏多余方块",
-    "litematica_printer.config.comment.breakExtraBlock": "启用后，在打印时会破坏投影中不存在的多余方块。"
+    "litematica_printer.config.name.quickShulkerMode": "快捷潜影盒-工作模式",
+    "litematica_printer.config.comment.quickShulkerMode": "§d点击槽位§r：直接发送背包右键打开潜影盒。(需要插件或模组的支持)\n§d调用方法§r：调用模组功能直接打开潜影盒。",
+    "litematica_printer.config.quickShulkerMode.clickSlot": "点击槽位",
+    "litematica_printer.config.quickShulkerMode.invoke": "调用方法",
 
+    "litematica_printer.config.name.quickShulkerCooldown": "快捷潜影盒-冷却时间",
+    "litematica_printer.config.comment.quickShulkerCooldown": "快捷潜影盒功能的冷却时间（单位：tick），防止快速打开潜影盒导致服务器卡顿。\n设置为0则不启用冷却。",
 
+    "litematica_printer.config.name.printInterval": "打印间隔",
+    "litematica_printer.config.comment.printInterval": "打印时的间隔时间（单位：tick）。\n设置为0则无间隔，可能会导致服务器卡顿。\n建议设置为1-5之间的值，以平衡性能和速度。\n在值为§b0§r时会提供§6§l每刻执行方块数§r的选项，需要重新打开设置菜单才能出现。",
+
+    "litematica_printer.config.name.printPerTick": "每刻执行方块数",
+    "litematica_printer.config.comment.printPerTick": "每刻打印的方块数量。\n当打印间隔为0时启用此选项。\n建议设置为2-8之间的值，以平衡性能和速度。\n如果设置过高，可能会被服务器踢出。"
 }

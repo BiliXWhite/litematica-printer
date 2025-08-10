@@ -23,7 +23,7 @@ public abstract class MixinClientConnection {
             at = {@At("HEAD")}
     )
     public void chestTracker$onDisconnectHandler(Text ignored, CallbackInfo ci) {
-        if(!LitematicaMixinMod.INVENTORY.getBooleanValue()) return;
+        if(!LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue()) return;
         MemoryDatabase database = MemoryDatabase.getCurrent();
         if (database != null) {
             MemoryDatabase.clearCurrent();

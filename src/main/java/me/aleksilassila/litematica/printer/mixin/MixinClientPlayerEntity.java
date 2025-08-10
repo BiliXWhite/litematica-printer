@@ -5,7 +5,7 @@ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
-import me.aleksilassila.litematica.printer.printer.bilixwhite.utils.BreakManager;
+import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
@@ -36,7 +36,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 
 //#if MC < 11904
 //$$ import net.minecraft.text.LiteralText;
-//$$ import me.aleksilassila.litematica.printer.printer.bilixwhite.utils.I18nUtils;
+//$$ import me.aleksilassila.litematica.printer.bilixwhite.utils.I18nUtils;
 //#else
 import net.minecraft.text.Text;
 //#endif

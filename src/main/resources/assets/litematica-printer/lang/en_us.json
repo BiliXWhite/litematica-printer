@@ -5,38 +5,39 @@
   "litematica_printer.update.download": "Lanzou Cloud (China) download link",
   "litematica_printer.update.password": "Password: %s",
   "litematica_printer.update.failed": "Failed to check for updates. Please try again later.",
-
-
+  "litematica_printer.config.comment.blocklist": "",
   "litematica_printer.config.name.autoTuning": "autoTuning",
   "litematica_printer.config.comment.autoTuning": "Automatically tune note blocks during printing.",
-
   "litematica_printer.config.name.safelyObserver": "safelyObserver",
   "litematica_printer.config.comment.safelyObserver": "When enabled, it will first check if the block on the detection face of the observer is correct, and only place the block if it is correct.",
-
   "litematica_printer.config.name.printWater": "printWater",
   "litematica_printer.config.comment.printWater": "Place the ice and then destroy it to print the water.",
-
   "litematica_printer.config.name.iteratorMode": "iteratorMode",
   "litematica_printer.config.comment.iteratorMode": "The order in which blocks are traversed during printing:\n§dXYZ§r: First X, then Y, finally Z\n§dXZY§r: First X, then Z, finally Y\n§dYXZ§r: First Y, then X, finally Z\n§dYZX§r: First Y, then Z, finally X\n§dZXY§r: First Z, then X, finally Y\n§dZYX§r: First Z, then Y, finally X",
-
   "litematica_printer.config.name.xReverse": "xReverse",
   "litematica_printer.config.comment.xReverse": "When enabled, X-axis traversal will be performed from high to low.",
-
   "litematica_printer.config.name.yReverse": "yReverse",
   "litematica_printer.config.comment.yReverse": "When enabled, Y-axis traversal will be performed from high to low.\nDestruction mode is reversed by default; enabling this will make it normal direction.",
-
   "litematica_printer.config.name.zReverse": "zReverse",
   "litematica_printer.config.comment.zReverse": "When enabled, Z-axis traversal will be performed from high to low.",
-
   "litematica_printer.config.name.fallingBlockCheck": "Falling Block Check",
   "litematica_printer.config.comment.fallingBlockCheck": "When enabled, it will check if there is block support under falling blocks before placing them.",
-
   "litematica_printer.config.name.debugOutput": "debugOutput",
   "litematica_printer.config.comment.debugOutput": "When enabled, printer working information is output in the console.",
-
   "litematica_printer.config.name.breakWrongBlock": "breakWrongBlock",
   "litematica_printer.config.comment.breakWrongBlock": "When printing, if you touch a block that does not match the projection, it will destroy the block. \nWith a new engine, it's powerful in efficiency and performance, but there may be some bugs.",
-
   "litematica_printer.config.name.breakExtraBlock": "breakExtraBlock",
-  "litematica_printer.config.comment.breakExtraBlock": "When enabled, it will break any extra blocks that are not part of the projection during printing."
+  "litematica_printer.config.comment.breakExtraBlock": "When enabled, it will break any extra blocks that are not part of the projection during printing.",
+  "litematica_printer.config.name.quickShulker": "quickShulker",
+  "litematica_printer.config.comment.quickShulker": "If the server has the §bAxShulkers§r plugin installed, you can directly take items from shulker boxes in your inventory.\nThe replacement position is the preset position of Litematica, and if all preset positions have shulker boxes, it will not replace them.",
+  "litematica_printer.config.name.quickShulkerMode": "quickShulkerMode",
+  "litematica_printer.config.comment.quickShulkerMode": "§dClick Slot§r: Directly sends a right-click to open the shulker box in your inventory. (Requires plugin or mod support)\n§dCall Method§r: Calls the mod function to directly open the shulker box.",
+  "litematica_printer.config.quickShulkerMode.clickSlot": "Click Slot",
+  "litematica_printer.config.quickShulkerMode.invoke": "Call Method",
+  "litematica_printer.config.name.quickShulkerCooldown": "quickShulkerCooldown",
+  "litematica_printer.config.comment.quickShulkerCooldown": "The cooldown time (in ticks) for the quick shulker box feature. This prevents rapid opening of shulker boxes, which can cause server lag.\nSet to 0 to disable cooldown.",
+  "litematica_printer.config.name.printInterval": "printInterval",
+  "litematica_printer.config.comment.printInterval": "The interval time (in ticks) during printing.\nSet to 0 for no interval, which may cause server lag.\nIt is recommended to set it between 1-5 to balance performance and speed.\nWhen the value is §b0§r, the option of §6§lBlocks per Tick§r will be provided, and you need to reopen the settings menu to see it.",
+  "litematica_printer.config.name.printPerTick": "printPerTick",
+  "litematica_printer.config.comment.printPerTick": "The number of blocks printed per tick.\nThis option is enabled when the print interval is set to 0.\nIt is recommended to set it between 2-8 to balance performance and speed.\nIf set too high, you may be kicked from the server."
 }

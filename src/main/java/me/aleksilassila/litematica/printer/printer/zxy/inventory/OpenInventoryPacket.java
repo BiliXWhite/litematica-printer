@@ -44,7 +44,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import static me.aleksilassila.litematica.printer.printer.Printer.isOpenHandler;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
 import static me.aleksilassila.litematica.printer.printer.Printer.printerMemorySync;
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
 //#if MC > 12004
@@ -175,7 +175,7 @@ public class OpenInventoryPacket {
             client.execute(() -> {
                 if (LitematicaMixinMod.AUTO_INVENTORY.getBooleanValue()) {
                     ZxyUtils.actionBar("已自动启用远程交互容器!!!");
-                    LitematicaMixinMod.INVENTORY.setBooleanValue(true);
+                    LitematicaMixinMod.CLOUD_INVENTORY.setBooleanValue(true);
                 }
             });
         });
@@ -195,7 +195,7 @@ public class OpenInventoryPacket {
         //$$     client.execute(() -> {
         //$$         if (LitematicaMixinMod.AUTO_INVENTORY.getBooleanValue()) {
         //$$             ZxyUtils.actionBar("已自动启用远程交互容器!!!");
-        //$$             LitematicaMixinMod.INVENTORY.setBooleanValue(true);
+        //$$             LitematicaMixinMod.CLOUD_INVENTORY.setBooleanValue(true);
         //$$         }
         //$$     });
         //$$ });
@@ -335,7 +335,7 @@ public class OpenInventoryPacket {
     public static void openReturn(boolean open, BlockState state) {
         if(clientTry){
             ZxyUtils.actionBar("已自动启用远程交互容器!!!");
-            LitematicaMixinMod.INVENTORY.setBooleanValue(true);
+            LitematicaMixinMod.CLOUD_INVENTORY.setBooleanValue(true);
             key = null;
             pos = null;
             remoteTime = 0;
@@ -412,7 +412,7 @@ public class OpenInventoryPacket {
             clientTry = true;
             if(clientTryTime + 3000L < System.currentTimeMillis() && clientTry){
                 ZxyUtils.actionBar("已自动关闭远程交互容器");
-                LitematicaMixinMod.INVENTORY.setBooleanValue(false);
+                LitematicaMixinMod.CLOUD_INVENTORY.setBooleanValue(false);
                 remoteTime = 0;
                 clientTry = false;
             }

@@ -23,7 +23,7 @@ public class MixinClientPlayerEntity {
     @Inject(at = @At("HEAD"), method = "closeScreen")
     public void closeScreen(CallbackInfo ci) {
         BlockPos pos = MemoryUtils.getLatestPos();
-        if(Statistics.loadChestTracker && LitematicaMixinMod.INVENTORY.getBooleanValue() &&
+        if(Statistics.loadChestTracker && LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue() &&
                 (LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed() || printerMemoryAdding || syncPrinterInventory) &&(
                 pos != null || MemoryUtils.getMemoryPos() != null)){
             if(!client.player.currentScreenHandler.equals(client.player.playerScreenHandler)){

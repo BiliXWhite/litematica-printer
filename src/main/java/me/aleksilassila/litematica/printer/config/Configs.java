@@ -26,7 +26,7 @@ public class Configs implements IConfigHandler {
     //===========通用设置===========
     public static ImmutableList<IConfigBase> addGeneral(){
         List<IConfigBase> list = new ArrayList<>();
-        if(loadChestTracker) list.add(INVENTORY);
+        if(loadChestTracker) list.add(CLOUD_INVENTORY);
         if(loadChestTracker) list.add(AUTO_INVENTORY);
         list.add(PRINT_SWITCH);
         list.add(PRINT_INTERVAL);
@@ -36,7 +36,8 @@ public class Configs implements IConfigHandler {
         list.add(PLACE_USE_PACKET);
         list.add(RENDER_PROGRESS);
         list.add(QUICK_SHULKER);
-        if (QUICK_SHULKER.getBooleanValue()) list.add(QUICK_SHULKER_COOLING);
+        list.add(QUICK_SHULKER_MODE);
+        list.add(QUICK_SHULKER_COOLDOWN);
         list.add(LAG_CHECK);
         list.add(ITERATION_ORDER);
         list.add(X_REVERSE);
@@ -60,7 +61,7 @@ public class Configs implements IConfigHandler {
 
         list.add(PUT_SKIP);
         list.add(PUT_SKIP_LIST);
-        list.add(PRINT_CHECK);
+        list.add(STORE_ORDERLY);
         list.add(USE_EASY_MODE);
         list.add(FORCED_SNEAK);
         list.add(PRINT_IN_AIR);

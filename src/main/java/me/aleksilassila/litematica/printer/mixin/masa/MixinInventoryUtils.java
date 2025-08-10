@@ -3,7 +3,6 @@ package me.aleksilassila.litematica.printer.mixin.masa;
 
 import fi.dy.masa.litematica.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
-import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -20,15 +19,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.List;
 
 import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.canPickToSlot;
-import static me.aleksilassila.litematica.printer.printer.Printer.remoteItem;
 
 @Mixin(InventoryUtils.class)
 public class MixinInventoryUtils {
     @Inject(at = @At("TAIL"),method = "schematicWorldPickBlock")
-    private static void schematicWorldPickBlock(ItemStack stack, BlockPos pos, World schematicWorld, MinecraftClient mc, CallbackInfo ci){
-        if (mc.player != null && !ItemStack.areItemsAndComponentsEqual(mc.player.getMainHandStack(), stack) && (LitematicaMixinMod.INVENTORY.getBooleanValue() || LitematicaMixinMod.QUICK_SHULKER.getBooleanValue())) {
-            remoteItem.add(stack.getItem());
-            Printer.getPrinter().switchItem();
+    private static void schematicWorldPickBlock(ItemStack stack, BlockPos pos, World schematicWorld, MinecraftClient mc, CallbackInfo ci) {
+        if (mc.player != null && !ItemStack.areItemsAndComponentsEqual(mc.player.getMainHandStack(), stack
+        ) && (
+                LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue() ||
+                        LitematicaMixinMod.QUICK_SHULKER.getBooleanValue()
+        )) {
+            me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList.add(stack.getItem());
+            me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.switchItem();
         }
     }
 

@@ -1,5 +1,8 @@
 package me.aleksilassila.litematica.printer.printer;
 
+import fi.dy.masa.litematica.data.DataManager;
+import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
+import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
@@ -20,7 +23,14 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList;
+
+//#if MC < 11900
+//$$ import fi.dy.masa.malilib.util.SubChunkPos;
+//#endif
 
 public class PrinterUtils {
 
@@ -38,14 +48,14 @@ public class PrinterUtils {
 		if (Implementation.getAbilities(playerEntity).creativeMode) return true;
 		else {
             if (!client.player.currentScreenHandler.equals(client.player.playerScreenHandler)) return false;
-			Inventory inv = Implementation.getInventory(playerEntity);
+            Inventory inv = playerEntity.getInventory();
 			for (Item item : items) {
 				for (int i = 0; i < inv.size(); i++) {
 					if (inv.getStack(i).getItem() == item && inv.getStack(i).getCount() > 0) {
                         return true;
                     }
 				}
-                Printer.remoteItem.add(item);
+                lastNeedItemList.add(item);
             }
 		}
         return false;
@@ -112,5 +122,36 @@ public class PrinterUtils {
         }
 
         return sides;
+    }
+
+    static boolean isLimitedByTheNumberOfLayers(BlockPos pos) {
+        return LitematicaMixinMod.RENDER_LAYER_LIMIT.getBooleanValue() && !DataManager.getRenderLayerRange().isPositionWithinRange(pos);
+    }
+
+    /**
+     * 判断给定的位置是否属于当前加载的图纸结构范围内。
+     *
+     * <p>
+     * 该方法通过从数据管理器中获取结构放置管理器，然后查找与给定位置相交的所有图纸结构部分，
+     * 如果其中任一部分包含该位置，则返回 <code>true</code>，否则返回 <code>false</code>。
+     * </p>
+     *
+     * @param offset 要检测的方块位置
+     * @return 如果位置属于图纸结构的一部分，则返回 true，否则返回 false
+     */
+    public static boolean isSchematicBlock(BlockPos offset) {
+        SchematicPlacementManager schematicPlacementManager = DataManager.getSchematicPlacementManager();
+        //#if MC < 11900
+        //$$ List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingSubChunk(new SubChunkPos(offset));
+        //#else
+        List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingChunk(offset);
+        //#endif
+
+        for (SchematicPlacementManager.PlacementPart placementPart : allPlacementsTouchingChunk) {
+            if (placementPart.getBox().containsPos(offset)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

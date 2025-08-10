@@ -21,7 +21,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 
 import java.util.List;
 
-import static me.aleksilassila.litematica.printer.printer.bilixwhite.utils.I18nUtils.*;
+import static me.aleksilassila.litematica.printer.bilixwhite.utils.I18nUtils.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
 
 public class LitematicaMixinMod implements ModInitializer, ClientModInitializer {
@@ -30,7 +30,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     //           Config Settings
     //========================================
     public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger(
-            "打印机工作间隔", 1, 0, 20,
+            getName("printInterval"), 1, 0, 20,
             "每次放置的间隔，以§b游戏刻§r为单位。数值越低意味着打印速度越快。\n" +
                     "在值为§b0§r时可能在服务器中表现效果不佳，需开启§6§l使用数据包放置方块§r。\n" +
                     "在值为§b0§r时会提供§6§l每刻执行方块数§r的选项，需要重新打开设置菜单才能出现。"
@@ -129,33 +129,29 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     );
     public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList(
             "排流体方块名单", ImmutableList.of("minecraft:sand"),
-            "可填入方块或物品ID，例如: §bminecraft:stone§r。\n" +
-                    "如果在前面加上§b#§r，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
-                    "如果同时传入文本和过滤条件（以英文逗号分隔），例如：§lstone,c§r。\n" +
-                    "其中 “c” 表示使用包含匹配方式，会先尝试拼音或直接匹配。"
+            getComment("blocklist")
     );
     public static final ConfigStringList FILL_BLOCK_LIST = new ConfigStringList(
             "填充方块名单", ImmutableList.of("minecraft:cobblestone"),
-            "可填入方块或物品ID，例如: §bminecraft:stone§r。\n" +
-                    "如果在前面加上§b#§r，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
-                    "如果同时传入文本和过滤条件（以英文逗号分隔），例如：§lstone,c§r。\n" +
-                    "其中 “c” 表示使用包含匹配方式，会先尝试拼音或直接匹配。"
+                    getComment("blocklist")
     );
     public static final ConfigBoolean PUT_SKIP = new ConfigBoolean(
             "跳过放置", false,
             "开启后会§6§l跳过放置列表§r内的方块。"
     );
     public static final ConfigBoolean QUICK_SHULKER = new ConfigBoolean(
-            "快捷潜影盒", false,
-            "在服务器装有§bAxShulkers§r插件的情况下可以直接从背包内的潜影盒取出物品\n" +
-                    "替换的位置为Litematica的预设位置,如果所有预设位置都有濳影盒则无法替换。"
+            getName("quickShulker"), false,
+            getComment("quickShulker")
     );
-    public static final ConfigInteger QUICK_SHULKER_COOLING = new ConfigInteger(
-            "潜影盒冷却", 10, 0, 20,
-            "在使用快捷潜影盒时，打开潜影盒的间隔，以§b游戏刻§r为单位。\n" +
-                    "应该没有服务器会恶心到把延迟调到1000ms以上吧？"
+    public static final ConfigOptionList QUICK_SHULKER_MODE = new ConfigOptionList(
+            getName("quickShulkerMode"), State.QuickShulkerModeType.CLICK_SLOT,
+            getComment("quickShulkerMode")
     );
-    public static final ConfigBoolean INVENTORY = new ConfigBoolean(
+    public static final ConfigInteger QUICK_SHULKER_COOLDOWN = new ConfigInteger(
+            getName("quickShulkerCooldown"), 10, 0, 20,
+            getComment("quickShulkerCooldown")
+    );
+    public static final ConfigBoolean CLOUD_INVENTORY = new ConfigBoolean(
             "远程交互容器", false,
             "在服务器支持远程交互容器或单机的情况下可以远程交互\n" +
                     "替换的位置为投影的预设位置。"
@@ -164,7 +160,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "自动设置远程交互", false,
             "在服务器若允许使用则自动开启远程交互容器，反之则自动关闭"
     );
-    public static final ConfigBoolean PRINT_CHECK = new ConfigBoolean(
+    public static final ConfigBoolean STORE_ORDERLY = new ConfigBoolean(
             "有序存放", false,
             "在背包满时尝试将从远程交互容器或快捷潜影盒中取出的物品还原到之前位置。"
                     //#if MC == 11802
@@ -191,24 +187,15 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     );
     public static final ConfigStringList EXCAVATE_WHITELIST = new ConfigStringList(
             "挖掘白名单", ImmutableList.of(""),
-            "可填入方块或物品ID，例如: §bminecraft:stone§r。\n" +
-                    "如果在前面加上§b#§r，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
-                    "如果同时传入文本和过滤条件（以英文逗号分隔），例如：§lstone,c§r。\n" +
-                    "其中 “c” 表示使用包含匹配方式，会先尝试拼音或直接匹配。"
+            getComment("blocklist")
     );
     public static final ConfigStringList EXCAVATE_BLACKLIST = new ConfigStringList(
             "挖掘黑名单", ImmutableList.of(""),
-            "可填入方块或物品ID，例如: §bminecraft:stone§r。\n" +
-                    "如果在前面加上§b#§r，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
-                    "如果同时传入文本和过滤条件（以英文逗号分隔），例如：§lstone,c§r。\n" +
-                    "其中 “c” 表示使用包含匹配方式，会先尝试拼音或直接匹配。"
+            getComment("blocklist")
     );
     public static final ConfigStringList PUT_SKIP_LIST = new ConfigStringList(
             "跳过放置名单", ImmutableList.of(),
-            "可填入方块或物品ID，例如: §bminecraft:stone§r。\n" +
-                    "如果在前面加上§b#§r，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
-                    "如果同时传入文本和过滤条件（以英文逗号分隔），例如：§lstone,c§r。\n" +
-                    "其中 “c” 表示使用包含匹配方式，会先尝试拼音或直接匹配。"
+            getComment("blocklist")
     );
     public static final ConfigStringList REPLACEABLE_LIST = new ConfigStringList(
             "可替换方块", ImmutableList.of(
@@ -216,10 +203,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "minecraft:bubble_column", "minecraft:short_grass"
     ),
             "打印时将忽略这些错误方块，直接在该位置打印。\n" +
-                    "可填入方块或物品ID，例如: §bminecraft:stone§r。\n" +
-                    "如果在前面加上§b#§r，则会采用标签匹配，列表会根据标签名称智能匹配对应的方块，例如：§l#stone§r。\n" +
-                    "如果同时传入文本和过滤条件（以英文逗号分隔），例如：§lstone,c§r。\n" +
-                    "其中 “c” 表示使用包含匹配方式，会先尝试拼音或直接匹配。"
+                    getComment("blocklist")
     );
     public static final ConfigColor SYNC_INVENTORY_COLOR = new ConfigColor(
             "容器同步与打印机添加库存高亮颜色", "#4CFF4CE6",
@@ -277,7 +261,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     );
     // 也破坏掉多余方块
     public static final ConfigBoolean BREAK_EXTRA_BLOCK = new ConfigBoolean(
-            getName("breakExtraBlock"), true,
+            getName("breakExtraBlock"), false,
             getComment("breakExtraBlock")
     );
 
@@ -336,7 +320,8 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
         list.add(PLACE_USE_PACKET);
         list.add(RENDER_PROGRESS);
         list.add(QUICK_SHULKER);
-        if (QUICK_SHULKER.getBooleanValue()) list.add(QUICK_SHULKER_COOLING);
+        list.add(QUICK_SHULKER_MODE);
+        list.add(QUICK_SHULKER_COOLDOWN);
         list.add(LAG_CHECK);
         list.add(ITERATION_ORDER);
         list.add(X_REVERSE);
@@ -414,7 +399,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     private void reSetConfig() {
         if (!loadChestTracker) {
             AUTO_INVENTORY.setBooleanValue(false);
-            INVENTORY.setBooleanValue(false);
+            CLOUD_INVENTORY.setBooleanValue(false);
         }
     }
 }

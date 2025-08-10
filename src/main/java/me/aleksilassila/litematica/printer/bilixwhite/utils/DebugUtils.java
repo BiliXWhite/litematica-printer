@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.printer.bilixwhite.utils;
+package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;

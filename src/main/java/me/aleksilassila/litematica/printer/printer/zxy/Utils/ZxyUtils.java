@@ -1,6 +1,9 @@
 package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 
 import com.google.common.collect.Lists;
+import fi.dy.masa.litematica.data.DataManager;
+import fi.dy.masa.litematica.selection.AreaSelection;
+import fi.dy.masa.litematica.selection.Box;
 import fi.dy.masa.litematica.util.WorldUtils;
 import fi.dy.masa.malilib.gui.Message;
 import fi.dy.masa.malilib.util.InfoUtils;
@@ -10,6 +13,7 @@ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
@@ -96,14 +100,14 @@ public class ZxyUtils {
 
     public static void startAddPrinterInventory(){
         getReadyColor();
-        if (LitematicaMixinMod.INVENTORY.getBooleanValue() && !printerMemoryAdding) {
+        if (LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue() && !printerMemoryAdding) {
             printerMemoryAdding = true;
             //#if MC >= 12001
             if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
             //#endif
 
             for (String string : LitematicaMixinMod.INVENTORY_LIST.getStrings()) {
-                invBlockList.addAll(Printer.getPrinter().siftBlock(string));
+                invBlockList.addAll(siftBlock(string).stream().filter(InventoryUtils::canOpenInv).toList());
             }
             highlightPosList.addAll(invBlockList);
         }
@@ -176,7 +180,7 @@ public class ZxyUtils {
                 }
             }
             String blockName = Registries.BLOCK.getId(block).toString();
-            syncPosList.addAll(Printer.getPrinter().siftBlock(blockName));
+            syncPosList.addAll(siftBlock(blockName));
             if (!syncPosList.isEmpty()) {
                 if (client.player == null) return;
                 client.player.closeHandledScreen();
@@ -197,7 +201,7 @@ public class ZxyUtils {
         }
     }
     public static boolean openInv(BlockPos pos,boolean ignoreThePrompt){
-        if(LitematicaMixinMod.INVENTORY.getBooleanValue() && OpenInventoryPacket.key == null) {
+        if(LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue() && OpenInventoryPacket.key == null) {
             OpenInventoryPacket.sendOpenInventory(pos, client.world.getRegistryKey());
             return true;
         } else {
@@ -238,7 +242,7 @@ public class ZxyUtils {
                 //按下热键后记录看向的容器 开始同步容器 只会触发一次
                 targetBlockInv = new ArrayList<>();
                 targetItemsCount = new HashMap<>();
-                if (client.player != null && (!LitematicaMixinMod.INVENTORY.getBooleanValue() || openIng) && !client.player.currentScreenHandler.equals(client.player.playerScreenHandler)) {
+                if (client.player != null && (!LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue() || openIng) && !client.player.currentScreenHandler.equals(client.player.playerScreenHandler)) {
                     for (int i = 0; i < client.player.currentScreenHandler.slots.get(0).inventory.size(); i++) {
                         ItemStack copy = client.player.currentScreenHandler.slots.get(i).getStack().copy();
                         itemsCount(targetItemsCount,copy);
@@ -265,7 +269,7 @@ public class ZxyUtils {
                                 .anyMatch(player ->
                                         ItemStack.areItemsAndComponentsEqual(player.getKey(), target.getKey()) && target.getValue() <= player.getValue()))) return;
 
-                if ((!LitematicaMixinMod.INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
+                if ((!LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
                     for (BlockPos pos : syncPosList) {
                         if (!openInv(pos,true)) continue;
                         closeScreen++;
@@ -560,6 +564,27 @@ public class ZxyUtils {
         //$$ TranslatableText translatable = new TranslatableText(message);
         //#endif
         client.inGameHud.setOverlayMessage(translatable,false);
+    }
+
+    public static LinkedList<BlockPos> siftBlock(String blockName) {
+        LinkedList<BlockPos> blocks = new LinkedList<>();
+        AreaSelection i = DataManager.getSelectionManager().getCurrentSelection();
+        List<Box> boxes;
+        if (i == null) return blocks;
+        boxes = i.getAllSubRegionBoxes();
+        for (Box box : boxes) {
+            MyBox myBox = new MyBox(box);
+            for (BlockPos pos : myBox) {
+                BlockState state = null;
+                if (Printer.client.world != null) {
+                    state = Printer.client.world.getBlockState(pos);
+                }
+                if (Filters.equalsName(blockName, state)) {
+                    blocks.add(pos);
+                }
+            }
+        }
+        return blocks;
     }
 
     //右键单击

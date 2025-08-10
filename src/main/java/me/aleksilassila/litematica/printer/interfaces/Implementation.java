@@ -2,10 +2,8 @@ package me.aleksilassila.litematica.printer.interfaces;
 
 import me.aleksilassila.litematica.printer.mixin.PlayerMoveC2SPacketAccessor;
 import net.minecraft.block.*;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerAbilities;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 //import net.minecraft.network.Packet;
@@ -28,10 +26,6 @@ public class Implementation {
 
     public static final Item[] AXES = {Items.DIAMOND_AXE, Items.IRON_AXE, Items.GOLDEN_AXE,
             Items.NETHERITE_AXE, Items.STONE_AXE, Items.WOODEN_AXE};
-
-    public static PlayerInventory getInventory(ClientPlayerEntity playerEntity) {
-        return playerEntity.getInventory();
-    }
 
     public static PlayerAbilities getAbilities(ClientPlayerEntity playerEntity) {
         return playerEntity.getAbilities();

@@ -16,7 +16,7 @@ import red.jackf.whereisit.client.api.events.SearchInvoker;
 public interface SearchInvokerMixin {
     @Inject(at = @At("RETURN"), method = "doSearch",remap = false)
     private static void doSearch(SearchRequest request, CallbackInfoReturnable<Boolean> cir) {
-        if(LitematicaMixinMod.INVENTORY.getBooleanValue()){
+        if(LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue()){
             MemoryUtils.request = request;
             SearchItem.search(false);
             SearchItem.openInventory(0);

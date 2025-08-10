@@ -2,12 +2,11 @@ package me.aleksilassila.litematica.printer.printer;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import me.aleksilassila.litematica.printer.printer.bilixwhite.utils.I18nUtils;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.I18nUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
