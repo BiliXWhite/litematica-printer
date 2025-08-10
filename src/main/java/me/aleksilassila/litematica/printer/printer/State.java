@@ -3,10 +3,9 @@ package me.aleksilassila.litematica.printer.printer;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.StringUtils;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.I18nUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -256,6 +255,58 @@ public enum State {
                 }
             }
             return IterationOrderType.XYZ;
+        }
+    }
+
+    public enum QuickShulkerModeType implements IConfigOptionListEntry {
+        CLICK_SLOT("click_slot", I18nUtils.get("config.quickShulkerMode.clickSlot")),
+        INVOKE("invoke", I18nUtils.get("config.quickShulkerMode.invoke"));
+
+        private final String configString;
+        private final String displayName;
+
+        QuickShulkerModeType(String configString, String displayName) {
+            this.configString = configString;
+            this.displayName = displayName;
+        }
+
+        @Override
+        public String getStringValue() {
+            return this.configString;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return StringUtils.translate(this.displayName);
+        }
+
+        @Override
+        public IConfigOptionListEntry cycle(boolean forward) {
+            int id = this.ordinal();
+            if (forward) {
+                if (++id >= values().length) {
+                    id = 0;
+                }
+            } else {
+                if (--id < 0) {
+                    id = values().length - 1;
+                }
+            }
+            return values()[id];
+        }
+
+        @Override
+        public QuickShulkerModeType fromString(String name) {
+            return fromStringStatic(name);
+        }
+
+        public static QuickShulkerModeType fromStringStatic(String name) {
+            for (QuickShulkerModeType type : QuickShulkerModeType.values()) {
+                if (type.configString.equalsIgnoreCase(name)) {
+                    return type;
+                }
+            }
+            return QuickShulkerModeType.CLICK_SLOT;
         }
     }
 }

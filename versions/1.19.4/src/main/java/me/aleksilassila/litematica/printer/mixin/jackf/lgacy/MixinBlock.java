@@ -30,7 +30,7 @@ public abstract class MixinBlock {
             at = {@At("TAIL")}
     )
     private void chestTracker$handleBlockBreak(World world, BlockPos pos, BlockState state, PlayerEntity player, CallbackInfo ci) {
-        if(!LitematicaMixinMod.INVENTORY.getBooleanValue()) return;
+        if(!LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue()) return;
         MemoryDatabase database = MemoryDatabase.getCurrent();
         if (database != null) {
             database.removePos(world.getRegistryKey().getValue(), pos);

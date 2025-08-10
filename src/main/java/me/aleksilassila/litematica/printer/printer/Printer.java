@@ -1,22 +1,19 @@
 package me.aleksilassila.litematica.printer.printer;
 
 import fi.dy.masa.litematica.Litematica;
-import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.litematica.data.DataManager;
-import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
+
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
-import fi.dy.masa.litematica.util.InventoryUtils;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
-import me.aleksilassila.litematica.printer.printer.bilixwhite.utils.BreakManager;
+import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
-import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
@@ -27,12 +24,7 @@ import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
-import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -43,24 +35,12 @@ import java.util.*;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
-import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.getEmptyPickBlockableHotbarSlot;
-import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.getPickBlockTargetSlot;
 import static me.aleksilassila.litematica.printer.printer.State.PrintModeType.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsItemName;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.*;
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.openIng;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
-
-//#if MC >= 12001
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
-//#else
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
-//$$ import net.minecraft.util.Identifier;
-//#endif
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.switchItem;
 
 //#if MC < 11904
 //$$ import net.minecraft.util.Identifier;
@@ -68,15 +48,12 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 //$$ import com.mojang.brigadier.StringReader;
 //$$ import net.minecraft.util.registry.RegistryKey;
 //$$ import net.minecraft.util.registry.Registry;
-//#else if MC = 11904
-//$$ import net.minecraft.registry.RegistryKey;
-//$$ import net.minecraft.registry.RegistryKeys;
 //#else
-import net.minecraft.registry.Registries;
+//#if MC == 11904
+//$$ import net.minecraft.registry.RegistryKeys;
+//$$ import net.minecraft.registry.RegistryKey;
 //#endif
-
-//#if MC < 11900
-//$$ import fi.dy.masa.malilib.util.SubChunkPos;
+import net.minecraft.registry.Registries;
 //#endif
 
 //#if MC <= 12004
@@ -91,18 +68,14 @@ import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 //#endif
 
 public class Printer extends PrinterUtils {
-    public static HashSet<Item> remoteItem = new HashSet<>();
     public static HashSet<Item> fluidModeItemList = new HashSet<>();
     public static HashSet<Item> fillModeItemList = new HashSet<>();
     public static boolean printerMemorySync = false;
     public static BlockPos easyPos = null;
-    public static boolean isOpenHandler = false;
     static Map<BlockPos, Integer> placeCooldownList = new HashMap<>();
-    static int shulkerBoxSlot = -1;
     static ItemStack orderlyStoreItem; //有序存放临时存储
     private static Printer INSTANCE = null;
-    private int shulkerCooldown = 0;
-    public static int swapSlotDelay = 0;
+    public int shulkerCooldown = 0;
 
     @NotNull
     public static final MinecraftClient client = MinecraftClient.getInstance();
@@ -139,37 +112,6 @@ public class Printer extends PrinterUtils {
         return INSTANCE;
     }
 
-
-    static boolean isLimitedByTheNumberOfLayers(BlockPos pos) {
-        return LitematicaMixinMod.RENDER_LAYER_LIMIT.getBooleanValue() && !DataManager.getRenderLayerRange().isPositionWithinRange(pos);
-    }
-
-    /**
-     * 判断给定的位置是否属于当前加载的图纸结构范围内。
-     *
-     * <p>
-     * 该方法通过从数据管理器中获取结构放置管理器，然后查找与给定位置相交的所有图纸结构部分，
-     * 如果其中任一部分包含该位置，则返回 <code>true</code>，否则返回 <code>false</code>。
-     * </p>
-     *
-     * @param offset 要检测的方块位置
-     * @return 如果位置属于图纸结构的一部分，则返回 true，否则返回 false
-     */
-    public static boolean isSchematicBlock(BlockPos offset) {
-        SchematicPlacementManager schematicPlacementManager = DataManager.getSchematicPlacementManager();
-        //#if MC < 11900
-        //$$ List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingSubChunk(new SubChunkPos(offset));
-        //#else
-        List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingChunk(offset);
-        //#endif
-
-        for (SchematicPlacementManager.PlacementPart placementPart : allPlacementsTouchingChunk) {
-            if (placementPart.getBox().containsPos(offset)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     BlockPos getBlockPos() {
         ClientPlayerEntity player = client.player;
@@ -306,85 +248,9 @@ public class Printer extends PrinterUtils {
         }
     }
 
-
-    /**
-     * <h1>切换物品操作</h1>
-     *
-     * <p>
-     * 该方法用于根据当前虚拟库存状态和配置，执行物品切换操作。当满足以下条件时：
-     * <ul>
-     *   <li>{@code remoteItem} 不为空且未处于打开处理状态以及其他冲突状态；</li>
-     *   <li>当前屏幕为玩家主界面（非其他容器界面）；</li>
-     *   <li>依据配置，可能会先检查合成栏、潜影盒或直接搜索库存中的目标物品；</li>
-     *   <li>若搜索或检查到目标物品，则进行相应的库存切换或打开操作。</li>
-     * </ul>
-     * 执行成功时，方法会设置相应的状态并返回 {@code true}，否则返回 {@code false}。
-     * </p>
-     *
-     * @return 成功切换物品时返回 {@code true}，否则返回 {@code false}
-     */
-    public boolean switchItem() {
-        if (!remoteItem.isEmpty() && !isOpenHandler && !openIng && OpenInventoryPacket.key == null) {
-            ClientPlayerEntity player = client.player;
-            ScreenHandler sc = player.currentScreenHandler;
-            if (!player.currentScreenHandler.equals(player.playerScreenHandler)) return false;
-            //排除合成栏 装备栏 副手
-            if (PRINT_CHECK.getBooleanValue() && sc.slots.stream().skip(9).limit(sc.slots.size() - 10).noneMatch(slot -> slot.getStack().isEmpty())
-                    && (LitematicaMixinMod.QUICK_SHULKER.getBooleanValue() || LitematicaMixinMod.INVENTORY.getBooleanValue())) {
-                SwitchItem.checkItems();
-                return true;
-            }
-            if (LitematicaMixinMod.QUICK_SHULKER.getBooleanValue() && openShulker(remoteItem)) {
-                return true;
-            } else if (LitematicaMixinMod.INVENTORY.getBooleanValue()) {
-                for (Item item : remoteItem) {
-                    //#if MC >= 12001
-                    //#if MC > 12004
-                    MemoryUtils.currentMemoryKey = client.world.getRegistryKey().getValue();
-                    //#else
-                    //$$ MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
-                    //#endif
-                    MemoryUtils.itemStack = new ItemStack(item);
-                    if (SearchItem.search(true)) {
-                        closeScreen++;
-                        isOpenHandler = true;
-                        printerMemorySync = true;
-                        return true;
-                    }
-                    //#else
-                    //$$
-                    //$$    MemoryDatabase database = MemoryDatabase.getCurrent();
-                    //$$    if (database != null) {
-                    //$$        for (Identifier dimension : database.getDimensions()) {
-                    //$$            for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
-                    //$$                MemoryUtils.setLatestPos(memory.getPosition());
-                    //#if MC < 11904
-                    //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(Registry.WORLD_KEY, dimension));
-                    //#else
-                    //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
-                    //#endif
-                    //$$                if(closeScreen == 0)closeScreen++;
-                    //$$                syncPrinterInventory = true;
-                    //$$                isOpenHandler = true;
-                    //$$                return true;
-                    //$$            }
-                    //$$        }
-                    //$$    }
-                    //#endif
-                }
-                remoteItem = new HashSet<>();
-                isOpenHandler = false;
-            }
-        }
-        return false;
-    }
-
     public void myTick() {
         if (shulkerCooldown > 0) {
             shulkerCooldown--;
-        }
-        if (swapSlotDelay > 0) {
-            swapSlotDelay--;
         }
 
         Iterator<Map.Entry<BlockPos, Integer>> iterator = placeCooldownList.entrySet().iterator();
@@ -520,7 +386,7 @@ public class Printer extends PrinterUtils {
 
             Item[] reqItems = action.getRequiredItems(requiredState.getBlock());
             if (playerHasAccessToItems(player, reqItems)) {
-                boolean useShift = LitematicaMixinMod.FORCED_SNEAK.getBooleanValue() ||
+                boolean useShift = Implementation.isInteractive(world.getBlockState(pos.offset(side)).getBlock()) || LitematicaMixinMod.FORCED_SNEAK.getBooleanValue() ||
                         action.useShift;
                 if (needDelay) continue;
                 if (!switchToItems(player, reqItems)) return;
@@ -548,27 +414,6 @@ public class Printer extends PrinterUtils {
         }
     }
 
-    public LinkedList<BlockPos> siftBlock(String blockName) {
-        LinkedList<BlockPos> blocks = new LinkedList<>();
-        AreaSelection i = DataManager.getSelectionManager().getCurrentSelection();
-        List<Box> boxes;
-        if (i == null) return blocks;
-        boxes = i.getAllSubRegionBoxes();
-        for (Box box : boxes) {
-            MyBox myBox = new MyBox(box);
-            for (BlockPos pos : myBox) {
-                BlockState state = null;
-                if (client.world != null) {
-                    state = client.world.getBlockState(pos);
-                }
-                if (Filters.equalsName(blockName, state)) {
-                    blocks.add(pos);
-                }
-            }
-        }
-        return blocks;
-    }
-
     public float getPrintProgress() {
         // 重置 basePos 以确保重新初始化迭代器
         basePos = null;
@@ -591,98 +436,9 @@ public class Printer extends PrinterUtils {
         return totalCount == 0 ? 0.0f : ((float) printedCount / totalCount);
     }
 
-    public void switchInv() {
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        ScreenHandler sc = player.currentScreenHandler;
-        if (sc.equals(player.playerScreenHandler)) {
-            return;
-        }
-        DefaultedList<Slot> slots = sc.slots;
-        String[] pickSlots = Configs.Generic.PICK_BLOCKABLE_SLOTS.getStringValue().split(",");
-        if (pickSlots.length == 0) return;
-        PlayerInventory inv = player.getInventory();
-
-        for (Item remote : remoteItem) {
-            for (int y = 0, invSize = slots.get(0).inventory.size(); y < invSize; y++) {
-                if (!slots.get(y).getStack().getItem().equals(remote)) continue;
-                try {
-                    for (String s : pickSlots) {
-                        if (s == null) break;
-                        int c = Integer.parseInt(s.trim()) - 1;
-                        ItemStack slotStack = inv.getStack(c);
-                        if (Registries.ITEM.getId(slotStack.getItem()).toString().contains("shulker_box") &&
-                                LitematicaMixinMod.QUICK_SHULKER.getBooleanValue()) {
-                            client.inGameHud.setOverlayMessage(Text.of("潜影盒占用了预选栏"), false);
-                        }
-                        if (OpenInventoryPacket.key != null) {
-                            SwitchItem.newItem(slots.get(y).getStack(), OpenInventoryPacket.pos, OpenInventoryPacket.key, y, -1);
-                        } else {
-                            SwitchItem.newItem(slots.get(y).getStack(), null, null, y, shulkerBoxSlot);
-                        }
-                        int emptySlot = getEmptyPickBlockableHotbarSlot(inv);
-                        int targetSlot = emptySlot == -1 ? getPickBlockTargetSlot(player) : emptySlot;
-                        c = (targetSlot == -1 ? c : targetSlot);
-                        ZxyUtils.switchPlayerInvToHotbarAir(c);
-                        fi.dy.masa.malilib.util.InventoryUtils.swapSlots(sc, y, c);
-                        //#if MC > 12101
-                        inv.setSelectedSlot(c);
-                        //#else
-                        //$$inv.selectedSlot = c;
-                        //#endif
-                        player.closeHandledScreen();
-                        if (shulkerBoxSlot != -1) {
-                            client.interactionManager.clickSlot(sc.syncId, shulkerBoxSlot, 1, SlotActionType.PICKUP, client.player);
-                        }
-                        shulkerBoxSlot = -1;
-                        isOpenHandler = false;
-                        remoteItem.clear();
-                        return;
-                    }
-                } catch (Exception e) {
-                    System.out.println("切换物品异常");
-                }
-            }
-        }
-        shulkerBoxSlot = -1;
-        remoteItem.clear();
-        isOpenHandler = false;
-        if (!player.currentScreenHandler.equals(player.playerScreenHandler)) {
-            player.closeHandledScreen();
-        }
-    }
-
-    boolean openShulker(HashSet<Item> items) {
-        if (shulkerCooldown > 0) {
-            return false;
-        }
-        for (Item item : items) {
-            ScreenHandler sc = MinecraftClient.getInstance().player.playerScreenHandler;
-            for (int i = 9; i < sc.slots.size(); i++) {
-                ItemStack stack = sc.slots.get(i).getStack();
-                String itemid = Registries.ITEM.getId(stack.getItem()).toString();
-                if (itemid.contains("shulker_box") && stack.getCount() == 1) {
-                    DefaultedList<ItemStack> items1 = fi.dy.masa.malilib.util.InventoryUtils.getStoredItems(stack, -1);
-                    if (items1.stream().anyMatch(s1 -> s1.getItem().equals(item))) {
-                        try {
-                            shulkerBoxSlot = i;
-                            client.interactionManager.clickSlot(sc.syncId, i, 1, SlotActionType.PICKUP, client.player);
-                            closeScreen++;
-                            isOpenHandler = true;
-                            shulkerCooldown = QUICK_SHULKER_COOLING.getIntegerValue(); // AxShulkers的潜影盒延迟，单位为tick
-                            // TODO)) 这里应该不需要延迟
-                            //swapSlotDelay = 1;
-                            return true;
-                        } catch (Exception ignored) {
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
     public boolean switchToItems(ClientPlayerEntity player, Item[] items) {
         if (items == null) return true;
-        PlayerInventory inv = Implementation.getInventory(player);
+        PlayerInventory inv = player.getInventory();
 
         // 遍历物品列表，查找玩家背包中可用的物品
         for (Item item : items) {
@@ -699,7 +455,11 @@ public class Printer extends PrinterUtils {
             }
             // 如果玩家处于创造模式，则直接设置选中的物品到手中
             if (Implementation.getAbilities(player).creativeMode) {
-                InventoryUtils.setPickedItemToHand(new ItemStack(item), client);
+                var stack = new ItemStack(item);
+                player.getInventory().getSlotWithStack(stack);
+                ZxyUtils.setPickedItemToHand(
+                        player.getInventory().getSlotWithStack(stack),
+                        stack);
                 client.interactionManager.clickCreativeStack(client.player.getStackInHand(Hand.MAIN_HAND), 36 + inv.selectedSlot);
                 return true;
             }
@@ -709,7 +469,7 @@ public class Printer extends PrinterUtils {
 
 
     public boolean swapHandWithSlot(ClientPlayerEntity player, int slot) {
-        ItemStack stack = Implementation.getInventory(player).getStack(slot);
+        ItemStack stack = player.getInventory().getStack(slot);
         int slotNum = client.player.getInventory().getSlotWithStack(stack);
         return ZxyUtils.setPickedItemToHand(slotNum, stack);
     }

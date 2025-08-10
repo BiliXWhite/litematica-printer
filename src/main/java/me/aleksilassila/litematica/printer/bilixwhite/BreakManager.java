@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.printer.bilixwhite.utils;
+package me.aleksilassila.litematica.printer.bilixwhite;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;

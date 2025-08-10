@@ -1,6 +1,8 @@
 package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.malilib.util.InventoryUtils;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.DebugUtils;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.ShulkerUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -36,7 +38,8 @@ public class SwitchItem {
     public static void newItem(ItemStack itemStack, BlockPos pos, RegistryKey<World> key, int slot, int shulkerBox){
         if(shulkerBox != -1) itemStacks.put(itemStack,new ItemStatistics(key,pos,slot,shulkerBox));
     }
-    public static void openInv(ItemStack itemStack){
+    public static void openInv(ItemStack itemStack) {
+        DebugUtils.printChatMessage("Invoked openInv()");
         if(!client.player.currentScreenHandler.equals(client.player.playerScreenHandler) || Statistics.closeScreen > 0){
             return;
         }
@@ -52,7 +55,7 @@ public class SwitchItem {
             if (itemStatistics.key != null && OpenInventoryPacket.key == null) {
                 OpenInventoryPacket.sendOpenInventory(itemStatistics.pos, itemStatistics.key);
             } else {
-                client.interactionManager.clickSlot(client.player.playerScreenHandler.syncId, itemStatistics.shulkerBoxSlot, 1, SlotActionType.PICKUP, client.player);
+                ShulkerUtils.openShulker(itemStatistics.shulkerBoxSlot);
             }
             Statistics.closeScreen++;
         } else {
@@ -61,11 +64,11 @@ public class SwitchItem {
         }
     }
     /**
-     * 检查所有已记录的物品，找到最近一次被使用的物品（useTime最小），
+     * 检查所有已记录的物品，找到最近一次使用的物品（useTime最小），
      * 并尝试自动打开该物品的背包界面进行操作。
      * 如果没有可用物品，则在游戏界面显示“背包已满，请先清理”的提示。
      */
-    public static void checkItems(){
+    public static void checkItems() {
         final long[] min = {System.currentTimeMillis()};
         AtomicReference<ItemStack> key = new AtomicReference<>();
         itemStacks.keySet().forEach(k ->{
@@ -81,7 +84,7 @@ public class SwitchItem {
             openInv(itemStack);
         } else client.inGameHud.setOverlayMessage(Text.of("背包已满，请先清理"),false);
     }
-    public static void reSwitchItem(){
+    public static void reSwitchItem() {
         if(client.player == null || reSwitchItem == null) return;
         ClientPlayerEntity player = client.player;
         ScreenHandler sc = player.currentScreenHandler;

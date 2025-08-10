@@ -3,7 +3,7 @@ package me.aleksilassila.litematica.printer.printer;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
-import me.aleksilassila.litematica.printer.printer.bilixwhite.utils.BreakManager;
+import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.block.*;
@@ -53,13 +53,17 @@ public class PlacementGuide extends PrinterUtils {
         BlockState requiredState = worldSchematic.getBlockState(pos);
 
         if (LitematicaMixinMod.PRINT_WATER.getBooleanValue())
-            if ((
+            if (
+            (
                     requiredState.isOf(Blocks.WATER) &&
-                            requiredState.get(FluidBlock.LEVEL) == 0
+                    requiredState.get(FluidBlock.LEVEL) == 0
             ) || (
                     requiredState.getProperties().contains(Properties.WATERLOGGED) &&
-                            requiredState.get(Properties.WATERLOGGED)
-                    )) {
+                    requiredState.get(Properties.WATERLOGGED)
+            ) || (
+                    requiredState.getBlock() instanceof BubbleColumnBlock
+            )
+            ) {
                 if (currentState.isOf(Blocks.ICE)) {
                     BreakManager.addBlockToBreak(pos);
                     Printer.placeCooldownList.put(pos, -2);
@@ -341,7 +345,8 @@ public class PlacementGuide extends PrinterUtils {
                 var facing = requiredState.get(Properties.FACING);
                 var detectBlockPos = pos.offset(facing);
                 if (LitematicaMixinMod.SAFELY_OBSERVER.getBooleanValue() &&
-                    world.getBlockState(detectBlockPos) != worldSchematic.getBlockState(detectBlockPos)) {
+                        playerHasAccessToItem(client.player, Items.OBSERVER) &&
+                        world.getBlockState(detectBlockPos) != worldSchematic.getBlockState(detectBlockPos)) {
                     ZxyUtils.actionBar("[侦测器安全放置] 侦测面方块不正确，跳过放置！");
                     Printer.placeCooldownList.put(pos, -2);
                     return null;
@@ -624,7 +629,7 @@ public class PlacementGuide extends PrinterUtils {
                 //#if MC > 12002
                 AbstractTorchBlock.class
                 //#else
-                //$$TorchBlock.class
+                //$$ TorchBlock.class
                 //#endif
         ), // 火把
         SLAB(SlabBlock.class), // 台阶
@@ -675,7 +680,7 @@ public class PlacementGuide extends PrinterUtils {
         DIRT_PATH(DirtPathBlock.class), // 泥土小径
         //操你妈珊瑚真几把难搞
         DEAD_CORAL(AbstractCoralBlock.class), // 死珊瑚
-        SKIP(SkullBlock.class, SignBlock.class, FluidBlock.class), // 跳过
+        SKIP(SkullBlock.class, SignBlock.class, FluidBlock.class, BubbleColumnBlock.class), // 跳过
         DEFAULT; // 默认
 
         private final Class<?>[] classes;

@@ -137,7 +137,7 @@ public class MemoryUtils {
     }
 
     public static void save(ScreenHandler screen , MemoryBank memoryBank) {
-        if (memoryBank == null || OpenInventoryPacket.key == null || blockState == null || !LitematicaMixinMod.INVENTORY.getBooleanValue()) return;
+        if (memoryBank == null || OpenInventoryPacket.key == null || blockState == null || !LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue()) return;
         List<BlockPos> connected;
         if (ZxyUtils.printerMemoryAdding && client.world != null) {
             connected = ConnectedBlocksGrabber.getConnected(client.world, client.world.getBlockState(OpenInventoryPacket.pos), OpenInventoryPacket.pos);

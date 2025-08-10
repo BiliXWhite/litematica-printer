@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.printer.bilixwhite.utils;
+package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 //#if MC > 11802

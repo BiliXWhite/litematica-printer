@@ -8,6 +8,7 @@ package me.aleksilassila.litematica.printer.mixin.openinv;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -25,10 +26,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.LitematicaMixinMod.INVENTORY;
+import static me.aleksilassila.litematica.printer.LitematicaMixinMod.CLOUD_INVENTORY;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.QUICK_SHULKER;
-import static me.aleksilassila.litematica.printer.printer.Printer.remoteItem;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList;
 
 //#if MC <= 12101
 //$$ import net.minecraft.entity.player.PlayerInventory;
@@ -62,9 +63,9 @@ public abstract class MixinMinecraftClient {
         }
         Item item = world.getBlockState(pos).getBlock().asItem();
         if (player.playerScreenHandler.slots.stream().noneMatch(slot -> slot.getStack().getItem().equals(item)) &&
-                !player.getAbilities().creativeMode && (INVENTORY.getBooleanValue() || QUICK_SHULKER.getBooleanValue())) {
-            remoteItem.add(item);
-            Printer.getPrinter().switchItem();
+                !player.getAbilities().creativeMode && (CLOUD_INVENTORY.getBooleanValue() || QUICK_SHULKER.getBooleanValue())) {
+            lastNeedItemList.add(item);
+            InventoryUtils.switchItem();
             return;
         }
         original.call(instance, pos, b);
@@ -73,10 +74,10 @@ public abstract class MixinMinecraftClient {
     //$$ @WrapOperation(method = "doItemPick",at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerInventory;getSlotWithStack(Lnet/minecraft/item/ItemStack;)I" ))
     //$$ private int doItemPick(PlayerInventory instance, ItemStack stack, Operation<Integer> original) {
     //$$     int slotWithStack = original.call(instance, stack);
-    //$$     if(!player.getAbilities().creativeMode && (INVENTORY.getBooleanValue() || QUICK_SHULKER.getBooleanValue()) && slotWithStack == -1){
+    //$$     if(!player.getAbilities().creativeMode && (CLOUD_INVENTORY.getBooleanValue() || QUICK_SHULKER.getBooleanValue()) && slotWithStack == -1){
     //$$         Item item = stack.getItem();
-    //$$         remoteItem.add(item);
-    //$$         Printer.getPrinter().switchItem();
+    //$$         lastNeedItemList.add(item);
+    //$$         InventoryUtils.switchItem();
     //$$         return -1;
     //$$     }
     //$$     return slotWithStack;
