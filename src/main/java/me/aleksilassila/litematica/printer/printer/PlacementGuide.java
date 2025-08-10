@@ -607,16 +607,22 @@ public class PlacementGuide extends PrinterUtils {
             }
 
             default -> {
-                if (LitematicaMixinMod.BREAK_WRONG_BLOCK.getBooleanValue() || LitematicaMixinMod.BREAK_EXTRA_BLOCK.getBooleanValue()) {
+                if (LitematicaMixinMod.REPLACE_CORAL.getBooleanValue() && requiredState.getBlock().getTranslationKey().contains("coral")) {
+                    return null;
+                }
+
+                boolean breakWrongBlock = LitematicaMixinMod.BREAK_WRONG_BLOCK.getBooleanValue();
+                boolean breakExtraBlock = LitematicaMixinMod.BREAK_EXTRA_BLOCK.getBooleanValue();
+
+                if (breakWrongBlock || breakExtraBlock) {
                     if (BreakManager.canBreakBlock(pos)) {
-                        if (LitematicaMixinMod.BREAK_WRONG_BLOCK.getBooleanValue() && !requiredState.isOf(Blocks.AIR)) {
+                        if (breakWrongBlock && !requiredState.isOf(Blocks.AIR)) {
                             BreakManager.addBlockToBreak(pos);
-                        } else if (LitematicaMixinMod.BREAK_EXTRA_BLOCK.getBooleanValue() && requiredState.isOf(Blocks.AIR)) {
+                        } else if (breakExtraBlock && requiredState.isOf(Blocks.AIR)) {
                             BreakManager.addBlockToBreak(pos);
                         }
                     }
                 }
-
             }
         }
 
@@ -678,7 +684,6 @@ public class PlacementGuide extends PrinterUtils {
         // 其他
         FARMLAND(FarmlandBlock.class), // 耕地
         DIRT_PATH(DirtPathBlock.class), // 泥土小径
-        //操你妈珊瑚真几把难搞
         DEAD_CORAL(AbstractCoralBlock.class), // 死珊瑚
         SKIP(SkullBlock.class, SignBlock.class, FluidBlock.class, BubbleColumnBlock.class), // 跳过
         DEFAULT; // 默认
