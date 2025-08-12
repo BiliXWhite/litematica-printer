@@ -43,7 +43,7 @@ public class UpdateChecker {
             System.out.println("无法检查更新: " + exception.getMessage());
             MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of(I18nUtils.get("update.failed")));
         }
-        return "";
+        return null;
     }
 
     private static String getVersionFromModJson() {

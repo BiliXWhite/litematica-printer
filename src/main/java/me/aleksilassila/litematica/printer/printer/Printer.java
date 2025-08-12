@@ -72,7 +72,7 @@ public class Printer extends PrinterUtils {
     public static HashSet<Item> fillModeItemList = new HashSet<>();
     public static boolean printerMemorySync = false;
     public static BlockPos easyPos = null;
-    static Map<BlockPos, Integer> placeCooldownList = new HashMap<>();
+    public static Map<BlockPos, Integer> placeCooldownList = new HashMap<>();
     static ItemStack orderlyStoreItem; //有序存放临时存储
     private static Printer INSTANCE = null;
     public int shulkerCooldown = 0;
@@ -344,6 +344,8 @@ public class Printer extends PrinterUtils {
             if (PRINT_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
             // 是否是投影方块
             if (!isSchematicBlock(pos)) continue;
+            // 是否在破坏列表内
+            if (BreakManager.inBreakTargets(pos)) continue;
             // 是否在渲染层内
             if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
             // 是否可接触到
@@ -359,14 +361,15 @@ public class Printer extends PrinterUtils {
                 }
             }
 
-            // 检查放置条件
-            PlacementGuide.Action action = guide.getAction(world, schematic, pos);
-            if (action == null) continue;
-
             // 跳过冷却中的位置
             if (placeCooldownList.containsKey(pos)) continue;
             // 放置冷却
             placeCooldownList.put(pos, 0);
+
+            // 检查放置条件
+            PlacementGuide.Action action = guide.getAction(world, schematic, pos);
+            if (action == null) continue;
+
 
             Direction side = action.getValidSide(world, pos);
             if (side == null) continue;
@@ -374,9 +377,9 @@ public class Printer extends PrinterUtils {
             // 调试输出
             if (DEBUG_OUTPUT.getBooleanValue()) {
                 //#if MC < 12104 && MC != 12101
-                //$$Litematica.logger.info("[Printer] 方块名: {}", requiredState.getBlock().getName().getString());
-                //$$Litematica.logger.info("[Printer] 方块类名: {}", requiredState.getBlock().getClass().getName());
-                //$$Litematica.logger.info("[Printer] 方块ID: {}", Registries.BLOCK.getId(requiredState.getBlock()));
+                //$$ Litematica.logger.info("[Printer] 方块名: {}", requiredState.getBlock().getName().getString());
+                //$$ Litematica.logger.info("[Printer] 方块类名: {}", requiredState.getBlock().getClass().getName());
+                //$$ Litematica.logger.info("[Printer] 方块ID: {}", Registries.BLOCK.getId(requiredState.getBlock()));
                 //#else
                 Litematica.LOGGER.info("[Printer] 方块名: {}", requiredState.getBlock().getName().getString());
                 Litematica.LOGGER.info("[Printer] 方块类名: {}", requiredState.getBlock().getClass().getName());

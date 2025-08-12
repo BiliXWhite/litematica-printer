@@ -95,6 +95,9 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 			String version = UpdateChecker.version;
 			String newVersion = UpdateChecker.getPrinterVersion();
 
+			if (newVersion == null)
+				return;
+
 			if (!version.equals(newVersion)) {
 				client.execute(() -> {
 					//#if MC > 11802

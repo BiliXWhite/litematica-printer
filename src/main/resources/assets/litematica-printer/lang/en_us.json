@@ -20,7 +20,7 @@
   "litematica_printer.config.comment.yReverse": "When enabled, Y-axis traversal will be performed from high to low.\nDestruction mode is reversed by default; enabling this will make it normal direction.",
   "litematica_printer.config.name.zReverse": "zReverse",
   "litematica_printer.config.comment.zReverse": "When enabled, Z-axis traversal will be performed from high to low.",
-  "litematica_printer.config.name.fallingBlockCheck": "Falling Block Check",
+  "litematica_printer.config.name.fallingBlockCheck": "fallingBlockCheck",
   "litematica_printer.config.comment.fallingBlockCheck": "When enabled, it will check if there is block support under falling blocks before placing them.",
   "litematica_printer.config.name.debugOutput": "debugOutput",
   "litematica_printer.config.comment.debugOutput": "When enabled, printer working information is output in the console.",
@@ -39,5 +39,7 @@
   "litematica_printer.config.name.printInterval": "printInterval",
   "litematica_printer.config.comment.printInterval": "The interval time (in ticks) during printing.\nSet to 0 for no interval, which may cause server lag.\nIt is recommended to set it between 1-5 to balance performance and speed.\nWhen the value is §b0§r, the option of §6§lBlocks per Tick§r will be provided, and you need to reopen the settings menu to see it.",
   "litematica_printer.config.name.printPerTick": "printPerTick",
-  "litematica_printer.config.comment.printPerTick": "The number of blocks printed per tick.\nThis option is enabled when the print interval is set to 0.\nIt is recommended to set it between 2-8 to balance performance and speed.\nIf set too high, you may be kicked from the server."
+  "litematica_printer.config.comment.printPerTick": "The number of blocks printed per tick.\nThis option is enabled when the print interval is set to 0.\nIt is recommended to set it between 2-8 to balance performance and speed.\nIf set too high, you may be kicked from the server.",
+  "litematica_printer.config.name.printSkipWaterlogged": "printSkipWaterlogged",
+  "litematica_printer.config.comment.printSkipWaterlogged": "When enabled, it will skip placing waterlogged blocks during printing."
 }
