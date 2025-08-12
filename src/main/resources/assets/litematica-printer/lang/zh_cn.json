@@ -54,5 +54,8 @@
     "litematica_printer.config.comment.printInterval": "打印时的间隔时间（单位：tick）。\n设置为0则无间隔，可能会导致服务器卡顿。\n建议设置为1-5之间的值，以平衡性能和速度。\n在值为§b0§r时会提供§6§l每刻执行方块数§r的选项，需要重新打开设置菜单才能出现。",
 
     "litematica_printer.config.name.printPerTick": "每刻执行方块数",
-    "litematica_printer.config.comment.printPerTick": "每刻打印的方块数量。\n当打印间隔为0时启用此选项。\n建议设置为2-8之间的值，以平衡性能和速度。\n如果设置过高，可能会被服务器踢出。"
+    "litematica_printer.config.comment.printPerTick": "每刻打印的方块数量。\n当打印间隔为0时启用此选项。\n建议设置为2-8之间的值，以平衡性能和速度。\n如果设置过高，可能会被服务器踢出。",
+
+    "litematica_printer.config.name.printSkipWaterlogged": "跳过打印含水方块",
+    "litematica_printer.config.comment.printSkipWaterlogged": "启用后在打印时会跳过水下方块的放置。"
 }

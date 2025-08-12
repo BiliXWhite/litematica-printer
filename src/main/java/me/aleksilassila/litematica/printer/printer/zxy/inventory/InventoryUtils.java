@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.litematica.config.Configs;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.DebugUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.ShulkerUtils;
 import me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix;
 import me.aleksilassila.litematica.printer.printer.Printer;
@@ -225,7 +226,7 @@ public class InventoryUtils {
                             //#if MC >= 12001
                             if (loadChestTracker) InteractionTracker.INSTANCE.clear();
                             //#endif
-                            ShulkerUtils.openShulker(shulkerBoxSlot);
+                            ShulkerUtils.openShulker(stack, shulkerBoxSlot);
                             closeScreen++;
                             isOpenHandler = true;
                             Printer.getPrinter().shulkerCooldown = LitematicaMixinMod.QUICK_SHULKER_COOLDOWN.getIntegerValue();

@@ -265,6 +265,12 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             getComment("breakExtraBlock")
     );
 
+    // 跳过含水方块
+    public static final ConfigBoolean SKIP_WATERLOGGED_BLOCK = new ConfigBoolean(
+            getName("printSkipWaterlogged"), false,
+            getComment("printSkipWaterlogged")
+    );
+
     //========================================
     //                  热键
     //========================================

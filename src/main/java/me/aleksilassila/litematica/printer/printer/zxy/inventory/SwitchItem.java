@@ -55,7 +55,7 @@ public class SwitchItem {
             if (itemStatistics.key != null && OpenInventoryPacket.key == null) {
                 OpenInventoryPacket.sendOpenInventory(itemStatistics.pos, itemStatistics.key);
             } else {
-                ShulkerUtils.openShulker(itemStatistics.shulkerBoxSlot);
+                ShulkerUtils.openShulker(sc.slots.get(itemStatistics.shulkerBoxSlot).getStack(), itemStatistics.shulkerBoxSlot);
             }
             Statistics.closeScreen++;
         } else {

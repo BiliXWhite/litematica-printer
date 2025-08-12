@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.printer;
 
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
@@ -52,27 +53,18 @@ public class PlacementGuide extends PrinterUtils {
         BlockState currentState = world.getBlockState(pos);
         BlockState requiredState = worldSchematic.getBlockState(pos);
 
-        if (LitematicaMixinMod.PRINT_WATER.getBooleanValue())
-            if (
-            (
-                    requiredState.isOf(Blocks.WATER) &&
-                    requiredState.get(FluidBlock.LEVEL) == 0
-            ) || (
-                    requiredState.getProperties().contains(Properties.WATERLOGGED) &&
-                    requiredState.get(Properties.WATERLOGGED)
-            ) || (
-                    requiredState.getBlock() instanceof BubbleColumnBlock
-            )
-            ) {
-                if (currentState.isOf(Blocks.ICE)) {
-                    BreakManager.addBlockToBreak(pos);
-                    Printer.placeCooldownList.put(pos, -2);
-                    return null;
-                }
-                if (currentState != requiredState && !currentState.isOf(Blocks.WATER))
-                    return new Action().setItem(Items.ICE);
-
+        if (LitematicaMixinMod.PRINT_WATER.getBooleanValue() && PlaceUtils.isWaterRequired(requiredState)) {
+            if (currentState.isOf(Blocks.ICE)) {
+                BreakManager.addBlockToBreak(pos);
+                return null;
             }
+            if (!currentState.isOf(Blocks.WATER)) {
+                return new Action().setItem(Items.ICE);
+            }
+        }
+
+        if (LitematicaMixinMod.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && PlaceUtils.isWaterRequired(requiredState))
+            return null;
 
         if (state == State.MISSING_BLOCK) switch (requiredType) {
             case TORCH -> {
@@ -348,7 +340,6 @@ public class PlacementGuide extends PrinterUtils {
                         playerHasAccessToItem(client.player, Items.OBSERVER) &&
                         world.getBlockState(detectBlockPos) != worldSchematic.getBlockState(detectBlockPos)) {
                     ZxyUtils.actionBar("[侦测器安全放置] 侦测面方块不正确，跳过放置！");
-                    Printer.placeCooldownList.put(pos, -2);
                     return null;
                 }
                 return new Action().setSides(facing).setLookDirection(facing);
@@ -712,28 +703,6 @@ public class PlacementGuide extends PrinterUtils {
             }
         }
 
-        /**
-         * 检查一个方块是否可以被替换。
-         * <p>
-         *   简单来说，就是判断这个方块是否“碍事”，能不能直接在上面放新的方块。
-         *   例如，草是可以直接被覆盖放置的，而石头、木头这些则不行。
-         * </p>
-         * <p>
-         *   在老版本（Minecraft 1.19.4 之前）会检查方块的材质是否被认为是可替换的。
-         *   新版本则直接使用方块状态自带的 {@code isReplaceable()} 方法来判断。
-         * </p>
-         *
-         * @param state 要检查的方块状态
-         * @return 如果方块状态可以被替换，则返回 {@code true}；否则返回 {@code false}
-         */
-        public static boolean isReplaceable(BlockState state) {
-            //#if MC < 11904
-            //$$ return state.getMaterial().isReplaceable();
-            //#else
-            return state.isReplaceable();
-            //#endif
-        }
-
         public @Nullable Direction getLookHorizontalDirection() {
             return lookHorizontalDirection;
         }
@@ -871,7 +840,7 @@ public class PlacementGuide extends PrinterUtils {
                     BlockState neighborState = world.getBlockState(neighborPos);
 
                     // 检查该侧面是否可以被点击且不可替换
-                    if (canBeClicked(world, neighborPos) && !isReplaceable(neighborState)) {
+                    if (canBeClicked(world, neighborPos) && !PlaceUtils.isReplaceable(neighborState)) {
                         validSides.add(side);
                     }
                 }

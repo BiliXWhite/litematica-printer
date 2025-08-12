@@ -66,6 +66,7 @@ public class Configs implements IConfigHandler {
         list.add(FORCED_SNEAK);
         list.add(PRINT_IN_AIR);
         list.add(PRINT_WATER);
+        list.add(SKIP_WATERLOGGED_BLOCK);
         list.add(REPLACE);
         list.add(REPLACEABLE_LIST);
         list.add(STRIP_LOGS);
