@@ -107,7 +107,7 @@ public class ZxyUtils {
             //#endif
 
             for (String string : LitematicaMixinMod.INVENTORY_LIST.getStrings()) {
-                invBlockList.addAll(siftBlock(string).stream().filter(InventoryUtils::canOpenInv).toList());
+                invBlockList.addAll(filterBlocksByName(string).stream().filter(InventoryUtils::canOpenInv).toList());
             }
             highlightPosList.addAll(invBlockList);
         }
@@ -180,7 +180,7 @@ public class ZxyUtils {
                 }
             }
             String blockName = Registries.BLOCK.getId(block).toString();
-            syncPosList.addAll(siftBlock(blockName));
+            syncPosList.addAll(filterBlocksByName(blockName));
             if (!syncPosList.isEmpty()) {
                 if (client.player == null) return;
                 client.player.closeHandledScreen();
@@ -566,7 +566,14 @@ public class ZxyUtils {
         client.inGameHud.setOverlayMessage(translatable,false);
     }
 
-    public static LinkedList<BlockPos> siftBlock(String blockName) {
+
+    /**
+     * 从当前选中的区域中筛选出指定名称的方块，并返回这些方块的位置列表。
+     *
+     * @param blockName 方块的名字，用于匹配要筛选的方块类型
+     * @return 返回一个包含所有匹配到的方块位置的LinkedList。如果没有找到匹配项或当前没有选中任何区域，则返回空列表。
+     */
+    public static LinkedList<BlockPos> filterBlocksByName(String blockName) {
         LinkedList<BlockPos> blocks = new LinkedList<>();
         AreaSelection i = DataManager.getSelectionManager().getCurrentSelection();
         List<Box> boxes;
