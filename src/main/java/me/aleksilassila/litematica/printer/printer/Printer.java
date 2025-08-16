@@ -16,7 +16,6 @@ import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionMa
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.mixin.masa.WorldUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
@@ -52,6 +51,7 @@ import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.*;
 import static me.aleksilassila.litematica.printer.printer.State.PrintModeType.*;
 import static me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController.cachedTargetBlockList;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.BlockTask.BreakBlock.excavateBlock;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsItemName;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.*;
@@ -351,28 +351,6 @@ public class Printer extends PrinterUtils {
                 !client.player.isBlockBreakingRestricted(client.world, pos, client.interactionManager.getCurrentGameMode());
     }
 
-    static BlockPos breakTargetBlock = null;
-    static int startTick = -1;
-    //如果返回了null则表示正在挖掘该方块
-    public static BlockPos excavateBlock(BlockPos pos){
-        if (!canInteracted(pos)) {
-            breakTargetBlock = null;
-            return null;
-        }
-        //一个游戏刻挖一次就好
-        if (startTick == tick) {
-            return null;
-        }
-        breakTargetBlock = breakTargetBlock != null ? breakTargetBlock : pos;
-        if (!Printer.waJue(breakTargetBlock)) {
-            BlockPos breakTargetBlock1 = breakTargetBlock;
-            breakTargetBlock = null;
-            return breakTargetBlock1;
-        }
-        startTick = tick;
-        return null;
-    }
-
     static boolean breakRestriction(BlockState blockState,BlockPos pos) {
         if(EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.TW)){
             if (!FabricLoader.getInstance().isModLoaded("tweakeroo")) return true;
@@ -401,13 +379,8 @@ public class Printer extends PrinterUtils {
         }
     }
     public static Vec3d itemPos = null;
-    public static ItemStack offHandItem = null;
     //此模式依赖bug运行 请勿随意修改
     public void bedrockMode() {
-
-//        if (!client.player.getOffHandStack().isEmpty()){
-//            offHandItem = client.player.getOffHandStack();
-//        }else offHandItem = null;
 
         BreakingFlowController.tick();
         int maxy = -9999;
@@ -621,13 +594,7 @@ public class Printer extends PrinterUtils {
 
                 Direction lookDir = action.getLookDirection();
 
-                if (!easyModeBooleanValue &&
-                        (requiredState.isOf(Blocks.PISTON) ||
-                        requiredState.isOf(Blocks.STICKY_PISTON) ||
-                        requiredState.isOf(Blocks.OBSERVER) ||
-                        requiredState.isOf(Blocks.DROPPER) ||
-                        requiredState.isOf(Blocks.DISPENSER)) && isFacing
-                ) {
+                if (!easyModeBooleanValue && isFacingBlock(requiredState) && isFacing) {
                     continue;
                 }
 
@@ -664,12 +631,7 @@ public class Printer extends PrinterUtils {
 //                        useBlock(hitModifier,action.lookDirection,pos,false);
 //                        continue;
 //                    }
-                    if (hitModifier == null &&
-                            (requiredState.isOf(Blocks.PISTON) ||
-                            requiredState.isOf(Blocks.STICKY_PISTON) ||
-                            requiredState.isOf(Blocks.OBSERVER) ||
-                            requiredState.isOf(Blocks.DROPPER) ||
-                            requiredState.isOf(Blocks.DISPENSER))
+                    if (hitModifier == null && isFacingBlock(requiredState)
                     ) {
                         item2 = requiredItems;
                         isFacing = true;
@@ -682,6 +644,16 @@ public class Printer extends PrinterUtils {
                 return;
             }
         }
+    }
+    public boolean isFacingBlock(BlockState state){
+        return state.isOf(Blocks.PISTON) ||
+                state.isOf(Blocks.STICKY_PISTON) ||
+                //#if MC > 12002
+                state.isOf(Blocks.CRAFTER) ||
+                //#endif
+                state.isOf(Blocks.OBSERVER) ||
+                state.isOf(Blocks.DROPPER) ||
+                state.isOf(Blocks.DISPENSER);
     }
 
     public static boolean isSchematicBlock(BlockPos offset) {

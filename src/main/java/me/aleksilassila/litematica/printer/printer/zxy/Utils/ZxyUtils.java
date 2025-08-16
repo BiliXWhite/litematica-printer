@@ -81,6 +81,7 @@ public class ZxyUtils {
     public static boolean printerMemoryAdding = false;
     public static boolean syncPrinterInventory = false;
     public static String syncInventoryId = "syncInventory";
+    public static int tick = 0;
 
     public static void startAddPrinterInventory(){
         getReadyColor();
@@ -310,6 +311,8 @@ public class ZxyUtils {
     }
 
     public static void tick() {
+        tick++;
+        tick %= Integer.MAX_VALUE;
         if (num == 2) {
             syncInv();
         }
@@ -395,12 +398,14 @@ public class ZxyUtils {
         remoteTime = 0;
     }
 
-    public static void interactBlock1(Hand hand, Vec3d vec3d, Direction direction, BlockPos pos, boolean insideBlock){
-        //#if MC < 11902
-        //$$ client.interactionManager.interactBlock(client.player, client.world, hand,new BlockHitResult(vec3d, direction,pos,insideBlock));
-        //#else
-        client.interactionManager.interactBlock(client.player, hand,new BlockHitResult(vec3d, direction,pos,insideBlock));
-        //#endif
+    public static void interactBlock1(Hand hand, Vec3d vec3d, Direction direction, BlockPos pos, boolean insideBlock,boolean useShift){
+        if (useShift) Printer.getPrinter().queue.setShift(client.player, true);
+        client.interactionManager.interactBlock(client.player,
+                //#if MC < 11902
+                //$$ client.world,
+                //#endif
+                hand,new BlockHitResult(vec3d, direction,pos,insideBlock));
+        if (useShift) Printer.getPrinter().queue.setShift(client.player, false);
     }
     public static Optional<ClientPlayerEntity> getPlayer(){
         return Optional.ofNullable(client.player);

@@ -14,18 +14,13 @@ public enum State {
     CORRECT;
 
     public static State get(BlockState schematicBlockState, BlockState currentBlockState) {
-//        if(currentBlockState.getBlock() instanceof FluidBlock){
-//            System.out.println(Registries.BLOCK.getId(currentBlockState.getBlock()));
-//        }
         if (!schematicBlockState.isAir() && (currentBlockState.isAir() ||
-                (LitematicaMixinMod.REPLACEABLE_LIST.getStrings().stream()
-                        .anyMatch(string -> !Filters.equalsBlockName(string,schematicBlockState.getBlock()) &&
-//                        .anyMatch(string -> !Registries.BLOCK.getId(schematicBlockState.getBlock()).toString().contains(string) &&
-//                                Registries.BLOCK.getId(currentBlockState.getBlock()).toString().contains(string)) &&
-                                Filters.equalsBlockName(string,currentBlockState.getBlock())) &&
-                        LitematicaMixinMod.REPLACE.getBooleanValue())))
-//        if (!schematicBlockState.isAir() && (currentBlockState.isAir() || currentBlockState.getBlock() instanceof FluidBlock || currentBlockState.isOf(Blocks.SNOW) || currentBlockState.isOf(Blocks.BUBBLE_COLUMN)))
-//        if (!schematicBlockState.isAir() && (currentBlockState.isAir())
+                (LitematicaMixinMod.REPLACE.getBooleanValue() &&
+                        (LitematicaMixinMod.REPLACEABLE_LIST.getStrings().stream()
+                                .anyMatch(string ->
+                                        !Filters.equalsBlockName(string, schematicBlockState.getBlock()) &&
+                                                Filters.equalsBlockName(string, currentBlockState.getBlock()))
+                        ))))
             return State.MISSING_BLOCK;
         else if (schematicBlockState.getBlock().equals(currentBlockState.getBlock())
                 && !schematicBlockState.equals(currentBlockState))
@@ -50,6 +45,7 @@ public enum State {
             this.configString = configString;
             this.translationKey = translationKey;
         }
+
         @Override
         public String getStringValue() {
             return this.configString;
@@ -92,6 +88,7 @@ public enum State {
             return PrintModeType.PRINTER;
         }
     }
+
     public enum ExcavateListMode implements IConfigOptionListEntry {
         TW("tw", "tw"),
         ME("me", "自带");
@@ -103,6 +100,7 @@ public enum State {
             this.configString = configString;
             this.translationKey = translationKey;
         }
+
         @Override
         public String getStringValue() {
             return this.configString;
@@ -145,6 +143,7 @@ public enum State {
             return ExcavateListMode.ME;
         }
     }
+
     public enum ModeType implements IConfigOptionListEntry {
         MULTI("multi", "多模"),
         SINGLE("single", "单模");
@@ -156,6 +155,7 @@ public enum State {
             this.configString = configString;
             this.translationKey = translationKey;
         }
+
         @Override
         public String getStringValue() {
             return this.configString;
@@ -198,6 +198,7 @@ public enum State {
             return ModeType.SINGLE;
         }
     }
+
     public enum ListType implements IConfigOptionListEntry {
         SPHERE("sphere", "球体"),
         CUBE("cube", "立方体");

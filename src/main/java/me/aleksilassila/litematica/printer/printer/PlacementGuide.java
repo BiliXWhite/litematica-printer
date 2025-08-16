@@ -30,6 +30,7 @@ import java.util.*;
 
 import static me.aleksilassila.litematica.printer.printer.Printer.*;
 import static me.aleksilassila.litematica.printer.printer.qwer.PrintWater.*;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.BlockTask.BreakBlock.excavateBlock;
 import static net.minecraft.block.enums.BlockFace.WALL;
 
 public class PlacementGuide extends PrinterUtils {
@@ -347,18 +348,29 @@ public class PlacementGuide extends PrinterUtils {
                 case TORCH: {
 
                 }
+                //#if MC > 12002
+                case CRAFTER: {
+                    Direction look = null;
+                    Direction side = null;
+                    for (Property<?> prop : requiredState.getProperties()) {
+                        if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Orientation.class) && prop.getName().equalsIgnoreCase("orientation")) {
+                            look = ((Orientation) (requiredState.get(prop))).getFacing().getOpposite();
+                            side = ((Orientation) (requiredState.get(prop))).getRotation().getOpposite();
+                        }
+                    }
+                    return new Action().setItem(Items.CRAFTER).setLookDirection(look).setSides(side);
+                }
+                //#endif
                 case DEFAULT:
                 default: { // Try to guess how the rest of the blocks are placed.
                     Direction look = null;
 
                     for (Property<?> prop : requiredState.getProperties()) {
-                        //#if MC > 12101
-                        //$$ if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
-                        //#else
-                        if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
-                        //#endif
+                        if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
                             look = ((Direction) requiredState.get(prop)).getOpposite();
                         }
+//                        if (requiredState.get(CrafterBlock.CRAFTING)) return null;
+//                        if (prop.getName().equalsIgnoreCase("orientation")) return null;
 
                     }
 
@@ -772,6 +784,9 @@ public class PlacementGuide extends PrinterUtils {
         OBSERVER(ObserverBlock.class),
         WALLSKULL(WallSkullBlock.class),
         NETHER_PORTAL_BLOCK(NetherPortalBlock.class),
+        //#if MC > 12002
+        CRAFTER(CrafterBlock.class),
+        //#endif
 
         // Only clicks
         FLOWER_POT(FlowerPotBlock.class),

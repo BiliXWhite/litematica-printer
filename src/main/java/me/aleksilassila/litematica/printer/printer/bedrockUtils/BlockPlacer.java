@@ -87,12 +87,7 @@ public class BlockPlacer {
         ClientPlayerEntity player = minecraftClient.player;
         ItemStack itemStack = player.getStackInHand(Hand.OFF_HAND);
 
-        ZxyUtils.interactBlock1(Hand.OFF_HAND,hitResult.getPos(),hitResult.getSide(),hitResult.getBlockPos(),hitResult.isInsideBlock());
-//        //#if MC < 11904
-//        //$$ minecraftClient.getNetworkHandler().sendPacket(new PlayerInteractBlockC2SPacket(Hand.OFF_HAND, hitResult));
-//        //#else
-//        minecraftClient.getNetworkHandler().sendPacket(new PlayerInteractBlockC2SPacket(Hand.OFF_HAND, hitResult,0));
-//        //#endif
+        ZxyUtils.interactBlock1(Hand.OFF_HAND,hitResult.getPos(),hitResult.getSide(),hitResult.getBlockPos(),hitResult.isInsideBlock(),false);
 
         if (!itemStack.isEmpty() && !player.getItemCooldownManager().isCoolingDown(
                 //#if MC > 12101

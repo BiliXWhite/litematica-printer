@@ -25,6 +25,6 @@ public class Test {
         if (client.crosshairTarget == null || client.crosshairTarget.getType() != HitResult.Type.BLOCK) return;
         Vec3d offset = client.crosshairTarget.getPos();
         BlockPos blockPos = new BlockPos((int) offset.x, (int) offset.y, (int) offset.z).up();
-        ZxyUtils.interactBlock1(Hand.MAIN_HAND,new Vec3d(0.5,0.5,0.5),Direction.UP,blockPos,false);
+        ZxyUtils.interactBlock1(Hand.MAIN_HAND,new Vec3d(0.5,0.5,0.5),Direction.UP,blockPos,false,false);
     }
 }

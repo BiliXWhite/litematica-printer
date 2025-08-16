@@ -31,22 +31,16 @@ public abstract class MixinClientPlayerInteractionManager implements IClientPlay
 	{
 		interactBlock(client.player,
 				//#if MC < 11902
-//$$ 				client.world,
+				//$$ client.world,
 				//#endif
 				Hand.MAIN_HAND,
 			new BlockHitResult(hitVec, side, pos, false));
 		interactItem(client.player,
 				//#if MC < 11902
-//$$ 				client.world,
+				//$$ client.world,
 				//#endif
 				Hand.MAIN_HAND);
-//		System.out.println("Printer interactBlock: pos: (" + pos.toShortString() + "), side: " + side.getName() + ", vector: " + hitVec.toString());
 	}
-//	@Inject(at = @At("HEAD"), method = "interactBlock")
-//	public void interactBlock(ClientPlayerEntity player, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir){
-//
-//	}
-
 
 //	@Inject(at = @At("TAIL"), method = "interactBlock")
 //	private void interactBlock(ClientPlayerEntity player, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir) {
@@ -57,25 +51,14 @@ public abstract class MixinClientPlayerInteractionManager implements IClientPlay
 	public abstract ActionResult interactBlock(
             ClientPlayerEntity clientPlayerEntity_1,
 			//#if MC < 11902
-//$$ 			ClientWorld world,
+			//$$ ClientWorld world,
 			//#endif
             Hand hand_1, BlockHitResult blockHitResult_1);
 
 	@Shadow
 	public abstract ActionResult interactItem(PlayerEntity playerEntity_1,
 											  //#if MC < 11902
-//$$ 											   World world,
+											  //$$ World world,
 											  //#endif
                                                Hand hand_1);
-//	@Inject(at = @At("HEAD"), method = "interactBlock")
-//	public void interactBlock(ClientPlayerEntity player, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir) {
-//		System.out.println("Player interactBlock: pos: (" + hitResult.getBlockPos().toShortString() + "), side: " + hitResult.getSide().getName() + ", vector: " + hitResult.getPos().toString());
-//		PlacementGuide.Action a = Printer.getPrinter().guide.getAction(player.clientWorld, SchematicWorldHandler.getSchematicWorld(),hitResult.getBlockPos());
-//		if (a == null) return;
-//		for (Direction side : a.getSides().keySet()) {
-//			System.out.println("Side: " + side + ", " + a.getSides().get(side).toString());
-//		}
-//		System.out.println("Valid: " + a.getValidSide(player.clientWorld, hitResult.getBlockPos()));
-//		System.out.println("Look: " + a.getLookDirection());
-//	}
 }
