@@ -11,14 +11,10 @@ import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.mob.ShulkerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -64,11 +60,9 @@ import net.minecraft.nbt.NbtCompound;
 //#endif
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_COLOR;
-import static me.aleksilassila.litematica.printer.printer.Test.t1;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.canOpenInv;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
-import static net.minecraft.block.ShulkerBoxBlock.FACING;
 
 public class ZxyUtils {
     //旧版箱子追踪
@@ -375,7 +369,7 @@ public class ZxyUtils {
         return client.player != null && client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(blockPos)) < range * range;
     }
     public static int getRage(){
-        return LitematicaMixinMod.COMPULSION_RANGE.getIntegerValue();
+        return LitematicaMixinMod.PRINTER_RANGE.getIntegerValue();
     }
 
     public static int maximumFrameRate = 10;

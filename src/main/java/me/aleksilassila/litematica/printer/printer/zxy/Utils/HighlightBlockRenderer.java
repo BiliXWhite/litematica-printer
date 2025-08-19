@@ -70,6 +70,9 @@ public class HighlightBlockRenderer implements IRenderer {
     //#else
     //$$ public void test3(MatrixStack matrices ,Color4f color4f, Set<BlockPos> posSet){
     //#endif
+        //#if MC <= 12104
+        RenderSystem.disableDepthTest();
+        //#endif
         for (BlockPos pos : posSet) {
             //#if MC > 12104
                 //#if MC == 12105
@@ -152,6 +155,10 @@ public class HighlightBlockRenderer implements IRenderer {
         //#else
         RenderSystem.enableCull();
         RenderSystem.disableBlend();
+        //#endif
+
+        //#if MC <= 12104
+        RenderSystem.enableDepthTest();
         //#endif
 
 

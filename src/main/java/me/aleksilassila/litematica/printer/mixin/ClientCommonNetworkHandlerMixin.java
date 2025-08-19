@@ -54,8 +54,9 @@ public class ClientCommonNetworkHandlerMixin {
                 this.connection.send(fixedPacket);
                 return;
             }
-        } else if (direction == null || !Implementation.isLookOnlyPacket(packet)) {
-            this.connection.send(packet);
+        } else if (direction != null && Implementation.isLookOnlyPacket(packet)) {
+            Packet<?> fixedPacket = Implementation.getFixedLookPacket(client.player, packet, direction);
+            this.connection.send(fixedPacket);
             return;
         }
         original.call(instance, packet);

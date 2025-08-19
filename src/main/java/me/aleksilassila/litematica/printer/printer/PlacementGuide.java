@@ -8,6 +8,7 @@ import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.*;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
@@ -18,6 +19,7 @@ import net.minecraft.state.property.DirectionProperty;
 //#endif
 
 import net.minecraft.state.property.EnumProperty;
+import net.minecraft.state.property.Properties;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
@@ -31,6 +33,7 @@ import java.util.*;
 import static me.aleksilassila.litematica.printer.printer.Printer.*;
 import static me.aleksilassila.litematica.printer.printer.qwer.PrintWater.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.BlockTask.BreakBlock.excavateBlock;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.switchToItems;
 import static net.minecraft.block.enums.BlockFace.WALL;
 
 public class PlacementGuide extends PrinterUtils {
@@ -350,15 +353,10 @@ public class PlacementGuide extends PrinterUtils {
                 }
                 //#if MC > 12002
                 case CRAFTER: {
-                    Direction look = null;
-                    Direction side = null;
-                    for (Property<?> prop : requiredState.getProperties()) {
-                        if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Orientation.class) && prop.getName().equalsIgnoreCase("orientation")) {
-                            look = ((Orientation) (requiredState.get(prop))).getFacing().getOpposite();
-                            side = ((Orientation) (requiredState.get(prop))).getRotation().getOpposite();
-                        }
-                    }
-                    return new Action().setItem(Items.CRAFTER).setLookDirection(look).setSides(side);
+                    Orientation orientation = requiredState.get(Properties.ORIENTATION);
+                    Direction look = orientation.getFacing().getOpposite();
+                    Direction side = orientation.getRotation();
+                    return new Action().setItem(Items.CRAFTER).setLookDirection(look).setLookDirection2(side);
                 }
                 //#endif
                 case DEFAULT:
@@ -537,13 +535,14 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     public static class Action {
-        protected Map<Direction, Vec3d> sides;
-        protected Direction lookDirection;
+        public Map<Direction, Vec3d> sides;
+        public Direction lookDirection;
+        public Direction lookDirection2;
         @Nullable
-        protected Item[] clickItems; // null == any
+        public Item[] clickItems; // null == any
 
-        protected boolean crouch = false;
-        protected boolean requiresSupport = false;
+        public boolean shift = false;
+        public boolean requiresSupport = false;
 
         // If true, click target block, not neighbor
 
@@ -691,6 +690,11 @@ public class PlacementGuide extends PrinterUtils {
             return this;
         }
 
+        public Action setLookDirection2(Direction lookDirection2) {
+            this.lookDirection2 = lookDirection2;
+            return this;
+        }
+
         public Action setSides(Map<Direction, Vec3d> sides) {
             this.sides = sides;
             return this;
@@ -736,6 +740,11 @@ public class PlacementGuide extends PrinterUtils {
                         useShift, didSendLook);
             }
 
+        }
+        public void sendPlacementPreparation(ClientPlayerEntity player){
+            switchToItems(player, clickItems);
+            Implementation.sendLookPacket(player, lookDirection, lookDirection2);
+            getPrinter().queue.lookDir = lookDirection;
         }
     }
 

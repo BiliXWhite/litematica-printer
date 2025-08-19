@@ -3,24 +3,29 @@ package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.function.Predicate;
 
 import static me.aleksilassila.litematica.printer.interfaces.Implementation.sendLookPacket;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.canInteracted;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.tick;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.BlockTask.BlockTaskManager.looking;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 
 public class BlockTask {
     public BlockPos pos;
     public Block block;
     public BlockState state;
-    public Direction direction;
+    public ItemStack itemStack;
+    public Direction direction1;
+    public Direction direction2;
+    public Direction side;
     public Map<String, Predicate<BlockTask>> predicateMap = new HashMap<>();
     public String taskName;
     public BlockTaskState taskState = BlockTaskState.INITIAL;
@@ -59,13 +64,28 @@ public class BlockTask {
         return this;
     }
 
+    public BlockTask setItemStack(ItemStack itemStack) {
+        this.itemStack = itemStack;
+        return this;
+    }
+
+    public BlockTask setSide(Direction side) {
+        this.side = side;
+        return this;
+    }
+
     public BlockTask setPos(BlockPos pos) {
         this.pos = pos;
         return this;
     }
 
-    public BlockTask setDirection(Direction direction) {
-        this.direction = direction;
+    public BlockTask setDirection1(Direction direction1) {
+        this.direction1 = direction1;
+        return this;
+    }
+
+    public BlockTask setDirection2(Direction direction2) {
+        this.direction2 = direction2;
         return this;
     }
 
@@ -80,7 +100,7 @@ public class BlockTask {
     }
 
     public boolean done() {
-        return taskState.equals(BlockTaskState.TASK_DONE);
+        return taskState.equals(BlockTaskState.DONE_TASK);
     }
 
     public boolean runPredicate(String predicateName) {
@@ -102,12 +122,14 @@ public class BlockTask {
 
     public enum BlockTaskState {
         INITIAL,
-        NEED_RUN_TASK,
+        NEED_RUN_PREDICATE,
+        DONE_RUN_PREDICATE,
         WAIT,
-        TASK_DONE
+        DONE_TASK
     }
 
     public static class BreakBlock extends BlockTask {
+        public boolean switchTool = true;
         public BreakBlock(BlockPos pos, Block block) {
             super(pos, block);
         }
@@ -129,7 +151,7 @@ public class BlockTask {
             if (excavateBlock(pos) == null) {
                 return false;
             }
-            taskState = BlockTaskState.TASK_DONE;
+            taskState = BlockTaskState.DONE_TASK;
             return true;
         }
 
@@ -157,7 +179,7 @@ public class BlockTask {
     }
 
     public class PlaceBlock extends BlockTask {
-
+        Vec3d vec3d = Vec3d.ZERO;
         public PlaceBlock(BlockPos pos, Block block) {
             super(pos, block);
         }
@@ -174,21 +196,42 @@ public class BlockTask {
             super(pos, state, taskName);
         }
 
+        public PlaceBlock setVec3d(Vec3d vec3d) {
+            this.vec3d = vec3d;
+            return this;
+        }
+
         @Override
         public boolean runTask() {
             Vec3d vec3d = Printer.getPrinter().usePrecisionPlacement(pos, state);
-            if (vec3d == null && direction != null && taskState == BlockTaskState.INITIAL) {
-                sendLookPacket(ZxyUtils.client.player, direction);
+            if (!looking && vec3d == null && direction1 != null && taskState == BlockTaskState.INITIAL) {
+                looking = true;
+                sendLookPacket(ZxyUtils.client.player, direction1, direction2);
                 taskState = BlockTaskState.WAIT;
                 return false;
             }
-            if (vec3d == null) {
-                ZxyUtils.interactBlock1(Hand.MAIN_HAND, new Vec3d(0, 0, 0), direction, pos, false, useShift);
-            } else {
-                ZxyUtils.interactBlock1(Hand.MAIN_HAND, vec3d, direction, pos, false, useShift);
-            }
-            taskState = BlockTaskState.TASK_DONE;
+            vec3d = vec3d != null ? vec3d : this.vec3d;
+            ZxyUtils.interactBlock1(Hand.MAIN_HAND, vec3d, side, pos, false, useShift);
+            taskState = BlockTaskState.DONE_TASK;
             return true;
         }
+    }
+
+    public static class BlockTaskManager {
+        public static LinkedList<BlockTask> blockTaskList = new LinkedList<>();
+        public static boolean looking = false;
+        public static void tick() {
+            for (BlockTask blockTask : blockTaskList) {
+                blockTask.tick();
+            }
+            looking = false;
+            blockTaskList.removeIf(task -> task.done() || !task.pos.isWithinDistance(ZxyUtils.client.player.getPos(), getRage()));
+        }
+
+        public static boolean addTask(BlockTask task) {
+            if (blockTaskList.size() >= 1024) return false;
+            return blockTaskList.add(task);
+        }
+
     }
 }

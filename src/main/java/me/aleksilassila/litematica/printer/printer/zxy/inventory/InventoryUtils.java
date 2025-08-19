@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.litematica.config.Configs;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.mixin.masa.Litematica_InventoryUtilsMixin;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
@@ -20,6 +21,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
+import net.minecraft.util.Hand;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -246,6 +248,36 @@ public class InventoryUtils {
             return client.player.getInventory().main;
             //#endif
         }else return DefaultedList.of();
+    }
+
+    public static boolean switchToItems(ClientPlayerEntity player, Item[] items) {
+        if (items == null) return false;
+        PlayerInventory inv = Implementation.getInventory(player);
+        //inv.getMainHandStack()  信息滞后 如果服务器有延迟这个获取的信息可能是错误的
+//        for (Item item : items) {
+//            if (inv.getMainHandStack().getItem() == item) {
+//                return;
+//            }
+//        }
+        for (Item item : items) {
+            if (Implementation.getAbilities(player).creativeMode) {
+                fi.dy.masa.litematica.util.InventoryUtils.setPickedItemToHand(new ItemStack(item), client);
+                client.interactionManager.clickCreativeStack(client.player.getStackInHand(Hand.MAIN_HAND), 36 + getSelectedSlot());
+                return true;
+            } else {
+                int slot = -1;
+                for (int i = 0; i < inv.size(); i++) {
+                    if (inv.getStack(i).getItem() == item && inv.getStack(i).getCount() > 0)
+                        slot = i;
+                }
+                if (slot != -1) {
+                    Printer.yxcfItem = inv.getStack(slot);
+                    Printer.getPrinter().swapHandWithSlot(player, slot);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static Method method;

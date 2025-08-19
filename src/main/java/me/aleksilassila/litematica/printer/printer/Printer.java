@@ -128,6 +128,7 @@ public class Printer extends PrinterUtils {
     public final MinecraftClient client;
     public final PlacementGuide guide;
     public final Queue queue;
+    public static PlacementGuide.Action action;
 
     public static int tick = 0;
 
@@ -252,7 +253,7 @@ public class Printer extends PrinterUtils {
             boolean b = replaceTaskMap.entrySet().stream().anyMatch(entry -> {
                 for (String blockName : entry.getKey()) {
                     // 为排流体破坏多余方块特殊处理
-                    if (equalsBlockName(blockName, currentState, finalPos) && entry.getKey().stream().filter(name -> !blockName.equals(name)).anyMatch(findFluid::test)) {
+                    if (canBreakBlock(finalPos) && equalsBlockName(blockName, currentState, finalPos) && entry.getKey().stream().filter(name -> !blockName.equals(name)).anyMatch(findFluid::test)) {
                         if (excavateBlock(finalPos) == null) {
                             replacePos = finalPos;
                             return true;
@@ -275,7 +276,7 @@ public class Printer extends PrinterUtils {
                             if (items.stream().noneMatch(item -> item.equals(Items.AIR))) {
                                 // 要么不是流体，要么是源
                                 if ((currentState.getFluidState().isEmpty() || currentState.getFluidState().isStill()) &&
-                                        Printer.this.switchToItems(client.player, items.toArray(new Item[0]))) {
+                                        switchToItems(client.player, items.toArray(new Item[0]))) {
                                     if (action.get() != null) {
                                         action.get().queueAction(queue, finalPos, action.get().getValidSide(client.world, finalPos), true, false);
                                         queue.sendQueue(client.player);
@@ -478,7 +479,7 @@ public class Printer extends PrinterUtils {
         ClientPlayerEntity pEntity = client.player;
         ClientWorld world = client.world;
 
-        range1 = COMPULSION_RANGE.getIntegerValue();
+        range1 = PRINTER_RANGE.getIntegerValue();
         yDegression = false;
         startTime = System.currentTimeMillis();
         tickRate = PRINT_INTERVAL.getIntegerValue();
@@ -539,16 +540,15 @@ public class Printer extends PrinterUtils {
         BlockPos pos;
         while ((pos = getBlockPos2()) != null) {
             if (client.player != null && !canInteracted(pos)) continue;
+            if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
             BlockState requiredState = worldSchematic.getBlockState(pos);
-            PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
-
             //跳过放置
             if (PUT_SKIP.getBooleanValue() &&
                     PUT_SKIP_LIST.getStrings().stream().anyMatch(block -> equalsBlockName(block,requiredState.getBlock())))
             {
                 continue;
             }
-            if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
+            PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
             //放置冷却
             if (skipPosMap.containsKey(pos)) {
                 continue;
@@ -611,7 +611,7 @@ public class Printer extends PrinterUtils {
                 }
                 if(forcedPlacementBooleanValue) useShift = true;
                 //发送放置准备
-                sendPlacementPreparation(pEntity, requiredItems, lookDir);
+                action.sendPlacementPreparation(pEntity);
                 action.queueAction(queue, pos, side, useShift, lookDir != null);
 
                 Vec3d hitModifier = usePrecisionPlacement(pos, requiredState);
@@ -673,7 +673,7 @@ public class Printer extends PrinterUtils {
     }
 
     public Vec3d usePrecisionPlacement(BlockPos pos,BlockState stateSchematic){
-        if (EASY_MODE.getBooleanValue()) {
+        if (EASY_MODE.getBooleanValue() && stateSchematic != null && pos != null) {
             EasyPlaceProtocol protocol = PlacementHandler.getEffectiveProtocolVersion();
             Vec3d hitPos = Vec3d.of(pos);
             if (protocol == EasyPlaceProtocol.V3)
@@ -712,53 +712,11 @@ public class Printer extends PrinterUtils {
         return blocks;
     }
 
-    private void sendPlacementPreparation(ClientPlayerEntity player, Item[] requiredItems, Direction lookDir) {
-        switchToItems(player, requiredItems);
-        sendLook(player, lookDir);
-    }
-
-
-    static ItemStack yxcfItem; //有序存放临时存储
-    public boolean switchToItems(ClientPlayerEntity player, Item[] items) {
-        if (items == null) return false;
-        PlayerInventory inv = Implementation.getInventory(player);
-        //inv.getMainHandStack()  信息滞后 如果服务器有延迟这个获取的信息可能是错误的
-//        for (Item item : items) {
-//            if (inv.getMainHandStack().getItem() == item) {
-//                return;
-//            }
-//        }
-        for (Item item : items) {
-            if (Implementation.getAbilities(player).creativeMode) {
-                InventoryUtils.setPickedItemToHand(new ItemStack(item), client);
-                client.interactionManager.clickCreativeStack(client.player.getStackInHand(Hand.MAIN_HAND), 36 + getSelectedSlot());
-                return true;
-            } else {
-                int slot = -1;
-                for (int i = 0; i < inv.size(); i++) {
-                    if (inv.getStack(i).getItem() == item && inv.getStack(i).getCount() > 0)
-                        slot = i;
-                }
-                if (slot != -1) {
-                    yxcfItem = inv.getStack(slot);
-                    swapHandWithSlot(player, slot);
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+    public static ItemStack yxcfItem; //有序存放临时存储
 
     public void swapHandWithSlot(ClientPlayerEntity player, int slot) {
         ItemStack stack = Implementation.getInventory(player).getStack(slot);
         InventoryUtils.setPickedItemToHand(stack, client);
-    }
-
-    public void sendLook(ClientPlayerEntity player, Direction direction) {
-        if (direction != null) {
-            Implementation.sendLookPacket(player, direction);
-        }
-        queue.lookDir = direction;
     }
 
     public static class Queue {
@@ -775,10 +733,6 @@ public class Printer extends PrinterUtils {
 
         public Queue(Printer printerInstance) {
             this.printerInstance = printerInstance;
-        }
-
-        public void queueClick(@NotNull BlockPos target, @NotNull Direction side, @NotNull Vec3d hitModifier) {
-            queueClick(target, side, hitModifier, true, true);
         }
 
         public void queueClick(@NotNull BlockPos target, @NotNull Direction side, @NotNull Vec3d hitModifier, boolean shift, boolean didSendLook) {

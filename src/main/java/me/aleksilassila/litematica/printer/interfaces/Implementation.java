@@ -11,6 +11,7 @@ import net.minecraft.item.Items;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.util.math.Direction;
+import org.jetbrains.annotations.Nullable;
 
 import static me.aleksilassila.litematica.printer.printer.Printer.itemPos;
 
@@ -46,10 +47,35 @@ public class Implementation {
         return playerEntity.getPitch();
     }
 
+    public static void sendLookPacket(ClientPlayerEntity playerEntity, Direction direction1, Direction direction2) {
+        if(direction1 == null) return;
+        if(direction2 == null) {
+            sendLookPacket(playerEntity, direction1);
+            return;
+        }
+        Direction yaw;
+        Direction pitch;
+        if (direction2 == Direction.UP || direction2 == Direction.DOWN) {
+            yaw = direction1;
+            pitch = direction2;
+        }else {
+            yaw = direction2;
+            pitch = direction1;
+        }
+        float requiredYaw = Implementation.getRequiredYaw(playerEntity, yaw);
+        float requiredPitch = Implementation.getRequiredPitch(playerEntity, pitch);
+        sendLookPacket(playerEntity, requiredYaw ,requiredPitch);
+    }
     public static void sendLookPacket(ClientPlayerEntity playerEntity, Direction playerShouldBeFacing) {
+        float requiredYaw = Implementation.getRequiredYaw(playerEntity, playerShouldBeFacing);
+        float requiredPitch = Implementation.getRequiredPitch(playerEntity, playerShouldBeFacing);
+        sendLookPacket(playerEntity, requiredYaw ,requiredPitch);
+    }
+
+    public static void sendLookPacket(ClientPlayerEntity playerEntity, float yaw, float pitch){
         playerEntity.networkHandler.sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(
-                Implementation.getRequiredYaw(playerEntity, playerShouldBeFacing),
-                Implementation.getRequiredPitch(playerEntity, playerShouldBeFacing),
+                yaw,
+                pitch,
                 playerEntity.isOnGround()
                 //#if MC > 12101
                 //$$ ,playerEntity.horizontalCollision

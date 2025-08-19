@@ -7,10 +7,8 @@ import fi.dy.masa.litematica.gui.GuiConfigs;
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.options.*;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
-import me.aleksilassila.litematica.printer.config.KeyCallbackHotkeys;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
@@ -18,7 +16,6 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 //#if MC >= 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-import net.minecraft.client.MinecraftClient;
 //#endif
 import java.util.List;
 
@@ -31,15 +28,12 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	private static final KeybindSettings GUI_NO_ORDER = KeybindSettings.create(KeybindSettings.Context.GUI, KeyAction.PRESS, false, false, false, true);
 	// Config settings
 	public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger( "打印机工作间隔", 0,   0, 20, "以游戏刻度为单位工作间隔。值越低意味着打印速度越快");
-	;
-//	public static final ConfigInteger PRINTING_RANGE = new ConfigInteger("打印机工作半径", 3,     1,   256,   "若服务器未修改交互距离 请勿设置太大。");
-	public static final ConfigInteger COMPULSION_RANGE = new ConfigInteger("打印机工作半径", 6,     1,   256, """
-            若服务器未修改交互距离 请勿设置太大""");
+	public static final ConfigInteger PRINTER_RANGE = new ConfigInteger("打印机工作半径", 6,     1,   256, """
+            若服务器未修改交互距离 请勿设置大于6""");
 	public static final ConfigInteger PUT_COOLING = new ConfigInteger("放置冷却", 2,     0,   256,   "对同一位置的方块放置时需等待设定的tick值才会再次放置。");
 	public static final ConfigOptionList RANGE_MODE = new ConfigOptionList("半径模式", State.ListType.SPHERE,"立方体建议3，球体建议设置6，破基岩在立方体模式下无法正常使用");
 	public static final ConfigOptionList MODE_SWITCH = new ConfigOptionList("模式切换", State.ModeType.SINGLE,"单模：仅运行一个模式。多模：可多个模式同时运行");
 	public static final ConfigOptionList PRINTER_MODE = new ConfigOptionList("打印机模式", State.PrintModeType.PRINTER,"仅单模生效");
-	//    public static final ConfigBoolean PRINT_WATER    = new ConfigBoolean("PrintWater",    false, "Whether or not the printer should place water\n source blocks or make blocks waterlogged.");
 	public static final ConfigBoolean MULTI_BREAK = new ConfigBoolean("多模阻断",true, "启用后将按模式优先级运行，同时启用多个模式时优先级低的无法执行");
 	public static final ConfigBoolean RENDER_LAYER_LIMIT = new ConfigBoolean("渲染层数限制",false, "排流体，破基岩，挖掘模式 是否受渲染层数限制");
 	public static final ConfigBoolean PRINT_IN_AIR = new ConfigBoolean("凭空放置",true, "Whether or not the printer should place blocks without anything to build on.\nBe aware that some anti-cheat plugins might notice this.");
@@ -90,7 +84,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 		list.add(TOGGLE_PRINTING_MODE);
 		list.add(EASY_MODE);
 		list.add(PRINT_INTERVAL);
-		list.add(COMPULSION_RANGE);
+		list.add(PRINTER_RANGE);
 		if(PRINTER_MODE.getOptionListValue().equals(State.ModeType.SINGLE)) list.add(PRINTER_MODE);
 		if(EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.ME)) list.add(EXCAVATE_LIMIT);
 		if(EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.ME)) list.add(EXCAVATE_WHITELIST);
@@ -136,7 +130,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	@Override
 	public void onInitialize() {
 		reSetConfig();
-//		KeyCallbackHotkeys keyCallbackHotkeys = new KeyCallbackHotkeys(MinecraftClient.getInstance());
 		OpenInventoryPacket.init();
 		OpenInventoryPacket.registerReceivePacket();
 		OpenInventoryPacket.registerClientReceivePacket();
