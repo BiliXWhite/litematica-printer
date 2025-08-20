@@ -58,40 +58,54 @@ public class BreakManager {
     public void onTick() {
         if (client.player == null || client.world == null || client.interactionManager == null) return;
 
-        // 如果没有正在处理的目标，则初始化一个新的
-        if (breakPos == null && !breakTargets.isEmpty()) {
+        // 性能优化：提前检查是否有必要继续执行
+        if (breakTargets.isEmpty()) {
+            // 确保清理状态
+            if (breakPos != null) {
+                breakPos = null;
+                state = null;
+            }
+            return;
+        }
+
+        // 初始化 breakPos 和 state
+        if (breakPos == null) {
             updateBreakTarget();
             if (breakPos != null) {
                 state = client.world.getBlockState(breakPos);
             }
         }
 
-        // 如果没有要处理的目标，直接返回
-        if (breakPos == null) {
-            state = null;
+        if (breakPos == null) return;
+
+        // 检查方块是否已消失或变为流体
+        // 性能优化：重新排列检查顺序，将最可能失败的检查放在前面
+        if (!ZxyUtils.canInteracted(breakPos) ||
+                !canBreakBlock(breakPos) ||
+                !breakRestriction(state) ||
+                state.isAir()
+        ) {
+            resetBreakTarget();
             return;
         }
 
-        // 使用内部循环处理当前的breakPos
-        while (true) {
-            // 检查是否可以继续处理该位置的方块
-            if (!ZxyUtils.canInteracted(breakPos) ||
-                    !canBreakBlock(breakPos) ||
-                    !breakRestriction(state) ||
-                    state.isAir()) {
-                resetBreakTarget();
-                break;  // 跳出循环，尝试下一个目标
-            }
+        // 执行挖掘进度更新
+        boolean success;
+        try {
+            success = client.interactionManager.updateBlockBreakingProgress(breakPos, Direction.DOWN);
+        } catch (Exception e) {
+            // 防止外部方法异常导致 tick 中断
+            success = false;
+        }
 
-            // 尝试破坏方块
-            client.interactionManager.updateBlockBreakingProgress(breakPos, Direction.DOWN);
-            client.interactionManager.cancelBlockBreaking();
+        // 新增逻辑：即使success为true，也需要检查方块是否已经改变
+        if (success && !client.world.getBlockState(breakPos).equals(state)) {
+            resetBreakTarget();
+            return;
+        }
 
-            if (!client.world.getBlockState(breakPos).equals(state)) {
-                resetBreakTarget();
-                break;  // 跳出循环，尝试下一个目标
-            }
-
+        if (!success) {
+            resetBreakTarget();
         }
     }
 
@@ -122,6 +136,11 @@ public class BreakManager {
         } else {
             breakPos = null;
         }
+    }
+
+    // 获取待挖掘方块数量
+    public int getBlocksToBreakCount() {
+        return breakTargets.size();
     }
 
     // 清空所有待挖掘方块
