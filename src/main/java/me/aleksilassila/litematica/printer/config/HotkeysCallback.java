@@ -92,7 +92,6 @@ public class HotkeysCallback implements IHotkeyCallback {
         }
         //#endif
         else if (key == TOGGLE_PRINTING_MODE.getKeybind()) {
-            Printer.getPrinter().clearQueue();
             BreakManager.instance().clear();
         }
         return false;

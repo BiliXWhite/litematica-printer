@@ -26,15 +26,17 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.l
 
 public class LitematicaMixinMod implements ModInitializer, ClientModInitializer {
     public static final String MOD_ID = "litematica_printer";
+    public static final String I18N_PREFIX = MOD_ID + ".config";
     //========================================
     //           Config Settings
     //========================================
     public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger(
-            getName("printInterval"), 1, 0, 20,
-            "每次放置的间隔，以§b游戏刻§r为单位。数值越低意味着打印速度越快。\n" +
-                    "在值为§b0§r时可能在服务器中表现效果不佳，需开启§6§l使用数据包放置方块§r。\n" +
-                    "在值为§b0§r时会提供§6§l每刻执行方块数§r的选项，需要重新打开设置菜单才能出现。"
-    );
+            "printInterval", 1, 0, 20, "printInterval"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigInteger PRINT_PER_TICK = new ConfigInteger(
             "每刻执行方块数", 4, 0, 16,
             "当§6§l打印机工作间隔§r为§b0§r时每个游戏刻打印的方块数量。数值越高意味着打印速度越快。\n" +
@@ -83,9 +85,12 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "无视是否有方块面支撑，直接放置方块。"
     );
     public static final ConfigBooleanHotkeyed PRINT_WATER = new ConfigBooleanHotkeyed(
-            getName("printWater"),  false, "",
-            getComment("printWater")
-    );
+            "printWater",  false, "", "printWater"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigBoolean PRINT_SWITCH = new ConfigBoolean(
             "打印状态", false,
             "打印的开关状态。"
@@ -101,7 +106,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     );
     public static final ConfigBoolean REPLACE = new ConfigBoolean(
             "覆盖打印", true,
-            "无视列表中的方块直接替换放置，例如:草、雪片等。"
+            "无视§6§l覆盖方块列表§r中的方块直接进行打印，例如:草、雪片等。"
     );
     public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean(
             "自动去树皮", false,
@@ -128,29 +133,36 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "关闭全部模式，若此时为单模模式将模式恢复为打印。"
     );
     public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList(
-            "排流体方块名单", ImmutableList.of("minecraft:sand"),
-            getComment("blocklist")
+            "排流体方块名单", ImmutableList.of("minecraft:sand"), getComment("blocklist")
     );
     public static final ConfigStringList FILL_BLOCK_LIST = new ConfigStringList(
-            "填充方块名单", ImmutableList.of("minecraft:cobblestone"),
-                    getComment("blocklist")
+            "填充方块名单", ImmutableList.of("minecraft:cobblestone"), getComment("blocklist")
     );
     public static final ConfigBoolean PUT_SKIP = new ConfigBoolean(
             "跳过放置", false,
             "开启后会§6§l跳过放置列表§r内的方块。"
     );
     public static final ConfigBoolean QUICK_SHULKER = new ConfigBoolean(
-            getName("quickShulker"), false,
-            getComment("quickShulker")
-    );
+            "quickShulker", false, "quickShulker"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigOptionList QUICK_SHULKER_MODE = new ConfigOptionList(
-            getName("quickShulkerMode"), State.QuickShulkerModeType.CLICK_SLOT,
-            getComment("quickShulkerMode")
-    );
+            "quickShulkerMode", State.QuickShulkerModeType.CLICK_SLOT, "quickShulkerMode"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigInteger QUICK_SHULKER_COOLDOWN = new ConfigInteger(
-            getName("quickShulkerCooldown"), 10, 0, 20,
-            getComment("quickShulkerCooldown")
-    );
+            "quickShulkerCooldown", 10, 0, 20, "quickShulkerCooldown"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigBoolean CLOUD_INVENTORY = new ConfigBoolean(
             "远程交互容器", false,
             "在服务器支持远程交互容器或单机的情况下可以远程交互\n" +
@@ -164,12 +176,12 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "有序存放", false,
             "在背包满时尝试将从远程交互容器或快捷潜影盒中取出的物品还原到之前位置。"
                     //#if MC == 11802
-                    + "\n在1.18.2版本表现不好，甚至会导致卡顿，建议关闭。"
+                    + "\n在1.18.2版本表现不好，可能会会导致卡顿，建议关闭。"
                     //#endif
     );
     public static final ConfigStringList INVENTORY_LIST = new ConfigStringList(
             "库存白名单", ImmutableList.of("minecraft:chest"),
-            "打印机库存的白名单，只有白名单内的容器才会被记录。"
+            "打印机库存的白名单，只有白名单内的容器才会被记录。\n" + getComment("blocklist")
     );
     public static final ConfigOptionList EXCAVATE_LIMITER = new ConfigOptionList(
             "挖掘模式限制器", State.ExcavateListMode.CUSTOM,
@@ -186,19 +198,16 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
                     "§l使用Tweakeroo挖掘限制预设时，此项会被忽略。§r"
     );
     public static final ConfigStringList EXCAVATE_WHITELIST = new ConfigStringList(
-            "挖掘白名单", ImmutableList.of(""),
-            getComment("blocklist")
+            "挖掘白名单", ImmutableList.of(""), getComment("blocklist")
     );
     public static final ConfigStringList EXCAVATE_BLACKLIST = new ConfigStringList(
-            "挖掘黑名单", ImmutableList.of(""),
-            getComment("blocklist")
+            "挖掘黑名单", ImmutableList.of(""), getComment("blocklist")
     );
     public static final ConfigStringList PUT_SKIP_LIST = new ConfigStringList(
-            "跳过放置名单", ImmutableList.of(),
-            getComment("blocklist")
+            "跳过放置名单", ImmutableList.of(), getComment("blocklist")
     );
     public static final ConfigStringList REPLACEABLE_LIST = new ConfigStringList(
-            "可替换方块", ImmutableList.of(
+            "覆盖方块列表", ImmutableList.of(
             "minecraft:snow", "minecraft:lava", "minecraft:water",
             "minecraft:bubble_column", "minecraft:short_grass"
     ),
@@ -215,7 +224,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "启用后打印失活珊瑚时，如果背包里没有失活珊瑚，会自动使用活珊瑚替换。如果背包里同时有活珊瑚和失活珊瑚，则会优先使用失活珊瑚打印。"
     );
     public static final ConfigBoolean RENDER_PROGRESS = new ConfigBoolean(
-            "显示打印进度", true,
+            "显示打印进度", false,
             "在打印机工作并且模式为§d打印§r时在HUD中显示打印进度。"
     );
     public static final ConfigBoolean LAG_CHECK = new ConfigBoolean(
@@ -223,53 +232,85 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "打印机工作时会检测数据包的接收时间，如果超过20个游戏刻还没收到新数据包，打印机会自动暂停，直到收到数据包后再继续。"
     );
     public static final ConfigOptionList ITERATION_ORDER = new ConfigOptionList(
-            getName("iteratorMode"), State.IterationOrderType.XZY,
-            getComment("iteratorMode")
-    );
+            "iteratorMode", State.IterationOrderType.XZY, "iteratorMode"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigBoolean X_REVERSE = new ConfigBoolean(
-            getName("xReverse"), false,
-            getComment("xReverse")
-    );
+            "xReverse", false, "xReverse"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigBoolean Y_REVERSE = new ConfigBoolean(
-            getName("yReverse"), false,
-            getComment("yReverse")
-    );
+            "yReverse", false, "yReverse"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigBoolean Z_REVERSE = new ConfigBoolean(
-            getName("zReverse"), false,
-            getComment("zReverse")
-    );
+            "zReverse", false, "zReverse"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigBoolean FALLING_CHECK = new ConfigBoolean(
-            getName("fallingBlockCheck"), true,
-            getComment("fallingBlockCheck")
-    );
+            "fallingBlockCheck", true, "fallingBlockCheck"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigBoolean BREAK_WRONG_BLOCK = new ConfigBoolean(
-            getName("breakWrongBlock"), false,
-            getComment("breakWrongBlock")
-    );
+            "breakWrongBlock", false, "breakWrongBlock"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigBoolean DEBUG_OUTPUT = new ConfigBoolean(
-            "调试输出", false,
-            "启用后会在聊天框输出调试信息，供反馈时使用。"
-    );
-    // 音符盒自动调音
+            "debugOutput", false,
+            "debugOutput"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigBoolean NOTE_BLOCK_TUNING = new ConfigBoolean(
-            getName("autoTuning"), true,
-            getComment("autoTuning")
-    );
+            "autoTuning", true, "autoTuning"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigBoolean SAFELY_OBSERVER = new ConfigBoolean(
-            getName("safelyObserver"), true,
-            getComment("safelyObserver")
-    );
-    // 也破坏掉多余方块
+            "safelyObserver", true, "safelyObserver"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigBoolean BREAK_EXTRA_BLOCK = new ConfigBoolean(
-            getName("breakExtraBlock"), false,
-            getComment("breakExtraBlock")
-    );
+            "breakExtraBlock", false, "breakExtraBlock"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
 
     // 跳过含水方块
     public static final ConfigBoolean SKIP_WATERLOGGED_BLOCK = new ConfigBoolean(
-            getName("printSkipWaterlogged"), false,
-            getComment("printSkipWaterlogged")
-    );
+            "printSkipWaterlogged", false, "printSkipWaterlogged"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
 
     //========================================
     //                  热键
@@ -324,7 +365,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
         list.add(COMPULSION_RANGE);
         list.add(PUT_COOLING);
         list.add(PLACE_USE_PACKET);
-        list.add(RENDER_PROGRESS);
+        //list.add(RENDER_PROGRESS);
         list.add(QUICK_SHULKER);
         list.add(QUICK_SHULKER_MODE);
         list.add(QUICK_SHULKER_COOLDOWN);
@@ -396,7 +437,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     @Override
     public void onInitializeClient() {
         // Client-side initialization
-        System.out.println(getName("autoTuning"));
     }
 
     //========================================

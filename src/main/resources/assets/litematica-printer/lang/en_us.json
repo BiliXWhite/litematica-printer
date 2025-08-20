@@ -5,7 +5,7 @@
   "litematica_printer.update.download": "Lanzou Cloud (China) download link",
   "litematica_printer.update.password": "Password: %s",
   "litematica_printer.update.failed": "Failed to check for updates. Please try again later.",
-  "litematica_printer.config.comment.blocklist": "",
+  "litematica_printer.config.comment.blocklist": "You can enter a square or item ID, for example: §bminecraft:stone§r. \nIf §b§r is preceded, a tag match will be used, and the list will match the corresponding squares according to the tag, for example: §llog§r. \nIf you enter text and filter conditions (separated by commas), for example: §lstone, c§r. \nWhere “c” means using the include matching method, you will try pinyin or directly match first.",
   "litematica_printer.config.name.autoTuning": "autoTuning",
   "litematica_printer.config.comment.autoTuning": "Automatically tune note blocks during printing.",
   "litematica_printer.config.name.safelyObserver": "safelyObserver",

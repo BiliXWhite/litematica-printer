@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.printer;
 
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.DebugUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
@@ -171,10 +172,37 @@ public class PlacementGuide extends PrinterUtils {
             case CHEST -> {
                 Direction facing = requiredState.get(Properties.HORIZONTAL_FACING).getOpposite();
                 ChestType type = requiredState.get(Properties.CHEST_TYPE);
+                Map<Direction, Vec3d> noChestSides = new HashMap<>();
+                boolean allSidesMatched = true;
+
+                for (Direction side : Direction.values()) {
+                    if (world.getBlockState(pos.offset(side)).getBlock() instanceof ChestBlock) {
+                        continue;
+                    }
+                    noChestSides.put(side, Vec3d.ZERO);
+                }
+
+
                 if (type == ChestType.SINGLE) {
-                    return new Action().setLookDirection(facing, Direction.DOWN).setUseShift();
+                    for (Direction side : Properties.HORIZONTAL_FACING.getValues()) {
+                        if (!noChestSides.containsKey(side)) {
+                            allSidesMatched = false;
+                            return new Action().setLookDirection(facing).setUseShift();
+                        }
+                        return new Action().setSides(noChestSides).setLookDirection(facing);
+                    }
                 } else {
-                    return new Action().setLookDirection(facing);
+                    Direction chestFacing = facing;
+                    if (type == ChestType.LEFT) {
+                        chestFacing = facing.rotateYCounterclockwise();
+                    } else if (type == ChestType.RIGHT) {
+                        chestFacing = facing.rotateYClockwise();
+                    }
+                    if (world.getBlockState(pos.offset(chestFacing)).getBlock() instanceof ChestBlock) {
+                        return new Action().setSides(Map.of(chestFacing, Vec3d.ZERO));
+                    } else {
+                        return new Action().setSides(noChestSides).setLookDirection(facing).setUseShift();
+                    }
                 }
             }
             case BED -> {
@@ -387,7 +415,7 @@ public class PlacementGuide extends PrinterUtils {
                                     default -> finalSide;
                                 };
 
-                                return new Action().setSides(finalSide).setLookDirection(finalSide.getOpposite(), sidePitch);
+                                return new Action().setLookDirection(finalSide.getOpposite(), sidePitch).setRequiresSupport();
                             })
                     ).orElse(new Action());
                 }
@@ -400,7 +428,7 @@ public class PlacementGuide extends PrinterUtils {
                 ) { // 操你妈ojng切石机你他妈为什么不是BlockWithEntity?
                     return horizontalFacing.map(facing -> {
                         if (block instanceof FenceGateBlock) facing = facing.getOpposite(); // 栅栏门
-                        return new Action().setSides(facing).setLookDirection(facing.getOpposite());
+                        return new Action().setLookDirection(facing.getOpposite());
                     }).orElse(new Action());
                 }
 
@@ -408,21 +436,21 @@ public class PlacementGuide extends PrinterUtils {
                     return facingOpt.map(facing -> {
                         if (block instanceof RodBlock) // 侦测器和末地烛，避雷针类的物品
                             facing = facing.getOpposite();
-                        return new Action().setSides(facing).setLookDirection(facing.getOpposite());
+                        return new Action().setLookDirection(facing.getOpposite());
                     }).orElse(new Action());
                 }
 
                 if (block instanceof BlockWithEntity) {
                     if (requiredState.getProperties().contains(Properties.FACING)) {
                         return facingOpt.map(facing -> 
-                            new Action().setSides(facing).setLookDirection(facing.getOpposite())
+                            new Action().setLookDirection(facing.getOpposite())
                         ).orElse(new Action());
                     }
                     if (requiredState.getProperties().contains(Properties.HORIZONTAL_FACING)) {
                         return horizontalFacing.map(facing -> {
                             if (block instanceof CampfireBlock)
                                 facing = facing.getOpposite(); // 营火方向需要旋转
-                            return new Action().setSides(facing).setLookDirection(facing.getOpposite());
+                            return new Action().setLookDirection(facing.getOpposite());
                         }).orElse(new Action());
                     }
                 }
@@ -832,33 +860,32 @@ public class PlacementGuide extends PrinterUtils {
 
             // 遍历所有侧面，检查每个侧面是否可用
             for (Direction side : sides.keySet()) {
+                BlockPos neighborPos = pos.offset(side);
+                BlockState neighborState = world.getBlockState(neighborPos);
 
-                if (LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport) {
-                    return side;
-                } else {
-                    BlockPos neighborPos = pos.offset(side);
-                    BlockState neighborState = world.getBlockState(neighborPos);
+                if (LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue() &&
+                        !this.requiresSupport &&
+                        !Implementation.isInteractive(neighborState.getBlock())
+                ) return side;
 
-                    // 检查该侧面是否可以被点击且不可替换
-                    if (canBeClicked(world, neighborPos) && !PlaceUtils.isReplaceable(neighborState)) {
-                        validSides.add(side);
-                    }
+
+                // 检查该侧面是否可以被点击且不可替换
+                if (canBeClicked(world, neighborPos) && !PlaceUtils.isReplaceable(neighborState)) {
+                    validSides.add(side);
                 }
             }
 
-            // 如果没有有效的侧面，返回 null
             if (validSides.isEmpty()) return null;
 
-            // 优先选择不需要潜行放置的侧面
+            // 选择一个不需要潜行放置的面
             for (Direction validSide : validSides) {
-                BlockPos offsetPos = pos.offset(validSide);
-                if (!Implementation.isInteractive(world.getBlockState(offsetPos).getBlock())) {
+                BlockState requiredState = world.getBlockState(pos);
+                BlockState sideBlockState = world.getBlockState(pos.offset(validSide));
+                if (!Implementation.isInteractive(sideBlockState.getBlock()) && requiredState.canPlaceAt(world, pos)) {
                     return validSide;
                 }
             }
 
-            // 如果所有侧面都需要潜行，则设置使用潜行并返回第一个有效侧面
-            setUseShift();
             return validSides.get(0);
         }
 
