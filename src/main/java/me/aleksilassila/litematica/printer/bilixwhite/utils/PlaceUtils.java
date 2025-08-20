@@ -1,14 +1,16 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
-import me.aleksilassila.litematica.printer.printer.State;
+import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.BubbleColumnBlock;
 import net.minecraft.block.FluidBlock;
 import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockPos;
+import org.lwjgl.glfw.GLFW;
 
 public class PlaceUtils {
+    private static int tickTimeForPrinter = 12; // 每帧的时间间隔，单位毫秒（60Hz下每帧间隔约为16.67ms）
+
     public static boolean isWaterRequired(BlockState blockState) {
         return
             blockState.isOf(Blocks.WATER) &&
@@ -25,5 +27,17 @@ public class PlaceUtils {
         //#else
         return state.isReplaceable();
         //#endif
+    }
+
+    public static int getPerFrameTime() {
+        // 默认最低刷新率30Hz，应该没人会这么比这个还低吧？
+        int refreshRate = Math.max(GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()).refreshRate(), 30);
+        // 返回帧间隔时间（超过这个值了就会卡顿）
+        return Math.max(1, 1000 / refreshRate);
+    }
+
+    public static boolean isFrameTimeOut() {
+        var maxFrameTime = Printer.getPrinter().tickStartTime + Math.max(1, getPerFrameTime() - tickTimeForPrinter);
+        return System.currentTimeMillis() > maxFrameTime;
     }
 }

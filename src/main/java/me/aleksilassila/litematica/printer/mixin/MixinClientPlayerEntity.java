@@ -74,7 +74,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 		//#endif
 	}
 
-	@Inject(at = @At("HEAD"), method = "tick")
+	@Inject(at = @At("TAIL"), method = "tick")
 	public void tick(CallbackInfo ci) {
 		Printer printer = Printer.getPrinter();
 		ZxyUtils.tick();
@@ -83,6 +83,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 			PlacementGuide.posMap = new HashMap<>();
 			printer.basePos = null;
 			Printer.fluidModeItemList = new HashSet<>();
+			printer.clearQueue();
 			return;
 		}
 		BreakManager.instance().onTick();

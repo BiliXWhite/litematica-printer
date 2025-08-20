@@ -8,6 +8,8 @@ import fi.dy.masa.litematica.selection.Box;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.DebugUtils;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
@@ -32,6 +34,7 @@ import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.StreamSupport;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
@@ -76,6 +79,7 @@ public class Printer extends PrinterUtils {
     static ItemStack orderlyStoreItem; //有序存放临时存储
     private static Printer INSTANCE = null;
     public int shulkerCooldown = 0;
+    public static long tickStartTime;
 
     @NotNull
     public static final MinecraftClient client = MinecraftClient.getInstance();
@@ -87,7 +91,6 @@ public class Printer extends PrinterUtils {
     public MyBox myBox;
     int printRange;
     boolean yReverse = false;
-    BlockPos tempPos = null;
     int tickRate;
     List<String> fluidBlocklist;
     List<String> fillBlocklist;
@@ -114,17 +117,18 @@ public class Printer extends PrinterUtils {
 
 
     BlockPos getBlockPos() {
+        if (PlaceUtils.isFrameTimeOut()) return null;
         ClientPlayerEntity player = client.player;
         if (player == null) return null;
-
+    
         BlockPos playerPos = player.getBlockPos();
-
+    
         // 如果 basePos 为空，则初始化为玩家当前位置，并扩展 myBox 范围
         if (basePos == null) {
             basePos = playerPos;
             myBox = new MyBox(basePos).expand(printRange);
         }
-
+    
         double threshold = printRange * 0.7;
         if (!basePos.isWithinDistance(playerPos, threshold)) {
             basePos = null;
@@ -135,17 +139,19 @@ public class Printer extends PrinterUtils {
         myBox.xIncrement = !X_REVERSE.getBooleanValue();
         myBox.yIncrement = Y_REVERSE.getBooleanValue() == yReverse;
         myBox.zIncrement = !Z_REVERSE.getBooleanValue();
-
+    
         Iterator<BlockPos> iterator = myBox.iterator;
-
-        while (iterator.hasNext()) {
-            BlockPos pos = iterator.next();
-            if (!basePos.isWithinDistance(pos, printRange)) continue;
-            return pos;
+    
+        Optional<BlockPos> optionalPos = StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED), false)
+                .filter(pos -> basePos.isWithinDistance(pos, printRange))
+                .findFirst();
+    
+        if (optionalPos.isPresent()) {
+            return optionalPos.get();
+        } else {
+            basePos = null;
+            return null;
         }
-
-        basePos = null;
-        return null;
     }
 
     void fluidMode() {
@@ -224,6 +230,7 @@ public class Printer extends PrinterUtils {
         }
     }
 
+    BlockPos tempPos = null;
     void miningMode() {
         BlockPos pos;
         // 循环处理方块位置，直到找到可挖掘的目标或遍历完成
@@ -235,9 +242,7 @@ public class Printer extends PrinterUtils {
                 tempPos = null;
                 continue;
             }
-            // 检查世界状态和挖掘条件，如果满足则执行挖掘
-            if (client.world != null &&
-                    TempData.xuanQuFanWeiNei_p(pos) &&
+            if (TempData.xuanQuFanWeiNei_p(pos) &&
                     BreakManager.breakRestriction(client.world.getBlockState(pos)) &&
                     breakManager.breakBlock(pos)) {
                 tempPos = pos;
@@ -276,6 +281,7 @@ public class Printer extends PrinterUtils {
         ClientWorld world = client.world;
         // 预载常用配置值
         int compulsionRange = COMPULSION_RANGE.getIntegerValue();
+        tickStartTime = System.currentTimeMillis();
         tickRate = PRINT_INTERVAL.getIntegerValue();
         printPerTick = LitematicaMixinMod.PRINT_PER_TICK.getIntegerValue();
 
@@ -287,7 +293,7 @@ public class Printer extends PrinterUtils {
         // 优先执行队列中的点击操作
         if (tickRate != 0) {
             queue.sendQueue(player);
-            if ((System.currentTimeMillis() / 50) % tickRate != 0) {
+            if ((tickStartTime / 50) % tickRate != 0) {
                 return;
             }
         }
@@ -389,8 +395,9 @@ public class Printer extends PrinterUtils {
 
             Item[] reqItems = action.getRequiredItems(requiredState.getBlock());
             if (playerHasAccessToItems(player, reqItems)) {
-                boolean useShift = Implementation.isInteractive(world.getBlockState(pos.offset(side)).getBlock()) || LitematicaMixinMod.FORCED_SNEAK.getBooleanValue() ||
-                        action.useShift;
+                boolean useShift = (Implementation.isInteractive(world.getBlockState(pos.offset(side)).getBlock()) && !(action instanceof PlacementGuide.ClickAction))
+                        || LitematicaMixinMod.FORCED_SNEAK.getBooleanValue()
+                        || action.useShift;
                 if (needDelay) continue;
                 if (!switchToItems(player, reqItems)) return;
                 action.queueAction(queue, pos, side, useShift);
@@ -400,7 +407,9 @@ public class Printer extends PrinterUtils {
                     var block = schematic.getBlockState(pos).getBlock();
                     if (block instanceof PistonBlock ||
                             block instanceof ObserverBlock ||
-                            block instanceof DispenserBlock
+                            block instanceof DispenserBlock ||
+                            block instanceof BarrelBlock ||
+                            block instanceof WallBannerBlock
                             //#if MC >= 12101
                             || block instanceof CrafterBlock
                         //#endif
@@ -489,33 +498,28 @@ public class Printer extends PrinterUtils {
 
     public static class TempData {
         public static boolean xuanQuFanWeiNei_p(BlockPos pos) {
-            return xuanQuFanWeiNei_p(pos, 0);
-        }
-
-        public static boolean xuanQuFanWeiNei_p(BlockPos pos, int p) {
             AreaSelection i = DataManager.getSelectionManager().getCurrentSelection();
             if (i == null) return false;
             if (DataManager.getSelectionManager().getSelectionMode() == NORMAL) {
                 List<Box> arr = i.getAllSubRegionBoxes();
                 for (Box box : arr) {
-                    if (comparePos(box, pos, p)) {
+                    if (comparePos(box, pos)) {
                         return true;
                     }
                 }
                 return false;
             } else {
                 Box box = i.getSubRegionBox(DataManager.getSimpleArea().getName());
-                return comparePos(box, pos, p);
+                return comparePos(box, pos);
             }
         }
 
-        static boolean comparePos(Box box, BlockPos pos, int p) {
+        static boolean comparePos(Box box, BlockPos pos) {
             if (box == null || box.getPos1() == null || box.getPos2() == null || pos == null) return false;
-            net.minecraft.util.math.Box box1 = new MyBox(box);
-            box1 = box1.expand(p);
+            MyBox myBox = new MyBox(box);
             //因为麻将的Box.contains方法内部用的 x >= this.minX && x < this.maxX ... 使得最小边界能被覆盖，但是最大边界不行
             //因此 我重写了该方法
-            return box1.contains(Vec3d.of(pos));
+            return myBox.contains(Vec3d.of(pos));
         }
     }
 

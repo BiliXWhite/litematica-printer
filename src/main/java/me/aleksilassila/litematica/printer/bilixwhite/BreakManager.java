@@ -2,7 +2,6 @@ package me.aleksilassila.litematica.printer.bilixwhite;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
-import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.loader.api.FabricLoader;
@@ -59,38 +58,40 @@ public class BreakManager {
     public void onTick() {
         if (client.player == null || client.world == null || client.interactionManager == null) return;
 
-        // 性能优化：提前检查是否有必要继续执行
-        if (breakTargets.isEmpty()) return;
+        // 如果没有正在处理的目标，则初始化一个新的
+        if (breakPos == null && !breakTargets.isEmpty()) {
+            updateBreakTarget();
+            if (breakPos != null) {
+                state = client.world.getBlockState(breakPos);
+            }
+        }
 
-        // 使用迭代器来遍历所有目标方块
-        Iterator<BlockPos> iterator = breakTargets.iterator();
-        while (iterator.hasNext()) {
-            BlockPos pos = iterator.next();
+        // 如果没有要处理的目标，直接返回
+        if (breakPos == null) {
+            state = null;
+            return;
+        }
 
-            // 检查方块是否可以交互和破坏
-            if (!ZxyUtils.canInteracted(pos) ||
-                !canBreakBlock(pos) ||
-                !breakRestriction(client.world.getBlockState(pos))) {
-                iterator.remove();
-                continue;
+        // 使用内部循环处理当前的breakPos
+        while (true) {
+            // 检查是否可以继续处理该位置的方块
+            if (!ZxyUtils.canInteracted(breakPos) ||
+                    !canBreakBlock(breakPos) ||
+                    !breakRestriction(state) ||
+                    state.isAir()) {
+                resetBreakTarget();
+                break;  // 跳出循环，尝试下一个目标
             }
 
-            // 获取方块状态
-            BlockState currentState = client.world.getBlockState(pos);
-            if (currentState.isAir()) {
-                iterator.remove();
-                continue;
+            // 尝试破坏方块
+            client.interactionManager.updateBlockBreakingProgress(breakPos, Direction.DOWN);
+            client.interactionManager.cancelBlockBreaking();
+
+            if (!client.world.getBlockState(breakPos).equals(state)) {
+                resetBreakTarget();
+                break;  // 跳出循环，尝试下一个目标
             }
 
-            // 执行挖掘
-            try {
-                boolean success = client.interactionManager.updateBlockBreakingProgress(pos, Direction.DOWN);
-                if (success && !client.world.getBlockState(pos).equals(currentState)) {
-                    iterator.remove();
-                }
-            } catch (Exception e) {
-                iterator.remove();
-            }
         }
     }
 
@@ -114,7 +115,6 @@ public class BreakManager {
             state = null;
             return;
         }
-        Printer.placeCooldownList.put(breakPos, -5);
         // 性能优化：使用迭代器直接获取第一个元素，避免创建新的集合
         Iterator<BlockPos> iterator = breakTargets.iterator();
         if (iterator.hasNext()) {
@@ -184,8 +184,11 @@ public class BreakManager {
         Block block = currentState.getBlock();
 
         // 检查方块是否可以破坏，如果可以则执行挖掘操作
-        client.interactionManager.updateBlockBreakingProgress(pos, Direction.DOWN);
-        client.interactionManager.cancelBlockBreaking();
-        return world.getBlockState(pos).isOf(block);
+        if (canBreakBlock(pos)) {
+            client.interactionManager.updateBlockBreakingProgress(pos, Direction.DOWN);
+            client.interactionManager.cancelBlockBreaking();
+            return world.getBlockState(pos).isOf(block);
+        }
+        return false;
     }
 }
