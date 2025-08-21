@@ -41,5 +41,11 @@
   "litematica_printer.config.name.printPerTick": "printPerTick",
   "litematica_printer.config.comment.printPerTick": "The number of blocks printed per tick.\nThis option is enabled when the print interval is set to 0.\nIt is recommended to set it between 2-8 to balance performance and speed.\nIf set too high, you may be kicked from the server.",
   "litematica_printer.config.name.printSkipWaterlogged": "printSkipWaterlogged",
-  "litematica_printer.config.comment.printSkipWaterlogged": "When enabled, it will skip placing waterlogged blocks during printing."
+  "litematica_printer.config.comment.printSkipWaterlogged": "When enabled, it will skip placing waterlogged blocks during printing.",
+  "litematica_printer.config.name.frameTimeout": "frameTimeout",
+  "litematica_printer.config.comment.frameTimeout": "Apply cooling during the iteration of blocks within the range to prevent excessive time consumption and avoid lag.",
+  "litematica_printer.config.name.frameExtraTime": "frameExtraTime",
+  "litematica_printer.config.comment.frameExtraTime": "Extend the time interval used per frame in milliseconds.\nOnly effective when §6§lFrame Generation Cooling§r is enabled. Your display refresh rate is %s, and each frame takes approximately %s milliseconds.",
+  "litematica_printer.config.name.easyPlaceProtocol": "easyPlaceProtocol",
+  "litematica_printer.config.comment.easePlaceProtocol": "Print using the precise placement protocol within Litematica."
 }

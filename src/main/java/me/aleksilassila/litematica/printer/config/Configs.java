@@ -33,8 +33,10 @@ public class Configs implements IConfigHandler {
         if (PRINT_INTERVAL.getIntegerValue() == 0) list.add(PRINT_PER_TICK);
         list.add(COMPULSION_RANGE);
         list.add(PUT_COOLING);
+        list.add(FRAME_TIMEOUT);
+        list.add(FRAME_EXTRA_TIME);
         list.add(PLACE_USE_PACKET);
-        list.add(RENDER_PROGRESS);
+        list.add(RENDER_HUD);
         list.add(QUICK_SHULKER);
         list.add(QUICK_SHULKER_MODE);
         list.add(QUICK_SHULKER_COOLDOWN);
@@ -62,7 +64,7 @@ public class Configs implements IConfigHandler {
         list.add(PUT_SKIP);
         list.add(PUT_SKIP_LIST);
         list.add(STORE_ORDERLY);
-        list.add(USE_EASY_MODE);
+        list.add(USE_EASYPLACE);
         list.add(FORCED_SNEAK);
         list.add(PRINT_IN_AIR);
         list.add(PRINT_WATER);
@@ -155,7 +157,7 @@ public class Configs implements IConfigHandler {
         list.add(FLUID);
         list.add(FILL);
         list.add(PRINT_WATER);
-        list.add(USE_EASY_MODE);
+        list.add(USE_EASYPLACE);
 
         return ImmutableList.copyOf(list);
     }

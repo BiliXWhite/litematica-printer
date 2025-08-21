@@ -5,10 +5,11 @@ import fi.dy.masa.litematica.data.DataManager;
 
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
+import fi.dy.masa.litematica.util.EasyPlaceProtocol;
+import fi.dy.masa.litematica.util.PlacementHandler;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.DebugUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
@@ -37,6 +38,8 @@ import java.util.*;
 import java.util.stream.StreamSupport;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
+import static fi.dy.masa.litematica.util.WorldUtils.applyCarpetProtocolHitVec;
+import static fi.dy.masa.litematica.util.WorldUtils.applyPlacementProtocolV3;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
 import static me.aleksilassila.litematica.printer.printer.State.PrintModeType.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
@@ -99,6 +102,7 @@ public class Printer extends PrinterUtils {
 
     public static int packetTick;
     public static boolean updateChecked = false;
+    public static BlockState requiredState;
 
     private Printer(@NotNull MinecraftClient client) {
 
@@ -155,6 +159,7 @@ public class Printer extends PrinterUtils {
     }
 
     void fluidMode() {
+        requiredState = null;
         fluidBlocklist = LitematicaMixinMod.FLUID_BLOCK_LIST.getStrings();
         if (fluidBlocklist.isEmpty()) return;
         fluidModeItemList.clear();
@@ -192,6 +197,7 @@ public class Printer extends PrinterUtils {
     }
 
     void fillMode() {
+        requiredState = null;
         fillBlocklist = LitematicaMixinMod.FILL_BLOCK_LIST.getStrings();
         if (fillBlocklist.isEmpty()) return;
         fillModeItemList.clear();
@@ -245,6 +251,7 @@ public class Printer extends PrinterUtils {
             if (TempData.xuanQuFanWeiNei_p(pos) &&
                     BreakManager.breakRestriction(client.world.getBlockState(pos)) &&
                     breakManager.breakBlock(pos)) {
+                requiredState = client.world.getBlockState(pos);
                 tempPos = pos;
                 return;
             }
@@ -357,7 +364,7 @@ public class Printer extends PrinterUtils {
             // 是否可接触到
             if (!canInteracted(pos)) continue;
 
-            BlockState requiredState = schematic.getBlockState(pos);
+            requiredState = schematic.getBlockState(pos);
 
             // 检查放置跳过列表
             if (LitematicaMixinMod.PUT_SKIP.getBooleanValue()) {
@@ -398,13 +405,24 @@ public class Printer extends PrinterUtils {
                 boolean useShift = (Implementation.isInteractive(world.getBlockState(pos.offset(side)).getBlock()) && !(action instanceof PlacementGuide.ClickAction))
                         || LitematicaMixinMod.FORCED_SNEAK.getBooleanValue()
                         || action.useShift;
+
                 if (needDelay) continue;
                 if (!switchToItems(player, reqItems)) return;
+
                 action.queueAction(queue, pos, side, useShift);
+
+                Vec3d hitModifier = usePrecisionPlacement(pos, requiredState);
+                if(hitModifier != null){
+                    queue.hitModifier = hitModifier;
+                    queue.termsOfUse = true;
+                }
+
                 if (action.getLookHorizontalDirection() != null)
                     sendLook(player, action.getLookHorizontalDirection(), action.getLookDirectionPitch());
+
                 if (tickRate == 0) {
                     var block = schematic.getBlockState(pos).getBlock();
+
                     if (block instanceof PistonBlock ||
                             block instanceof ObserverBlock ||
                             block instanceof DispenserBlock ||
@@ -417,6 +435,7 @@ public class Printer extends PrinterUtils {
                         needDelay = true;
                         return;
                     }
+
                     queue.sendQueue(player);
                     if (PRINT_PER_TICK.getIntegerValue() != 0) printPerTick--;
                     continue;
@@ -446,6 +465,23 @@ public class Printer extends PrinterUtils {
             }
         }
         return totalCount == 0 ? 0.0f : ((float) printedCount / totalCount);
+    }
+
+    public Vec3d usePrecisionPlacement(BlockPos pos,BlockState stateSchematic){
+        if (EASYPLACE_PROTOCOL.getBooleanValue()) {
+            EasyPlaceProtocol protocol = PlacementHandler.getEffectiveProtocolVersion();
+            Vec3d hitPos = Vec3d.of(pos);
+            if (protocol == EasyPlaceProtocol.V3)
+            {
+                return applyPlacementProtocolV3(pos, stateSchematic, hitPos);
+            }
+            else if (protocol == EasyPlaceProtocol.V2)
+            {
+                // Carpet Accurate Block Placement protocol support, plus slab support
+                return applyCarpetProtocolHitVec(pos, stateSchematic, hitPos);
+            }
+        }
+        return null;
     }
 
     public boolean switchToItems(ClientPlayerEntity player, Item[] items) {
