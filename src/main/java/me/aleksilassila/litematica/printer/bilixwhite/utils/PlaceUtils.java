@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
+import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -9,7 +10,6 @@ import net.minecraft.state.property.Properties;
 import org.lwjgl.glfw.GLFW;
 
 public class PlaceUtils {
-    private static int tickTimeForPrinter = 12; // 每帧的时间间隔，单位毫秒（60Hz下每帧间隔约为16.67ms）
 
     public static boolean isWaterRequired(BlockState blockState) {
         return
@@ -37,7 +37,8 @@ public class PlaceUtils {
     }
 
     public static boolean isFrameTimeOut() {
-        var maxFrameTime = Printer.getPrinter().tickStartTime + Math.max(1, getPerFrameTime() - tickTimeForPrinter);
+        if (!LitematicaMixinMod.FRAME_TIMEOUT.getBooleanValue()) return false;
+        var maxFrameTime = Printer.getPrinter().tickStartTime + getPerFrameTime() + LitematicaMixinMod.FRAME_EXTRA_TIME.getIntegerValue();
         return System.currentTimeMillis() > maxFrameTime;
     }
 }

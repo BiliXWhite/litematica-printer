@@ -415,7 +415,7 @@ public class PlacementGuide extends PrinterUtils {
                                     default -> finalSide;
                                 };
 
-                                return new Action().setLookDirection(finalSide.getOpposite(), sidePitch).setRequiresSupport();
+                                return new Action().setSides(sidePitch).setLookDirection(finalSide.getOpposite(), sidePitch).setRequiresSupport();
                             })
                     ).orElse(new Action());
                 }

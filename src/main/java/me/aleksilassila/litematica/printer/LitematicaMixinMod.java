@@ -95,7 +95,14 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "打印状态", false,
             "打印的开关状态。"
     );
-    public static final ConfigBooleanHotkeyed USE_EASY_MODE = new ConfigBooleanHotkeyed(
+    public static final ConfigBoolean EASYPLACE_PROTOCOL = new ConfigBoolean(
+            "easyPlaceProtocol", false, "easyPlaceProtocol"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
+    public static final ConfigBooleanHotkeyed USE_EASYPLACE = new ConfigBooleanHotkeyed(
             "轻松放置模式", false, "",
             "启用后会调用轻松放置来进行放置，因为轻松放置本身会使用放置协议，" +
                     "所以在开启了这个功能后无需启用§6§l精准放置§r。"
@@ -223,13 +230,13 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "替换珊瑚", false,
             "启用后打印失活珊瑚时，如果背包里没有失活珊瑚，会自动使用活珊瑚替换。如果背包里同时有活珊瑚和失活珊瑚，则会优先使用失活珊瑚打印。"
     );
-    public static final ConfigBoolean RENDER_PROGRESS = new ConfigBoolean(
-            "显示打印进度", false,
-            "在打印机工作并且模式为§d打印§r时在HUD中显示打印进度。"
+    public static final ConfigBoolean RENDER_HUD = new ConfigBoolean(
+            "显示打印HUD", false,
+            "在打印机工作时显示工作模式和处理的方块（排流体与填充除外）。\n在开启§6§l延迟检测§r时也显示接收数据包间的延迟。"
     );
     public static final ConfigBoolean LAG_CHECK = new ConfigBoolean(
             "延迟检测", true,
-            "打印机工作时会检测数据包的接收时间，如果超过20个游戏刻还没收到新数据包，打印机会自动暂停，直到收到数据包后再继续。"
+            "打印机工作时会检测数据包的接收时间，如果超过20个游戏刻仍没收到新数据包，打印机会自动暂停，直到收到数据包后再继续。"
     );
     public static final ConfigOptionList ITERATION_ORDER = new ConfigOptionList(
             "iteratorMode", State.IterationOrderType.XZY, "iteratorMode"
@@ -303,9 +310,24 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             //#endif
             ;
 
-    // 跳过含水方块
     public static final ConfigBoolean SKIP_WATERLOGGED_BLOCK = new ConfigBoolean(
             "printSkipWaterlogged", false, "printSkipWaterlogged"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
+
+    public static final ConfigBoolean FRAME_TIMEOUT = new ConfigBoolean(
+            "frameTimeout", true, "frameTimeout"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
+
+    public static final ConfigInteger FRAME_EXTRA_TIME = new ConfigInteger(
+            "frameExtraTime", 4, 0 , 64, "frameExtraTime"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
