@@ -17,10 +17,12 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.cancelMovePack;
 
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 //#if MC > 12001
 import net.minecraft.client.network.ClientCommonNetworkHandler;
 
@@ -44,30 +46,26 @@ public class ClientCommonNetworkHandlerMixin {
      */
 
     //#if MC < 12004
-    //$$ @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket(Lnet/minecraft/network/packet/Packet;)V")
+    //$$ @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket(Lnet/minecraft/network/packet/Packet;)V", cancellable = true)
     //#else
-    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"), method = "sendPacket")
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"), method = "sendPacket", cancellable = true)
     //#endif
-    public void sendPacket(ClientConnection instance, Packet<?> packet, Operation<Void> original) {
+    public void sendPacket(Packet<?> packet, CallbackInfo ci) {
         if (Printer.currentAction == null) {
-            original.call(instance, packet);
             return;
         }
 
         Direction direction = Printer.currentAction.lookDirection;
-        if (direction != null && Implementation.isLookAndMovePacket(packet)) {
-            Packet<?> fixedPacket = Implementation.getFixedLookPacket(client.player, packet, Printer.currentAction);
-            if (fixedPacket != null) {
-                this.connection.send(fixedPacket);
-                return;
-            }
-        } else if (direction != null && Implementation.isLookOnlyPacket(packet)) {
-            Packet<?> fixedPacket = Implementation.getFixedLookPacket(client.player, packet, Printer.currentAction);
-            if (fixedPacket != null) {
-                this.connection.send(fixedPacket);
-                return;
+        if (direction != null) {
+            if (packet instanceof PlayerMoveC2SPacket.Full full) {
+                Packet<?> fixedPacket = Implementation.getFixedLookPacket(client.player, full, Printer.currentAction);
+                if (fixedPacket != null) {
+                    this.connection.send(fixedPacket);
+                    ci.cancel();
+                }
+            } else if (packet instanceof PlayerMoveC2SPacket.LookAndOnGround) {
+                ci.cancel();
             }
         }
-        original.call(instance, packet);
     }
 }
