@@ -110,10 +110,11 @@ public class Implementation {
 
         float[] angles = getRequiredAngles(playerEntity, action.lookDirection, action.lookDirection2);
 
-        double x = ((PlayerMoveC2SPacketAccessor) packet).getX();
-        double y = ((PlayerMoveC2SPacketAccessor) packet).getY();
-        double z = ((PlayerMoveC2SPacketAccessor) packet).getZ();
-        boolean onGround = ((PlayerMoveC2SPacketAccessor) packet).getOnGround();
+        PlayerMoveC2SPacketAccessor accessor = (PlayerMoveC2SPacketAccessor) packet;
+        double x = accessor.getX();
+        double y = accessor.getY();
+        double z = accessor.getZ();
+        boolean onGround = accessor.getOnGround();
         return new PlayerMoveC2SPacket.Full(x, y, z, angles[0], angles[1], onGround
                 //#if MC > 12101
                 //$$ ,playerEntity.horizontalCollision
