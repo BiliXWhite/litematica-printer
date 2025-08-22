@@ -18,10 +18,12 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
+
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.cancelMovePack;
 
 //#if MC > 12001
 import net.minecraft.client.network.ClientCommonNetworkHandler;
+
 @Mixin(value = ClientCommonNetworkHandler.class)
 //#else
 //$$ import net.minecraft.client.network.ClientPlayNetworkHandler;
@@ -44,7 +46,7 @@ public class ClientCommonNetworkHandlerMixin {
     //#if MC < 12004
     //$$ @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket(Lnet/minecraft/network/packet/Packet;)V")
     //#else
-    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket")
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"), method = "sendPacket")
     //#endif
     public void sendPacket(ClientConnection instance, Packet<?> packet, Operation<Void> original) {
         if (Printer.currentAction == null) {
@@ -60,7 +62,11 @@ public class ClientCommonNetworkHandlerMixin {
                 return;
             }
         } else if (direction != null && Implementation.isLookOnlyPacket(packet)) {
-            return;
+            Packet<?> fixedPacket = Implementation.getFixedLookPacket(client.player, packet, Printer.currentAction);
+            if (fixedPacket != null) {
+                this.connection.send(fixedPacket);
+                return;
+            }
         }
         original.call(instance, packet);
     }
