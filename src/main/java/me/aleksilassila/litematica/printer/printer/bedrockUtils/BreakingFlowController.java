@@ -4,6 +4,7 @@ import fi.dy.masa.litematica.util.EasyPlaceProtocol;
 import fi.dy.masa.litematica.util.PlacementHandler;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.PlayerAction;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -88,13 +89,11 @@ public class BreakingFlowController {
             }
 
 
-            Printer printer = Printer.getPrinter();
-            if (printer == null) return;
             if (!ZxyUtils.bedrockCanInteracted(blockPos, bedrockModeRange())) continue;
             if (!MinecraftClient.getInstance().world.getBlockState(blockPos).isAir()) {
 //                BlockBreaker.breakBlock(MinecraftClient.getInstance().world, poslist.get(i));
                 InventoryManager.switchToItem(Items.DIAMOND_PICKAXE);
-                Printer.waJue(blockPos);
+                PlayerAction.waJue(blockPos);
             }
 
 

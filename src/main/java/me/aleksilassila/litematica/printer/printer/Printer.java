@@ -16,6 +16,7 @@ import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionMa
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.mixin.masa.WorldUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.PlayerAction;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Verify;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
@@ -51,9 +52,9 @@ import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
 import static me.aleksilassila.litematica.printer.printer.Printer.TempData.*;
 import static me.aleksilassila.litematica.printer.printer.State.PrintModeType.*;
 import static me.aleksilassila.litematica.printer.printer.bedrockUtils.BreakingFlowController.cachedTargetBlockList;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.BlockTask.BreakBlock.excavateBlock;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsItemName;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.PlayerAction.excavateBlock;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 import org.slf4j.Logger;
@@ -127,8 +128,7 @@ public class Printer extends PrinterUtils {
     @NotNull
     public final MinecraftClient client;
     public final PlacementGuide guide;
-    public final Queue queue;
-    public static PlacementGuide.Action action;
+    public static PlacementGuide.Action currentAction;
 
     public static int tick = 0;
 
@@ -143,7 +143,6 @@ public class Printer extends PrinterUtils {
         this.client = client;
 
         this.guide = new PlacementGuide(client);
-        this.queue = new Queue(this);
 
         INSTANCE = this;
     }
@@ -278,8 +277,8 @@ public class Printer extends PrinterUtils {
                                 if ((currentState.getFluidState().isEmpty() || currentState.getFluidState().isStill()) &&
                                         switchToItems(client.player, items.toArray(new Item[0]))) {
                                     if (action.get() != null) {
-                                        action.get().queueAction(queue, finalPos, action.get().getValidSide(client.world, finalPos), true, false);
-                                        queue.sendQueue(client.player);
+                                        action.get().queueAction(finalPos, false);
+                                        action.get().sendQueue(client.player);
                                     } else if (action.get() == null) {
                                         ((IClientPlayerInteractionManager) client.interactionManager).rightClickBlock(finalPos, Direction.UP, Vec3d.ofCenter(finalPos));
                                     }
@@ -318,7 +317,7 @@ public class Printer extends PrinterUtils {
             if (client.world != null &&
                     xuanQuFanWeiNei_p(pos) &&
                     breakRestriction(client.world.getBlockState(pos),pos) &&
-                    waJue(pos)) {
+                    PlayerAction.waJue(pos)) {
                 tempPos = pos;
                 return;
             }
@@ -489,14 +488,18 @@ public class Printer extends PrinterUtils {
         boolean forcedPlacementBooleanValue = FORCED_PLACEMENT.getBooleanValue();
 
         if (tickRate != 0) {
-            queue.sendQueue(client.player);
+            if (currentAction != null){
+                switchToItems(pEntity, currentAction.clickItems);
+                currentAction.sendQueue(client.player);
+            }
+
             if (tick % tickRate != 0) {
                 return;
             }
         }
         if (isFacing) {
             switchToItems(pEntity, item2);
-            queue.sendQueue(client.player);
+            if (currentAction != null) currentAction.sendQueue(client.player);
             isFacing = false;
         }
 
@@ -564,10 +567,7 @@ public class Printer extends PrinterUtils {
                 else continue;
             }
 
-            if (action == null) continue;
-
-            Direction side = action.getValidSide(world, pos);
-            if (side == null) continue;
+            if (action == null || action.side == null) continue;
 
             Item[] requiredItems = action.getRequiredItems(requiredState.getBlock());
             if (playerHasAccessToItems(pEntity, requiredItems)) {
@@ -583,21 +583,19 @@ public class Printer extends PrinterUtils {
                         }
                         case LEFT: {
                             if(world.getBlockState(pos.offset(requiredState.get(ChestBlock.FACING).rotateYClockwise())).isAir()) continue;
-                            side = requiredState.get(ChestBlock.FACING).rotateYClockwise();
+                            action.side = requiredState.get(ChestBlock.FACING).rotateYClockwise();
                             useShift = true;
                             break ;
                         }
                     }
-                } else if (Implementation.isInteractive(world.getBlockState(pos.offset(side)).getBlock())) {
+                } else if (Implementation.isInteractive(world.getBlockState(pos.offset(action.side)).getBlock())) {
                     useShift = true;
                 }
-
-                Direction lookDir = action.getLookDirection();
 
                 if (!easyModeBooleanValue && isFacingBlock(requiredState) && isFacing) {
                     continue;
                 }
-
+                Direction lookDir = action.getLookDirection();
                 //确认侦测器看向方块是否正确
                 if(requiredState.isOf(Blocks.OBSERVER) && PUT_TESTING.getBooleanValue()){
                     BlockPos offset = pos.offset(lookDir);
@@ -612,35 +610,29 @@ public class Printer extends PrinterUtils {
                 if(forcedPlacementBooleanValue) useShift = true;
                 //发送放置准备
                 action.sendPlacementPreparation(pEntity);
-                action.queueAction(queue, pos, side, useShift, lookDir != null);
+                action.queueAction(pos, useShift);
 
                 Vec3d hitModifier = usePrecisionPlacement(pos, requiredState);
-                if(hitModifier != null){
-                    queue.hitModifier = hitModifier;
-                    queue.termsOfUse = true;
-                }
-
-                if (requiredState.isOf(Blocks.NOTE_BLOCK)) {
-                    queue.sendQueue(pEntity);
-                    continue;
-                }
+                if(hitModifier != null) action.hitModifier = hitModifier;
+//                if (requiredState.isOf(Blocks.NOTE_BLOCK)) {
+//                    action.sendQueue(pEntity);
+//                    continue;
+//                }
 
                 if (tickRate == 0) {
                     //处理不能快速放置的方块
-//                    if(hitModifier != null){
-//                        useBlock(hitModifier,action.lookDirection,pos,false);
-//                        continue;
-//                    }
                     if (hitModifier == null && isFacingBlock(requiredState)
                     ) {
                         item2 = requiredItems;
                         isFacing = true;
+                        currentAction = action;
                         continue;
                     }
 
-                    queue.sendQueue(pEntity);
+                    action.sendQueue(pEntity);
                     continue;
                 }
+                currentAction = action;
                 return;
             }
         }
@@ -717,102 +709,5 @@ public class Printer extends PrinterUtils {
     public void swapHandWithSlot(ClientPlayerEntity player, int slot) {
         ItemStack stack = Implementation.getInventory(player).getStack(slot);
         InventoryUtils.setPickedItemToHand(stack, client);
-    }
-
-    public static class Queue {
-        public BlockPos target;
-        public Direction side;
-        public Vec3d hitModifier;
-        public boolean shift = false;
-        public boolean didSendLook = true;
-        public boolean termsOfUse = false;
-
-        public Direction lookDir = null;
-
-        final Printer printerInstance;
-
-        public Queue(Printer printerInstance) {
-            this.printerInstance = printerInstance;
-        }
-
-        public void queueClick(@NotNull BlockPos target, @NotNull Direction side, @NotNull Vec3d hitModifier, boolean shift, boolean didSendLook) {
-            if (PRINT_INTERVAL.getIntegerValue() != 0) {
-                if (this.target != null) {
-                    System.out.println("Was not ready yet.");
-                    return;
-                }
-            }
-
-            this.didSendLook = didSendLook;
-            this.target = target;
-            this.side = side;
-            this.hitModifier = hitModifier;
-            this.shift = shift;
-
-        }
-        public void sendQueue(ClientPlayerEntity player) {
-            if (target == null || side == null || hitModifier == null) return;
-
-            boolean wasSneaking = player.isSneaking();
-
-            Direction direction = side.getAxis() == Direction.Axis.Y ?
-                    ((lookDir == null || !lookDir.getAxis().isHorizontal())
-                            ? Direction.NORTH : lookDir) : side;
-
-//            hitModifier = new Vec3d(hitModifier.x, hitModifier.y, hitModifier.z);
-            Vec3d hitVec = hitModifier;
-            if(!termsOfUse){
-                hitModifier = hitModifier.rotateY((direction.asRotation() + 90) % 360);
-                 hitVec = Vec3d.ofCenter(target)
-                        .add(Vec3d.of(side.getVector()).multiply(0.5))
-                        .add(hitModifier.multiply(0.5));
-            }
-
-            if (shift && !wasSneaking)
-                setShift(player, true);
-            else if (!shift && wasSneaking)
-                setShift(player, false);
-
-            ItemStack mainHandStack1 = yxcfItem;
-
-            ((IClientPlayerInteractionManager) printerInstance.client.interactionManager)
-                        .rightClickBlock(target, side, hitVec);
-
-
-            if (mainHandStack1 != null) {
-                if ( mainHandStack1.isEmpty()) {
-                    SwitchItem.removeItem(mainHandStack1);
-                } else SwitchItem.syncUseTime(mainHandStack1);
-            }
-//            System.out.println("Printed at " + (target.toString()) + ", " + side + ", modifier: " + hitVec);
-
-            if (shift && !wasSneaking)
-                setShift(player, false);
-            else if (!shift && wasSneaking)
-                setShift(player, true);
-
-            clearQueue();
-        }
-
-        public void setShift(ClientPlayerEntity player , boolean shift){
-            //#if MC > 12105
-            //$$ PlayerInput input = new PlayerInput(player.input.playerInput.forward(), player.input.playerInput.backward(), player.input.playerInput.left(), player.input.playerInput.right(), player.input.playerInput.jump(), shift, player.input.playerInput.sprint());
-            //$$ PlayerInputC2SPacket packet = new PlayerInputC2SPacket(input);
-            //#else
-            ClientCommandC2SPacket packet = new ClientCommandC2SPacket(player, shift ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY);
-            //#endif
-
-            player.networkHandler.sendPacket(packet);
-
-        }
-
-        public void clearQueue() {
-            this.target = null;
-            this.side = null;
-            this.hitModifier = null;
-            this.lookDir = null;
-            this.shift = false;
-            this.didSendLook = true;
-        }
     }
 }

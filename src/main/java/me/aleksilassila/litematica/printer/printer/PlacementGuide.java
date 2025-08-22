@@ -2,8 +2,11 @@ package me.aleksilassila.litematica.printer.printer;
 
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.mixin.FlowerPotBlockAccessor;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.PlayerAction;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.*;
@@ -11,9 +14,9 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 //#if MC < 12104
-import net.minecraft.state.property.DirectionProperty;
 //#else
 //$$
 //#endif
@@ -21,6 +24,7 @@ import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.state.property.Property;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -29,10 +33,12 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static me.aleksilassila.litematica.printer.printer.Printer.*;
 import static me.aleksilassila.litematica.printer.printer.qwer.PrintWater.*;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.BlockTask.BreakBlock.excavateBlock;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.PlayerAction.excavateBlock;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.PlayerAction.setShift;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.switchToItems;
 import static net.minecraft.block.enums.BlockFace.WALL;
 
@@ -122,7 +128,11 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     public @Nullable Action buildAction(World world, WorldSchematic worldSchematic, BlockPos pos, ClassHook requiredType) {
-        return buildAction(world, world.getBlockState(pos), worldSchematic.getBlockState(pos), pos, requiredType);
+        Action action = buildAction(world, world.getBlockState(pos), worldSchematic.getBlockState(pos), pos, requiredType);
+        if(action == null) return null;
+        Direction side = action.getValidSide((ClientWorld) world, pos);
+        if (side != null) action.side = side.getOpposite();
+        return action;
     }
     @SuppressWarnings("EnhancedSwitchMigration")
     public @Nullable Action buildAction(World world, BlockState currentState, BlockState requiredState, BlockPos pos, ClassHook requiredType) {
@@ -353,10 +363,15 @@ public class PlacementGuide extends PrinterUtils {
                 }
                 //#if MC > 12002
                 case CRAFTER: {
+                    Action action = new Action().setItem(Items.CRAFTER);
                     Orientation orientation = requiredState.get(Properties.ORIENTATION);
                     Direction look = orientation.getFacing().getOpposite();
+                    action.setLookDirection(look);
                     Direction side = orientation.getRotation();
-                    return new Action().setItem(Items.CRAFTER).setLookDirection(look).setLookDirection2(side);
+                    if (look == Direction.DOWN || look == Direction.UP) {
+                        action.setLookDirection2(side);
+                    }
+                    return action;
                 }
                 //#endif
                 case DEFAULT:
@@ -372,13 +387,11 @@ public class PlacementGuide extends PrinterUtils {
 
                     }
 
-                    Action placement = new Action().setLookDirection(look);
-
+                    Action placement = new Action().setLookDirection(look).setItem(requiredState.getBlock().asItem());
                     // If required == dirt path place dirt
                     if (requiredState.getBlock().equals(Blocks.DIRT_PATH) && !playerHasAccessToItem(client.player, requiredState.getBlock().asItem())) {
                         placement.setItem(Items.DIRT);
                     }
-
                     return placement;
                 }
             }
@@ -536,6 +549,10 @@ public class PlacementGuide extends PrinterUtils {
 
     public static class Action {
         public Map<Direction, Vec3d> sides;
+        public Vec3d hitModifier;
+        public BlockPos target;
+
+        public Direction side;
         public Direction lookDirection;
         public Direction lookDirection2;
         @Nullable
@@ -729,30 +746,90 @@ public class PlacementGuide extends PrinterUtils {
             return this.setRequiresSupport(true);
         }
 
-        public void queueAction(Printer.Queue queue, BlockPos center, Direction side, boolean useShift, boolean didSendLook) {
+
+        public Direction getSide(){
+            if(side != null) return side;
+            Direction[] directions = new Direction[1];
+            getSides().keySet().stream().findFirst().ifPresent(direction -> directions[0] = direction);
+            return directions[0];
+        }
+
+        public void queueAction(BlockPos center, boolean useShift) {
 //            System.out.println("Queued click?: " + center.offset(side).toString() + ", side: " + side.getOpposite());
 
+            shift = useShift;
             if (LitematicaMixinMod.shouldPrintInAir && !this.requiresSupport) {
-                queue.queueClick(center, side.getOpposite(), getSides().get(side),
-                        useShift, didSendLook);
+                target = center;
             } else {
-                queue.queueClick(center.offset(side), side.getOpposite(), getSides().get(side),
-                        useShift, didSendLook);
+                target = center.offset(side);
             }
 
         }
         public void sendPlacementPreparation(ClientPlayerEntity player){
             switchToItems(player, clickItems);
             Implementation.sendLookPacket(player, lookDirection, lookDirection2);
-            getPrinter().queue.lookDir = lookDirection;
+        }
+
+        public void sendQueue(ClientPlayerEntity player) {
+            if (target == null) return;
+
+            boolean wasSneaking = player.isSneaking();
+
+            Direction direction = getSide().getAxis() == Direction.Axis.Y ?
+                    ((lookDirection == null || !lookDirection.getAxis().isHorizontal())
+                            ? Direction.NORTH : lookDirection) : getSide();
+
+//            hitModifier = new Vec3d(hitModifier.x, hitModifier.y, hitModifier.z);
+            Map<Direction, Vec3d> sides = getSides();
+            Vec3d hitVec = sides.get(getSide());
+            if(hitModifier == null){
+                Vec3d vec3d = hitVec.rotateY((direction.asRotation() + 90) % 360);
+                hitVec = Vec3d.ofCenter(target)
+                        .add(Vec3d.of(getSide().getVector()).multiply(0.5))
+                        .add(vec3d.multiply(0.5));
+            }else {
+                hitVec = hitModifier;
+            }
+
+            if (shift && !wasSneaking)
+                setShift(player, true);
+            else if (!shift && wasSneaking)
+                setShift(player, false);
+
+            ItemStack mainHandStack1 = yxcfItem;
+
+            PlayerAction.interactBlock(Hand.MAIN_HAND, hitVec, getSide(), target, false, shift);
+
+            if (mainHandStack1 != null) {
+                if ( mainHandStack1.isEmpty()) {
+                    SwitchItem.removeItem(mainHandStack1);
+                } else SwitchItem.syncUseTime(mainHandStack1);
+            }
+//            System.out.println("Printed at " + (target.toString()) + ", " + side + ", modifier: " + hitVec);
+
+            if (shift && !wasSneaking)
+                setShift(player, false);
+            else if (!shift && wasSneaking)
+                setShift(player, true);
+
+            clearQueue();
+        }
+
+        public void clearQueue() {
+            this.target = null;
+            this.hitModifier = null;
+            this.lookDirection = null;
+            this.lookDirection2 = null;
+            this.shift = false;
+            currentAction = null;
         }
     }
 
     public static class ClickAction extends Action {
         @Override
-        public void queueAction(Printer.Queue queue, BlockPos center, Direction side, boolean useShift, boolean didSendLook) {
+        public void queueAction(BlockPos center, boolean useShift) {
 //            System.out.println("Queued click?: " + center.toString() + ", side: " + side);
-            queue.queueClick(center, side, getSides().get(side), false, false);
+            super.queueAction(center, false);
         }
 
         @Override

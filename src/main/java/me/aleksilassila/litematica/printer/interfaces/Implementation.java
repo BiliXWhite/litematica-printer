@@ -1,6 +1,8 @@
 package me.aleksilassila.litematica.printer.interfaces;
 
 import me.aleksilassila.litematica.printer.mixin.PlayerMoveC2SPacketAccessor;
+import me.aleksilassila.litematica.printer.printer.PlacementGuide;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.block.*;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerAbilities;
@@ -47,11 +49,13 @@ public class Implementation {
         return playerEntity.getPitch();
     }
 
-    public static void sendLookPacket(ClientPlayerEntity playerEntity, Direction direction1, Direction direction2) {
-        if(direction1 == null) return;
+    public static float[] getRequiredAngles(ClientPlayerEntity player, Direction direction1, Direction direction2) {
+        float[] angles = new float[]{player.getYaw(), player.getPitch()};
+        if(direction1 == null) return angles;
         if(direction2 == null) {
-            sendLookPacket(playerEntity, direction1);
-            return;
+            angles[0] = Implementation.getRequiredYaw(player, direction1);
+            angles[1] = Implementation.getRequiredPitch(player, direction1);
+            return angles;
         }
         Direction yaw;
         Direction pitch;
@@ -62,9 +66,19 @@ public class Implementation {
             yaw = direction2;
             pitch = direction1;
         }
-        float requiredYaw = Implementation.getRequiredYaw(playerEntity, yaw);
-        float requiredPitch = Implementation.getRequiredPitch(playerEntity, pitch);
-        sendLookPacket(playerEntity, requiredYaw ,requiredPitch);
+
+        angles[0] = Implementation.getRequiredYaw(player, yaw);
+        angles[1] = Implementation.getRequiredPitch(player, pitch);
+        return angles;
+    }
+    public static void sendLookPacket(ClientPlayerEntity playerEntity, Direction direction1, Direction direction2) {
+        if(direction1 == null) return;
+        if(direction2 == null) {
+            sendLookPacket(playerEntity, direction1);
+            return;
+        }
+        float[] requiredAngles = getRequiredAngles(playerEntity, direction1, direction2);
+        sendLookPacket(playerEntity, requiredAngles[0], requiredAngles[1]);
     }
     public static void sendLookPacket(ClientPlayerEntity playerEntity, Direction playerShouldBeFacing) {
         float requiredYaw = Implementation.getRequiredYaw(playerEntity, playerShouldBeFacing);
@@ -91,17 +105,16 @@ public class Implementation {
         return packet instanceof PlayerMoveC2SPacket.Full;
     }
 
-    public static Packet<?> getFixedLookPacket(ClientPlayerEntity playerEntity, Packet<?> packet, Direction direction) {
-        if (direction == null) return packet;
+    public static Packet<?> getFixedLookPacket(ClientPlayerEntity playerEntity, Packet<?> packet, PlacementGuide.Action action) {
+        if (action.lookDirection == null) return packet;
 
-        float yaw = Implementation.getRequiredYaw(playerEntity, direction);
-        float pitch = Implementation.getRequiredPitch(playerEntity, direction);
+        float[] angles = getRequiredAngles(playerEntity, action.lookDirection, action.lookDirection2);
 
         double x = ((PlayerMoveC2SPacketAccessor) packet).getX();
         double y = ((PlayerMoveC2SPacketAccessor) packet).getY();
         double z = ((PlayerMoveC2SPacketAccessor) packet).getZ();
         boolean onGround = ((PlayerMoveC2SPacketAccessor) packet).getOnGround();
-        return new PlayerMoveC2SPacket.Full(x, y, z, yaw, pitch, onGround
+        return new PlayerMoveC2SPacket.Full(x, y, z, angles[0], angles[1], onGround
                 //#if MC > 12101
                 //$$ ,playerEntity.horizontalCollision
                 //#endif

@@ -16,6 +16,7 @@ import java.util.function.Predicate;
 
 import static me.aleksilassila.litematica.printer.interfaces.Implementation.sendLookPacket;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.BlockTask.BlockTaskManager.looking;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.PlayerAction.excavateBlock;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 
 public class BlockTask {
@@ -154,28 +155,6 @@ public class BlockTask {
             taskState = BlockTaskState.DONE_TASK;
             return true;
         }
-
-        static BlockPos breakTargetBlock = null;
-        static int startTick = -1;
-        //如果返回了null则表示正在挖掘该方块
-        public static BlockPos excavateBlock(BlockPos pos){
-            if (!canInteracted(pos)) {
-                breakTargetBlock = null;
-                return null;
-            }
-            //一个游戏刻挖一次就好
-            if (startTick == tick) {
-                return null;
-            }
-            breakTargetBlock = breakTargetBlock != null ? breakTargetBlock : pos;
-            if (!Printer.waJue(breakTargetBlock)) {
-                BlockPos breakTargetBlock1 = breakTargetBlock;
-                breakTargetBlock = null;
-                return breakTargetBlock1;
-            }
-            startTick = tick;
-            return null;
-        }
     }
 
     public class PlaceBlock extends BlockTask {
@@ -203,6 +182,7 @@ public class BlockTask {
 
         @Override
         public boolean runTask() {
+            if (done()) return false;
             Vec3d vec3d = Printer.getPrinter().usePrecisionPlacement(pos, state);
             if (!looking && vec3d == null && direction1 != null && taskState == BlockTaskState.INITIAL) {
                 looking = true;
@@ -211,7 +191,7 @@ public class BlockTask {
                 return false;
             }
             vec3d = vec3d != null ? vec3d : this.vec3d;
-            ZxyUtils.interactBlock1(Hand.MAIN_HAND, vec3d, side, pos, false, useShift);
+            PlayerAction.interactBlock(Hand.MAIN_HAND, vec3d, side, pos, false, useShift);
             taskState = BlockTaskState.DONE_TASK;
             return true;
         }
@@ -222,6 +202,7 @@ public class BlockTask {
         public static boolean looking = false;
         public static void tick() {
             for (BlockTask blockTask : blockTaskList) {
+                if (blockTask.done()) continue;
                 blockTask.tick();
             }
             looking = false;
@@ -229,7 +210,7 @@ public class BlockTask {
         }
 
         public static boolean addTask(BlockTask task) {
-            if (blockTaskList.size() >= 1024) return false;
+            if (blockTaskList.size() >= 256) return false;
             return blockTaskList.add(task);
         }
 

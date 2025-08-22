@@ -391,16 +391,6 @@ public class ZxyUtils {
         clientTry = false;
         remoteTime = 0;
     }
-
-    public static void interactBlock1(Hand hand, Vec3d vec3d, Direction direction, BlockPos pos, boolean insideBlock,boolean useShift){
-        if (useShift) Printer.getPrinter().queue.setShift(client.player, true);
-        client.interactionManager.interactBlock(client.player,
-                //#if MC < 11902
-                //$$ client.world,
-                //#endif
-                hand,new BlockHitResult(vec3d, direction,pos,insideBlock));
-        if (useShift) Printer.getPrinter().queue.setShift(client.player, false);
-    }
     public static Optional<ClientPlayerEntity> getPlayer(){
         return Optional.ofNullable(client.player);
     }

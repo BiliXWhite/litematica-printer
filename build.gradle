@@ -2,7 +2,7 @@ plugins {
     id("maven-publish")
     id("fabric-loom").version("1.10-SNAPSHOT").apply(false)
     id("org.ajoberstar.grgit").version("5.2.0")
-    id("com.replaymod.preprocess").version("9d21b334a7")
+    id("com.replaymod.preprocess").version("0a04a5668b")
     id("com.github.breadmoirai.github-release").version('2.4.1')
 }
 

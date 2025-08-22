@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.printer.bedrockUtils;
 
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.PlayerAction;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -87,7 +88,7 @@ public class BlockPlacer {
         ClientPlayerEntity player = minecraftClient.player;
         ItemStack itemStack = player.getStackInHand(Hand.OFF_HAND);
 
-        ZxyUtils.interactBlock1(Hand.OFF_HAND,hitResult.getPos(),hitResult.getSide(),hitResult.getBlockPos(),hitResult.isInsideBlock(),false);
+        PlayerAction.interactBlock(Hand.OFF_HAND,hitResult.getPos(),hitResult.getSide(),hitResult.getBlockPos(),hitResult.isInsideBlock(),false);
 
         if (!itemStack.isEmpty() && !player.getItemCooldownManager().isCoolingDown(
                 //#if MC > 12101

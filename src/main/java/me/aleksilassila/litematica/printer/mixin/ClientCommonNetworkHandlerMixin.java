@@ -47,16 +47,19 @@ public class ClientCommonNetworkHandlerMixin {
     @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket")
     //#endif
     public void sendPacket(ClientConnection instance, Packet<?> packet, Operation<Void> original) {
-        Direction direction = Printer.getPrinter().queue.lookDir;
+        if (Printer.currentAction == null) {
+            original.call(instance, packet);
+            return;
+        }
+
+        Direction direction = Printer.currentAction.lookDirection;
         if (direction != null && Implementation.isLookAndMovePacket(packet)) {
-            Packet<?> fixedPacket = Implementation.getFixedLookPacket(client.player, packet, direction);
+            Packet<?> fixedPacket = Implementation.getFixedLookPacket(client.player, packet, Printer.currentAction);
             if (fixedPacket != null) {
                 this.connection.send(fixedPacket);
                 return;
             }
         } else if (direction != null && Implementation.isLookOnlyPacket(packet)) {
-            Packet<?> fixedPacket = Implementation.getFixedLookPacket(client.player, packet, direction);
-            this.connection.send(fixedPacket);
             return;
         }
         original.call(instance, packet);
