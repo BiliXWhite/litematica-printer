@@ -61,7 +61,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 
 	@Inject(at = @At("HEAD"), method = "init")
 	public void init(CallbackInfo ci) {
-		if (!Printer.updateChecked)
+		if (LitematicaMixinMod.UPDATE_CHECK.getBooleanValue() && !Printer.updateChecked)
 			CompletableFuture.runAsync(this::checkForUpdates);
 		Printer.updateChecked = true;
 	}

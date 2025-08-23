@@ -59,12 +59,12 @@
     "litematica_printer.config.name.printSkipWaterlogged": "跳过打印含水方块",
     "litematica_printer.config.comment.printSkipWaterlogged": "启用后在打印时会跳过水下方块的放置。",
 
-    "litematica_printer.config.name.frameTimeout": "帧生成冷却",
-    "litematica_printer.config.comment.frameTimeout": "在迭代范围内方块的时候进行冷却，防止占用时间过多造成卡顿。",
-
-    "litematica_printer.config.name.frameExtraTime": "帧额外占用时长",
-    "litematica_printer.config.comment.frameExtraTime": "拓展每帧使用的时间间隔，单位为毫秒。\n仅在启用§6§l帧生成冷却§r时有效。你的显示器刷新率为%s，每帧使用时长约为%s毫秒。",
+    "litematica_printer.config.name.iteratorUseTime": "迭代占用时长",
+    "litematica_printer.config.comment.iteratorUseTime": "每个游戏刻使用的时间间隔，单位为毫秒，设置为0则禁用。",
 
     "litematica_printer.config.name.easyPlaceProtocol": "精准放置",
-    "litematica_printer.config.comment.easePlaceProtocol": "使用Litematica内精准放置的协议打印。"
+    "litematica_printer.config.comment.easePlaceProtocol": "使用Litematica内精准放置的协议打印。",
+
+    "litematica_printer.config.name.updateCheck": "检查更新",
+    "litematica_printer.config.comment.updateCheck": "在首次进入世界时检查更新。"
 }

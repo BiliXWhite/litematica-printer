@@ -318,22 +318,21 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             //#endif
             ;
 
-    public static final ConfigBoolean FRAME_TIMEOUT = new ConfigBoolean(
-            "frameTimeout", true, "frameTimeout"
+    public static final ConfigInteger ITERATOR_USE_TIME = new ConfigInteger(
+            "iteratorUseTime", 4, 0 , 128, "iteratorUseTime"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
             //#endif
             ;
 
-    public static final ConfigInteger FRAME_EXTRA_TIME = new ConfigInteger(
-            "frameExtraTime", 4, 0 , 64, "frameExtraTime"
+    public static final ConfigBoolean UPDATE_CHECK = new ConfigBoolean(
+            "updateCheck", true, "updateCheck"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
             //#endif
             ;
-
     //========================================
     //                  热键
     //========================================

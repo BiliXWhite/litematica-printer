@@ -44,8 +44,10 @@
   "litematica_printer.config.comment.printSkipWaterlogged": "When enabled, it will skip placing waterlogged blocks during printing.",
   "litematica_printer.config.name.frameTimeout": "frameTimeout",
   "litematica_printer.config.comment.frameTimeout": "Apply cooling during the iteration of blocks within the range to prevent excessive time consumption and avoid lag.",
-  "litematica_printer.config.name.frameExtraTime": "frameExtraTime",
-  "litematica_printer.config.comment.frameExtraTime": "Extend the time interval used per frame in milliseconds.\nOnly effective when §6§lFrame Generation Cooling§r is enabled. Your display refresh rate is %s, and each frame takes approximately %s milliseconds.",
+  "litematica_printer.config.name.iteratorUseTime": "iteratorUseTime",
+  "litematica_printer.config.comment.iteratorUseTime": "The time interval used per tick in milliseconds. Set to 0 to disable.",
   "litematica_printer.config.name.easyPlaceProtocol": "easyPlaceProtocol",
-  "litematica_printer.config.comment.easePlaceProtocol": "Print using the precise placement protocol within Litematica."
+  "litematica_printer.config.comment.easePlaceProtocol": "Print using the precise placement protocol within Litematica.",
+  "litematica_printer.config.name.updateCheck": "updateCheck",
+  "litematica_printer.config.comment.updateCheck": "Check for updates when entering the world for the first time."
 }
