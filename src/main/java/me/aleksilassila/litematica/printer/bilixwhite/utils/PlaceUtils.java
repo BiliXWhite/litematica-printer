@@ -29,16 +29,16 @@ public class PlaceUtils {
         //#endif
     }
 
-    public static int getPerFrameTime() {
-        // 默认最低刷新率30Hz，应该没人会这么比这个还低吧？
-        int refreshRate = Math.max(GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()).refreshRate(), 30);
-        // 返回帧间隔时间（超过这个值了就会卡顿）
-        return Math.max(1, 1000 / refreshRate);
-    }
+//    public static int getPerFrameTime() {
+//        // 默认最低刷新率30Hz，应该没人会这么比这个还低吧？
+//        int refreshRate = Math.max(GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()).refreshRate(), 30);
+//        // 返回帧间隔时间（超过这个值了就会卡顿）
+//        return Math.max(1, 1000 / refreshRate);
+//    }
 
-    public static boolean isFrameTimeOut() {
-        if (!LitematicaMixinMod.FRAME_TIMEOUT.getBooleanValue()) return false;
-        var maxFrameTime = Printer.getPrinter().tickStartTime + getPerFrameTime() + LitematicaMixinMod.FRAME_EXTRA_TIME.getIntegerValue();
+    public static boolean isTimeOut() {
+        Printer.getPrinter();
+        var maxFrameTime = Printer.tickStartTime + LitematicaMixinMod.ITERATOR_USE_TIME.getIntegerValue();
         return System.currentTimeMillis() > maxFrameTime;
     }
 }

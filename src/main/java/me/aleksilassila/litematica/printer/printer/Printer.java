@@ -121,18 +121,18 @@ public class Printer extends PrinterUtils {
 
 
     BlockPos getBlockPos() {
-        if (PlaceUtils.isFrameTimeOut()) return null;
+        if (LitematicaMixinMod.ITERATOR_USE_TIME.getIntegerValue() != 0 && PlaceUtils.isTimeOut()) return null;
         ClientPlayerEntity player = client.player;
         if (player == null) return null;
-    
+
         BlockPos playerPos = player.getBlockPos();
-    
+
         // 如果 basePos 为空，则初始化为玩家当前位置，并扩展 myBox 范围
         if (basePos == null) {
             basePos = playerPos;
             myBox = new MyBox(basePos).expand(printRange);
         }
-    
+
         double threshold = printRange * 0.7;
         if (!basePos.isWithinDistance(playerPos, threshold)) {
             basePos = null;
@@ -143,19 +143,20 @@ public class Printer extends PrinterUtils {
         myBox.xIncrement = !X_REVERSE.getBooleanValue();
         myBox.yIncrement = Y_REVERSE.getBooleanValue() == yReverse;
         myBox.zIncrement = !Z_REVERSE.getBooleanValue();
-    
+
         Iterator<BlockPos> iterator = myBox.iterator;
-    
-        Optional<BlockPos> optionalPos = StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED), false)
-                .filter(pos -> basePos.isWithinDistance(pos, printRange))
-                .findFirst();
-    
-        if (optionalPos.isPresent()) {
-            return optionalPos.get();
-        } else {
-            basePos = null;
-            return null;
+
+        while (iterator.hasNext()) {
+            BlockPos pos = iterator.next();
+            if (!basePos.isWithinDistance(pos, printRange)) {
+                continue;
+            }
+            return pos;
         }
+
+        // 如果没有找到符合条件的位置，重置 basePos 并返回 null
+        basePos = null;
+        return null;
     }
 
     void fluidMode() {
@@ -297,18 +298,17 @@ public class Printer extends PrinterUtils {
             printRange = compulsionRange;
         }
 
+        // 如果正在处理打开的容器或切换物品，则直接返回
+        if (isOpenHandler || switchItem()) {
+            return;
+        }
+
         // 优先执行队列中的点击操作
         if (tickRate != 0) {
             queue.sendQueue(player);
             if ((tickStartTime / 50) % tickRate != 0) {
                 return;
             }
-        }
-
-
-        // 如果正在处理打开的容器或切换物品，则直接返回
-        if (isOpenHandler || switchItem()) {
-            return;
         }
 
         // 0tick修复

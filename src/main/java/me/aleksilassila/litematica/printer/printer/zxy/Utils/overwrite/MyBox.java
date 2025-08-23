@@ -1,6 +1,9 @@
 package me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
+import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.printer.PrinterUtils;
+import me.aleksilassila.litematica.printer.printer.State;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
@@ -59,9 +62,6 @@ public class MyBox extends Box implements Iterable<BlockPos> {
     public void initIterator(){
         if (this.iterator == null) this.iterator = iterator();
 
-    }
-    public void resetIterator(){
-        this.iterator = iterator();
     }
     @Override
     public @NotNull Iterator<BlockPos> iterator() {

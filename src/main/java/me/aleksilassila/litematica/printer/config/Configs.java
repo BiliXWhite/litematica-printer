@@ -33,8 +33,7 @@ public class Configs implements IConfigHandler {
         if (PRINT_INTERVAL.getIntegerValue() == 0) list.add(PRINT_PER_TICK);
         list.add(COMPULSION_RANGE);
         list.add(PUT_COOLING);
-        list.add(FRAME_TIMEOUT);
-        list.add(FRAME_EXTRA_TIME);
+        list.add(ITERATOR_USE_TIME);
         list.add(PLACE_USE_PACKET);
         list.add(RENDER_HUD);
         list.add(QUICK_SHULKER);
@@ -53,6 +52,7 @@ public class Configs implements IConfigHandler {
         list.add(FILL_BLOCK_LIST);
         if(loadChestTracker) list.add(INVENTORY_LIST);
         list.add(DEBUG_OUTPUT);
+        list.add(UPDATE_CHECK);
 
         return ImmutableList.copyOf(list);
     }
