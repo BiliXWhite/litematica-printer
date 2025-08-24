@@ -35,7 +35,6 @@ import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.stream.StreamSupport;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static fi.dy.masa.litematica.util.WorldUtils.applyCarpetProtocolHitVec;
@@ -237,27 +236,27 @@ public class Printer extends PrinterUtils {
         }
     }
 
-    BlockPos tempPos = null;
+    BlockPos breakPos = null;
     void miningMode() {
         BlockPos pos;
         // 循环处理方块位置，直到找到可挖掘的目标或遍历完成
-        while ((pos = tempPos == null ? getBlockPos() : tempPos) != null) {
+        while ((pos = breakPos == null ? getBlockPos() : breakPos) != null) {
             // 检查玩家状态和位置限制条件
             if (client.player != null && (!canInteracted(pos) || isLimitedByTheNumberOfLayers(pos))) {
                 // 重置临时位置并继续循环
-                if (tempPos == null) continue;
-                tempPos = null;
+                if (breakPos == null) continue;
+                breakPos = null;
                 continue;
             }
             if (TempData.xuanQuFanWeiNei_p(pos) &&
                     BreakManager.breakRestriction(client.world.getBlockState(pos)) &&
                     breakManager.breakBlock(pos)) {
                 requiredState = client.world.getBlockState(pos);
-                tempPos = pos;
+                breakPos = pos;
                 return;
             }
             // 清空临时位置
-            tempPos = null;
+            breakPos = null;
         }
     }
 
