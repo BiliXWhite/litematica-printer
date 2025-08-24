@@ -2,7 +2,6 @@ package me.aleksilassila.litematica.printer.printer;
 
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.DebugUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
@@ -54,30 +53,34 @@ public class PlacementGuide extends PrinterUtils {
         BlockState currentState = world.getBlockState(pos);
         BlockState requiredState = worldSchematic.getBlockState(pos);
 
+        if (LitematicaMixinMod.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && PlaceUtils.isWaterRequired(requiredState))
+            return null;
+
         if (LitematicaMixinMod.PRINT_WATER.getBooleanValue() && PlaceUtils.isWaterRequired(requiredState)) {
             if (currentState.isOf(Blocks.ICE)) {
                 BreakManager.addBlockToBreak(pos);
                 return null;
             }
             if (!currentState.isOf(Blocks.WATER)) {
+                if (!currentState.isAir() && !(currentState.getBlock() instanceof FluidBlock)) {
+                    if (LitematicaMixinMod.BREAK_WRONG_BLOCK.getBooleanValue()) {
+                        BreakManager.addBlockToBreak(pos);
+                    }
+                    return null;
+                }
                 return new Action().setItem(Items.ICE);
             }
         }
 
-        if (LitematicaMixinMod.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && PlaceUtils.isWaterRequired(requiredState))
-            return null;
 
         if (state == State.MISSING_BLOCK) switch (requiredType) {
             case TORCH -> {
-                return Optional.ofNullable(requiredState.contains(WallTorchBlock.FACING) ?
-                                requiredState.get(Properties.HORIZONTAL_FACING) :
-                                null)
-
+                return Optional.ofNullable(requiredState.get(Properties.HORIZONTAL_FACING))
                         .map(direction -> new Action()
                                 .setSides(direction.getOpposite())
                                 .setRequiresSupport()
                         )
-                        .orElseGet(() -> new Action().setSides(Direction.DOWN).setLookDirection(Direction.DOWN).setRequiresSupport());
+                        .orElseGet(() -> new Action().setSides(Direction.DOWN).setRequiresSupport());
             }
             case AMETHYST -> {
                 return new Action()
@@ -139,11 +142,13 @@ public class PlacementGuide extends PrinterUtils {
                 return action;
             }
             case ANVIL -> {
-                return new Action().setLookDirection(requiredState.get(AnvilBlock.FACING).rotateYCounterclockwise()).setSides(Direction.UP);
+                Action action = new Action().setLookDirection(requiredState.get(AnvilBlock.FACING).rotateYCounterclockwise());
+                return (LitematicaMixinMod.FALLING_CHECK.getBooleanValue() && worldSchematic.getBlockState(pos.down()).isAir()) ?
+                        action : action.setRequiresSupport();
             }
             case HOPPER -> {
                 Direction facing = requiredState.get(Properties.HOPPER_FACING);
-                return new Action().setSides(facing).setLookDirection(facing);
+                return new Action().setLookDirection(facing);
             }
             case NETHER_PORTAL -> {
 
@@ -153,7 +158,7 @@ public class PlacementGuide extends PrinterUtils {
                 }
             }
             case COCOA -> {
-                return new Action().setSides(requiredState.get(Properties.HORIZONTAL_FACING)).setLookDirection(requiredState.get(Properties.HORIZONTAL_FACING));
+                return new Action().setSides(requiredState.get(Properties.HORIZONTAL_FACING));
             }
             //#if MC >= 12003
             case CRAFTER -> {
@@ -161,11 +166,11 @@ public class PlacementGuide extends PrinterUtils {
                 Direction facing = orientation.getFacing().getOpposite();
                 Direction rotation = orientation.getRotation().getOpposite();
                 if (facing == Direction.UP) {
-                    return new Action().setSides(rotation.getOpposite()).setLookDirection(rotation, Direction.UP);
+                    return new Action().setLookDirection(rotation, Direction.UP);
                 } else if (facing == Direction.DOWN) {
-                    return new Action().setSides(rotation).setLookDirection(rotation.getOpposite(), Direction.DOWN);
+                    return new Action().setLookDirection(rotation.getOpposite(), Direction.DOWN);
                 } else {
-                    return new Action().setSides(facing).setLookDirection(facing, facing);
+                    return new Action().setLookDirection(facing, facing);
                 }
             }
             //#endif
@@ -289,7 +294,7 @@ public class PlacementGuide extends PrinterUtils {
                 for (Direction direction : Direction.values()) {
                     if (direction == Direction.DOWN && requiredState.getBlock() == Blocks.VINE) continue;
                     if ((Boolean) getPropertyByName(requiredState, direction.name())) {
-                        return new Action().setSides(direction).setLookDirection(direction);
+                        return new Action().setSides(direction);
                     }
                 }
             }
@@ -299,28 +304,24 @@ public class PlacementGuide extends PrinterUtils {
                 Block block = requiredState.getBlock();
                 boolean isWallFan = block instanceof DeadCoralWallFanBlock;
                 Direction facing = isWallFan ? requiredState.get(Properties.HORIZONTAL_FACING).getOpposite()
-                        : Direction.UP;
+                        : Direction.DOWN;
 
                 // 如果不是死亡珊瑚或不需要替换，直接返回基础Action
                 if (!LitematicaMixinMod.REPLACE_CORAL.getBooleanValue()) {
                     return new Action()
                             .setSides(facing)
-                            .setLookDirection(facing)
                             .setRequiresSupport();
                 }
 
                 if (playerHasAccessToItem(client.player, block.asItem()) || client.player.isCreative()) {
                     return new Action()
                             .setSides(facing)
-                            .setLookDirection(facing)
                             .setRequiresSupport();
                 }
 
                 String key = block.getTranslationKey();
                 //珊瑚扇
                 if (block instanceof DeadCoralFanBlock) {
-                    //例子：block.minecraft.dead_tube_coral_wall_fan
-                    //例子：block.minecraft.dead_tube_coral_fan
                     String type = key.replace("block.minecraft.dead_", "")
                             .replace("_coral_wall_fan", "")
                             .replace("_coral_fan", "");
@@ -337,24 +338,23 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action()
                             .setItem(fanItem)
                             .setSides(facing)
-                            .setLookDirection(facing)
                             .setRequiresSupport();
                 }
 
-                client.inGameHud.setOverlayMessage(Text.of("尝试替换: " + block), false);
                 //非方块型珊瑚
                 if (block instanceof DeadCoralBlock) {
                     //例子：block.minecraft.dead_tube_coral
                     String type = key.replace("block.minecraft.dead_", "").replace("_coral", "");
-                    client.inGameHud.setOverlayMessage(Text.of("尝试替换珊瑚: " + type), false);
-                    return new Action().setItem(switch (type) {
-                        case "tube" -> Items.TUBE_CORAL;
-                        case "brain" -> Items.BRAIN_CORAL;
-                        case "bubble" -> Items.BUBBLE_CORAL;
-                        case "fire" -> Items.FIRE_CORAL;
-                        case "horn" -> Items.HORN_CORAL;
-                        default -> null;
-                    }).setRequiresSupport();
+                    return new Action().setItem(
+                            switch (type) {
+                                case "tube" -> Items.TUBE_CORAL;
+                                case "brain" -> Items.BRAIN_CORAL;
+                                case "bubble" -> Items.BUBBLE_CORAL;
+                                case "fire" -> Items.FIRE_CORAL;
+                                case "horn" -> Items.HORN_CORAL;
+                                default -> null;
+                            }
+                    ).setSides(Direction.DOWN).setRequiresSupport();
                 }
 
             }
@@ -370,12 +370,13 @@ public class PlacementGuide extends PrinterUtils {
                     ZxyUtils.actionBar("[侦测器安全放置] 侦测面方块不正确，跳过放置！");
                     return null;
                 }
-                return new Action().setSides(facing).setLookDirection(facing);
+                return new Action().setLookDirection(facing);
             }
             case SKIP -> {
                 return null;
             }
             default -> {
+                Action action = new Action();
                 Block block = requiredState.getBlock();
 
                 if (LitematicaMixinMod.FALLING_CHECK.getBooleanValue() && block instanceof FallingBlock) {
@@ -388,36 +389,20 @@ public class PlacementGuide extends PrinterUtils {
                     }
                 }
 
-                // 使用 Optional 和 Supplier 来安全地获取属性值
-                Optional<Direction> horizontalFacing = Optional.ofNullable(
-                    requiredState.contains(Properties.HORIZONTAL_FACING) ? 
-                    requiredState.get(Properties.HORIZONTAL_FACING) : null
-                );
-                Optional<Direction> facingOpt = Optional.ofNullable(
-                    requiredState.contains(Properties.FACING) ? 
-                    requiredState.get(Properties.FACING) : null
-                );
-                Optional<BlockFace> faceOpt = Optional.ofNullable(
-                    requiredState.contains(Properties.BLOCK_FACE) ? 
-                    requiredState.get(Properties.BLOCK_FACE) : null
-                );
-
                 if (block instanceof WallMountedBlock) {
-                    return horizontalFacing.flatMap(side ->
-                            faceOpt.map(face -> {
-                                // 使用新的变量代替直接修改 side
-                                Direction finalSide = face != BlockFace.WALL ? side.getOpposite() : side;
+                    Direction side = requiredState.get(Properties.HORIZONTAL_FACING);
+                    BlockFace face = requiredState.get(Properties.BLOCK_FACE);
 
-                                // 简化方向判断逻辑
-                                Direction sidePitch = switch (face) {
-                                    case CEILING -> Direction.UP;
-                                    case FLOOR -> Direction.DOWN;
-                                    default -> finalSide;
-                                };
+                    // 简化方向判断逻辑
+                    Direction sidePitch = face == BlockFace.CEILING ? Direction.UP
+                            : face == BlockFace.FLOOR ? Direction.DOWN
+                            : side;
 
-                                return new Action().setSides(sidePitch).setLookDirection(finalSide.getOpposite(), sidePitch).setRequiresSupport();
-                            })
-                    ).orElse(new Action());
+                    if (face != BlockFace.WALL) {
+                        side = side.getOpposite();
+                    }
+
+                    action.setSides(side).setLookDirection(side.getOpposite(), sidePitch);
                 }
 
                 if (block instanceof HorizontalFacingBlock ||
@@ -426,32 +411,31 @@ public class PlacementGuide extends PrinterUtils {
                         || block instanceof FlowerbedBlock
                         //#endif
                 ) { // 操你妈ojng切石机你他妈为什么不是BlockWithEntity?
-                    return horizontalFacing.map(facing -> {
-                        if (block instanceof FenceGateBlock) facing = facing.getOpposite(); // 栅栏门
-                        return new Action().setLookDirection(facing.getOpposite());
-                    }).orElse(new Action());
+                    Direction facing = requiredState.get(Properties.HORIZONTAL_FACING);
+                    if (block instanceof FenceGateBlock) facing = facing.getOpposite(); // 栅栏门
+                    action.setLookDirection(facing.getOpposite());
                 }
 
                 if (block instanceof FacingBlock) {
-                    return facingOpt.map(facing -> {
-                        if (block instanceof RodBlock) // 侦测器和末地烛，避雷针类的物品
-                            facing = facing.getOpposite();
-                        return new Action().setLookDirection(facing.getOpposite());
-                    }).orElse(new Action());
+                    Direction facing = requiredState.get(Properties.FACING);
+                    if (block instanceof RodBlock) { // 侦测器和末地烛，避雷针类的物品
+                        action.setSides(facing);
+                        facing = facing.getOpposite();
+                    }
+                    action.setLookDirection(facing.getOpposite());
                 }
 
                 if (block instanceof BlockWithEntity) {
-                    if (requiredState.getProperties().contains(Properties.FACING)) {
-                        return facingOpt.map(facing -> 
-                            new Action().setLookDirection(facing.getOpposite())
-                        ).orElse(new Action());
+                    Direction facing;
+                    if (requiredState.contains(Properties.HORIZONTAL_FACING)) {
+                        facing = requiredState.get(Properties.HORIZONTAL_FACING);
+                        action.setSides(facing).setLookDirection(facing.getOpposite());
                     }
-                    if (requiredState.getProperties().contains(Properties.HORIZONTAL_FACING)) {
-                        return horizontalFacing.map(facing -> {
-                            if (block instanceof CampfireBlock)
-                                facing = facing.getOpposite(); // 营火方向需要旋转
-                            return new Action().setLookDirection(facing.getOpposite());
-                        }).orElse(new Action());
+                    if (requiredState.contains(Properties.FACING)) {
+                        facing = requiredState.get(Properties.FACING);
+                        if (block instanceof CampfireBlock)
+                            facing = facing.getOpposite(); // 营火方向需要旋转
+                        action.setSides(facing).setLookDirection(facing.getOpposite());
                     }
                 }
 
@@ -459,17 +443,17 @@ public class PlacementGuide extends PrinterUtils {
                 if (LitematicaMixinMod.REPLACE_CORAL.getBooleanValue() && block.getTranslationKey().endsWith("_coral_block")) {
                     //例子：block.minecraft.dead_tube_coral
                     String type = block.getTranslationKey().replace("block.minecraft.dead_", "").replace("_coral_block", "");
-                    return new Action().setItem(switch (type) {
-                        case "tube" -> Items.TUBE_CORAL_BLOCK;
-                        case "brain" -> Items.BRAIN_CORAL_BLOCK;
-                        case "bubble" -> Items.BUBBLE_CORAL_BLOCK;
-                        case "fire" -> Items.FIRE_CORAL_BLOCK;
-                        case "horn" -> Items.HORN_CORAL_BLOCK;
-                        default -> null;
-                    }).setRequiresSupport();
+                    switch (type) {
+                        case "tube" -> action.setItem(Items.TUBE_CORAL_BLOCK);
+                        case "brain" -> action.setItem(Items.BRAIN_CORAL_BLOCK);
+                        case "bubble" -> action.setItem(Items.BUBBLE_CORAL_BLOCK);
+                        case "fire" -> action.setItem(Items.FIRE_CORAL_BLOCK);
+                        case "horn" -> action.setItem(Items.HORN_CORAL_BLOCK);
+                    }
+                    action.setRequiresSupport();
                 }
 
-                return new Action();
+                return action;
             }
         }
         else if (state == State.WRONG_STATE) switch (requiredType) {
