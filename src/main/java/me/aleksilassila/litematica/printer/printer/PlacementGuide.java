@@ -132,6 +132,8 @@ public class PlacementGuide extends PrinterUtils {
         if(action == null) return null;
         Direction side = action.getValidSide((ClientWorld) world, pos);
         if (side != null) action.side = side.getOpposite();
+        action.hitModifier = action.getSides().get(side);
+        if (action.clickItems == null) action.clickItems = action.getRequiredItems(worldSchematic.getBlockState(pos).getBlock());
         return action;
     }
     @SuppressWarnings("EnhancedSwitchMigration")
@@ -558,6 +560,7 @@ public class PlacementGuide extends PrinterUtils {
         @Nullable
         public Item[] clickItems; // null == any
 
+        public boolean usePrecisionPlacement = false;
         public boolean shift = false;
         public boolean requiresSupport = false;
 
@@ -761,7 +764,7 @@ public class PlacementGuide extends PrinterUtils {
             if (LitematicaMixinMod.shouldPrintInAir && !this.requiresSupport) {
                 target = center;
             } else {
-                target = center.offset(side);
+                target = center.offset(side.getOpposite());
             }
 
         }
@@ -771,24 +774,21 @@ public class PlacementGuide extends PrinterUtils {
         }
 
         public void sendQueue(ClientPlayerEntity player) {
-            if (target == null) return;
+            if (target == null || hitModifier == null) return;
 
             boolean wasSneaking = player.isSneaking();
 
-            Direction direction = getSide().getAxis() == Direction.Axis.Y ?
+            Direction direction = side.getAxis() == Direction.Axis.Y ?
                     ((lookDirection == null || !lookDirection.getAxis().isHorizontal())
-                            ? Direction.NORTH : lookDirection) : getSide();
+                            ? Direction.NORTH : lookDirection) : side;
 
 //            hitModifier = new Vec3d(hitModifier.x, hitModifier.y, hitModifier.z);
-            Map<Direction, Vec3d> sides = getSides();
-            Vec3d hitVec = sides.get(getSide());
-            if(hitModifier == null){
-                Vec3d vec3d = hitVec.rotateY((direction.asRotation() + 90) % 360);
+            Vec3d hitVec = hitModifier;
+            if(!usePrecisionPlacement){
+                hitModifier = hitModifier.rotateY((direction.asRotation() + 90) % 360);
                 hitVec = Vec3d.ofCenter(target)
-                        .add(Vec3d.of(getSide().getVector()).multiply(0.5))
-                        .add(vec3d.multiply(0.5));
-            }else {
-                hitVec = hitModifier;
+                        .add(Vec3d.of(side.getVector()).multiply(0.5))
+                        .add(hitModifier.multiply(0.5));
             }
 
             if (shift && !wasSneaking)
@@ -798,7 +798,7 @@ public class PlacementGuide extends PrinterUtils {
 
             ItemStack mainHandStack1 = yxcfItem;
 
-            PlayerAction.interactBlock(Hand.MAIN_HAND, hitVec, getSide(), target, false, shift);
+            PlayerAction.interactBlock(Hand.MAIN_HAND, hitVec, side, target, false, shift);
 
             if (mainHandStack1 != null) {
                 if ( mainHandStack1.isEmpty()) {

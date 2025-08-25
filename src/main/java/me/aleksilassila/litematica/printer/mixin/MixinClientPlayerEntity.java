@@ -20,8 +20,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.net.URI;
 
 //#if MC >= 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
@@ -39,8 +37,6 @@ public class MixinClientPlayerEntity {
 		//#if MC >= 12001
  		if(Statistics.loadChestTracker) MemoryUtils.saveMemory(((ClientPlayerEntity)(Object)this).currentScreenHandler);
  		OpenInventoryPacket.reSet();
-		//#else
-		//$$
 		//#endif
 	}
 	@Inject(at = @At("TAIL"), method = "tick")
@@ -59,7 +55,7 @@ public class MixinClientPlayerEntity {
 			Printer.up = false;
 		}
 		printer.tick();
-		BlockTask.BlockTaskManager.tick();
+        BlockTask.BlockTaskManager.tick();
 	}
 	@Unique
 	public void checkForUpdates() {

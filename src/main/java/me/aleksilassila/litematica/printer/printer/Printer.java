@@ -551,7 +551,6 @@ public class Printer extends PrinterUtils {
             {
                 continue;
             }
-            PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
             //放置冷却
             if (skipPosMap.containsKey(pos)) {
                 continue;
@@ -559,18 +558,17 @@ public class Printer extends PrinterUtils {
                 skipPosMap.put(pos,0);
             }
 
-            if(USE_EASY_MODE.getBooleanValue() && action != null) {
+
+            if(USE_EASY_MODE.getBooleanValue()) {
                 easyPos = pos;
                 WorldUtilsAccessor.doEasyPlaceAction(client);
                 easyPos = null;
                 if(tickRate != 0) return;
                 else continue;
             }
-
+            PlacementGuide.Action action = guide.getAction(world, worldSchematic, pos);
             if (action == null || action.side == null) continue;
-
-            Item[] requiredItems = action.getRequiredItems(requiredState.getBlock());
-            if (playerHasAccessToItems(pEntity, requiredItems)) {
+            if (playerHasAccessToItems(pEntity, action.clickItems)) {
                 // Handle shift and chest placement
                 // Won't be required if clickAction
                 boolean useShift = false;
@@ -583,7 +581,7 @@ public class Printer extends PrinterUtils {
                         }
                         case LEFT: {
                             if(world.getBlockState(pos.offset(requiredState.get(ChestBlock.FACING).rotateYClockwise())).isAir()) continue;
-                            action.side = requiredState.get(ChestBlock.FACING).rotateYClockwise();
+                            action.side = requiredState.get(ChestBlock.FACING).rotateYClockwise().getOpposite();
                             useShift = true;
                             break ;
                         }
@@ -613,7 +611,10 @@ public class Printer extends PrinterUtils {
                 action.queueAction(pos, useShift);
 
                 Vec3d hitModifier = usePrecisionPlacement(pos, requiredState);
-                if(hitModifier != null) action.hitModifier = hitModifier;
+                if(hitModifier != null) {
+                    action.hitModifier = hitModifier;
+                    action.usePrecisionPlacement = true;
+                }
 //                if (requiredState.isOf(Blocks.NOTE_BLOCK)) {
 //                    action.sendQueue(pEntity);
 //                    continue;
@@ -623,7 +624,7 @@ public class Printer extends PrinterUtils {
                     //处理不能快速放置的方块
                     if (hitModifier == null && isFacingBlock(requiredState)
                     ) {
-                        item2 = requiredItems;
+                        item2 = action.clickItems;
                         isFacing = true;
                         currentAction = action;
                         continue;

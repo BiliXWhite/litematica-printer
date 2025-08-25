@@ -35,7 +35,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigOptionList MODE_SWITCH = new ConfigOptionList("模式切换", State.ModeType.SINGLE,"单模：仅运行一个模式。多模：可多个模式同时运行");
 	public static final ConfigOptionList PRINTER_MODE = new ConfigOptionList("打印机模式", State.PrintModeType.PRINTER,"仅单模生效");
 	public static final ConfigBoolean MULTI_BREAK = new ConfigBoolean("多模阻断",true, "启用后将按模式优先级运行，同时启用多个模式时优先级低的无法执行");
-	public static final ConfigBoolean RENDER_LAYER_LIMIT = new ConfigBoolean("渲染层数限制",false, "排流体，破基岩，挖掘模式 是否受渲染层数限制");
+	public static final ConfigBoolean RENDER_LAYER_LIMIT = new ConfigBoolean("渲染层数限制",false, "替换，破基岩，挖掘模式 是否受渲染层数限制");
 	public static final ConfigBoolean PRINT_IN_AIR = new ConfigBoolean("凭空放置",true, "Whether or not the printer should place blocks without anything to build on.\nBe aware that some anti-cheat plugins might notice this.");
 	public static final ConfigBooleanHotkeyed PRINT_WATER_LOGGED_BLOCK = new ConfigBooleanHotkeyed("打印含水方块",  false,"","启用后会自动放置冰,破坏冰来使方块含水");
 	public static final ConfigBooleanHotkeyed BREAK_ERROR_BLOCK = new ConfigBooleanHotkeyed("破坏错误方块",  false,"","打印过程中自动破坏投影中错误的方块");
