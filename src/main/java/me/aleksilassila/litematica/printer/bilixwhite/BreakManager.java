@@ -93,10 +93,14 @@ public class BreakManager {
                 // 防止外部方法异常导致 tick 中断
                 success = false;
             }
-
             if (!success) {
                 resetBreakTarget();
             }
+
+            if (!client.player.isCreative() && client.world.getBlockState(breakPos).isOf(state.getBlock())) {
+                return;
+            }
+
         }
     }
 

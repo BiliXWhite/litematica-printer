@@ -10,6 +10,8 @@ import net.minecraft.block.BlockState;
 import java.util.HashSet;
 import java.util.Set;
 
+import static me.aleksilassila.litematica.printer.LitematicaMixinMod.I18N_PREFIX;
+
 public enum State {
     MISSING_BLOCK,
     WRONG_STATE,
@@ -201,6 +203,62 @@ public enum State {
             return ModeType.SINGLE;
         }
     }
+
+    public enum RadiusShapeType implements IConfigOptionListEntry {
+        SPHERE("sphere", I18N_PREFIX + "list.iteratorShapeType.sphere"),
+        CUBE("cube", I18N_PREFIX + "list.iteratorShapeType.cube");
+
+        private final String configString;
+        private final String translationKey;
+
+        RadiusShapeType(String configString, String translationKey) {
+            this.configString = configString;
+            this.translationKey = translationKey;
+        }
+
+        @Override
+        public String getStringValue() {
+            return this.configString;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return StringUtils.translate(this.translationKey);
+        }
+
+        @Override
+        public IConfigOptionListEntry cycle(boolean forward) {
+            int id = this.ordinal();
+
+            if (forward) {
+                if (++id >= values().length) {
+                    id = 0;
+                }
+            } else {
+                if (--id < 0) {
+                    id = values().length - 1;
+                }
+            }
+
+            return values()[id % values().length];
+        }
+
+        @Override
+        public RadiusShapeType fromString(String name) {
+            return fromStringStatic(name);
+        }
+
+        public static RadiusShapeType fromStringStatic(String name) {
+            for (RadiusShapeType mode : RadiusShapeType.values()) {
+                if (mode.configString.equalsIgnoreCase(name)) {
+                    return mode;
+                }
+            }
+
+            return RadiusShapeType.SPHERE;
+        }
+    }
+
 
     public enum IterationOrderType implements IConfigOptionListEntry {
         XYZ("xyz", "X→Y→Z"),

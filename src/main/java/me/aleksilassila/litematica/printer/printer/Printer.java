@@ -142,12 +142,20 @@ public class Printer extends PrinterUtils {
         myBox.xIncrement = !X_REVERSE.getBooleanValue();
         myBox.yIncrement = Y_REVERSE.getBooleanValue() == yReverse;
         myBox.zIncrement = !Z_REVERSE.getBooleanValue();
+        var rangeShape = RANGE_SHAPE.getOptionListValue();
 
         Iterator<BlockPos> iterator = myBox.iterator;
 
         while (iterator.hasNext()) {
             BlockPos pos = iterator.next();
-            if (!basePos.isWithinDistance(pos, printRange)) {
+            // 只有在形状为球体的时候才判断在不在距离内
+            if ((MODE_SWITCH.getOptionListValue() == State.ModeType.MULTI ||
+                    PRINTER_MODE.getOptionListValue() != PRINTER) &&
+                !TempData.xuanQuFanWeiNei_p(pos))
+                continue;
+            if (!isSchematicBlock(pos))
+                continue;
+            if (rangeShape == State.RadiusShapeType.SPHERE && !basePos.isWithinDistance(pos, printRange)) {
                 continue;
             }
             return pos;
@@ -171,7 +179,7 @@ public class Printer extends PrinterUtils {
 
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
-            if (PRINT_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
+            if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
             if (!canInteracted(pos) || !TempData.xuanQuFanWeiNei_p(pos) || isLimitedByTheNumberOfLayers(pos)) {
                 continue;
             }
@@ -187,7 +195,7 @@ public class Printer extends PrinterUtils {
                     new PlacementGuide.Action().queueAction(queue, pos, Direction.UP, false);
                     if (tickRate == 0) {
                         queue.sendQueue(client.player);
-                        if (PRINT_PER_TICK.getIntegerValue() != 0) printPerTick--;
+                        if (BLOCKS_PER_TICK.getIntegerValue() != 0) printPerTick--;
                         continue;
                     }
                     return;
@@ -209,7 +217,7 @@ public class Printer extends PrinterUtils {
 
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
-            if (PRINT_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
+            if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
 
             if (!canInteracted(pos) || !TempData.xuanQuFanWeiNei_p(pos) || isLimitedByTheNumberOfLayers(pos)) {
                 continue;
@@ -226,7 +234,7 @@ public class Printer extends PrinterUtils {
                     new PlacementGuide.Action().queueAction(queue, pos, Direction.UP, false);
                     if (tickRate == 0) {
                         queue.sendQueue(client.player);
-                        if (PRINT_PER_TICK.getIntegerValue() != 0) printPerTick--;
+                        if (BLOCKS_PER_TICK.getIntegerValue() != 0) printPerTick--;
                         continue;
                     }
                     return;
@@ -269,7 +277,7 @@ public class Printer extends PrinterUtils {
         while (iterator.hasNext()) {
             Map.Entry<BlockPos, Integer> entry = iterator.next();
             int newValue = entry.getValue() + 1;
-            if (newValue >= PUT_COOLING.getIntegerValue()) {
+            if (newValue >= PLACE_COOLDOWN.getIntegerValue()) {
                 iterator.remove();
             } else {
                 entry.setValue(newValue);
@@ -287,10 +295,10 @@ public class Printer extends PrinterUtils {
         if (player == null) return;
         ClientWorld world = client.world;
         // 预载常用配置值
-        int compulsionRange = COMPULSION_RANGE.getIntegerValue();
+        int compulsionRange = PRINTER_RANGE.getIntegerValue();
         tickStartTime = System.currentTimeMillis();
-        tickRate = PRINT_INTERVAL.getIntegerValue();
-        printPerTick = LitematicaMixinMod.PRINT_PER_TICK.getIntegerValue();
+        tickRate = PRINTER_SPEED.getIntegerValue();
+        printPerTick = LitematicaMixinMod.BLOCKS_PER_TICK.getIntegerValue();
 
         // 更新环境参数
         if (compulsionRange != printRange) {
@@ -353,7 +361,7 @@ public class Printer extends PrinterUtils {
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
             // 检查每刻放置方块是否超出限制
-            if (PRINT_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
+            if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
             // 是否是投影方块
             if (!isSchematicBlock(pos)) continue;
             // 是否在破坏列表内
@@ -436,7 +444,7 @@ public class Printer extends PrinterUtils {
                     }
 
                     queue.sendQueue(player);
-                    if (PRINT_PER_TICK.getIntegerValue() != 0) printPerTick--;
+                    if (BLOCKS_PER_TICK.getIntegerValue() != 0) printPerTick--;
                     continue;
                 }
                 return;
@@ -573,7 +581,7 @@ public class Printer extends PrinterUtils {
         }
 
         public void queueClick(@NotNull BlockPos target, @NotNull Direction side, @NotNull Vec3d hitModifier, boolean needSneak) {
-            if (LitematicaMixinMod.PRINT_INTERVAL.getIntegerValue() != 0) {
+            if (LitematicaMixinMod.PRINTER_SPEED.getIntegerValue() != 0) {
                 if (this.target != null) {
                     System.out.println("Was not ready yet.");
                     return;
@@ -614,7 +622,7 @@ public class Printer extends PrinterUtils {
                 }
             }
 
-            if (PRINT_INTERVAL.getIntegerValue() >= 1 && lookDirYaw != null)
+            if (PRINTER_SPEED.getIntegerValue() >= 1 && lookDirYaw != null)
                 Implementation.sendLookPacket(player, lookDirYaw, lookDirPitch);
 
             if (needSneak && !wasSneaking) {

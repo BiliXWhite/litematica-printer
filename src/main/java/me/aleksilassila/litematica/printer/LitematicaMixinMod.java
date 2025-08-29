@@ -30,33 +30,48 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     //========================================
     //           Config Settings
     //========================================
-    public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger(
-            "printInterval", 1, 0, 20, "printInterval"
+    public static final ConfigInteger PRINTER_SPEED = new ConfigInteger(
+            "printerSpeed", 1, 0, 20, "printerSpeed"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
             //#endif
             ;
-    public static final ConfigInteger PRINT_PER_TICK = new ConfigInteger(
-            "每刻执行方块数", 4, 0, 16,
-            "当§6§l打印机工作间隔§r为§b0§r时每个游戏刻打印的方块数量。数值越高意味着打印速度越快。\n" +
-                    "在值为§b0§r时无上限，可能在服务器中表现不佳，可开启§6§l使用数据包放置方块§r缓解。"
-    );
-    public static final ConfigInteger PUT_COOLING = new ConfigInteger(
-            "放置冷却", 2, 0, 256,
-            "当同一位置的方块没有成功放置时，等待§6所设置的时长§r(游戏刻为单位)才会再次放置。"
-    );
-    public static final ConfigInteger COMPULSION_RANGE = new ConfigInteger(
-            "打印机工作半径", 6, 1, 256,
-            "每次放置到的最远距离，以玩家中心为半径。数值越高意味着打印的范围越大。\n" +
-                    "此参数与§6§l半径模式§r有关联。\n" +
-                    "在设置为0的时候，为避免打印活塞、粘性活塞、侦测器、投掷器和发射器出现方向错误，会自动添加一些延迟。\n" +
-                    "如果你打印的建筑主要为红石机器，那么不建议设置为0。"
-    );
+    public static final ConfigInteger BLOCKS_PER_TICK = new ConfigInteger(
+            "printerBlocksPerTick", 4, 0, 24, "printerBlocksPerTick"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
+    public static final ConfigInteger PLACE_COOLDOWN = new ConfigInteger(
+            "printerPlaceCooldown", 2, 0, 256, "printerPlaceCooldown"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
+    public static final ConfigInteger PRINTER_RANGE = new ConfigInteger(
+            "printerRange", 6, 1, 256, "printerRange"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigBoolean PLACE_USE_PACKET = new ConfigBoolean(
-            "使用数据包进行打印", false,
-            "可以得到更快的放置速度，并且不会出现'幽灵方块'的情况。§6§l但是无法听到放置方块的声音。§r"
-    );
+            "printerUsePacket", false, "printerUsePacket"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
+    public static final ConfigOptionList RANGE_SHAPE = new ConfigOptionList(
+            "printerIteratorShape", State.RadiusShapeType.SPHERE, "printerIteratorShape"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigOptionList MODE_SWITCH = new ConfigOptionList(
             "模式切换", State.ModeType.SINGLE,
             "§d单模§r：仅运行一个模式。\n§d多模§r：可多个模式同时运行。\n" +
@@ -381,10 +396,10 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     public static ImmutableList<IConfigBase> getConfigList() {
         List<IConfigBase> list = new java.util.ArrayList<>(Configs.Generic.OPTIONS);
         list.add(PRINT_SWITCH);
-        list.add(PRINT_INTERVAL);
-        if (PRINT_INTERVAL.getIntegerValue() == 0) list.add(PRINT_PER_TICK);
-        list.add(COMPULSION_RANGE);
-        list.add(PUT_COOLING);
+        list.add(PRINTER_SPEED);
+        if (PRINTER_SPEED.getIntegerValue() == 0) list.add(BLOCKS_PER_TICK);
+        list.add(PRINTER_RANGE);
+        list.add(PLACE_COOLDOWN);
         list.add(PLACE_USE_PACKET);
         //list.add(RENDER_PROGRESS);
         list.add(QUICK_SHULKER);

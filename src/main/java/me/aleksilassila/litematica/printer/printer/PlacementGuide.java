@@ -75,12 +75,16 @@ public class PlacementGuide extends PrinterUtils {
 
         if (state == State.MISSING_BLOCK) switch (requiredType) {
             case TORCH -> {
-                return Optional.ofNullable(requiredState.get(Properties.HORIZONTAL_FACING))
+                return Optional.ofNullable(requiredState.contains(WallTorchBlock.FACING) ?
+                                requiredState.get(Properties.HORIZONTAL_FACING) :
+                                null)
+
                         .map(direction -> new Action()
                                 .setSides(direction.getOpposite())
                                 .setRequiresSupport()
                         )
-                        .orElseGet(() -> new Action().setSides(Direction.DOWN).setRequiresSupport());
+                        .orElseGet(() -> new Action().setSides(Direction.DOWN));
+
             }
             case AMETHYST -> {
                 return new Action()
@@ -148,7 +152,7 @@ public class PlacementGuide extends PrinterUtils {
             }
             case HOPPER -> {
                 Direction facing = requiredState.get(Properties.HOPPER_FACING);
-                return new Action().setLookDirection(facing);
+                return new Action().setSides(facing);
             }
             case NETHER_PORTAL -> {
 
