@@ -39,7 +39,6 @@ public class SwitchItem {
         if(shulkerBox != -1) itemStacks.put(itemStack,new ItemStatistics(key,pos,slot,shulkerBox));
     }
     public static void openInv(ItemStack itemStack) {
-        DebugUtils.printChatMessage("Invoked openInv()");
         if(!client.player.currentScreenHandler.equals(client.player.playerScreenHandler) || Statistics.closeScreen > 0){
             return;
         }
