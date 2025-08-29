@@ -29,10 +29,10 @@ public class Configs implements IConfigHandler {
         if(loadChestTracker) list.add(CLOUD_INVENTORY);
         if(loadChestTracker) list.add(AUTO_INVENTORY);
         list.add(PRINT_SWITCH);
-        list.add(PRINT_INTERVAL);
-        if (PRINT_INTERVAL.getIntegerValue() == 0) list.add(PRINT_PER_TICK);
-        list.add(COMPULSION_RANGE);
-        list.add(PUT_COOLING);
+        list.add(PRINTER_SPEED);
+        if (PRINTER_SPEED.getIntegerValue() == 0) list.add(BLOCKS_PER_TICK);
+        list.add(PRINTER_RANGE);
+        list.add(PLACE_COOLDOWN);
         list.add(ITERATOR_USE_TIME);
         list.add(PLACE_USE_PACKET);
         list.add(RENDER_HUD);
