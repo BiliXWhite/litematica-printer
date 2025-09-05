@@ -10,7 +10,7 @@ import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.NotNull;
 import net.minecraft.text.MutableText;
 //#if MC >= 12105
-//$$ import java.net.URI;
+import java.net.URI;
 //#endif
 
 //#if MC > 11802
@@ -58,11 +58,11 @@ public class Messager {
         bv.styled(style -> style.withColor(Formatting.GOLD));
         bv.styled(style -> style.withUnderline(true));
         //#if MC >= 12105
-        //$$ bv.styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.of("点击打开："+url))));
-        //$$ bv.styled(style -> style.withClickEvent(new ClickEvent.OpenUrl(URI.create(url))));
+        bv.styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.of("点击打开："+url))));
+        bv.styled(style -> style.withClickEvent(new ClickEvent.OpenUrl(URI.create(url))));
         //#else
-        bv.styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of("点击打开："+url))));
-        bv.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url)));
+        //$$ bv.styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of("点击打开："+url))));
+        //$$ bv.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url)));
         //#endif
         return bv;
     }

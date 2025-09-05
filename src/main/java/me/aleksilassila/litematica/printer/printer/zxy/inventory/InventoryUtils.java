@@ -46,6 +46,7 @@ import red.jackf.chesttracker.api.providers.InteractionTracker;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.PRINT_CHECK;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
@@ -76,9 +77,9 @@ public class InventoryUtils {
                 if ((isInventory && blockState.createScreenHandlerFactory(client.world, pos) == null) ||
                         (blockEntity instanceof ShulkerBoxBlockEntity entity &&
                                 //#if MC > 12101
-                                //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F, pos.toBottomCenterPos()).offset(pos).contract(1.0E-6)) &&
+                                !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F, pos.toBottomCenterPos()).offset(pos).contract(1.0E-6)) &&
                                 //#elseif MC <= 12101 && MC > 12004
-                                !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
+                                //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
                                 //#elseif MC <= 12004
                                 //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
                                 //#endif
@@ -96,7 +97,7 @@ public class InventoryUtils {
         }
     }
 
-    public static HashSet<Item> remoteItem = new HashSet<>();
+    public static LinkedHashSet<Item> remoteItem = new LinkedHashSet<>();
     public static boolean isOpenHandler = false;
 
     public static boolean switchItem() {
@@ -148,7 +149,7 @@ public class InventoryUtils {
                     //$$    }
                     //#endif
                 }
-                remoteItem = new HashSet<>();
+                remoteItem = new LinkedHashSet<>();
                 isOpenHandler = false;
             }
         }
@@ -195,12 +196,13 @@ public class InventoryUtils {
                             player.closeHandledScreen();
                             //刷新濳影盒
                             if (shulkerBoxSlot != -1) {
-                                client.interactionManager.clickSlot(sc.syncId, shulkerBoxSlot, 0, SlotActionType.PICKUP, client.player);
-                                client.interactionManager.clickSlot(sc.syncId, shulkerBoxSlot, 0, SlotActionType.PICKUP, client.player);
+                                ScreenHandler handler = client.player.currentScreenHandler;
+                                client.interactionManager.clickSlot(handler.syncId, shulkerBoxSlot, 0, SlotActionType.PICKUP, client.player);
+                                client.interactionManager.clickSlot(handler.syncId, shulkerBoxSlot, 0, SlotActionType.PICKUP, client.player);
                             }
                             shulkerBoxSlot = -1;
                             isOpenHandler = false;
-                            remoteItem = new HashSet<>();
+                            remoteItem = new LinkedHashSet<>();
                             return;
                         } catch (Exception e) {
                             System.out.println("切换物品异常");
@@ -210,7 +212,7 @@ public class InventoryUtils {
             }
         }
         shulkerBoxSlot = -1;
-        remoteItem = new HashSet<>();
+        remoteItem = new LinkedHashSet<>();
         isOpenHandler = false;
         ScreenHandler sc2 = player.currentScreenHandler;
         if (!sc2.equals(player.playerScreenHandler)) {
@@ -222,9 +224,9 @@ public class InventoryUtils {
 
         if (client.player != null) {
             //#if MC > 12104
-            //$$ client.player.getInventory().setSelectedSlot(slot);
+            client.player.getInventory().setSelectedSlot(slot);
             //#else
-            client.player.getInventory().selectedSlot = slot;
+            //$$ client.player.getInventory().selectedSlot = slot;
             //#endif
         }
     }
@@ -233,9 +235,9 @@ public class InventoryUtils {
 
         if (client.player != null) {
             //#if MC > 12104
-            //$$ return client.player.getInventory().getSelectedSlot();
+            return client.player.getInventory().getSelectedSlot();
             //#else
-            return client.player.getInventory().selectedSlot;
+            //$$ return client.player.getInventory().selectedSlot;
             //#endif
         } else return -1;
     }
@@ -243,9 +245,9 @@ public class InventoryUtils {
     public static DefaultedList<ItemStack> getMainStacks() {
         if (client.player != null) {
             //#if MC > 12104
-            //$$ return client.player.getInventory().getMainStacks();
+            return client.player.getInventory().getMainStacks();
             //#else
-            return client.player.getInventory().main;
+            //$$ return client.player.getInventory().main;
             //#endif
         }else return DefaultedList.of();
     }

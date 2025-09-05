@@ -84,10 +84,13 @@ repositories {
         }
     }
 
+//    maven { url = "https://maven.bawnorton.com/releases" }
+
     maven {
         //这个一定要放在末尾！！！ 不然构建时会重新下载一些依赖
         url 'https://jitpack.io'
     }
+
 //	maven { url = "https://mvnrepository.com/artifact/com.github.open-android/pinyin4j " }
     // Add repositories to retrieve artifacts from in here.
     // You should only use this when depending on other mods because
@@ -120,7 +123,7 @@ def mod_dependencies = [
         [(sakura ? "com.github.sakura-ryoko:tweakeroo" : "curse.maven:tweakeroo-297344"), "tweakeroo", 1],
         [(sakura ? "com.github.sakura-ryoko:litematica" : "curse.maven:litematica-308892"), "litematica", 1],
         [(mcVersion > 12004 ? "curse.maven:carpet-349239" : "maven.modrinth:carpet"), "carpet", 1],
-        [getQuiShulkerBox(), "quick_shulker", mcVersion > 12004 ? (mcVersion >= 12105 ? 45 : 5) : 1],
+        [getQuiShulkerBox(), "quick_shulker", mcVersion > 12004 ? 5 : 1],
         ["net.kyrptonaught:kyrptconfig", "kyrptconfig", 1],
         ["net.kyrptonaught:shulkerutils", "shulkerutils", mcVersion > 12004 ? 0 : 1],
         [getYacl(), "yacl", mcVersion >= 12001 ? 1 : 0],

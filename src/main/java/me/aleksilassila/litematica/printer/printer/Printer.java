@@ -61,7 +61,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 //#if MC >= 12001
     //#if MC > 12105
-    //$$ import net.minecraft.util.PlayerInput;
+    import net.minecraft.util.PlayerInput;
     //#endif
 //#else
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
@@ -233,26 +233,13 @@ public class Printer extends PrinterUtils {
             }
 //            if (currentState.getFluidState().isOf(Fluids.LAVA) || currentState.getFluidState().isOf(Fluids.WATER)) {
             BlockPos finalPos = pos;
-            Predicate<String> findFluid = blockName -> {
-                if (equalsBlockName(blockName, Blocks.WATER) || equalsBlockName(blockName, Blocks.LAVA)) {
-                    if (client.world.getBlockState(finalPos.up()).getFluidState().isEmpty() &&
-                            client.world.getBlockState(finalPos.down()).getFluidState().isEmpty() &&
-                            client.world.getBlockState(finalPos.north()).getFluidState().isEmpty() &&
-                            client.world.getBlockState(finalPos.south()).getFluidState().isEmpty() &&
-                            client.world.getBlockState(finalPos.east()).getFluidState().isEmpty() &&
-                            client.world.getBlockState(finalPos.west()).getFluidState().isEmpty()) {
-                        return true;
-                    }
-                }
-                return false;
-            };
             AtomicReference<PlacementGuide.Action> action = new AtomicReference<>();
             final boolean[] skip = {false}; // 跳过方块名不符合的方块
             // map中的k是源方块名，v是目标方块
             boolean b = replaceTaskMap.entrySet().stream().anyMatch(entry -> {
                 for (String blockName : entry.getKey()) {
                     // 为排流体破坏多余方块特殊处理
-                    if (canBreakBlock(finalPos) && equalsBlockName(blockName, currentState, finalPos) && entry.getKey().stream().filter(name -> !blockName.equals(name)).anyMatch(findFluid::test)) {
+                    if (canBreakBlock(finalPos) && equalsBlockName(blockName, currentState, finalPos) && entry.getKey().stream().filter(name -> !blockName.equals(name)).anyMatch(name -> checkFluid(finalPos,name))) {
                         if (excavateBlock(finalPos) == null) {
                             replacePos = finalPos;
                             return true;
@@ -274,8 +261,11 @@ public class Printer extends PrinterUtils {
 
                             if (items.stream().noneMatch(item -> item.equals(Items.AIR))) {
                                 // 要么不是流体，要么是源
-                                if ((currentState.getFluidState().isEmpty() || currentState.getFluidState().isStill()) &&
-                                        switchToItems(client.player, items.toArray(new Item[0]))) {
+                                if ((currentState.getFluidState().isEmpty() || currentState.getFluidState().isStill())) {
+                                    if (!switchToItems(client.player, items.toArray(new Item[0]))) {
+                                        remoteItem.addAll(items);
+                                        return true;
+                                    }
                                     if (action.get() != null) {
                                         action.get().queueAction(finalPos, false);
                                         action.get().sendQueue(client.player);
@@ -283,9 +273,6 @@ public class Printer extends PrinterUtils {
                                         ((IClientPlayerInteractionManager) client.interactionManager).rightClickBlock(finalPos, Direction.UP, Vec3d.ofCenter(finalPos));
                                     }
                                     return false;
-                                } else {
-                                    remoteItem.addAll(items);
-                                    return true;
                                 }
                             }
                             return false;
@@ -301,6 +288,22 @@ public class Printer extends PrinterUtils {
             if (b) return;
             if (tickRate == 0) continue;
             return;
+        }
+    }
+
+    public boolean checkFluid(BlockPos pos, String blockName) {
+        {
+            if (equalsBlockName(blockName, Blocks.WATER) || equalsBlockName(blockName, Blocks.LAVA)) {
+                if (client.world.getBlockState(pos.up()).getFluidState().isEmpty() &&
+                        client.world.getBlockState(pos.down()).getFluidState().isEmpty() &&
+                        client.world.getBlockState(pos.north()).getFluidState().isEmpty() &&
+                        client.world.getBlockState(pos.south()).getFluidState().isEmpty() &&
+                        client.world.getBlockState(pos.east()).getFluidState().isEmpty() &&
+                        client.world.getBlockState(pos.west()).getFluidState().isEmpty()) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
@@ -595,14 +598,12 @@ public class Printer extends PrinterUtils {
                 }
                 Direction lookDir = action.getLookDirection();
                 //确认侦测器看向方块是否正确
-                if(requiredState.isOf(Blocks.OBSERVER) && PUT_TESTING.getBooleanValue()){
+                if (requiredState.isOf(Blocks.OBSERVER) && PUT_TESTING.getBooleanValue()) {
                     BlockPos offset = pos.offset(lookDir);
-                    BlockState state1 = world.getBlockState(offset);
-                    BlockState state2 = worldSchematic.getBlockState(offset);
-
                     if (isSchematicBlock(offset)) {
-                        State state = State.get(state1,state2);
-                        if (!(state == State.CORRECT)) continue;
+                        BlockState state1 = world.getBlockState(offset);
+                        State state = State.get(state1, requiredState);
+                        if (state != State.CORRECT) continue;
                     }
                 }
                 if(forcedPlacementBooleanValue) useShift = true;

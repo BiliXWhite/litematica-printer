@@ -18,7 +18,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 //#if MC < 12104
 //#else
-//$$
+
 //#endif
 
 import net.minecraft.state.property.EnumProperty;
@@ -115,9 +115,9 @@ public class PlacementGuide extends PrinterUtils {
         Direction look = null;
         for (Property<?> prop : requiredState.getProperties()) {
             //#if MC > 12101
-            //$$ if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
+            if (prop instanceof EnumProperty<?> enumProperty && enumProperty.getType().equals(Direction.class) && prop.getName().equalsIgnoreCase("FACING")) {
             //#else
-            if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
+            //$$ if (prop instanceof EnumProperty<?> && prop.getName().equalsIgnoreCase("FACING")) {
             //#endif
                 look = ((Direction) requiredState.get(prop)).getOpposite();
             }
@@ -354,15 +354,6 @@ public class PlacementGuide extends PrinterUtils {
                     }
                     break;
                 }
-                case SKIP: {
-                    break;
-                }
-                case FLUID: {
-                    break;
-                }
-                case TORCH: {
-
-                }
                 //#if MC > 12002
                 case CRAFTER: {
                     Action action = new Action().setItem(Items.CRAFTER);
@@ -376,6 +367,15 @@ public class PlacementGuide extends PrinterUtils {
                     return action;
                 }
                 //#endif
+                case SKIP: {
+                    break;
+                }
+                case FLUID: {
+                    break;
+                }
+                case TORCH: {
+
+                }
                 case DEFAULT:
                 default: { // Try to guess how the rest of the blocks are placed.
                     Direction look = null;
@@ -785,7 +785,7 @@ public class PlacementGuide extends PrinterUtils {
 //            hitModifier = new Vec3d(hitModifier.x, hitModifier.y, hitModifier.z);
             Vec3d hitVec = hitModifier;
             if(!usePrecisionPlacement){
-                hitModifier = hitModifier.rotateY((direction.asRotation() + 90) % 360);
+                hitModifier = hitModifier.rotateY((direction.getPositiveHorizontalDegrees() + 90) % 360);
                 hitVec = Vec3d.ofCenter(target)
                         .add(Vec3d.of(side.getVector()).multiply(0.5))
                         .add(hitModifier.multiply(0.5));

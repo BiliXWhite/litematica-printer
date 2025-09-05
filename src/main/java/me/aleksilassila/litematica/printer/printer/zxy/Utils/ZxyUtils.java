@@ -42,7 +42,7 @@ import java.util.*;
 //#endif
 
 //#if MC >= 12105
-//$$ import net.minecraft.screen.sync.ItemStackHash;
+import net.minecraft.screen.sync.ItemStackHash;
 //#endif
 
 //#if MC >= 12001
@@ -318,6 +318,7 @@ public class ZxyUtils {
             LitematicaMixinMod.REPLACE_BLOCK.setBooleanValue(false);
             LitematicaMixinMod.TOGGLE_PRINTING_MODE.setBooleanValue(false);
             LitematicaMixinMod.PRINTER_MODE.setOptionListValue(State.PrintModeType.PRINTER);
+            Printer.currentAction = null;
             client.inGameHud.setOverlayMessage(Text.of("已关闭全部模式"), false);
         }
         OpenInventoryPacket.tick();
@@ -374,8 +375,8 @@ public class ZxyUtils {
 
     public static int maximumFrameRate = 10;
     public static int frameGenerationTime = getMonitorRefreshRate();
-    //根据帧率计算超时时间 尽量不占用帧生成时间 6毫秒预留给打印机处理，至多占用160/1帧数
-    public static int printTimedOut = Math.max(1,frameGenerationTime -6);
+    //根据帧率计算超时时间 尽量不占用帧生成时间 6毫秒预留给打印机处理
+    public static int printTimedOut = Math.max(3,frameGenerationTime -6);
 
     public static int getMonitorRefreshRate() {
         int refreshRate = Math.max(GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()).refreshRate(),60);
@@ -413,7 +414,7 @@ public class ZxyUtils {
         //#endif
 
         //#if MC >= 12105
-        //$$ ItemStackHash itemStackHash = ItemStackHash.fromItemStack(uniqueItem, networkHandler.method_68823());
+        ItemStackHash itemStackHash = ItemStackHash.fromItemStack(uniqueItem, networkHandler.getComponentHasher());
         //#endif
 
         networkHandler.sendPacket(new ClickSlotC2SPacket(
@@ -422,11 +423,11 @@ public class ZxyUtils {
                 (short) -999, (byte) 2,
                 SlotActionType.QUICK_CRAFT,
                 //#if MC < 12105
-                uniqueItem,
-                new Int2ObjectOpenHashMap<>()
+                //$$ uniqueItem,
+                //$$ new Int2ObjectOpenHashMap<>()
                 //#else
-                //$$ new Int2ObjectOpenHashMap<>(),
-                //$$ itemStackHash
+                new Int2ObjectOpenHashMap<>(),
+                itemStackHash
                 //#endif
 
 

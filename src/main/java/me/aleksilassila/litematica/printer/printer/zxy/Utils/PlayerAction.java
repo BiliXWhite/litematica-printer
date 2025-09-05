@@ -16,8 +16,8 @@ import net.minecraft.util.math.Vec3d;
 
 
 //#if MC > 12105
-//$$ import net.minecraft.network.packet.c2s.play.PlayerInputC2SPacket;
-//$$ import net.minecraft.util.PlayerInput;
+import net.minecraft.network.packet.c2s.play.PlayerInputC2SPacket;
+import net.minecraft.util.PlayerInput;
 //#endif
 
 import static me.aleksilassila.litematica.printer.printer.Printer.canBreakBlock;
@@ -41,10 +41,10 @@ public class PlayerAction {
 
     public static void setShift(ClientPlayerEntity player , boolean shift){
         //#if MC > 12105
-        //$$ PlayerInput input = new PlayerInput(player.input.playerInput.forward(), player.input.playerInput.backward(), player.input.playerInput.left(), player.input.playerInput.right(), player.input.playerInput.jump(), shift, player.input.playerInput.sprint());
-        //$$ PlayerInputC2SPacket packet = new PlayerInputC2SPacket(input);
+        PlayerInput input = new PlayerInput(player.input.playerInput.forward(), player.input.playerInput.backward(), player.input.playerInput.left(), player.input.playerInput.right(), player.input.playerInput.jump(), shift, player.input.playerInput.sprint());
+        PlayerInputC2SPacket packet = new PlayerInputC2SPacket(input);
         //#else
-        ClientCommandC2SPacket packet = new ClientCommandC2SPacket(player, shift ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY);
+        //$$ ClientCommandC2SPacket packet = new ClientCommandC2SPacket(player, shift ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY);
         //#endif
 
         player.networkHandler.sendPacket(packet);
@@ -59,7 +59,7 @@ public class PlayerAction {
             breakTargetBlock = null;
             return null;
         }
-        //一个游戏刻挖一次就好
+        //若无法秒破一个游戏刻挖一次就好
         if (startTick == tick) {
             return null;
         }

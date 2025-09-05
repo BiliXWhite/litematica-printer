@@ -157,7 +157,7 @@ public class BlockTask {
         }
     }
 
-    public class PlaceBlock extends BlockTask {
+    public static class PlaceBlock extends BlockTask {
         Vec3d vec3d = Vec3d.ZERO;
         public PlaceBlock(BlockPos pos, Block block) {
             super(pos, block);
@@ -185,7 +185,7 @@ public class BlockTask {
             if (done()) return false;
             Vec3d vec3d = Printer.getPrinter().usePrecisionPlacement(pos, state);
             if (!looking && vec3d == null && direction1 != null && taskState == BlockTaskState.INITIAL) {
-                looking = true;
+                looking = true; // TODO 应该有个静态变量记录direction1 和 direction2 改变朝向包时使其达到预想效果
                 sendLookPacket(ZxyUtils.client.player, direction1, direction2);
                 taskState = BlockTaskState.WAIT;
                 return false;
