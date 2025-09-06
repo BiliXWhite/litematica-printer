@@ -3,7 +3,6 @@ package me.aleksilassila.litematica.printer.printer;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.StringUtils;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.I18nUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
 import net.minecraft.block.BlockState;
 
@@ -44,7 +43,7 @@ public enum State {
 
     public enum PrintModeType implements IConfigOptionListEntry {
         PRINTER("printer", "打印"),
-        MINING("mining", "挖掘"),
+        MINE("mine", "挖掘"),
         FLUID("fluid", "流体"),
         FILL("fill", "填充");
 
@@ -205,8 +204,8 @@ public enum State {
     }
 
     public enum RadiusShapeType implements IConfigOptionListEntry {
-        SPHERE("sphere", I18N_PREFIX + "list.iteratorShapeType.sphere"),
-        CUBE("cube", I18N_PREFIX + "list.iteratorShapeType.cube");
+        SPHERE("sphere", I18N_PREFIX + ".list.iteratorShapeType.sphere"),
+        CUBE("cube", I18N_PREFIX + ".list.iteratorShapeType.cube");
 
         private final String configString;
         private final String translationKey;
@@ -317,8 +316,8 @@ public enum State {
     }
 
     public enum QuickShulkerModeType implements IConfigOptionListEntry {
-        CLICK_SLOT("click_slot", I18nUtils.get("config.quickShulkerMode.clickSlot")),
-        INVOKE("invoke", I18nUtils.get("config.quickShulkerMode.invoke"));
+        CLICK_SLOT("click_slot", me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils.get("config.quickShulkerMode.clickSlot")),
+        INVOKE("invoke", me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils.get("config.quickShulkerMode.invoke"));
 
         private final String configString;
         private final String displayName;

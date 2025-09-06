@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.printer;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.I18nUtils;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.client.MinecraftClient;
@@ -41,7 +41,7 @@ public class UpdateChecker {
             }
         } catch (Exception exception) {
             System.out.println("无法检查更新: " + exception.getMessage());
-            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of(I18nUtils.get("update.failed")));
+            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of(StringUtils.get("update.failed")));
         }
         return null;
     }

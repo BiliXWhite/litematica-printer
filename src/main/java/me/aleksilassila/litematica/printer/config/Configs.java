@@ -35,6 +35,7 @@ public class Configs implements IConfigHandler {
         list.add(PLACE_COOLDOWN);
         list.add(ITERATOR_USE_TIME);
         list.add(PLACE_USE_PACKET);
+        //list.add(RANGE_SHAPE);
         list.add(RENDER_HUD);
         list.add(QUICK_SHULKER);
         list.add(QUICK_SHULKER_MODE);
@@ -104,7 +105,7 @@ public class Configs implements IConfigHandler {
         if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)){
             list.add(SWITCH_PRINTER_MODE);
         }else {
-            list.add(EXCAVATE);
+            list.add(MINE);
             list.add(FLUID);
             list.add(FILL);
         }
@@ -153,7 +154,7 @@ public class Configs implements IConfigHandler {
     //切换型开关
     public static ImmutableList<IHotkeyTogglable> addSwitchKey(){
         ArrayList<IHotkeyTogglable> list = new ArrayList<>();
-        list.add(EXCAVATE);
+        list.add(MINE);
         list.add(FLUID);
         list.add(FILL);
         list.add(PRINT_WATER);

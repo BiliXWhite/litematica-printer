@@ -21,7 +21,7 @@ public class ShulkerUtils {
                 try {
                     ClientUtil.CheckAndSend(stack, shulkerBoxSlot);
                 } catch (Exception ignored) {}
-            } else DebugUtils.printChatMessage("快捷潜影盒模组未加载！");
+            } else StringUtils.printChatMessage("快捷潜影盒模组未加载！");
         }
     }
 }

@@ -2,7 +2,6 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.litematica.config.Configs;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.DebugUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.ShulkerUtils;
 import me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix;
 import me.aleksilassila.litematica.printer.printer.Printer;

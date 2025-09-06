@@ -9,6 +9,7 @@ import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
@@ -21,7 +22,6 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 
 import java.util.List;
 
-import static me.aleksilassila.litematica.printer.bilixwhite.utils.I18nUtils.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
 
 public class LitematicaMixinMod implements ModInitializer, ClientModInitializer {
@@ -138,7 +138,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "切换模式", "",
             "切换打印机的工作模式。"
     );
-    public static final ConfigBooleanHotkeyed EXCAVATE = new ConfigBooleanHotkeyed(
+    public static final ConfigBooleanHotkeyed MINE = new ConfigBooleanHotkeyed(
             "挖掘", false, "",
             "挖掘所选区内的方块。"
     );
@@ -155,10 +155,10 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "关闭全部模式，若此时为单模模式将模式恢复为打印。"
     );
     public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList(
-            "排流体方块名单", ImmutableList.of("minecraft:sand"), getComment("blocklist")
+            "排流体方块名单", ImmutableList.of("minecraft:sand"), StringUtils.getComment("blocklist")
     );
     public static final ConfigStringList FILL_BLOCK_LIST = new ConfigStringList(
-            "填充方块名单", ImmutableList.of("minecraft:cobblestone"), getComment("blocklist")
+            "填充方块名单", ImmutableList.of("minecraft:cobblestone"), StringUtils.getComment("blocklist")
     );
     public static final ConfigBoolean PUT_SKIP = new ConfigBoolean(
             "跳过放置", false,
@@ -203,7 +203,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     );
     public static final ConfigStringList INVENTORY_LIST = new ConfigStringList(
             "库存白名单", ImmutableList.of("minecraft:chest"),
-            "打印机库存的白名单，只有白名单内的容器才会被记录。\n" + getComment("blocklist")
+            "打印机库存的白名单，只有白名单内的容器才会被记录。\n" + StringUtils.getComment("blocklist")
     );
     public static final ConfigOptionList EXCAVATE_LIMITER = new ConfigOptionList(
             "挖掘模式限制器", State.ExcavateListMode.CUSTOM,
@@ -220,13 +220,13 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
                     "§l使用Tweakeroo挖掘限制预设时，此项会被忽略。§r"
     );
     public static final ConfigStringList EXCAVATE_WHITELIST = new ConfigStringList(
-            "挖掘白名单", ImmutableList.of(""), getComment("blocklist")
+            "挖掘白名单", ImmutableList.of(""), StringUtils.getComment("blocklist")
     );
     public static final ConfigStringList EXCAVATE_BLACKLIST = new ConfigStringList(
-            "挖掘黑名单", ImmutableList.of(""), getComment("blocklist")
+            "挖掘黑名单", ImmutableList.of(""), StringUtils.getComment("blocklist")
     );
     public static final ConfigStringList PUT_SKIP_LIST = new ConfigStringList(
-            "跳过放置名单", ImmutableList.of(), getComment("blocklist")
+            "跳过放置名单", ImmutableList.of(), StringUtils.getComment("blocklist")
     );
     public static final ConfigStringList REPLACEABLE_LIST = new ConfigStringList(
             "覆盖方块列表", ImmutableList.of(
@@ -234,7 +234,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "minecraft:bubble_column", "minecraft:short_grass"
     ),
             "打印时将忽略这些错误方块，直接在该位置打印。\n" +
-                    getComment("blocklist")
+                    StringUtils.getComment("blocklist")
     );
     public static final ConfigColor SYNC_INVENTORY_COLOR = new ConfigColor(
             "容器同步与打印机添加库存高亮颜色", "#4CFF4CE6",
@@ -401,7 +401,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
         list.add(PRINTER_RANGE);
         list.add(PLACE_COOLDOWN);
         list.add(PLACE_USE_PACKET);
-        //list.add(RENDER_PROGRESS);
+        //list.add(RANGE_SHAPE);
         list.add(QUICK_SHULKER);
         list.add(QUICK_SHULKER_MODE);
         list.add(QUICK_SHULKER_COOLDOWN);

@@ -1,7 +1,6 @@
 package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.malilib.util.InventoryUtils;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.DebugUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.ShulkerUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import net.minecraft.client.MinecraftClient;

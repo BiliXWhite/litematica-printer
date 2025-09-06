@@ -406,7 +406,7 @@ public class PlacementGuide extends PrinterUtils {
                         side = side.getOpposite();
                     }
 
-                    action.setSides(side).setLookDirection(side.getOpposite(), sidePitch);
+                    return new Action().setSides(side).setLookDirection(side.getOpposite(), sidePitch);
                 }
 
                 if (block instanceof HorizontalFacingBlock ||
@@ -416,13 +416,15 @@ public class PlacementGuide extends PrinterUtils {
                         //#endif
                 ) { // 操你妈ojng切石机你他妈为什么不是BlockWithEntity?
                     Direction facing = requiredState.get(Properties.HORIZONTAL_FACING);
-                    if (block instanceof FenceGateBlock) facing = facing.getOpposite(); // 栅栏门
+                    if (block instanceof FenceGateBlock// 栅栏门
+                        ||block instanceof CampfireBlock// 营火
+                    ) facing = facing.getOpposite();
                     action.setLookDirection(facing.getOpposite());
                 }
 
                 if (block instanceof FacingBlock) {
                     Direction facing = requiredState.get(Properties.FACING);
-                    if (block instanceof RodBlock) { // 侦测器和末地烛，避雷针类的物品
+                    if (block instanceof RodBlock) { // 末地烛，避雷针类的物品
                         action.setSides(facing);
                         facing = facing.getOpposite();
                     }
@@ -437,8 +439,6 @@ public class PlacementGuide extends PrinterUtils {
                     }
                     if (requiredState.contains(Properties.FACING)) {
                         facing = requiredState.get(Properties.FACING);
-                        if (block instanceof CampfireBlock)
-                            facing = facing.getOpposite(); // 营火方向需要旋转
                         action.setSides(facing).setLookDirection(facing.getOpposite());
                     }
                 }
