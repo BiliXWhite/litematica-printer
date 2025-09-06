@@ -27,6 +27,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final GuiConfigs.ConfigGuiTab PRINTER_TAB_KEY = GuiConfigs.ConfigGuiTab.values()[GuiConfigs.ConfigGuiTab.values().length -1];
 	private static final KeybindSettings GUI_NO_ORDER = KeybindSettings.create(KeybindSettings.Context.GUI, KeyAction.PRESS, false, false, false, true);
 	// Config settings
+	public static final ConfigInteger PRINT_TIMEOUT = new ConfigInteger( "打印机占用时间", 3,   1, 50, "每个游戏刻打印机工作的占用毫秒值。左拉帧数高 右拉效率高");
 	public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger( "打印机工作间隔", 0,   0, 20, "以游戏刻度为单位工作间隔。值越低意味着打印速度越快");
 	public static final ConfigInteger PRINTER_RANGE = new ConfigInteger("打印机工作半径", 6,     1,   256, """
             若服务器未修改交互距离 请勿设置大于6""");

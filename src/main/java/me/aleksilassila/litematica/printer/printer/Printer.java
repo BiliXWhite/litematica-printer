@@ -184,7 +184,7 @@ public class Printer extends PrinterUtils {
 
     //根据当前毫秒值判断是否超出了屏幕刷新率
     boolean timedOut() {
-        return System.currentTimeMillis() > printTimedOut + startTime;
+        return System.currentTimeMillis() >= endTime;
     }
     public class ItemConfig {
         public ItemConfig(List<Item> itemList, boolean holdRequired) {
@@ -458,7 +458,7 @@ public class Printer extends PrinterUtils {
     public static boolean printerMemorySync = false;
 
 
-    long startTime;
+    long endTime;
     public static BlockPos easyPos = null;
     public void myTick(){
         ArrayList<BlockPos> deletePosList = new ArrayList<>();
@@ -483,7 +483,7 @@ public class Printer extends PrinterUtils {
 
         range1 = PRINTER_RANGE.getIntegerValue();
         yDegression = false;
-        startTime = System.currentTimeMillis();
+        endTime = System.currentTimeMillis() + PRINT_TIMEOUT.getIntegerValue();
         tickRate = PRINT_INTERVAL.getIntegerValue();
 
         tick = tick == 0x7fffffff ? 0 : tick + 1;

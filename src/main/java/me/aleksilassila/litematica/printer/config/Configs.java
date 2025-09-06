@@ -30,6 +30,7 @@ public class Configs implements IConfigHandler {
         if(loadChestTracker) list.add(INVENTORY);
         if(loadChestTracker) list.add(AUTO_INVENTORY);
         if(loadQuickShulker) list.add(QUICKSHULKER);
+        list.add(PRINT_TIMEOUT);
         list.add(PRINT_INTERVAL);
 //        list.add(PRINTING_RANGE);
         list.add(PRINTER_RANGE);
