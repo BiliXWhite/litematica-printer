@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.bilixwhite;
 
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 import net.minecraft.client.MinecraftClient;
@@ -37,22 +38,22 @@ public abstract class MixinInGameHud {
         float height = client.getWindow().getScaledHeight();
         if (client.player != null) {
             // 检查玩家是否是观察者模式
-            if (!client.player.isSpectator() && LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() && LitematicaMixinMod.PRINTER_MODE.getOptionListValue().equals(State.PrintModeType.PRINTER)) {
+            if (!client.player.isSpectator() && LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() &&
+                    (LitematicaMixinMod.PRINTER_MODE.getOptionListValue().equals(State.PrintModeType.PRINTER)
+                    ||LitematicaMixinMod.PRINTER_MODE.getOptionListValue().equals(State.PrintModeType.MINE))) {
                 if (LitematicaMixinMod.RENDER_HUD.getBooleanValue()) {
-                    //#if MC > 11904
-                    if (LitematicaMixinMod.LAG_CHECK.getBooleanValue())
-                        context.drawCenteredTextWithShadow(client.textRenderer, Printer.packetTick + "Tick", (int) (width / 2), (int) (height / 2 - 22), new Color(255, 255, 255, 255).getRGB());
-                    context.drawCenteredTextWithShadow(client.textRenderer, LitematicaMixinMod.PRINTER_MODE.getOptionListValue().getDisplayName(), (int) (width / 2), (int) (height / 2 + 42), new Color(255, 255, 255, 255).getRGB());
-                    if (Printer.requiredState != null)
-                        context.drawCenteredTextWithShadow(client.textRenderer, Printer.requiredState.getBlock().getName().getString(), (int) (width / 2), (int) (height / 2 + 54), new Color(255, 255, 255, 255).getRGB());
-
+                    //#if MC <= 11904
+                    //$$ StringUtils.initMatrix(matrices);
                     //#else
-                    //$$DrawableHelper.fill(matrices, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
-                    //$$DrawableHelper.fill(matrices, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getPrinter().getPrintProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
-                    //$$client.textRenderer.drawWithShadow(matrices, (int) (Printer.getPrinter().getPrintProgress() * 100) + "%", (int) ((width - client.textRenderer.getWidth((int) (Printer.getPrinter().getPrintProgress() * 100) + "%")) / 2), (int) (height / 2 + 22), new Color(255, 255, 255, 255).getRGB());
-                    //$$if (LitematicaMixinMod.LAG_CHECK.getBooleanValue())
-                    //$$    client.textRenderer.drawWithShadow(matrices, Printer.packetTick + "Tick", (int) ((width - client.textRenderer.getWidth(Printer.packetTick + "Tick")) / 2), (int) (height / 2 - 22), new Color(255, 255, 255, 255).getRGB());
+                    StringUtils.initDrawContext(context);
                     //#endif
+                    if (LitematicaMixinMod.LAG_CHECK.getBooleanValue())
+                        StringUtils.drawText(Printer.packetTick + "Tick", (int) (width / 2), (int) (height / 2 - 22), new Color(255, 255, 255, 255).getRGB(), true, true);
+
+                    StringUtils.drawText(LitematicaMixinMod.PRINTER_MODE.getOptionListValue().getDisplayName(), (int) (width / 2), (int) (height / 2 + 42), new Color(255, 255, 255, 255).getRGB(), true, true);
+
+                    if (Printer.requiredState != null)
+                        StringUtils.drawText(Printer.requiredState.getBlock().getName().getString(), (int) (width / 2), (int) (height / 2 + 54), new Color(255, 255, 255, 255).getRGB(), true, true);
                 }
             }
         }

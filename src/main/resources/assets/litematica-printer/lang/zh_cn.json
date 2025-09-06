@@ -68,8 +68,8 @@
     "litematica_printer.config.name.updateCheck": "检查更新",
     "litematica_printer.config.comment.updateCheck": "在首次进入世界时检查更新。",
 
-    "litematica_printer.config.list.iteratorShapeType.sphere": "正方体",
-    "litematica_printer.config.list.iteratorShapeType.cube": "球体",
+    "litematica_printer.config.list.iteratorShapeType.sphere": "球体",
+    "litematica_printer.config.list.iteratorShapeType.cube": "正方体",
 
     "litematica_printer.config.name.printerIteratorShape": "打印-工作形状",
     "litematica_printer.config.comment.printerIteratorShape": "决定打印机该使用什么形状进行迭代。\n§d正方体§r：以半径长度为§6§l工作半径§r的正方体进行迭代（推荐为3）。\n§d球体§r：以半径长度为§6§l工作半径§r的球体进行迭代。（推荐为6）",

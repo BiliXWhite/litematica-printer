@@ -198,7 +198,7 @@ public class BreakManager {
         if (canBreakBlock(pos)) {
             client.interactionManager.updateBlockBreakingProgress(pos, Direction.DOWN);
             client.interactionManager.cancelBlockBreaking();
-            return world.getBlockState(pos).isOf(block);
+            return (world.getBlockState(pos).isOf(block) && !client.player.isCreative());
         }
         return false;
     }

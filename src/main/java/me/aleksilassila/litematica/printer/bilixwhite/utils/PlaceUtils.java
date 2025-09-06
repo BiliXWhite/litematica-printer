@@ -7,7 +7,6 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.BubbleColumnBlock;
 import net.minecraft.block.FluidBlock;
 import net.minecraft.state.property.Properties;
-import org.lwjgl.glfw.GLFW;
 
 public class PlaceUtils {
 
@@ -37,8 +36,6 @@ public class PlaceUtils {
 //    }
 
     public static boolean isTimeOut() {
-        Printer.getPrinter();
-        var maxFrameTime = Printer.tickStartTime + LitematicaMixinMod.ITERATOR_USE_TIME.getIntegerValue();
-        return System.currentTimeMillis() > maxFrameTime;
+        return System.currentTimeMillis() > Printer.tickEndTime;
     }
 }

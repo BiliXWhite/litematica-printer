@@ -4,7 +4,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.tag.TagKey;
-import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,8 +11,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 public class Filters {
-    //包含/比较
-    public static boolean filters(String str1,String str2,String[] argument){
+    /**
+     * 根据给定的参数数组，判断两个字符串是否满足特定条件。
+     * 如果参数数组中包含 "c"，则检查第一个字符串是否包含第二个字符串。
+     * 同时也会检查两个字符串是否完全相等。
+     *
+     * @param str1 第一个待比较的字符串
+     * @param str2 第二个待比较的字符串
+     * @param argument 用于控制比较逻辑的参数数组
+     * @return 如果str1包含str2（当argument含有"c"时）或两者相等，则返回true；否则返回false。
+     */
+    public static boolean filters(String str1,String str2,String[] argument) {
         ArrayList<String> strArr = new ArrayList<>(Arrays.asList(argument));
         AtomicBoolean b = new AtomicBoolean(false);
         strArr.forEach(str -> {
@@ -30,7 +38,15 @@ public class Filters {
         return equalsName(itemName,itemStack);
     }
 
-    public static boolean equalsName(String blockName, Object o){
+    /**
+     * 比较给定的名字（blockName）与对象o的名称是否相等。此方法支持比较方块状态（BlockState）和物品堆（ItemStack）。
+     * 比较逻辑包括直接字符串比较、标签匹配以及中文和拼音的模糊匹配。
+     *
+     * @param blockName 待比较的名称，可以是逗号分隔的字符串，其中第一个元素是主要的比较依据，其余作为附加条件。
+     * @param o 要与blockName进行比较的对象，必须是BlockState或ItemStack类型之一。
+     * @return 如果根据定义的规则blockName与o的名称匹配，则返回true；否则返回false。
+     */
+    public static boolean equalsName(String blockName, Object o) {
         BlockState blockState = null;
         ItemStack itemStack = null;
 

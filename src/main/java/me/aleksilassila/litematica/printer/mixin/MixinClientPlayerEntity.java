@@ -36,7 +36,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 
 //#if MC < 11904
 //$$ import net.minecraft.text.LiteralText;
-//$$ import me.aleksilassila.litematica.printer.bilixwhite.utils.I18nUtils;
+//$$ import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 //#else
 import net.minecraft.text.Text;
 //#endif
@@ -138,13 +138,13 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 							Text.literal("------------------------").formatted(Formatting.GRAY));
 					//#else
 					//$$ client.inGameHud.getChatHud().addMessage(
-					//$$         new LiteralText(String.format(I18nUtils.get("update.available"), version, newVersion))
+					//$$         new LiteralText(String.format(StringUtils.get("update.available"), version, newVersion))
 					//$$                 .formatted(Formatting.YELLOW));
 					//$$ client.inGameHud.getChatHud().addMessage(
-					//$$         new LiteralText(I18nUtils.get("update.recommendation"))
+					//$$         new LiteralText(StringUtils.get("update.recommendation"))
 					//$$                 .formatted(Formatting.RED));
 					//$$ client.inGameHud.getChatHud().addMessage(
-					//$$         new LiteralText(I18nUtils.get("update.repository"))
+					//$$         new LiteralText(StringUtils.get("update.repository"))
 					//$$                 .formatted(Formatting.WHITE));
 					//$$ client.inGameHud.getChatHud().addMessage(
 					//$$         new LiteralText("https://github.com/BiliXWhite/litematica-printer")
@@ -153,13 +153,13 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 					//$$                         .withUnderline(true)
 					//$$                         .withColor(Formatting.BLUE)));
 					//$$ client.inGameHud.getChatHud().addMessage(
-					//$$         new LiteralText(I18nUtils.get("update.download"))
+					//$$         new LiteralText(StringUtils.get("update.download"))
 					//$$                 .setStyle(Style.EMPTY
 					//$$                         .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi"))
 					//$$                         .withBold(true)
 					//$$                         .withColor(Formatting.GREEN)));
 					//$$ client.inGameHud.getChatHud().addMessage(
-					//$$         new LiteralText(String.format(I18nUtils.get("update.password"), "cgxw")
+					//$$         new LiteralText(String.format(StringUtils.get("update.password"), "cgxw")
 					//$$                 .formatted(Formatting.WHITE)));
 					//$$ client.inGameHud.getChatHud().addMessage(
 					//$$         new LiteralText("------------------------").formatted(Formatting.GRAY));

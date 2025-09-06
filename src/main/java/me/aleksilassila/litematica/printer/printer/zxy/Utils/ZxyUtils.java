@@ -348,7 +348,7 @@ public class ZxyUtils {
         addInv();
 
         if (LitematicaMixinMod.CLOSE_ALL_MODE.getKeybind().isPressed()) {
-            LitematicaMixinMod.EXCAVATE.setBooleanValue(false);
+            LitematicaMixinMod.MINE.setBooleanValue(false);
             LitematicaMixinMod.FLUID.setBooleanValue(false);
             LitematicaMixinMod.PRINT_SWITCH.setBooleanValue(false);
             LitematicaMixinMod.PRINTER_MODE.setOptionListValue(State.PrintModeType.PRINTER);
