@@ -28,7 +28,6 @@
     "MixinClientPlayerInteractionManager",
     "MixinClientPlayNetworkHandler",
     "PlayerMoveC2SPacketAccessor",
-    "getFps.AccessorMinecraftClient",
     "jackf.ChestTrackerScreenMixin",
     "jackf.EditMemoryBankScreenMixin",
     "jackf.ItemStackUtilMixin",

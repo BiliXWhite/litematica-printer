@@ -211,7 +211,7 @@ public class Printer extends PrinterUtils {
                 replace = replace.substring(2);
             }
             String[] split = replace.replaceAll("\\s","").split("=>|->");
-            if(split.length > 2) continue;
+            if(split.length != 2) continue;
             String[] originBlock = split[0].split("\\|");
             String[] newBlock = split[1].split("\\|");
 
@@ -474,7 +474,20 @@ public class Printer extends PrinterUtils {
         if (PlacementGuide.createPortalTick != 1) {
             PlacementGuide.createPortalTick = 1;
         }
+
+        facingTimeOut();
     }
+
+    static int facingTimeOut = 0;
+    //放置有朝向的方块需要等待一段时间，如果中途关闭打印机就会出现落枕现象。
+    public void facingTimeOut() {
+        if (!isFacing) return;
+        facingTimeOut++;
+        if (facingTimeOut < 25) return;
+        currentAction = null;
+        isFacing = false;
+    }
+
     public void tick() {
         if (!verify()) return;
         WorldSchematic worldSchematic = SchematicWorldHandler.getSchematicWorld();
@@ -486,7 +499,7 @@ public class Printer extends PrinterUtils {
         endTime = System.currentTimeMillis() + PRINT_TIMEOUT.getIntegerValue();
         tickRate = PRINT_INTERVAL.getIntegerValue();
 
-        tick = tick == 0x7fffffff ? 0 : tick + 1;
+        tick = ++tick % Integer.MAX_VALUE;
         boolean easyModeBooleanValue = EASY_MODE.getBooleanValue();
         boolean forcedPlacementBooleanValue = FORCED_PLACEMENT.getBooleanValue();
 
@@ -500,6 +513,7 @@ public class Printer extends PrinterUtils {
                 return;
             }
         }
+
         if (isFacing) {
             switchToItems(pEntity, item2);
             if (currentAction != null) currentAction.sendQueue(client.player);
@@ -627,6 +641,7 @@ public class Printer extends PrinterUtils {
                     ) {
                         item2 = action.clickItems;
                         isFacing = true;
+                        facingTimeOut = 0;
                         currentAction = action;
                         continue;
                     }
@@ -634,6 +649,7 @@ public class Printer extends PrinterUtils {
                     action.sendQueue(pEntity);
                     continue;
                 }
+                facingTimeOut = 0;
                 currentAction = action;
                 return;
             }
