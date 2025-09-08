@@ -451,8 +451,6 @@ public class Printer extends PrinterUtils {
     }
 
     public static int tickRate;
-    boolean isFacing = false;
-    Item[] item2 = null;
 
     static Map<BlockPos,Integer> skipPosMap = new HashMap<>();
     public static boolean printerMemorySync = false;
@@ -481,11 +479,10 @@ public class Printer extends PrinterUtils {
     static int facingTimeOut = 0;
     //放置有朝向的方块需要等待一段时间，如果中途关闭打印机就会出现落枕现象。
     public void facingTimeOut() {
-        if (!isFacing) return;
+        if (currentAction == null) return;
         facingTimeOut++;
         if (facingTimeOut < 25) return;
         currentAction = null;
-        isFacing = false;
     }
 
     public void tick() {
@@ -514,10 +511,9 @@ public class Printer extends PrinterUtils {
             }
         }
 
-        if (isFacing) {
-            switchToItems(pEntity, item2);
-            if (currentAction != null) currentAction.sendQueue(client.player);
-            isFacing = false;
+        if (currentAction != null) {
+            switchToItems(pEntity, currentAction.clickItems);
+            currentAction.sendQueue(client.player);
         }
 
         if (isOpenHandler) return;
@@ -607,7 +603,7 @@ public class Printer extends PrinterUtils {
                     useShift = true;
                 }
 
-                if (!easyModeBooleanValue && isFacingBlock(requiredState) && isFacing) {
+                if (!easyModeBooleanValue && isFacingBlock(requiredState) && currentAction != null) {
                     continue;
                 }
                 Direction lookDir = action.getLookDirection();
@@ -630,17 +626,10 @@ public class Printer extends PrinterUtils {
                     action.hitModifier = hitModifier;
                     action.usePrecisionPlacement = true;
                 }
-//                if (requiredState.isOf(Blocks.NOTE_BLOCK)) {
-//                    action.sendQueue(pEntity);
-//                    continue;
-//                }
 
                 if (tickRate == 0) {
                     //处理不能快速放置的方块
-                    if (hitModifier == null && isFacingBlock(requiredState)
-                    ) {
-                        item2 = action.clickItems;
-                        isFacing = true;
+                    if (hitModifier == null && isFacingBlock(requiredState)) {
                         facingTimeOut = 0;
                         currentAction = action;
                         continue;

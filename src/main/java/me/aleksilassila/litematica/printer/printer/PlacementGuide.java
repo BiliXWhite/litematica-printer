@@ -374,7 +374,7 @@ public class PlacementGuide extends PrinterUtils {
                     break;
                 }
                 case TORCH: {
-
+                        return new Action().setRequiresSupport().setSides(Direction.DOWN);
                 }
                 case DEFAULT:
                 default: { // Try to guess how the rest of the blocks are placed.
@@ -851,7 +851,7 @@ public class PlacementGuide extends PrinterUtils {
         // Placements
         ROD(Implementation.NewBlocks.ROD.clazz),
         WALLTORCH(WallTorchBlock.class, WallRedstoneTorchBlock.class),
-        TORCH(TorchBlock.class),
+        TORCH(TorchBlock.class, RedstoneTorchBlock.class),
         SLAB(SlabBlock.class),
         STAIR(StairsBlock.class),
         TRAPDOOR(TrapdoorBlock.class),
