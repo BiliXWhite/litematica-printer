@@ -27,7 +27,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final GuiConfigs.ConfigGuiTab PRINTER_TAB_KEY = GuiConfigs.ConfigGuiTab.values()[GuiConfigs.ConfigGuiTab.values().length -1];
 	private static final KeybindSettings GUI_NO_ORDER = KeybindSettings.create(KeybindSettings.Context.GUI, KeyAction.PRESS, false, false, false, true);
 	// Config settings
-	public static final ConfigInteger PRINT_TIMEOUT = new ConfigInteger( "打印机占用时间", 3,   1, 50, "每个游戏刻打印机工作的占用毫秒值。左拉帧数高 右拉效率高");
+	public static final ConfigInteger PRINT_TIMEOUT = new ConfigInteger( "打印机占用时间", 3,   1, 30, "每个游戏刻打印机工作的占用毫秒值。左拉帧数高 右拉效率高");
 	public static final ConfigInteger PRINT_INTERVAL = new ConfigInteger( "打印机工作间隔", 0,   0, 20, "以游戏刻度为单位工作间隔。值越低意味着打印速度越快");
 	public static final ConfigInteger PRINTER_RANGE = new ConfigInteger("打印机工作半径", 6,     1,   256, """
             若服务器未修改交互距离 请勿设置大于6""");
@@ -45,7 +45,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 	public static final ConfigBoolean FORCED_PLACEMENT = new ConfigBoolean("强制潜行",false, "打印时会强制shift避免一些方块的交互");
 	public static final ConfigBoolean REPLACE = new ConfigBoolean("覆盖列表方块",true, "可以直接在一些可覆盖方块放置，例如 草 雪片");
 	public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean("原木去皮",false, "去皮木头可以通过放置原木后去皮，但你需要一把斧子");
-	public static boolean shouldPrintInAir = PRINT_IN_AIR.getBooleanValue();
 	public static final ConfigHotkey SWITCH_PRINTER_MODE = new ConfigHotkey("切换模式", "J", "切换打印机工作模式");
 	public static final ConfigBooleanHotkeyed BEDROCK_SWITCH = new ConfigBooleanHotkeyed("破基岩", false,"", "啊吧啊吧");
 	public static final ConfigBooleanHotkeyed EXCAVATE = new ConfigBooleanHotkeyed("挖掘", false,"", "挖掘所选区内的方块");

@@ -84,7 +84,7 @@ import net.minecraft.registry.Registries;
 //#endif
 
 public class Printer extends PrinterUtils {
-    private static final Logger log = LoggerFactory.getLogger(Printer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Printer.class);
     public static boolean up = true;
 
     public static class TempData {
@@ -170,9 +170,9 @@ public class Printer extends PrinterUtils {
         myBox.yIncrement = !yDegression;
         myBox.initIterator();
         Iterator<BlockPos> iterator = myBox.iterator;
+        IConfigOptionListEntry optionListValue = RANGE_MODE.getOptionListValue();
         while (!timedOut() && iterator.hasNext()) {
             BlockPos pos = iterator.next();
-            IConfigOptionListEntry optionListValue = RANGE_MODE.getOptionListValue();
             if (optionListValue == State.ListType.SPHERE && !basePos.isWithinDistance(pos,range1)) {
                 continue;
             }
@@ -182,13 +182,14 @@ public class Printer extends PrinterUtils {
         return null;
     }
 
-    //根据当前毫秒值判断是否超出了屏幕刷新率
+    //根据当前毫秒值判断是否超时了
     boolean timedOut() {
         return System.currentTimeMillis() >= endTime;
     }
-    public class ItemConfig {
+    public static class ItemConfig {
         public ItemConfig(List<Item> itemList, boolean holdRequired) {
             this.itemList = itemList;
+            // 需要背包中有该物品
             this.holdRequired = holdRequired;
         }
 
@@ -215,8 +216,8 @@ public class Printer extends PrinterUtils {
             String[] originBlock = split[0].split("\\|");
             String[] newBlock = split[1].split("\\|");
 
-            replaceTaskMap.put(new ArrayList<>(List.of(originBlock)),new ItemConfig(Registries.ITEM.stream().filter(item ->
-                    Arrays.stream(newBlock).anyMatch(targetBlockName -> equalsItemName(targetBlockName, new ItemStack(item)))).toList(),holdRequired));
+            replaceTaskMap.put(new ArrayList<>(List.of(originBlock)), new ItemConfig(Registries.ITEM.stream().filter(item ->
+                    Arrays.stream(newBlock).anyMatch(targetBlockName -> equalsItemName(targetBlockName, new ItemStack(item)))).toList(), holdRequired));
         }
 
     }
@@ -549,8 +550,6 @@ public class Printer extends PrinterUtils {
             }
             return;
         }
-
-        shouldPrintInAir = PRINT_IN_AIR.getBooleanValue();
 
         // forEachBlockInRadius:
         BlockPos pos;

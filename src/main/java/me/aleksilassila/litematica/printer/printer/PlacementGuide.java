@@ -647,7 +647,7 @@ public class PlacementGuide extends PrinterUtils {
             List<Direction> validSides = new ArrayList<>();
 
             for (Direction side : sides.keySet()) {
-                if (LitematicaMixinMod.shouldPrintInAir && !this.requiresSupport) {
+                if (LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport) {
                     return side;
                 } else {
                     BlockPos neighborPos = pos.offset(side);
@@ -761,7 +761,7 @@ public class PlacementGuide extends PrinterUtils {
 //            System.out.println("Queued click?: " + center.offset(side).toString() + ", side: " + side.getOpposite());
 
             shift = useShift;
-            if (LitematicaMixinMod.shouldPrintInAir && !this.requiresSupport) {
+            if (LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport) {
                 target = center;
             } else {
                 target = center.offset(side.getOpposite());

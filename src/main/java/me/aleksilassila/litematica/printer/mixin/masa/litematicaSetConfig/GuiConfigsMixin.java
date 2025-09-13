@@ -35,17 +35,18 @@ public abstract class GuiConfigsMixin {
     @WrapOperation(at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/gui/GuiConfigs;createButton(IIILfi/dy/masa/litematica/gui/GuiConfigs$ConfigGuiTab;)I", ordinal = 5), method = "initGui")
     private int createMyButton(GuiConfigs instance, int x, int y, int width, GuiConfigs.ConfigGuiTab tab, Operation<Integer> original) {
         Integer call = original.call(instance, x, y, width, tab);
-        createButton(call + x, y-20 ,-1 , LitematicaMixinMod.PRINTER_TAB_KEY);
+        createButton(call + x, y - 20, -1, LitematicaMixinMod.PRINTER_TAB_KEY);
         return call;
     }
-    @Inject(at =@At("HEAD"),method = "getConfigs", cancellable = true,remap = false)
+
+    @Inject(at = @At("HEAD"), method = "getConfigs", cancellable = true, remap = false)
     private void getConfigs(CallbackInfoReturnable<List<GuiConfigsBase.ConfigOptionWrapper>> cir) {
         GuiConfigs.ConfigGuiTab tab = DataManager.getConfigGuiTab();
         if (LitematicaMixinMod.PRINTER_TAB_KEY.equals(tab)) {
             client.setScreen(new ConfigUi());
             DataManager.setConfigGuiTab(tempTab);
             cir.setReturnValue(GuiConfigsBase.ConfigOptionWrapper.createFor(Collections.emptyList()));
-        }else tempTab = tab;
+        } else tempTab = tab;
     }
 
     @Shadow(remap = false)
@@ -56,6 +57,7 @@ public abstract class GuiConfigsMixin {
     private ImmutableList<IConfigBase> colorsOptions(Operation<ImmutableList<IConfigBase>> original) {
         return LitematicaMixinMod.getColorsList();
     }
+
     @WrapOperation(method = "getConfigs", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Configs$Generic;OPTIONS:Lcom/google/common/collect/ImmutableList;"))
     private ImmutableList<IConfigBase> moreOptions(Operation<ImmutableList<IConfigBase>> original) {
         return LitematicaMixinMod.getConfigList();
