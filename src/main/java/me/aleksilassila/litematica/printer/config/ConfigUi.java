@@ -6,6 +6,7 @@ import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.printer.UpdateChecker;
 
 import java.util.List;
 import static me.aleksilassila.litematica.printer.config.ConfigUi.Tab.*;
@@ -16,7 +17,7 @@ public class ConfigUi extends GuiConfigsBase {
     private static Tab tab = Tab.ALL;
 
     public ConfigUi() {
-        super(10, 50, "Litematica Printer", null, "litematica-printer");
+        super(10, 50, LitematicaMixinMod.MOD_ID, null, "投影打印机 " + UpdateChecker.version);
     }
 
     @Override

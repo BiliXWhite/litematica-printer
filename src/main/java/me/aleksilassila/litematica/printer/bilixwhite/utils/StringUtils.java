@@ -33,7 +33,7 @@ public class StringUtils {
 
 
     public static void drawText(String text, int x, int y, int color, boolean withShadow) {
-        drawText(text, x, y, color, withShadow);
+        drawText(text, x, y, color, withShadow, false);
     }
 
     public static void drawText(String text, int x, int y, int color, boolean withShadow, boolean centered) {
