@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
