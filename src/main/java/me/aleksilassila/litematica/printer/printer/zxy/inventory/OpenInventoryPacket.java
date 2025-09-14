@@ -216,9 +216,7 @@ public class OpenInventoryPacket {
         //#if MC > 12004
         ServerPlayNetworking.registerGlobalReceiver(OPEN_INVENTORY_ID, (payload,context) -> {
             if (payload instanceof OpenPackage packetByteBuf) {
-                context.player().getServer().execute(() -> {
-                    openInv(context.player().getServer(), context.player(), packetByteBuf.pos, packetByteBuf.world);
-                });
+                context.player().getServer().execute(() -> openInv(context.player().getServer(), context.player(), packetByteBuf.pos, packetByteBuf.world));
             }
         });
         //#else

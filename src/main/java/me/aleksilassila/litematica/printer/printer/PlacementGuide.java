@@ -185,7 +185,6 @@ public class PlacementGuide extends PrinterUtils {
                 Direction facing = requiredState.get(Properties.HORIZONTAL_FACING).getOpposite();
                 ChestType type = requiredState.get(Properties.CHEST_TYPE);
                 Map<Direction, Vec3d> noChestSides = new HashMap<>();
-                boolean allSidesMatched = true;
 
                 for (Direction side : Direction.values()) {
                     if (world.getBlockState(pos.offset(side)).getBlock() instanceof ChestBlock) {
@@ -198,7 +197,6 @@ public class PlacementGuide extends PrinterUtils {
                 if (type == ChestType.SINGLE) {
                     for (Direction side : Properties.HORIZONTAL_FACING.getValues()) {
                         if (!noChestSides.containsKey(side)) {
-                            allSidesMatched = false;
                             return new Action().setLookDirection(facing).setUseShift();
                         }
                         return new Action().setSides(noChestSides).setLookDirection(facing);
