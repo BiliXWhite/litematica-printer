@@ -27,6 +27,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
+import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -316,6 +317,10 @@ public class Printer extends PrinterUtils {
             return;
         }
 
+        //从这里才算作开始
+        tickStartTime = System.currentTimeMillis();
+        tickEndTime = tickStartTime + LitematicaMixinMod.ITERATOR_USE_TIME.getIntegerValue();
+
         // 优先执行队列中的点击操作
         if (tickRate != 0) {
             queue.sendQueue(player);
@@ -329,10 +334,6 @@ public class Printer extends PrinterUtils {
             queue.sendQueue(player);
             needDelay = false;
         }
-
-        //从这里才算作开始
-        tickStartTime = System.currentTimeMillis();
-        tickEndTime = tickStartTime + LitematicaMixinMod.ITERATOR_USE_TIME.getIntegerValue();
 
         if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)){
             boolean multiBreakBooleanValue = MULTI_BREAK.getBooleanValue();
@@ -395,6 +396,16 @@ public class Printer extends PrinterUtils {
             // 检查放置条件
             PlacementGuide.Action action = guide.getAction(world, schematic, pos);
             if (action == null) continue;
+
+            if (LitematicaMixinMod.FALLING_CHECK.getBooleanValue() && requiredState instanceof LandingBlock) {
+                //检查方块下面是否有方块，否则跳过放置
+                BlockPos downPos = pos.down();
+                BlockState downState = world.getBlockState(downPos);
+                if (FallingBlock.canFallThrough(downState)) {
+                    client.inGameHud.setOverlayMessage(Text.of("方块 " + requiredState.getBlock().getName().toString() + " 需要支撑，跳过放置"), false);
+                    continue;
+                }
+            }
 
 
             Direction side = action.getValidSide(world, pos);

@@ -29,6 +29,9 @@ public class PlacementGuide extends PrinterUtils {
     @NotNull
     protected final MinecraftClient client;
 
+    public static boolean pistonNeedFix = false;
+    public static BlockState pistonState;
+
     public PlacementGuide(@NotNull MinecraftClient client) {
         this.client = client;
     }
@@ -383,16 +386,6 @@ public class PlacementGuide extends PrinterUtils {
                 Action action = new Action();
                 Block block = requiredState.getBlock();
 
-                if (LitematicaMixinMod.FALLING_CHECK.getBooleanValue() && block instanceof FallingBlock) {
-                    //检查方块下面是否有方块，否则跳过放置
-                    BlockPos downPos = pos.down();
-                    BlockState downState = world.getBlockState(downPos);
-                    if (downState.isAir()) {
-                        client.inGameHud.setOverlayMessage(Text.of("方块 " + block.getName().toString() + " 需要支撑，跳过放置"), false);
-                        return null;
-                    }
-                }
-
                 if (block instanceof WallMountedBlock) {
                     Direction side = requiredState.get(Properties.HORIZONTAL_FACING);
                     BlockFace face = requiredState.get(Properties.BLOCK_FACE);
@@ -424,11 +417,15 @@ public class PlacementGuide extends PrinterUtils {
 
                 if (block instanceof FacingBlock) {
                     Direction facing = requiredState.get(Properties.FACING);
-                    if (block instanceof RodBlock) { // 末地烛，避雷针类的物品
-                        action.setSides(facing);
-                        facing = facing.getOpposite();
+
+                    if (block instanceof PistonBlock) {
+                        pistonState = requiredState.with(PistonBlock.EXTENDED, false);
+                        pistonNeedFix = true;
                     }
-                    action.setLookDirection(facing.getOpposite());
+
+                    // 末地烛，避雷针类的物品
+                    if (block instanceof RodBlock) action.setSides(facing.getOpposite());
+                    else action.setLookDirection(facing.getOpposite());
                 }
 
                 if (block instanceof BlockWithEntity) {

@@ -6,6 +6,7 @@
   "mixins": [
     "bilixwhite.MixinClientConnection",
     "bilixwhite.MixinInGameHud",
+    "bilixwhite.MixinPistonBlock",
     "masa.KeyCallbackToggleBooleanConfigWithMessageMixin",
     "masa.MixinInventoryFix",
     "masa.MixinInventoryUtils",
