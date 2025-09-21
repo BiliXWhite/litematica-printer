@@ -456,6 +456,7 @@ public class Printer extends PrinterUtils {
                             || block instanceof CrafterBlock
                         //#endif
                             || block instanceof WallSignBlock
+                            || block instanceof GrindstoneBlock
                     ) {
                         needDelay = true;
                         return;
