@@ -3,6 +3,7 @@ package me.aleksilassila.litematica.printer.printer;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
@@ -13,6 +14,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
+import net.minecraft.registry.Registries;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
@@ -149,9 +151,7 @@ public class PlacementGuide extends PrinterUtils {
                 return action;
             }
             case ANVIL -> {
-                Action action = new Action().setLookDirection(requiredState.get(AnvilBlock.FACING).rotateYCounterclockwise());
-                return (LitematicaMixinMod.FALLING_CHECK.getBooleanValue() && worldSchematic.getBlockState(pos.down()).isAir()) ?
-                        action : action.setRequiresSupport();
+                return new Action().setLookDirection(requiredState.get(AnvilBlock.FACING).rotateYCounterclockwise());
             }
             case HOPPER -> {
                 Direction facing = requiredState.get(Properties.HOPPER_FACING);
@@ -364,7 +364,14 @@ public class PlacementGuide extends PrinterUtils {
 
             }
             case FIRE -> {
-                return new Action().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
+                if (requiredState.getBlock() instanceof SoulFireBlock) return new Action().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
+                for (Direction direction : Direction.values()) {
+                    if (direction == Direction.DOWN) continue;
+                    if ((Boolean) getPropertyByName(requiredState, direction.name())) {
+                        return new Action().setSides(direction).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
+                    }
+                }
+                return new Action().setSides(Direction.DOWN).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
             }
             case OBSERVER -> {
                 var facing = requiredState.get(Properties.FACING);
@@ -376,6 +383,15 @@ public class PlacementGuide extends PrinterUtils {
                     return null;
                 }
                 return new Action().setLookDirection(facing);
+            }
+            case LADDER -> {
+                var facing = requiredState.get(LadderBlock.FACING);
+                return new Action().setSides(facing);
+            }
+            case LANTERN -> {
+                if (requiredState.get(LanternBlock.HANGING))
+                    return new Action().setLookDirection(Direction.UP);
+                return new Action().setLookDirection(Direction.DOWN);
             }
             case SKIP -> {
                 return null;
@@ -407,8 +423,7 @@ public class PlacementGuide extends PrinterUtils {
                         //#endif
                 ) { // 操你妈ojng切石机你他妈为什么不是BlockWithEntity?
                     Direction facing = requiredState.get(Properties.HORIZONTAL_FACING);
-                    if (block instanceof FenceGateBlock// 栅栏门
-                        ||block instanceof CampfireBlock// 营火
+                    if (block instanceof FenceGateBlock // 栅栏门
                     ) facing = facing.getOpposite();
                     action.setLookDirection(facing.getOpposite());
                 }
@@ -422,7 +437,36 @@ public class PlacementGuide extends PrinterUtils {
                     }
 
                     // 末地烛，避雷针类的物品
-                    if (block instanceof RodBlock) action.setSides(facing.getOpposite());
+                    if (block instanceof RodBlock) {
+                        var facingState = worldSchematic.getBlockState(pos.offset(facing));
+                        var backingStateSchematic = worldSchematic.getBlockState(pos.offset(facing.getOpposite()));
+                        StringUtils.printChatMessage("前 " + facingState.getBlock().getName().getString());
+                        StringUtils.printChatMessage("后 " + backingStateSchematic.getBlock().getName().getString());
+                        // 前方是否有同类方块
+                        if (facingState.isOf(requiredState.getBlock())) {
+                            // 前方投影方块是否与这个投影方块朝向相同
+                            if (facingState.get(RodBlock.FACING) == facing) {
+                                // 如果前方方块已存在，则跳过放置
+                                if (facingState != world.getBlockState(pos.offset(facing))) {
+                                    ZxyUtils.actionBar("§l§b末地烛/避雷针§r§l无法正确放置！§r请拆除其头部的末地烛/避雷针！");
+                                    return null;
+                                }
+                            }
+                            // 前方投影朝向是否相反
+                            else if (facingState.get(RodBlock.FACING) == facing.getOpposite())
+                                // 后面方块的类型，朝向是否一致
+                                if (backingStateSchematic.isOf(requiredState.getBlock()))
+                                    if (backingStateSchematic.get(RodBlock.FACING) == facing) {
+                                        facing = facing.getOpposite();
+                                    }
+                        }
+                        if (backingStateSchematic.isOf(requiredState.getBlock())) {
+                            if (backingStateSchematic.get(RodBlock.FACING) == facing) {
+                                facing = facing.getOpposite();
+                            }
+                        }
+                        action.setSides(facing.getOpposite());
+                    }
                     else action.setLookDirection(facing.getOpposite());
                 }
 
@@ -430,6 +474,11 @@ public class PlacementGuide extends PrinterUtils {
                     Direction facing;
                     if (requiredState.contains(Properties.HORIZONTAL_FACING)) {
                         facing = requiredState.get(Properties.HORIZONTAL_FACING);
+                        //#if MC >= 11904
+                        if (block instanceof DecoratedPotBlock
+                            ||block instanceof CampfireBlock)
+                            facing = facing.getOpposite();
+                        //#endif
                         action.setSides(facing).setLookDirection(facing.getOpposite());
                     }
                     if (requiredState.contains(Properties.FACING)) {
@@ -519,9 +568,10 @@ public class PlacementGuide extends PrinterUtils {
 
             }
             case CAMPFIRE -> {
-                if (requiredState.get(CampfireBlock.LIT) != currentState.get(CampfireBlock.LIT))
+                if (!requiredState.get(CampfireBlock.LIT) && currentState.get(CampfireBlock.LIT))
+                    return new ClickAction().setItems(Implementation.SHOVELS);
+                if (requiredState.get(CampfireBlock.LIT) && !currentState.get(CampfireBlock.LIT))
                     return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
-
             }
             case PILLAR -> {
                 Block stripped = AxeItemAccessor.getStrippedBlocks().get(currentState.getBlock());
@@ -577,6 +627,19 @@ public class PlacementGuide extends PrinterUtils {
                         return new ClickAction().setItem(Items.POTION);
                     else
                         client.inGameHud.setOverlayMessage(Text.of("增加炼药锅内水位需要 §l§6" + Items.POTION.getName().toString()), false);
+            }
+            case DAYLIGHT_DETECTOR -> {
+                if (currentState.get(DaylightDetectorBlock.INVERTED) != requiredState.get(DaylightDetectorBlock.INVERTED)) return new ClickAction();
+            }
+            case FIRE -> {
+                if (requiredState.getBlock() instanceof SoulFireBlock) return null;
+                for (Direction direction : Direction.values()) {
+                    if (direction == Direction.DOWN) continue;
+                    if ((Boolean) getPropertyByName(requiredState, direction.name())) {
+                        return new Action().setSides(direction).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
+                    }
+                }
+                return new Action().setSides(Direction.DOWN).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
             }
         }
         else if (state == State.WRONG_BLOCK) switch (requiredType) {
@@ -658,6 +721,8 @@ public class PlacementGuide extends PrinterUtils {
         //#endif
         CHEST(ChestBlock.class), // 箱子
         OBSERVER(ObserverBlock.class), // 侦测器
+        LADDER(LadderBlock.class), // 梯子
+        LANTERN(LanternBlock.class), // 灯笼
 
         // 点击
         FLOWER_POT(FlowerPotBlock.class), // 花盆
@@ -682,6 +747,7 @@ public class PlacementGuide extends PrinterUtils {
         FENCE_GATE(FenceGateBlock.class), // 栅栏门
         LEVER(LeverBlock.class), // 拉杆
         CAULDRON(CauldronBlock.class, LavaCauldronBlock.class, LeveledCauldronBlock.class), // 炼药锅
+        DAYLIGHT_DETECTOR(DaylightDetectorBlock.class), // 阳光探测器
 
         // 其他
         FARMLAND(FarmlandBlock.class), // 耕地
