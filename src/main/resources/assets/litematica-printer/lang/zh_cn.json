@@ -43,7 +43,7 @@
     "litematica_printer.config.comment.quickShulker": "直接从背包内的潜影盒取出物品\n替换的位置为Litematica的预设位置,如果所有预设位置都有濳影盒则无法替换。",
 
     "litematica_printer.config.name.quickShulkerMode": "快捷潜影盒-工作模式",
-    "litematica_printer.config.comment.quickShulkerMode": "§d点击槽位§r：直接发送背包右键打开潜影盒。(需要插件或模组的支持)\n§d调用方法§r：调用模组功能直接打开潜影盒。",
+    "litematica_printer.config.comment.quickShulkerMode": "§d点击槽位§r：直接发送背包右键打开潜影盒。(需要插件或模组的支持)\n§d调用方法§r：调用QuickShulker模组打开潜影盒，若未安装QuickShulker模组则无法使用。",
     "litematica_printer.config.quickShulkerMode.clickSlot": "点击槽位",
     "litematica_printer.config.quickShulkerMode.invoke": "调用方法",
 

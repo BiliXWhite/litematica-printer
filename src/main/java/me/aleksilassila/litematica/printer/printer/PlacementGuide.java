@@ -644,7 +644,7 @@ public class PlacementGuide extends PrinterUtils {
         }
         else if (state == State.WRONG_BLOCK) switch (requiredType) {
             case FARMLAND -> {
-                Block[] soilBlocks = new Block[]{Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.DIRT_PATH};
+                Block[] soilBlocks = new Block[]{Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.DIRT_PATH, Blocks.COARSE_DIRT};
 
                 for (Block soilBlock : soilBlocks) {
                     if (currentState.getBlock().equals(soilBlock))

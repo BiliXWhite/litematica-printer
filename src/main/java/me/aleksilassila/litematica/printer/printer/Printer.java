@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.printer;
 
-import fi.dy.masa.litematica.Litematica;
 import fi.dy.masa.litematica.data.DataManager;
 
 import fi.dy.masa.litematica.selection.AreaSelection;
@@ -10,7 +9,9 @@ import fi.dy.masa.litematica.util.PlacementHandler;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
@@ -75,8 +76,10 @@ import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 public class Printer extends PrinterUtils {
     public static HashSet<Item> fluidModeItemList = new HashSet<>();
     public static HashSet<Item> fillModeItemList = new HashSet<>();
+    public static HashSet<Item> bedrockModeItemList = new HashSet<>();
     public static Item[] fluidItemsArray = new Item[0];
     public static Item[] fillItemsArray = new Item[0];
+    public static Item[] bedrockItemsArray = new Item[0];
     public static boolean printerMemorySync = false;
     public static BlockPos easyPos = null;
     public static Map<BlockPos, Integer> placeCooldownList = new HashMap<>();
@@ -99,6 +102,7 @@ public class Printer extends PrinterUtils {
     int tickRate = PRINTER_SPEED.getIntegerValue();
     List<String> fluidBlocklist =  new ArrayList<>();
     List<String> fillBlocklist =  new ArrayList<>();
+    List<String> bedrockBlocklist =  new ArrayList<>();
     private boolean needDelay;
     private int printPerTick = BLOCKS_PER_TICK.getIntegerValue();
 
@@ -174,7 +178,7 @@ public class Printer extends PrinterUtils {
 
     void fluidMode() {
         requiredState = null;
-        if (!FLUID_BLOCK_LIST.getStrings().equals(fluidBlocklist)){
+        if (!FLUID_BLOCK_LIST.getStrings().equals(fluidBlocklist)) {
             fluidBlocklist.clear();
             fluidBlocklist.addAll(FLUID_BLOCK_LIST.getStrings());
             if (FLUID_BLOCK_LIST.getStrings().isEmpty()) return;
@@ -215,7 +219,7 @@ public class Printer extends PrinterUtils {
 
     void fillMode() {
         requiredState = null;
-        if (!FILL_BLOCK_LIST.getStrings().equals(fillBlocklist)){
+        if (!FILL_BLOCK_LIST.getStrings().equals(fillBlocklist)) {
             fillBlocklist.clear();
             fillBlocklist.addAll(FILL_BLOCK_LIST.getStrings());
             if (FILL_BLOCK_LIST.getStrings().isEmpty()) return;
@@ -259,9 +263,7 @@ public class Printer extends PrinterUtils {
     BlockPos breakPos = null;
     void mineMode() {
         BlockPos pos;
-        // 循环处理方块位置，直到找到可挖掘的目标或遍历完成
         while ((pos = breakPos == null ? getBlockPos() : breakPos) != null) {
-            // 检查玩家状态和位置限制条件
             if (client.player != null && (!canInteracted(pos) || isLimitedByTheNumberOfLayers(pos))) {
                 // 重置临时位置并继续循环
                 if (breakPos == null) continue;
@@ -280,9 +282,34 @@ public class Printer extends PrinterUtils {
         }
     }
 
+    public void bedrockMode() {
+        if (!BedrockUtils.isWorking()) BedrockUtils.toggle();
+        BlockPos pos;
+        while ((pos = getBlockPos()) != null) {
+            if (client.player != null &&
+                    (!canInteracted(pos) || isLimitedByTheNumberOfLayers(pos) || !TempData.xuanQuFanWeiNei_p(pos))) {
+                continue;
+            }
+            BedrockUtils.addToBreakList(pos, client.world);
+            // 原谅我使用硬编码plz 我真的不想写太多的优化了555
+            placeCooldownList.put(pos, -400);
+        }
+    }
+
     public void myTick() {
         if (shulkerCooldown > 0) {
             shulkerCooldown--;
+        }
+
+        if (
+            // 不处于破基岩模式
+            (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && !LitematicaMixinMod.BEDROCK.getBooleanValue())
+            || PRINTER_MODE.getOptionListValue() != State.PrintModeType.BEDROCK ||
+
+            // 打印机未开启
+            !PRINT_SWITCH.getBooleanValue()
+        ) {
+            if (BedrockUtils.isWorking()) BedrockUtils.toggle();
         }
 
         Iterator<Map.Entry<BlockPos, Integer>> iterator = placeCooldownList.entrySet().iterator();
@@ -335,7 +362,7 @@ public class Printer extends PrinterUtils {
             needDelay = false;
         }
 
-        if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)){
+        if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)) {
             boolean multiBreakBooleanValue = MULTI_BREAK.getBooleanValue();
             if (LitematicaMixinMod.MINE.getBooleanValue()) {
                 yReverse = true;
@@ -350,6 +377,11 @@ public class Printer extends PrinterUtils {
                 fillMode();
                 if(multiBreakBooleanValue) return;
             }
+            if (LitematicaMixinMod.BEDROCK.getBooleanValue()) {
+                yReverse = true;
+                bedrockMode();
+                if(multiBreakBooleanValue) return;
+            }
         }else if (PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType modeType && modeType != PRINTER) {
             switch (modeType){
                 case MINE -> {
@@ -358,6 +390,10 @@ public class Printer extends PrinterUtils {
                 }
                 case FLUID -> fluidMode();
                 case FILL -> fillMode();
+                case BEDROCK -> {
+                    yReverse = true;
+                    bedrockMode();
+                }
             }
             return;
         }
@@ -413,15 +449,9 @@ public class Printer extends PrinterUtils {
 
             // 调试输出
             if (DEBUG_OUTPUT.getBooleanValue()) {
-                //#if MC < 12104 && MC != 12101
-                //$$ Litematica.logger.info("[Printer] 方块名: {}", requiredState.getBlock().getName().getString());
-                //$$ Litematica.logger.info("[Printer] 方块类名: {}", requiredState.getBlock().getClass().getName());
-                //$$ Litematica.logger.info("[Printer] 方块ID: {}", Registries.BLOCK.getId(requiredState.getBlock()));
-                //#else
-                Litematica.LOGGER.info("[Printer] 方块名: {}", requiredState.getBlock().getName().getString());
-                Litematica.LOGGER.info("[Printer] 方块类名: {}", requiredState.getBlock().getClass().getName());
-                Litematica.LOGGER.info("[Printer] 方块ID: {}", Registries.BLOCK.getId(requiredState.getBlock()));
-                //#endif
+                StringUtils.info("方块名: " + requiredState.getBlock().getName().getString());
+                StringUtils.info("方块类名: " + requiredState.getBlock().getClass().getName());
+                StringUtils.info("方块ID: " + requiredState.getBlock().getClass().getName());
             }
 
             Item[] reqItems = action.getRequiredItems(requiredState.getBlock());
