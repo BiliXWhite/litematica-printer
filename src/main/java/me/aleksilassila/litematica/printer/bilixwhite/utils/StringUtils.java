@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
+import fi.dy.masa.litematica.Litematica;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -18,6 +19,17 @@ public class StringUtils {
     public static void printChatMessage(String message) {
         client.inGameHud.getChatHud().addMessage(Text.of(message));
     }
+
+    public static void info(String message) {
+        Litematica.
+        //#if MC < 12104 && MC != 12101
+        //$$ logger
+        //#else
+        LOGGER
+        //#endif
+        .info("[Printer] {}", message);
+    }
+
 
     public static void initMatrix(MatrixStack matrix) {
         matrices = matrix;

@@ -45,7 +45,8 @@ public enum State {
         PRINTER("printer", "打印"),
         MINE("mine", "挖掘"),
         FLUID("fluid", "流体"),
-        FILL("fill", "填充");
+        FILL("fill", "填充"),
+        BEDROCK("bedrock", "破基岩");
 
         private final String configString;
         private final String translationKey;

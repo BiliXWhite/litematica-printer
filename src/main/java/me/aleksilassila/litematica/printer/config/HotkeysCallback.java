@@ -4,6 +4,9 @@ import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
+import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
@@ -27,6 +30,8 @@ import red.jackf.chesttracker.impl.memory.MemoryBankImpl;
 //$$ import net.minecraft.util.Identifier;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //#endif
+
+import javax.swing.plaf.SeparatorUI;
 
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.startAddPrinterInventory;
@@ -92,6 +97,7 @@ public class HotkeysCallback implements IHotkeyCallback {
         }
         //#endif
         else if (key == TOGGLE_PRINTING_MODE.getKeybind()) {
+            StringUtils.printChatMessage("开关打印机时调用");
             BreakManager.instance().clear();
         }
         return false;

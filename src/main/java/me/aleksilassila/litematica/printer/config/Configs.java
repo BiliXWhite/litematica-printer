@@ -51,6 +51,7 @@ public class Configs implements IConfigHandler {
         list.add(RENDER_LAYER_LIMIT);
         list.add(FLUID_BLOCK_LIST);
         list.add(FILL_BLOCK_LIST);
+        list.add(BEDROCK_BLOCK_LIST);
         if(loadChestTracker) list.add(INVENTORY_LIST);
         list.add(DEBUG_OUTPUT);
         list.add(UPDATE_CHECK);
@@ -108,6 +109,7 @@ public class Configs implements IConfigHandler {
             list.add(MINE);
             list.add(FLUID);
             list.add(FILL);
+            list.add(BEDROCK);
         }
         list.add(CLOSE_ALL_MODE);
         list.add(SYNC_INVENTORY);
@@ -157,6 +159,7 @@ public class Configs implements IConfigHandler {
         list.add(MINE);
         list.add(FLUID);
         list.add(FILL);
+        list.add(BEDROCK);
         list.add(PRINT_WATER);
         list.add(USE_EASYPLACE);
 

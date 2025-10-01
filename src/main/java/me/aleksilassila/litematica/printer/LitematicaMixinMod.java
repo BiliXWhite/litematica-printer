@@ -150,6 +150,10 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "填充", false, "",
             "在选区范围内放置§6填充方块名单§r里的方块。"
     );
+    public static final ConfigBooleanHotkeyed BEDROCK = new ConfigBooleanHotkeyed(
+            "破基岩", false, "",
+            "调用BedrockMiner模组进行破基岩，如果未安装BedrockMiner模组则无法使用。"
+    );
     public static final ConfigHotkey CLOSE_ALL_MODE = new ConfigHotkey(
             "关闭全部模式", "LEFT_CONTROL,G",
             "关闭全部模式，若此时为单模模式将模式恢复为打印。"
@@ -159,6 +163,9 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     );
     public static final ConfigStringList FILL_BLOCK_LIST = new ConfigStringList(
             "填充方块名单", ImmutableList.of("minecraft:cobblestone"), StringUtils.getComment("blocklist")
+    );
+    public static final ConfigStringList BEDROCK_BLOCK_LIST = new ConfigStringList(
+            "破基岩方块名单", ImmutableList.of("minecraft:bedrock"), StringUtils.getComment("blocklist")
     );
     public static final ConfigBoolean PUT_SKIP = new ConfigBoolean(
             "跳过放置", false,
