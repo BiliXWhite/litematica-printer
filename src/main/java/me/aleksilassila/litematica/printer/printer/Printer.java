@@ -16,6 +16,7 @@ import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionMa
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
@@ -283,6 +284,10 @@ public class Printer extends PrinterUtils {
     }
 
     public void bedrockMode() {
+        if (!Statistics.loadBedrockMiner) {
+            ZxyUtils.actionBar("未安装Bedrock Miner模组，无法破基岩！");
+            return;
+        }
         if (!BedrockUtils.isWorking()) BedrockUtils.toggle();
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
@@ -301,15 +306,17 @@ public class Printer extends PrinterUtils {
             shulkerCooldown--;
         }
 
-        if (
-            // 不处于破基岩模式
-            (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && !LitematicaMixinMod.BEDROCK.getBooleanValue())
-            || PRINTER_MODE.getOptionListValue() != State.PrintModeType.BEDROCK ||
+        if (Statistics.loadBedrockMiner) {
+            if (
+                // 不处于破基岩模式
+                    (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && !LitematicaMixinMod.BEDROCK.getBooleanValue())
+                            || PRINTER_MODE.getOptionListValue() != State.PrintModeType.BEDROCK ||
 
-            // 打印机未开启
-            !PRINT_SWITCH.getBooleanValue()
-        ) {
-            if (BedrockUtils.isWorking()) BedrockUtils.toggle();
+                            // 打印机未开启
+                            !PRINT_SWITCH.getBooleanValue()
+            ) {
+                if (BedrockUtils.isWorking()) BedrockUtils.toggle();
+            }
         }
 
         Iterator<Map.Entry<BlockPos, Integer>> iterator = placeCooldownList.entrySet().iterator();
