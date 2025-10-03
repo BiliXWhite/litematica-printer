@@ -77,10 +77,8 @@ import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 public class Printer extends PrinterUtils {
     public static HashSet<Item> fluidModeItemList = new HashSet<>();
     public static HashSet<Item> fillModeItemList = new HashSet<>();
-    public static HashSet<Item> bedrockModeItemList = new HashSet<>();
     public static Item[] fluidItemsArray = new Item[0];
     public static Item[] fillItemsArray = new Item[0];
-    public static Item[] bedrockItemsArray = new Item[0];
     public static boolean printerMemorySync = false;
     public static BlockPos easyPos = null;
     public static Map<BlockPos, Integer> placeCooldownList = new HashMap<>();
@@ -103,13 +101,15 @@ public class Printer extends PrinterUtils {
     int tickRate = PRINTER_SPEED.getIntegerValue();
     List<String> fluidBlocklist =  new ArrayList<>();
     List<String> fillBlocklist =  new ArrayList<>();
-    List<String> bedrockBlocklist =  new ArrayList<>();
     private boolean needDelay;
     private int printPerTick = BLOCKS_PER_TICK.getIntegerValue();
 
     public static int packetTick;
     public static boolean updateChecked = false;
     public static BlockState requiredState;
+    private int waitTicks;
+
+    public static boolean pistonNeedFix = false;
 
     private Printer(@NotNull MinecraftClient client) {
 
@@ -301,9 +301,13 @@ public class Printer extends PrinterUtils {
         }
     }
 
-    public void myTick() {
+    public void tick() {
         if (shulkerCooldown > 0) {
             shulkerCooldown--;
+        }
+
+        if (waitTicks > 0) {
+            waitTicks--;
         }
 
         if (Statistics.loadBedrockMiner) {
@@ -331,7 +335,7 @@ public class Printer extends PrinterUtils {
         }
     }
 
-    public void tick() {
+    public void printerTick() {
         if (LAG_CHECK.getBooleanValue()) {
             if (packetTick > 20)
                 return;
@@ -362,6 +366,8 @@ public class Printer extends PrinterUtils {
                 return;
             }
         }
+
+        if (waitTicks > 0) return;
 
         // 0tick修复
         if (needDelay) {
@@ -478,12 +484,17 @@ public class Printer extends PrinterUtils {
                     queue.termsOfUse = true;
                 }
 
-                if (action.getLookHorizontalDirection() != null)
-                    sendLook(player, action.getLookHorizontalDirection(), action.getLookDirectionPitch());
+                if (action.getLookDirection() != null)
+                    sendLook(player, action.getLookDirection(), action.getLookDirectionPitch());
+
+                var block = requiredState.getBlock();
+                if (block instanceof PistonBlock) {
+                    pistonNeedFix = true;
+                }
+                waitTicks = action.getWaitTick();
+
 
                 if (tickRate == 0) {
-                    var block = schematic.getBlockState(pos).getBlock();
-
                     if (block instanceof PistonBlock ||
                             block instanceof ObserverBlock ||
                             block instanceof DispenserBlock ||
@@ -503,6 +514,8 @@ public class Printer extends PrinterUtils {
                     if (BLOCKS_PER_TICK.getIntegerValue() != 0) printPerTick--;
                     continue;
                 }
+
+                if (waitTicks > 0) return;
                 return;
             }
         }
@@ -674,10 +687,10 @@ public class Printer extends PrinterUtils {
                         ZxyUtils.getSequence()
                 ));
                 //#else
-                //$$player.networkHandler.sendPacket(new PlayerInteractBlockC2SPacket(
-                //$$        Hand.MAIN_HAND,
-                //$$        new BlockHitResult(hitVec, side, target, false)
-                //$$));
+                //$$ player.networkHandler.sendPacket(new PlayerInteractBlockC2SPacket(
+                //$$         Hand.MAIN_HAND,
+                //$$         new BlockHitResult(hitVec, side, target, false)
+                //$$ ));
                 //#endif
             } else {
                 ((IClientPlayerInteractionManager) client.interactionManager)

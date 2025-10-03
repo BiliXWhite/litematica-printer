@@ -164,9 +164,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     public static final ConfigStringList FILL_BLOCK_LIST = new ConfigStringList(
             "填充方块名单", ImmutableList.of("minecraft:cobblestone"), StringUtils.getComment("blocklist")
     );
-    public static final ConfigStringList BEDROCK_BLOCK_LIST = new ConfigStringList(
-            "破基岩方块名单", ImmutableList.of("minecraft:bedrock"), StringUtils.getComment("blocklist")
-    );
     public static final ConfigBoolean PUT_SKIP = new ConfigBoolean(
             "跳过放置", false,
             "开启后会§6§l跳过放置列表§r内的方块。"
