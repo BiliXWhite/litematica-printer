@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.bilixwhite;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
+import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.loader.api.FabricLoader;
@@ -105,6 +106,7 @@ public class BreakManager {
 
     // 提取重复逻辑为私有方法
     private void resetBreakTarget() {
+        Printer.placeCooldownList.put(breakPos, -4);
         // 性能优化：避免不必要的remove操作
         if (breakPos != null) {
             breakTargets.remove(breakPos);

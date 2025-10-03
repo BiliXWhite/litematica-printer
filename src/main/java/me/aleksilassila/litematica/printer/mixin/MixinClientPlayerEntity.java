@@ -78,7 +78,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 	public void tick(CallbackInfo ci) {
 		Printer printer = Printer.getPrinter();
 		ZxyUtils.tick();
-		printer.myTick();
+		printer.tick();
 		if (!(LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed())) {
 			PlacementGuide.posMap = new HashMap<>();
 			printer.basePos = null;
@@ -87,7 +87,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 			return;
 		}
 		BreakManager.instance().onTick();
-		printer.tick();
+		printer.printerTick();
 	}
 
 	@Unique

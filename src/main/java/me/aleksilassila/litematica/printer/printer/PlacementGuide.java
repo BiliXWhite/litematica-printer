@@ -14,7 +14,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
@@ -30,9 +29,6 @@ public class PlacementGuide extends PrinterUtils {
     public static Map<BlockPos, Integer> posMap = new HashMap<>();
     @NotNull
     protected final MinecraftClient client;
-
-    public static boolean pistonNeedFix = false;
-    public static BlockState pistonState;
 
     public PlacementGuide(@NotNull MinecraftClient client) {
         this.client = client;
@@ -386,12 +382,59 @@ public class PlacementGuide extends PrinterUtils {
             }
             case LADDER -> {
                 var facing = requiredState.get(LadderBlock.FACING);
-                return new Action().setSides(facing);
+                return new Action().setSides(facing).setLookDirection(facing.getOpposite());
             }
             case LANTERN -> {
                 if (requiredState.get(LanternBlock.HANGING))
                     return new Action().setLookDirection(Direction.UP);
                 return new Action().setLookDirection(Direction.DOWN);
+            }
+            case ROD -> {
+                var requiredBlock = requiredState.getBlock();
+                var facing = requiredState.get(RodBlock.FACING);
+                var forwardState = world.getBlockState(pos.offset(facing));
+//                var backState = world.getBlockState(pos.offset(facing.getOpposite()));
+                var forwardStateSchematic = worldSchematic.getBlockState(pos.offset(facing));
+//                var backStateSchematic = worldSchematic.getBlockState(pos.offset(facing.getOpposite()));
+//                StringUtils.printChatMessage("前 " + forwardState.getBlock().getName().getString());
+//                StringUtils.printChatMessage("后 " + backState.getBlock().getName().getString());
+//                StringUtils.printChatMessage("投影-前 " + forwardStateSchematic.getBlock().getName().getString());
+//                StringUtils.printChatMessage("投影-后 " + backStateSchematic.getBlock().getName().getString());
+
+                // 如果前面朝向自己的末地烛，而放置方式相反，那么反向放置
+                if (forwardState.isOf(requiredBlock)
+                        && forwardState.get(RodBlock.FACING) == facing.getOpposite()) {
+                    return new Action().setSides(facing);
+                }
+                // 如果投影中后面有相同朝向的末地烛，则先跳过放置
+                if (forwardStateSchematic.isOf(requiredBlock)
+                        && forwardStateSchematic.get(RodBlock.FACING) == facing) {
+                    // 但是这个投影已经被正确填装时可以打印
+                    if (forwardStateSchematic == forwardState) return new Action().setSides(facing.getOpposite());
+                    return null;
+                }
+                return new Action().setSides(facing.getOpposite());
+            }
+            case TRIPWIRE_HOOK -> {
+                var facing = requiredState.get(TripwireHookBlock.FACING);
+                return new Action().setSides(facing);
+            }
+            case RAIL -> {
+                Action action = new Action();
+                RailShape shape = requiredState.get(PoweredRailBlock.SHAPE);
+                switch (shape) {
+                    case EAST_WEST, ASCENDING_EAST -> action.setLookDirection(Direction.EAST);
+                    case NORTH_SOUTH, ASCENDING_NORTH -> action.setLookDirection(Direction.NORTH);
+                    case ASCENDING_WEST -> action.setLookDirection(Direction.WEST);
+                    case ASCENDING_SOUTH -> action.setLookDirection(Direction.SOUTH);
+                }
+                if (requiredState.getBlock() instanceof RailBlock) {
+                    if (shape == RailShape.SOUTH_EAST) {
+                        return action;
+                    }
+                    // TODO)) 完成这非常恶心的铁轨算法
+                }
+                return action;
             }
             case SKIP -> {
                 return null;
@@ -421,7 +464,7 @@ public class PlacementGuide extends PrinterUtils {
                         //#if MC >= 11904
                         || block instanceof FlowerbedBlock
                         //#endif
-                ) { // 操你妈ojng切石机你他妈为什么不是BlockWithEntity?
+                ) {
                     Direction facing = requiredState.get(Properties.HORIZONTAL_FACING);
                     if (block instanceof FenceGateBlock // 栅栏门
                     ) facing = facing.getOpposite();
@@ -432,42 +475,10 @@ public class PlacementGuide extends PrinterUtils {
                     Direction facing = requiredState.get(Properties.FACING);
 
                     if (block instanceof PistonBlock) {
-                        pistonState = requiredState.with(PistonBlock.EXTENDED, false);
-                        pistonNeedFix = true;
+                        if (client.isInSingleplayer()) action.setWaitTick(2 );
                     }
 
-                    // 末地烛，避雷针类的物品
-                    if (block instanceof RodBlock) {
-                        var facingState = worldSchematic.getBlockState(pos.offset(facing));
-                        var backingStateSchematic = worldSchematic.getBlockState(pos.offset(facing.getOpposite()));
-                        StringUtils.printChatMessage("前 " + facingState.getBlock().getName().getString());
-                        StringUtils.printChatMessage("后 " + backingStateSchematic.getBlock().getName().getString());
-                        // 前方是否有同类方块
-                        if (facingState.isOf(requiredState.getBlock())) {
-                            // 前方投影方块是否与这个投影方块朝向相同
-                            if (facingState.get(RodBlock.FACING) == facing) {
-                                // 如果前方方块已存在，则跳过放置
-                                if (facingState != world.getBlockState(pos.offset(facing))) {
-                                    ZxyUtils.actionBar("§l§b末地烛/避雷针§r§l无法正确放置！§r请拆除其头部的末地烛/避雷针！");
-                                    return null;
-                                }
-                            }
-                            // 前方投影朝向是否相反
-                            else if (facingState.get(RodBlock.FACING) == facing.getOpposite())
-                                // 后面方块的类型，朝向是否一致
-                                if (backingStateSchematic.isOf(requiredState.getBlock()))
-                                    if (backingStateSchematic.get(RodBlock.FACING) == facing) {
-                                        facing = facing.getOpposite();
-                                    }
-                        }
-                        if (backingStateSchematic.isOf(requiredState.getBlock())) {
-                            if (backingStateSchematic.get(RodBlock.FACING) == facing) {
-                                facing = facing.getOpposite();
-                            }
-                        }
-                        action.setSides(facing.getOpposite());
-                    }
-                    else action.setLookDirection(facing.getOpposite());
+                    action.setLookDirection(facing.getOpposite());
                 }
 
                 if (block instanceof BlockWithEntity) {
@@ -723,6 +734,9 @@ public class PlacementGuide extends PrinterUtils {
         OBSERVER(ObserverBlock.class), // 侦测器
         LADDER(LadderBlock.class), // 梯子
         LANTERN(LanternBlock.class), // 灯笼
+        ROD(RodBlock.class), // 末地烛 避雷针
+        TRIPWIRE_HOOK(TripwireHookBlock.class), // 绊线钩
+        RAIL(AbstractRailBlock.class), // 铁轨
 
         // 点击
         FLOWER_POT(FlowerPotBlock.class), // 花盆
@@ -765,13 +779,13 @@ public class PlacementGuide extends PrinterUtils {
 
     public static class Action {
         protected Map<Direction, Vec3d> sides;
-        protected Direction lookHorizontalDirection;
+        protected Direction lookDirection;
         protected Direction lookDirectionPitch;
         @Nullable
-        protected Item[] clickItems; // null == any
-
+        protected Item[] clickItems; // null == 任意方块
         protected boolean requiresSupport = false;
         protected boolean useShift = false;
+        protected int waitTick = 0;
 
         public Action() {
             this.sides = new HashMap<>();
@@ -780,8 +794,8 @@ public class PlacementGuide extends PrinterUtils {
             }
         }
 
-        public @Nullable Direction getLookHorizontalDirection() {
-            return lookHorizontalDirection;
+        public @Nullable Direction getLookDirection() {
+            return lookDirection;
         }
 
         public @Nullable Direction getLookDirectionPitch() {
@@ -795,7 +809,7 @@ public class PlacementGuide extends PrinterUtils {
          * @return 当前 Action 实例
          */
         public Action setLookDirection(Direction lookDirection) {
-            this.lookHorizontalDirection = lookDirection;
+            this.lookDirection = lookDirection;
             this.lookDirectionPitch = lookDirection;
             return this;
         }
@@ -803,12 +817,12 @@ public class PlacementGuide extends PrinterUtils {
         /**
          * 设置放置时玩家的视角朝向
          *
-         * @param lookHorizontalDirection 横轴视角朝向
+         * @param lookDirection 横轴视角朝向
          * @param lookDirectionPitch 纵轴视角朝向
          * @return 当前 Action 实例
          */
-        public Action setLookDirection(Direction lookHorizontalDirection, Direction lookDirectionPitch) {
-            this.lookHorizontalDirection = lookHorizontalDirection;
+        public Action setLookDirection(Direction lookDirection, Direction lookDirectionPitch) {
+            this.lookDirection = lookDirection;
             this.lookDirectionPitch = lookDirectionPitch;
             return this;
         }
@@ -829,7 +843,7 @@ public class PlacementGuide extends PrinterUtils {
         }
 
         /**
-         * 设置可以和方块交互的所有方向（例如：上下左右）。
+         * 设置可以和方块交互的所有方向。
          * <p>
          * 这个方法会找到所有指定的方向轴（比如：X轴、Y轴、Z轴）上的所有方向，
          * 然后把这些方向都设置为可以交互的方向，并且设置默认的点击偏移量为 (0,0,0)。
@@ -854,13 +868,13 @@ public class PlacementGuide extends PrinterUtils {
         }
 
         /**
-         * 设置操作的有效方向，并指定每个方向对应的偏移量。
+         * 设置放置的有效面，以及指定每个面对应的偏移位置。
          * <p>
-         *   这个方法允许你详细地指定在放置方块时，哪些方向是可以进行交互的。
-         *   例如，你可以设置只有在方块的上方或下方才能进行放置，并为这些方向设置特定的偏移量。
+         *   这个方法允许你指定放置方块时，可以用哪些方向交互。
+         *   例如，你可以设置只有在方块的上方或下方才能进行放置。
          * </p>
          * <p>
-         *   通过调整偏移量，你可以更精确的控制点击的位置，从而实现一些特殊的放置效果。
+         *   你也可以调整偏移量，进行更精确的控制点击的位置，从而实现一些特殊的放置效果。
          *   例如，你可以通过偏移量来点击方块的边缘，而不是中心。
          * </p>
          *
@@ -875,12 +889,12 @@ public class PlacementGuide extends PrinterUtils {
         }
 
         /**
-         * 设置操作的有效方向。
+         * 设置放置的有效面。
          * <p>
-         * 为每个传入的方向设置默认的偏移值 (0, 0, 0)。
-         *
-         * @param directions 要设置的方向数组
-         * @return 当前 Action 实例，便于链式调用
+         * 传入的方向参数均设置默认的偏移值 (0, 0, 0)。
+         * </p>
+         * @param directions 要设置的方向（可以是多个）
+         * @return 当前 Action 实例
          */
         public Action setSides(Direction... directions) {
             Map<Direction, Vec3d> sides = new HashMap<>();
@@ -938,10 +952,20 @@ public class PlacementGuide extends PrinterUtils {
             return validSides.get(0);
         }
 
+        /**
+         * 设置打印这种方块对应使用的物品
+         * @param item 要选择的物品
+         * @return 当前 Action 实例
+         */
         public Action setItem(Item item) {
             return this.setItems(item);
         }
 
+        /**
+         * 设置打印这种方块对应使用的物品（多个）
+         * @param items 要选择的物品（多个）
+         * @return 当前 Action 实例
+         */
         public Action setItems(Item... items) {
             this.clickItems = items;
             return this;
@@ -953,34 +977,42 @@ public class PlacementGuide extends PrinterUtils {
         }
 
         /**
-         * 设置是否需要支撑方块才能放置，默认调用为需要。
-         * <p>
-         *   如果设置为 {@code true}，则在放置方块时，会检查目标位置的周围是否有其他方块支撑。
-         *   如果设置为 {@code false}，则无论目标位置周围是否有支撑，都可以放置方块。
-         * </p>
-         *
-         * @return 当前 Action 实例，便于链式调用。
+         * 需有支撑面才能放置
+         * @return 当前 Action 实例
          */
         public Action setRequiresSupport() {
             return this.setRequiresSupport(true);
         }
-
-        /**
-         * 设置是否需要按住 Shift 键才能放置，默认为需要。
-         * <p>
-         *   如果设置为 {@code true}，则在放置方块时，会检查玩家是否按住了 Shift 键。
-         *   如果设置为 {@code false}，则无论玩家是否按住 Shift 键，都可以放置方块。
-         * </p>
-         *
-         * @return 当前 Action 实例，便于链式调用。
-         */
+        
         public Action setUseShift(boolean useShift) {
             this.useShift = useShift;
             return this;
         }
 
+        /**
+         * 需要按下 Shift 键进行放置
+         * @return 当前 Action 实例
+         */
         public Action setUseShift() {
             return this.setUseShift(true);
+        }
+
+        /**
+         * 设置放置后等待的刻数
+         * @param waitTick 游戏刻数量
+         * @return 当前 Action 实例
+         */
+        public Action setWaitTick(int waitTick) {
+            this.waitTick = waitTick;
+            return this;
+        }
+
+        /**
+         * 获取放置后需要等待的游戏刻
+         * @return 整数
+         */
+        public int getWaitTick() {
+            return this.waitTick;
         }
 
         public void queueAction(Printer.Queue queue, BlockPos center, Direction side, boolean useShift) {
