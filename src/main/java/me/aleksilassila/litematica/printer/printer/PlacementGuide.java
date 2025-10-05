@@ -561,32 +561,30 @@ public class PlacementGuide extends PrinterUtils {
             case LEVER -> {
                 if (requiredState.get(LeverBlock.POWERED) != currentState.get(LeverBlock.POWERED))
                     return new ClickAction();
-
             }
             case CANDLES -> {
                 if (currentState.get(Properties.CANDLES) < requiredState.get(Properties.CANDLES))
-                    return new ClickAction().setItem(requiredState.getBlock().asItem()).setRequiresSupport();
-
+                    return new ClickAction().setItem(requiredState.getBlock().asItem());
+                if (!currentState.get(CandleBlock.LIT) && requiredState.get(CandleBlock.LIT))
+                    return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
+                if (currentState.get(CandleBlock.LIT) && !requiredState.get(CandleBlock.LIT))
+                    return new ClickAction();
             }
             case PICKLES -> {
                 if (currentState.get(SeaPickleBlock.PICKLES) < requiredState.get(SeaPickleBlock.PICKLES))
                     return new ClickAction().setItem(Items.SEA_PICKLE);
-
             }
             case REPEATER -> {
                 if (!requiredState.get(RepeaterBlock.DELAY).equals(currentState.get(RepeaterBlock.DELAY)))
                     return new ClickAction();
-
             }
             case COMPARATOR -> {
                 if (requiredState.get(ComparatorBlock.MODE) != currentState.get(ComparatorBlock.MODE))
                     return new ClickAction();
-
             }
             case NOTE_BLOCK -> {
                 if (LitematicaMixinMod.NOTE_BLOCK_TUNING.getBooleanValue() && !Objects.equals(requiredState.get(NoteBlock.NOTE), currentState.get(NoteBlock.NOTE)))
                     return new ClickAction();
-
             }
             case CAMPFIRE -> {
                 if (!requiredState.get(CampfireBlock.LIT) && currentState.get(CampfireBlock.LIT))
