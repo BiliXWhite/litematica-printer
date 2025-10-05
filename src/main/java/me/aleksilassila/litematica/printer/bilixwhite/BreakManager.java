@@ -29,7 +29,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equa
 
 public class BreakManager {
     private static BreakManager INSTANCE = null;
-    private static final Set<BlockPos> breakTargets = new HashSet<>();
+    public static final Set<BlockPos> breakTargets = new HashSet<>();
     private static final MinecraftClient client = MinecraftClient.getInstance();
     private BlockPos breakPos;
     private BlockState state;
@@ -106,9 +106,9 @@ public class BreakManager {
 
     // 提取重复逻辑为私有方法
     private void resetBreakTarget() {
-        Printer.placeCooldownList.put(breakPos, -4);
         // 性能优化：避免不必要的remove操作
         if (breakPos != null) {
+            Printer.placeCooldownList.put(breakPos, -4);
             breakTargets.remove(breakPos);
         }
         updateTarget();

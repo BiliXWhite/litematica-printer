@@ -10,7 +10,6 @@ import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
@@ -107,9 +106,13 @@ public class Printer extends PrinterUtils {
     public static int packetTick;
     public static boolean updateChecked = false;
     public static BlockState requiredState;
+    public static BlockState currentState;
     private int waitTicks;
 
+    // 活塞修复
     public static boolean pistonNeedFix = false;
+
+    private float workProgress = 0;
 
     private Printer(@NotNull MinecraftClient client) {
 
@@ -128,7 +131,7 @@ public class Printer extends PrinterUtils {
 
 
     BlockPos getBlockPos() {
-        if (ITERATOR_USE_TIME.getIntegerValue() != 0 && PlaceUtils.isTimeOut()) return null;
+        if (ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) return null;
         ClientPlayerEntity player = client.player;
         if (player == null) return null;
 
@@ -158,12 +161,11 @@ public class Printer extends PrinterUtils {
             BlockPos pos = iterator.next();
             // 只有在形状为球体的时候才判断在不在距离内
             if (
-                    ((MODE_SWITCH.getOptionListValue() != State.ModeType.MULTI &&
-                    PRINTER_MODE.getOptionListValue() == PRINTER) ||
-                    TempData.xuanQuFanWeiNei_p(pos))
-                    || isSchematicBlock(pos)
+                    (isPrinterMode() && isSchematicBlock(pos)) ||
+                    (!isPrinterMode() && TempData.xuanQuFanWeiNei_p(pos))
             ) {
-                if (rangeShape == State.RadiusShapeType.SPHERE && !basePos.isWithinDistance(pos, printRange)) {
+                if ((rangeShape == State.RadiusShapeType.SPHERE && !basePos.isWithinDistance(pos, printRange))
+                    || !canInteracted(pos) || isLimitedByTheNumberOfLayers(pos)) {
                     // 不是我想要的类型，直接跳过
                     continue;
                 }
@@ -194,9 +196,6 @@ public class Printer extends PrinterUtils {
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
             if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
-            if (!canInteracted(pos) || !TempData.xuanQuFanWeiNei_p(pos) || isLimitedByTheNumberOfLayers(pos)) {
-                continue;
-            }
 
             // 跳过冷却中的位置
             if (placeCooldownList.containsKey(pos)) continue;
@@ -236,10 +235,6 @@ public class Printer extends PrinterUtils {
         while ((pos = getBlockPos()) != null) {
             if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
 
-            if (!canInteracted(pos) || !TempData.xuanQuFanWeiNei_p(pos) || isLimitedByTheNumberOfLayers(pos)) {
-                continue;
-            }
-
             // 跳过冷却中的位置
             if (placeCooldownList.containsKey(pos)) continue;
             placeCooldownList.put(pos, 0);
@@ -265,14 +260,7 @@ public class Printer extends PrinterUtils {
     void mineMode() {
         BlockPos pos;
         while ((pos = breakPos == null ? getBlockPos() : breakPos) != null) {
-            if (client.player != null && (!canInteracted(pos) || isLimitedByTheNumberOfLayers(pos))) {
-                // 重置临时位置并继续循环
-                if (breakPos == null) continue;
-                breakPos = null;
-                continue;
-            }
-            if (TempData.xuanQuFanWeiNei_p(pos) &&
-                    BreakManager.breakRestriction(client.world.getBlockState(pos)) &&
+            if (BreakManager.breakRestriction(client.world.getBlockState(pos)) &&
                     breakManager.breakBlock(pos)) {
                 requiredState = client.world.getBlockState(pos);
                 breakPos = pos;
@@ -285,7 +273,7 @@ public class Printer extends PrinterUtils {
 
     public void bedrockMode() {
         if (!Statistics.loadBedrockMiner) {
-            ZxyUtils.actionBar("未安装Bedrock Miner模组，无法破基岩！");
+            ZxyUtils.actionBar("未安装Bedrock Miner模组/游戏版本小于1.21.6，无法破基岩！");
             return;
         }
         if (!BedrockUtils.isWorking()) BedrockUtils.toggle();
@@ -311,14 +299,7 @@ public class Printer extends PrinterUtils {
         }
 
         if (Statistics.loadBedrockMiner) {
-            if (
-                // 不处于破基岩模式
-                    (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && !LitematicaMixinMod.BEDROCK.getBooleanValue())
-                            || PRINTER_MODE.getOptionListValue() != State.PrintModeType.BEDROCK ||
-
-                            // 打印机未开启
-                            !PRINT_SWITCH.getBooleanValue()
-            ) {
+            if (isBedrockMode() || !PRINT_SWITCH.getBooleanValue()) {
                 if (BedrockUtils.isWorking()) BedrockUtils.toggle();
             }
         }
@@ -418,16 +399,13 @@ public class Printer extends PrinterUtils {
         while ((pos = getBlockPos()) != null) {
             // 检查每刻放置方块是否超出限制
             if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
-            // 是否是投影方块
-            if (!isSchematicBlock(pos)) continue;
             // 是否在破坏列表内
-            if (BreakManager.inBreakTargets(pos)) continue;
+            if (BreakManager.inBreakTargets(pos)) return;
             // 是否在渲染层内
             if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
-            // 是否可接触到
-            if (!canInteracted(pos)) continue;
 
             requiredState = schematic.getBlockState(pos);
+            currentState = world.getBlockState(pos);
 
             // 检查放置跳过列表
             if (PUT_SKIP.getBooleanValue()) {
@@ -493,6 +471,7 @@ public class Printer extends PrinterUtils {
                 }
                 waitTicks = action.getWaitTick();
 
+                if (useShift) queue.setShift(player, useShift);
 
                 if (tickRate == 0) {
                     if (block instanceof PistonBlock ||
@@ -514,11 +493,46 @@ public class Printer extends PrinterUtils {
                     if (BLOCKS_PER_TICK.getIntegerValue() != 0) printPerTick--;
                     continue;
                 }
-
-                if (waitTicks > 0) return;
                 return;
             }
         }
+    }
+
+    public float getProgress() {
+        // 重置 basePos 以确保重新初始化迭代器
+        basePos = null;
+        WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
+        if (schematic == null) return 0.0f;
+        // 打印进度相关
+        int totalCount = 0;
+        int finishedCount = 0;
+        BlockPos pos;
+        while ((pos = getBlockPos()) != null) {
+            BlockState currentState = client.world.getBlockState(pos);
+            totalCount++;
+
+            if (isPrinterMode()) {
+                BlockState requiredState = schematic.getBlockState(pos);
+                if (requiredState.isAir()) {
+                    totalCount--;
+                    continue;
+                }
+                if (currentState.getBlock().getDefaultState().equals(requiredState.getBlock().getDefaultState())) {
+                    finishedCount++;
+                }
+            }
+            if (isFluidMode() && !(currentState.getBlock() instanceof FluidBlock)) {
+                finishedCount++;
+            }
+            if (isFillMode() && Arrays.asList(fillItemsArray).contains(currentState.getBlock().asItem())) {
+                finishedCount++;
+            }
+            if (isMineMode() && currentState.isAir()) {
+                finishedCount++;
+            }
+        }
+        workProgress = totalCount == 0 ? workProgress : (float) finishedCount / totalCount;
+        return workProgress;
     }
 
     public Vec3d usePrecisionPlacement(BlockPos pos,BlockState stateSchematic){
@@ -712,6 +726,7 @@ public class Printer extends PrinterUtils {
             //#else
             ClientCommandC2SPacket packet = new ClientCommandC2SPacket(player, shift ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY);
             //#endif
+            player.setSneaking(shift);
             player.networkHandler.sendPacket(packet);
         }
 

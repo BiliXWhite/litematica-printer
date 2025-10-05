@@ -39,11 +39,6 @@ public class StringUtils {
         drawContext = context;
     }
 
-    public static void drawText(String text, int x, int y, int color) {
-        drawText(text, x, y, color, false);
-    }
-
-
     public static void drawText(String text, int x, int y, int color, boolean withShadow) {
         drawText(text, x, y, color, withShadow, false);
     }
