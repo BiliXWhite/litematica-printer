@@ -3,7 +3,6 @@ package me.aleksilassila.litematica.printer.printer;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
@@ -13,6 +12,7 @@ import net.minecraft.block.enums.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.Items;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
@@ -29,6 +29,10 @@ public class PlacementGuide extends PrinterUtils {
     public static Map<BlockPos, Integer> posMap = new HashMap<>();
     @NotNull
     protected final MinecraftClient client;
+
+    Item[] compostableItems = Arrays.stream(ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.keySet().toArray(ItemConvertible[]::new))
+            .map(ItemConvertible::asItem)
+            .toArray(Item[]::new);
 
     public PlacementGuide(@NotNull MinecraftClient client) {
         this.client = client;
@@ -58,11 +62,11 @@ public class PlacementGuide extends PrinterUtils {
             return null;
 
         if (LitematicaMixinMod.PRINT_WATER.getBooleanValue() && PlaceUtils.isWaterRequired(requiredState)) {
-            if (currentState.isOf(Blocks.ICE)) {
+            if (currentState.getBlock() instanceof IceBlock) {
                 BreakManager.addBlockToBreak(pos);
                 return null;
             }
-            if (!currentState.isOf(Blocks.WATER)) {
+            if (!PlaceUtils.isCorrectWaterLevel(requiredState, currentState)) {
                 if (!currentState.isAir() && !(currentState.getBlock() instanceof FluidBlock)) {
                     if (LitematicaMixinMod.BREAK_WRONG_BLOCK.getBooleanValue()) {
                         BreakManager.addBlockToBreak(pos);
@@ -82,9 +86,10 @@ public class PlacementGuide extends PrinterUtils {
 
                         .map(direction -> new Action()
                                 .setSides(direction.getOpposite())
+                                .setLookDirection(direction)
                                 .setRequiresSupport()
                         )
-                        .orElseGet(() -> new Action().setSides(Direction.DOWN));
+                        .orElseGet(() -> new Action().setSides(Direction.DOWN).setLookDirection(Direction.DOWN));
 
             }
             case AMETHYST -> {
@@ -421,7 +426,12 @@ public class PlacementGuide extends PrinterUtils {
             }
             case RAIL -> {
                 Action action = new Action();
-                RailShape shape = requiredState.get(PoweredRailBlock.SHAPE);
+                RailShape shape;
+                if (requiredState.getBlock() instanceof RailBlock)
+                    shape = requiredState.get(Properties.RAIL_SHAPE);
+                else
+                    shape = requiredState.get(Properties.STRAIGHT_RAIL_SHAPE);
+
                 switch (shape) {
                     case EAST_WEST, ASCENDING_EAST -> action.setLookDirection(Direction.EAST);
                     case NORTH_SOUTH, ASCENDING_NORTH -> action.setLookDirection(Direction.NORTH);
@@ -475,7 +485,7 @@ public class PlacementGuide extends PrinterUtils {
                     Direction facing = requiredState.get(Properties.FACING);
 
                     if (block instanceof PistonBlock) {
-                        if (client.isInSingleplayer()) action.setWaitTick(2 );
+                        if (client.isInSingleplayer()) action.setWaitTick(2);
                     }
 
                     action.setLookDirection(facing.getOpposite());
@@ -580,7 +590,7 @@ public class PlacementGuide extends PrinterUtils {
             }
             case CAMPFIRE -> {
                 if (!requiredState.get(CampfireBlock.LIT) && currentState.get(CampfireBlock.LIT))
-                    return new ClickAction().setItems(Implementation.SHOVELS);
+                    return new ClickAction().setItems(Implementation.SHOVELS).setSides(Direction.UP);
                 if (requiredState.get(CampfireBlock.LIT) && !currentState.get(CampfireBlock.LIT))
                     return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
             }
@@ -643,6 +653,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (currentState.get(DaylightDetectorBlock.INVERTED) != requiredState.get(DaylightDetectorBlock.INVERTED)) return new ClickAction();
             }
             case FIRE -> {
+                if (!requiredState.get(FireBlock.AGE).equals(currentState.get(FireBlock.AGE))) return null;
                 if (requiredState.getBlock() instanceof SoulFireBlock) return null;
                 for (Direction direction : Direction.values()) {
                     if (direction == Direction.DOWN) continue;
@@ -651,6 +662,12 @@ public class PlacementGuide extends PrinterUtils {
                     }
                 }
                 return new Action().setSides(Direction.DOWN).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
+            }
+            case COMPOSTER -> {
+                if (!LitematicaMixinMod.FILL_COMPOSTER.getBooleanValue()) return null;
+                if (currentState.get(ComposterBlock.LEVEL) < requiredState.get(ComposterBlock.LEVEL)) {
+                    return new ClickAction().setItems(compostableItems);
+                }
             }
         }
         else if (state == State.WRONG_BLOCK) switch (requiredType) {
@@ -680,6 +697,13 @@ public class PlacementGuide extends PrinterUtils {
                         return new ClickAction().setItem(content.asItem());
                     }
                 }
+            }
+
+            case CAULDRON -> {
+                if (Arrays.asList(requiredType.classes).contains(currentState.getBlock().getClass()))
+                    return null;
+                else if (LitematicaMixinMod.BREAK_WRONG_BLOCK.getBooleanValue() && BreakManager.canBreakBlock(pos))
+                    BreakManager.addBlockToBreak(pos);
             }
 
             default -> {
@@ -726,7 +750,6 @@ public class PlacementGuide extends PrinterUtils {
         AMETHYST(AmethystClusterBlock.class), // 紫水晶
         DOOR(DoorBlock.class), // 门
         COCOA(CocoaBlock.class), // 可可豆
-        NETHER_PORTAL(NetherPortalBlock.class), // 下界传送门
         //#if MC >= 12003
         CRAFTER(CrafterBlock.class), // 合成器
         //#endif
@@ -762,12 +785,14 @@ public class PlacementGuide extends PrinterUtils {
         LEVER(LeverBlock.class), // 拉杆
         CAULDRON(CauldronBlock.class, LavaCauldronBlock.class, LeveledCauldronBlock.class), // 炼药锅
         DAYLIGHT_DETECTOR(DaylightDetectorBlock.class), // 阳光探测器
+        COMPOSTER(ComposterBlock.class), // 堆肥桶
 
         // 其他
         FARMLAND(FarmlandBlock.class), // 耕地
         DIRT_PATH(DirtPathBlock.class), // 泥土小径
         DEAD_CORAL(AbstractCoralBlock.class), // 死珊瑚
-        SKIP(SkullBlock.class, SignBlock.class, FluidBlock.class, BubbleColumnBlock.class), // 跳过
+        NETHER_PORTAL(NetherPortalBlock.class), // 下界传送门
+        SKIP(SkullBlock.class, SignBlock.class, FluidBlock.class, BubbleColumnBlock.class, LilyPadBlock.class), // 跳过
         DEFAULT; // 默认
 
         private final Class<?>[] classes;

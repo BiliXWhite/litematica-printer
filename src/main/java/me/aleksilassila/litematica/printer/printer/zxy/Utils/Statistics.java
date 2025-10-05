@@ -8,7 +8,13 @@ public class Statistics {
     //阻止发送移动包
     public static boolean loadChestTracker = isLoadMod("chesttracker");
     public static boolean loadQuickShulker = isLoadMod("quickshulker");
-    public static boolean loadBedrockMiner = isLoadMod("bedrockminer");
+    public static boolean loadBedrockMiner =
+            //#if MC < 12106
+            false
+            //#else
+            //$$ isLoadMod("bedrockminer")
+            //#endif
+            ;
     public static boolean isLoadMod(String modId){
         return FabricLoader.getInstance().isModLoaded(modId);
     }

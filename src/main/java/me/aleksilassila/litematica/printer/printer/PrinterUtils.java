@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static me.aleksilassila.litematica.printer.LitematicaMixinMod.MODE_SWITCH;
+import static me.aleksilassila.litematica.printer.LitematicaMixinMod.PRINTER_MODE;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList;
 
 //#if MC < 11900
@@ -129,29 +131,48 @@ public class PrinterUtils {
     }
 
     /**
-     * 判断给定的位置是否属于当前加载的图纸结构范围内。
+     * 判断位置是否位于当前加载的投影范围内。
      *
-     * <p>
-     * 该方法通过从数据管理器中获取结构放置管理器，然后查找与给定位置相交的所有图纸结构部分，
-     * 如果其中任一部分包含该位置，则返回 <code>true</code>，否则返回 <code>false</code>。
-     * </p>
-     *
-     * @param offset 要检测的方块位置
+     * @param pos 要检测的方块位置
      * @return 如果位置属于图纸结构的一部分，则返回 true，否则返回 false
      */
-    public static boolean isSchematicBlock(BlockPos offset) {
+    public static boolean isSchematicBlock(BlockPos pos) {
         SchematicPlacementManager schematicPlacementManager = DataManager.getSchematicPlacementManager();
         //#if MC < 11900
-        //$$ List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingSubChunk(new SubChunkPos(offset));
+        //$$ List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingSubChunk(new SubChunkPos(pos));
         //#else
-        List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingChunk(offset);
+        List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingChunk(pos);
         //#endif
 
         for (SchematicPlacementManager.PlacementPart placementPart : allPlacementsTouchingChunk) {
-            if (placementPart.getBox().containsPos(offset)) {
+            if (placementPart.getBox().containsPos(pos)) {
                 return true;
             }
         }
         return false;
+    }
+
+    public static boolean isPrinterMode() {
+        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE))
+                && PRINTER_MODE.getOptionListValue() == State.PrintModeType.PRINTER;
+    }
+
+    public static boolean isMineMode() {
+        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && LitematicaMixinMod.MINE.getBooleanValue())
+                || PRINTER_MODE.getOptionListValue() == State.PrintModeType.MINE;
+    }
+
+    public static boolean isFillMode() {
+        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && LitematicaMixinMod.FILL.getBooleanValue())
+                || PRINTER_MODE.getOptionListValue() == State.PrintModeType.FILL;
+    }
+    public static boolean isFluidMode() {
+        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && LitematicaMixinMod.FLUID.getBooleanValue())
+                || PRINTER_MODE.getOptionListValue() == State.PrintModeType.FLUID;
+    }
+
+    public static boolean isBedrockMode() {
+        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && LitematicaMixinMod.BEDROCK.getBooleanValue())
+                || PRINTER_MODE.getOptionListValue() == State.PrintModeType.BEDROCK;
     }
 }

@@ -76,6 +76,7 @@ public class Configs implements IConfigHandler {
         list.add(REPLACE_CORAL);
         list.add(NOTE_BLOCK_TUNING);
         list.add(SAFELY_OBSERVER);
+        list.add(FILL_COMPOSTER);
         list.add(FALLING_CHECK);
         list.add(BREAK_WRONG_BLOCK);
         list.add(BREAK_EXTRA_BLOCK);

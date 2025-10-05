@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
-import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.BubbleColumnBlock;
@@ -9,6 +8,11 @@ import net.minecraft.state.property.Properties;
 
 public class PlaceUtils {
 
+    /**
+     * 判断该方块是否需要水
+     * @param blockState 要判断的方块
+     * @return 是否含水（是水）
+     */
     public static boolean isWaterRequired(BlockState blockState) {
         return
             blockState.isOf(Blocks.WATER) &&
@@ -17,6 +21,13 @@ public class PlaceUtils {
                 blockState.get(Properties.WATERLOGGED)
             ) ||
                 blockState.getBlock() instanceof BubbleColumnBlock;
+    }
+
+    public static boolean isCorrectWaterLevel(BlockState requiredState, BlockState currentState) {
+        if (!currentState.isOf(Blocks.WATER)) return false;
+        if (requiredState.isOf(Blocks.WATER) && currentState.get(FluidBlock.LEVEL).equals(requiredState.get(FluidBlock.LEVEL)))
+            return true;
+        else return currentState.get(FluidBlock.LEVEL) == 0;
     }
 
     public static boolean isReplaceable(BlockState state) {
@@ -34,7 +45,4 @@ public class PlaceUtils {
 //        return Math.max(1, 1000 / refreshRate);
 //    }
 
-    public static boolean isTimeOut() {
-        return System.currentTimeMillis() > Printer.tickEndTime;
-    }
 }

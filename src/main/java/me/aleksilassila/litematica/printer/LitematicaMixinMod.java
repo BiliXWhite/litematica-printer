@@ -45,7 +45,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             //#endif
             ;
     public static final ConfigInteger PLACE_COOLDOWN = new ConfigInteger(
-            "printerPlaceCooldown", 2, 0, 256, "printerPlaceCooldown"
+            "printerPlaceCooldown", 3, 0, 64, "printerPlaceCooldown"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
@@ -254,9 +254,13 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "在打印机工作时显示工作模式和处理的方块（排流体与填充除外）。\n在开启§6§l延迟检测§r时也显示接收数据包间的延迟。"
     );
     public static final ConfigBoolean LAG_CHECK = new ConfigBoolean(
-            "延迟检测", true,
-            "打印机工作时会检测数据包的接收时间，如果超过20个游戏刻仍没收到新数据包，打印机会自动暂停，直到收到数据包后再继续。"
-    );
+            "printerLagCheck", true,
+            "printerLagCheck"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigOptionList ITERATION_ORDER = new ConfigOptionList(
             "iteratorMode", State.IterationOrderType.XZY, "iteratorMode"
     )
@@ -347,6 +351,13 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
 
     public static final ConfigBoolean UPDATE_CHECK = new ConfigBoolean(
             "updateCheck", true, "updateCheck"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
+    public static final ConfigBoolean FILL_COMPOSTER = new ConfigBoolean(
+            "autoFillComposter", false, "autoFillComposter"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
