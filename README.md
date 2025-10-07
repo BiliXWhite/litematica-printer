@@ -101,7 +101,7 @@ Litematica Printer
 
 ## 推荐加入QQ群聊
 - 毕竟不是人人都会在GitHub上反馈问题，您可以加入我们的QQ群聊，以便更好的反馈问题，获取更新和获得帮助。
-[点击此处加入QQ群聊](https://qun.qq.com/universal-share/share?ac=1&authKey=7SiflHo922nbl3yp2YqgZ372t783ma)
+[点击此处加入QQ群聊](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=ttinzrJB3jYRLSTJM8R2YfwYdCm4Zo90&authKey=vfwF)
 
 ### 为什么开启打印后，打印机不工作？
 - 由于投影打印机是基于发送静默看向的方式进行打印的，不会考虑点击面合法化，所以会被服务器反作弊检测。
