@@ -159,7 +159,10 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "关闭全部模式，若此时为单模模式将模式恢复为打印。"
     );
     public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList(
-            "排流体方块名单", ImmutableList.of("minecraft:sand"), StringUtils.getComment("blocklist")
+            "排流体-方块名单", ImmutableList.of("minecraft:sand"), StringUtils.getComment("blocklist")
+    );
+    public static final ConfigStringList FLUID_LIST = new ConfigStringList(
+            "排流体-液体名单", ImmutableList.of("minecraft:water", "minecraft:flowing_water", "minecraft:lava", "minecraft:flowing_lava"), StringUtils.getComment("blocklist")
     );
     public static final ConfigStringList FILL_BLOCK_LIST = new ConfigStringList(
             "填充方块名单", ImmutableList.of("minecraft:cobblestone"), StringUtils.getComment("blocklist")
