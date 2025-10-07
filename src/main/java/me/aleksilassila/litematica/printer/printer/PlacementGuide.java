@@ -504,6 +504,9 @@ public class PlacementGuide extends PrinterUtils {
                     }
                     if (requiredState.contains(Properties.FACING)) {
                         facing = requiredState.get(Properties.FACING);
+                        if (requiredState.getBlock() instanceof ShulkerBoxBlock) {
+                            facing = facing.getOpposite();
+                        }
                         action.setSides(facing).setLookDirection(facing.getOpposite());
                     }
                 }

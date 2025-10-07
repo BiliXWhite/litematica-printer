@@ -24,10 +24,12 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
+import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -75,8 +77,10 @@ import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 
 public class Printer extends PrinterUtils {
     public static HashSet<Item> fluidModeItemList = new HashSet<>();
+    public static HashSet<Fluid> fluidModeList = new HashSet<>();
     public static HashSet<Item> fillModeItemList = new HashSet<>();
     public static Item[] fluidItemsArray = new Item[0];
+    public static Fluid[] fluidArray = new Fluid[0];
     public static Item[] fillItemsArray = new Item[0];
     public static boolean printerMemorySync = false;
     public static BlockPos easyPos = null;
@@ -99,6 +103,7 @@ public class Printer extends PrinterUtils {
     boolean yReverse = false;
     int tickRate = PRINTER_SPEED.getIntegerValue();
     List<String> fluidBlocklist =  new ArrayList<>();
+    List<String> fluidList =  new ArrayList<>();
     List<String> fillBlocklist =  new ArrayList<>();
     private boolean needDelay;
     private int printPerTick = BLOCKS_PER_TICK.getIntegerValue();
@@ -193,6 +198,18 @@ public class Printer extends PrinterUtils {
             fluidItemsArray = fluidModeItemList.toArray(new Item[0]);
         }
 
+        if (!FLUID_LIST.getStrings().equals(fluidList)) {
+            fluidList.clear();
+            fluidList.addAll(FLUID_LIST.getStrings());
+            if (FLUID_LIST.getStrings().isEmpty()) return;
+            fluidModeList.clear();
+            for (String itemName : fluidList) {
+                List<Fluid> list = Registries.FLUID.stream().filter(item -> equalsBlockName(itemName, item.getDefaultState().getBlockState())).toList();
+                fluidModeList.addAll(list);
+            }
+            fluidArray = fluidModeList.toArray(new Fluid[0]);
+        }
+
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
             if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
@@ -202,7 +219,7 @@ public class Printer extends PrinterUtils {
             placeCooldownList.put(pos, 0);
 
             BlockState currentState = client.world.getBlockState(pos);
-            if (currentState.getBlock() instanceof FluidBlock) {
+            if (Arrays.asList(fluidArray).contains(currentState.getFluidState().getFluid())) {
                 if (playerHasAccessToItems(client.player, fluidItemsArray)) {
                     switchToItems(client.player, fluidItemsArray);
                     new PlacementGuide.Action().queueAction(queue, pos, Direction.UP, false);
@@ -258,6 +275,7 @@ public class Printer extends PrinterUtils {
 
     BlockPos breakPos = null;
     void mineMode() {
+        if (client.player.isCreative()) return;
         BlockPos pos;
         while ((pos = breakPos == null ? getBlockPos() : breakPos) != null) {
             if (BreakManager.breakRestriction(client.world.getBlockState(pos)) &&
@@ -471,7 +489,7 @@ public class Printer extends PrinterUtils {
                 }
                 waitTicks = action.getWaitTick();
 
-                if (useShift) queue.setShift(player, useShift);
+                if (useShift) queue.setShift(player, true);
 
                 if (tickRate == 0) {
                     if (block instanceof PistonBlock ||
