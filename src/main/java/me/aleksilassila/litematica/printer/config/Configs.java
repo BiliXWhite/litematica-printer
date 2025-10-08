@@ -66,6 +66,7 @@ public class Configs implements IConfigHandler {
         list.add(PUT_SKIP);
         list.add(PUT_SKIP_LIST);
         list.add(STORE_ORDERLY);
+        list.add(EASYPLACE_PROTOCOL);
         list.add(USE_EASYPLACE);
         list.add(FORCED_SNEAK);
         list.add(PRINT_IN_AIR);
