@@ -44,7 +44,7 @@
   "litematica_printer.config.comment.printSkipWaterlogged": "启用后在打印时会跳过水下方块的放置。",
   "litematica_printer.config.name.iteratorUseTime": "打印-迭代占用时长",
   "litematica_printer.config.comment.iteratorUseTime": "每个游戏刻使用的时间间隔，单位为毫秒，设置为0则禁用。",
-  "litematica_printer.config.name.easyPlaceProtocol": "精准放置",
+  "litematica_printer.config.name.easyPlaceProtocol": "使用精准放置协议",
   "litematica_printer.config.comment.easePlaceProtocol": "使用Litematica内精准放置的协议打印。",
   "litematica_printer.config.name.updateCheck": "检查更新",
   "litematica_printer.config.comment.updateCheck": "在首次进入世界时检查更新。",

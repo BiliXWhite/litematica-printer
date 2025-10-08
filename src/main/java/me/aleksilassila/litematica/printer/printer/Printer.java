@@ -5,6 +5,7 @@ import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
 import fi.dy.masa.litematica.util.EasyPlaceProtocol;
+import fi.dy.masa.litematica.util.InventoryUtils;
 import fi.dy.masa.litematica.util.PlacementHandler;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
@@ -29,7 +30,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
-import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -162,7 +162,7 @@ public class Printer extends PrinterUtils {
 
         Iterator<BlockPos> iterator = myBox.iterator;
 
-        while (iterator.hasNext()) {
+        while ((ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() <= tickEndTime) && iterator.hasNext()) {
             BlockPos pos = iterator.next();
             // 只有在形状为球体的时候才判断在不在距离内
             if (
@@ -275,7 +275,6 @@ public class Printer extends PrinterUtils {
 
     BlockPos breakPos = null;
     void mineMode() {
-        if (client.player.isCreative()) return;
         BlockPos pos;
         while ((pos = breakPos == null ? getBlockPos() : breakPos) != null) {
             if (BreakManager.breakRestriction(client.world.getBlockState(pos)) &&
@@ -290,6 +289,10 @@ public class Printer extends PrinterUtils {
     }
 
     public void bedrockMode() {
+        if (client.player.isCreative()) {
+            ZxyUtils.actionBar("创造模式无法使用破基岩模式！");
+            return;
+        }
         if (!Statistics.loadBedrockMiner) {
             ZxyUtils.actionBar("未安装Bedrock Miner模组/游戏版本小于1.21.6，无法破基岩！");
             return;
@@ -553,7 +556,7 @@ public class Printer extends PrinterUtils {
         return workProgress;
     }
 
-    public Vec3d usePrecisionPlacement(BlockPos pos,BlockState stateSchematic){
+    public Vec3d usePrecisionPlacement(BlockPos pos,BlockState stateSchematic) {
         if (EASYPLACE_PROTOCOL.getBooleanValue()) {
             EasyPlaceProtocol protocol = PlacementHandler.getEffectiveProtocolVersion();
             Vec3d hitPos = Vec3d.of(pos);
@@ -677,7 +680,6 @@ public class Printer extends PrinterUtils {
         public void sendQueue(ClientPlayerEntity player) {
             if (target == null || side == null || hitModifier == null) return;
 
-            boolean wasSneaking = player.isSneaking();
             Direction direction = side.getAxis() == Direction.Axis.Y
                     ? (lookDirYaw != null && lookDirYaw.getAxis().isHorizontal()
                     ? lookDirYaw
@@ -704,12 +706,7 @@ public class Printer extends PrinterUtils {
             if (PRINTER_SPEED.getIntegerValue() >= 1 && lookDirYaw != null)
                 Implementation.sendLookPacket(player, lookDirYaw, lookDirPitch);
 
-            if (needSneak && !wasSneaking) {
-                setShift(player, true);
-            }
-            else if (!needSneak && wasSneaking) {
-                setShift(player, false);
-            }
+                setShift(player, needSneak);
 
             if (PLACE_USE_PACKET.getBooleanValue()) {
                 //#if MC >= 11904
@@ -729,10 +726,7 @@ public class Printer extends PrinterUtils {
                         .rightClickBlock(target, side, hitVec);
             }
 
-            if (needSneak && !wasSneaking)
-                setShift(player, true);
-            else if (!needSneak && wasSneaking)
-                setShift(player, false);
+            setShift(player, !needSneak);
 
             clearQueue();
         }
@@ -744,7 +738,7 @@ public class Printer extends PrinterUtils {
             //#else
             ClientCommandC2SPacket packet = new ClientCommandC2SPacket(player, shift ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY);
             //#endif
-            player.setSneaking(shift);
+            //player.setSneaking(shift);
             player.networkHandler.sendPacket(packet);
         }
 
