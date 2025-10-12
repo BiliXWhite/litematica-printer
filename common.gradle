@@ -123,6 +123,7 @@ String getQuickShulker() {
     String path = "curse.maven:quick-shulker-362669"
     if (mcVersion == 12006) { path = "libs/quickshulker-1.4.3-1.20.6.jar"
     } else if (mcVersion == 12101) { path = "libs/quickshulker-2.0.1-1.21.1.jar"
+    } else if (mcVersion == 12103) { path = "libs/quickshulker-2.2.1-1.21.3.jar"
     } else if (mcVersion == 12104) { path = "libs/quickshulker-2.3.1-1.21.4.jar"
     } else if (mcVersion == 12105) { path = "libs/quickshulker-2.4.1-1.21.5.jar"
     } else if (mcVersion == 12106) { path = "libs/quickshulker-2.5.0-1.21.6.jar"

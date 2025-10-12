@@ -31,7 +31,7 @@ import static me.aleksilassila.litematica.printer.LitematicaMixinMod.QUICK_SHULK
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList;
 
-//#if MC <= 12101
+//#if MC <= 12103
 //$$ import net.minecraft.entity.player.PlayerInventory;
 //$$ import net.minecraft.item.ItemStack;
 //#endif
@@ -54,7 +54,7 @@ public abstract class MixinMinecraftClient {
         }
     }
     //鼠标中键从打印机库存或通过快捷濳影盒 取出对应物品
-    //#if MC > 12101
+    //#if MC > 12103
     @WrapOperation(method = "doItemPick",at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerInteractionManager;pickItemFromBlock(Lnet/minecraft/util/math/BlockPos;Z)V" ))
     private void doItemPick(ClientPlayerInteractionManager instance, BlockPos pos, boolean b, Operation<Void> original) {
         if(world == null) {

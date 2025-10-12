@@ -22,7 +22,7 @@ public class StringUtils {
 
     public static void info(String message) {
         Litematica.
-        //#if MC < 12104 && MC != 12101
+        //#if MC < 12103 && MC != 12101
         //$$ logger
         //#else
         LOGGER
