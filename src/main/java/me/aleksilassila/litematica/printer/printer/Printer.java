@@ -5,7 +5,6 @@ import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
 import fi.dy.masa.litematica.util.EasyPlaceProtocol;
-import fi.dy.masa.litematica.util.InventoryUtils;
 import fi.dy.masa.litematica.util.PlacementHandler;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
@@ -353,7 +352,7 @@ public class Printer extends PrinterUtils {
         yReverse = false;
 
         // 如果正在处理打开的容器或切换物品，则直接返回
-        if (isOpenHandler || switchItem()) {
+        if (isOpenHandler || switchItem() || BreakManager.hasTargets()) {
             return;
         }
 
@@ -420,8 +419,6 @@ public class Printer extends PrinterUtils {
         while ((pos = getBlockPos()) != null) {
             // 检查每刻放置方块是否超出限制
             if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
-            // 是否在破坏列表内
-            if (BreakManager.inBreakTargets(pos)) return;
             // 是否在渲染层内
             if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
 
@@ -491,8 +488,6 @@ public class Printer extends PrinterUtils {
                     pistonNeedFix = true;
                 }
                 waitTicks = action.getWaitTick();
-
-                if (useShift) queue.setShift(player, true);
 
                 if (tickRate == 0) {
                     if (block instanceof PistonBlock ||
@@ -703,10 +698,15 @@ public class Printer extends PrinterUtils {
                 }
             }
 
-            if (PRINTER_SPEED.getIntegerValue() >= 1 && lookDirYaw != null)
-                Implementation.sendLookPacket(player, lookDirYaw, lookDirPitch);
+            boolean wasSneak = player.isSneaking();
 
-                setShift(player, needSneak);
+            if (needSneak && !wasSneak) setShift(player, true);
+            else if (!needSneak && wasSneak) setShift(player, false);
+
+            if (PRINTER_SPEED.getIntegerValue() >= 1 && lookDirYaw != null) {
+                Implementation.sendLookPacket(player, lookDirYaw, lookDirPitch);
+            }
+
 
             if (PLACE_USE_PACKET.getBooleanValue()) {
                 //#if MC >= 11904
@@ -726,7 +726,8 @@ public class Printer extends PrinterUtils {
                         .rightClickBlock(target, side, hitVec);
             }
 
-            setShift(player, !needSneak);
+            if (needSneak && !wasSneak) setShift(player, false);
+            else if (!needSneak && wasSneak) setShift(player, true);
 
             clearQueue();
         }

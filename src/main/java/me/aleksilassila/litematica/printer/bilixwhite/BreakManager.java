@@ -29,7 +29,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equa
 
 public class BreakManager {
     private static BreakManager INSTANCE = null;
-    public static final Set<BlockPos> breakTargets = new HashSet<>();
+    private static final Set<BlockPos> breakTargets = new HashSet<>();
     private static final MinecraftClient client = MinecraftClient.getInstance();
     private BlockPos breakPos;
     private BlockState state;
@@ -48,6 +48,10 @@ public class BreakManager {
     // 添加需要挖掘的方块
     public static void addBlockToBreak(BlockPos pos) {
         breakTargets.add(pos);
+    }
+
+    public static boolean hasTargets() {
+        return !breakTargets.isEmpty();
     }
 
     // 是否在破坏列表内
