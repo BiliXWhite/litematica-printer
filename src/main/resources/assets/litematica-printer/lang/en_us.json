@@ -17,11 +17,11 @@
   "litematica_printer.config.name.xReverse": "xReverse",
   "litematica_printer.config.comment.xReverse": "When enabled, X-axis traversal will be performed from high to low.",
   "litematica_printer.config.name.yReverse": "yReverse",
-  "litematica_printer.config.comment.yReverse": "When enabled, Y-axis traversal will be performed from high to low.\nDestruction mode is reversed by default; enabling this will make it normal direction.",
+  "litematica_printer.config.comment.yReverse": "When enabled, Y-axis traversal will be performed from high to low.\nMining mode is reversed by default; enabling this will make it normal direction.",
   "litematica_printer.config.name.zReverse": "zReverse",
   "litematica_printer.config.comment.zReverse": "When enabled, Z-axis traversal will be performed from high to low.",
   "litematica_printer.config.name.fallingBlockCheck": "fallingBlockCheck",
-  "litematica_printer.config.comment.fallingBlockCheck": "When enabled, it will check if there is block support under falling blocks before placing them.",
+  "litematica_printer.config.comment.fallingBlockCheck": "When enabled, it checks if the lower square of the falling block matches the projected square, and if not, the square is not placed.",
   "litematica_printer.config.name.debugOutput": "debugOutput",
   "litematica_printer.config.comment.debugOutput": "When enabled, printer working information is output in the console.",
   "litematica_printer.config.name.breakWrongBlock": "breakWrongBlock",
@@ -63,5 +63,7 @@
   "litematica_printer.config.name.printerLagCheck": "printerLagCheck",
   "litematica_printer.config.comment.printerLagCheck": "While the printer is working, it will check the time of packet reception. If no new packets are received for more than 20 game ticks, the printer will automatically pause and resume once a new packet is received.",
   "litematica_printer.config.name.autoFillComposter": "autoFillComposter",
-  "litematica_printer.config.comment.autoFillComposter": "Automatically fill the composter with compostable items.\n(§lBe careful with your compostable items!§r)"
+  "litematica_printer.config.comment.autoFillComposter": "Automatically fill the composter with compostable items.\n(§lBe careful with your compostable items!§r)",
+  "litematica_printer.config.name.fillModeFillFlowing": "fillModeFillFlowing",
+  "litematica_printer.config.comment.fillModeFillFlowing": "Treat flowing liquid as fill content as well."
 }

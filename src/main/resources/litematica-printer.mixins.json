@@ -4,6 +4,7 @@
   "package": "me.aleksilassila.litematica.printer.mixin",
   "compatibilityLevel": "{{COMPATIBILITY_LEVEL}}",
   "mixins": [
+    "bilixwhite.EasyPlaceUtilsAccessor",
     "bilixwhite.MixinClientConnection",
     "bilixwhite.MixinInGameHud",
     "bilixwhite.MixinPistonBlock",

@@ -82,6 +82,7 @@ public class Configs implements IConfigHandler {
         list.add(FALLING_CHECK);
         list.add(BREAK_WRONG_BLOCK);
         list.add(BREAK_EXTRA_BLOCK);
+        list.add(FILL_FLOWING_FLUID);
 
         return ImmutableList.copyOf(list);
     }

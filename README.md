@@ -124,3 +124,12 @@ Litematica Printer
 ![预设位置](预设位置.png)
 
 快捷潜影盒仍处于测试阶段，可能会有一些问题，如果遇到问题请提交[Issue](https://github.com/BiliXWhite/litematica-printer/issues)。
+
+
+感谢
+----------
+
+- [aleksilassila/litematica-printer](https://github.com/aleksilassila/litematica-printer): 如果没有[aleksilassila](https://github.com/aleksilassila)的成果，那么整个改版分支将不存在！
+- [zhaixianyu/litematica-printer](https://github.com/zhaixianyu/litematica-printer): 在原著的基础上解决了很多问题，同时也引进了很多新的内容
+- [MoRanpcy/quickshulker](https://github.com/MoRanpcy/quickshulker): 新版的快捷潜影盒支持（由于没有开发包支持所以只能硬塞jar包）
+- 以及所有支持开发的人，包括你！

@@ -201,7 +201,7 @@ public class OpenInventoryPacket {
         //$$ });
         //#endif
     }
-    public static void init(){
+    public static void init() {
         //#if MC > 12004
         PayloadTypeRegistry.playC2S().register(OPEN_INVENTORY_ID, OpenPackage.CODEC);
         PayloadTypeRegistry.playC2S().register(OPEN_RETURN_ID, ReturnPackage.CODEC);
@@ -216,7 +216,7 @@ public class OpenInventoryPacket {
         //#if MC > 12004
         ServerPlayNetworking.registerGlobalReceiver(OPEN_INVENTORY_ID, (payload,context) -> {
             if (payload instanceof OpenPackage packetByteBuf) {
-                context.player().getServer().execute(() -> openInv(context.player().getServer(), context.player(), packetByteBuf.pos, packetByteBuf.world));
+                context.player().getWorld().getServer().execute(() -> openInv(context.player().getWorld().getServer(), context.player(), packetByteBuf.pos, packetByteBuf.world));
             }
         });
         //#else
@@ -405,7 +405,7 @@ public class OpenInventoryPacket {
         if(remoteTime != 0 && !isRemote && remoteTime + 3000L < System.currentTimeMillis()){
             if(!clientTry) {
                 clientTryTime = System.currentTimeMillis();
-                sendOpenInventory(new BlockPos(0,-999,0), client.player.clientWorld.getRegistryKey());
+                sendOpenInventory(new BlockPos(0,-999,0), client.world.getRegistryKey());
             }
             clientTry = true;
             if(clientTryTime + 3000L < System.currentTimeMillis() && clientTry){

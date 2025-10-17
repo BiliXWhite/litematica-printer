@@ -127,7 +127,9 @@ public class Implementation {
             CartographyTableBlock.class, // 制图台
             GrindstoneBlock.class, // 砂轮
             StonecutterBlock.class, // 切石机
+            //#if MC < 12109
             FletchingTableBlock.class, // 制箭台
+            //#endif
             SmokerBlock.class, // 烟熏炉
             BlastFurnaceBlock.class, // 高炉
             //#if MC >= 12003

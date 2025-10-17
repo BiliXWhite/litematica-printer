@@ -162,7 +162,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "排流体-方块名单", ImmutableList.of("minecraft:sand"), StringUtils.getComment("blocklist")
     );
     public static final ConfigStringList FLUID_LIST = new ConfigStringList(
-            "排流体-液体名单", ImmutableList.of("minecraft:water", "minecraft:flowing_water", "minecraft:lava", "minecraft:flowing_lava"), StringUtils.getComment("blocklist")
+            "排流体-液体名单", ImmutableList.of("minecraft:water", "minecraft:lava"), StringUtils.getComment("blocklist")
     );
     public static final ConfigStringList FILL_BLOCK_LIST = new ConfigStringList(
             "填充方块名单", ImmutableList.of("minecraft:cobblestone"), StringUtils.getComment("blocklist")
@@ -253,7 +253,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "启用后打印失活珊瑚时，如果背包里没有失活珊瑚，会自动使用活珊瑚替换。如果背包里同时有活珊瑚和失活珊瑚，则会优先使用失活珊瑚打印。"
     );
     public static final ConfigBoolean RENDER_HUD = new ConfigBoolean(
-            "显示打印HUD", false,
+            "显示打印机HUD", false,
             "在打印机工作时显示工作模式和处理的方块（排流体与填充除外）。\n在开启§6§l延迟检测§r时也显示接收数据包间的延迟。"
     );
     public static final ConfigBoolean LAG_CHECK = new ConfigBoolean(
@@ -345,7 +345,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             ;
 
     public static final ConfigInteger ITERATOR_USE_TIME = new ConfigInteger(
-            "iteratorUseTime", 4, 0 , 128, "iteratorUseTime"
+            "iteratorUseTime", 8, 0 , 128, "iteratorUseTime"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
@@ -361,6 +361,13 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             ;
     public static final ConfigBoolean FILL_COMPOSTER = new ConfigBoolean(
             "autoFillComposter", false, "autoFillComposter"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
+    public static final ConfigBoolean FILL_FLOWING_FLUID = new ConfigBoolean(
+            "fillModeFillFlowing", true, "fillModeFillFlowing"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
