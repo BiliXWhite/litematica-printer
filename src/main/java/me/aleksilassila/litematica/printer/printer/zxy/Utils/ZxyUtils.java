@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
-import fi.dy.masa.litematica.util.WorldUtils;
 import fi.dy.masa.malilib.gui.Message;
 import fi.dy.masa.malilib.util.InfoUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -72,6 +71,13 @@ import net.minecraft.text.MutableText;
 //#else
 //$$ import net.minecraft.text.TranslatableText;
 //#endif
+
+//#if MC >= 12109
+//$$ import me.aleksilassila.litematica.printer.mixin.bilixwhite.EasyPlaceUtilsAccessor;
+//#else
+import fi.dy.masa.litematica.util.WorldUtils;
+//#endif
+
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_COLOR;
 import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.getEmptyPickBlockableHotbarSlot;
@@ -526,7 +532,11 @@ public class ZxyUtils {
                                     //#endif
                             ));
                             client.player.currentScreenHandler.onSlotClick(slot1, hotbarSlot, SlotActionType.SWAP, player);
+                            //#if MC < 12109
                             WorldUtils.setEasyPlaceLastPickBlockTime();
+                            //#else
+                            //EasyPlaceUtilsAccessor.callSetEasyPlaceLastPickBlockTime();
+                            //#endif
                             return !isSwitching;
                         } else {
                             client.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot1, hotbarSlot, SlotActionType.SWAP, player);
@@ -534,8 +544,11 @@ public class ZxyUtils {
                         }
                     }
                 }
-
+                //#if MC < 12109
                 WorldUtils.setEasyPlaceLastPickBlockTime();
+                //#else
+                //EasyPlaceUtilsAccessor.callSetEasyPlaceLastPickBlockTime();
+                //#endif
                 return true;
             } else {
                 InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");

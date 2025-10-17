@@ -25,6 +25,7 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.Fluid;
+import net.minecraft.fluid.FluidState;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -161,7 +162,8 @@ public class Printer extends PrinterUtils {
 
         Iterator<BlockPos> iterator = myBox.iterator;
 
-        while ((ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() <= tickEndTime) && iterator.hasNext()) {
+        while (iterator.hasNext()) {
+            if (ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) return null;
             BlockPos pos = iterator.next();
             // 只有在形状为球体的时候才判断在不在距离内
             if (
@@ -217,8 +219,9 @@ public class Printer extends PrinterUtils {
             if (placeCooldownList.containsKey(pos)) continue;
             placeCooldownList.put(pos, 0);
 
-            BlockState currentState = client.world.getBlockState(pos);
-            if (Arrays.asList(fluidArray).contains(currentState.getFluidState().getFluid())) {
+            FluidState fluidState = client.world.getBlockState(pos).getFluidState();
+            if (Arrays.asList(fluidArray).contains(fluidState.getFluid())) {
+                if (!FILL_FLOWING_FLUID.getBooleanValue() && !fluidState.isStill()) continue;
                 if (playerHasAccessToItems(client.player, fluidItemsArray)) {
                     switchToItems(client.player, fluidItemsArray);
                     new PlacementGuide.Action().queueAction(queue, pos, Direction.UP, false);
@@ -442,12 +445,11 @@ public class Printer extends PrinterUtils {
             PlacementGuide.Action action = guide.getAction(world, schematic, pos);
             if (action == null) continue;
 
-            if (LitematicaMixinMod.FALLING_CHECK.getBooleanValue() && requiredState instanceof LandingBlock) {
-                //检查方块下面是否有方块，否则跳过放置
+            if (LitematicaMixinMod.FALLING_CHECK.getBooleanValue() && requiredState.getBlock() instanceof FallingBlock) {
+                //检查方块下面方块是否正确，否则跳过放置
                 BlockPos downPos = pos.down();
-                BlockState downState = world.getBlockState(downPos);
-                if (FallingBlock.canFallThrough(downState)) {
-                    client.inGameHud.setOverlayMessage(Text.of("方块 " + requiredState.getBlock().getName().toString() + " 需要支撑，跳过放置"), false);
+                if (world.getBlockState(downPos) != schematic.getBlockState(downPos)) {
+                    client.inGameHud.setOverlayMessage(Text.of("方块 " + requiredState.getBlock().getName().getString() + " 下方方块不相符，跳过放置"), false);
                     continue;
                 }
             }
@@ -739,7 +741,7 @@ public class Printer extends PrinterUtils {
             //#else
             ClientCommandC2SPacket packet = new ClientCommandC2SPacket(player, shift ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY);
             //#endif
-            //player.setSneaking(shift);
+            player.setSneaking(shift);
             player.networkHandler.sendPacket(packet);
         }
 

@@ -210,7 +210,7 @@ public class PlacementGuide extends PrinterUtils {
                         chestFacing = facing.rotateYClockwise();
                     }
                     if (world.getBlockState(pos.offset(chestFacing)).getBlock() instanceof ChestBlock) {
-                        return new Action().setSides(Map.of(chestFacing, Vec3d.ZERO));
+                        return new Action().setSides(Map.of(chestFacing, Vec3d.ZERO)).setLookDirection(facing).setUseShift(false);
                     } else {
                         return new Action().setSides(noChestSides).setLookDirection(facing).setUseShift();
                     }

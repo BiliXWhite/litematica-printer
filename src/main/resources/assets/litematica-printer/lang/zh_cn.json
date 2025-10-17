@@ -21,7 +21,7 @@
   "litematica_printer.config.name.zReverse": "迭代-Z轴反向",
   "litematica_printer.config.comment.zReverse": "启用后Z轴方向的遍历将从大到小进行。",
   "litematica_printer.config.name.fallingBlockCheck": "下落方块检查",
-  "litematica_printer.config.comment.fallingBlockCheck": "启用后会检查下落方块的下方是否有方块支撑，如果没有支撑则不会放置该方块。",
+  "litematica_printer.config.comment.fallingBlockCheck": "启用后会检查下落方块的下方方块是否与投影方块相符，如果不相符则不会放置该方块。",
   "litematica_printer.config.name.debugOutput": "调试输出",
   "litematica_printer.config.comment.debugOutput": "启用后会在控制台输出调试信息。",
   "litematica_printer.config.name.breakWrongBlock": "破坏错误方块",
@@ -63,5 +63,7 @@
   "litematica_printer.config.name.printerLagCheck": "打印-延迟检测",
   "litematica_printer.config.comment.printerLagCheck": "打印机工作时会检测数据包的接收时间，如果超过20个游戏刻仍没收到新数据包，打印机会自动暂停，直到收到数据包后再继续。",
   "litematica_printer.config.name.autoFillComposter": "堆肥桶自动填充",
-  "litematica_printer.config.comment.autoFillComposter": "自动使用可堆肥物填充堆肥桶。\n（§l小心你的材料！§r）"
+  "litematica_printer.config.comment.autoFillComposter": "自动使用可堆肥物填充堆肥桶。\n（§l小心你的材料！§r）",
+  "litematica_printer.config.name.fillModeFillFlowing": "排流体-填充流动状态液体",
+  "litematica_printer.config.comment.fillModeFillFlowing": "将流动的液体也视为填充内容。"
 }

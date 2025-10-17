@@ -1,9 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.bilixwhite;
 
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
-import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
-import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
 import me.aleksilassila.litematica.printer.printer.State;
@@ -55,8 +53,7 @@ public abstract class MixinInGameHud {
 //                        StringUtils.drawText("投影：" + Printer.requiredState.getBlock().getName().getString(), 50, 50, Color.CYAN.getRGB(), true);
 //                        StringUtils.drawText("实际: " + Printer.currentState.getBlock().getName().getString(), 50, 59, Color.ORANGE.getRGB(), true);
 //                        StringUtils.drawText("投影液体：" + Printer.requiredState.getFluidState().getBlockState().getBlock().getName().getString(), 50, 68, Color.CYAN.getRGB(), true);
-//                        StringUtils.drawText("实际液体: " + Printer.currentState.getFluidState().getBlockState().getBlock().getName().getString(), 50, 77, Color.ORANGE.getRGB(), true);
-//                        StringUtils.drawText("破坏列表" + BreakManager.breakTargets.toString(), 50, 86, Color.WHITE.getRGB(), true);
+//                        StringUtils.drawText("实际液体: " + Printer.currentState.getFluidState().getBlockState().getBlock().getName().getString() + " " + Printer.currentState.getFluidState().getBlockState().getBlock().toString(), 50, 77, Color.ORANGE.getRGB(), true);
 //                    }
 
                     if (LitematicaMixinMod.LAG_CHECK.getBooleanValue()) {

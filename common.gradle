@@ -127,6 +127,7 @@ String getQuickShulker() {
     } else if (mcVersion == 12104) { path = "libs/quickshulker-2.3.1-1.21.4.jar"
     } else if (mcVersion == 12105) { path = "libs/quickshulker-2.4.1-1.21.5.jar"
     } else if (mcVersion == 12106) { path = "libs/quickshulker-2.5.0-1.21.6.jar"
+    } else if (mcVersion == 12109) { path = "libs/quickshulker-2.8.0-1.21.9.jar"
     }
     return path
 }
