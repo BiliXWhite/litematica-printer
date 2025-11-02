@@ -35,7 +35,7 @@ public class Configs implements IConfigHandler {
         list.add(PLACE_COOLDOWN);
         list.add(ITERATOR_USE_TIME);
         list.add(PLACE_USE_PACKET);
-        list.add(RANGE_SHAPE);
+        list.add(ITERATOR_SHAPE);
         list.add(RENDER_HUD);
         list.add(QUICK_SHULKER);
         list.add(QUICK_SHULKER_MODE);

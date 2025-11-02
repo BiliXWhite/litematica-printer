@@ -65,7 +65,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             .apply(I18N_PREFIX)
             //#endif
             ;
-    public static final ConfigOptionList RANGE_SHAPE = new ConfigOptionList(
+    public static final ConfigOptionList ITERATOR_SHAPE = new ConfigOptionList(
             "printerIteratorShape", State.RadiusShapeType.SPHERE, "printerIteratorShape"
     )
             //#if MC > 12006
@@ -433,7 +433,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
         list.add(PRINTER_RANGE);
         list.add(PLACE_COOLDOWN);
         list.add(PLACE_USE_PACKET);
-        list.add(RANGE_SHAPE);
+        list.add(ITERATOR_SHAPE);
         list.add(QUICK_SHULKER);
         list.add(QUICK_SHULKER_MODE);
         list.add(QUICK_SHULKER_COOLDOWN);

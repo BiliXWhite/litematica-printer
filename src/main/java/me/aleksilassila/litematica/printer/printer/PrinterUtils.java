@@ -63,14 +63,6 @@ public class PrinterUtils {
         return false;
 	}
 
-    protected static boolean isDoubleSlab(BlockState state) {
-    	return state.contains(SlabBlock.TYPE) && state.get(SlabBlock.TYPE) == SlabType.DOUBLE;
-    }
-
-	protected static boolean isHalfSlab(BlockState state) {
-    	return state.contains(SlabBlock.TYPE) && state.get(SlabBlock.TYPE) != SlabType.DOUBLE;
-	}
-
     public static Direction getHalf(BlockHalf half) {
         return half == BlockHalf.TOP ? Direction.UP : Direction.DOWN;
     }

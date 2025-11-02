@@ -47,7 +47,6 @@ import static fi.dy.masa.litematica.util.WorldUtils.applyPlacementProtocolV3;
 import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
 import static me.aleksilassila.litematica.printer.printer.State.PrintModeType.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.*;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.switchItem;
 
@@ -159,7 +158,6 @@ public class Printer extends PrinterUtils {
         myBox.xIncrement = !X_REVERSE.getBooleanValue();
         myBox.yIncrement = Y_REVERSE.getBooleanValue() == yReverse;
         myBox.zIncrement = !Z_REVERSE.getBooleanValue();
-        var rangeShape = RANGE_SHAPE.getOptionListValue();
 
         Iterator<BlockPos> iterator = myBox.iterator;
 
@@ -168,15 +166,10 @@ public class Printer extends PrinterUtils {
             BlockPos pos = iterator.next();
             // 只有在形状为球体的时候才判断在不在距离内
             if (
-                    (isPrinterMode() && isSchematicBlock(pos)) ||
-                    TempData.xuanQuFanWeiNei_p(pos)
+                    ((isPrinterMode() && isSchematicBlock(pos)) ||
+                    TempData.xuanQuFanWeiNei_p(pos)) &&
+                    PlaceUtils.canInteracted(pos)
             ) {
-                if ((rangeShape == State.RadiusShapeType.SPHERE && !basePos.isWithinDistance(pos, printRange))
-                    //|| !canInteracted(pos)
-                ) {
-                    // 不是我想要的类型，直接跳过
-                    continue;
-                }
                 return pos;
             }
 
@@ -307,7 +300,7 @@ public class Printer extends PrinterUtils {
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
             if (client.player != null &&
-                    (!canInteracted(pos) || isLimitedByTheNumberOfLayers(pos) || !TempData.xuanQuFanWeiNei_p(pos))) {
+                    (!PlaceUtils.canInteracted(pos) || isLimitedByTheNumberOfLayers(pos) || !TempData.xuanQuFanWeiNei_p(pos))) {
                 continue;
             }
             BedrockUtils.addToBreakList(pos, client.world);

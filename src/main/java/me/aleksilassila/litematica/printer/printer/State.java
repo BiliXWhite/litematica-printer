@@ -205,15 +205,14 @@ public enum State {
     }
 
     public enum RadiusShapeType implements IConfigOptionListEntry {
-        SPHERE("sphere", I18N_PREFIX + ".list.iteratorShapeType.sphere"),
-        CUBE("cube", I18N_PREFIX + ".list.iteratorShapeType.cube");
+        SPHERE("sphere"),
+        OCTAHEDRON("octahedron"),
+        CUBE("cube");
 
         private final String configString;
-        private final String translationKey;
 
-        RadiusShapeType(String configString, String translationKey) {
+        RadiusShapeType(String configString) {
             this.configString = configString;
-            this.translationKey = translationKey;
         }
 
         @Override
@@ -223,7 +222,7 @@ public enum State {
 
         @Override
         public String getDisplayName() {
-            return StringUtils.translate(this.translationKey);
+            return StringUtils.translate(I18N_PREFIX + ".list.iteratorShapeType." + this.configString);
         }
 
         @Override
@@ -283,7 +282,7 @@ public enum State {
 
         @Override
         public String getDisplayName() {
-            return StringUtils.translate(this.displayName);
+            return this.displayName;
         }
 
         @Override
@@ -332,7 +331,7 @@ public enum State {
 
         @Override
         public String getDisplayName() {
-            return StringUtils.translate(I18N_PREFIX + ".quickShulkerMode." + this.configString);
+            return StringUtils.translate(I18N_PREFIX + ".list.quickShulkerMode." + this.configString);
         }
 
         @Override
@@ -384,7 +383,7 @@ public enum State {
         }
 
         public String getDisplayName() {
-            return StringUtils.translate(I18N_PREFIX + ".fillModeFacing." + this.configString);
+            return StringUtils.translate(I18N_PREFIX + ".list.fillModeFacing." + this.configString);
         }
 
         @Override
