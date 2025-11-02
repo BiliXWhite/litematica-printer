@@ -1,14 +1,17 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.BubbleColumnBlock;
-import net.minecraft.block.FluidBlock;
+import net.minecraft.block.*;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.NotNull;
 
 public class PlaceUtils {
+    @NotNull
+    static MinecraftClient client = MinecraftClient.getInstance();
 
     /**
      * 判断该方块是否需要水
@@ -52,4 +55,26 @@ public class PlaceUtils {
     }
 
 
+    public static boolean canInteracted(BlockPos blockPos) {
+        var range = LitematicaMixinMod.PRINTER_RANGE.getIntegerValue();
+        return switch (LitematicaMixinMod.ITERATOR_SHAPE.getOptionListValue().getStringValue()) {
+            case "sphere" -> canInteractedEuclidean(blockPos, range);
+            case "octahedron" -> canInteractedManhattan(blockPos, range);
+            default -> true;
+        };
+    }
+
+    public static boolean canInteractedEuclidean(BlockPos blockPos, double range) {
+        var player = client.player;
+        if (player == null || blockPos == null) return false;
+        return player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(blockPos)) <= range * range;
+    }
+
+    public static boolean canInteractedManhattan(BlockPos pos, int range) {
+        BlockPos center = client.player.getBlockPos();
+        int dx = Math.abs(pos.getX() - center.getX());
+        int dy = Math.abs(pos.getY() - center.getY());
+        int dz = Math.abs(pos.getZ() - center.getZ());
+        return dx + dy + dz <= range;
+    }
 }

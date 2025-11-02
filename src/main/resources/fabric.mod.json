@@ -35,7 +35,10 @@
   ],
 
   "depends": {
-    "minecraft": "${minecraft_dependency}"
+    "minecraft": "${minecraft_dependency}",
+    "malilib": ">=0.12.0",
+    "litematica": ">=0.11.6",
+    "fabric-content-registries-v0": "*"
   },
   "custom": {
     "modmenu": {

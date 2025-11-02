@@ -4,9 +4,9 @@ import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import fi.dy.masa.tweakeroo.config.FeatureToggle;
 import fi.dy.masa.tweakeroo.util.InventoryUtils;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -82,7 +82,7 @@ public class BreakManager {
 
         while ((breakPos = (!breakTargets.isEmpty() && breakPos != null) ? updateTarget() : null) != null) {
             // 检查方块是否已消失或变为流体
-            if (!ZxyUtils.canInteracted(breakPos) ||
+            if (!PlaceUtils.canInteracted(breakPos) ||
                     !canBreakBlock(breakPos) ||
                     !breakRestriction(state)
             ) {

@@ -9,6 +9,7 @@ import fi.dy.masa.malilib.util.InfoUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 
@@ -211,7 +212,7 @@ public class ZxyUtils {
             OpenInventoryPacket.sendOpenInventory(pos, client.world.getRegistryKey());
             return true;
         } else {
-            if (client.player != null && !canInteracted(Vec3d.ofCenter(pos), LitematicaMixinMod.PRINTER_RANGE.getIntegerValue())) {
+            if (client.player != null && !PlaceUtils.canInteracted(pos)) {
                 if(!ignoreThePrompt) client.inGameHud.setOverlayMessage(Text.of("距离过远无法打开容器"), false);
                 return false;
             }
@@ -375,16 +376,6 @@ public class ZxyUtils {
                 return;
             }
         }
-    }
-
-    public static boolean canInteracted(Vec3d d,double range){
-        return client.player != null &&
-                d != null &&
-                client.player.getEyePos().squaredDistanceTo(d) < range * range;
-    }
-
-    public static boolean canInteracted(BlockPos blockPos) {
-        return blockPos != null && canInteracted(Vec3d.ofCenter(blockPos), LitematicaMixinMod.PRINTER_RANGE.getIntegerValue());
     }
 
     public static void exitGameReSet(){
