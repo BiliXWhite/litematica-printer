@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(EasyPlaceUtils.class)
 public interface EasyPlaceUtilsAccessor {
-    @Invoker
+    @Invoker(remap = false)
     static void callSetEasyPlaceLastPickBlockTime() {
         throw new UnsupportedOperationException();
     }

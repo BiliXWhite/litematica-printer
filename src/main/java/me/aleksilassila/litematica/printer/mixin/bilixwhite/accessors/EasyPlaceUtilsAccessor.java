@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.mixin.bilixwhite;
+package me.aleksilassila.litematica.printer.mixin.bilixwhite.accessors;
 
 import me.aleksilassila.litematica.printer.config.Pointless;
 import org.spongepowered.asm.mixin.Mixin;

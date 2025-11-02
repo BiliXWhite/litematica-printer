@@ -1,7 +1,6 @@
-package me.aleksilassila.litematica.printer.mixin.bilixwhite;
+package me.aleksilassila.litematica.printer.mixin.bilixwhite.others;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.PistonBlock;
@@ -12,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 public class MixinPistonBlock {
     @ModifyReturnValue(method = "getPlacementState", at = @At(value = "RETURN"))
     private BlockState fixPlacementState(BlockState blockState) {
-        if (Printer.pistonNeedFix) {
+        if (Printer.pistonNeedFix && Printer.requiredState.getBlock() instanceof PistonBlock) {
             Printer.pistonNeedFix = false;
             blockState = Printer.requiredState.with(PistonBlock.EXTENDED, false);
         }

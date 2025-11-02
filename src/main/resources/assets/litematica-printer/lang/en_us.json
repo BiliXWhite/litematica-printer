@@ -1,4 +1,8 @@
 {
+  "modmenu.nameTranslation.modmenu": "Projection Printer White's Version",
+  "modmenu.descriptionTranslation.modmenu": "An extension mod for Litematica, adding missing printer functionality for versions 1.18+.",
+  "modmenu.summaryTranslation.modmenu": "§lThis version is based on the modification by ZhaiXianYu. §r\nI'm not sure what to write here :P\nIf you have excellent language skills, feel free to contribute to our text on GitHub!",
+  "litematica_printer.menu.settings_button": "Printer Settings",
   "litematica_printer.update.available": "Litematica Printer update available! Current version: %s, Latest version: %s",
   "litematica_printer.update.recommendation": "It is strongly recommended to upgrade to the latest version to fix potential issues.",
   "litematica_printer.update.repository": "Repository:",
@@ -32,7 +36,7 @@
   "litematica_printer.config.comment.quickShulker": "If the server has the §bAxShulkers§r plugin installed, you can directly take items from shulker boxes in your inventory.\nThe replacement position is the preset position of Litematica, and if all preset positions have shulker boxes, it will not replace them.",
   "litematica_printer.config.name.quickShulkerMode": "quickShulkerMode",
   "litematica_printer.config.comment.quickShulkerMode": "§dClick Slot§r: Directly sends a right-click to open the shulker box in your inventory. (Requires plugin or mod support)\n§dCall Method§r: Calls the mod function to directly open the shulker box.",
-  "litematica_printer.config.quickShulkerMode.clickSlot": "Click Slot",
+  "litematica_printer.config.quickShulkerMode.click_slot": "Click Slot",
   "litematica_printer.config.quickShulkerMode.invoke": "Call Method",
   "litematica_printer.config.name.quickShulkerCooldown": "quickShulkerCooldown",
   "litematica_printer.config.comment.quickShulkerCooldown": "The cooldown time (in ticks) for the quick shulker box feature. This prevents rapid opening of shulker boxes, which can cause server lag.\nSet to 0 to disable cooldown.",
@@ -64,6 +68,14 @@
   "litematica_printer.config.comment.printerLagCheck": "While the printer is working, it will check the time of packet reception. If no new packets are received for more than 20 game ticks, the printer will automatically pause and resume once a new packet is received.",
   "litematica_printer.config.name.autoFillComposter": "autoFillComposter",
   "litematica_printer.config.comment.autoFillComposter": "Automatically fill the composter with compostable items.\n(§lBe careful with your compostable items!§r)",
-  "litematica_printer.config.name.fillModeFillFlowing": "fillModeFillFlowing",
-  "litematica_printer.config.comment.fillModeFillFlowing": "Treat flowing liquid as fill content as well."
+  "litematica_printer.config.name.fluidModeFillFlowing": "fluidModeFillFlowing",
+  "litematica_printer.config.comment.fluidModeFillFlowing": "Treat flowing liquid as fill content as well.",
+  "litematica_printer.config.name.fillModeFacing": "fillModeFacing",
+  "litematica_printer.config.comment.fillModeFacing": "Specify direction of the block when using fill mode.(applies to slabs? stairs?)",
+  "litematica_printer.config.fillModeFacing.up": "Up",
+  "litematica_printer.config.fillModeFacing.down": "Down",
+  "litematica_printer.config.fillModeFacing.east": "East",
+  "litematica_printer.config.fillModeFacing.south": "South",
+  "litematica_printer.config.fillModeFacing.west": "West",
+  "litematica_printer.config.fillModeFacing.north": "North"
 }

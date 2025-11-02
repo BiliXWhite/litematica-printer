@@ -2,6 +2,8 @@ package me.aleksilassila.litematica.printer.bilixwhite;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
+import fi.dy.masa.tweakeroo.config.FeatureToggle;
+import fi.dy.masa.tweakeroo.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
@@ -91,6 +93,8 @@ public class BreakManager {
             // 执行挖掘进度更新
             boolean success;
             try {
+                if (FeatureToggle.TWEAK_TOOL_SWITCH.getBooleanValue())
+                    InventoryUtils.trySwitchToEffectiveTool(breakPos);
                 success = client.interactionManager.updateBlockBreakingProgress(breakPos, Direction.DOWN);
                 client.interactionManager.cancelBlockBreaking();
             } catch (Exception e) {
@@ -201,6 +205,8 @@ public class BreakManager {
 
         // 检查方块是否可以破坏，如果可以则执行挖掘操作
         if (canBreakBlock(pos)) {
+            if (FeatureToggle.TWEAK_TOOL_SWITCH.getBooleanValue())
+                InventoryUtils.trySwitchToEffectiveTool(pos);
             client.interactionManager.updateBlockBreakingProgress(pos, Direction.DOWN);
             client.interactionManager.cancelBlockBreaking();
             return (world.getBlockState(pos).isOf(block) && !client.player.isCreative());

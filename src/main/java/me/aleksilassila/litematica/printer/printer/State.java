@@ -317,15 +317,12 @@ public enum State {
     }
 
     public enum QuickShulkerModeType implements IConfigOptionListEntry {
-        CLICK_SLOT("click_slot", me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils.get("config.quickShulkerMode.clickSlot")),
-        INVOKE("invoke", me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils.get("config.quickShulkerMode.invoke"));
+        CLICK_SLOT("click_slot"),
+        INVOKE("invoke");
 
         private final String configString;
-        private final String displayName;
-
-        QuickShulkerModeType(String configString, String displayName) {
+        QuickShulkerModeType(String configString) {
             this.configString = configString;
-            this.displayName = displayName;
         }
 
         @Override
@@ -335,7 +332,7 @@ public enum State {
 
         @Override
         public String getDisplayName() {
-            return StringUtils.translate(this.displayName);
+            return StringUtils.translate(I18N_PREFIX + ".quickShulkerMode." + this.configString);
         }
 
         @Override
@@ -365,6 +362,58 @@ public enum State {
                 }
             }
             return QuickShulkerModeType.CLICK_SLOT;
+        }
+    }
+    public enum FillModeFacingType implements IConfigOptionListEntry {
+        DOWN("down"),
+        UP("up"),
+        WEST("west"),
+        EAST("east"),
+        NORTH("north"),
+        SOUTH("south");
+
+        private final String configString;
+
+        FillModeFacingType(String configString) {
+            this.configString = configString;
+        }
+
+        @Override
+        public String getStringValue() {
+            return this.configString;
+        }
+
+        public String getDisplayName() {
+            return StringUtils.translate(I18N_PREFIX + ".fillModeFacing." + this.configString);
+        }
+
+        @Override
+        public IConfigOptionListEntry cycle(boolean forward) {
+            int id = this.ordinal();
+            if (forward) {
+                if (++id >= values().length) {
+                    id = 0;
+                }
+            } else {
+                if (--id < 0) {
+                    id = values().length - 1;
+                }
+            }
+            return values()[id];
+        }
+
+        @Override
+        public FillModeFacingType fromString(String name) {
+            return fromStringStatic(name);
+        }
+
+        public static FillModeFacingType fromStringStatic(String name) {
+            for (FillModeFacingType type : FillModeFacingType.values()) {
+                if (type.configString.equalsIgnoreCase(name)) {
+                    return type;
+                }
+            }
+            return FillModeFacingType.DOWN;
         }
     }
 }

@@ -10,6 +10,7 @@ import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
@@ -168,10 +169,11 @@ public class Printer extends PrinterUtils {
             // 只有在形状为球体的时候才判断在不在距离内
             if (
                     (isPrinterMode() && isSchematicBlock(pos)) ||
-                    (!isPrinterMode() && TempData.xuanQuFanWeiNei_p(pos))
+                    TempData.xuanQuFanWeiNei_p(pos)
             ) {
                 if ((rangeShape == State.RadiusShapeType.SPHERE && !basePos.isWithinDistance(pos, printRange))
-                    || !canInteracted(pos) || isLimitedByTheNumberOfLayers(pos)) {
+                    //|| !canInteracted(pos)
+                ) {
                     // 不是我想要的类型，直接跳过
                     continue;
                 }
@@ -215,6 +217,7 @@ public class Printer extends PrinterUtils {
         while ((pos = getBlockPos()) != null) {
             if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
 
+            if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
             // 跳过冷却中的位置
             if (placeCooldownList.containsKey(pos)) continue;
             placeCooldownList.put(pos, 0);
@@ -254,6 +257,7 @@ public class Printer extends PrinterUtils {
         while ((pos = getBlockPos()) != null) {
             if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
 
+            if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
             // 跳过冷却中的位置
             if (placeCooldownList.containsKey(pos)) continue;
             placeCooldownList.put(pos, 0);
@@ -262,7 +266,7 @@ public class Printer extends PrinterUtils {
             if (currentState.isAir() || (currentState.getBlock() instanceof FluidBlock) || REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> equalsBlockName(s, currentState))) {
                 if (playerHasAccessToItems(client.player, fillItemsArray)) {
                     switchToItems(client.player, fillItemsArray);
-                    new PlacementGuide.Action().queueAction(queue, pos, Direction.UP, false);
+                    new PlacementGuide.Action().setLookDirection(PlaceUtils.getFillModeFacing().getOpposite()).queueAction(queue, pos, PlaceUtils.getFillModeFacing(), false);
                     if (tickRate == 0) {
                         queue.sendQueue(client.player);
                         if (BLOCKS_PER_TICK.getIntegerValue() != 0) printPerTick--;
@@ -354,7 +358,7 @@ public class Printer extends PrinterUtils {
         printPerTick = BLOCKS_PER_TICK.getIntegerValue();
         yReverse = false;
 
-        // 如果正在处理打开的容器或切换物品，则直接返回
+        // 如果正在处理打开的容器/处理远程交互和快捷潜影盒/破坏方块列表有东西，则直接返回
         if (isOpenHandler || switchItem() || BreakManager.hasTargets()) {
             return;
         }
@@ -399,7 +403,7 @@ public class Printer extends PrinterUtils {
                 bedrockMode();
                 if(multiBreakBooleanValue) return;
             }
-        }else if (PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType modeType && modeType != PRINTER) {
+        } else if (PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType modeType && modeType != PRINTER) {
             switch (modeType){
                 case MINE -> {
                     yReverse = true;
@@ -424,6 +428,7 @@ public class Printer extends PrinterUtils {
             if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
             // 是否在渲染层内
             if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
+            if (!isSchematicBlock(pos)) continue;
 
             requiredState = schematic.getBlockState(pos);
             currentState = world.getBlockState(pos);

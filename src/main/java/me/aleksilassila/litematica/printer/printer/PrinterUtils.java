@@ -153,8 +153,8 @@ public class PrinterUtils {
     }
 
     public static boolean isPrinterMode() {
-        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE))
-                && PRINTER_MODE.getOptionListValue() == State.PrintModeType.PRINTER;
+        return MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)
+                || PRINTER_MODE.getOptionListValue() == State.PrintModeType.PRINTER;
     }
 
     public static boolean isMineMode() {
