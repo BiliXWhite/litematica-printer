@@ -367,7 +367,14 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             //#endif
             ;
     public static final ConfigBoolean FILL_FLOWING_FLUID = new ConfigBoolean(
-            "fillModeFillFlowing", true, "fillModeFillFlowing"
+            "fluidModeFillFlowing", true, "fluidModeFillFlowing"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
+    public static final ConfigOptionList FILL_BLOCK_FACING = new ConfigOptionList(
+            "fillModeFacing", State.FillModeFacingType.DOWN, "fillModeFacing"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
@@ -426,7 +433,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
         list.add(PRINTER_RANGE);
         list.add(PLACE_COOLDOWN);
         list.add(PLACE_USE_PACKET);
-        //list.add(RANGE_SHAPE);
+        list.add(RANGE_SHAPE);
         list.add(QUICK_SHULKER);
         list.add(QUICK_SHULKER_MODE);
         list.add(QUICK_SHULKER_COOLDOWN);

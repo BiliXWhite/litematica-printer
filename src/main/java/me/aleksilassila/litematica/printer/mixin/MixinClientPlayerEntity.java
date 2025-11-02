@@ -85,7 +85,10 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 			Printer.fluidModeItemList = new HashSet<>();
 			printer.clearQueue();
 			return;
-		}
+		} else {
+            Printer.pistonNeedFix = false;
+            Printer.requiredState = null;
+        }
 		BreakManager.instance().onTick();
 		printer.printerTick();
 	}

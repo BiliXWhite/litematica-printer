@@ -73,7 +73,7 @@ import net.minecraft.text.MutableText;
 //#endif
 
 //#if MC >= 12109
-//$$ import me.aleksilassila.litematica.printer.mixin.bilixwhite.EasyPlaceUtilsAccessor;
+//$$ import me.aleksilassila.litematica.printer.mixin.bilixwhite.accessors.EasyPlaceUtilsAccessor;
 //#else
 import fi.dy.masa.litematica.util.WorldUtils;
 //#endif

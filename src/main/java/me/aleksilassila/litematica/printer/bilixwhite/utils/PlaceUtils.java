@@ -1,10 +1,12 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
+import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.BubbleColumnBlock;
 import net.minecraft.block.FluidBlock;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.math.Direction;
 
 public class PlaceUtils {
 
@@ -38,11 +40,16 @@ public class PlaceUtils {
         //#endif
     }
 
-//    public static int getPerFrameTime() {
-//        // 默认最低刷新率30Hz，应该没人会这么比这个还低吧？
-//        int refreshRate = Math.max(GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()).refreshRate(), 30);
-//        // 返回帧间隔时间（超过这个值了就会卡顿）
-//        return Math.max(1, 1000 / refreshRate);
-//    }
+    public static Direction getFillModeFacing() {
+        return switch (LitematicaMixinMod.FILL_BLOCK_FACING.getOptionListValue().getStringValue()) {
+            case "down" -> Direction.DOWN;
+            case "east" -> Direction.EAST;
+            case "south" -> Direction.SOUTH;
+            case "west" -> Direction.WEST;
+            case "north" -> Direction.NORTH;
+            default -> Direction.UP;
+        };
+    }
+
 
 }

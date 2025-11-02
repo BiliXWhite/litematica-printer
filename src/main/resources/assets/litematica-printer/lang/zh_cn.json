@@ -1,4 +1,8 @@
 {
+  "modmenu.nameTranslation.modmenu": "投影打印机 三改版",
+  "modmenu.descriptionTranslation.modmenu": "Litematica的扩展模组，为1.18+的版本增加了缺失的打印机功能。",
+  "modmenu.summaryTranslation.modmenu": "§l该版本基于宅咸鱼的版本进行修改。§r\n我也不知道在这里写什么喵~\n如果你的语言表达能力很优秀，欢迎前来github为我们贡献这里的文字！",
+  "litematica_printer.menu.settings_button": "打印机设置",
   "litematica_printer.update.available": "投影打印机有新版本！当前版本：%s，最新版本：%s",
   "litematica_printer.update.recommendation": "强烈建议升级到最新版本，以修复潜在的严重问题。",
   "litematica_printer.update.repository": "代码仓库：",
@@ -32,7 +36,7 @@
   "litematica_printer.config.comment.quickShulker": "直接从背包内的潜影盒取出物品\n替换的位置为Litematica的预设位置,如果所有预设位置都有濳影盒则无法替换。",
   "litematica_printer.config.name.quickShulkerMode": "快捷潜影盒-工作模式",
   "litematica_printer.config.comment.quickShulkerMode": "§d点击槽位§r：直接发送背包右键打开潜影盒。(需要插件或模组的支持)\n§d调用方法§r：调用QuickShulker模组打开潜影盒，若未安装QuickShulker模组则无法使用。",
-  "litematica_printer.config.quickShulkerMode.clickSlot": "点击槽位",
+  "litematica_printer.config.quickShulkerMode.click_slot": "点击槽位",
   "litematica_printer.config.quickShulkerMode.invoke": "调用方法",
   "litematica_printer.config.name.quickShulkerCooldown": "快捷潜影盒-冷却时间",
   "litematica_printer.config.comment.quickShulkerCooldown": "快捷潜影盒功能的冷却时间（单位：tick），防止快速打开潜影盒导致服务器卡顿。\n设置为0则不启用冷却。",
@@ -64,6 +68,14 @@
   "litematica_printer.config.comment.printerLagCheck": "打印机工作时会检测数据包的接收时间，如果超过20个游戏刻仍没收到新数据包，打印机会自动暂停，直到收到数据包后再继续。",
   "litematica_printer.config.name.autoFillComposter": "堆肥桶自动填充",
   "litematica_printer.config.comment.autoFillComposter": "自动使用可堆肥物填充堆肥桶。\n（§l小心你的材料！§r）",
-  "litematica_printer.config.name.fillModeFillFlowing": "排流体-填充流动状态液体",
-  "litematica_printer.config.comment.fillModeFillFlowing": "将流动的液体也视为填充内容。"
+  "litematica_printer.config.name.fluidModeFillFlowing": "排流体-填充流动状态液体",
+  "litematica_printer.config.comment.fluidModeFillFlowing": "将流动的液体也视为填充内容。",
+  "litematica_printer.config.name.fillModeFacing": "填充-模式朝向",
+  "litematica_printer.config.comment.fillModeFacing": "填充方块时的朝向。（适用于半砖？楼梯？）",
+  "litematica_printer.config.fillModeFacing.up": "向上",
+  "litematica_printer.config.fillModeFacing.down": "向下",
+  "litematica_printer.config.fillModeFacing.east": "东",
+  "litematica_printer.config.fillModeFacing.south": "南",
+  "litematica_printer.config.fillModeFacing.west": "西",
+  "litematica_printer.config.fillModeFacing.north": "北"
 }

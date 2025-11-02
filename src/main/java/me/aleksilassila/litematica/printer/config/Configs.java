@@ -35,7 +35,7 @@ public class Configs implements IConfigHandler {
         list.add(PLACE_COOLDOWN);
         list.add(ITERATOR_USE_TIME);
         list.add(PLACE_USE_PACKET);
-        //list.add(RANGE_SHAPE);
+        list.add(RANGE_SHAPE);
         list.add(RENDER_HUD);
         list.add(QUICK_SHULKER);
         list.add(QUICK_SHULKER_MODE);
@@ -52,6 +52,7 @@ public class Configs implements IConfigHandler {
         list.add(FLUID_BLOCK_LIST);
         list.add(FLUID_LIST);
         list.add(FILL_BLOCK_LIST);
+        list.add(FILL_BLOCK_FACING);
         if(loadChestTracker) list.add(INVENTORY_LIST);
         list.add(DEBUG_OUTPUT);
         list.add(UPDATE_CHECK);
