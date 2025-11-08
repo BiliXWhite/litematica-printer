@@ -46,8 +46,6 @@
     "jackf.lgacy.MixinRealmsMainScreen",
     "jackf.lgacy.MixinWCardPanel",
     "jackf.lgacy.WItemListPanelMixin",
-    "masa.litematicaSetConfig.ConfigsMixin",
-    "masa.litematicaSetConfig.GuiConfigsMixin",
     "masa.litematicaSetConfig.InputHandlerMixin",
     "openinv.MixinMinecraftClient",
     "verify.MixinClientConnection"

@@ -34,38 +34,38 @@ public class MixinInventoryUtils {
         }
     }
 
-//    @Shadow(remap = false) private static int nextPickSlotIndex;
-//
-//    @Shadow(remap = false) @Final private static List<Integer> PICK_BLOCKABLE_SLOTS;
-//
-//    /**
-//     * @author BlinkWhite
-//     * @reason 去除优先选择目前已选择的槽位
-//     */
-//    @Overwrite
-//    private static int getPickBlockTargetSlot(PlayerEntity player) {
-//        if (PICK_BLOCKABLE_SLOTS.isEmpty()) {
-//            return -1;
-//        }
-//
-//        int slotNum;
-//
-//        if (nextPickSlotIndex >= PICK_BLOCKABLE_SLOTS.size()) {
-//            nextPickSlotIndex = 0;
-//        }
-//
-//        for (int i = 0; i < PICK_BLOCKABLE_SLOTS.size(); ++i) {
-//            slotNum = PICK_BLOCKABLE_SLOTS.get(nextPickSlotIndex);
-//
-//            if (++nextPickSlotIndex >= PICK_BLOCKABLE_SLOTS.size()) {
-//                nextPickSlotIndex = 0;
-//            }
-//
-//            if (canPickToSlot(player.getInventory(), slotNum)) {
-//                return slotNum;
-//            }
-//        }
-//
-//        return -1;
-//    }
+    @Shadow(remap = false) private static int nextPickSlotIndex;
+
+    @Shadow(remap = false) @Final private static List<Integer> PICK_BLOCKABLE_SLOTS;
+
+    /**
+     * @author BlinkWhite
+     * @reason 去除优先选择目前已选择的槽位
+     */
+    @Overwrite
+    private static int getPickBlockTargetSlot(PlayerEntity player) {
+        if (PICK_BLOCKABLE_SLOTS.isEmpty()) {
+            return -1;
+        }
+
+        int slotNum;
+
+        if (nextPickSlotIndex >= PICK_BLOCKABLE_SLOTS.size()) {
+            nextPickSlotIndex = 0;
+        }
+
+        for (int i = 0; i < PICK_BLOCKABLE_SLOTS.size(); ++i) {
+            slotNum = PICK_BLOCKABLE_SLOTS.get(nextPickSlotIndex);
+
+            if (++nextPickSlotIndex >= PICK_BLOCKABLE_SLOTS.size()) {
+                nextPickSlotIndex = 0;
+            }
+
+            if (canPickToSlot(player.getInventory(), slotNum)) {
+                return slotNum;
+            }
+        }
+
+        return -1;
+    }
 }
