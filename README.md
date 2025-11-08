@@ -1,10 +1,10 @@
 > [!WARNING]  
-> 该README正在重构，目前的内容可能不完整或有误。请耐心等待更新或者Pull Request以贡献这个项目。
+> 该README正在重构，目前的内容可能不完整或有误。请耐心等待更新或者贡献这个项目。
 
 Litematica Printer
 ==================
 
-该模组为 投影 的 Minecraft Fabric 1.18.2 至 1.21.8 版本添加了自动建造功能。允许玩家通过自动放置周围正确方块来快速还原投影。
+该模组为 投影 的 Minecraft Fabric 1.18.2 至 1.21.10 版本添加了自动建造功能。允许玩家通过自动放置周围正确方块来快速还原投影。
 
 这个版本基于[宅咸鱼二改版](https://github.com/zhaixianyu/litematica-printer)修改，添加了一些实用的功能。
 
@@ -16,10 +16,10 @@ Litematica Printer
 ----------
 
 官方提供的下载渠道有两种: 
-- [**Releases**](https://github.com/BiliXWhite/litematica-printer/releases)
+- [**Github Releases**](https://github.com/BiliXWhite/litematica-printer/releases)
 - [**蓝奏云分流(密码cgxw)**](https://xeno.lanzoue.com/b00l1v20vi)
 
-### 选择游戏版本
+### 游戏版本
 
 目前该模组支持以下游戏版本：
 - 1.18.2
@@ -29,9 +29,11 @@ Litematica Printer
 - 1.20.4
 - 1.20.6
 - 1.21(.1)
+- 1.21.3
 - 1.21.4
 - 1.21.5
 - 1.21.6/7/8
+- 1.21.9/10
 
 暂不接受1.18.2以下版本的更新，之间的小版本是否可用请自行尝试，一般版本进度会跟进上游分支
 
@@ -53,12 +55,12 @@ Litematica Printer
   - [x] 填充功能（填充Litematica的选区范围）
   - [x] 支持双兼容快捷潜影盒功能（服务器AxShulkers和模组Quick Shulker）
   - [x] 替换珊瑚（使用活珊瑚打印投影内的死珊瑚）
-  - [x] 删除已无法使用的破基岩功能
   - [x] 更好的破坏错误方块和破冰放水
   - [x] 支持多达 48 种范围迭代逻辑
+  - [x] 支持破坏错误额外方块和错误状态方块
 
 - **🛠️修复**
-  - [x] 修复以下方块的放置问题：
+  - [x] 修复很多方块的放置算法，包括：
     - 合成器、拉杆、红石粉（非连接模式）
     - 枯叶、各种花簇的方向数量
     - 发光浆果、带花的花盆
@@ -78,6 +80,7 @@ Litematica Printer
 - 头颅，告示牌，旗帜(以及具有16个朝向的任何方块)
 - 装有液体的炼药锅
 - 实体方块（包括但不限于物品展示框、盔甲架、画等等）
+- 非原版游戏内容
 
 编译
 ----------
@@ -100,7 +103,7 @@ Litematica Printer
 ----------
 
 ## 推荐加入QQ群聊
-- 毕竟不是人人都会在GitHub上反馈问题，您可以加入我们的QQ群聊，以便更好的反馈问题，获取更新和获得帮助。
+- 毕竟不是人人都有能力在 GitHub 上提交 Issue ，您可以加入我们的QQ群聊，以便更好的反馈问题，获取更新和获得帮助。
 [点击此处加入QQ群聊](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=ttinzrJB3jYRLSTJM8R2YfwYdCm4Zo90&authKey=vfwF)
 
 ### 为什么开启打印后，打印机不工作？
@@ -131,5 +134,6 @@ Litematica Printer
 
 - [aleksilassila/litematica-printer](https://github.com/aleksilassila/litematica-printer): 如果没有[aleksilassila](https://github.com/aleksilassila)的成果，那么整个改版分支将不存在！
 - [zhaixianyu/litematica-printer](https://github.com/zhaixianyu/litematica-printer): 在原著的基础上解决了很多问题，同时也引进了很多新的内容
-- [MoRanpcy/quickshulker](https://github.com/MoRanpcy/quickshulker): 新版的快捷潜影盒支持（由于没有开发包支持所以只能硬塞jar包）
+- [MoRanpcy/quickshulker](https://github.com/MoRanpcy/quickshulker): 新版的快捷潜影盒支持（由于没有开发包支持所以只能硬塞jar包）\
+- [bunnyi116/fabric-bedrock-miner](https://github.com/bunnyi116/fabric-bedrock-miner): 新的破基岩模式前置，虽说速度没有宅咸鱼的快，但是能在高版本使用且不会卡顿。
 - 以及所有支持开发的人，包括你！
