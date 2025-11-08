@@ -336,6 +336,14 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             //#endif
             ;
 
+    public static final ConfigBoolean BREAK_WRONG_STATE_BLOCK = new ConfigBoolean(
+            "breakWrongStateBlock", false, "breakWrongStateBlock"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
+
     public static final ConfigBoolean SKIP_WATERLOGGED_BLOCK = new ConfigBoolean(
             "printSkipWaterlogged", false, "printSkipWaterlogged"
     )

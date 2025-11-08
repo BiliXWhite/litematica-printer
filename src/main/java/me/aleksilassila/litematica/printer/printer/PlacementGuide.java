@@ -3,6 +3,7 @@ package me.aleksilassila.litematica.printer.printer;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaMixinMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
@@ -136,6 +137,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (AxeItemAccessor.getStrippedBlocks().containsValue(requiredState.getBlock()) &&
                         LitematicaMixinMod.STRIP_LOGS.getBooleanValue()) {
                     Block stripped = requiredState.getBlock();
+                    StringUtils.printChatMessage(AxeItemAccessor.getStrippedBlocks().toString());
 
                     for (Block log : AxeItemAccessor.getStrippedBlocks().keySet()) {
                         if (AxeItemAccessor.getStrippedBlocks().get(log) != stripped) continue;
@@ -528,150 +530,177 @@ public class PlacementGuide extends PrinterUtils {
                 return action;
             }
         }
-        else if (state == State.WRONG_STATE) switch (requiredType) {
-            case SLAB -> {
-                if (requiredState.get(SlabBlock.TYPE) == SlabType.DOUBLE) {
-                    Direction requiredHalf = currentState.get(SlabBlock.TYPE) == SlabType.BOTTOM ? Direction.DOWN : Direction.UP;
+        else if (state == State.WRONG_STATE) {
+            boolean breakWrongStateBlock = LitematicaMixinMod.BREAK_WRONG_STATE_BLOCK.getBooleanValue();
+            switch (requiredType) {
+                case SLAB -> {
+                    if (requiredState.get(SlabBlock.TYPE) == SlabType.DOUBLE) {
+                        Direction requiredHalf = currentState.get(SlabBlock.TYPE) == SlabType.BOTTOM ? Direction.DOWN : Direction.UP;
 
-                    return new Action().setSides(requiredHalf);
+                        return new Action().setSides(requiredHalf);
+                    }
+                    else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
                 }
+                case SNOW -> {
+                    int layers = currentState.get(SnowBlock.LAYERS);
+                    if (layers < requiredState.get(SnowBlock.LAYERS)) {
+                        Map<Direction, Vec3d> sides = new HashMap<>() {{
+                            put(Direction.UP, new Vec3d(0, (layers / 8d) - 1, 0));
+                        }};
+                        return new ClickAction().setItem(Items.SNOW).setSides(sides);
+                    }
+                    else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
 
-            }
-            case SNOW -> {
-                int layers = currentState.get(SnowBlock.LAYERS);
-                if (layers < requiredState.get(SnowBlock.LAYERS)) {
-                    Map<Direction, Vec3d> sides = new HashMap<>() {{
-                        put(Direction.UP, new Vec3d(0, (layers / 8d) - 1, 0));
-                    }};
-                    return new ClickAction().setItem(Items.SNOW).setSides(sides);
                 }
-
-            }
-            case DOOR, TRAPDOOR -> {
-                //判断门是不是铁制的，如果是就直接返回
-                if (requiredState.isOf(Blocks.IRON_DOOR) || requiredState.isOf(Blocks.IRON_TRAPDOOR)) break;
-                if (requiredState.get(Properties.OPEN) != currentState.get(Properties.OPEN)) {
-                    return new ClickAction();
+                case DOOR, TRAPDOOR -> {
+                    //判断门是不是铁制的，如果是就直接返回
+                    if (requiredState.isOf(Blocks.IRON_DOOR) || requiredState.isOf(Blocks.IRON_TRAPDOOR)) break;
+                    if (requiredState.get(Properties.OPEN) != currentState.get(Properties.OPEN)) {
+                        return new ClickAction();
+                    }
+                    else if (breakWrongStateBlock && requiredState.get(DoorBlock.FACING) != currentState.get(DoorBlock.FACING)) BreakManager.addBlockToBreak(pos);
                 }
-
-            }
-            case FENCE_GATE -> {
-                var facing = requiredState.get(Properties.HORIZONTAL_FACING);
-                if (facing.getOpposite() == currentState.get(Properties.HORIZONTAL_FACING) ||
-                        requiredState.get(Properties.OPEN) != currentState.get(Properties.OPEN))
-                    return new ClickAction().setSides(facing.getOpposite()).setLookDirection(facing);
-            }
-            case LEVER -> {
-                if (requiredState.get(LeverBlock.POWERED) != currentState.get(LeverBlock.POWERED))
-                    return new ClickAction();
-            }
-            case CANDLES -> {
-                if (currentState.get(Properties.CANDLES) < requiredState.get(Properties.CANDLES))
-                    return new ClickAction().setItem(requiredState.getBlock().asItem());
-                if (!currentState.get(CandleBlock.LIT) && requiredState.get(CandleBlock.LIT))
-                    return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
-                if (currentState.get(CandleBlock.LIT) && !requiredState.get(CandleBlock.LIT))
-                    return new ClickAction();
-            }
-            case PICKLES -> {
-                if (currentState.get(SeaPickleBlock.PICKLES) < requiredState.get(SeaPickleBlock.PICKLES))
-                    return new ClickAction().setItem(Items.SEA_PICKLE);
-            }
-            case REPEATER -> {
-                if (!requiredState.get(RepeaterBlock.DELAY).equals(currentState.get(RepeaterBlock.DELAY)))
-                    return new ClickAction();
-            }
-            case COMPARATOR -> {
-                if (requiredState.get(ComparatorBlock.MODE) != currentState.get(ComparatorBlock.MODE))
-                    return new ClickAction();
-            }
-            case NOTE_BLOCK -> {
-                if (LitematicaMixinMod.NOTE_BLOCK_TUNING.getBooleanValue() && !Objects.equals(requiredState.get(NoteBlock.NOTE), currentState.get(NoteBlock.NOTE)))
-                    return new ClickAction();
-            }
-            case CAMPFIRE -> {
-                if (!requiredState.get(CampfireBlock.LIT) && currentState.get(CampfireBlock.LIT))
-                    return new ClickAction().setItems(Implementation.SHOVELS).setSides(Direction.UP);
-                if (requiredState.get(CampfireBlock.LIT) && !currentState.get(CampfireBlock.LIT))
-                    return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
-            }
-            case PILLAR -> {
-                Block stripped = AxeItemAccessor.getStrippedBlocks().get(currentState.getBlock());
-                if (stripped != null && stripped == requiredState.getBlock()) {
-                    return new ClickAction().setItems(Implementation.AXES);
+                case FENCE_GATE -> {
+                    var facing = requiredState.get(Properties.HORIZONTAL_FACING);
+                    if (facing.getOpposite() == currentState.get(Properties.HORIZONTAL_FACING) ||
+                            requiredState.get(Properties.OPEN) != currentState.get(Properties.OPEN))
+                        return new ClickAction().setSides(facing.getOpposite()).setLookDirection(facing);
+                    else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
                 }
-            }
-            case END_PORTAL_FRAME -> {
-                if (requiredState.get(EndPortalFrameBlock.EYE) && !currentState.get(EndPortalFrameBlock.EYE))
-                    return new ClickAction().setItem(Items.ENDER_EYE);
-
-            }
-            //#if MC >= 11904
-            case FLOWERBED -> {
-                if (currentState.get(FlowerbedBlock.FLOWER_AMOUNT) <= requiredState.get(FlowerbedBlock.FLOWER_AMOUNT)) {
-                    return new ClickAction().setItem(requiredState.getBlock().asItem());
+                case LEVER -> {
+                    if (requiredState.get(LeverBlock.POWERED) != currentState.get(LeverBlock.POWERED))
+                        return new ClickAction();
+                    else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
                 }
-            }
-            //#endif
-            case REDSTONE -> {
-                // 在Java版中，对于没有连接到任何红石元件的十字形的红石线，可以按使用键使其变为点状，从而不与任何方向连接，再按一次可以恢复。
-                boolean allNoneRequired = requiredState.get(RedstoneWireBlock.WIRE_CONNECTION_NORTH) == WireConnection.NONE &&
-                        requiredState.get(RedstoneWireBlock.WIRE_CONNECTION_SOUTH) == WireConnection.NONE &&
-                        requiredState.get(RedstoneWireBlock.WIRE_CONNECTION_EAST) == WireConnection.NONE &&
-                        requiredState.get(RedstoneWireBlock.WIRE_CONNECTION_WEST) == WireConnection.NONE;
-
-                boolean allSideCurrent = currentState.get(RedstoneWireBlock.WIRE_CONNECTION_NORTH) == WireConnection.SIDE &&
-                        currentState.get(RedstoneWireBlock.WIRE_CONNECTION_SOUTH) == WireConnection.SIDE &&
-                        currentState.get(RedstoneWireBlock.WIRE_CONNECTION_EAST) == WireConnection.SIDE &&
-                        currentState.get(RedstoneWireBlock.WIRE_CONNECTION_WEST) == WireConnection.SIDE;
-
-                if (allNoneRequired && allSideCurrent) {
-                    return new ClickAction().setItem(Items.AIR);
+                case CANDLES -> {
+                    if (currentState.get(Properties.CANDLES) < requiredState.get(Properties.CANDLES))
+                        return new ClickAction().setItem(requiredState.getBlock().asItem());
+                    else if (!currentState.get(CandleBlock.LIT) && requiredState.get(CandleBlock.LIT))
+                        return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
+                    else if (currentState.get(CandleBlock.LIT) && !requiredState.get(CandleBlock.LIT))
+                        return new ClickAction();
+                    else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
                 }
-            }
-            case VINES, GLOW_LICHEN -> {
-                for (Direction direction : Direction.values()) {
-                    if (direction == Direction.DOWN) continue;
-                    if ((Boolean) getPropertyByName(requiredState, direction.name())) {
-                        return new Action().setSides(direction).setLookDirection(direction);
+                case PICKLES -> {
+                    if (currentState.get(SeaPickleBlock.PICKLES) < requiredState.get(SeaPickleBlock.PICKLES))
+                        return new ClickAction().setItem(Items.SEA_PICKLE);
+                    else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
+                }
+                case REPEATER -> {
+                    if (!requiredState.get(RepeaterBlock.DELAY).equals(currentState.get(RepeaterBlock.DELAY)))
+                        return new ClickAction();
+                    else if (
+                            breakWrongStateBlock &&
+                            requiredState.get(RepeaterBlock.POWERED) == currentState.get(RepeaterBlock.POWERED) &&
+                            requiredState.get(RepeaterBlock.LOCKED) == currentState.get(RepeaterBlock.LOCKED)
+                    ) BreakManager.addBlockToBreak(pos);
+                }
+                case COMPARATOR -> {
+                    if (requiredState.get(ComparatorBlock.MODE) != currentState.get(ComparatorBlock.MODE))
+                        return new ClickAction();
+                    else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
+                }
+                case NOTE_BLOCK -> {
+                    if (LitematicaMixinMod.NOTE_BLOCK_TUNING.getBooleanValue() && !Objects.equals(requiredState.get(NoteBlock.NOTE), currentState.get(NoteBlock.NOTE)))
+                        return new ClickAction();
+                }
+                case CAMPFIRE -> {
+                    if (!requiredState.get(CampfireBlock.LIT) && currentState.get(CampfireBlock.LIT))
+                        return new ClickAction().setItems(Implementation.SHOVELS).setSides(Direction.UP);
+                    else if (requiredState.get(CampfireBlock.LIT) && !currentState.get(CampfireBlock.LIT))
+                        return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
+                    else if (breakWrongStateBlock && requiredState.get(CampfireBlock.FACING) != currentState.get(CampfireBlock.FACING))
+                        BreakManager.addBlockToBreak(pos);
+                }
+                case PILLAR -> {
+                    Block stripped = AxeItemAccessor.getStrippedBlocks().get(currentState.getBlock());
+                    if (stripped != null && stripped == requiredState.getBlock()) {
+                        return new ClickAction().setItems(Implementation.AXES);
                     }
                 }
-            }
-            case CAULDRON -> {
-                if (currentState.get(LeveledCauldronBlock.LEVEL) > requiredState.get(LeveledCauldronBlock.LEVEL)) {
-                    if (playerHasAccessToItem(client.player, Items.GLASS_BOTTLE))
-                        return new ClickAction().setItem(Items.GLASS_BOTTLE);
-                    else
-                        client.inGameHud.setOverlayMessage(Text.of("降低炼药锅内水位需要 §l§6" + Items.GLASS_BOTTLE.getName().toString()), false);
+                case END_PORTAL_FRAME -> {
+                    if (requiredState.get(EndPortalFrameBlock.EYE) && !currentState.get(EndPortalFrameBlock.EYE))
+                        return new ClickAction().setItem(Items.ENDER_EYE);
+                    else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
                 }
-                if (currentState.get(LeveledCauldronBlock.LEVEL) < requiredState.get(LeveledCauldronBlock.LEVEL))
-                    if (playerHasAccessToItem(client.player, Items.POTION))
-                        return new ClickAction().setItem(Items.POTION);
-                    else
-                        client.inGameHud.setOverlayMessage(Text.of("增加炼药锅内水位需要 §l§6" + Items.POTION.getName().toString()), false);
-            }
-            case DAYLIGHT_DETECTOR -> {
-                if (currentState.get(DaylightDetectorBlock.INVERTED) != requiredState.get(DaylightDetectorBlock.INVERTED)) return new ClickAction();
-            }
-            case FIRE -> {
-                if (!requiredState.get(FireBlock.AGE).equals(currentState.get(FireBlock.AGE))) return null;
-                if (requiredState.getBlock() instanceof SoulFireBlock) return null;
-                for (Direction direction : Direction.values()) {
-                    if (direction == Direction.DOWN) continue;
-                    if ((Boolean) getPropertyByName(requiredState, direction.name())) {
-                        return new Action().setSides(direction).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
+                //#if MC >= 11904
+                case FLOWERBED -> {
+                    if (currentState.get(FlowerbedBlock.FLOWER_AMOUNT) <= requiredState.get(FlowerbedBlock.FLOWER_AMOUNT)) {
+                        return new ClickAction().setItem(requiredState.getBlock().asItem());
+                    } else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
+                }
+                //#endif
+                case REDSTONE -> {
+                    // 在Java版中，对于没有连接到任何红石元件的十字形的红石线，可以按使用键使其变为点状，从而不与任何方向连接，再按一次可以恢复。
+                    boolean allNoneRequired = requiredState.get(RedstoneWireBlock.WIRE_CONNECTION_NORTH) == WireConnection.NONE &&
+                            requiredState.get(RedstoneWireBlock.WIRE_CONNECTION_SOUTH) == WireConnection.NONE &&
+                            requiredState.get(RedstoneWireBlock.WIRE_CONNECTION_EAST) == WireConnection.NONE &&
+                            requiredState.get(RedstoneWireBlock.WIRE_CONNECTION_WEST) == WireConnection.NONE;
+
+                    boolean allSideCurrent = currentState.get(RedstoneWireBlock.WIRE_CONNECTION_NORTH) == WireConnection.SIDE &&
+                            currentState.get(RedstoneWireBlock.WIRE_CONNECTION_SOUTH) == WireConnection.SIDE &&
+                            currentState.get(RedstoneWireBlock.WIRE_CONNECTION_EAST) == WireConnection.SIDE &&
+                            currentState.get(RedstoneWireBlock.WIRE_CONNECTION_WEST) == WireConnection.SIDE;
+
+                    if (allNoneRequired && allSideCurrent) {
+                        return new ClickAction().setItem(Items.AIR);
                     }
                 }
-                return new Action().setSides(Direction.DOWN).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
-            }
-            case COMPOSTER -> {
-                if (!LitematicaMixinMod.FILL_COMPOSTER.getBooleanValue()) return null;
-                if (currentState.get(ComposterBlock.LEVEL) < requiredState.get(ComposterBlock.LEVEL)) {
-                    return new ClickAction().setItems(compostableItems);
+                case VINES, GLOW_LICHEN -> {
+                    for (Direction direction : Direction.values()) {
+                        if (direction == Direction.DOWN) continue;
+                        if ((Boolean) getPropertyByName(requiredState, direction.name())) {
+                            return new Action().setSides(direction).setLookDirection(direction);
+                        }
+                    }
+                    BreakManager.addBlockToBreak(pos);
+                }
+                case CAULDRON -> {
+                    if (currentState.get(LeveledCauldronBlock.LEVEL) > requiredState.get(LeveledCauldronBlock.LEVEL)) {
+                        if (playerHasAccessToItem(client.player, Items.GLASS_BOTTLE))
+                            return new ClickAction().setItem(Items.GLASS_BOTTLE);
+                        else
+                            client.inGameHud.setOverlayMessage(Text.of("降低炼药锅内水位需要 §l§6" + Items.GLASS_BOTTLE.getName().toString()), false);
+                    }
+                    if (currentState.get(LeveledCauldronBlock.LEVEL) < requiredState.get(LeveledCauldronBlock.LEVEL))
+                        if (playerHasAccessToItem(client.player, Items.POTION))
+                            return new ClickAction().setItem(Items.POTION);
+                        else
+                            client.inGameHud.setOverlayMessage(Text.of("增加炼药锅内水位需要 §l§6" + Items.POTION.getName().toString()), false);
+                }
+                case DAYLIGHT_DETECTOR -> {
+                    if (currentState.get(DaylightDetectorBlock.INVERTED) != requiredState.get(DaylightDetectorBlock.INVERTED)) return new ClickAction();
+                }
+                case FIRE -> {
+                    if (!requiredState.get(FireBlock.AGE).equals(currentState.get(FireBlock.AGE))) return null;
+                    if (requiredState.getBlock() instanceof SoulFireBlock) return null;
+                    for (Direction direction : Direction.values()) {
+                        if (direction == Direction.DOWN) continue;
+                        if ((Boolean) getPropertyByName(requiredState, direction.name())) {
+                            return new Action().setSides(direction).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
+                        }
+                    }
+                    return new Action().setSides(Direction.DOWN).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
+                }
+                case COMPOSTER -> {
+                    if (!LitematicaMixinMod.FILL_COMPOSTER.getBooleanValue()) return null;
+                    if (currentState.get(ComposterBlock.LEVEL) < requiredState.get(ComposterBlock.LEVEL)) {
+                        return new ClickAction().setItems(compostableItems);
+                    }
+                }
+                default -> {
+                    Class<?>[] ignored = new Class<?>[]
+                            {FenceBlock.class,
+                                    WallBlock.class,
+                                    PaneBlock.class,
+                                    PressurePlateBlock.class,
+                                    StairsBlock.class,
+
+                                    };
+                    if (breakWrongStateBlock && !Arrays.asList(ignored).contains(requiredState.getBlock().getClass())) BreakManager.addBlockToBreak(pos);
                 }
             }
-        }
-        else if (state == State.WRONG_BLOCK) switch (requiredType) {
+        } else if (state == State.WRONG_BLOCK) switch (requiredType) {
             case FARMLAND -> {
                 Block[] soilBlocks = new Block[]{Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.DIRT_PATH, Blocks.COARSE_DIRT};
 

@@ -5,6 +5,7 @@ import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
 import fi.dy.masa.litematica.util.EasyPlaceProtocol;
+import fi.dy.masa.litematica.util.InventoryUtils;
 import fi.dy.masa.litematica.util.PlacementHandler;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
@@ -589,9 +590,10 @@ public class Printer extends PrinterUtils {
             if (Implementation.getAbilities(player).creativeMode) {
                 var stack = new ItemStack(item);
                 player.getInventory().getSlotWithStack(stack);
-                ZxyUtils.setPickedItemToHand(
-                        player.getInventory().getSlotWithStack(stack),
-                        stack);
+                InventoryUtils.setPickedItemToHand(stack, client);
+//                ZxyUtils.setPickedItemToHand(
+//                        player.getInventory().getSlotWithStack(stack),
+//                        stack);
                 client.interactionManager.clickCreativeStack(client.player.getStackInHand(Hand.MAIN_HAND), 36 + inv.selectedSlot);
                 return true;
             }
@@ -603,7 +605,9 @@ public class Printer extends PrinterUtils {
     public boolean swapHandWithSlot(ClientPlayerEntity player, int slot) {
         ItemStack stack = player.getInventory().getStack(slot);
         int slotNum = client.player.getInventory().getSlotWithStack(stack);
-        return ZxyUtils.setPickedItemToHand(slotNum, stack);
+        InventoryUtils.setPickedItemToHand(stack, client);
+        return true;
+        //return ZxyUtils.setPickedItemToHand(slotNum, stack);
     }
 
     public void sendLook(ClientPlayerEntity player, Direction directionYaw, Direction directionPitch) {
