@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.state.property.Properties;
@@ -44,7 +44,7 @@ public class PlaceUtils {
     }
 
     public static Direction getFillModeFacing() {
-        return switch (LitematicaMixinMod.FILL_BLOCK_FACING.getOptionListValue().getStringValue()) {
+        return switch (LitematicaPrinterMod.FILL_BLOCK_FACING.getOptionListValue().getStringValue()) {
             case "down" -> Direction.DOWN;
             case "east" -> Direction.EAST;
             case "south" -> Direction.SOUTH;
@@ -56,8 +56,8 @@ public class PlaceUtils {
 
 
     public static boolean canInteracted(BlockPos blockPos) {
-        var range = LitematicaMixinMod.PRINTER_RANGE.getIntegerValue();
-        return switch (LitematicaMixinMod.ITERATOR_SHAPE.getOptionListValue().getStringValue()) {
+        var range = LitematicaPrinterMod.PRINTER_RANGE.getIntegerValue();
+        return switch (LitematicaPrinterMod.ITERATOR_SHAPE.getOptionListValue().getStringValue()) {
             case "sphere" -> canInteractedEuclidean(blockPos, range);
             case "octahedron" -> canInteractedManhattan(blockPos, range);
             default -> true;

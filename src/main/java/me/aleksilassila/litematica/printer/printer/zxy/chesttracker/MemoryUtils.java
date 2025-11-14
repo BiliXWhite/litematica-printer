@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 
 //#if MC >= 12001
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
@@ -137,7 +137,7 @@ public class MemoryUtils {
     }
 
     public static void save(ScreenHandler screen , MemoryBank memoryBank) {
-        if (memoryBank == null || OpenInventoryPacket.key == null || blockState == null || !LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue()) return;
+        if (memoryBank == null || OpenInventoryPacket.key == null || blockState == null || !LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue()) return;
         List<BlockPos> connected;
         if (ZxyUtils.printerMemoryAdding && client.world != null) {
             connected = ConnectedBlocksGrabber.getConnected(client.world, client.world.getBlockState(OpenInventoryPacket.pos), OpenInventoryPacket.pos);

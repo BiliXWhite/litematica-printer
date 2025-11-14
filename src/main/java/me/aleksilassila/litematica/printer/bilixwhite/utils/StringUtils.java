@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
 import fi.dy.masa.litematica.Litematica;
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.math.MatrixStack;
@@ -58,25 +58,25 @@ public class StringUtils {
 
     public static String getName(String key) {
         //#if MC > 11802
-        return Text.translatable(LitematicaMixinMod.MOD_ID + ".config.name." + key).getString();
+        return Text.translatable(LitematicaPrinterMod.MOD_ID + ".config.name." + key).getString();
         //#else
-        //$$ return new TranslatableText(LitematicaMixinMod.MOD_ID + ".config.name." + key).getString();
+        //$$ return new TranslatableText(LitematicaPrinterMod.MOD_ID + ".config.name." + key).getString();
         //#endif
     }
 
     public static String getComment(String key) {
         //#if MC > 11802
-        return Text.translatable(LitematicaMixinMod.MOD_ID + ".config.comment." + key).getString();
+        return Text.translatable(LitematicaPrinterMod.MOD_ID + ".config.comment." + key).getString();
         //#else
-        //$$ return new TranslatableText(LitematicaMixinMod.MOD_ID + ".config.comment." + key).getString();
+        //$$ return new TranslatableText(LitematicaPrinterMod.MOD_ID + ".config.comment." + key).getString();
         //#endif
     }
 
     public static String get(String key) {
         //#if MC > 11802
-        return Text.translatable(LitematicaMixinMod.MOD_ID + "." + key).getString();
+        return Text.translatable(LitematicaPrinterMod.MOD_ID + "." + key).getString();
         //#else
-        //$$ return new TranslatableText(LitematicaMixinMod.MOD_ID + "." + key).getString();
+        //$$ return new TranslatableText(LitematicaPrinterMod.MOD_ID + "." + key).getString();
         //#endif
     }
 }

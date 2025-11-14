@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 
 
- import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+ import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
  import net.minecraft.block.Block;
  import net.minecraft.block.BlockState;
  import net.minecraft.block.Blocks;
@@ -102,7 +102,7 @@ package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
                  Block block = state.getBlock();
  //                System.out.println(state);
                  boolean k = true;
-                 for (String string : LitematicaMixinMod.INVENTORY_LIST.getStrings()) {
+                 for (String string : LitematicaPrinterMod.INVENTORY_LIST.getStrings()) {
                      if (Registries.BLOCK.getId(block).toString().contains(string)) {
                          k = false;
                          break;

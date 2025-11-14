@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.bilixwhite.others;
 
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.listener.PacketListener;
@@ -20,7 +20,7 @@ public class MixinClientConnection {
     @Inject(method = "handlePacket", at = @At("HEAD"), require = 1)
     private static void hookReceivingPacket(Packet<?> packet, PacketListener listener, CallbackInfo ci) {
         // 减少性能开销
-        if ((!LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() && !LitematicaMixinMod.PRINT.getKeybind().isPressed()) || !LitematicaMixinMod.LAG_CHECK.getBooleanValue())
+        if ((!LitematicaPrinterMod.PRINT_SWITCH.getBooleanValue() && !LitematicaPrinterMod.PRINT.getKeybind().isPressed()) || !LitematicaPrinterMod.LAG_CHECK.getBooleanValue())
             return;
         Printer.packetTick = 0;
     }

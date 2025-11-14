@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.malilib.util.StringUtils;
 import io.netty.buffer.Unpooled;
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -173,9 +173,9 @@ public class OpenInventoryPacket {
         ClientPlayNetworking.registerGlobalReceiver(HELLO_REMOTE_INTERACTIONS_ID,(openInventoryPacket,context) -> {
             isRemote = true;
             client.execute(() -> {
-                if (LitematicaMixinMod.AUTO_INVENTORY.getBooleanValue()) {
+                if (LitematicaPrinterMod.AUTO_INVENTORY.getBooleanValue()) {
                     ZxyUtils.actionBar("已自动启用远程交互容器!!!");
-                    LitematicaMixinMod.CLOUD_INVENTORY.setBooleanValue(true);
+                    LitematicaPrinterMod.CLOUD_INVENTORY.setBooleanValue(true);
                 }
             });
         });
@@ -193,9 +193,9 @@ public class OpenInventoryPacket {
         //$$ ClientPlayNetworking.registerGlobalReceiver(HELLO_REMOTE_INTERACTIONS, (client, playNetworkHandler, packetByteBuf, packetSender) -> {
         //$$     isRemote = true;
         //$$     client.execute(() -> {
-        //$$         if (LitematicaMixinMod.AUTO_INVENTORY.getBooleanValue()) {
+        //$$         if (LitematicaPrinterMod.AUTO_INVENTORY.getBooleanValue()) {
         //$$             ZxyUtils.actionBar("已自动启用远程交互容器!!!");
-        //$$             LitematicaMixinMod.CLOUD_INVENTORY.setBooleanValue(true);
+        //$$             LitematicaPrinterMod.CLOUD_INVENTORY.setBooleanValue(true);
         //$$         }
         //$$     });
         //$$ });
@@ -333,7 +333,7 @@ public class OpenInventoryPacket {
     public static void openReturn(boolean open, BlockState state) {
         if(clientTry){
             ZxyUtils.actionBar("已自动启用远程交互容器!!!");
-            LitematicaMixinMod.CLOUD_INVENTORY.setBooleanValue(true);
+            LitematicaPrinterMod.CLOUD_INVENTORY.setBooleanValue(true);
             key = null;
             pos = null;
             remoteTime = 0;
@@ -401,7 +401,7 @@ public class OpenInventoryPacket {
     }
 
     public static void tick(){
-        if (!LitematicaMixinMod.AUTO_INVENTORY.getBooleanValue()) return;
+        if (!LitematicaPrinterMod.AUTO_INVENTORY.getBooleanValue()) return;
         if(remoteTime != 0 && !isRemote && remoteTime + 3000L < System.currentTimeMillis()){
             if(!clientTry) {
                 clientTryTime = System.currentTimeMillis();
@@ -410,7 +410,7 @@ public class OpenInventoryPacket {
             clientTry = true;
             if(clientTryTime + 3000L < System.currentTimeMillis() && clientTry){
                 ZxyUtils.actionBar("已自动关闭远程交互容器");
-                LitematicaMixinMod.CLOUD_INVENTORY.setBooleanValue(false);
+                LitematicaPrinterMod.CLOUD_INVENTORY.setBooleanValue(false);
                 remoteTime = 0;
                 clientTry = false;
             }

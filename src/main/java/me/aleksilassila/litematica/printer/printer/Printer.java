@@ -9,7 +9,7 @@ import fi.dy.masa.litematica.util.InventoryUtils;
 import fi.dy.masa.litematica.util.PlacementHandler;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
@@ -45,7 +45,7 @@ import java.util.*;
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static fi.dy.masa.litematica.util.WorldUtils.applyCarpetProtocolHitVec;
 import static fi.dy.masa.litematica.util.WorldUtils.applyPlacementProtocolV3;
-import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
+import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.*;
 import static me.aleksilassila.litematica.printer.printer.State.PrintModeType.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
@@ -101,13 +101,13 @@ public class Printer extends PrinterUtils {
     public BlockPos basePos = null;
     public MyBox myBox;
     int printRange = PRINTER_RANGE.getIntegerValue();
-    boolean yReverse = false;
+    boolean printerYAxisReverse = false;
     int tickRate = PRINTER_SPEED.getIntegerValue();
     List<String> fluidBlocklist =  new ArrayList<>();
     List<String> fluidList =  new ArrayList<>();
     List<String> fillBlocklist =  new ArrayList<>();
     private boolean needDelay;
-    private int printPerTick = BLOCKS_PER_TICK.getIntegerValue();
+    private int printerWorkingCountPerTick = BLOCKS_PER_TICK.getIntegerValue();
 
     public static int packetTick;
     public static boolean updateChecked = false;
@@ -157,7 +157,7 @@ public class Printer extends PrinterUtils {
         myBox.initIterator();
         myBox.setIterationMode(ITERATION_ORDER.getOptionListValue());
         myBox.xIncrement = !X_REVERSE.getBooleanValue();
-        myBox.yIncrement = Y_REVERSE.getBooleanValue() == yReverse;
+        myBox.yIncrement = Y_REVERSE.getBooleanValue() == printerYAxisReverse;
         myBox.zIncrement = !Z_REVERSE.getBooleanValue();
 
         Iterator<BlockPos> iterator = myBox.iterator;
@@ -209,7 +209,7 @@ public class Printer extends PrinterUtils {
 
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
-            if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
+            if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printerWorkingCountPerTick == 0) return;
 
             if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
             // 跳过冷却中的位置
@@ -224,7 +224,7 @@ public class Printer extends PrinterUtils {
                     new PlacementGuide.Action().queueAction(queue, pos, Direction.UP, false);
                     if (tickRate == 0) {
                         queue.sendQueue(client.player);
-                        if (BLOCKS_PER_TICK.getIntegerValue() != 0) printPerTick--;
+                        if (BLOCKS_PER_TICK.getIntegerValue() != 0) printerWorkingCountPerTick--;
                         continue;
                     }
                     return;
@@ -249,7 +249,7 @@ public class Printer extends PrinterUtils {
 
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
-            if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
+            if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printerWorkingCountPerTick == 0) return;
 
             if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
             // 跳过冷却中的位置
@@ -263,7 +263,7 @@ public class Printer extends PrinterUtils {
                     new PlacementGuide.Action().setLookDirection(PlaceUtils.getFillModeFacing().getOpposite()).queueAction(queue, pos, PlaceUtils.getFillModeFacing(), false);
                     if (tickRate == 0) {
                         queue.sendQueue(client.player);
-                        if (BLOCKS_PER_TICK.getIntegerValue() != 0) printPerTick--;
+                        if (BLOCKS_PER_TICK.getIntegerValue() != 0) printerWorkingCountPerTick--;
                         continue;
                     }
                     return;
@@ -294,7 +294,7 @@ public class Printer extends PrinterUtils {
             return;
         }
         if (!Statistics.loadBedrockMiner) {
-            ZxyUtils.actionBar("未安装Bedrock Miner模组/游戏版本小于1.21.6，无法破基岩！");
+            ZxyUtils.actionBar("未安装Bedrock Miner模组/游戏版本小于1.19.4，无法破基岩！");
             return;
         }
         if (!BedrockUtils.isWorking()) {
@@ -321,12 +321,6 @@ public class Printer extends PrinterUtils {
             waitTicks--;
         }
 
-//        if (Statistics.loadBedrockMiner) {
-//            if (isBedrockMode() || !PRINT_SWITCH.getBooleanValue()) {
-//                if (BedrockUtils.isWorking()) BedrockUtils.toggle();
-//            }
-//        }
-
         Iterator<Map.Entry<BlockPos, Integer>> iterator = placeCooldownList.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<BlockPos, Integer> entry = iterator.next();
@@ -351,8 +345,8 @@ public class Printer extends PrinterUtils {
         // 预载常用配置值
         printRange = PRINTER_RANGE.getIntegerValue();
         tickRate = PRINTER_SPEED.getIntegerValue();
-        printPerTick = BLOCKS_PER_TICK.getIntegerValue();
-        yReverse = false;
+        printerWorkingCountPerTick = BLOCKS_PER_TICK.getIntegerValue();
+        printerYAxisReverse = false;
 
         // 如果正在处理打开的容器/处理远程交互和快捷潜影盒/破坏方块列表有东西，则直接返回
         if (isOpenHandler || switchItem() || BreakManager.hasTargets()) {
@@ -361,7 +355,7 @@ public class Printer extends PrinterUtils {
 
         //从这里才算作开始
         tickStartTime = System.currentTimeMillis();
-        tickEndTime = tickStartTime + LitematicaMixinMod.ITERATOR_USE_TIME.getIntegerValue();
+        tickEndTime = tickStartTime + LitematicaPrinterMod.ITERATOR_USE_TIME.getIntegerValue();
 
         // 优先执行队列中的点击操作
         if (tickRate != 0) {
@@ -381,34 +375,34 @@ public class Printer extends PrinterUtils {
 
         if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)) {
             boolean multiBreakBooleanValue = MULTI_BREAK.getBooleanValue();
-            if (LitematicaMixinMod.MINE.getBooleanValue()) {
-                yReverse = true;
+            if (LitematicaPrinterMod.MINE.getBooleanValue()) {
+                printerYAxisReverse = true;
                 mineMode();
                 if(multiBreakBooleanValue) return;
             }
-            if (LitematicaMixinMod.FLUID.getBooleanValue()) {
+            if (LitematicaPrinterMod.FLUID.getBooleanValue()) {
                 fluidMode();
                 if(multiBreakBooleanValue) return;
             }
-            if (LitematicaMixinMod.FILL.getBooleanValue()) {
+            if (LitematicaPrinterMod.FILL.getBooleanValue()) {
                 fillMode();
                 if(multiBreakBooleanValue) return;
             }
-            if (LitematicaMixinMod.BEDROCK.getBooleanValue()) {
-                yReverse = true;
+            if (LitematicaPrinterMod.BEDROCK.getBooleanValue()) {
+                printerYAxisReverse = true;
                 bedrockMode();
                 if(multiBreakBooleanValue) return;
             }
         } else if (PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType modeType && modeType != PRINTER) {
             switch (modeType){
                 case MINE -> {
-                    yReverse = true;
+                    printerYAxisReverse = true;
                     mineMode();
                 }
                 case FLUID -> fluidMode();
                 case FILL -> fillMode();
                 case BEDROCK -> {
-                    yReverse = true;
+                    printerYAxisReverse = true;
                     bedrockMode();
                 }
             }
@@ -421,7 +415,7 @@ public class Printer extends PrinterUtils {
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
             // 检查每刻放置方块是否超出限制
-            if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printPerTick == 0) return;
+            if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printerWorkingCountPerTick == 0) return;
             // 是否在渲染层内
             if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
             if (!isSchematicBlock(pos)) continue;
@@ -446,7 +440,7 @@ public class Printer extends PrinterUtils {
             PlacementGuide.Action action = guide.getAction(world, schematic, pos);
             if (action == null) continue;
 
-            if (LitematicaMixinMod.FALLING_CHECK.getBooleanValue() && requiredState.getBlock() instanceof FallingBlock) {
+            if (LitematicaPrinterMod.FALLING_CHECK.getBooleanValue() && requiredState.getBlock() instanceof FallingBlock) {
                 //检查方块下面方块是否正确，否则跳过放置
                 BlockPos downPos = pos.down();
                 if (world.getBlockState(downPos) != schematic.getBlockState(downPos)) {
@@ -509,7 +503,7 @@ public class Printer extends PrinterUtils {
                     }
 
                     queue.sendQueue(player);
-                    if (BLOCKS_PER_TICK.getIntegerValue() != 0) printPerTick--;
+                    if (BLOCKS_PER_TICK.getIntegerValue() != 0) printerWorkingCountPerTick--;
                     continue;
                 }
                 return;
@@ -550,7 +544,7 @@ public class Printer extends PrinterUtils {
                 finishedCount++;
             }
         }
-        workProgress = totalCount == 0 ? workProgress : (float) finishedCount / totalCount;
+        workProgress = totalCount < 1 ? workProgress : (float) finishedCount / totalCount;
         return workProgress;
     }
 

@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.litematica.config.Configs;
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.ShulkerUtils;
 import me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix;
 import me.aleksilassila.litematica.printer.printer.Printer;
@@ -90,14 +90,14 @@ public class InventoryUtils {
             ScreenHandler sc = player.currentScreenHandler;
             if (!player.currentScreenHandler.equals(player.playerScreenHandler)) return false;
             //排除合成栏 装备栏 副手
-            if (LitematicaMixinMod.STORE_ORDERLY.getBooleanValue() && sc.slots.stream().skip(9).limit(sc.slots.size() - 10).noneMatch(slot -> slot.getStack().isEmpty())
-                    && (LitematicaMixinMod.QUICK_SHULKER.getBooleanValue() || LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue())) {
+            if (LitematicaPrinterMod.STORE_ORDERLY.getBooleanValue() && sc.slots.stream().skip(9).limit(sc.slots.size() - 10).noneMatch(slot -> slot.getStack().isEmpty())
+                    && (LitematicaPrinterMod.QUICK_SHULKER.getBooleanValue() || LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue())) {
                 SwitchItem.checkItems();
                 return true;
             }
-            if (LitematicaMixinMod.QUICK_SHULKER.getBooleanValue() && openShulker(lastNeedItemList)) {
+            if (LitematicaPrinterMod.QUICK_SHULKER.getBooleanValue() && openShulker(lastNeedItemList)) {
                 return true;
-            } else if (LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue()) {
+            } else if (LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue()) {
                 for (Item item : lastNeedItemList) {
                     //#if MC >= 12001
                     //#if MC > 12004
@@ -162,7 +162,7 @@ public class InventoryUtils {
                         try {
                             int c = Integer.parseInt(s) - 1;
                             if (Registries.ITEM.getId(player.getInventory().getStack(c).getItem()).toString().contains("shulker_box") &&
-                                    LitematicaMixinMod.QUICK_SHULKER.getBooleanValue()) {
+                                    LitematicaPrinterMod.QUICK_SHULKER.getBooleanValue()) {
                                 MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of("濳影盒占用了预选栏"), false);
                                 continue;
                             }
@@ -228,7 +228,7 @@ public class InventoryUtils {
                             ShulkerUtils.openShulker(stack, shulkerBoxSlot);
                             closeScreen++;
                             isOpenHandler = true;
-                            Printer.getPrinter().shulkerCooldown = LitematicaMixinMod.QUICK_SHULKER_COOLDOWN.getIntegerValue();
+                            Printer.getPrinter().shulkerCooldown = LitematicaPrinterMod.QUICK_SHULKER_COOLDOWN.getIntegerValue();
                             return true;
                         } catch (Exception e) {
                         }

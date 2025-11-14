@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.masa;
 
 import fi.dy.masa.litematica.util.PlacementHandler;
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.BlockItem;
@@ -29,7 +29,7 @@ public abstract class BlockItemMixin extends Item
     @Inject(method = "getPlacementState", at = @At("HEAD"), cancellable = true)
     private void modifyPlacementState(ItemPlacementContext ctx, CallbackInfoReturnable<BlockState> cir)
     {
-        if (LitematicaMixinMod.EASYPLACE_PROTOCOL.getBooleanValue())
+        if (LitematicaPrinterMod.EASYPLACE_PROTOCOL.getBooleanValue())
         {
             BlockState stateOrig = this.getBlock().getPlacementState(ctx);
 

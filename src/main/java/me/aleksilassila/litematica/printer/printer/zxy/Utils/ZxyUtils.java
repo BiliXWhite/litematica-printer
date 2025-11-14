@@ -8,7 +8,7 @@ import fi.dy.masa.malilib.gui.Message;
 import fi.dy.masa.malilib.util.InfoUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
@@ -79,8 +79,8 @@ import net.minecraft.text.MutableText;
 import fi.dy.masa.litematica.util.WorldUtils;
 //#endif
 
-import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_CHECK;
-import static me.aleksilassila.litematica.printer.LitematicaMixinMod.SYNC_INVENTORY_COLOR;
+import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.SYNC_INVENTORY_CHECK;
+import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.SYNC_INVENTORY_COLOR;
 import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.getEmptyPickBlockableHotbarSlot;
 import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.getPickBlockTargetSlot;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
@@ -107,13 +107,13 @@ public class ZxyUtils {
 
     public static void startAddPrinterInventory(){
         getReadyColor();
-        if (LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue() && !printerMemoryAdding) {
+        if (LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() && !printerMemoryAdding) {
             printerMemoryAdding = true;
             //#if MC >= 12001
             if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
             //#endif
 
-            for (String string : LitematicaMixinMod.INVENTORY_LIST.getStrings()) {
+            for (String string : LitematicaPrinterMod.INVENTORY_LIST.getStrings()) {
                 invBlockList.addAll(filterBlocksByName(string).stream().filter(InventoryUtils::canOpenInv).toList());
             }
             highlightPosList.addAll(invBlockList);
@@ -208,7 +208,7 @@ public class ZxyUtils {
         }
     }
     public static boolean openInv(BlockPos pos,boolean ignoreThePrompt){
-        if(LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue() && OpenInventoryPacket.key == null) {
+        if(LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() && OpenInventoryPacket.key == null) {
             OpenInventoryPacket.sendOpenInventory(pos, client.world.getRegistryKey());
             return true;
         } else {
@@ -249,7 +249,7 @@ public class ZxyUtils {
                 //按下热键后记录看向的容器 开始同步容器 只会触发一次
                 targetBlockInv = new ArrayList<>();
                 targetItemsCount = new HashMap<>();
-                if (client.player != null && (!LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue() || openIng) && !client.player.currentScreenHandler.equals(client.player.playerScreenHandler)) {
+                if (client.player != null && (!LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() || openIng) && !client.player.currentScreenHandler.equals(client.player.playerScreenHandler)) {
                     for (int i = 0; i < client.player.currentScreenHandler.slots.get(0).inventory.size(); i++) {
                         ItemStack copy = client.player.currentScreenHandler.slots.get(i).getStack().copy();
                         itemsCount(targetItemsCount,copy);
@@ -276,7 +276,7 @@ public class ZxyUtils {
                                 .anyMatch(player ->
                                         ItemStack.areItemsAndComponentsEqual(player.getKey(), target.getKey()) && target.getValue() <= player.getValue()))) return;
 
-                if ((!LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
+                if ((!LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
                     for (BlockPos pos : syncPosList) {
                         if (!openInv(pos,true)) continue;
                         closeScreen++;
@@ -354,11 +354,11 @@ public class ZxyUtils {
         }
         addInv();
 
-        if (LitematicaMixinMod.CLOSE_ALL_MODE.getKeybind().isPressed()) {
-            LitematicaMixinMod.MINE.setBooleanValue(false);
-            LitematicaMixinMod.FLUID.setBooleanValue(false);
-            LitematicaMixinMod.PRINT_SWITCH.setBooleanValue(false);
-            LitematicaMixinMod.PRINTER_MODE.setOptionListValue(State.PrintModeType.PRINTER);
+        if (LitematicaPrinterMod.CLOSE_ALL_MODE.getKeybind().isPressed()) {
+            LitematicaPrinterMod.MINE.setBooleanValue(false);
+            LitematicaPrinterMod.FLUID.setBooleanValue(false);
+            LitematicaPrinterMod.PRINT_SWITCH.setBooleanValue(false);
+            LitematicaPrinterMod.PRINTER_MODE.setOptionListValue(State.PrintModeType.PRINTER);
             client.inGameHud.setOverlayMessage(Text.of("已关闭全部模式"), false);
         }
         OpenInventoryPacket.tick();
@@ -429,7 +429,7 @@ public class ZxyUtils {
     public static boolean setPickedItemToHand(int sourceSlot, ItemStack stack) {
         PlayerEntity player = client.player;
         PlayerInventory inventory = player.getInventory();
-        var usePacket = LitematicaMixinMod.PLACE_USE_PACKET.getBooleanValue();
+        var usePacket = LitematicaPrinterMod.PLACE_USE_PACKET.getBooleanValue();
 
         // 如果源槽位是有效的快捷栏索引，直接切换选中该槽位
         if (PlayerInventory.isValidHotbarIndex(sourceSlot)) {
@@ -456,7 +456,7 @@ public class ZxyUtils {
                 // 如果是创造模式，直接交换物品到快捷栏
                 if (player.isCreative()) {
                     //#if MC <= 12103
-                    //$$player.getInventory().addPickBlock(stack.copy());
+                    //$$ player.getInventory().addPickBlock(stack.copy());
                     //#else
                     player.getInventory().swapStackWithHotbar(stack.copy());
                     //#endif

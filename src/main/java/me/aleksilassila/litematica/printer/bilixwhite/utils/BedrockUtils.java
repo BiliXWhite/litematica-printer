@@ -69,12 +69,4 @@ public class BedrockUtils {
         }
         working = bool;
     }
-
-    public static void toggle() {
-        if (working) {
-            setWorking(false);
-        } else {
-            setWorking(true);
-        }
-    }
 }

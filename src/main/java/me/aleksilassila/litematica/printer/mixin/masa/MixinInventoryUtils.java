@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.mixin.masa;
 
 
 import fi.dy.masa.litematica.util.InventoryUtils;
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -26,8 +26,8 @@ public class MixinInventoryUtils {
     private static void schematicWorldPickBlock(ItemStack stack, BlockPos pos, World schematicWorld, MinecraftClient mc, CallbackInfo ci) {
         if (mc.player != null && !ItemStack.areItemsAndComponentsEqual(mc.player.getMainHandStack(), stack
         ) && (
-                LitematicaMixinMod.CLOUD_INVENTORY.getBooleanValue() ||
-                        LitematicaMixinMod.QUICK_SHULKER.getBooleanValue()
+                LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() ||
+                        LitematicaPrinterMod.QUICK_SHULKER.getBooleanValue()
         )) {
             me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList.add(stack.getItem());
             me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.switchItem();
