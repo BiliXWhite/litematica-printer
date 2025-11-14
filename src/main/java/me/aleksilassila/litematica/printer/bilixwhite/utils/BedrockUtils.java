@@ -57,7 +57,7 @@ public class BedrockUtils {
         }
     }
 
-    private static void setWorking(boolean bool) {
+    public static void setWorking(boolean bool) {
         if (client.player.isCreative() && bool) {
             ZxyUtils.actionBar("创造模式下不支持破基岩！");
         }
