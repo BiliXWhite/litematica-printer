@@ -297,7 +297,9 @@ public class Printer extends PrinterUtils {
             ZxyUtils.actionBar("未安装Bedrock Miner模组/游戏版本小于1.21.6，无法破基岩！");
             return;
         }
-        if (!BedrockUtils.isWorking()) BedrockUtils.toggle();
+        if (!BedrockUtils.isWorking()) {
+            BedrockUtils.setWorking(true);
+        }
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
             if (client.player != null &&
@@ -319,11 +321,11 @@ public class Printer extends PrinterUtils {
             waitTicks--;
         }
 
-        if (Statistics.loadBedrockMiner) {
-            if (isBedrockMode() || !PRINT_SWITCH.getBooleanValue()) {
-                if (BedrockUtils.isWorking()) BedrockUtils.toggle();
-            }
-        }
+//        if (Statistics.loadBedrockMiner) {
+//            if (isBedrockMode() || !PRINT_SWITCH.getBooleanValue()) {
+//                if (BedrockUtils.isWorking()) BedrockUtils.toggle();
+//            }
+//        }
 
         Iterator<Map.Entry<BlockPos, Integer>> iterator = placeCooldownList.entrySet().iterator();
         while (iterator.hasNext()) {
