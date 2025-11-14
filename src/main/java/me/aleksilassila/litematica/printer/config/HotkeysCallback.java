@@ -4,10 +4,7 @@ import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
-import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.client.MinecraftClient;
@@ -31,9 +28,7 @@ import red.jackf.chesttracker.impl.memory.MemoryBankImpl;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //#endif
 
-import javax.swing.plaf.SeparatorUI;
-
-import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
+import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.startAddPrinterInventory;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.startOrOffSyncInventory;
 

@@ -13,7 +13,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static me.aleksilassila.litematica.printer.LitematicaMixinMod.*;
+import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
 
 public class Configs implements IConfigHandler {
@@ -34,13 +34,13 @@ public class Configs implements IConfigHandler {
         list.add(PRINTER_RANGE);
         list.add(PLACE_COOLDOWN);
         list.add(ITERATOR_USE_TIME);
-        list.add(PLACE_USE_PACKET);
         list.add(ITERATOR_SHAPE);
+        list.add(LAG_CHECK);
+        //list.add(PLACE_USE_PACKET);
         list.add(RENDER_HUD);
         list.add(QUICK_SHULKER);
         list.add(QUICK_SHULKER_MODE);
         list.add(QUICK_SHULKER_COOLDOWN);
-        list.add(LAG_CHECK);
         list.add(ITERATION_ORDER);
         list.add(X_REVERSE);
         list.add(Y_REVERSE);

@@ -4,7 +4,7 @@ import fi.dy.masa.malilib.hotkeys.IHotkey;
 import fi.dy.masa.malilib.hotkeys.IKeybindManager;
 import fi.dy.masa.malilib.hotkeys.IKeybindProvider;
 import fi.dy.masa.malilib.hotkeys.IKeyboardInputHandler;
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 
 
 //注册按键
@@ -24,8 +24,8 @@ public class InputHandler implements IKeybindProvider, IKeyboardInputHandler {
 
     @Override
     public void addHotkeys(IKeybindManager manager) {
-        manager.addHotkeysForCategory(LitematicaMixinMod.MOD_ID, "按下式",Configs.addKeyList());
-        manager.addHotkeysForCategory(LitematicaMixinMod.MOD_ID, "切换式",Configs.addSwitchKey());
+        manager.addHotkeysForCategory(LitematicaPrinterMod.MOD_ID, "按下式",Configs.addKeyList());
+        manager.addHotkeysForCategory(LitematicaPrinterMod.MOD_ID, "切换式",Configs.addSwitchKey());
     }
 
     public static InputHandler getInstance(){

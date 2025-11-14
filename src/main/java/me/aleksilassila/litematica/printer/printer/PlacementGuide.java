@@ -1,9 +1,8 @@
 package me.aleksilassila.litematica.printer.printer;
 
 import fi.dy.masa.litematica.world.WorldSchematic;
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
@@ -27,13 +26,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class PlacementGuide extends PrinterUtils {
-    public static Map<BlockPos, Integer> posMap = new HashMap<>();
     @NotNull
     protected final MinecraftClient client;
 
     Item[] compostableItems = Arrays.stream(ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.keySet().toArray(ItemConvertible[]::new))
             .map(ItemConvertible::asItem)
             .toArray(Item[]::new);
+
+    private static final Map<Block, Block> STRIPPED_LOGS = AxeItemAccessor.getStrippedBlocks();
+
 
     public PlacementGuide(@NotNull MinecraftClient client) {
         this.client = client;
@@ -59,17 +60,17 @@ public class PlacementGuide extends PrinterUtils {
         BlockState currentState = world.getBlockState(pos);
         BlockState requiredState = worldSchematic.getBlockState(pos);
 
-        if (LitematicaMixinMod.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && PlaceUtils.isWaterRequired(requiredState))
+        if (LitematicaPrinterMod.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && PlaceUtils.isWaterRequired(requiredState))
             return null;
 
-        if (LitematicaMixinMod.PRINT_WATER.getBooleanValue() && PlaceUtils.isWaterRequired(requiredState)) {
+        if (LitematicaPrinterMod.PRINT_WATER.getBooleanValue() && PlaceUtils.isWaterRequired(requiredState)) {
             if (currentState.getBlock() instanceof IceBlock) {
                 BreakManager.addBlockToBreak(pos);
                 return null;
             }
             if (!PlaceUtils.isCorrectWaterLevel(requiredState, currentState)) {
                 if (!currentState.isAir() && !(currentState.getBlock() instanceof FluidBlock)) {
-                    if (LitematicaMixinMod.BREAK_WRONG_BLOCK.getBooleanValue()) {
+                    if (LitematicaPrinterMod.BREAK_WRONG_BLOCK.getBooleanValue()) {
                         BreakManager.addBlockToBreak(pos);
                     }
                     return null;
@@ -130,27 +131,20 @@ public class PlacementGuide extends PrinterUtils {
                         .setSides(sides)
                         .setLookDirection(requiredState.get(TrapdoorBlock.FACING).getOpposite());
             }
-            case PILLAR -> {
+            case STRIP_LOG -> {
                 Action action = new Action().setSides(requiredState.get(PillarBlock.AXIS));
+                Item[] items = {requiredState.getBlock().asItem()};
 
-                //如果是剥皮原木且应该使用普通原木替换
-                if (AxeItemAccessor.getStrippedBlocks().containsValue(requiredState.getBlock()) &&
-                        LitematicaMixinMod.STRIP_LOGS.getBooleanValue()) {
-                    Block stripped = requiredState.getBlock();
-                    StringUtils.printChatMessage(AxeItemAccessor.getStrippedBlocks().toString());
-
-                    for (Block log : AxeItemAccessor.getStrippedBlocks().keySet()) {
-                        if (AxeItemAccessor.getStrippedBlocks().get(log) != stripped) continue;
-
-                        if (!playerHasAccessToItem(client.player, stripped.asItem()) &&
-                                playerHasAccessToItem(client.player, log.asItem())) {
-                            action.setItem(log.asItem());
+                if (LitematicaPrinterMod.STRIP_LOGS.getBooleanValue()) {
+                    for (Map.Entry<Block, Block> entry : STRIPPED_LOGS.entrySet()) {
+                        if (requiredState.getBlock() == entry.getValue()) {
+                            items = new Item[]{entry.getValue().asItem(), entry.getKey().asItem()};
+                            break;
                         }
-                        break;
-
                     }
                 }
 
+                action.setItems(items);
                 return action;
             }
             case ANVIL -> {
@@ -315,7 +309,7 @@ public class PlacementGuide extends PrinterUtils {
                         : Direction.DOWN;
 
                 // 如果不是死亡珊瑚或不需要替换，直接返回基础Action
-                if (!LitematicaMixinMod.REPLACE_CORAL.getBooleanValue()) {
+                if (!LitematicaPrinterMod.REPLACE_CORAL.getBooleanValue()) {
                     return new Action()
                             .setSides(facing)
                             .setRequiresSupport();
@@ -379,7 +373,7 @@ public class PlacementGuide extends PrinterUtils {
             case OBSERVER -> {
                 var facing = requiredState.get(Properties.FACING);
                 var detectBlockPos = pos.offset(facing);
-                if (LitematicaMixinMod.SAFELY_OBSERVER.getBooleanValue() &&
+                if (LitematicaPrinterMod.SAFELY_OBSERVER.getBooleanValue() &&
                         playerHasAccessToItem(client.player, Items.OBSERVER) &&
                         world.getBlockState(detectBlockPos) != worldSchematic.getBlockState(detectBlockPos)) {
                     ZxyUtils.actionBar("[侦测器安全放置] 侦测面方块不正确，跳过放置！");
@@ -396,26 +390,20 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setLookDirection(Direction.UP);
                 return new Action().setLookDirection(Direction.DOWN);
             }
-            case ROD -> {
+            case END_ROD -> {
                 var requiredBlock = requiredState.getBlock();
-                var facing = requiredState.get(RodBlock.FACING);
+                var facing = requiredState.get(EndRodBlock.FACING);
                 var forwardState = world.getBlockState(pos.offset(facing));
-//                var backState = world.getBlockState(pos.offset(facing.getOpposite()));
                 var forwardStateSchematic = worldSchematic.getBlockState(pos.offset(facing));
-//                var backStateSchematic = worldSchematic.getBlockState(pos.offset(facing.getOpposite()));
-//                StringUtils.printChatMessage("前 " + forwardState.getBlock().getName().getString());
-//                StringUtils.printChatMessage("后 " + backState.getBlock().getName().getString());
-//                StringUtils.printChatMessage("投影-前 " + forwardStateSchematic.getBlock().getName().getString());
-//                StringUtils.printChatMessage("投影-后 " + backStateSchematic.getBlock().getName().getString());
 
                 // 如果前面朝向自己的末地烛，而放置方式相反，那么反向放置
                 if (forwardState.isOf(requiredBlock)
-                        && forwardState.get(RodBlock.FACING) == facing.getOpposite()) {
+                        && forwardState.get(EndRodBlock.FACING) == facing.getOpposite()) {
                     return new Action().setSides(facing);
                 }
                 // 如果投影中后面有相同朝向的末地烛，则先跳过放置
                 if (forwardStateSchematic.isOf(requiredBlock)
-                        && forwardStateSchematic.get(RodBlock.FACING) == facing) {
+                        && forwardStateSchematic.get(EndRodBlock.FACING) == facing) {
                     // 但是这个投影已经被正确填装时可以打印
                     if (forwardStateSchematic == forwardState) return new Action().setSides(facing.getOpposite());
                     return null;
@@ -514,7 +502,7 @@ public class PlacementGuide extends PrinterUtils {
                 }
 
                 //方块型珊瑚的替换
-                if (LitematicaMixinMod.REPLACE_CORAL.getBooleanValue() && block.getTranslationKey().endsWith("_coral_block")) {
+                if (LitematicaPrinterMod.REPLACE_CORAL.getBooleanValue() && block.getTranslationKey().endsWith("_coral_block")) {
                     //例子：block.minecraft.dead_tube_coral
                     String type = block.getTranslationKey().replace("block.minecraft.dead_", "").replace("_coral_block", "");
                     switch (type) {
@@ -531,7 +519,7 @@ public class PlacementGuide extends PrinterUtils {
             }
         }
         else if (state == State.WRONG_STATE) {
-            boolean breakWrongStateBlock = LitematicaMixinMod.BREAK_WRONG_STATE_BLOCK.getBooleanValue();
+            boolean printerBreakWrongStateBlock = LitematicaPrinterMod.BREAK_WRONG_STATE_BLOCK.getBooleanValue();
             switch (requiredType) {
                 case SLAB -> {
                     if (requiredState.get(SlabBlock.TYPE) == SlabType.DOUBLE) {
@@ -539,7 +527,7 @@ public class PlacementGuide extends PrinterUtils {
 
                         return new Action().setSides(requiredHalf);
                     }
-                    else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
+                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(pos);
                 }
                 case SNOW -> {
                     int layers = currentState.get(SnowBlock.LAYERS);
@@ -549,7 +537,7 @@ public class PlacementGuide extends PrinterUtils {
                         }};
                         return new ClickAction().setItem(Items.SNOW).setSides(sides);
                     }
-                    else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
+                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(pos);
 
                 }
                 case DOOR, TRAPDOOR -> {
@@ -558,19 +546,19 @@ public class PlacementGuide extends PrinterUtils {
                     if (requiredState.get(Properties.OPEN) != currentState.get(Properties.OPEN)) {
                         return new ClickAction();
                     }
-                    else if (breakWrongStateBlock && requiredState.get(DoorBlock.FACING) != currentState.get(DoorBlock.FACING)) BreakManager.addBlockToBreak(pos);
+                    else if (printerBreakWrongStateBlock && requiredState.get(DoorBlock.FACING) != currentState.get(DoorBlock.FACING)) BreakManager.addBlockToBreak(pos);
                 }
                 case FENCE_GATE -> {
                     var facing = requiredState.get(Properties.HORIZONTAL_FACING);
                     if (facing.getOpposite() == currentState.get(Properties.HORIZONTAL_FACING) ||
                             requiredState.get(Properties.OPEN) != currentState.get(Properties.OPEN))
                         return new ClickAction().setSides(facing.getOpposite()).setLookDirection(facing);
-                    else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
+                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(pos);
                 }
                 case LEVER -> {
                     if (requiredState.get(LeverBlock.POWERED) != currentState.get(LeverBlock.POWERED))
                         return new ClickAction();
-                    else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
+                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(pos);
                 }
                 case CANDLES -> {
                     if (currentState.get(Properties.CANDLES) < requiredState.get(Properties.CANDLES))
@@ -579,18 +567,18 @@ public class PlacementGuide extends PrinterUtils {
                         return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
                     else if (currentState.get(CandleBlock.LIT) && !requiredState.get(CandleBlock.LIT))
                         return new ClickAction();
-                    else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
+                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(pos);
                 }
                 case PICKLES -> {
                     if (currentState.get(SeaPickleBlock.PICKLES) < requiredState.get(SeaPickleBlock.PICKLES))
                         return new ClickAction().setItem(Items.SEA_PICKLE);
-                    else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
+                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(pos);
                 }
                 case REPEATER -> {
                     if (!requiredState.get(RepeaterBlock.DELAY).equals(currentState.get(RepeaterBlock.DELAY)))
                         return new ClickAction();
                     else if (
-                            breakWrongStateBlock &&
+                            printerBreakWrongStateBlock &&
                             requiredState.get(RepeaterBlock.POWERED) == currentState.get(RepeaterBlock.POWERED) &&
                             requiredState.get(RepeaterBlock.LOCKED) == currentState.get(RepeaterBlock.LOCKED)
                     ) BreakManager.addBlockToBreak(pos);
@@ -598,10 +586,10 @@ public class PlacementGuide extends PrinterUtils {
                 case COMPARATOR -> {
                     if (requiredState.get(ComparatorBlock.MODE) != currentState.get(ComparatorBlock.MODE))
                         return new ClickAction();
-                    else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
+                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(pos);
                 }
                 case NOTE_BLOCK -> {
-                    if (LitematicaMixinMod.NOTE_BLOCK_TUNING.getBooleanValue() && !Objects.equals(requiredState.get(NoteBlock.NOTE), currentState.get(NoteBlock.NOTE)))
+                    if (LitematicaPrinterMod.NOTE_BLOCK_TUNING.getBooleanValue() && !Objects.equals(requiredState.get(NoteBlock.NOTE), currentState.get(NoteBlock.NOTE)))
                         return new ClickAction();
                 }
                 case CAMPFIRE -> {
@@ -609,25 +597,19 @@ public class PlacementGuide extends PrinterUtils {
                         return new ClickAction().setItems(Implementation.SHOVELS).setSides(Direction.UP);
                     else if (requiredState.get(CampfireBlock.LIT) && !currentState.get(CampfireBlock.LIT))
                         return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
-                    else if (breakWrongStateBlock && requiredState.get(CampfireBlock.FACING) != currentState.get(CampfireBlock.FACING))
+                    else if (printerBreakWrongStateBlock && requiredState.get(CampfireBlock.FACING) != currentState.get(CampfireBlock.FACING))
                         BreakManager.addBlockToBreak(pos);
-                }
-                case PILLAR -> {
-                    Block stripped = AxeItemAccessor.getStrippedBlocks().get(currentState.getBlock());
-                    if (stripped != null && stripped == requiredState.getBlock()) {
-                        return new ClickAction().setItems(Implementation.AXES);
-                    }
                 }
                 case END_PORTAL_FRAME -> {
                     if (requiredState.get(EndPortalFrameBlock.EYE) && !currentState.get(EndPortalFrameBlock.EYE))
                         return new ClickAction().setItem(Items.ENDER_EYE);
-                    else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
+                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(pos);
                 }
                 //#if MC >= 11904
                 case FLOWERBED -> {
                     if (currentState.get(FlowerbedBlock.FLOWER_AMOUNT) <= requiredState.get(FlowerbedBlock.FLOWER_AMOUNT)) {
                         return new ClickAction().setItem(requiredState.getBlock().asItem());
-                    } else if (breakWrongStateBlock) BreakManager.addBlockToBreak(pos);
+                    } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(pos);
                 }
                 //#endif
                 case REDSTONE -> {
@@ -683,9 +665,16 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setSides(Direction.DOWN).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
                 }
                 case COMPOSTER -> {
-                    if (!LitematicaMixinMod.FILL_COMPOSTER.getBooleanValue()) return null;
+                    if (!LitematicaPrinterMod.FILL_COMPOSTER.getBooleanValue()) return null;
                     if (currentState.get(ComposterBlock.LEVEL) < requiredState.get(ComposterBlock.LEVEL)) {
                         return new ClickAction().setItems(compostableItems);
+                    }
+                }
+                case STAIR -> {
+                    if (printerBreakWrongStateBlock &&
+                        (requiredState.get(StairsBlock.FACING) != currentState.get(StairsBlock.FACING) ||
+                        requiredState.get(StairsBlock.HALF) != currentState.get(StairsBlock.HALF))) {
+                        BreakManager.addBlockToBreak(pos);
                     }
                 }
                 default -> {
@@ -694,10 +683,8 @@ public class PlacementGuide extends PrinterUtils {
                                     WallBlock.class,
                                     PaneBlock.class,
                                     PressurePlateBlock.class,
-                                    StairsBlock.class,
-
                                     };
-                    if (breakWrongStateBlock && !Arrays.asList(ignored).contains(requiredState.getBlock().getClass())) BreakManager.addBlockToBreak(pos);
+                    if (printerBreakWrongStateBlock && !Arrays.asList(ignored).contains(requiredState.getBlock().getClass())) BreakManager.addBlockToBreak(pos);
                 }
             }
         } else if (state == State.WRONG_BLOCK) switch (requiredType) {
@@ -732,23 +719,29 @@ public class PlacementGuide extends PrinterUtils {
             case CAULDRON -> {
                 if (Arrays.asList(requiredType.classes).contains(currentState.getBlock().getClass()))
                     return null;
-                else if (LitematicaMixinMod.BREAK_WRONG_BLOCK.getBooleanValue() && BreakManager.canBreakBlock(pos))
+                else if (LitematicaPrinterMod.BREAK_WRONG_BLOCK.getBooleanValue() && BreakManager.canBreakBlock(pos))
                     BreakManager.addBlockToBreak(pos);
             }
 
+            case STRIP_LOG -> {
+                Block stripped = STRIPPED_LOGS.get(currentState.getBlock());
+                if (stripped != null && stripped == requiredState.getBlock())
+                    return new ClickAction().setItems(Implementation.AXES);
+            }
+
             default -> {
-                if (LitematicaMixinMod.REPLACE_CORAL.getBooleanValue() && requiredState.getBlock().getTranslationKey().contains("coral")) {
+                if (LitematicaPrinterMod.REPLACE_CORAL.getBooleanValue() && requiredState.getBlock().getTranslationKey().contains("coral")) {
                     return null;
                 }
 
-                boolean breakWrongBlock = LitematicaMixinMod.BREAK_WRONG_BLOCK.getBooleanValue();
-                boolean breakExtraBlock = LitematicaMixinMod.BREAK_EXTRA_BLOCK.getBooleanValue();
+                boolean printBreakWrongBlock = LitematicaPrinterMod.BREAK_WRONG_BLOCK.getBooleanValue();
+                boolean printerBreakExtraBlock = LitematicaPrinterMod.BREAK_EXTRA_BLOCK.getBooleanValue();
 
-                if (breakWrongBlock || breakExtraBlock) {
+                if (printBreakWrongBlock || printerBreakExtraBlock) {
                     if (BreakManager.canBreakBlock(pos)) {
-                        if (breakWrongBlock && !requiredState.isOf(Blocks.AIR)) {
+                        if (printBreakWrongBlock && !requiredState.isOf(Blocks.AIR)) {
                             BreakManager.addBlockToBreak(pos);
-                        } else if (breakExtraBlock && requiredState.isOf(Blocks.AIR)) {
+                        } else if (printerBreakExtraBlock && requiredState.isOf(Blocks.AIR)) {
                             BreakManager.addBlockToBreak(pos);
                         }
                     }
@@ -771,7 +764,7 @@ public class PlacementGuide extends PrinterUtils {
         SLAB(SlabBlock.class), // 台阶
         STAIR(StairsBlock.class), // 楼梯
         TRAPDOOR(TrapdoorBlock.class), // 活板门
-        PILLAR(PillarBlock.class), // 去皮原木
+        STRIP_LOG(PillarBlock.class), // 去皮原木
         ANVIL(AnvilBlock.class), // 铁砧
         HOPPER(HopperBlock.class), // 漏斗
         CAMPFIRE(CampfireBlock.class), // 营火
@@ -787,7 +780,7 @@ public class PlacementGuide extends PrinterUtils {
         OBSERVER(ObserverBlock.class), // 侦测器
         LADDER(LadderBlock.class), // 梯子
         LANTERN(LanternBlock.class), // 灯笼
-        ROD(RodBlock.class), // 末地烛 避雷针
+        END_ROD(EndRodBlock.class), // 末地烛
         TRIPWIRE_HOOK(TripwireHookBlock.class), // 绊线钩
         RAIL(AbstractRailBlock.class), // 铁轨
 
@@ -837,7 +830,7 @@ public class PlacementGuide extends PrinterUtils {
         protected Direction lookDirection;
         protected Direction lookDirectionPitch;
         @Nullable
-        protected Item[] clickItems; // null == 任意方块
+        protected Item[] clickItems; // null == 空手
         protected boolean requiresSupport = false;
         protected boolean useShift = false;
         protected int waitTick = 0;
@@ -981,7 +974,7 @@ public class PlacementGuide extends PrinterUtils {
                 BlockPos neighborPos = pos.offset(side);
                 BlockState neighborState = world.getBlockState(neighborPos);
 
-                if (LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue() &&
+                if (LitematicaPrinterMod.PRINT_IN_AIR.getBooleanValue() &&
                         !this.requiresSupport &&
                         !Implementation.isInteractive(neighborState.getBlock())
                 ) return side;
@@ -1073,7 +1066,7 @@ public class PlacementGuide extends PrinterUtils {
         public void queueAction(Printer.Queue queue, BlockPos center, Direction side, boolean useShift) {
 //            System.out.println("Queued click?: " + center.offset(side).toString() + ", side: " + side.getOpposite());
 
-            if (LitematicaMixinMod.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport) {
+            if (LitematicaPrinterMod.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport) {
                 queue.queueClick(center, side.getOpposite(), getSides().get(side),
                         useShift);
             } else {

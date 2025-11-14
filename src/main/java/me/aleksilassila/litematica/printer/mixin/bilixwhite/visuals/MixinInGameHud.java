@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.bilixwhite.visuals;
 
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
@@ -23,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.awt.*;
 
-import static me.aleksilassila.litematica.printer.LitematicaMixinMod.MODE_SWITCH;
+import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.MODE_SWITCH;
 
 @Mixin(InGameHud.class)
 public abstract class MixinInGameHud {
@@ -41,8 +41,8 @@ public abstract class MixinInGameHud {
         float height = client.getWindow().getScaledHeight();
         if (client.player != null) {
             // 检查玩家是否是观察者模式
-            if (!client.player.isSpectator() && LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() && !PrinterUtils.isBedrockMode()) {
-                if (LitematicaMixinMod.RENDER_HUD.getBooleanValue()) {
+            if (!client.player.isSpectator() && LitematicaPrinterMod.PRINT_SWITCH.getBooleanValue() && !PrinterUtils.isBedrockMode()) {
+                if (LitematicaPrinterMod.RENDER_HUD.getBooleanValue()) {
                     //#if MC <= 11904
                     //$$ StringUtils.initMatrix(matrices);
                     //#else
@@ -56,7 +56,7 @@ public abstract class MixinInGameHud {
 //                        StringUtils.drawText("实际液体: " + Printer.currentState.getFluidState().getBlockState().getBlock().getName().getString() + " " + Printer.currentState.getFluidState().getBlockState().getBlock().toString(), 50, 77, Color.ORANGE.getRGB(), true);
 //                    }
 
-                    if (LitematicaMixinMod.LAG_CHECK.getBooleanValue()) {
+                    if (LitematicaPrinterMod.LAG_CHECK.getBooleanValue()) {
                         StringUtils.drawText(Printer.packetTick + "Tick", (int) (width / 2), (int) (height / 2 - 22), new Color(255, 255, 255, 255).getRGB(), true, true);
                     }
                     if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE) ) {
@@ -69,7 +69,7 @@ public abstract class MixinInGameHud {
                         //$$DrawableHelper.fill(matrices, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getPrinter().getProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
                         //#endif
                     }
-                    StringUtils.drawText(LitematicaMixinMod.PRINTER_MODE.getOptionListValue().getDisplayName(), (int) (width / 2), (int) (height / 2 + 52), new Color(255, 255, 255, 255).getRGB(), true, true);
+                    StringUtils.drawText(LitematicaPrinterMod.PRINTER_MODE.getOptionListValue().getDisplayName(), (int) (width / 2), (int) (height / 2 + 52), new Color(255, 255, 255, 255).getRGB(), true, true);
 
                     if (Printer.requiredState != null)
                         StringUtils.drawText(Printer.requiredState.getBlock().getName().getString(), (int) (width / 2), (int) (height / 2 + 64), new Color(255, 255, 255, 255).getRGB(), true, true);

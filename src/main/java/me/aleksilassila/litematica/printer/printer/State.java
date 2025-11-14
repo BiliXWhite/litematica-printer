@@ -2,14 +2,14 @@ package me.aleksilassila.litematica.printer.printer;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.StringUtils;
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
 import net.minecraft.block.BlockState;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static me.aleksilassila.litematica.printer.LitematicaMixinMod.I18N_PREFIX;
+import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.I18N_PREFIX;
 
 public enum State {
     MISSING_BLOCK,
@@ -19,7 +19,7 @@ public enum State {
 
     public static State get(BlockState schematicBlockState, BlockState currentBlockState) {
 
-        Set<String> replaceSet = new HashSet<>(LitematicaMixinMod.REPLACEABLE_LIST.getStrings());
+        Set<String> replaceSet = new HashSet<>(LitematicaPrinterMod.REPLACEABLE_LIST.getStrings());
 
         // 如果两个方块状态完全相同，则返回正确状态
         if (schematicBlockState == currentBlockState)
@@ -31,7 +31,7 @@ public enum State {
         else if (!schematicBlockState.isAir() && currentBlockState.isAir())
             return MISSING_BLOCK;
         // 如果启用了替换功能，且当前方块在可替换列表中，则返回缺失方块状态（实际上这会和破坏额外方块打架）
-        else if (LitematicaMixinMod.REPLACE.getBooleanValue() &&
+        else if (LitematicaPrinterMod.REPLACE.getBooleanValue() &&
                 replaceSet.stream().anyMatch(string -> !Filters.equalsName(string,schematicBlockState) &&
                         Filters.equalsName(string,currentBlockState)) && !schematicBlockState.isAir()
         ) return MISSING_BLOCK;
@@ -331,7 +331,7 @@ public enum State {
 
         @Override
         public String getDisplayName() {
-            return StringUtils.translate(I18N_PREFIX + ".list.quickShulkerMode." + this.configString);
+            return StringUtils.translate(I18N_PREFIX + ".list.printerQuickShulkerMode." + this.configString);
         }
 
         @Override

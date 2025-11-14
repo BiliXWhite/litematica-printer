@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin;
 
 import com.mojang.authlib.GameProfile;
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
@@ -61,7 +61,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 
 	@Inject(at = @At("HEAD"), method = "init")
 	public void init(CallbackInfo ci) {
-		if (LitematicaMixinMod.UPDATE_CHECK.getBooleanValue() && !Printer.updateChecked)
+		if (LitematicaPrinterMod.UPDATE_CHECK.getBooleanValue() && !Printer.updateChecked)
 			CompletableFuture.runAsync(this::checkForUpdates);
 		Printer.updateChecked = true;
 	}
@@ -79,15 +79,8 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 		Printer printer = Printer.getPrinter();
 		ZxyUtils.tick();
 		printer.tick();
-		if (!(LitematicaMixinMod.PRINT_SWITCH.getBooleanValue() || LitematicaMixinMod.PRINT.getKeybind().isPressed())) {
-			PlacementGuide.posMap = new HashMap<>();
-			printer.basePos = null;
-			Printer.fluidModeItemList = new HashSet<>();
-			printer.clearQueue();
-			return;
-		} else {
-            Printer.pistonNeedFix = false;
-            Printer.requiredState = null;
+		if (!(LitematicaPrinterMod.PRINT_SWITCH.getBooleanValue() || LitematicaPrinterMod.PRINT.getKeybind().isPressed())) {
+            return;
         }
 		BreakManager.instance().onTick();
 		printer.printerTick();

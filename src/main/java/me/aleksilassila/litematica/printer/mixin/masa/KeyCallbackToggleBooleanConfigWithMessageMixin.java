@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static me.aleksilassila.litematica.printer.LitematicaMixinMod.MODE_SWITCH;
+import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.MODE_SWITCH;
 
 @Mixin(KeyCallbackToggleBooleanConfigWithMessage.class)
 public class KeyCallbackToggleBooleanConfigWithMessageMixin extends KeyCallbackToggleBoolean {

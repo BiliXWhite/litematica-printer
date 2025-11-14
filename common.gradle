@@ -104,7 +104,6 @@ def mod_dependencies = [
         ["maven.modrinth:chest-tracker", "chesttracker", mcVersion < 12105 ? 1 : 4],   //TODO 箱子追踪未更新21.5
         ["maven.modrinth:where-is-it", "whereisit", mcVersion < 12105 ? 1 : 4],
         [getQuickShulker(), "quick_shulker", mcVersion > 12004 ? 5 : 1],
-        //["maven.modrinth:advanced-shulkerboxes", "advanced_shulkerboxes", mcVersion >= 12002 ? 1 : 0],
         ["red.jackf.jackfredlib:jackfredlib"                    , "jackfredlib",        mcVersion >= 12001 ? 1 : 0],
         ["com.blamejared.searchables"                           , "searchables",        mcVersion >= 12001 ? 1 : 0],
         ["maven.modrinth:modmenu"                               , "modmenu",            1],
@@ -136,14 +135,11 @@ dependencies {
     //拼音
     implementation include("com.belerweb:pinyin4j:${project.pinyin_version}")
 
-    // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
-//	modImplementation "com.zxy:litematica_printer:1.20.2-2.4+20240218"
 
     mod_dependencies.forEach { item ->
         def dependencyNotation = item[0]

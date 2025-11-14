@@ -7,7 +7,6 @@ package me.aleksilassila.litematica.printer.mixin.openinv;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -26,8 +25,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.LitematicaMixinMod.CLOUD_INVENTORY;
-import static me.aleksilassila.litematica.printer.LitematicaMixinMod.QUICK_SHULKER;
+import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.CLOUD_INVENTORY;
+import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.QUICK_SHULKER;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList;
 

@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
-import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import net.kyrptonaught.quickshulker.client.ClientUtil;
@@ -11,7 +11,7 @@ import net.minecraft.screen.slot.SlotActionType;
 
 public class ShulkerUtils {
     static final MinecraftClient client = MinecraftClient.getInstance();
-    static IConfigOptionListEntry openMode = LitematicaMixinMod.QUICK_SHULKER_MODE.getOptionListValue();
+    static IConfigOptionListEntry openMode = LitematicaPrinterMod.QUICK_SHULKER_MODE.getOptionListValue();
 
     public static void openShulker(ItemStack stack, int shulkerBoxSlot) {
         if (openMode == State.QuickShulkerModeType.CLICK_SLOT) {

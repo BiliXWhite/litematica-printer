@@ -1,7 +1,6 @@
 package me.aleksilassila.litematica.printer;
 
 import com.google.common.collect.ImmutableList;
-import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.litematica.config.Hotkeys;
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.options.*;
@@ -11,6 +10,8 @@ import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
+import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
@@ -25,7 +26,7 @@ import java.util.List;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
 
-public class LitematicaMixinMod implements ModInitializer, ClientModInitializer {
+public class LitematicaPrinterMod implements ModInitializer, ClientModInitializer {
     public static final String MOD_ID = "litematica_printer";
     public static final String I18N_PREFIX = MOD_ID + ".config";
     //========================================
@@ -132,9 +133,13 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "无视§6§l覆盖方块列表§r中的方块直接进行打印，例如:草、雪片等。"
     );
     public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean(
-            "自动去树皮", false,
-            "在打印去皮原木的时候，会选择原木并用背包里的斧头进行去皮操作。"
-    );
+            "printerAutoStripLogs", false,
+            "printerAutoStripLogs"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
     public static final ConfigHotkey SWITCH_PRINTER_MODE = new ConfigHotkey(
             "切换模式", "",
             "切换打印机的工作模式。"
@@ -173,21 +178,21 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "开启后会§6§l跳过放置列表§r内的方块。"
     );
     public static final ConfigBoolean QUICK_SHULKER = new ConfigBoolean(
-            "quickShulker", false, "quickShulker"
+            "printerQuickShulker", false, "printerQuickShulker"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
             //#endif
             ;
     public static final ConfigOptionList QUICK_SHULKER_MODE = new ConfigOptionList(
-            "quickShulkerMode", State.QuickShulkerModeType.CLICK_SLOT, "quickShulkerMode"
+            "printerQuickShulkerMode", State.QuickShulkerModeType.INVOKE, "printerQuickShulkerMode"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
             //#endif
             ;
     public static final ConfigInteger QUICK_SHULKER_COOLDOWN = new ConfigInteger(
-            "quickShulkerCooldown", 10, 0, 20, "quickShulkerCooldown"
+            "printerQuickShulkerCooldown", 10, 0, 20, "printerQuickShulkerCooldown"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
@@ -266,42 +271,42 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             //#endif
             ;
     public static final ConfigOptionList ITERATION_ORDER = new ConfigOptionList(
-            "iteratorMode", State.IterationOrderType.XZY, "iteratorMode"
+            "printerIteratorMode", State.IterationOrderType.XZY, "printerIteratorMode"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
             //#endif
             ;
     public static final ConfigBoolean X_REVERSE = new ConfigBoolean(
-            "xReverse", false, "xReverse"
+            "printerXAxisReverse", false, "printerXAxisReverse"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
             //#endif
             ;
     public static final ConfigBoolean Y_REVERSE = new ConfigBoolean(
-            "yReverse", false, "yReverse"
+            "printerYAxisReverse", false, "printerYAxisReverse"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
             //#endif
             ;
     public static final ConfigBoolean Z_REVERSE = new ConfigBoolean(
-            "zReverse", false, "zReverse"
+            "printerZAxisReverse", false, "printerZAxisReverse"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
             //#endif
             ;
     public static final ConfigBoolean FALLING_CHECK = new ConfigBoolean(
-            "fallingBlockCheck", true, "fallingBlockCheck"
+            "printerFallingBlockCheck", true, "printerFallingBlockCheck"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
             //#endif
             ;
     public static final ConfigBoolean BREAK_WRONG_BLOCK = new ConfigBoolean(
-            "breakWrongBlock", false, "breakWrongBlock"
+            "printBreakWrongBlock", false, "printBreakWrongBlock"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
@@ -316,21 +321,21 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             //#endif
             ;
     public static final ConfigBoolean NOTE_BLOCK_TUNING = new ConfigBoolean(
-            "autoTuning", true, "autoTuning"
+            "printerAutoTuning", true, "printerAutoTuning"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
             //#endif
             ;
     public static final ConfigBoolean SAFELY_OBSERVER = new ConfigBoolean(
-            "safelyObserver", true, "safelyObserver"
+            "printerSafelyObserver", true, "printerSafelyObserver"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
             //#endif
             ;
     public static final ConfigBoolean BREAK_EXTRA_BLOCK = new ConfigBoolean(
-            "breakExtraBlock", false, "breakExtraBlock"
+            "printerBreakExtraBlock", false, "printerBreakExtraBlock"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
@@ -338,7 +343,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             ;
 
     public static final ConfigBoolean BREAK_WRONG_STATE_BLOCK = new ConfigBoolean(
-            "breakWrongStateBlock", false, "breakWrongStateBlock"
+            "printerBreakWrongStateBlock", false, "printerBreakWrongStateBlock"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
@@ -346,7 +351,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             ;
 
     public static final ConfigBoolean SKIP_WATERLOGGED_BLOCK = new ConfigBoolean(
-            "printSkipWaterlogged", false, "printSkipWaterlogged"
+            "printerSkipWaterlogged", false, "printerSkipWaterlogged"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
@@ -354,7 +359,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             ;
 
     public static final ConfigInteger ITERATOR_USE_TIME = new ConfigInteger(
-            "iteratorUseTime", 8, 0, 128, "iteratorUseTime"
+            "printerIteratorUseTime", 8, 0, 128, "printerIteratorUseTime"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
@@ -369,7 +374,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             //#endif
             ;
     public static final ConfigBoolean FILL_COMPOSTER = new ConfigBoolean(
-            "autoFillComposter", false, "autoFillComposter"
+            "printerAutoFillComposter", false, "printerAutoFillComposter"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
@@ -434,40 +439,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
     );
     //#endif
 
-    public static ImmutableList<IConfigBase> getConfigList() {
-        List<IConfigBase> list = new java.util.ArrayList<>(Configs.Generic.OPTIONS);
-        list.add(PRINT_SWITCH);
-        list.add(PRINTER_SPEED);
-        if (PRINTER_SPEED.getIntegerValue() == 0) list.add(BLOCKS_PER_TICK);
-        list.add(PRINTER_RANGE);
-        list.add(PLACE_COOLDOWN);
-        list.add(PLACE_USE_PACKET);
-        list.add(ITERATOR_SHAPE);
-        list.add(QUICK_SHULKER);
-        list.add(QUICK_SHULKER_MODE);
-        list.add(QUICK_SHULKER_COOLDOWN);
-        list.add(LAG_CHECK);
-        list.add(ITERATION_ORDER);
-        list.add(X_REVERSE);
-        list.add(Y_REVERSE);
-        list.add(Z_REVERSE);
-
-        if (PRINTER_MODE.getOptionListValue().equals(State.ModeType.SINGLE)) {
-            list.add(PRINTER_MODE);
-        }
-
-        if (EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.CUSTOM)) {
-            list.add(EXCAVATE_LIMIT);
-            list.add(EXCAVATE_WHITELIST);
-            list.add(EXCAVATE_BLACKLIST);
-        }
-
-        list.add(PRINT_IN_AIR);
-        list.add(PRINT_WATER);
-
-        return ImmutableList.copyOf(list);
-    }
-
     public static List<IConfigBase> getHotkeyList() {
         List<IConfigBase> list = new java.util.ArrayList<>(Hotkeys.HOTKEY_LIST);
         list.add(PRINT);
@@ -478,12 +449,6 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             list.add(SWITCH_PRINTER_MODE);
         }
 
-        return ImmutableList.copyOf(list);
-    }
-
-    public static ImmutableList<IConfigBase> getColorsList() {
-        List<IConfigBase> list = new java.util.ArrayList<>(Configs.Colors.OPTIONS);
-        list.add(SYNC_INVENTORY_COLOR);
         return ImmutableList.copyOf(list);
     }
 
@@ -508,12 +473,18 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
         );
 
         PRINT_SWITCH.setValueChangeCallback(b -> {
-            if (!b.getBooleanValue() && BedrockUtils.isWorking()) {
-                BedrockUtils.setWorking(false);
+            if (!b.getBooleanValue()) {
+                Printer.getPrinter().basePos = null;
+                Printer.getPrinter().clearQueue();
+                Printer.pistonNeedFix = false;
+                Printer.requiredState = null;
+                if (BedrockUtils.isWorking()) {
+                    BedrockUtils.setWorking(false);
+                }
             }
         });
 
-        me.aleksilassila.litematica.printer.config.Configs.init();
+        Configs.init();
         HighlightBlockRenderer.init();
     }
 

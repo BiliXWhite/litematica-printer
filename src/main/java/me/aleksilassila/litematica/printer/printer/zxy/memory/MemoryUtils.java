@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.printer.zxy.memory;
 
 //#if MC < 12001
-//$$ import me.aleksilassila.litematica.printer.LitematicaMixinMod;
+//$$ import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 //$$ import net.fabricmc.api.EnvType;
 //$$ import net.fabricmc.api.Environment;
@@ -98,7 +98,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 //$$             Block block = state.getBlock();
 //$$ //                System.out.println(state);
 //$$             boolean k = true;
-//$$             for (String string : LitematicaMixinMod.INVENTORY_LIST.getStrings()) {
+//$$             for (String string : LitematicaPrinterMod.INVENTORY_LIST.getStrings()) {
 //$$                 if (Registries.BLOCK.getId(block).toString().contains(string)) {
 //$$                     k = false;
 //$$                     break;

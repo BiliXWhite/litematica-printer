@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 
-import static me.aleksilassila.litematica.printer.LitematicaMixinMod.USE_EASYPLACE;
+import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.USE_EASYPLACE;
 import static me.aleksilassila.litematica.printer.printer.Printer.easyPos;
 
 @Mixin(WorldUtils.class)
