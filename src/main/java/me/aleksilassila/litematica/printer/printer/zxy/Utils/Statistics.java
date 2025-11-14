@@ -9,7 +9,7 @@ public class Statistics {
     public static boolean loadChestTracker = isLoadMod("chesttracker");
     public static boolean loadQuickShulker = isLoadMod("quickshulker");
     public static boolean loadBedrockMiner =
-            //#if MC < 12106
+            //#if MC < 11900
             false
             //#else
             //$$ isLoadMod("bedrockminer")
