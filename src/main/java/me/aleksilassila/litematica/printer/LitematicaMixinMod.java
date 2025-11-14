@@ -9,6 +9,7 @@ import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
@@ -100,7 +101,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "无视是否有方块面支撑，直接放置方块。"
     );
     public static final ConfigBooleanHotkeyed PRINT_WATER = new ConfigBooleanHotkeyed(
-            "printWater",  false, "", "printWater"
+            "printWater", false, "", "printWater"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
@@ -206,7 +207,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             "在背包满时尝试将从远程交互容器或快捷潜影盒中取出的物品还原到之前位置。"
                     //#if MC == 11802
                     + "\n在1.18.2版本表现不好，可能会会导致卡顿，建议关闭。"
-                    //#endif
+            //#endif
     );
     public static final ConfigStringList INVENTORY_LIST = new ConfigStringList(
             "库存白名单", ImmutableList.of("minecraft:chest"),
@@ -353,7 +354,7 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
             ;
 
     public static final ConfigInteger ITERATOR_USE_TIME = new ConfigInteger(
-            "iteratorUseTime", 8, 0 , 128, "iteratorUseTime"
+            "iteratorUseTime", 8, 0, 128, "iteratorUseTime"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)
@@ -505,6 +506,12 @@ public class LitematicaMixinMod implements ModInitializer, ClientModInitializer 
         TOGGLE_PRINTING_MODE.getKeybind().setCallback(
                 new KeyCallbackToggleBooleanConfigWithMessage(PRINT_SWITCH)
         );
+
+        PRINT_SWITCH.setValueChangeCallback(b -> {
+            if (!b.getBooleanValue() && BedrockUtils.isWorking()) {
+                BedrockUtils.setWorking(false);
+            }
+        });
 
         me.aleksilassila.litematica.printer.config.Configs.init();
         HighlightBlockRenderer.init();
