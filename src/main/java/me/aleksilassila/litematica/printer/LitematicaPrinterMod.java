@@ -14,6 +14,7 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
@@ -478,8 +479,10 @@ public class LitematicaPrinterMod implements ModInitializer, ClientModInitialize
                 Printer.getPrinter().clearQueue();
                 Printer.pistonNeedFix = false;
                 Printer.requiredState = null;
-                if (BedrockUtils.isWorking()) {
-                    BedrockUtils.setWorking(false);
+                if (Statistics.loadBedrockMiner) {
+                    if (BedrockUtils.isWorking()) {
+                        BedrockUtils.setWorking(false);
+                    }
                 }
             }
         });
