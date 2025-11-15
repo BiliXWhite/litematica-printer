@@ -175,63 +175,22 @@ base {
 }
 
 loom {
-    interfaceInjection {
-        enableDependencyInterfaceInjection.set(true)
-    }
-
-    runConfigs.configureEach {
-        // Dump modified classes automatically.
-        property("mixin.debug.export", "true")
-    }
-
+    def commonVmArgs = ['-Dmixin.debug.export=true']
     runConfigs.named("client") {
+        ideConfigGenerated = true
         programArgs([
                 "--width",
                 "1280",
                 "--height",
                 "720",
                 "--username",
-                "PrinterTest",
+                "PrinterTest"
         ])
         runDir("run/client")
     }
 
     runConfigs.named("server") {
         runDir("run/server")
-    }
-
-    runs {
-        mixinAuditClient {
-            inherit(client)
-            vmArgs("-Dmagiclib.mixin_audit=true")
-            ideConfigGenerated(false)
-            runDir("run/client")
-        }
-
-        mixinAuditServer {
-            inherit(server)
-            vmArgs("-Dmagiclib.mixin_audit=true")
-            ideConfigGenerated(false)
-            runDir("run/server")
-        }
-    }
-
-    // Setup client default settings.
-    runClient {
-        defaultCharacterEncoding("UTF-8")
-    }
-
-    // Setup server default settings.
-    runServer {
-        defaultCharacterEncoding("UTF-8")
-
-        // Agree eula before server init.
-        if (!new File("${project.projectDir}/run/server/eula.txt").exists()) {
-            new File("${project.projectDir}/run/server").mkdirs()
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("${project.projectDir}/run/server/eula.txt"))
-            bufferedWriter.writeLine("eula=true")
-            bufferedWriter.close()
-        }
     }
 }
 
