@@ -128,7 +128,7 @@ public class Implementation {
             GrindstoneBlock.class, // 砂轮
             StonecutterBlock.class, // 切石机
             //#if MC < 12109
-            FletchingTableBlock.class, // 制箭台
+            //$$ FletchingTableBlock.class, // 制箭台
             //#endif
             SmokerBlock.class, // 烟熏炉
             BlastFurnaceBlock.class, // 高炉

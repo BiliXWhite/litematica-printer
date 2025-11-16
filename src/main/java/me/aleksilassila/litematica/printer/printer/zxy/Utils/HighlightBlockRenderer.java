@@ -5,8 +5,8 @@ import fi.dy.masa.litematica.Litematica;
 import fi.dy.masa.malilib.config.options.ConfigColor;
 import fi.dy.masa.malilib.event.RenderEventHandler;
 import fi.dy.masa.malilib.interfaces.IRenderer;
-import fi.dy.masa.litematica.render.RenderUtils;
-import fi.dy.masa.malilib.util.Color4f;
+import fi.dy.masa.malilib.render.RenderUtils;
+import fi.dy.masa.malilib.util.data.Color4f;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
@@ -27,9 +27,9 @@ import java.util.*;
     //#if MC < 12106
     //$$ import com.mojang.blaze3d.buffers.BufferUsage;
     //#endif
-//$$ import com.mojang.blaze3d.vertex.VertexFormat;
-//$$ import fi.dy.masa.malilib.render.MaLiLibPipelines;
-//$$ import fi.dy.masa.malilib.render.RenderContext;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import fi.dy.masa.malilib.render.MaLiLibPipelines;
+import fi.dy.masa.malilib.render.RenderContext;
 //#endif
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.client;
@@ -74,21 +74,21 @@ public class HighlightBlockRenderer implements IRenderer {
                 //#if MC == 12105
                 //$$ RenderUtils.renderAreaSides(pos,pos,color4f,matrices);
                 //#endif
-            //$$ RenderSystem.setShaderFog(RenderSystem.getShaderFog());
+            RenderSystem.setShaderFog(RenderSystem.getShaderFog());
             //#else
-            RenderUtils.renderAreaSides(pos,pos,color4f,matrices,client);
+            //$$ RenderUtils.renderAreaSides(pos,pos,color4f,matrices,client);
             //#endif
         }
 
         //#if MC > 12104
             //#if MC > 12105
-            //$$ RenderSystem.setShaderFog(RenderSystem.getShaderFog());
+            RenderSystem.setShaderFog(RenderSystem.getShaderFog());
             //#else
             //$$ RenderSystem.setShaderFog(Fog.DUMMY);
             //#endif
         //#else
-        RenderSystem.enableBlend();
-        RenderSystem.disableCull();
+        //$$ RenderSystem.enableBlend();
+        //$$ RenderSystem.disableCull();
         //#endif
 
         //#if MC > 12101
@@ -102,11 +102,11 @@ public class HighlightBlockRenderer implements IRenderer {
                 //#if MC == 12105
                 //$$ RenderContext ctx = new RenderContext(MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT, BufferUsage.STATIC_WRITE);
                 //#else
-                //$$ RenderContext ctx = new RenderContext(() -> threadName, MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT);
+                RenderContext ctx = new RenderContext(() -> threadName, MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT);
                 //#endif
-            //$$ BufferBuilder buffer = ctx.getBuilder();
+            BufferBuilder buffer = ctx.getBuilder();
             //#else
-            BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+            //$$ BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
             //#endif
         BuiltBuffer meshData;
         //#else
@@ -115,9 +115,9 @@ public class HighlightBlockRenderer implements IRenderer {
         //#endif
         for (BlockPos pos : posSet) {
             //#if MC >= 12105
-            //$$ RenderUtils.renderAreaSidesBatched(pos, pos, color4f, 0.002, buffer);
+            RenderUtils.renderAreaSidesBatched(pos, pos, color4f, 0.002, buffer);
             //#else
-            RenderUtils.renderAreaSidesBatched(pos, pos, color4f, 0.002, buffer, client);
+            //$$ RenderUtils.renderAreaSidesBatched(pos, pos, color4f, 0.002, buffer, client);
             //#endif
         }
         try
@@ -127,13 +127,13 @@ public class HighlightBlockRenderer implements IRenderer {
                 meshData = buffer.end();
 
                     //#if MC > 12104
-                    //$$ ctx.upload(meshData, true);
-                    //$$ ctx.startResorting(meshData, ctx.createVertexSorter(fi.dy.masa.malilib.render.RenderUtils.camPos()));
-                    //$$ meshData.close();
-                    //$$ ctx.drawPost();
-                    //#else
-                    BufferRenderer.drawWithGlobalProgram(meshData);
+                    ctx.upload(meshData, true);
+                    ctx.startResorting(meshData, ctx.createVertexSorter(fi.dy.masa.malilib.render.RenderUtils.camPos()));
                     meshData.close();
+                    ctx.drawPost();
+                    //#else
+                    //$$ BufferRenderer.drawWithGlobalProgram(meshData);
+                    //$$ meshData.close();
                     //#endif
 
 
@@ -147,10 +147,10 @@ public class HighlightBlockRenderer implements IRenderer {
         }
 
         //#if MC > 12104
-        //$$ RenderSystem.setShaderFog(RenderSystem.getShaderFog());
+        RenderSystem.setShaderFog(RenderSystem.getShaderFog());
         //#else
-        RenderSystem.enableCull();
-        RenderSystem.disableBlend();
+        //$$ RenderSystem.enableCull();
+        //$$ RenderSystem.disableBlend();
         //#endif
 
 

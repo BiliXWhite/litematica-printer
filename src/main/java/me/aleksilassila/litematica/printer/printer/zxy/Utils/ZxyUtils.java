@@ -1,13 +1,8 @@
 package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 
-import com.google.common.collect.Lists;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
-import fi.dy.masa.malilib.gui.Message;
-import fi.dy.masa.malilib.util.InfoUtils;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
@@ -23,13 +18,9 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.mob.ShulkerEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
-import net.minecraft.network.packet.c2s.play.CreativeInventoryActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
@@ -51,21 +42,6 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#else
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //#endif
-//#if MC >= 12006
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.component.type.ItemEnchantmentsComponent;
-import net.minecraft.registry.entry.RegistryEntry;
-//#endif
-
-//#if MC <= 12006
-//$$import net.minecraft.enchantment.EnchantmentHelper;
-//#endif
-
-//#if MC >= 12105
-//$$ import com.google.common.primitives.Shorts;
-//$$ import com.google.common.primitives.SignedBytes;
-//$$ import net.minecraft.screen.sync.ItemStackHash;
-//#endif
 
 //#if MC > 11802
 import net.minecraft.text.MutableText;
@@ -73,16 +49,8 @@ import net.minecraft.text.MutableText;
 //$$ import net.minecraft.text.TranslatableText;
 //#endif
 
-//#if MC >= 12109
-//$$ import me.aleksilassila.litematica.printer.mixin.bilixwhite.accessors.EasyPlaceUtilsAccessor;
-//#else
-import fi.dy.masa.litematica.util.WorldUtils;
-//#endif
-
 import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.SYNC_INVENTORY_COLOR;
-import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.getEmptyPickBlockableHotbarSlot;
-import static me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix.getPickBlockTargetSlot;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static net.minecraft.block.ShulkerBoxBlock.FACING;
@@ -103,8 +71,6 @@ public class ZxyUtils {
     public static String syncInventoryId = "syncInventory";
 
     private static int sequence = 0;
-    private static boolean isSwitching = true;
-
     public static void startAddPrinterInventory(){
         getReadyColor();
         if (LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() && !printerMemoryAdding) {
@@ -171,7 +137,7 @@ public class ZxyUtils {
                                     //#if MC > 12103
                                     !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F, pos.toBottomCenterPos()).offset(pos).contract(1.0E-6)) &&
                                     //#elseif MC <= 12103 && MC > 12004
-                                    //!client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
+                                    //$$ //!client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
                                     //#elseif MC <= 12004
                                     //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
                                     //#endif
@@ -385,167 +351,8 @@ public class ZxyUtils {
         remoteTime = 0;
     }
 
-    public static int getEnchantmentLevel(ItemStack itemStack,
-                                          //#if MC > 12006
-                                          RegistryKey<Enchantment> enchantment
-                                          //#else
-                                          //$$ Enchantment enchantment
-                                          //#endif
-    ){
-        //#if MC > 12006
-        ItemEnchantmentsComponent enchantments = itemStack.getEnchantments();
-
-        if (enchantments.equals(ItemEnchantmentsComponent.DEFAULT)) return -1;
-        Set<RegistryEntry<Enchantment>> enchantmentsEnchantments = enchantments.getEnchantments();
-        for (RegistryEntry<Enchantment> entry : enchantmentsEnchantments) {
-            if (entry.matchesKey(enchantment)) {
-                return enchantments.getLevel(entry);
-            }
-        }
-        return -1;
-        //#else
-        //$$ return EnchantmentHelper.getLevel(enchantment,itemStack);
-        //#endif
-    }
-
     public static int getSequence() {
         return sequence++;
-    }
-
-    /**
-     * 将指定槽位的物品设置为玩家当前手持物品。
-     * <p>
-     * 如果目标槽位是快捷栏槽位，则直接选中该槽位；
-     * 否则尝试寻找一个合适的快捷栏槽位来放置该物品：
-     * 1. 若 sourceSlot 为 -1 或无效，则优先使用空的可拾取槽位；
-     * 2. 若没有空槽，则根据配置选择一个目标槽位；
-     * 3. 在创造模式下通过交换方式将物品放入快捷栏；
-     * 4. 在生存模式下通过点击槽位交换的方式进行操作。
-     *
-     * @param sourceSlot 源物品所在的槽位索引（若为 -1 表示未指定）
-     * @param stack      要设置到手中的物品堆栈
-     * @return 是否成功设置了手持物品
-     */
-    public static boolean setPickedItemToHand(int sourceSlot, ItemStack stack) {
-        PlayerEntity player = client.player;
-        PlayerInventory inventory = player.getInventory();
-        var usePacket = LitematicaPrinterMod.PLACE_USE_PACKET.getBooleanValue();
-
-        // 如果源槽位是有效的快捷栏索引，直接切换选中该槽位
-        if (PlayerInventory.isValidHotbarIndex(sourceSlot)) {
-            selectHotbarSlot(sourceSlot, inventory, usePacket);
-            return true;
-        } else {
-            int hotbarSlot = sourceSlot;
-
-            // 如果源槽位无效，尝试获取一个空的可用于拾取的快捷栏槽位
-            if (sourceSlot == -1 || !PlayerInventory.isValidHotbarIndex(sourceSlot)) {
-                hotbarSlot = getEmptyPickBlockableHotbarSlot(inventory);
-            }
-
-            // 如果仍然没有找到合适槽位，则根据规则获取一个目标槽位
-            if (hotbarSlot == -1) {
-                hotbarSlot = getPickBlockTargetSlot(player);
-            }
-
-            // 如果找到了一个合适的快捷栏槽位
-            if (hotbarSlot != -1) {
-                // 先选中槽位
-                selectHotbarSlot(hotbarSlot, inventory, usePacket);
-
-                // 如果是创造模式，直接交换物品到快捷栏
-                if (player.isCreative()) {
-                    //#if MC <= 12103
-                    //$$ player.getInventory().addPickBlock(stack.copy());
-                    //#else
-                    player.getInventory().swapStackWithHotbar(stack.copy());
-                    //#endif
-                    if (usePacket)
-                        client.getNetworkHandler().sendPacket(new CreativeInventoryActionC2SPacket(36 + player.getInventory().selectedSlot, stack));
-                    else
-                        client.interactionManager.clickCreativeStack(stack, 36 + player.getInventory().selectedSlot);
-
-                } else {
-                    // 生存模式处理逻辑：查找物品所在槽位，并执行交换操作
-                    int slot1 = fi.dy.masa.malilib.util.InventoryUtils.findSlotWithItem(player.playerScreenHandler, stack.copy(), true);
-                    if (slot1 != -1) {
-                        // 使用数据包或普通点击方式交换槽位中的物品
-                        if (usePacket) {
-                            isSwitching = !isSwitching;
-                            DefaultedList<Slot> slots = player.currentScreenHandler.slots;
-                            int totalSlots = slots.size();
-                            List<ItemStack> copies = Lists.newArrayListWithCapacity(totalSlots);
-                            for (Slot slotItem : slots) {
-                                copies.add(slotItem.getStack().copy());
-                            }
-
-                            Int2ObjectMap<
-                                    //#if MC >= 12105
-                                    //$$ ItemStackHash
-                                    //#else
-                                    ItemStack
-                                    //#endif
-                                    > snapshot = new Int2ObjectOpenHashMap<>();
-                            for (int j = 0; j < totalSlots; j++) {
-                                ItemStack original = copies.get(j);
-                                ItemStack current = slots.get(j).getStack();
-                                if (!ItemStack.areEqual(original, current)) {
-                                    snapshot.put(j,
-                                            //#if MC >=12105
-                                            //$$ ItemStackHash.fromItemStack(current, client.getNetworkHandler().method_68823())
-                                            //#else
-                                            current.copy()
-                                            //#endif
-                                    );
-                                }
-                            }
-
-                            //#if MC >= 12105
-                            //$$ItemStackHash itemStackHash = ItemStackHash.fromItemStack(player.currentScreenHandler.getCursorStack(), client.getNetworkHandler().method_68823());
-                            //#endif
-                            client.getNetworkHandler().sendPacket(new ClickSlotC2SPacket(
-                                    player.playerScreenHandler.syncId,
-                                    player.currentScreenHandler.getRevision(),
-                                    //#if MC >= 12105
-                                    //$$ Shorts.checkedCast((long)slot1),
-                                    //$$ SignedBytes.checkedCast((long)hotbarSlot),
-                                    //#else
-                                    slot1,
-                                    hotbarSlot,
-                                    //#endif
-                                    SlotActionType.SWAP,
-                                    //#if MC >= 12105
-                                    //$$ snapshot,
-                                    //$$ itemStackHash
-                                    //#else
-                                    stack.copy(),
-                                    snapshot
-                                    //#endif
-                            ));
-                            client.player.currentScreenHandler.onSlotClick(slot1, hotbarSlot, SlotActionType.SWAP, player);
-                            //#if MC < 12109
-                            WorldUtils.setEasyPlaceLastPickBlockTime();
-                            //#else
-                            //EasyPlaceUtilsAccessor.callSetEasyPlaceLastPickBlockTime();
-                            //#endif
-                            return !isSwitching;
-                        } else {
-                            client.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot1, hotbarSlot, SlotActionType.SWAP, player);
-                            return true;
-                        }
-                    }
-                }
-                //#if MC < 12109
-                WorldUtils.setEasyPlaceLastPickBlockTime();
-                //#else
-                //EasyPlaceUtilsAccessor.callSetEasyPlaceLastPickBlockTime();
-                //#endif
-                return true;
-            } else {
-                InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");
-                return false;
-            }
-        }
     }
 
     private static void selectHotbarSlot(int slot, PlayerInventory inventory, boolean usePacket) {
