@@ -5,7 +5,6 @@ import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.*;
@@ -121,14 +120,9 @@ public class PlacementGuide extends PrinterUtils {
                         .setLookDirection(facing);
             }
             case TRAPDOOR -> {
-                Direction half = getHalf(requiredState.get(TrapdoorBlock.HALF));
-
-                Map<Direction, Vec3d> sides = new HashMap<>() {{
-                    put(half, new Vec3d(0, 0, 0));
-                }};
 
                 return new Action()
-                        .setSides(sides)
+                        .setSides(getHalf(requiredState.get(TrapdoorBlock.HALF)))
                         .setLookDirection(requiredState.get(TrapdoorBlock.FACING).getOpposite());
             }
             case STRIP_LOG -> {
@@ -372,12 +366,17 @@ public class PlacementGuide extends PrinterUtils {
             }
             case OBSERVER -> {
                 var facing = requiredState.get(Properties.FACING);
-                var detectBlockPos = pos.offset(facing);
-                if (LitematicaPrinterMod.SAFELY_OBSERVER.getBooleanValue() &&
-                        playerHasAccessToItem(client.player, Items.OBSERVER) &&
-                        world.getBlockState(detectBlockPos) != worldSchematic.getBlockState(detectBlockPos)) {
-                    ZxyUtils.actionBar("[侦测器安全放置] 侦测面方块不正确，跳过放置！");
-                    return null;
+                var beObverseBlock = world.getBlockState(pos.offset(facing));
+                var outputBlockPos = pos.offset(facing.getOpposite());
+                BlockPos observerPos = PlaceUtils.getObserverPosition(pos, worldSchematic);
+                if (LitematicaPrinterMod.SAFELY_OBSERVER.getBooleanValue() && PlaceUtils.getObverseFacingState(pos) != State.CORRECT) {
+                    if (requiredState.get(Properties.FACING) == Direction.UP) {
+                        if (beObverseBlock.canPlaceAt(world, outputBlockPos)) {
+                            return null;
+                        } else {
+                            return new Action().setLookDirection(facing);
+                        }
+                    }
                 }
                 return new Action().setLookDirection(facing);
             }
@@ -436,6 +435,13 @@ public class PlacementGuide extends PrinterUtils {
                 }
                 return action;
             }
+            case PISTON -> {
+                Direction facing = requiredState.get(Properties.FACING);
+
+//                    if (block instanceof PistonBlock) {
+//                        if (client.isInSingleplayer()) action.setWaitTick(2);
+            return new Action().setLookDirection(facing.getOpposite());
+            }
             case SKIP -> {
                 return null;
             }
@@ -468,16 +474,6 @@ public class PlacementGuide extends PrinterUtils {
                     Direction facing = requiredState.get(Properties.HORIZONTAL_FACING);
                     if (block instanceof FenceGateBlock // 栅栏门
                     ) facing = facing.getOpposite();
-                    action.setLookDirection(facing.getOpposite());
-                }
-
-                if (block instanceof FacingBlock) {
-                    Direction facing = requiredState.get(Properties.FACING);
-
-                    if (block instanceof PistonBlock) {
-                        if (client.isInSingleplayer()) action.setWaitTick(2);
-                    }
-
                     action.setLookDirection(facing.getOpposite());
                 }
 
@@ -677,7 +673,7 @@ public class PlacementGuide extends PrinterUtils {
                         BreakManager.addBlockToBreak(pos);
                     }
                 }
-                default -> {
+                case DEFAULT -> {
                     Class<?>[] ignored = new Class<?>[]
                             {FenceBlock.class,
                                     WallBlock.class,
@@ -783,6 +779,7 @@ public class PlacementGuide extends PrinterUtils {
         END_ROD(EndRodBlock.class), // 末地烛
         TRIPWIRE_HOOK(TripwireHookBlock.class), // 绊线钩
         RAIL(AbstractRailBlock.class), // 铁轨
+        PISTON(PistonBlock.class), // 活塞
 
         // 点击
         FLOWER_POT(FlowerPotBlock.class), // 花盆
@@ -1043,16 +1040,6 @@ public class PlacementGuide extends PrinterUtils {
          */
         public Action setUseShift() {
             return this.setUseShift(true);
-        }
-
-        /**
-         * 设置放置后等待的刻数
-         * @param waitTick 游戏刻数量
-         * @return 当前 Action 实例
-         */
-        public Action setWaitTick(int waitTick) {
-            this.waitTick = waitTick;
-            return this;
         }
 
         /**

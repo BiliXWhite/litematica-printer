@@ -70,8 +70,8 @@ import net.minecraft.registry.Registries;
 //#endif
 
 //#if MC > 12105
-//$$import net.minecraft.util.PlayerInput;
-//$$import net.minecraft.network.packet.c2s.play.PlayerInputC2SPacket;
+//$$ import net.minecraft.util.PlayerInput;
+//$$ import net.minecraft.network.packet.c2s.play.PlayerInputC2SPacket;
 //#else
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 //#endif
@@ -317,10 +317,6 @@ public class Printer extends PrinterUtils {
             shulkerCooldown--;
         }
 
-        if (waitTicks > 0) {
-            waitTicks--;
-        }
-
         Iterator<Map.Entry<BlockPos, Integer>> iterator = placeCooldownList.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<BlockPos, Integer> entry = iterator.next();
@@ -364,8 +360,6 @@ public class Printer extends PrinterUtils {
                 return;
             }
         }
-
-        if (waitTicks > 0) return;
 
         // 0tick修复
         if (needDelay) {
@@ -421,7 +415,6 @@ public class Printer extends PrinterUtils {
             if (!isSchematicBlock(pos)) continue;
 
             requiredState = schematic.getBlockState(pos);
-            currentState = world.getBlockState(pos);
 
             // 检查放置跳过列表
             if (PUT_SKIP.getBooleanValue()) {
@@ -484,7 +477,6 @@ public class Printer extends PrinterUtils {
                 if (block instanceof PistonBlock) {
                     pistonNeedFix = true;
                 }
-                waitTicks = action.getWaitTick();
 
                 if (tickRate == 0) {
                     if (block instanceof PistonBlock ||
