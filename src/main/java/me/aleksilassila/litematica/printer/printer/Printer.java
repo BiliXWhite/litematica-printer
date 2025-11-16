@@ -104,9 +104,9 @@ public class Printer extends PrinterUtils {
     int printRange = PRINTER_RANGE.getIntegerValue();
     boolean printerYAxisReverse = false;
     int tickRate = PRINTER_SPEED.getIntegerValue();
-    List<String> fluidBlocklist =  new ArrayList<>();
-    List<String> fluidList =  new ArrayList<>();
-    List<String> fillBlocklist =  new ArrayList<>();
+    List<String> fluidBlocklist = new ArrayList<>();
+    List<String> fluidList = new ArrayList<>();
+    List<String> fillBlocklist = new ArrayList<>();
     private boolean needDelay;
     private int printerWorkingCountPerTick = BLOCKS_PER_TICK.getIntegerValue();
 
@@ -168,8 +168,8 @@ public class Printer extends PrinterUtils {
             // 只有在形状为球体的时候才判断在不在距离内
             if (
                     ((isPrinterMode() && isSchematicBlock(pos)) ||
-                    TempData.xuanQuFanWeiNei_p(pos)) &&
-                    PlaceUtils.canInteracted(pos)
+                            TempData.xuanQuFanWeiNei_p(pos)) &&
+                            PlaceUtils.canInteracted(pos)
             ) {
                 return pos;
             }
@@ -274,6 +274,7 @@ public class Printer extends PrinterUtils {
 
 
     BlockPos breakPos = null;
+
     void mineMode() {
         BlockPos pos;
         while ((pos = breakPos == null ? getBlockPos() : breakPos) != null) {
@@ -299,6 +300,9 @@ public class Printer extends PrinterUtils {
         }
         if (!BedrockUtils.isWorking()) {
             BedrockUtils.setWorking(true);
+        }
+        if (BedrockUtils.isBedrockMinerFeatureEnable()) {   // 限制原功能(手动点击或使用方块：添加、开关)
+            BedrockUtils.setBedrockMinerFeatureEnable(false);
         }
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
@@ -367,28 +371,28 @@ public class Printer extends PrinterUtils {
             needDelay = false;
         }
 
-        if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)) {
+        if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)) {
             boolean multiBreakBooleanValue = MULTI_BREAK.getBooleanValue();
             if (LitematicaPrinterMod.MINE.getBooleanValue()) {
                 printerYAxisReverse = true;
                 mineMode();
-                if(multiBreakBooleanValue) return;
+                if (multiBreakBooleanValue) return;
             }
             if (LitematicaPrinterMod.FLUID.getBooleanValue()) {
                 fluidMode();
-                if(multiBreakBooleanValue) return;
+                if (multiBreakBooleanValue) return;
             }
             if (LitematicaPrinterMod.FILL.getBooleanValue()) {
                 fillMode();
-                if(multiBreakBooleanValue) return;
+                if (multiBreakBooleanValue) return;
             }
             if (LitematicaPrinterMod.BEDROCK.getBooleanValue()) {
                 printerYAxisReverse = true;
                 bedrockMode();
-                if(multiBreakBooleanValue) return;
+                if (multiBreakBooleanValue) return;
             }
         } else if (PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType modeType && modeType != PRINTER) {
-            switch (modeType){
+            switch (modeType) {
                 case MINE -> {
                     printerYAxisReverse = true;
                     mineMode();
@@ -465,7 +469,7 @@ public class Printer extends PrinterUtils {
                 action.queueAction(queue, pos, side, useShift);
 
                 Vec3d hitModifier = usePrecisionPlacement(pos, requiredState);
-                if(hitModifier != null){
+                if (hitModifier != null) {
                     queue.hitModifier = hitModifier;
                     queue.termsOfUse = true;
                 }
@@ -486,7 +490,7 @@ public class Printer extends PrinterUtils {
                             block instanceof WallBannerBlock
                             //#if MC >= 12101
                             || block instanceof CrafterBlock
-                        //#endif
+                            //#endif
                             || block instanceof WallSignBlock
                             || block instanceof GrindstoneBlock
                     ) {
@@ -540,16 +544,13 @@ public class Printer extends PrinterUtils {
         return workProgress;
     }
 
-    public Vec3d usePrecisionPlacement(BlockPos pos,BlockState stateSchematic) {
+    public Vec3d usePrecisionPlacement(BlockPos pos, BlockState stateSchematic) {
         if (EASYPLACE_PROTOCOL.getBooleanValue()) {
             EasyPlaceProtocol protocol = PlacementHandler.getEffectiveProtocolVersion();
             Vec3d hitPos = Vec3d.of(pos);
-            if (protocol == EasyPlaceProtocol.V3)
-            {
+            if (protocol == EasyPlaceProtocol.V3) {
                 return applyPlacementProtocolV3(pos, stateSchematic, hitPos);
-            }
-            else if (protocol == EasyPlaceProtocol.V2)
-            {
+            } else if (protocol == EasyPlaceProtocol.V2) {
                 // Carpet Accurate Block Placement protocol support, plus slab support
                 return applyCarpetProtocolHitVec(pos, stateSchematic, hitPos);
             }
@@ -606,7 +607,9 @@ public class Printer extends PrinterUtils {
         queue.lookDirPitch = directionPitch;
     }
 
-    public void clearQueue() { queue.clearQueue();}
+    public void clearQueue() {
+        queue.clearQueue();
+    }
 
     public static class TempData {
         public static boolean xuanQuFanWeiNei_p(BlockPos pos) {
@@ -724,7 +727,7 @@ public class Printer extends PrinterUtils {
             clearQueue();
         }
 
-        public void setShift(ClientPlayerEntity player , boolean shift) {
+        public void setShift(ClientPlayerEntity player, boolean shift) {
             //#if MC > 12105
             PlayerInput input = new PlayerInput(player.input.playerInput.forward(), player.input.playerInput.backward(), player.input.playerInput.left(), player.input.playerInput.right(), player.input.playerInput.jump(), shift, player.input.playerInput.sprint());
             PlayerInputC2SPacket packet = new PlayerInputC2SPacket(input);
