@@ -55,7 +55,6 @@ public class BedrockUtils {
     public static void addRegionTask(String name, ClientWorld world, BlockPos pos1, BlockPos pos2) {
         if (taskManagerInstance == null) return;
         try {
-            // 3. 修正 addRegionTask 反射调用时的参数顺序
             addRegionTaskMethod.invoke(taskManagerInstance, name, world, pos1, pos2);
         } catch (Exception e) {
             e.printStackTrace();
@@ -93,6 +92,7 @@ public class BedrockUtils {
         if (taskManagerInstance == null) return; // 提前检查实例
         try {
             setRunningMethod.invoke(taskManagerInstance, running, showMessage);
+            if (!running) clearTask();  // 忘记加了
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -116,7 +116,7 @@ public class BedrockUtils {
             e.printStackTrace();
         }
     }
-
+    // 待测试
     public static boolean isInTasks(ClientWorld world, BlockPos blockPos) { // 修正方法名和参数
         if (taskManagerInstance == null) return false;
         try {
