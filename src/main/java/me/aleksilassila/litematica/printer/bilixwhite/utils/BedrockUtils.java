@@ -11,12 +11,15 @@ import java.lang.reflect.Method;
 
 public class BedrockUtils {
     private static final MinecraftClient client = MinecraftClient.getInstance();
+    private static Object taskManagerInstance;
     private static Method addBlockTaskMethod;
     private static Method addRegionTaskMethod;
     private static Method clearTaskMethod;
     private static Method isRunningMethod;
     private static Method setRunningMethod;
-    private static Object taskManagerInstance;
+    private static Method isInTasksMethod;
+    private static Method isBedrockMinerFeatureEnableMethod;
+    private static Method setBedrockMinerFeatureEnableMethod;
 
     static {
         if (Statistics.loadBedrockMiner) {
@@ -28,8 +31,10 @@ public class BedrockUtils {
                 addRegionTaskMethod = taskManagerClass.getDeclaredMethod("addRegionTask", String.class, ClientWorld.class, BlockPos.class, BlockPos.class);
                 clearTaskMethod = taskManagerClass.getDeclaredMethod("clearTask");
                 isRunningMethod = taskManagerClass.getDeclaredMethod("isRunning");
-                setRunningMethod = taskManagerClass.getDeclaredMethod("setRunning", boolean.class);
-
+                setRunningMethod = taskManagerClass.getDeclaredMethod("setRunning", boolean.class, boolean.class);
+                isInTasksMethod = taskManagerClass.getDeclaredMethod("isInTasks", ClientWorld.class, BlockPos.class);
+                isBedrockMinerFeatureEnableMethod = taskManagerClass.getDeclaredMethod("isBedrockMinerFeatureEnable");
+                setBedrockMinerFeatureEnableMethod = taskManagerClass.getDeclaredMethod("setBedrockMinerFeatureEnable", boolean.class);
             } catch (Exception e) {
                 e.printStackTrace();
                 taskManagerInstance = null;
@@ -50,7 +55,8 @@ public class BedrockUtils {
     public static void addRegionTask(String name, ClientWorld world, BlockPos pos1, BlockPos pos2) {
         if (taskManagerInstance == null) return;
         try {
-            addRegionTaskMethod.invoke(taskManagerInstance, world, pos1, pos2);
+            // 3. 修正 addRegionTask 反射调用时的参数顺序
+            addRegionTaskMethod.invoke(taskManagerInstance, name, world, pos1, pos2);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -59,7 +65,7 @@ public class BedrockUtils {
     public static void clearTask() {
         if (taskManagerInstance == null) return;
         try {
-            clearTaskMethod.invoke(taskManagerInstance);
+            clearTaskMethod.invoke(null); // clearTask 是静态方法，应传递 null
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -75,16 +81,49 @@ public class BedrockUtils {
         }
     }
 
-    public static void setWorking(boolean bool) {
-        if (client.player != null && client.player.isCreative() && bool) {
+    public static void setWorking(boolean running) {
+        BedrockUtils.setWorking(running, true);
+    }
+
+    public static void setWorking(boolean running, boolean showMessage) {
+        if (client.player != null && client.player.isCreative() && running) {
             ZxyUtils.actionBar("创造模式下不支持破基岩！");
             return;
         }
+        if (taskManagerInstance == null) return; // 提前检查实例
         try {
-            setRunningMethod.invoke(taskManagerInstance, bool);
+            setRunningMethod.invoke(taskManagerInstance, running, showMessage);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (!bool) clearTask();
+    }
+
+    public static boolean isBedrockMinerFeatureEnable() {
+        if (taskManagerInstance == null) return false;
+        try {
+            return (boolean) isBedrockMinerFeatureEnableMethod.invoke(taskManagerInstance);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static void setBedrockMinerFeatureEnable(boolean bedrockMinerFeatureEnable) {
+        if (taskManagerInstance == null) return;
+        try {
+            setBedrockMinerFeatureEnableMethod.invoke(taskManagerInstance, bedrockMinerFeatureEnable);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static boolean isInTasks(ClientWorld world, BlockPos blockPos) { // 修正方法名和参数
+        if (taskManagerInstance == null) return false;
+        try {
+            return (boolean) isInTasksMethod.invoke(taskManagerInstance, world, blockPos);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

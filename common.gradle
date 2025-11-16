@@ -141,6 +141,11 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
+    if (mcVersion > 12006){
+
+    }
+
+
     mod_dependencies.forEach { item ->
         def dependencyNotation = item[0]
         def id = item[1]

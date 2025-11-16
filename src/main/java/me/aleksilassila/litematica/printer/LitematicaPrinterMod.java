@@ -482,6 +482,7 @@ public class LitematicaPrinterMod implements ModInitializer, ClientModInitialize
                 if (Statistics.loadBedrockMiner) {
                     if (BedrockUtils.isWorking()) {
                         BedrockUtils.setWorking(false);
+                        BedrockUtils.setBedrockMinerFeatureEnable(true);
                     }
                 }
             }
