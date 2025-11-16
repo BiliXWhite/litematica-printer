@@ -81,7 +81,7 @@ public class BedrockUtils {
     }
 
     public static void setWorking(boolean running) {
-        BedrockUtils.setWorking(running, true);
+        BedrockUtils.setWorking(running, false);
     }
 
     public static void setWorking(boolean running, boolean showMessage) {
