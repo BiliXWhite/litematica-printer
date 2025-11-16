@@ -116,7 +116,7 @@ public class BreakManager {
     private void resetBreakTarget() {
         // 性能优化：避免不必要的remove操作
         if (breakPos != null) {
-            Printer.placeCooldownList.put(breakPos, -4);
+            Printer.placeCooldownList.put(breakPos, 4);
             breakTargets.remove(breakPos);
         }
         updateTarget();
