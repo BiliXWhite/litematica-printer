@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.Shadow;
 //#if MC < 11904
 //$$ import net.minecraft.world.World;
 //$$ import net.minecraft.client.world.ClientWorld;
-
+//$$
 //#endif
 
 @Mixin(ClientPlayerInteractionManager.class)

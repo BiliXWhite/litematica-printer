@@ -212,7 +212,7 @@ public class LitematicaPrinterMod implements ModInitializer, ClientModInitialize
             "有序存放", false,
             "在背包满时尝试将从远程交互容器或快捷潜影盒中取出的物品还原到之前位置。"
                     //#if MC == 11802
-                    + "\n在1.18.2版本表现不好，可能会会导致卡顿，建议关闭。"
+                    //$$ + "\n在1.18.2版本表现不好，可能会会导致卡顿，建议关闭。"
             //#endif
     );
     public static final ConfigStringList INVENTORY_LIST = new ConfigStringList(

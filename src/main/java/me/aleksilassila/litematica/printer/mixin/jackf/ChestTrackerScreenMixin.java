@@ -133,13 +133,13 @@ public abstract class ChestTrackerScreenMixin extends Screen {
     @Shadow public abstract void close();
 
     //#if MC < 12109
-    @Inject(at = @At("HEAD"),method = "keyPressed", cancellable = true)
-    public void keyPressed1(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir){
-        if (MinecraftClient.getInstance().options.inventoryKey.matchesKey(keyCode, scanCode) && !(this.getFocused() instanceof TextFieldWidget) ) {
-            this.close();
-        cir.setReturnValue(true);
-        }
-    }
+    //$$ @Inject(at = @At("HEAD"),method = "keyPressed", cancellable = true)
+    //$$ public void keyPressed1(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir){
+    //$$     if (MinecraftClient.getInstance().options.inventoryKey.matchesKey(keyCode, scanCode) && !(this.getFocused() instanceof TextFieldWidget) ) {
+    //$$         this.close();
+    //$$     cir.setReturnValue(true);
+    //$$     }
+    //$$ }
     //#endif
 }
 //#endif

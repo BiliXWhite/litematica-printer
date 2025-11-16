@@ -12,6 +12,7 @@ import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
@@ -70,10 +71,10 @@ import net.minecraft.registry.Registries;
 //#endif
 
 //#if MC > 12105
-//$$ import net.minecraft.util.PlayerInput;
-//$$ import net.minecraft.network.packet.c2s.play.PlayerInputC2SPacket;
+import net.minecraft.util.PlayerInput;
+import net.minecraft.network.packet.c2s.play.PlayerInputC2SPacket;
 //#else
-import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
+//$$ import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 //#endif
 
 public class Printer extends PrinterUtils {
@@ -112,8 +113,7 @@ public class Printer extends PrinterUtils {
     public static int packetTick;
     public static boolean updateChecked = false;
     public static BlockState requiredState;
-    public static BlockState currentState;
-    private int waitTicks;
+
 
     // 活塞修复
     public static boolean pistonNeedFix = false;
@@ -582,7 +582,7 @@ public class Printer extends PrinterUtils {
 //                ZxyUtils.setPickedItemToHand(
 //                        player.getInventory().getSlotWithStack(stack),
 //                        stack);
-                client.interactionManager.clickCreativeStack(client.player.getStackInHand(Hand.MAIN_HAND), 36 + inv.selectedSlot);
+                client.interactionManager.clickCreativeStack(client.player.getStackInHand(Hand.MAIN_HAND), 36 + PreprocessUtils.getSelectedSlot(inv));
                 return true;
             }
         }
@@ -726,10 +726,10 @@ public class Printer extends PrinterUtils {
 
         public void setShift(ClientPlayerEntity player , boolean shift) {
             //#if MC > 12105
-            //$$ PlayerInput input = new PlayerInput(player.input.playerInput.forward(), player.input.playerInput.backward(), player.input.playerInput.left(), player.input.playerInput.right(), player.input.playerInput.jump(), shift, player.input.playerInput.sprint());
-            //$$ PlayerInputC2SPacket packet = new PlayerInputC2SPacket(input);
+            PlayerInput input = new PlayerInput(player.input.playerInput.forward(), player.input.playerInput.backward(), player.input.playerInput.left(), player.input.playerInput.right(), player.input.playerInput.jump(), shift, player.input.playerInput.sprint());
+            PlayerInputC2SPacket packet = new PlayerInputC2SPacket(input);
             //#else
-            ClientCommandC2SPacket packet = new ClientCommandC2SPacket(player, shift ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY);
+            //$$ ClientCommandC2SPacket packet = new ClientCommandC2SPacket(player, shift ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY);
             //#endif
             player.setSneaking(shift);
             player.networkHandler.sendPacket(packet);

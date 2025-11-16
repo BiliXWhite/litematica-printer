@@ -65,9 +65,9 @@ public class OpenInventoryPacket {
     static MinecraftClient client = MinecraftClient.getInstance();
 
     //#if MC > 12104
-    //$$ private static final ChunkTicketType OPEN_TICKET = ChunkTicketType.UNKNOWN;
+    private static final ChunkTicketType OPEN_TICKET = ChunkTicketType.UNKNOWN;
     //#else
-    private static final ChunkTicketType<ChunkPos> OPEN_TICKET = ChunkTicketType.create("openInv", Comparator.comparingLong(ChunkPos::toLong), 2);
+    //$$ private static final ChunkTicketType<ChunkPos> OPEN_TICKET = ChunkTicketType.create("openInv", Comparator.comparingLong(ChunkPos::toLong), 2);
     //#endif
     public static HashMap<ServerPlayerEntity, TickList> tickMap = new HashMap<>();
     public static boolean openIng = false;
@@ -216,7 +216,7 @@ public class OpenInventoryPacket {
         //#if MC > 12004
         ServerPlayNetworking.registerGlobalReceiver(OPEN_INVENTORY_ID, (payload,context) -> {
             if (payload instanceof OpenPackage packetByteBuf) {
-                context.player().getWorld().getServer().execute(() -> openInv(context.player().getWorld().getServer(), context.player(), packetByteBuf.pos, packetByteBuf.world));
+                context.player().getEntityWorld().getServer().execute(() -> openInv(context.player().getEntityWorld().getServer(), context.player(), packetByteBuf.pos, packetByteBuf.world));
             }
         });
         //#else
@@ -246,9 +246,9 @@ public class OpenInventoryPacket {
         BlockState blockState = world.getBlockState(pos);
         if (blockState == null) {
             //#if MC > 12104
-            //$$ world.getChunkManager().addTicket(OPEN_TICKET, new ChunkPos(pos), 2);
+            world.getChunkManager().addTicket(OPEN_TICKET, new ChunkPos(pos), 2);
             //#else
-            world.getChunkManager().addTicket(OPEN_TICKET, new ChunkPos(pos), 2, new ChunkPos(pos));
+            //$$ world.getChunkManager().addTicket(OPEN_TICKET, new ChunkPos(pos), 2, new ChunkPos(pos));
             //#endif
         }
         playerlist.add(player);
@@ -261,7 +261,7 @@ public class OpenInventoryPacket {
                 //#if MC > 12103
                 !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F, pos.toBottomCenterPos()).offset(pos).contract(1.0E-6)) &&
                 //#elseif MC <= 12103 && MC > 12004
-                //!client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
+                //$$ //!client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
                 //#elseif MC <= 12004
                 //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
                 //#endif

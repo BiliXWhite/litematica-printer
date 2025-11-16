@@ -42,7 +42,7 @@ import net.minecraft.text.Text;
 //#endif
 
 //#if MC >= 12105
-//$$ import java.net.URI;
+import java.net.URI;
 //#endif
 
 @Mixin(ClientPlayerEntity.class)
@@ -111,9 +111,9 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 							Text.literal("https://github.com/BiliXWhite/litematica-printer")
 									.setStyle(Style.EMPTY
 											//#if MC >= 12105
-											//$$ .withClickEvent(new ClickEvent.OpenUrl(URI.create("https://github.com/BiliXWhite/litematica-printer")))
+											.withClickEvent(new ClickEvent.OpenUrl(URI.create("https://github.com/BiliXWhite/litematica-printer")))
 											//#else
-											.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/BiliXWhite/litematica-printer"))
+											//$$ .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/BiliXWhite/litematica-printer"))
 											//#endif
 											.withUnderline(true)
 											.withColor(Formatting.BLUE)));
@@ -121,9 +121,9 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 							Text.translatable("litematica_printer.update.download")
 									.setStyle(Style.EMPTY
 											//#if MC >= 12105
-											//$$ .withClickEvent(new ClickEvent.OpenUrl(URI.create("https://xeno.lanzoue.com/b00l1v20vi")))
+											.withClickEvent(new ClickEvent.OpenUrl(URI.create("https://xeno.lanzoue.com/b00l1v20vi")))
 											//#else
-											.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi"))
+											//$$ .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi"))
 											//#endif
 											.withBold(true)
 											.withColor(Formatting.GREEN)));
