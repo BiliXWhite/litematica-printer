@@ -109,6 +109,7 @@ public class Printer extends PrinterUtils {
     List<String> fillBlocklist = new ArrayList<>();
     private boolean needDelay;
     private int printerWorkingCountPerTick = BLOCKS_PER_TICK.getIntegerValue();
+    private int waitTicks = 0;
 
     public static int packetTick;
     public static boolean updateChecked = false;
@@ -214,7 +215,7 @@ public class Printer extends PrinterUtils {
             if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
             // 跳过冷却中的位置
             if (placeCooldownList.containsKey(pos)) continue;
-            placeCooldownList.put(pos, 0);
+            placeCooldownList.put(pos, PLACE_COOLDOWN.getIntegerValue());
 
             FluidState fluidState = client.world.getBlockState(pos).getFluidState();
             if (Arrays.asList(fluidArray).contains(fluidState.getFluid())) {
@@ -254,7 +255,7 @@ public class Printer extends PrinterUtils {
             if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
             // 跳过冷却中的位置
             if (placeCooldownList.containsKey(pos)) continue;
-            placeCooldownList.put(pos, 0);
+            placeCooldownList.put(pos, PLACE_COOLDOWN.getIntegerValue());
 
             var currentState = client.world.getBlockState(pos);
             if (currentState.isAir() || (currentState.getBlock() instanceof FluidBlock) || REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> equalsBlockName(s, currentState))) {
@@ -312,7 +313,7 @@ public class Printer extends PrinterUtils {
             }
             BedrockUtils.addToBreakList(pos, client.world);
             // 原谅我使用硬编码plz 我真的不想写太多的优化了555
-            placeCooldownList.put(pos, -400);
+            placeCooldownList.put(pos, 100);
         }
     }
 
@@ -324,8 +325,8 @@ public class Printer extends PrinterUtils {
         Iterator<Map.Entry<BlockPos, Integer>> iterator = placeCooldownList.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<BlockPos, Integer> entry = iterator.next();
-            int newValue = entry.getValue() + 1;
-            if (newValue >= PLACE_COOLDOWN.getIntegerValue()) {
+            int newValue = entry.getValue() - 1;
+            if (newValue <= 0) {
                 iterator.remove();
             } else {
                 entry.setValue(newValue);
@@ -369,6 +370,11 @@ public class Printer extends PrinterUtils {
         if (needDelay) {
             queue.sendQueue(player);
             needDelay = false;
+        }
+
+        if (waitTicks > 0) {
+            waitTicks--;
+            return;
         }
 
         if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)) {
@@ -431,7 +437,7 @@ public class Printer extends PrinterUtils {
             // 跳过冷却中的位置
             if (placeCooldownList.containsKey(pos)) continue;
             // 放置冷却
-            placeCooldownList.put(pos, 0);
+            placeCooldownList.put(pos, PLACE_COOLDOWN.getIntegerValue());
 
             // 检查放置条件
             PlacementGuide.Action action = guide.getAction(world, schematic, pos);
@@ -445,7 +451,6 @@ public class Printer extends PrinterUtils {
                     continue;
                 }
             }
-
 
             Direction side = action.getValidSide(world, pos);
             if (side == null) continue;
@@ -481,6 +486,8 @@ public class Printer extends PrinterUtils {
                 if (block instanceof PistonBlock) {
                     pistonNeedFix = true;
                 }
+
+                waitTicks = action.getWaitTick();
 
                 if (tickRate == 0) {
                     if (block instanceof PistonBlock ||

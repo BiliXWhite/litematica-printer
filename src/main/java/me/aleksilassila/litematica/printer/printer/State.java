@@ -1,10 +1,13 @@
 package me.aleksilassila.litematica.printer.printer;
 
+import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.StringUtils;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.math.BlockPos;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -37,6 +40,12 @@ public enum State {
         ) return MISSING_BLOCK;
         // 其他情况返回错误方块状态
         else return WRONG_BLOCK;
+    }
+
+    public static State get(BlockPos pos) {
+        BlockState schematicBlockState = SchematicWorldHandler.getSchematicWorld().getBlockState(pos);
+        BlockState currentBlockState = MinecraftClient.getInstance().world.getBlockState(pos);
+        return get(schematicBlockState, currentBlockState);
     }
 
 

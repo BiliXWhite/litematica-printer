@@ -366,18 +366,30 @@ public class PlacementGuide extends PrinterUtils {
             }
             case OBSERVER -> {
                 var facing = requiredState.get(Properties.FACING);
-                var beObverseBlock = world.getBlockState(pos.offset(facing));
+                var beObserveBlockState = world.getBlockState(pos.offset(facing));
                 var outputBlockPos = pos.offset(facing.getOpposite());
-                BlockPos observerPos = PlaceUtils.getObserverPosition(pos, worldSchematic);
-                if (LitematicaPrinterMod.SAFELY_OBSERVER.getBooleanValue() && PlaceUtils.getObverseFacingState(pos) != State.CORRECT) {
-                    if (requiredState.get(Properties.FACING) == Direction.UP) {
-                        if (beObverseBlock.canPlaceAt(world, outputBlockPos)) {
-                            return null;
-                        } else {
-                            return new Action().setLookDirection(facing);
+                BlockState outputState = worldSchematic.getBlockState(outputBlockPos);
+                BlockPos observerPosWorld = PlaceUtils.getObserverPosition(pos, world);
+                BlockPos observerPosSchematic = PlaceUtils.getObserverPosition(pos, worldSchematic);
+                if (LitematicaPrinterMod.SAFELY_OBSERVER.getBooleanValue()) {
+                    if (State.get(pos.offset(facing)) == State.CORRECT) {
+                        // 如果侦测面也是侦测器，那么检查这个侦测器的侦测面是否正确
+                        if (beObserveBlockState.getBlock() instanceof ObserverBlock) {
+                            if (State.get(pos.offset(facing).offset(beObserveBlockState.get(Properties.FACING))) == State.CORRECT) {
+                                return new Action().setWaitTick(2).setLookDirection(facing);
+                            } else {
+                                return null;
+                            }
                         }
-                    }
+                        return new Action().setLookDirection(facing);
+                    } else if (facing == Direction.UP || outputState.isAir())
+                        if (observerPosSchematic != null) {
+                            if (State.get(observerPosSchematic) == State.MISSING_BLOCK)
+                                return new Action().setLookDirection(facing);
+                        } else return new Action().setLookDirection(facing);
+                    return null;
                 }
+
                 return new Action().setLookDirection(facing);
             }
             case LADDER -> {
@@ -437,10 +449,7 @@ public class PlacementGuide extends PrinterUtils {
             }
             case PISTON -> {
                 Direction facing = requiredState.get(Properties.FACING);
-
-//                    if (block instanceof PistonBlock) {
-//                        if (client.isInSingleplayer()) action.setWaitTick(2);
-            return new Action().setLookDirection(facing.getOpposite());
+                return new Action().setLookDirection(facing.getOpposite());
             }
             case SKIP -> {
                 return null;
@@ -779,7 +788,7 @@ public class PlacementGuide extends PrinterUtils {
         END_ROD(EndRodBlock.class), // 末地烛
         TRIPWIRE_HOOK(TripwireHookBlock.class), // 绊线钩
         RAIL(AbstractRailBlock.class), // 铁轨
-        PISTON(PistonBlock.class), // 活塞
+        PISTON(PistonBlock.class), // 活塞 （为了避免被破坏错误状态破坏）
 
         // 点击
         FLOWER_POT(FlowerPotBlock.class), // 花盆
@@ -1048,6 +1057,16 @@ public class PlacementGuide extends PrinterUtils {
          */
         public int getWaitTick() {
             return this.waitTick;
+        }
+
+        /**
+         * 设置放置后需要等待的游戏刻
+         * @param waitTick 整数
+         * @return 当前 Action 实例
+         */
+        public Action setWaitTick(int waitTick) {
+            this.waitTick = waitTick;
+            return this;
         }
 
         public void queueAction(Printer.Queue queue, BlockPos center, Direction side, boolean useShift) {

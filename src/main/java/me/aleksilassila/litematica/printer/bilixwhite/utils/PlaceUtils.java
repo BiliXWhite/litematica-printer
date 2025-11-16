@@ -105,7 +105,31 @@ public class PlaceUtils {
     }
 
     /**
-     * 获取给定位置的侦测器的真侧面方块状态。
+     * 获取输出到这个位置的侦测器的位置。
+     * 该方法会检查给定位置周围的六个方向，查找是否有朝向该位置方向的观察者方块。
+     * 如果找到，则返回该观察者方块的位置；否则返回 null。
+     *
+     * @param pos 要检查的中心位置
+     * @param world 当前的世界对象
+     * @return 观察者方块的位置，如果未找到则返回 null
+     */
+    public static BlockPos getObserverOutputPosition(BlockPos pos, World world) {
+        for (Direction direction : Direction.values()) {
+            BlockPos neighborPos = pos.offset(direction);
+            BlockState neighborState = world.getBlockState(neighborPos);
+            if (neighborState.getBlock() instanceof ObserverBlock) {
+                Direction facing = neighborState.get(ObserverBlock.FACING);
+                if (facing == direction) {
+                    return neighborPos;
+                }
+            }
+        }
+        return null;
+    }
+
+
+    /**
+     * 获取给定位置的侦测器的侦测面方块状态。
      * <p>
      * 如果给定的位置不是侦测器，则返回null
      *
