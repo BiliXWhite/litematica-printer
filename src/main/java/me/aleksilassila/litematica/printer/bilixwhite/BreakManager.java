@@ -2,12 +2,10 @@ package me.aleksilassila.litematica.printer.bilixwhite;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
-import fi.dy.masa.tweakeroo.config.FeatureToggle;
-import fi.dy.masa.tweakeroo.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.TweakerooUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -93,8 +91,12 @@ public class BreakManager {
             // 执行挖掘进度更新
             boolean success;
             try {
-                if (FeatureToggle.TWEAK_TOOL_SWITCH.getBooleanValue())
-                    InventoryUtils.trySwitchToEffectiveTool(breakPos);
+                if (!ModLoadStatus.isTweakerooLoaded()){
+                    if (TweakerooUtils.isToolSwitchEnabled())
+                    {
+                        TweakerooUtils.trySwitchToEffectiveTool(breakPos);
+                    }
+                }
                 success = client.interactionManager.updateBlockBreakingProgress(breakPos, Direction.DOWN);
                 client.interactionManager.cancelBlockBreaking();
             } catch (Exception e) {
@@ -165,7 +167,7 @@ public class BreakManager {
 
     public static boolean breakRestriction(BlockState blockState) {
         if (EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.TWEAKEROO)) {
-            if (!FabricLoader.getInstance().isModLoaded("tweakeroo")) return true;
+            if (!ModLoadStatus.isTweakerooLoaded()) return true;
             UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
                 return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
@@ -205,8 +207,12 @@ public class BreakManager {
 
         // 检查方块是否可以破坏，如果可以则执行挖掘操作
         if (canBreakBlock(pos)) {
-            if (FeatureToggle.TWEAK_TOOL_SWITCH.getBooleanValue())
-                InventoryUtils.trySwitchToEffectiveTool(pos);
+            if (!ModLoadStatus.isTweakerooLoaded()){
+                if (TweakerooUtils.isToolSwitchEnabled())
+                {
+                    TweakerooUtils.trySwitchToEffectiveTool(pos);
+                }
+            }
             client.interactionManager.updateBlockBreakingProgress(pos, Direction.DOWN);
             client.interactionManager.cancelBlockBreaking();
             return (world.getBlockState(pos).isOf(block) && !client.player.isCreative());
