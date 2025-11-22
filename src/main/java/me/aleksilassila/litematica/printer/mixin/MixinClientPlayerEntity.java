@@ -134,13 +134,13 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 							Text.literal("------------------------").formatted(Formatting.GRAY));
 					//#else
 					//$$ client.inGameHud.getChatHud().addMessage(
-					//$$         new LiteralText(String.format(StringUtils.get("update.available"), version, newVersion))
+					//$$         new LiteralText(String.format(StringUtils.get("update.available").toString(), version, newVersion))
 					//$$                 .formatted(Formatting.YELLOW));
 					//$$ client.inGameHud.getChatHud().addMessage(
-					//$$         new LiteralText(StringUtils.get("update.recommendation"))
+					//$$         new LiteralText(StringUtils.get("update.recommendation").toString())
 					//$$                 .formatted(Formatting.RED));
 					//$$ client.inGameHud.getChatHud().addMessage(
-					//$$         new LiteralText(StringUtils.get("update.repository"))
+					//$$         new LiteralText(StringUtils.get("update.repository").toString())
 					//$$                 .formatted(Formatting.WHITE));
 					//$$ client.inGameHud.getChatHud().addMessage(
 					//$$         new LiteralText("https://github.com/BiliXWhite/litematica-printer")
@@ -149,13 +149,13 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 					//$$                         .withUnderline(true)
 					//$$                         .withColor(Formatting.BLUE)));
 					//$$ client.inGameHud.getChatHud().addMessage(
-					//$$         new LiteralText(StringUtils.get("update.download"))
+					//$$         new LiteralText(StringUtils.get("update.download").toString())
 					//$$                 .setStyle(Style.EMPTY
 					//$$                         .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi"))
 					//$$                         .withBold(true)
 					//$$                         .withColor(Formatting.GREEN)));
 					//$$ client.inGameHud.getChatHud().addMessage(
-					//$$         new LiteralText(String.format(StringUtils.get("update.password"), "cgxw")
+					//$$         new LiteralText(String.format(StringUtils.get("update.password").toString(), "cgxw")
 					//$$                 .formatted(Formatting.WHITE)));
 					//$$ client.inGameHud.getChatHud().addMessage(
 					//$$         new LiteralText("------------------------").formatted(Formatting.GRAY));

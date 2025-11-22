@@ -5,14 +5,12 @@ import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
 import fi.dy.masa.litematica.util.EasyPlaceProtocol;
-import fi.dy.masa.litematica.util.InventoryUtils;
 import fi.dy.masa.litematica.util.PlacementHandler;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
@@ -49,8 +47,7 @@ import static fi.dy.masa.litematica.util.WorldUtils.applyPlacementProtocolV3;
 import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.*;
 import static me.aleksilassila.litematica.printer.printer.State.PrintModeType.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.*;
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.switchItem;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.*;
 
 //#if MC < 11904
 //$$ import net.minecraft.util.Identifier;
@@ -220,8 +217,7 @@ public class Printer extends PrinterUtils {
             FluidState fluidState = client.world.getBlockState(pos).getFluidState();
             if (Arrays.asList(fluidArray).contains(fluidState.getFluid())) {
                 if (!FILL_FLOWING_FLUID.getBooleanValue() && !fluidState.isStill()) continue;
-                if (playerHasAccessToItems(client.player, fluidItemsArray)) {
-                    switchToItems(client.player, fluidItemsArray);
+                if (switchToItems(client.player, fluidItemsArray)) {
                     new PlacementGuide.Action().queueAction(queue, pos, Direction.UP, false);
                     if (tickRate == 0) {
                         queue.sendQueue(client.player);
@@ -259,8 +255,7 @@ public class Printer extends PrinterUtils {
 
             var currentState = client.world.getBlockState(pos);
             if (currentState.isAir() || (currentState.getBlock() instanceof FluidBlock) || REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> equalsBlockName(s, currentState))) {
-                if (playerHasAccessToItems(client.player, fillItemsArray)) {
-                    switchToItems(client.player, fillItemsArray);
+                if (switchToItems(client.player, fillItemsArray)) {
                     new PlacementGuide.Action().setLookDirection(PlaceUtils.getFillModeFacing().getOpposite()).queueAction(queue, pos, PlaceUtils.getFillModeFacing(), false);
                     if (tickRate == 0) {
                         queue.sendQueue(client.player);
@@ -462,14 +457,14 @@ public class Printer extends PrinterUtils {
                 StringUtils.info("方块ID: " + requiredState.getBlock().getClass().getName());
             }
 
+            if (needDelay) continue;
+
             Item[] reqItems = action.getRequiredItems(requiredState.getBlock());
-            if (playerHasAccessToItems(player, reqItems)) {
+            if (switchToItems(player, reqItems)) {
                 boolean useShift = (Implementation.isInteractive(world.getBlockState(pos.offset(side)).getBlock()) && !(action instanceof PlacementGuide.ClickAction))
                         || FORCED_SNEAK.getBooleanValue()
                         || action.useShift;
 
-                if (needDelay) continue;
-                if (!switchToItems(player, reqItems)) return;
 
                 action.queueAction(queue, pos, side, useShift);
 
@@ -500,6 +495,7 @@ public class Printer extends PrinterUtils {
                             //#endif
                             || block instanceof WallSignBlock
                             || block instanceof GrindstoneBlock
+                            || block instanceof LadderBlock
                     ) {
                         needDelay = true;
                         return;
@@ -566,44 +562,42 @@ public class Printer extends PrinterUtils {
     }
 
     public boolean switchToItems(ClientPlayerEntity player, Item[] items) {
-        if (items == null) items = List.of(Items.AIR).toArray(Item[]::new);
-        PlayerInventory inv = player.getInventory();
+        if (items == null || items.length == 0) {
+            items = new Item[]{Items.AIR};
+        }
 
-        // 遍历物品列表，查找玩家背包中可用的物品
+        PlayerInventory inv = player.getInventory();
+        boolean isCreativeMode = Implementation.getAbilities(player).creativeMode;
+
+        // 创造模式
+        if (isCreativeMode) {
+            var stack = new ItemStack(items[0]);
+            return PlaceUtils.setPickedItemToHand(stack, client);
+        }
+
+        // 找到背包中可用的物品
         for (Item item : items) {
             int slot = -1;
-            // 在玩家背包中查找指定物品的槽位
             for (int i = 0; i < inv.size(); i++) {
-                if (inv.getStack(i).getItem() == item && inv.getStack(i).getCount() > 0)
+                if (inv.getStack(i).getItem() == item && inv.getStack(i).getCount() > 0) {
                     slot = i;
+                    break;
+                }
             }
-            // 如果找到物品槽位，则交换手持物品与该槽位物品
             if (slot != -1) {
                 orderlyStoreItem = inv.getStack(slot);
-                return swapHandWithSlot(player, slot);
-            }
-            // 如果玩家处于创造模式，则直接设置选中的物品到手中
-            if (Implementation.getAbilities(player).creativeMode) {
                 var stack = new ItemStack(item);
-                player.getInventory().getSlotWithStack(stack);
-                InventoryUtils.setPickedItemToHand(stack, client);
-//                ZxyUtils.setPickedItemToHand(
-//                        player.getInventory().getSlotWithStack(stack),
-//                        stack);
-                client.interactionManager.clickCreativeStack(client.player.getStackInHand(Hand.MAIN_HAND), 36 + PreprocessUtils.getSelectedSlot(inv));
-                return true;
+                return PlaceUtils.setPickedItemToHand(stack, client);
             }
+            lastNeedItemList.add(item);
         }
-        return true;
+        return false;
     }
 
 
-    public boolean swapHandWithSlot(ClientPlayerEntity player, int slot) {
+    public void swapHandWithSlot(ClientPlayerEntity player, int slot) {
         ItemStack stack = player.getInventory().getStack(slot);
-        int slotNum = client.player.getInventory().getSlotWithStack(stack);
-        InventoryUtils.setPickedItemToHand(stack, client);
-        return true;
-        //return ZxyUtils.setPickedItemToHand(slotNum, stack);
+        PlaceUtils.setPickedItemToHand(stack, client);
     }
 
     public void sendLook(ClientPlayerEntity player, Direction directionYaw, Direction directionPitch) {

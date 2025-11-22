@@ -18,6 +18,6 @@ public enum ButtonType {
 
     public String getDisplayName()
     {
-        return StringUtils.get(this.labelKey);
+        return StringUtils.get(this.labelKey).getString();
     }
 }

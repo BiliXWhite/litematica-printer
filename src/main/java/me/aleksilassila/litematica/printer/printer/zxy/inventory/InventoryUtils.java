@@ -3,7 +3,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 import fi.dy.masa.litematica.config.Configs;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.ShulkerUtils;
-import me.aleksilassila.litematica.printer.mixin.masa.MixinInventoryFix;
+import me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.block.BlockState;
@@ -170,9 +170,9 @@ public class InventoryUtils {
                             if (OpenInventoryPacket.key != null) {
                                 SwitchItem.newItem(slots.get(y).getStack(), OpenInventoryPacket.pos, OpenInventoryPacket.key, y, -1);
                             } else SwitchItem.newItem(slots.get(y).getStack(), null, null, y, shulkerBoxSlot);
-                            int a = MixinInventoryFix.getEmptyPickBlockableHotbarSlot(player.getInventory()) == -1 ?
-                                    MixinInventoryFix.getPickBlockTargetSlot(player) :
-                                    MixinInventoryFix.getEmptyPickBlockableHotbarSlot(player.getInventory());
+                            int a = InventoryUtilsAccessor.getEmptyPickBlockableHotbarSlot(player.getInventory()) == -1 ?
+                                    InventoryUtilsAccessor.getPickBlockTargetSlot(player) :
+                                    InventoryUtilsAccessor.getEmptyPickBlockableHotbarSlot(player.getInventory());
                             c = a == -1 ? c : a;
                             ZxyUtils.switchPlayerInvToHotbarAir(c);
                             fi.dy.masa.malilib.util.InventoryUtils.swapSlots(sc, y, c);

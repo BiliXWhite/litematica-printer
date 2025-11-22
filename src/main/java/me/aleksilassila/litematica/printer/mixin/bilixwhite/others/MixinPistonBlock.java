@@ -11,9 +11,11 @@ import org.spongepowered.asm.mixin.injection.At;
 public class MixinPistonBlock {
     @ModifyReturnValue(method = "getPlacementState", at = @At(value = "RETURN"))
     private BlockState fixPlacementState(BlockState blockState) {
-        if (Printer.pistonNeedFix && Printer.requiredState.getBlock() instanceof PistonBlock) {
+        if (Printer.pistonNeedFix) {
             Printer.pistonNeedFix = false;
-            blockState = Printer.requiredState.with(PistonBlock.EXTENDED, false);
+            if (Printer.requiredState.getBlock() instanceof PistonBlock) {
+                blockState = Printer.requiredState.with(PistonBlock.EXTENDED, false);
+            }
         }
         return blockState;
     }

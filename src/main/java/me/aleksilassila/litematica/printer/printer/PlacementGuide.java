@@ -401,23 +401,25 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setLookDirection(Direction.UP);
                 return new Action().setLookDirection(Direction.DOWN);
             }
-            case END_ROD -> {
+            case ROD -> {
                 var requiredBlock = requiredState.getBlock();
                 var facing = requiredState.get(EndRodBlock.FACING);
-                var forwardState = world.getBlockState(pos.offset(facing));
-                var forwardStateSchematic = worldSchematic.getBlockState(pos.offset(facing));
 
                 // 如果前面朝向自己的末地烛，而放置方式相反，那么反向放置
-                if (forwardState.isOf(requiredBlock)
-                        && forwardState.get(EndRodBlock.FACING) == facing.getOpposite()) {
-                    return new Action().setSides(facing);
-                }
-                // 如果投影中后面有相同朝向的末地烛，则先跳过放置
-                if (forwardStateSchematic.isOf(requiredBlock)
-                        && forwardStateSchematic.get(EndRodBlock.FACING) == facing) {
-                    // 但是这个投影已经被正确填装时可以打印
-                    if (forwardStateSchematic == forwardState) return new Action().setSides(facing.getOpposite());
-                    return null;
+                if (requiredBlock instanceof EndRodBlock) {
+                    var forwardState = world.getBlockState(pos.offset(facing));
+                    var forwardStateSchematic = worldSchematic.getBlockState(pos.offset(facing));
+                    if (forwardState.isOf(requiredBlock)
+                            && forwardState.get(EndRodBlock.FACING) == facing.getOpposite()) {
+                        return new Action().setSides(facing);
+                    }
+                    // 如果投影中后面有相同朝向的末地烛，则先跳过放置
+                    if (forwardStateSchematic.isOf(requiredBlock)
+                            && forwardStateSchematic.get(EndRodBlock.FACING) == facing) {
+                        // 但是这个投影已经被正确填装时可以打印
+                        if (forwardStateSchematic == forwardState) return new Action().setSides(facing.getOpposite());
+                        return null;
+                    }
                 }
                 return new Action().setSides(facing.getOpposite());
             }
@@ -785,7 +787,7 @@ public class PlacementGuide extends PrinterUtils {
         OBSERVER(ObserverBlock.class), // 侦测器
         LADDER(LadderBlock.class), // 梯子
         LANTERN(LanternBlock.class), // 灯笼
-        END_ROD(EndRodBlock.class), // 末地烛
+        ROD(RodBlock.class), // 末地烛 避雷针
         TRIPWIRE_HOOK(TripwireHookBlock.class), // 绊线钩
         RAIL(AbstractRailBlock.class), // 铁轨
         PISTON(PistonBlock.class), // 活塞 （为了避免被破坏错误状态破坏）

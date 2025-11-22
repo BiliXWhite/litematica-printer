@@ -9,7 +9,7 @@
     "bilixwhite.others.MixinPistonBlock",
     "bilixwhite.visuals.MixinInGameHud",
     "masa.KeyCallbackToggleBooleanConfigWithMessageMixin",
-    "masa.MixinInventoryFix",
+    "masa.InventoryUtilsAccessor",
     "masa.MixinInventoryUtils",
     "masa.WorldUtilsMixin",
     "openinv.ClientPlayNetworkHandlerMixin",

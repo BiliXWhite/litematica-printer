@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 import java.util.List;
 
 @Mixin(InventoryUtils.class)
-public interface MixinInventoryFix {
+public interface InventoryUtilsAccessor {
     @Invoker("getPickBlockTargetSlot")
     static int getPickBlockTargetSlot(PlayerEntity player){
         return -1;
@@ -24,5 +24,20 @@ public interface MixinInventoryFix {
     @Invoker("canPickToSlot")
     static boolean canPickToSlot(PlayerInventory inventory, int slot) {
         return false;
+    }
+
+    @Accessor(remap = false)
+    static int getNextPickSlotIndex() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Accessor(remap = false)
+    static List<Integer> getPICK_BLOCKABLE_SLOTS() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Accessor(remap = false)
+    static void setNextPickSlotIndex(int nextPickSlotIndex) {
+        throw new UnsupportedOperationException();
     }
 }
