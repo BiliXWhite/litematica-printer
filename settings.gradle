@@ -13,16 +13,6 @@ pluginManagement {
             name("Jitpack")
             url("https://jitpack.io")
         }
-
-        maven {
-            name("Nyan Maven")
-            url("https://maven.hendrixshen.top")
-        }
-
-        maven {
-            name("Cotton")
-            url("https://server.bbkr.space/artifactory/libs-release")
-        }
     }
     resolutionStrategy {
         eachPlugin {

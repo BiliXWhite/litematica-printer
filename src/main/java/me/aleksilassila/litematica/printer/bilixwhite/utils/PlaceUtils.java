@@ -1,16 +1,50 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
+import com.google.common.collect.Lists;
+import fi.dy.masa.litematica.util.EntityUtils;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
+import fi.dy.masa.malilib.gui.Message;
+import fi.dy.masa.malilib.util.InfoUtils;
+import fi.dy.masa.malilib.util.InventoryUtils;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.State;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
+import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
+import net.minecraft.screen.slot.Slot;
+import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.Hand;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
+
+import static me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor.getEmptyPickBlockableHotbarSlot;
+import static me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor.getPickBlockTargetSlot;
+
+//#if MC >= 12109
+import me.aleksilassila.litematica.printer.mixin.bilixwhite.accessors.EasyPlaceUtilsAccessor;
+//#else
+//$$ import fi.dy.masa.litematica.util.WorldUtils;
+//#endif
+
+//#if MC >= 12105
+import com.google.common.primitives.Shorts;
+import com.google.common.primitives.SignedBytes;
+import net.minecraft.screen.sync.ItemStackHash;
+//#endif
+
+import java.util.List;
 
 public class PlaceUtils {
     @NotNull
@@ -127,7 +161,6 @@ public class PlaceUtils {
         return null;
     }
 
-
     /**
      * 获取给定位置的侦测器的侦测面方块状态。
      * <p>
@@ -143,5 +176,142 @@ public class PlaceUtils {
         var beObverseBlockSchematic = SchematicWorldHandler.getSchematicWorld().getBlockState(pos.offset(obverseFacing));
         var beObverseBlock = client.world.getBlockState(pos.offset(obverseFacing));
         return State.get(beObverseBlockSchematic, beObverseBlock);
+    }
+
+    public static boolean setPickedItemToHand(ItemStack stack, MinecraftClient mc)
+    {
+        if (mc.player == null) return false;
+        int slotNum = mc.player.getInventory().getSlotWithStack(stack);
+        return setPickedItemToHand(slotNum, stack, mc);
+    }
+
+    public static void setHotbarSlot(int slot, PlayerInventory inventory) {
+        boolean usePacket = LitematicaPrinterMod.PLACE_USE_PACKET.getBooleanValue();
+        if (usePacket) {
+            client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
+        }
+        PreprocessUtils.setSelectedSlot(inventory, slot);
+    }
+
+    public static boolean setPickedItemToHand(int sourceSlot, ItemStack stack, MinecraftClient mc) {
+        if (mc.player == null) return false;
+        PlayerEntity player = mc.player;
+        PlayerInventory inventory = player.getInventory();
+
+        if (PlayerInventory.isValidHotbarIndex(sourceSlot)) {
+            setHotbarSlot(sourceSlot, inventory);
+            return true;
+        } else {
+            if (InventoryUtilsAccessor.getPICK_BLOCKABLE_SLOTS().isEmpty()) {
+                InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_valid_slots_configured");
+                return false;
+            }
+
+            int hotbarSlot = sourceSlot;
+
+            // 尝试寻找一个空的可拾取方块的热键栏槽位
+            if (sourceSlot == -1 || !PlayerInventory.isValidHotbarIndex(sourceSlot)) {
+                hotbarSlot = getEmptyPickBlockableHotbarSlot(inventory);
+            }
+
+            // 如果没有空槽位，则寻找一个可拾取方块的热键栏槽位
+            if (hotbarSlot == -1) {
+                hotbarSlot = getPickBlockTargetSlot(player);
+            }
+
+            if (hotbarSlot != -1) {
+                setHotbarSlot(hotbarSlot, inventory);
+
+                if (EntityUtils.isCreativeMode(player)) {
+                    PreprocessUtils.getMainStacks(inventory).set(hotbarSlot, stack.copy());
+                    client.interactionManager.clickCreativeStack(client.player.getStackInHand(Hand.MAIN_HAND), 36 + hotbarSlot);
+                    return true;
+                }
+                //#if MC >= 12109
+                EasyPlaceUtilsAccessor.callSetEasyPlaceLastPickBlockTime();
+                //#else
+                //$$ WorldUtils.setEasyPlaceLastPickBlockTime();
+                //#endif
+                return swapItemToMainHand(stack.copy(), mc);
+            } else {
+                InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");
+                return false;
+            }
+        }
+    }
+
+    public static boolean swapItemToMainHand(ItemStack stackReference, MinecraftClient mc) {
+        PlayerEntity player = mc.player;
+
+        //#if MC > 12004
+        if (InventoryUtils.areStacksEqualIgnoreNbt(stackReference, player.getMainHandStack())) {
+        //#else
+        //$$ if (InventoryUtils.areStacksEqual(stackReference, player.getMainHandStack())) {
+        //#endif
+            return false;
+        }
+
+        int slot = InventoryUtils.findSlotWithItem(player.playerScreenHandler, stackReference, true);
+
+        if (slot != -1) {
+            int currentHotbarSlot = PreprocessUtils.getSelectedSlot(player.getInventory());
+            if (LitematicaPrinterMod.PLACE_USE_PACKET.getBooleanValue()) {
+                DefaultedList<Slot> slots = player.currentScreenHandler.slots;
+                int totalSlots = slots.size();
+                List<ItemStack> copies = Lists.newArrayListWithCapacity(totalSlots);
+                for (Slot slotItem : slots) {
+                    copies.add(slotItem.getStack().copy());
+                }
+
+                Int2ObjectMap<
+                        //#if MC >= 12105
+                        ItemStackHash
+                        //#else
+                        //$$ ItemStack
+                        //#endif
+                        > snapshot = new Int2ObjectOpenHashMap<>();
+                for (int j = 0; j < totalSlots; j++) {
+                    ItemStack original = copies.get(j);
+                    ItemStack current = slots.get(j).getStack();
+                    if (!ItemStack.areEqual(original, current)) {
+                        snapshot.put(j,
+                                //#if MC >=12105
+                                ItemStackHash.fromItemStack(current, client.getNetworkHandler().getComponentHasher())
+                                //#else
+                                //$$ current.copy()
+                                //#endif
+                        );
+                    }
+                }
+
+                //#if MC >= 12105
+                ItemStackHash itemStackHash = ItemStackHash.fromItemStack(player.currentScreenHandler.getCursorStack(), client.getNetworkHandler().getComponentHasher());
+                //#endif
+                client.getNetworkHandler().sendPacket(new ClickSlotC2SPacket(
+                        player.playerScreenHandler.syncId,
+                        player.currentScreenHandler.getRevision(),
+                        //#if MC >= 12105
+                        Shorts.checkedCast(slot),
+                        SignedBytes.checkedCast(currentHotbarSlot),
+                        //#else
+                        //$$ slot,
+                        //$$ currentHotbarSlot,
+                        //#endif
+                        SlotActionType.SWAP,
+                        //#if MC >= 12105
+                        snapshot,
+                        itemStackHash
+                        //#else
+                        //$$ player.playerScreenHandler.getCursorStack().copy(),
+                        //$$ snapshot
+                        //#endif
+                ));
+                client.player.currentScreenHandler.onSlotClick(slot, currentHotbarSlot, SlotActionType.SWAP, player);
+            } else {
+                client.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot, currentHotbarSlot, SlotActionType.SWAP, player);
+            }
+            return true;
+        }
+        return false;
     }
 }

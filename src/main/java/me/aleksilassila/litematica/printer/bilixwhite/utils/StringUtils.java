@@ -56,27 +56,27 @@ public class StringUtils {
         //#endif
     }
 
-    public static String getName(String key) {
+    public static Text getName(String key) {
         //#if MC > 11802
-        return Text.translatable(LitematicaPrinterMod.MOD_ID + ".config.name." + key).getString();
+        return Text.translatable(LitematicaPrinterMod.MOD_ID + ".config.name." + key);
         //#else
-        //$$ return new TranslatableText(LitematicaPrinterMod.MOD_ID + ".config.name." + key).getString();
+        //$$ return new TranslatableText(LitematicaPrinterMod.MOD_ID + ".config.name." + key);
         //#endif
     }
 
-    public static String getComment(String key) {
+    public static Text getComment(String key) {
         //#if MC > 11802
-        return Text.translatable(LitematicaPrinterMod.MOD_ID + ".config.comment." + key).getString();
+        return Text.translatable(LitematicaPrinterMod.MOD_ID + ".config.comment." + key);
         //#else
-        //$$ return new TranslatableText(LitematicaPrinterMod.MOD_ID + ".config.comment." + key).getString();
+        //$$ return new TranslatableText(LitematicaPrinterMod.MOD_ID + ".config.comment." + key);
         //#endif
     }
 
-    public static String get(String key) {
+    public static Text get(String key) {
         //#if MC > 11802
-        return Text.translatable(LitematicaPrinterMod.MOD_ID + "." + key).getString();
+        return Text.translatable(LitematicaPrinterMod.MOD_ID + "." + key);
         //#else
-        //$$ return new TranslatableText(LitematicaPrinterMod.MOD_ID + "." + key).getString();
+        //$$ return new TranslatableText(LitematicaPrinterMod.MOD_ID + "." + key);
         //#endif
     }
 }

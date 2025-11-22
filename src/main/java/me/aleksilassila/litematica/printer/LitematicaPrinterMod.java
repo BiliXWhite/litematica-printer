@@ -166,13 +166,13 @@ public class LitematicaPrinterMod implements ModInitializer, ClientModInitialize
             "关闭全部模式，若此时为单模模式将模式恢复为打印。"
     );
     public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList(
-            "排流体-方块名单", ImmutableList.of("minecraft:sand"), StringUtils.getComment("blocklist")
+            "排流体-方块名单", ImmutableList.of("minecraft:sand"), StringUtils.getComment("blocklist").getString()
     );
     public static final ConfigStringList FLUID_LIST = new ConfigStringList(
-            "排流体-液体名单", ImmutableList.of("minecraft:water", "minecraft:lava"), StringUtils.getComment("blocklist")
+            "排流体-液体名单", ImmutableList.of("minecraft:water", "minecraft:lava"), StringUtils.getComment("blocklist").getString()
     );
     public static final ConfigStringList FILL_BLOCK_LIST = new ConfigStringList(
-            "填充方块名单", ImmutableList.of("minecraft:cobblestone"), StringUtils.getComment("blocklist")
+            "填充方块名单", ImmutableList.of("minecraft:cobblestone"), StringUtils.getComment("blocklist").getString()
     );
     public static final ConfigBoolean PUT_SKIP = new ConfigBoolean(
             "跳过放置", false,
@@ -217,7 +217,7 @@ public class LitematicaPrinterMod implements ModInitializer, ClientModInitialize
     );
     public static final ConfigStringList INVENTORY_LIST = new ConfigStringList(
             "库存白名单", ImmutableList.of("minecraft:chest"),
-            "打印机库存的白名单，只有白名单内的容器才会被记录。\n" + StringUtils.getComment("blocklist")
+            "打印机库存的白名单，只有白名单内的容器才会被记录。\n" + StringUtils.getComment("blocklist").getString()
     );
     public static final ConfigOptionList EXCAVATE_LIMITER = new ConfigOptionList(
             "挖掘模式限制器", State.ExcavateListMode.CUSTOM,
@@ -234,13 +234,13 @@ public class LitematicaPrinterMod implements ModInitializer, ClientModInitialize
                     "§l使用Tweakeroo挖掘限制预设时，此项会被忽略。§r"
     );
     public static final ConfigStringList EXCAVATE_WHITELIST = new ConfigStringList(
-            "挖掘白名单", ImmutableList.of(""), StringUtils.getComment("blocklist")
+            "挖掘白名单", ImmutableList.of(""), StringUtils.getComment("blocklist").getString()
     );
     public static final ConfigStringList EXCAVATE_BLACKLIST = new ConfigStringList(
-            "挖掘黑名单", ImmutableList.of(""), StringUtils.getComment("blocklist")
+            "挖掘黑名单", ImmutableList.of(""), StringUtils.getComment("blocklist").getString()
     );
     public static final ConfigStringList PUT_SKIP_LIST = new ConfigStringList(
-            "跳过放置名单", ImmutableList.of(), StringUtils.getComment("blocklist")
+            "跳过放置名单", ImmutableList.of(""), StringUtils.getComment("blocklist").getString()
     );
     public static final ConfigStringList REPLACEABLE_LIST = new ConfigStringList(
             "覆盖方块列表", ImmutableList.of(
@@ -248,7 +248,7 @@ public class LitematicaPrinterMod implements ModInitializer, ClientModInitialize
             "minecraft:bubble_column", "minecraft:short_grass"
     ),
             "打印时将忽略这些错误方块，直接在该位置打印。\n" +
-                    StringUtils.getComment("blocklist")
+                    StringUtils.getComment("blocklist").getString()
     );
     public static final ConfigColor SYNC_INVENTORY_COLOR = new ConfigColor(
             "容器同步与打印机添加库存高亮颜色", "#4CFF4CE6",
@@ -390,6 +390,13 @@ public class LitematicaPrinterMod implements ModInitializer, ClientModInitialize
             ;
     public static final ConfigOptionList FILL_BLOCK_FACING = new ConfigOptionList(
             "fillModeFacing", State.FillModeFacingType.DOWN, "fillModeFacing"
+    )
+            //#if MC > 12006
+            .apply(I18N_PREFIX)
+            //#endif
+            ;
+    public static final ConfigBoolean AUTO_DISABLE_PRINTER = new ConfigBoolean(
+            "printerAutoDisable", true, "printerAutoDisable"
     )
             //#if MC > 12006
             .apply(I18N_PREFIX)

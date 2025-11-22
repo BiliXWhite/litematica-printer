@@ -36,7 +36,7 @@ public class Configs implements IConfigHandler {
         list.add(ITERATOR_USE_TIME);
         list.add(ITERATOR_SHAPE);
         list.add(LAG_CHECK);
-        //list.add(PLACE_USE_PACKET);
+        list.add(PLACE_USE_PACKET);
         list.add(RENDER_HUD);
         list.add(QUICK_SHULKER);
         list.add(QUICK_SHULKER_MODE);
@@ -56,6 +56,7 @@ public class Configs implements IConfigHandler {
         if(loadChestTracker) list.add(INVENTORY_LIST);
         list.add(DEBUG_OUTPUT);
         list.add(UPDATE_CHECK);
+        list.add(AUTO_DISABLE_PRINTER);
 
         return ImmutableList.copyOf(list);
     }

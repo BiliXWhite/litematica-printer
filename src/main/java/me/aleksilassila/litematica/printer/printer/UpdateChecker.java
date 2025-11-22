@@ -41,7 +41,7 @@ public class UpdateChecker {
             }
         } catch (Exception exception) {
             System.out.println("无法检查更新: " + exception.getMessage());
-            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of(StringUtils.get("update.failed")));
+            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage((Text) StringUtils.get("update.failed"));
         }
         return null;
     }
