@@ -1,5 +1,3 @@
-// TODO(Ravel): Failed to fully remap file: null
-// TODO(Ravel): Failed to fully remap file: null
 package me.aleksilassila.litematica.printer.bilixwhite;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
@@ -8,14 +6,14 @@ import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.TweakerooUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.FluidBlock;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -32,7 +30,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equa
 public class BreakManager {
     private static BreakManager INSTANCE = null;
     private static final Set<BlockPos> breakTargets = new HashSet<>();
-    private static final MinecraftClient client = MinecraftClient.getInstance();
+    private static final Minecraft client = Minecraft.getInstance();
     private BlockPos breakPos;
     private BlockState state;
 
@@ -63,7 +61,7 @@ public class BreakManager {
 
     // 每tick调用一次的方法
     public void onTick() {
-        if (client.player == null || client.world == null || client.interactionManager == null) return;
+        if (client.player == null || client.level == null || client.gameMode == null) return;
 
         // 性能优化：提前检查是否有必要继续执行
         if (breakTargets.isEmpty()) {
@@ -99,8 +97,8 @@ public class BreakManager {
                         TweakerooUtils.trySwitchToEffectiveTool(breakPos);
                     }
                 }
-                success = client.interactionManager.updateBlockBreakingProgress(breakPos, Direction.DOWN);
-                client.interactionManager.cancelBlockBreaking();
+                success = client.gameMode.continueDestroyBlock(breakPos, Direction.DOWN);
+                client.gameMode.stopDestroyBlock();
             } catch (Exception e) {
                 // 防止外部方法异常导致 tick 中断
                 success = false;
@@ -109,7 +107,7 @@ public class BreakManager {
                 resetBreakTarget();
             }
 
-            if (!client.player.isCreative() && client.world.getBlockState(breakPos).isOf(state.getBlock())) {
+            if (!client.player.isCreative() && client.level.getBlockState(breakPos).is(state.getBlock())) {
                 return;
             }
 
@@ -125,7 +123,7 @@ public class BreakManager {
         }
         updateTarget();
         if (breakPos != null) {
-            state = client.world.getBlockState(breakPos);
+            state = client.level.getBlockState(breakPos);
         } else {
             state = null; // 确保state也被重置
         }
@@ -141,7 +139,7 @@ public class BreakManager {
         Iterator<BlockPos> iterator = breakTargets.iterator();
         if (iterator.hasNext()) {
             breakPos = iterator.next();
-            state = client.world.getBlockState(breakPos);
+            state = client.level.getBlockState(breakPos);
         } else {
             breakPos = null;
         }
@@ -156,15 +154,15 @@ public class BreakManager {
     }
 
     public static boolean canBreakBlock(BlockPos pos) {
-        ClientWorld world = client.world;
+        ClientLevel world = client.level;
         BlockState currentState = world.getBlockState(pos);
         return !currentState.isAir() &&
-                !(currentState.getBlock() instanceof FluidBlock) &&
-                !currentState.isOf(Blocks.AIR) &&
-                !currentState.isOf(Blocks.CAVE_AIR) &&
-                !currentState.isOf(Blocks.VOID_AIR) &&
-                !(currentState.getBlock().getHardness() == -1) &&
-                !client.player.isBlockBreakingRestricted(client.world, pos, client.interactionManager.getCurrentGameMode());
+                !(currentState.getBlock() instanceof LiquidBlock) &&
+                !currentState.is(Blocks.AIR) &&
+                !currentState.is(Blocks.CAVE_AIR) &&
+                !currentState.is(Blocks.VOID_AIR) &&
+                !(currentState.getBlock().defaultDestroyTime() == -1) &&
+                !client.player.blockActionRestricted(client.level, pos, client.gameMode.getPlayerMode());
     }
 
     public static boolean breakRestriction(BlockState blockState) {
@@ -203,7 +201,7 @@ public class BreakManager {
      */
     public boolean breakBlock(BlockPos pos) {
         // 获取客户端世界对象和方块状态
-        ClientWorld world = client.world;
+        ClientLevel world = client.level;
         BlockState currentState = world.getBlockState(pos);
         Block block = currentState.getBlock();
 
@@ -215,9 +213,9 @@ public class BreakManager {
                     TweakerooUtils.trySwitchToEffectiveTool(pos);
                 }
             }
-            client.interactionManager.updateBlockBreakingProgress(pos, Direction.DOWN);
-            client.interactionManager.cancelBlockBreaking();
-            return (world.getBlockState(pos).isOf(block) && !client.player.isCreative());
+            client.gameMode.continueDestroyBlock(pos, Direction.DOWN);
+            client.gameMode.stopDestroyBlock();
+            return (world.getBlockState(pos).is(block) && !client.player.isCreative());
         }
         return false;
     }
