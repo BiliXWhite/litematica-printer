@@ -14,11 +14,15 @@ import java.util.List;
 @Mixin(value = InputHandler.class, remap = false)
 public class InputHandlerMixin {
 
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
     @WrapOperation(method = "addHotkeys", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Hotkeys;HOTKEY_LIST:Ljava/util/List;"))
     private List<IConfigBase> moreHotkeys(Operation<List<ConfigHotkey>> original) {
         return LitematicaPrinterMod.getHotkeyList();
     }
 
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
     @WrapOperation(method = "addKeysToMap", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Hotkeys;HOTKEY_LIST:Ljava/util/List;"))
     private List<IConfigBase> moreeHotkeys(Operation<List<ConfigHotkey>> original) {
         return LitematicaPrinterMod.getHotkeyList();

@@ -8,8 +8,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+// TODO(Ravel): can not resolve target class ClientPlayNetworkHandler
+// TODO(Ravel): can not resolve target class ClientPlayNetworkHandler
 @Mixin(ClientPlayNetworkHandler.class)
 public class ClientPlayNetworkHandlerMixin {
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
     @Inject(at = @At("HEAD"),method = "onGameJoin")
     private void onGameJoin(GameJoinS2CPacket packet, CallbackInfo ci) {
         OpenInventoryPacket.remoteTime = System.currentTimeMillis();

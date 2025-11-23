@@ -5,9 +5,9 @@ import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.StringUtils;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -28,7 +28,7 @@ public enum State {
         if (schematicBlockState == currentBlockState)
             return CORRECT;
         // 如果方块类型相同但状态不同，则返回错误状态
-        else if (schematicBlockState.getBlock().getDefaultState() == currentBlockState.getBlock().getDefaultState())
+        else if (schematicBlockState.getBlock().defaultBlockState() == currentBlockState.getBlock().defaultBlockState())
             return WRONG_STATE;
         // 如果原理图中方块不为空，且实际方块为空，则返回缺失方块状态
         else if (!schematicBlockState.isAir() && currentBlockState.isAir())
@@ -44,7 +44,7 @@ public enum State {
 
     public static State get(BlockPos pos) {
         BlockState schematicBlockState = SchematicWorldHandler.getSchematicWorld().getBlockState(pos);
-        BlockState currentBlockState = MinecraftClient.getInstance().world.getBlockState(pos);
+        BlockState currentBlockState = Minecraft.getInstance().level.getBlockState(pos);
         return get(schematicBlockState, currentBlockState);
     }
 

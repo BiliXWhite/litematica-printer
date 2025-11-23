@@ -14,8 +14,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.playerlist;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.tickMap;
 
+// TODO(Ravel): can not resolve target class ServerWorld
+// TODO(Ravel): can not resolve target class ServerWorld
 @Mixin(ServerWorld.class)
 public class MixinServerWorld {
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
     @Inject(at = @At("HEAD"),method = "tick")
     public void tick(CallbackInfo ci){
         for (ServerPlayerEntity s : playerlist) {

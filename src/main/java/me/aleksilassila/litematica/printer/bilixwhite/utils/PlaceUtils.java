@@ -11,26 +11,31 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.State;
-import net.minecraft.block.*;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
-import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.Hand;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-import org.jetbrains.annotations.NotNull;
-
 import static me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor.getEmptyPickBlockableHotbarSlot;
 import static me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor.getPickBlockTargetSlot;
+import com.google.common.primitives.Shorts;
+import com.google.common.primitives.SignedBytes;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.HashedStack;
+import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
+import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BubbleColumnBlock;
+import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.block.ObserverBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 
 //#if MC >= 12109
 import me.aleksilassila.litematica.printer.mixin.bilixwhite.accessors.EasyPlaceUtilsAccessor;
@@ -38,17 +43,11 @@ import me.aleksilassila.litematica.printer.mixin.bilixwhite.accessors.EasyPlaceU
 //$$ import fi.dy.masa.litematica.util.WorldUtils;
 //#endif
 
-//#if MC >= 12105
-import com.google.common.primitives.Shorts;
-import com.google.common.primitives.SignedBytes;
-import net.minecraft.screen.sync.ItemStackHash;
-//#endif
-
 import java.util.List;
 
 public class PlaceUtils {
     @NotNull
-    static MinecraftClient client = MinecraftClient.getInstance();
+    static Minecraft client = Minecraft.getInstance();
 
     /**
      * 判断该方块是否需要水
@@ -57,26 +56,26 @@ public class PlaceUtils {
      */
     public static boolean isWaterRequired(BlockState blockState) {
         return
-            blockState.isOf(Blocks.WATER) &&
-                    blockState.get(FluidBlock.LEVEL) == 0 || (
-                blockState.getProperties().contains(Properties.WATERLOGGED) &&
-                blockState.get(Properties.WATERLOGGED)
+            blockState.is(Blocks.WATER) &&
+                    blockState.getValue(LiquidBlock.LEVEL) == 0 || (
+                blockState.getProperties().contains(BlockStateProperties.WATERLOGGED) &&
+                blockState.getValue(BlockStateProperties.WATERLOGGED)
             ) ||
                 blockState.getBlock() instanceof BubbleColumnBlock;
     }
 
     public static boolean isCorrectWaterLevel(BlockState requiredState, BlockState currentState) {
-        if (!currentState.isOf(Blocks.WATER)) return false;
-        if (requiredState.isOf(Blocks.WATER) && currentState.get(FluidBlock.LEVEL).equals(requiredState.get(FluidBlock.LEVEL)))
+        if (!currentState.is(Blocks.WATER)) return false;
+        if (requiredState.is(Blocks.WATER) && currentState.getValue(LiquidBlock.LEVEL).equals(requiredState.getValue(LiquidBlock.LEVEL)))
             return true;
-        else return currentState.get(FluidBlock.LEVEL) == 0;
+        else return currentState.getValue(LiquidBlock.LEVEL) == 0;
     }
 
     public static boolean isReplaceable(BlockState state) {
         //#if MC < 11904
         //$$ return state.getMaterial().isReplaceable();
         //#else
-        return state.isReplaceable();
+        return state.canBeReplaced();
         //#endif
     }
 
@@ -104,11 +103,11 @@ public class PlaceUtils {
     public static boolean canInteractedEuclidean(BlockPos blockPos, double range) {
         var player = client.player;
         if (player == null || blockPos == null) return false;
-        return player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(blockPos)) <= range * range;
+        return player.getEyePosition().distanceToSqr(Vec3.atCenterOf(blockPos)) <= range * range;
     }
 
     public static boolean canInteractedManhattan(BlockPos pos, int range) {
-        BlockPos center = client.player.getBlockPos();
+        BlockPos center = client.player.blockPosition();
         int dx = Math.abs(pos.getX() - center.getX());
         int dy = Math.abs(pos.getY() - center.getY());
         int dz = Math.abs(pos.getZ() - center.getZ());
@@ -124,12 +123,12 @@ public class PlaceUtils {
      * @param world 当前的世界对象
      * @return 观察者方块的位置，如果未找到则返回 null
      */
-    public static BlockPos getObserverPosition(BlockPos pos, World world) {
+    public static BlockPos getObserverPosition(BlockPos pos, Level world) {
         for (Direction direction : Direction.values()) {
-            BlockPos neighborPos = pos.offset(direction);
+            BlockPos neighborPos = pos.relative(direction);
             BlockState neighborState = world.getBlockState(neighborPos);
             if (neighborState.getBlock() instanceof ObserverBlock) {
-                Direction facing = neighborState.get(ObserverBlock.FACING);
+                Direction facing = neighborState.getValue(ObserverBlock.FACING);
                 if (facing == direction.getOpposite()) {
                     return neighborPos;
                 }
@@ -147,12 +146,12 @@ public class PlaceUtils {
      * @param world 当前的世界对象
      * @return 观察者方块的位置，如果未找到则返回 null
      */
-    public static BlockPos getObserverOutputPosition(BlockPos pos, World world) {
+    public static BlockPos getObserverOutputPosition(BlockPos pos, Level world) {
         for (Direction direction : Direction.values()) {
-            BlockPos neighborPos = pos.offset(direction);
+            BlockPos neighborPos = pos.relative(direction);
             BlockState neighborState = world.getBlockState(neighborPos);
             if (neighborState.getBlock() instanceof ObserverBlock) {
-                Direction facing = neighborState.get(ObserverBlock.FACING);
+                Direction facing = neighborState.getValue(ObserverBlock.FACING);
                 if (facing == direction) {
                     return neighborPos;
                 }
@@ -172,33 +171,33 @@ public class PlaceUtils {
     public static State getObverseFacingState(BlockPos pos) {
         BlockState requiredState = SchematicWorldHandler.getSchematicWorld().getBlockState(pos);
         if (!(requiredState.getBlock() instanceof ObserverBlock)) return null;
-        var obverseFacing = requiredState.get(Properties.FACING);
-        var beObverseBlockSchematic = SchematicWorldHandler.getSchematicWorld().getBlockState(pos.offset(obverseFacing));
-        var beObverseBlock = client.world.getBlockState(pos.offset(obverseFacing));
+        var obverseFacing = requiredState.getValue(BlockStateProperties.FACING);
+        var beObverseBlockSchematic = SchematicWorldHandler.getSchematicWorld().getBlockState(pos.relative(obverseFacing));
+        var beObverseBlock = client.level.getBlockState(pos.relative(obverseFacing));
         return State.get(beObverseBlockSchematic, beObverseBlock);
     }
 
-    public static boolean setPickedItemToHand(ItemStack stack, MinecraftClient mc)
+    public static boolean setPickedItemToHand(ItemStack stack, Minecraft mc)
     {
         if (mc.player == null) return false;
-        int slotNum = mc.player.getInventory().getSlotWithStack(stack);
+        int slotNum = mc.player.getInventory().findSlotMatchingItem(stack);
         return setPickedItemToHand(slotNum, stack, mc);
     }
 
-    public static void setHotbarSlot(int slot, PlayerInventory inventory) {
+    public static void setHotbarSlot(int slot, Inventory inventory) {
         boolean usePacket = LitematicaPrinterMod.PLACE_USE_PACKET.getBooleanValue();
         if (usePacket) {
-            client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
+            client.getConnection().send(new ServerboundSetCarriedItemPacket(slot));
         }
         PreprocessUtils.setSelectedSlot(inventory, slot);
     }
 
-    public static boolean setPickedItemToHand(int sourceSlot, ItemStack stack, MinecraftClient mc) {
+    public static boolean setPickedItemToHand(int sourceSlot, ItemStack stack, Minecraft mc) {
         if (mc.player == null) return false;
-        PlayerEntity player = mc.player;
-        PlayerInventory inventory = player.getInventory();
+        Player player = mc.player;
+        Inventory inventory = player.getInventory();
 
-        if (PlayerInventory.isValidHotbarIndex(sourceSlot)) {
+        if (Inventory.isHotbarSlot(sourceSlot)) {
             setHotbarSlot(sourceSlot, inventory);
             return true;
         } else {
@@ -210,7 +209,7 @@ public class PlaceUtils {
             int hotbarSlot = sourceSlot;
 
             // 尝试寻找一个空的可拾取方块的热键栏槽位
-            if (sourceSlot == -1 || !PlayerInventory.isValidHotbarIndex(sourceSlot)) {
+            if (sourceSlot == -1 || !Inventory.isHotbarSlot(sourceSlot)) {
                 hotbarSlot = getEmptyPickBlockableHotbarSlot(inventory);
             }
 
@@ -224,7 +223,7 @@ public class PlaceUtils {
 
                 if (EntityUtils.isCreativeMode(player)) {
                     PreprocessUtils.getMainStacks(inventory).set(hotbarSlot, stack.copy());
-                    client.interactionManager.clickCreativeStack(client.player.getStackInHand(Hand.MAIN_HAND), 36 + hotbarSlot);
+                    client.gameMode.handleCreativeModeItemAdd(client.player.getMainHandItem(), 36 + hotbarSlot);
                     return true;
                 }
                 //#if MC >= 12109
@@ -240,43 +239,43 @@ public class PlaceUtils {
         }
     }
 
-    public static boolean swapItemToMainHand(ItemStack stackReference, MinecraftClient mc) {
-        PlayerEntity player = mc.player;
+    public static boolean swapItemToMainHand(ItemStack stackReference, Minecraft mc) {
+        Player player = mc.player;
 
         //#if MC > 12004
-        if (InventoryUtils.areStacksEqualIgnoreNbt(stackReference, player.getMainHandStack())) {
+        if (InventoryUtils.areStacksEqualIgnoreNbt(stackReference, player.getMainHandItem())) {
         //#else
-        //$$ if (InventoryUtils.areStacksEqual(stackReference, player.getMainHandStack())) {
+        //$$ if (InventoryUtils.areStacksEqual(stackReference, player.getNonEquipmentItems())) {
         //#endif
             return false;
         }
 
-        int slot = InventoryUtils.findSlotWithItem(player.playerScreenHandler, stackReference, true);
+        int slot = InventoryUtils.findSlotWithItem(player.inventoryMenu, stackReference, true);
 
         if (slot != -1) {
             int currentHotbarSlot = PreprocessUtils.getSelectedSlot(player.getInventory());
             if (LitematicaPrinterMod.PLACE_USE_PACKET.getBooleanValue()) {
-                DefaultedList<Slot> slots = player.currentScreenHandler.slots;
+                NonNullList<Slot> slots = player.inventoryMenu.slots;
                 int totalSlots = slots.size();
                 List<ItemStack> copies = Lists.newArrayListWithCapacity(totalSlots);
                 for (Slot slotItem : slots) {
-                    copies.add(slotItem.getStack().copy());
+                    copies.add(slotItem.getItem().copy());
                 }
 
                 Int2ObjectMap<
                         //#if MC >= 12105
-                        ItemStackHash
+                        HashedStack
                         //#else
                         //$$ ItemStack
                         //#endif
                         > snapshot = new Int2ObjectOpenHashMap<>();
                 for (int j = 0; j < totalSlots; j++) {
                     ItemStack original = copies.get(j);
-                    ItemStack current = slots.get(j).getStack();
-                    if (!ItemStack.areEqual(original, current)) {
+                    ItemStack current = slots.get(j).getItem();
+                    if (!ItemStack.isSameItem(original, current)) {
                         snapshot.put(j,
                                 //#if MC >=12105
-                                ItemStackHash.fromItemStack(current, client.getNetworkHandler().getComponentHasher())
+                                HashedStack.create(current, client.getConnection().decoratedHashOpsGenenerator())
                                 //#else
                                 //$$ current.copy()
                                 //#endif
@@ -285,11 +284,11 @@ public class PlaceUtils {
                 }
 
                 //#if MC >= 12105
-                ItemStackHash itemStackHash = ItemStackHash.fromItemStack(player.currentScreenHandler.getCursorStack(), client.getNetworkHandler().getComponentHasher());
+                HashedStack hashedStack = HashedStack.create(player.inventoryMenu.getCarried(), client.getConnection().decoratedHashOpsGenenerator());
                 //#endif
-                client.getNetworkHandler().sendPacket(new ClickSlotC2SPacket(
-                        player.playerScreenHandler.syncId,
-                        player.currentScreenHandler.getRevision(),
+                client.getConnection().send(new ServerboundContainerClickPacket(
+                        player.inventoryMenu.containerId,
+                        player.inventoryMenu.getStateId(),
                         //#if MC >= 12105
                         Shorts.checkedCast(slot),
                         SignedBytes.checkedCast(currentHotbarSlot),
@@ -297,18 +296,18 @@ public class PlaceUtils {
                         //$$ slot,
                         //$$ currentHotbarSlot,
                         //#endif
-                        SlotActionType.SWAP,
+                        ClickType.SWAP,
                         //#if MC >= 12105
                         snapshot,
-                        itemStackHash
+                        hashedStack
                         //#else
-                        //$$ player.playerScreenHandler.getCursorStack().copy(),
+                        //$$ player.inventoryMenu.getCarried().copy(),
                         //$$ snapshot
                         //#endif
                 ));
-                client.player.currentScreenHandler.onSlotClick(slot, currentHotbarSlot, SlotActionType.SWAP, player);
+                client.player.inventoryMenu.clicked(slot, currentHotbarSlot, ClickType.SWAP, player);
             } else {
-                client.interactionManager.clickSlot(player.playerScreenHandler.syncId, slot, currentHotbarSlot, SlotActionType.SWAP, player);
+                client.gameMode.handleInventoryMouseClick(player.inventoryMenu.containerId, slot, currentHotbarSlot, ClickType.SWAP, player);
             }
             return true;
         }

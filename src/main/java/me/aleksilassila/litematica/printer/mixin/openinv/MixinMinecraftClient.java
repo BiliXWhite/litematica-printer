@@ -35,16 +35,24 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.Inventor
 //$$ import net.minecraft.item.ItemStack;
 //#endif
 
+// TODO(Ravel): can not resolve target class MinecraftClient
+// TODO(Ravel): can not resolve target class MinecraftClient
 @Environment(EnvType.CLIENT)
 @Mixin({MinecraftClient.class})
 public abstract class MixinMinecraftClient {
+    // TODO(Ravel): Could not determine a single target
+// TODO(Ravel): Could not determine a single target
     @Shadow
     public ClientPlayerEntity player;
 
+    // TODO(Ravel): Could not determine a single target
+// TODO(Ravel): Could not determine a single target
     @Shadow
     @Nullable
     public ClientWorld world;
 
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
     @Inject(method = {"setScreen"}, at = {@At(value = "HEAD")}, cancellable = true)
     public void setScreen(@Nullable Screen screen, CallbackInfo ci) {
         if(closeScreen > 0 && /*screen != null &&*/ screen instanceof HandledScreen<?>){
@@ -52,9 +60,11 @@ public abstract class MixinMinecraftClient {
             ci.cancel();
         }
     }
-    //鼠标中键从打印机库存或通过快捷濳影盒 取出对应物品
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
+//鼠标中键从打印机库存或通过快捷濳影盒 取出对应物品
     //#if MC > 12103
-    @WrapOperation(method = "doItemPick",at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerInteractionManager;pickItemFromBlock(Lnet/minecraft/util/math/BlockPos;Z)V" ))
+    @WrapOperation(method = "doItemPick",at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;handlePickItemFromBlock(Lnet/minecraft/core/BlockPos;Z)V"))
     private void doItemPick(ClientPlayerInteractionManager instance, BlockPos pos, boolean b, Operation<Void> original) {
         if(world == null) {
             original.call(instance, pos, b);

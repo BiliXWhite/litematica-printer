@@ -12,8 +12,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+// TODO(Ravel): can not resolve target class PlayerManager
+// TODO(Ravel): can not resolve target class PlayerManager
 @Mixin(PlayerManager.class)
 public class PlayerManagerMixin {
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
     @Inject(at = @At("TAIL"), method = "onPlayerConnect")
     private void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player,
                                  //#if MC > 12001

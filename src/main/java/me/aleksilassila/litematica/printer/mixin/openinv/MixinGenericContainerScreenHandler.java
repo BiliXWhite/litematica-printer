@@ -10,8 +10,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
+// TODO(Ravel): can not resolve target class GenericContainerScreenHandler
+// TODO(Ravel): can not resolve target class GenericContainerScreenHandler
 @Mixin(GenericContainerScreenHandler.class)
 public class MixinGenericContainerScreenHandler {
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
     @Inject(at = @At("HEAD"), method = "onClosed",cancellable = true,locals = LocalCapture.CAPTURE_FAILHARD)
     public void onClosed(PlayerEntity player, CallbackInfo ci) {
         if(!(player instanceof ServerPlayerEntity)) return;
