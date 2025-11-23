@@ -3,6 +3,8 @@ package me.aleksilassila.litematica.printer.mixin.jackf;
 //#if MC >= 12001
 import fi.dy.masa.malilib.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -13,6 +15,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import red.jackf.chesttracker.impl.compat.mods.searchables.SearchablesUtil;
 import red.jackf.chesttracker.impl.config.ChestTrackerConfig;
 import red.jackf.chesttracker.impl.gui.screen.ChestTrackerScreen;
@@ -132,11 +135,11 @@ public abstract class ChestTrackerScreenMixin extends Screen {
     //#if MC < 12109
     //$$ @Inject(at = @At("HEAD"),method = "keyPressed", cancellable = true)
     //$$ public void keyPressed1(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir){
-    //$$     if (MinecraftClient.getInstance().options.inventoryKey.matchesKey(keyCode, scanCode) && !(this.getFocused() instanceof TextFieldWidget) ) {
-    //$$         this.close();
-    //$$     cir.setReturnValue(true);
+    //$$     if (Minecraft.getInstance().options.keyInventory.matches(keyCode, scanCode) && !(this.getFocused() instanceof EditBox) ) {
+    //$$         this.onClose();
+    //$$         cir.setReturnValue(true);
     //$$     }
-    //$$ }
+    //$$  }
     //#endif
 }
 //#endif
