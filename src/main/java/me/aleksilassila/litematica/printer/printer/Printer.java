@@ -34,7 +34,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -57,7 +56,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
 //#else
-//$$ import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
+//$$ import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
 //#endif
 
 public class Printer extends PrinterUtils {
@@ -447,7 +446,7 @@ public class Printer extends PrinterUtils {
 
             Item[] reqItems = action.getRequiredItems(requiredState.getBlock());
             if (switchToItems(player, reqItems)) {
-                boolean useShift = (Implementation.isInteractive(world.getBlockState(pos.offset(side)).getBlock()) && !(action instanceof PlacementGuide.ClickAction))
+                boolean useShift = (Implementation.isInteractive(world.getBlockState(pos.relative(side)).getBlock()) && !(action instanceof PlacementGuide.ClickAction))
                         || FORCED_SNEAK.getBooleanValue()
                         || action.useShift;
 
@@ -553,7 +552,7 @@ public class Printer extends PrinterUtils {
         }
 
         Inventory inv = player.getInventory();
-        boolean isCreativeMode = Implementation.getAbilities(player).creativeMode;
+        boolean isCreativeMode = Implementation.getAbilities(player).instabuild;
 
         // 创造模式
         if (isCreativeMode) {
@@ -719,7 +718,7 @@ public class Printer extends PrinterUtils {
             Input input = new Input(player.input.keyPresses.forward(), player.input.keyPresses.backward(), player.input.keyPresses.left(), player.input.keyPresses.right(), player.input.keyPresses.jump(), shift, player.input.keyPresses.sprint());
             ServerboundPlayerInputPacket packet = new ServerboundPlayerInputPacket(input);
             //#else
-            //$$ ClientCommandC2SPacket packet = new ClientCommandC2SPacket(player, shift ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY);
+            //$$ ServerboundPlayerCommandPacket packet = new ServerboundPlayerCommandPacket(player, shift ? ServerboundPlayerCommandPacket.Action.PRESS_SHIFT_KEY : ServerboundPlayerCommandPacket.Action.RELEASE_SHIFT_KEY);
             //#endif
             player.setShowDeathScreen(shift);
             player.connection.send(packet);
