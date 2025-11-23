@@ -7,6 +7,7 @@ import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -974,7 +975,7 @@ public class PlacementGuide extends PrinterUtils {
          * @param pos   方块的位置
          * @return 第一个有效侧面，如果不存在则返回 null
          */
-        public @Nullable Direction getValidSide(Level world, BlockPos pos) {
+        public @Nullable Direction getValidSide(ClientLevel world, BlockPos pos) {
             Map<Direction, Vec3> sides = getSides();
             List<Direction> validSides = new ArrayList<>();
 
@@ -1103,12 +1104,12 @@ public class PlacementGuide extends PrinterUtils {
          * 遍历所有侧面并返回第一个可用的方向，
          * 如果没有可用的侧面，则返回 null 。
          *
-         * @param world 当前的 ClientWorld 实例
+         * @param world 当前的 ClientLevel 实例
          * @param pos   块的位置
          * @return 第一个有效侧面，如果不存在则返回 null
          */
         @Override
-        public @Nullable Direction getValidSide(Level world, BlockPos pos) {
+        public @Nullable Direction getValidSide(ClientLevel world, BlockPos pos) {
             for (Direction side : getSides().keySet()) {
                 return side;
             }

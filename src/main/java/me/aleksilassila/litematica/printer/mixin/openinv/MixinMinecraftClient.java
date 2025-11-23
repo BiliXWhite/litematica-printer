@@ -10,14 +10,14 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.item.Item;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -35,44 +35,35 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.Inventor
 //$$ import net.minecraft.item.ItemStack;
 //#endif
 
-// TODO(Ravel): can not resolve target class MinecraftClient
-// TODO(Ravel): can not resolve target class MinecraftClient
 @Environment(EnvType.CLIENT)
-@Mixin({MinecraftClient.class})
+@Mixin({Minecraft.class})
 public abstract class MixinMinecraftClient {
-    // TODO(Ravel): Could not determine a single target
-// TODO(Ravel): Could not determine a single target
     @Shadow
-    public ClientPlayerEntity player;
+    public LocalPlayer player;
 
-    // TODO(Ravel): Could not determine a single target
-// TODO(Ravel): Could not determine a single target
     @Shadow
     @Nullable
-    public ClientWorld world;
+    public ClientLevel level;
 
-    // TODO(Ravel): no target class
-// TODO(Ravel): no target class
     @Inject(method = {"setScreen"}, at = {@At(value = "HEAD")}, cancellable = true)
     public void setScreen(@Nullable Screen screen, CallbackInfo ci) {
-        if(closeScreen > 0 && /*screen != null &&*/ screen instanceof HandledScreen<?>){
+        if(closeScreen > 0 && /*screen != null &&*/ screen instanceof AbstractContainerScreen<?>){
             closeScreen--;
             ci.cancel();
         }
     }
-    // TODO(Ravel): no target class
-// TODO(Ravel): no target class
-//鼠标中键从打印机库存或通过快捷濳影盒 取出对应物品
+
+    //鼠标中键从打印机库存或通过快捷濳影盒 取出对应物品
     //#if MC > 12103
-    @WrapOperation(method = "doItemPick",at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;handlePickItemFromBlock(Lnet/minecraft/core/BlockPos;Z)V"))
-    private void doItemPick(ClientPlayerInteractionManager instance, BlockPos pos, boolean b, Operation<Void> original) {
-        if(world == null) {
+    @WrapOperation(method = "pickBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;handlePickItemFromBlock(Lnet/minecraft/core/BlockPos;Z)V"))
+    private void doItemPick(MultiPlayerGameMode instance, BlockPos pos, boolean b, Operation<Void> original) {
+        if(level == null) {
             original.call(instance, pos, b);
             return;
         }
-        Item item = world.getBlockState(pos).getBlock().asItem();
-        if (player.playerScreenHandler.slots.stream().noneMatch(slot -> slot.getStack().getItem().equals(item)) &&
-                !player.getAbilities().creativeMode && (CLOUD_INVENTORY.getBooleanValue() || QUICK_SHULKER.getBooleanValue())) {
+        Item item = level.getBlockState(pos).getBlock().asItem();
+        if (player.inventoryMenu.slots.stream().noneMatch(slot -> slot.getItem().getItem().equals(item)) &&
+                !player.getAbilities().instabuild && (CLOUD_INVENTORY.getBooleanValue() || QUICK_SHULKER.getBooleanValue())) {
             lastNeedItemList.add(item);
             InventoryUtils.switchItem();
             return;

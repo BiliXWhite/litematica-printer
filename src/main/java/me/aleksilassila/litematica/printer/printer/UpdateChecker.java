@@ -5,9 +5,7 @@ import com.google.gson.JsonParser;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
-
+import net.minecraft.client.Minecraft;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -41,7 +39,7 @@ public class UpdateChecker {
             }
         } catch (Exception exception) {
             System.out.println("无法检查更新: " + exception.getMessage());
-            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage((Text) StringUtils.get("update.failed"));
+            Minecraft.getInstance().gui.getChat().addMessage(StringUtils.get("update.failed"));
         }
         return null;
     }

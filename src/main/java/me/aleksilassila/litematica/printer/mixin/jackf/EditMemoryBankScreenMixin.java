@@ -4,7 +4,7 @@ package me.aleksilassila.litematica.printer.mixin.jackf;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.components.Button;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -22,7 +22,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.Memor
 public class EditMemoryBankScreenMixin {
     @Shadow(remap = false) @Final private MemoryBankView memoryBank;
     @Inject(at = @At("TAIL"), method = "save",remap = false)
-    private void save(ButtonWidget button, CallbackInfo ci) {
+    private void save(Button button, CallbackInfo ci) {
         if (memoryBank.id().contains("-printer")) {
             Metadata metadata = memoryBank.metadata();
             PRINTER_MEMORY.setMetadata(metadata);

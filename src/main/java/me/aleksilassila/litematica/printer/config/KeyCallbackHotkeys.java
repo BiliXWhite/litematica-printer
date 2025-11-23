@@ -3,7 +3,7 @@ package me.aleksilassila.litematica.printer.config;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 //#if MC >= 12001
 //#else
@@ -15,7 +15,7 @@ import net.minecraft.client.MinecraftClient;
 
 public class KeyCallbackHotkeys implements IHotkeyCallback {
 
-    public KeyCallbackHotkeys(MinecraftClient client) {
+    public KeyCallbackHotkeys(Minecraft client) {
     }
 
     @Override

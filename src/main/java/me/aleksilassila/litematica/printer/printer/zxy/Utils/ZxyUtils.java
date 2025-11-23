@@ -12,28 +12,29 @@ import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.ShulkerBoxBlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.entity.mob.ShulkerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
-import net.minecraft.registry.Registries;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.monster.Shulker;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -43,17 +44,11 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //#endif
 
-//#if MC > 11802
-import net.minecraft.text.MutableText;
-//#else
-//$$ import net.minecraft.text.TranslatableText;
-//#endif
-
 import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.SYNC_INVENTORY_COLOR;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
-import static net.minecraft.block.ShulkerBoxBlock.FACING;
+import static net.minecraft.world.level.block.ShulkerBoxBlock.FACING;
 
 public class ZxyUtils {
     //旧版箱子追踪
@@ -63,7 +58,7 @@ public class ZxyUtils {
     public static int currWorldId = 0;
 
     @NotNull
-    static MinecraftClient client = MinecraftClient.getInstance();
+    static Minecraft client = Minecraft.getInstance();
     public static LinkedList<BlockPos> invBlockList = new LinkedList<>();
     public static boolean printerMemoryAdding = false;
     @SuppressWarnings("unused")
@@ -89,17 +84,17 @@ public class ZxyUtils {
         if (printerMemoryAdding && !openIng && OpenInventoryPacket.key == null) {
             if (invBlockList.isEmpty()) {
                 printerMemoryAdding = false;
-                client.inGameHud.setOverlayMessage(Text.of("打印机库存添加完成"), false);
+                client.gui.setOverlayMessage(Component.nullToEmpty("打印机库存添加完成"), false);
                 return;
             }
-            client.inGameHud.setOverlayMessage(Text.of("添加库存中"), false);
+            client.gui.setOverlayMessage(Component.nullToEmpty("添加库存中"), false);
             for (BlockPos pos : invBlockList) {
-                if (client.world != null) {
+                if (client.level != null) {
                     //#if MC < 12001
                     //$$ MemoryUtils.setLatestPos(pos);
                     //#endif
                     closeScreen++;
-                    OpenInventoryPacket.sendOpenInventory(pos, client.world.getRegistryKey());
+                    OpenInventoryPacket.sendOpenInventory(pos, client.level.dimension());
                 }
                 invBlockList.remove(pos);
                 highlightPosList.remove(pos);
@@ -123,40 +118,40 @@ public class ZxyUtils {
 
     public static void startOrOffSyncInventory() {
         getReadyColor();
-        if (client.crosshairTarget != null && client.crosshairTarget.getType() == HitResult.Type.BLOCK && syncPosList.isEmpty()) {
-            BlockPos pos = ((BlockHitResult) client.crosshairTarget).getBlockPos();
-            BlockState blockState = client.world.getBlockState(pos);
+        if (client.hitResult != null && client.hitResult.getType() == HitResult.Type.BLOCK && syncPosList.isEmpty()) {
+            BlockPos pos = ((BlockHitResult) client.hitResult).getBlockPos();
+            BlockState blockState = client.level.getBlockState(pos);
             Block block = null;
-            if (client.world != null) {
-                block = client.world.getBlockState(pos).getBlock();
-                BlockEntity blockEntity = client.world.getBlockEntity(pos);
-                boolean isInventory = InventoryUtils.isInventory(client.world,pos);
+            if (client.level != null) {
+                block = client.level.getBlockState(pos).getBlock();
+                BlockEntity blockEntity = client.level.getBlockEntity(pos);
+                boolean isInventory = InventoryUtils.isInventory(client.level,pos);
                 try {
-                    if ((isInventory && blockState.createScreenHandlerFactory(client.world,pos) == null) ||
+                    if ((isInventory && blockState.getMenuProvider(client.level,pos) == null) ||
                             (blockEntity instanceof ShulkerBoxBlockEntity entity &&
                                     //#if MC > 12103
-                                    !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F, pos.toBottomCenterPos()).offset(pos).contract(1.0E-6)) &&
+                                    !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(FACING), 0.0F, 0.5F, pos.getBottomCenter()).move(pos).deflate(1.0E-6)) &&
                                     //#elseif MC <= 12103 && MC > 12004
                                     //$$ //!client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
                                     //#elseif MC <= 12004
                                     //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
                                     //#endif
-                                    entity.getAnimationStage() == ShulkerBoxBlockEntity.AnimationStage.CLOSED)) {
-                        client.inGameHud.setOverlayMessage(Text.of("容器无法打开"), false);
+                                    entity.getAnimationStatus() == ShulkerBoxBlockEntity.AnimationStatus.CLOSED)) {
+                        client.gui.setOverlayMessage(Component.nullToEmpty("容器无法打开"), false);
                     }else if(!isInventory){
-                        client.inGameHud.setOverlayMessage(Text.of("这不是容器 无法同步"), false);
+                        client.gui.setOverlayMessage(Component.nullToEmpty("这不是容器 无法同步"), false);
                         return;
                     }
                 } catch (Exception e) {
-                    client.inGameHud.setOverlayMessage(Text.of("这不是容器 无法同步"), false);
+                    client.gui.setOverlayMessage(Component.nullToEmpty("这不是容器 无法同步"), false);
                     return;
                 }
             }
-            String blockName = Registries.BLOCK.getId(block).toString();
+            String blockName = BuiltInRegistries.BLOCK.getKey(block).toString();
             syncPosList.addAll(filterBlocksByName(blockName));
             if (!syncPosList.isEmpty()) {
                 if (client.player == null) return;
-                client.player.closeHandledScreen();
+                client.player.closeContainer();
                 if (!openInv(pos,false)){
                     syncPosList = new LinkedList<>();
                     return;
@@ -168,25 +163,25 @@ public class ZxyUtils {
         } else if(!syncPosList.isEmpty()){
             syncPosList.forEach(highlightPosList::remove);
             syncPosList = new LinkedList<>();
-            if (client.player != null) client.player.closeScreen();
+            if (client.player != null) client.player.clientSideCloseContainer();
             num = 0;
-            client.inGameHud.setOverlayMessage(Text.of("已取消同步"), false);
+            client.gui.setOverlayMessage(Component.nullToEmpty("已取消同步"), false);
         }
     }
     public static boolean openInv(BlockPos pos,boolean ignoreThePrompt){
         if(LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() && OpenInventoryPacket.key == null) {
-            OpenInventoryPacket.sendOpenInventory(pos, client.world.getRegistryKey());
+            OpenInventoryPacket.sendOpenInventory(pos, client.level.dimension());
             return true;
         } else {
             if (client.player != null && !PlaceUtils.canInteracted(pos)) {
-                if(!ignoreThePrompt) client.inGameHud.setOverlayMessage(Text.of("距离过远无法打开容器"), false);
+                if(!ignoreThePrompt) client.gui.setOverlayMessage(Component.nullToEmpty("距离过远无法打开容器"), false);
                 return false;
             }
-            if (client.interactionManager != null){
+            if (client.gameMode != null){
                 //#if MC < 11904
-                //$$ client.interactionManager.interactBlock(client.player, client.world, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
+                //$$ client.gameMode.useItemOn(client.player, client.level, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(pos), Direction. DOWN, pos, false));
                 //#else
-                client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND,new BlockHitResult(Vec3d.ofCenter(pos), Direction.DOWN,pos,false));
+                client.gameMode.useItemOn(client.player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(pos), Direction.DOWN,pos,false));
                 //#endif
                 return true;
             } else return false;
@@ -195,7 +190,7 @@ public class ZxyUtils {
     public static void itemsCount(Map<ItemStack,Integer> itemsCount , ItemStack itemStack){
         // 判断是否存在可合并的键
         Optional<Map.Entry<ItemStack, Integer>> entry = itemsCount.entrySet().stream()
-                .filter(e -> ItemStack.areItemsAndComponentsEqual(e.getKey(), itemStack))
+                .filter(e -> ItemStack.isSameItemSameComponents(e.getKey(), itemStack))
                 .findFirst();
 
         if (entry.isPresent()) {
@@ -215,15 +210,15 @@ public class ZxyUtils {
                 //按下热键后记录看向的容器 开始同步容器 只会触发一次
                 targetBlockInv = new ArrayList<>();
                 targetItemsCount = new HashMap<>();
-                if (client.player != null && (!LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() || openIng) && !client.player.currentScreenHandler.equals(client.player.playerScreenHandler)) {
-                    for (int i = 0; i < client.player.currentScreenHandler.slots.get(0).inventory.size(); i++) {
-                        ItemStack copy = client.player.currentScreenHandler.slots.get(i).getStack().copy();
+                if (client.player != null && (!LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() || openIng) && !client.player.containerMenu.equals(client.player.inventoryMenu)) {
+                    for (int i = 0; i < client.player.containerMenu.slots.get(0).container.getContainerSize(); i++) {
+                        ItemStack copy = client.player.containerMenu.slots.get(i).getItem().copy();
                         itemsCount(targetItemsCount,copy);
                         targetBlockInv.add(copy);
                     }
                     //上面如果不使用copy()在关闭容器后会使第一个元素号变该物品成总数 非常有趣...
 //                    System.out.println("???1 "+targetBlockInv.get(0).getCount());
-                    client.player.closeHandledScreen();
+                    client.player.closeContainer();
 //                    System.out.println("!!!1 "+targetBlockInv.get(0).getCount());
                     num = 2;
                 }
@@ -232,15 +227,15 @@ public class ZxyUtils {
                 //打开列表中的容器 只要容器同步列表不为空 就会一直执行此处
                 if (client.player == null) return;
                 playerItemsCount = new HashMap<>();
-                client.inGameHud.setOverlayMessage(Text.of("剩余 " + syncPosList.size() + " 个容器. 再次按下快捷键取消同步"), false);
-                if (!client.player.currentScreenHandler.equals(client.player.playerScreenHandler)) return;
-                DefaultedList<Slot> slots = client.player.playerScreenHandler.slots;
-                slots.forEach(slot -> itemsCount(playerItemsCount,slot.getStack()));
+                client.gui.setOverlayMessage(Component.nullToEmpty("剩余 " + syncPosList.size() + " 个容器. 再次按下快捷键取消同步"), false);
+                if (!client.player.containerMenu.equals(client.player.inventoryMenu)) return;
+                NonNullList<Slot> slots = client.player.inventoryMenu.slots;
+                slots.forEach(slot -> itemsCount(playerItemsCount,slot.getItem()));
 
                 if (SYNC_INVENTORY_CHECK.getBooleanValue() && !targetItemsCount.entrySet().stream()
                         .allMatch(target -> playerItemsCount.entrySet().stream()
                                 .anyMatch(player ->
-                                        ItemStack.areItemsAndComponentsEqual(player.getKey(), target.getKey()) && target.getValue() <= player.getValue()))) return;
+                                        ItemStack.isSameItemSameComponents(player.getKey(), target.getKey()) && target.getValue() <= player.getValue()))) return;
 
                 if ((!LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
                     for (BlockPos pos : syncPosList) {
@@ -253,50 +248,50 @@ public class ZxyUtils {
                 }
                 if (syncPosList.isEmpty()) {
                     num = 0;
-                    client.inGameHud.setOverlayMessage(Text.of("同步完成"), false);
+                    client.gui.setOverlayMessage(Component.nullToEmpty("同步完成"), false);
                 }
             }
             case 3 -> {
                 //开始同步 在打开容器后触发
-                ScreenHandler sc = client.player.currentScreenHandler;
-                if (sc.equals(client.player.playerScreenHandler)) return;
-                int size = Math.min(targetBlockInv.size(),sc.slots.get(0).inventory.size());
+                AbstractContainerMenu sc = client.player.containerMenu;
+                if (sc.equals(client.player.inventoryMenu)) return;
+                int size = Math.min(targetBlockInv.size(),sc.slots.get(0).container.getContainerSize());
 
                 int times = 0;
                 for (int i = 0; i < size; i++) {
-                    ItemStack item1 = sc.slots.get(i).getStack();
+                    ItemStack item1 = sc.slots.get(i).getItem();
                     ItemStack item2 = targetBlockInv.get(i).copy();
                     int currNum = item1.getCount();
                     int tarNum = item2.getCount();
-                    boolean same = ItemStack.areItemsAndComponentsEqual(item1,item2.copy()) && !item1.isEmpty();
-                    if(ItemStack.areItemsAndComponentsEqual(item1,item2) && currNum == tarNum) continue;
+                    boolean same = ItemStack.isSameItemSameComponents(item1,item2.copy()) && !item1.isEmpty();
+                    if(ItemStack.isSameItemSameComponents(item1,item2) && currNum == tarNum) continue;
                     //不和背包交互
                     if (same) {
                         //有多
                         while (currNum > tarNum) {
-                            client.interactionManager.clickSlot(sc.syncId, i, 0, SlotActionType.THROW, client.player);
+                            client.gameMode.handleInventoryMouseClick(sc.containerId, i, 0, ClickType.THROW, client.player);
                             currNum--;
                         }
                     } else {
                         //不同直接扔出
-                        client.interactionManager.clickSlot(sc.syncId, i, 1, SlotActionType.THROW, client.player);
+                        client.gameMode.handleInventoryMouseClick(sc.containerId, i, 1, ClickType.THROW, client.player);
                         times++;
                     }
                     boolean thereAreItems = false;
                     //背包交互
                     for (int i1 = size; i1 < sc.slots.size(); i1++) {
-                        ItemStack stack = sc.slots.get(i1).getStack();
-                        ItemStack currStack = sc.slots.get(i).getStack();
+                        ItemStack stack = sc.slots.get(i1).getItem();
+                        ItemStack currStack = sc.slots.get(i).getItem();
                         currNum = currStack.getCount();
-                        boolean same2 = thereAreItems = ItemStack.areItemsAndComponentsEqual(item2,stack);
+                        boolean same2 = thereAreItems = ItemStack.isSameItemSameComponents(item2,stack);
                         if (same2 && !stack.isEmpty()) {
                             int i2 = stack.getCount();
-                            client.interactionManager.clickSlot(sc.syncId, i1, 0, SlotActionType.PICKUP, client.player);
+                            client.gameMode.handleInventoryMouseClick(sc.containerId, i1, 0, ClickType.PICKUP, client.player);
                             for (; currNum < tarNum && i2 > 0; i2--) {
-                                client.interactionManager.clickSlot(sc.syncId, i, 1, SlotActionType.PICKUP, client.player);
+                                client.gameMode.handleInventoryMouseClick(sc.containerId, i, 1, ClickType.PICKUP, client.player);
                                 currNum++;
                             }
-                            client.interactionManager.clickSlot(sc.syncId, i1, 0, SlotActionType.PICKUP, client.player);
+                            client.gameMode.handleInventoryMouseClick(sc.containerId, i1, 0, ClickType.PICKUP, client.player);
                         }
                         //这里判断没啥用，因为一个游戏刻操作背包太多次.getStack().getCount()获取的数量不准确 下次一定优化，
                         if (currNum != tarNum) times++;
@@ -308,7 +303,7 @@ public class ZxyUtils {
                     highlightPosList.remove(blockPos);
                     blockPos = null;
                 }
-                client.player.closeHandledScreen();
+                client.player.closeContainer();
                 num = 2;
             }
         }
@@ -325,19 +320,19 @@ public class ZxyUtils {
             LitematicaPrinterMod.FLUID.setBooleanValue(false);
             LitematicaPrinterMod.PRINT_SWITCH.setBooleanValue(false);
             LitematicaPrinterMod.PRINTER_MODE.setOptionListValue(State.PrintModeType.PRINTER);
-            client.inGameHud.setOverlayMessage(Text.of("已关闭全部模式"), false);
+            client.gui.setOverlayMessage(Component.nullToEmpty("已关闭全部模式"), false);
         }
         OpenInventoryPacket.tick();
     }
 
     public static void switchPlayerInvToHotbarAir(int slot) {
         if (client.player == null) return;
-        ClientPlayerEntity player = client.player;
-        ScreenHandler sc = player.currentScreenHandler;
-        DefaultedList<Slot> slots = sc.slots;
-        int i = sc.equals(player.playerScreenHandler) ? 9 : 0;
+        LocalPlayer player = client.player;
+        AbstractContainerMenu sc = player.containerMenu;
+        NonNullList<Slot> slots = sc.slots;
+        int i = sc.equals(player.inventoryMenu) ? 9 : 0;
         for (; i < slots.size(); i++) {
-            if (slots.get(i).getStack().isEmpty() && slots.get(i).inventory instanceof PlayerInventory) {
+            if (slots.get(i).getItem().isEmpty() && slots.get(i).container instanceof Inventory) {
                 fi.dy.masa.malilib.util.InventoryUtils.swapSlots(sc, i, slot);
                 return;
             }
@@ -355,9 +350,9 @@ public class ZxyUtils {
         return sequence++;
     }
 
-    private static void selectHotbarSlot(int slot, PlayerInventory inventory, boolean usePacket) {
+    private static void selectHotbarSlot(int slot, Inventory inventory, boolean usePacket) {
         if (usePacket) {
-            client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
+            client.getConnection().send(new ServerboundSetCarriedItemPacket(slot));
         }
         //#if MC > 12101
         inventory.setSelectedSlot(slot);
@@ -370,11 +365,11 @@ public class ZxyUtils {
 
     public static void actionBar(String message){
         //#if MC > 11802
-        MutableText translatable = Text.translatable(message);
+        MutableComponent translatable = Component.translatable(message);
         //#else
         //$$ TranslatableText translatable = new TranslatableText(message);
         //#endif
-        client.inGameHud.setOverlayMessage(translatable,false);
+        client.gui.setOverlayMessage(translatable,false);
     }
 
 
@@ -394,8 +389,8 @@ public class ZxyUtils {
             MyBox myBox = new MyBox(box);
             for (BlockPos pos : myBox) {
                 BlockState state = null;
-                if (Printer.client.world != null) {
-                    state = Printer.client.world.getBlockState(pos);
+                if (Printer.client.level != null) {
+                    state = Printer.client.level.getBlockState(pos);
                 }
                 if (Filters.equalsName(blockName, state)) {
                     blocks.add(pos);

@@ -2,46 +2,33 @@ package me.aleksilassila.litematica.printer.mixin.masa;
 
 import fi.dy.masa.litematica.util.PlacementHandler;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-// TODO(Ravel): can not resolve target class BlockItem
-// TODO(Ravel): can not resolve target class BlockItem
 @Mixin(value = BlockItem.class, priority = 981)
-public abstract class BlockItemMixin extends Item
-{
-    private BlockItemMixin(Item.Settings builder)
+public abstract class BlockItemMixin extends Item {
+    private BlockItemMixin(Item.Properties builder)
     {
         super(builder);
     }
 
-    // TODO(Ravel): Could not determine a single target
-// TODO(Ravel): Could not determine a single target
-    @Shadow
-    protected abstract BlockState getPlacementState(ItemPlacementContext context);
-    // TODO(Ravel): Could not determine a single target
-// TODO(Ravel): Could not determine a single target
-    @Shadow protected abstract boolean canPlace(ItemPlacementContext context, BlockState state);
-    // TODO(Ravel): Could not determine a single target
-// TODO(Ravel): Could not determine a single target
+    @Shadow protected abstract boolean canPlace(BlockPlaceContext context, BlockState state);
+
     @Shadow public abstract Block getBlock();
 
-    // TODO(Ravel): no target class
-// TODO(Ravel): no target class
     @Inject(method = "getPlacementState", at = @At("HEAD"), cancellable = true)
-    private void modifyPlacementState(ItemPlacementContext ctx, CallbackInfoReturnable<BlockState> cir)
-    {
+    private void modifyPlacementState(BlockPlaceContext ctx, CallbackInfoReturnable<BlockState> cir) {
         if (LitematicaPrinterMod.EASYPLACE_PROTOCOL.getBooleanValue())
         {
-            BlockState stateOrig = this.getBlock().getPlacementState(ctx);
+            BlockState stateOrig = this.getBlock().getStateForPlacement(ctx);
 
             if (stateOrig != null && this.canPlace(ctx, stateOrig))
             {

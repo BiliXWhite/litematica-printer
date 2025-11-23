@@ -1,68 +1,59 @@
 package me.aleksilassila.litematica.printer.mixin;
 
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 //#if MC < 11904
-//$$ import net.minecraft.world.World;
-//$$ import net.minecraft.client.world.ClientWorld;
+//$$ import net.minecraft.world.level.Level;
+//$$ import net.minecraft.client.multiplayer.ClientLevel;
 //$$
 //#endif
 
-// TODO(Ravel): can not resolve target class ClientPlayerInteractionManager
-// TODO(Ravel): can not resolve target class ClientPlayerInteractionManager
-@Mixin(ClientPlayerInteractionManager.class)
+@Mixin(MultiPlayerGameMode.class)
 public abstract class MixinClientPlayerInteractionManager implements IClientPlayerInteractionManager {
-	// TODO(Ravel): Could not determine a single target
-// TODO(Ravel): Could not determine a single target
     @Final
     @Shadow
-	private MinecraftClient client;
+    private Minecraft minecraft;
 
     @Override
-	public void rightClickBlock(BlockPos pos, Direction side, Vec3d hitVec)
-	{
-		interactBlock(client.player,
-				//#if MC < 11904
-//$$ 				client.world,
-				//#endif
-				Hand.MAIN_HAND,
-			new BlockHitResult(hitVec, side, pos, false));
-		interactItem(client.player,
-				//#if MC < 11904
-//$$ 				client.world,
-				//#endif
-				Hand.MAIN_HAND);
-//		System.out.println("Printer interactBlock: pos: (" + pos.toShortString() + "), side: " + side.getName() + ", vector: " + hitVec.toString());
-	}
+    public void rightClickBlock(BlockPos pos, Direction side, Vec3 hitVec)
+    {
+        useItemOn(minecraft.player,
+                //#if MC < 11904
+//$$ 				client.level,
+                //#endif
+                InteractionHand.MAIN_HAND,
+                new BlockHitResult(hitVec, side, pos, false));
+        useItem(minecraft.player,
+                //#if MC < 11904
+//$$ 				client.level,
+                //#endif
+                InteractionHand.MAIN_HAND);
+    }
 
-	// TODO(Ravel): Could not determine a single target
-// TODO(Ravel): Could not determine a single target
     @Shadow
-	public abstract ActionResult interactBlock(
-            ClientPlayerEntity clientPlayerEntity_1,
-			//#if MC < 11904
-			//$$ClientWorld world,
-			//#endif
-            Hand hand_1, BlockHitResult blockHitResult_1);
+    public abstract InteractionResult useItemOn(
+            LocalPlayer clientPlayerEntity_1,
+            //#if MC < 11904
+            //$$ClientLevel world,
+            //#endif
+            InteractionHand hand_1, BlockHitResult blockHitResult_1);
 
-	// TODO(Ravel): Could not determine a single target
-// TODO(Ravel): Could not determine a single target
     @Shadow
-	public abstract ActionResult interactItem(PlayerEntity playerEntity_1,
-											  //#if MC < 11904
-//$$ 											   World world,
-											  //#endif
-                                               Hand hand_1);
+    public abstract InteractionResult useItem(Player playerEntity_1,
+                                              //#if MC < 11904
+//$$ 											   Level world,
+                                              //#endif
+                                              InteractionHand hand_1);
 }

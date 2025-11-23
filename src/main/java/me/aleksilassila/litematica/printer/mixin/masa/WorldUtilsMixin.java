@@ -6,15 +6,12 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import fi.dy.masa.litematica.util.RayTraceUtils;
 import fi.dy.masa.litematica.util.WorldUtils;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 
 import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.USE_EASYPLACE;
@@ -22,23 +19,19 @@ import static me.aleksilassila.litematica.printer.printer.Printer.easyPos;
 
 @Mixin(WorldUtils.class)
 public class WorldUtilsMixin {
-    @Invoker("applyBlockSlabProtocol")
-    public static Vec3d applyBlockSlabProtocol(BlockPos pos, BlockState state, Vec3d hitVecIn) {
-        return null;
-    }
-    @WrapOperation(at= @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/util/RayTraceUtils;getGenericTrace(Lnet/minecraft/world/World;Lnet/minecraft/entity/Entity;DZZZ)Lfi/dy/masa/litematica/util/RayTraceUtils$RayTraceWrapper;"),method = "doEasyPlaceAction")
-    private static RayTraceUtils.RayTraceWrapper doSchematicWorldPickBlock(World world, Entity dist2, double verifier, boolean posList, boolean traceMismatch, boolean worldClient, Operation<RayTraceUtils.RayTraceWrapper> original){
+    @WrapOperation(at= @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/util/RayTraceUtils;getGenericTrace(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/Entity;DZZZ)Lfi/dy/masa/litematica/util/RayTraceUtils$RayTraceWrapper;"),method = "doEasyPlaceAction")
+    private static RayTraceUtils.RayTraceWrapper doSchematicWorldPickBlock(Level world, Entity dist2, double verifier, boolean posList, boolean traceMismatch, boolean worldClient, Operation<RayTraceUtils.RayTraceWrapper> original){
         if (USE_EASYPLACE.getBooleanValue() && easyPos != null) {
-            return new RayTraceUtils.RayTraceWrapper(RayTraceUtils.RayTraceWrapper.HitType.SCHEMATIC_BLOCK,new BlockHitResult(Vec3d.ofCenter(easyPos),Direction.UP,easyPos,false));
+            return new RayTraceUtils.RayTraceWrapper(RayTraceUtils.RayTraceWrapper.HitType.SCHEMATIC_BLOCK,new BlockHitResult(Vec3.atCenterOf(easyPos),Direction.UP,easyPos,false));
         }else {
             return original.call(world, dist2, verifier, posList, traceMismatch, worldClient);
         }
 
     }
-    @WrapOperation(at= @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/util/RayTraceUtils;getFurthestSchematicWorldTraceBeforeVanilla(Lnet/minecraft/world/World;Lnet/minecraft/entity/Entity;D)Lfi/dy/masa/litematica/util/RayTraceUtils$RayTraceWrapper;"),method = "doEasyPlaceAction")
-    private static RayTraceUtils.RayTraceWrapper doSchematicWorldPickBlock2(World vanillaHitResult, Entity dist, double trace, Operation<RayTraceUtils.RayTraceWrapper> original){
+    @WrapOperation(at= @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/util/RayTraceUtils;getFurthestSchematicWorldTraceBeforeVanilla(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/Entity;D)Lfi/dy/masa/litematica/util/RayTraceUtils$RayTraceWrapper;"),method = "doEasyPlaceAction")
+    private static RayTraceUtils.RayTraceWrapper doSchematicWorldPickBlock2(Level vanillaHitResult, Entity dist, double trace, Operation<RayTraceUtils.RayTraceWrapper> original){
         if (USE_EASYPLACE.getBooleanValue() && easyPos != null) {
-            return new RayTraceUtils.RayTraceWrapper(RayTraceUtils.RayTraceWrapper.HitType.SCHEMATIC_BLOCK,new BlockHitResult(Vec3d.ofCenter(easyPos),Direction.UP,easyPos,false));
+            return new RayTraceUtils.RayTraceWrapper(RayTraceUtils.RayTraceWrapper.HitType.SCHEMATIC_BLOCK,new BlockHitResult(Vec3.atCenterOf(easyPos),Direction.UP,easyPos,false));
         }else {
             return original.call(vanillaHitResult, dist, trace);
         }

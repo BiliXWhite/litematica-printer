@@ -2,10 +2,10 @@ package me.aleksilassila.litematica.printer.mixin.openinv;
 
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.TickList;
-import net.minecraft.block.BlockState;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.ChunkPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -14,19 +14,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.playerlist;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.tickMap;
 
-// TODO(Ravel): can not resolve target class ServerWorld
-// TODO(Ravel): can not resolve target class ServerWorld
-@Mixin(ServerWorld.class)
+@Mixin(ServerLevel.class)
 public class MixinServerWorld {
-    // TODO(Ravel): no target class
-// TODO(Ravel): no target class
     @Inject(at = @At("HEAD"),method = "tick")
     public void tick(CallbackInfo ci){
-        for (ServerPlayerEntity s : playerlist) {
+        for (ServerPlayer s : playerlist) {
             TickList list = tickMap.get(s);
-            if (!list.world.isChunkLoaded(ChunkPos.toLong(list.pos))) {
+            if (!list.world.areEntitiesLoaded(ChunkPos.asLong(list.pos))) {
                 //#if MC > 11802
-                list.world.shouldTickBlockPos(list.pos);
+                list.world.shouldTickBlocksAt(list.pos);
                 //#else
                 //$$ list.world.shouldTick(list.pos);
                 //#endif

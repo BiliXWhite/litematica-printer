@@ -4,9 +4,9 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.TickList;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,13 +25,9 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInve
 //$$ import net.minecraft.network.encryption.PlayerPublicKey;
 //#endif
 
-// TODO(Ravel): can not resolve target class ServerPlayerEntity
-// TODO(Ravel): can not resolve target class ServerPlayerEntity
-@Mixin(ServerPlayerEntity.class)
+@Mixin(ServerPlayer.class)
 public abstract class MixinServerPlayerEntity{
 
-    // TODO(Ravel): no target class
-// TODO(Ravel): no target class
 //    public MixinServerPlayerEntity(World world, BlockPos pos, float yaw, GameProfile profile
 //    //#if MC == 11902
 //    //$$ , @Nullable PlayerPublicKey publicKey) { super(world, pos, yaw, profile, publicKey);
@@ -46,39 +42,39 @@ public abstract class MixinServerPlayerEntity{
     //#if MC < 11904
     //$$ @Inject(at = @At("HEAD"), method = "closeScreenHandler")
     //#else
-    @Inject(at = @At("HEAD"), method = "onHandledScreenClosed")
+    @Inject(at = @At("HEAD"), method = "doCloseContainer")
     //#endif
     public void onHandledScreenClosed(CallbackInfo ci) {
         deletePlayerList();
     }
     // TODO(Ravel): no target class
 // TODO(Ravel): no target class
-    @Inject(at = @At("HEAD"), method = "onDisconnect")
+    @Inject(at = @At("HEAD"), method = "disconnect")
     public void onDisconnect(CallbackInfo ci) {
         deletePlayerList();
     }
 
     @Unique
     private UUID getUuid1(){
-        return ((ServerPlayerEntity)(Object)this).getUuid();
+        return ((ServerPlayer)(Object)this).getUUID();
     }
     @Unique
     private void deletePlayerList(){
-        playerlist.removeIf(player -> player.getUuid().equals(getUuid1()));
-        List<Map.Entry<ServerPlayerEntity, TickList>> list = tickMap.entrySet().stream().filter(k -> k.getKey().getUuid().equals(getUuid1())).toList();
-        for (Map.Entry<ServerPlayerEntity, TickList> serverPlayerEntityTickListEntry : list) {
+        playerlist.removeIf(player -> player.getUUID().equals(getUuid1()));
+        List<Map.Entry<ServerPlayer, TickList>> list = tickMap.entrySet().stream().filter(k -> k.getKey().getUUID().equals(getUuid1())).toList();
+        for (Map.Entry<ServerPlayer, TickList> serverPlayerEntityTickListEntry : list) {
             tickMap.remove(serverPlayerEntityTickListEntry.getKey());
         }
     }
     // TODO(Ravel): no target class
 // TODO(Ravel): no target class
     @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;stillValid(Lnet/minecraft/world/entity/player/Player;)Z"),method = "tick")
-    public boolean onTick(ScreenHandler instance, PlayerEntity playerEntity, Operation<Boolean> original){
-        if (playerEntity instanceof ServerPlayerEntity) {
-            for (ServerPlayerEntity serverPlayerEntity : OpenInventoryPacket.playerlist) {
+    public boolean onTick(AbstractContainerMenu instance, Player playerEntity, Operation<Boolean> original){
+        if (playerEntity instanceof ServerPlayer) {
+            for (ServerPlayer serverPlayerEntity : OpenInventoryPacket.playerlist) {
                 if (serverPlayerEntity.equals(playerEntity)) return true;
             }
         }
-        return instance.canUse(playerEntity);
+        return instance.stillValid(playerEntity);
     }
 }

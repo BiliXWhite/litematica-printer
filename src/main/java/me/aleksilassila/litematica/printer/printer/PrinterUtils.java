@@ -4,22 +4,22 @@ import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SlabBlock;
-import net.minecraft.block.enums.BlockHalf;
-import net.minecraft.block.enums.SlabType;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.Item;
-import net.minecraft.state.property.Property;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Half;
+import net.minecraft.world.level.block.state.properties.SlabType;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -37,23 +37,23 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.Inventor
 public class PrinterUtils {
 
     @NotNull
-    static MinecraftClient client = MinecraftClient.getInstance();
+    static Minecraft client = Minecraft.getInstance();
 
 	public static Direction[] horizontalDirections = new Direction[]{Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
 
-	public static boolean playerHasAccessToItem(ClientPlayerEntity playerEntity, Item item) {
+	public static boolean playerHasAccessToItem(LocalPlayer playerEntity, Item item) {
 		return playerHasAccessToItems(playerEntity, new Item[]{item});
 	}
 
-	public static boolean playerHasAccessToItems(ClientPlayerEntity playerEntity, Item[] items) {
+	public static boolean playerHasAccessToItems(LocalPlayer playerEntity, Item[] items) {
 		if (items == null || items.length == 0) return true;
-		if (Implementation.getAbilities(playerEntity).creativeMode) return true;
+		if (Implementation.getAbilities(playerEntity).mayBuild) return true;
 		else {
-            if (!client.player.currentScreenHandler.equals(client.player.playerScreenHandler)) return false;
+            if (!client.player.containerMenu.equals(client.player.inventoryMenu)) return false;
             Inventory inv = playerEntity.getInventory();
 			for (Item item : items) {
-				for (int i = 0; i < inv.size(); i++) {
-					if (inv.getStack(i).getItem() == item && inv.getStack(i).getCount() > 0) {
+				for (int i = 0; i < inv.getContainerSize(); i++) {
+					if (inv.getItem(i).getItem() == item && inv.getItem(i).getCount() > 0) {
                         return true;
                     }
 				}
@@ -63,8 +63,8 @@ public class PrinterUtils {
         return false;
 	}
 
-    public static Direction getHalf(BlockHalf half) {
-        return half == BlockHalf.TOP ? Direction.UP : Direction.DOWN;
+    public static Direction getHalf(Half half) {
+        return half == Half.TOP ? Direction.UP : Direction.DOWN;
     }
 
     public static Direction axisToDirection(Direction.Axis axis) {
@@ -77,42 +77,42 @@ public class PrinterUtils {
     public static Comparable<?> getPropertyByName(BlockState state, String name) {
         for (Property<?> prop : state.getProperties()) {
             if (prop.getName().equalsIgnoreCase(name)) {
-                return state.get(prop);
+                return state.getValue(prop);
             }
         }
 
         return null;
     }
 
-    public static boolean canBeClicked(ClientWorld world, BlockPos pos) {
-        return getOutlineShape(world, pos) != VoxelShapes.empty();
+    public static boolean canBeClicked(ClientLevel world, BlockPos pos) {
+        return getOutlineShape(world, pos) != Shapes.empty();
     }
 
-    public static VoxelShape getOutlineShape(ClientWorld world, BlockPos pos) {
-        return world.getBlockState(pos).getOutlineShape(world, pos);
+    public static VoxelShape getOutlineShape(ClientLevel world, BlockPos pos) {
+        return world.getBlockState(pos).getShape(world, pos);
     }
 
-    public static Map<Direction, Vec3d> getSlabSides(World world, BlockPos pos, SlabType requiredHalf) {
+    public static Map<Direction, Vec3> getSlabSides(Level world, BlockPos pos, SlabType requiredHalf) {
         if (requiredHalf == SlabType.DOUBLE) requiredHalf = SlabType.BOTTOM;
         Direction requiredDir = requiredHalf == SlabType.TOP ? Direction.UP : Direction.DOWN;
 
-        Map<Direction, Vec3d> sides = new HashMap<>();
-        sides.put(requiredDir, new Vec3d(0, 0, 0));
+        Map<Direction, Vec3> sides = new HashMap<>();
+        sides.put(requiredDir, new Vec3(0, 0, 0));
 
-        if (world.getBlockState(pos).contains(SlabBlock.TYPE)) {
-            sides.put(requiredDir.getOpposite(), Vec3d.of(requiredDir.getVector()).multiply(0.5));
+        if (world.getBlockState(pos).hasProperty(SlabBlock.TYPE)) {
+            sides.put(requiredDir.getOpposite(), Vec3.atLowerCornerOf(requiredDir.getUnitVec3i()).scale(0.5));
         }
 
         for (Direction side : horizontalDirections) {
-            BlockState neighborCurrentState = world.getBlockState(pos.offset(side));
+            BlockState neighborCurrentState = world.getBlockState(pos.relative(side));
 
-            if (neighborCurrentState.contains(SlabBlock.TYPE) && neighborCurrentState.get(SlabBlock.TYPE) != SlabType.DOUBLE) {
-                if (neighborCurrentState.get(SlabBlock.TYPE) != requiredHalf) {
+            if (neighborCurrentState.hasProperty(SlabBlock.TYPE) && neighborCurrentState.getValue(SlabBlock.TYPE) != SlabType.DOUBLE) {
+                if (neighborCurrentState.getValue(SlabBlock.TYPE) != requiredHalf) {
                     continue;
                 }
             }
 
-            sides.put(side, Vec3d.of(requiredDir.getVector()).multiply(0.25));
+            sides.put(side, Vec3.atLowerCornerOf(requiredDir.getUnitVec3i()).scale(0.25));
         }
 
         return sides;

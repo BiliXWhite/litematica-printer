@@ -3,15 +3,11 @@ package me.aleksilassila.litematica.printer.mixin.openinv;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-// TODO(Ravel): can not resolve target class PlayerEntity
-// TODO(Ravel): can not resolve target class PlayerEntity
-@Mixin(value = PlayerEntity.class)
+@Mixin(value = Player.class)
 public class MixinPlayerEntity {
 
     //FIXME 等待宅咸鱼更新远程交互
