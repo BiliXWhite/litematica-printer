@@ -12,7 +12,7 @@ import red.jackf.chesttracker.impl.memory.MemoryKeyImpl;
 
 @Mixin(MemoryKeyImpl.class)
 public class MemoryKeyImplMixin {
-    @WrapOperation(at = @At(value = "INVOKE",target = "Lnet/minecraft/util/math/BlockPos;getSquaredDistance(Lnet/minecraft/util/math/Position;)D"),method = "doSearch")
+    @WrapOperation(at = @At(value = "INVOKE",target = "Lnet/minecraft/core/BlockPos;getSquaredDistance(Lnet/minecraft/core/Position;)D"),method = "doSearch")
     public double doSearch(BlockPos instance, Position position, Operation<Double> original){
         return MemoryBankAccessImpl.INSTANCE.getLoadedInternal().map(memoryBank -> memoryBank.getMetadata().getSearchSettings().searchRange == Integer.MAX_VALUE ? -1 : instance.getSquaredDistance(position)).orElse(-1.0);
     }

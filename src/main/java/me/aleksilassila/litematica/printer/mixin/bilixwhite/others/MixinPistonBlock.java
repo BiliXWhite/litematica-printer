@@ -7,8 +7,12 @@ import net.minecraft.block.PistonBlock;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
+// TODO(Ravel): can not resolve target class PistonBlock
+// TODO(Ravel): can not resolve target class PistonBlock
 @Mixin(PistonBlock.class)
 public class MixinPistonBlock {
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
     @ModifyReturnValue(method = "getPlacementState", at = @At(value = "RETURN"))
     private BlockState fixPlacementState(BlockState blockState) {
         if (Printer.pistonNeedFix) {

@@ -20,9 +20,13 @@ import org.spongepowered.asm.mixin.Shadow;
 //$$
 //#endif
 
+// TODO(Ravel): can not resolve target class ClientPlayerInteractionManager
+// TODO(Ravel): can not resolve target class ClientPlayerInteractionManager
 @Mixin(ClientPlayerInteractionManager.class)
 public abstract class MixinClientPlayerInteractionManager implements IClientPlayerInteractionManager {
-	@Final
+	// TODO(Ravel): Could not determine a single target
+// TODO(Ravel): Could not determine a single target
+    @Final
     @Shadow
 	private MinecraftClient client;
 
@@ -43,7 +47,9 @@ public abstract class MixinClientPlayerInteractionManager implements IClientPlay
 //		System.out.println("Printer interactBlock: pos: (" + pos.toShortString() + "), side: " + side.getName() + ", vector: " + hitVec.toString());
 	}
 
-	@Shadow
+	// TODO(Ravel): Could not determine a single target
+// TODO(Ravel): Could not determine a single target
+    @Shadow
 	public abstract ActionResult interactBlock(
             ClientPlayerEntity clientPlayerEntity_1,
 			//#if MC < 11904
@@ -51,7 +57,9 @@ public abstract class MixinClientPlayerInteractionManager implements IClientPlay
 			//#endif
             Hand hand_1, BlockHitResult blockHitResult_1);
 
-	@Shadow
+	// TODO(Ravel): Could not determine a single target
+// TODO(Ravel): Could not determine a single target
+    @Shadow
 	public abstract ActionResult interactItem(PlayerEntity playerEntity_1,
 											  //#if MC < 11904
 //$$ 											   World world,

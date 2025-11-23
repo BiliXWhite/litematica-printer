@@ -13,6 +13,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+// TODO(Ravel): can not resolve target class BlockItem
+// TODO(Ravel): can not resolve target class BlockItem
 @Mixin(value = BlockItem.class, priority = 981)
 public abstract class BlockItemMixin extends Item
 {
@@ -21,11 +23,19 @@ public abstract class BlockItemMixin extends Item
         super(builder);
     }
 
+    // TODO(Ravel): Could not determine a single target
+// TODO(Ravel): Could not determine a single target
     @Shadow
     protected abstract BlockState getPlacementState(ItemPlacementContext context);
+    // TODO(Ravel): Could not determine a single target
+// TODO(Ravel): Could not determine a single target
     @Shadow protected abstract boolean canPlace(ItemPlacementContext context, BlockState state);
+    // TODO(Ravel): Could not determine a single target
+// TODO(Ravel): Could not determine a single target
     @Shadow public abstract Block getBlock();
 
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
     @Inject(method = "getPlacementState", at = @At("HEAD"), cancellable = true)
     private void modifyPlacementState(ItemPlacementContext ctx, CallbackInfoReturnable<BlockState> cir)
     {

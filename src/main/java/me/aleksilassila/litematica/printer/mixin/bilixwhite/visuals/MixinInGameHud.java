@@ -25,9 +25,13 @@ import java.awt.*;
 
 import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.MODE_SWITCH;
 
+// TODO(Ravel): can not resolve target class InGameHud
+// TODO(Ravel): can not resolve target class InGameHud
 @Mixin(InGameHud.class)
 public abstract class MixinInGameHud {
 
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
     @Inject(method = "renderHotbar", at = @At("TAIL"))
     //#if MC > 12004
     private void hookRenderHotbar(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {

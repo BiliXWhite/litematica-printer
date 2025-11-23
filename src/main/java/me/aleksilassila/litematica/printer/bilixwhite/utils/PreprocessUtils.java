@@ -1,11 +1,11 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 
 public class PreprocessUtils {
-    public static int getSelectedSlot(PlayerInventory inventory) {
+    public static int getSelectedSlot(Inventory inventory) {
         //#if MC > 12104
         return inventory.getSelectedSlot();
         //#else
@@ -13,7 +13,7 @@ public class PreprocessUtils {
         //#endif
     }
 
-    public static void setSelectedSlot(PlayerInventory inventory, int slot) {
+    public static void setSelectedSlot(Inventory inventory, int slot) {
         //#if MC > 12101
         inventory.setSelectedSlot(slot);
         //#else
@@ -21,9 +21,9 @@ public class PreprocessUtils {
         //#endif
     }
 
-    public static DefaultedList<ItemStack> getMainStacks(PlayerInventory inventory) {
+    public static NonNullList<ItemStack> getMainStacks(Inventory inventory) {
         //#if MC > 12104
-        return inventory.getMainStacks();
+        return inventory.getNonEquipmentItems();
         //#else
         //$$ return inventory.main;
         //#endif

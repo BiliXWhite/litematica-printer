@@ -10,10 +10,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+// TODO(Ravel): can not resolve target class ClientConnection
+// TODO(Ravel): can not resolve target class ClientConnection
 @Mixin(ClientConnection.class)
 public class MixinClientConnection {
 
-    /**
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
+/**
      * @author BiliXWhite
      * @reason 用于延迟检测
      */

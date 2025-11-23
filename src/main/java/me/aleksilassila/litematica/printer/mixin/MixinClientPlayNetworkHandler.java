@@ -20,9 +20,13 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.Inventor
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem.reSwitchItem;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 
+// TODO(Ravel): can not resolve target class ClientPlayNetworkHandler
+// TODO(Ravel): can not resolve target class ClientPlayNetworkHandler
 @Mixin(ClientPlayNetworkHandler.class)
 public abstract class MixinClientPlayNetworkHandler {
 
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
     @Inject(at = @At("TAIL"),method = "onInventory")
     public void onInventory(InventoryS2CPacket packet, CallbackInfo ci) {
         if(isOpenHandler){
@@ -38,6 +42,8 @@ public abstract class MixinClientPlayNetworkHandler {
         if(num == 1 || num == 3)ZxyUtils.syncInv();
     }
 
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
     @Inject(method = "onHealthUpdate", at = @At("RETURN"))
     private void injectHealthUpdate(HealthUpdateS2CPacket packet, CallbackInfo ci) {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;

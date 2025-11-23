@@ -45,6 +45,8 @@ import net.minecraft.text.Text;
 import java.net.URI;
 //#endif
 
+// TODO(Ravel): can not resolve target class ClientPlayerEntity
+// TODO(Ravel): can not resolve target class ClientPlayerEntity
 @Mixin(ClientPlayerEntity.class)
 public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 	public MixinClientPlayerEntity(ClientWorld world, GameProfile profile
@@ -55,18 +57,24 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 	//#endif
 	}
 
-	@Final
+	// TODO(Ravel): Could not determine a single target
+// TODO(Ravel): Could not determine a single target
+    @Final
 	@Shadow
 	protected MinecraftClient client;
 
-	@Inject(at = @At("HEAD"), method = "init")
+	// TODO(Ravel): no target class
+// TODO(Ravel): no target class
+    @Inject(at = @At("HEAD"), method = "init")
 	public void init(CallbackInfo ci) {
 		if (LitematicaPrinterMod.UPDATE_CHECK.getBooleanValue() && !Printer.updateChecked)
 			CompletableFuture.runAsync(this::checkForUpdates);
 		Printer.updateChecked = true;
 	}
 
-	@Inject(at = @At("HEAD"), method = "closeHandledScreen")
+	// TODO(Ravel): no target class
+// TODO(Ravel): no target class
+    @Inject(at = @At("HEAD"), method = "closeHandledScreen")
 	public void close(CallbackInfo ci) {
 		//#if MC >= 12001
 		if(Statistics.loadChestTracker) MemoryUtils.saveMemory(this.currentScreenHandler);
@@ -74,7 +82,9 @@ public class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 		//#endif
 	}
 
-	@Inject(at = @At("TAIL"), method = "tick")
+	// TODO(Ravel): no target class
+// TODO(Ravel): no target class
+    @Inject(at = @At("TAIL"), method = "tick")
 	public void tick(CallbackInfo ci) {
 		Printer printer = Printer.getPrinter();
 		ZxyUtils.tick();

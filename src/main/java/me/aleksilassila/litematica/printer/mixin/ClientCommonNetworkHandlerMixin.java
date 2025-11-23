@@ -16,21 +16,29 @@ import org.spongepowered.asm.mixin.injection.At;
 
 //#if MC > 12001
 import net.minecraft.client.network.ClientCommonNetworkHandler;
+// TODO(Ravel): can not resolve target class ClientCommonNetworkHandler
+// TODO(Ravel): can not resolve target class ClientCommonNetworkHandler
 @Mixin(value = ClientCommonNetworkHandler.class)
 //#else
 //$$ import net.minecraft.client.network.ClientPlayNetworkHandler;
 //$$ @Mixin(ClientPlayNetworkHandler.class)
 //#endif
 public class ClientCommonNetworkHandlerMixin {
+    // TODO(Ravel): Could not determine a single target
+// TODO(Ravel): Could not determine a single target
     @Final
     @Shadow
     protected ClientConnection connection;
 
+    // TODO(Ravel): Could not determine a single target
+// TODO(Ravel): Could not determine a single target
     @Final
     @Shadow
     protected MinecraftClient client;
 
-    /**
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
+/**
      * @author 6
      * @reason 6
      */
@@ -38,7 +46,7 @@ public class ClientCommonNetworkHandlerMixin {
     //#if MC < 12004
     //$$ @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket(Lnet/minecraft/network/packet/Packet;)V")
     //#else
-    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket")
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Connection;send(Lnet/minecraft/network/protocol/Packet;)V"),method = "sendPacket")
     //#endif
     public void sendPacket(ClientConnection instance, Packet<?> packet, Operation<Void> original) {
         Direction directionYaw = Printer.getPrinter().queue.lookDirYaw;

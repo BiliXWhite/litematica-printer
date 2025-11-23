@@ -25,10 +25,14 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInve
 //$$ import net.minecraft.network.encryption.PlayerPublicKey;
 //#endif
 
+// TODO(Ravel): can not resolve target class ServerPlayerEntity
+// TODO(Ravel): can not resolve target class ServerPlayerEntity
 @Mixin(ServerPlayerEntity.class)
 public abstract class MixinServerPlayerEntity{
 
-    //    public MixinServerPlayerEntity(World world, BlockPos pos, float yaw, GameProfile profile
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
+//    public MixinServerPlayerEntity(World world, BlockPos pos, float yaw, GameProfile profile
 //    //#if MC == 11902
 //    //$$ , @Nullable PlayerPublicKey publicKey) { super(world, pos, yaw, profile, publicKey);
 //    //#elseif MC > 12105
@@ -47,6 +51,8 @@ public abstract class MixinServerPlayerEntity{
     public void onHandledScreenClosed(CallbackInfo ci) {
         deletePlayerList();
     }
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
     @Inject(at = @At("HEAD"), method = "onDisconnect")
     public void onDisconnect(CallbackInfo ci) {
         deletePlayerList();
@@ -64,7 +70,9 @@ public abstract class MixinServerPlayerEntity{
             tickMap.remove(serverPlayerEntityTickListEntry.getKey());
         }
     }
-    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/screen/ScreenHandler;canUse(Lnet/minecraft/entity/player/PlayerEntity;)Z"),method = "tick")
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;stillValid(Lnet/minecraft/world/entity/player/Player;)Z"),method = "tick")
     public boolean onTick(ScreenHandler instance, PlayerEntity playerEntity, Operation<Boolean> original){
         if (playerEntity instanceof ServerPlayerEntity) {
             for (ServerPlayerEntity serverPlayerEntity : OpenInventoryPacket.playerlist) {

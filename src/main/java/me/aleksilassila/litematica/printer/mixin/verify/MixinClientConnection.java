@@ -17,12 +17,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.exitGameReSet;
 
 
+// TODO(Ravel): can not resolve target class ClientConnection
+// TODO(Ravel): can not resolve target class ClientConnection
 @Environment(EnvType.CLIENT)
 @Mixin({ClientConnection.class})
 public abstract class MixinClientConnection {
     public MixinClientConnection() {
     }
 
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
     @Inject(
             method = {"disconnect*"},
             at = {@At("HEAD")}
