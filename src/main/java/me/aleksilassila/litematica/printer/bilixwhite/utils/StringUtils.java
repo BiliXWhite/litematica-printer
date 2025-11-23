@@ -1,23 +1,24 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import fi.dy.masa.litematica.Litematica;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+
 //#if MC <= 11802
 //$$ import net.minecraft.text.TranslatableText;
 //#endif
 public class StringUtils {
 
 
-    public static final MinecraftClient client = MinecraftClient.getInstance();
-    private static MatrixStack matrices;
-    private static DrawContext drawContext;
+    public static final Minecraft client = Minecraft.getInstance();
+    private static PoseStack poseStack;
+    private static GuiGraphics guiGraphics;
 
     public static void printChatMessage(String message) {
-        client.inGameHud.getChatHud().addMessage(Text.of(message));
+        client.gui.getChat().addMessage(Component.nullToEmpty(message));
     }
 
     public static void info(String message) {
@@ -31,50 +32,50 @@ public class StringUtils {
     }
 
 
-    public static void initMatrix(MatrixStack matrix) {
-        matrices = matrix;
+    public static void initMatrix(PoseStack poseStack) {
+        StringUtils.poseStack = poseStack;
     }
 
-    public static void initDrawContext(DrawContext context) {
-        drawContext = context;
+    public static void initGuiGraphics(GuiGraphics guiGraphics) {
+        StringUtils.guiGraphics = guiGraphics;
     }
 
-    public static void drawText(String text, int x, int y, int color, boolean withShadow) {
-        drawText(text, x, y, color, withShadow, false);
+    public static void drawString(String text, int x, int y, int color, boolean withShadow) {
+        drawString(text, x, y, color, withShadow, false);
     }
 
-    public static void drawText(String text, int x, int y, int color, boolean withShadow, boolean centered) {
-        if (centered) x -= client.textRenderer.getWidth(text) / 2;
+    public static void drawString(String text, int x, int y, int color, boolean withShadow, boolean centered) {
+        if (centered) x -= client.font.width(text) / 2;
         //#if MC > 11904
-        drawContext.drawText(client.textRenderer, text, x, y, color, withShadow);
+        guiGraphics.drawString(client.font, text, x, y, color, withShadow);
         //#else
         //$$ if (matrices == null)
-        //$$     throw new NullPointerException("MatrixStack is null");
+        //$$     throw new NullPointerException("PoseStack is null");
         //$$ if (withShadow)
         //$$     client.textRenderer.drawWithShadow(matrices, text, x, y, color);
         //$$ else client.textRenderer.draw(matrices, text, x, y, color);
         //#endif
     }
 
-    public static Text getName(String key) {
+    public static Component getName(String key) {
         //#if MC > 11802
-        return Text.translatable(LitematicaPrinterMod.MOD_ID + ".config.name." + key);
+        return Component.translatable(LitematicaPrinterMod.MOD_ID + ".config.name." + key);
         //#else
         //$$ return new TranslatableText(LitematicaPrinterMod.MOD_ID + ".config.name." + key);
         //#endif
     }
 
-    public static Text getComment(String key) {
+    public static Component getComment(String key) {
         //#if MC > 11802
-        return Text.translatable(LitematicaPrinterMod.MOD_ID + ".config.comment." + key);
+        return Component.translatable(LitematicaPrinterMod.MOD_ID + ".config.comment." + key);
         //#else
         //$$ return new TranslatableText(LitematicaPrinterMod.MOD_ID + ".config.comment." + key);
         //#endif
     }
 
-    public static Text get(String key) {
+    public static Component get(String key) {
         //#if MC > 11802
-        return Text.translatable(LitematicaPrinterMod.MOD_ID + "." + key);
+        return Component.translatable(LitematicaPrinterMod.MOD_ID + "." + key);
         //#else
         //$$ return new TranslatableText(LitematicaPrinterMod.MOD_ID + "." + key);
         //#endif

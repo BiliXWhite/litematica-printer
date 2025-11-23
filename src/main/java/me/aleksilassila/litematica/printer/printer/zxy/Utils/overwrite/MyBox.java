@@ -1,16 +1,16 @@
 package me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import static me.aleksilassila.litematica.printer.printer.State.IterationOrderType.*;
 
-public class MyBox extends Box implements Iterable<BlockPos> {
+public class MyBox extends AABB implements Iterable<BlockPos> {
     public boolean yIncrement = true;
     public boolean xIncrement = true;
     public boolean zIncrement = true;
@@ -26,14 +26,14 @@ public class MyBox extends Box implements Iterable<BlockPos> {
     }
 
     public MyBox(fi.dy.masa.litematica.selection.Box box) {
-        this(Vec3d.of(box.getPos1()), Vec3d.of(box.getPos2()));
+        this(Vec3.atLowerCornerOf(box.getPos1()), Vec3.atLowerCornerOf(box.getPos2()));
     }
 
     public MyBox(BlockPos pos) {
         this(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
     }
 
-    public MyBox(Vec3d pos1, Vec3d pos2) {
+    public MyBox(Vec3 pos1, Vec3 pos2) {
         this(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z);
     }
 
@@ -43,7 +43,7 @@ public class MyBox extends Box implements Iterable<BlockPos> {
         return x >= this.minX && x <= this.maxX && y >= this.minY && y <= this.maxY && z >= this.minZ && z <= this.maxZ;
     }
     @Override
-    public MyBox expand(double x, double y, double z) {
+    public MyBox inflate(double x, double y, double z) {
         double d = this.minX - x;
         double e = this.minY - y;
         double f = this.minZ - z;
@@ -53,8 +53,8 @@ public class MyBox extends Box implements Iterable<BlockPos> {
         return new MyBox(d, e, f, g, h, i);
     }
     @Override
-    public MyBox expand(double value) {
-        return this.expand(value, value, value);
+    public MyBox inflate(double value) {
+        return this.inflate(value, value, value);
     }
     public void initIterator(){
         if (this.iterator == null) this.iterator = iterator();
@@ -83,9 +83,9 @@ public class MyBox extends Box implements Iterable<BlockPos> {
             public BlockPos next() {
                 if (currPos == null) {
                     currPos = new BlockPos(
-                        (int)(xIncrement ? minX : maxX),
-                        (int)(yIncrement ? minY : maxY),
-                        (int)(zIncrement ? minZ : maxZ)
+                            (int)(xIncrement ? minX : maxX),
+                            (int)(yIncrement ? minY : maxY),
+                            (int)(zIncrement ? minZ : maxZ)
                     );
                     return currPos;
                 }

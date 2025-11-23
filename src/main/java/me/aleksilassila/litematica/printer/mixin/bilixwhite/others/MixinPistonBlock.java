@@ -2,23 +2,20 @@ package me.aleksilassila.litematica.printer.mixin.bilixwhite.others;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import me.aleksilassila.litematica.printer.printer.Printer;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.PistonBlock;
+import net.minecraft.world.level.block.piston.PistonBaseBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-// TODO(Ravel): can not resolve target class PistonBlock
-// TODO(Ravel): can not resolve target class PistonBlock
-@Mixin(PistonBlock.class)
+@Mixin(PistonBaseBlock.class)
 public class MixinPistonBlock {
-    // TODO(Ravel): no target class
-// TODO(Ravel): no target class
-    @ModifyReturnValue(method = "getPlacementState", at = @At(value = "RETURN"))
-    private BlockState fixPlacementState(BlockState blockState) {
+    @ModifyReturnValue(method = "getStateForPlacement", at = @At(value = "RETURN"))
+    private BlockState fixStateForPlacement(BlockState blockState) {
         if (Printer.pistonNeedFix) {
             Printer.pistonNeedFix = false;
-            if (Printer.requiredState.getBlock() instanceof PistonBlock) {
-                blockState = Printer.requiredState.with(PistonBlock.EXTENDED, false);
+            //TODO: check if this is correct
+            if (Printer.requiredState.getBlock() instanceof PistonBaseBlock) {
+                blockState = Printer.requiredState.with(PistonBaseBlock.EXTENDED, false);
             }
         }
         return blockState;

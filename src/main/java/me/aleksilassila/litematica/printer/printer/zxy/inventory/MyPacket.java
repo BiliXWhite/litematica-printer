@@ -1,20 +1,18 @@
-// TODO(Ravel): Failed to fully remap file: null
-// TODO(Ravel): Failed to fully remap file: null
 package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 
 public record MyPacket(BlockState blockState, boolean isOpen) {
     // 用于序列化数据以发送给客户端的方法
-    public static void encode(MyPacket msg, PacketByteBuf buffer) {
-        buffer.writeVarInt(Block.getRawIdFromState(msg.blockState));
+    public static void encode(MyPacket msg, FriendlyByteBuf buffer) {
+        buffer.writeVarInt(Block.getId(msg.blockState));
         buffer.writeBoolean(msg.isOpen);
     }
 
     // 用于接收客户端数据的方法
-    public static MyPacket decode(PacketByteBuf buffer) {
-        return new MyPacket(Block.getStateFromRawId(buffer.readVarInt()), buffer.readBoolean());
+    public static MyPacket decode(FriendlyByteBuf buffer) {
+        return new MyPacket(Block.stateById(buffer.readVarInt()), buffer.readBoolean());
     }
 }
