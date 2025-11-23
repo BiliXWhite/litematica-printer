@@ -1,10 +1,10 @@
 package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.block.BlockState;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.state.BlockState;
 
-public class InventoryPacket extends PacketByteBuf {
+public class InventoryPacket extends FriendlyByteBuf {
     /**
      * Creates a packet byte buf that delegates its operations to the {@code
      * parent} buf.

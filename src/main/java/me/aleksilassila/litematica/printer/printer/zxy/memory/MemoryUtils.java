@@ -9,11 +9,11 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 //$$ import net.minecraft.block.*;
 //$$ import net.minecraft.block.entity.BlockEntity;
 //$$ import net.minecraft.block.enums.ChestType;
-//$$ import net.minecraft.client.MinecraftClient;
+//$$ import net.minecraft.client.Minecraft;
 //$$ import net.minecraft.client.gui.screen.ingame.AbstractInventoryScreen;
 //$$ import net.minecraft.client.gui.screen.ingame.HandledScreen;
 //$$ import net.minecraft.client.realms.dto.RealmsServer;
-//$$ import net.minecraft.client.world.ClientWorld;
+//$$ import net.minecraft.client.multiplayer.ClientLevel;
 //$$ import net.minecraft.entity.player.PlayerInventory;
 //$$ import net.minecraft.item.ItemStack;
 //$$ import net.minecraft.registry.Registries;
@@ -23,8 +23,8 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 //$$ import net.minecraft.text.Text;
 //$$ import net.minecraft.util.Identifier;
 //$$ import net.minecraft.util.math.BlockPos;
-//$$ import net.minecraft.util.math.Vec3d;
-//$$ import net.minecraft.world.World;
+//$$ import net.minecraft.world.phys.Vec3;
+//$$ import net.minecraft.world.level.Level;
 //$$ import net.minecraft.world.chunk.EmptyChunk;
 //$$ import net.minecraft.world.chunk.WorldChunk;
 //$$ import net.minecraft.world.level.storage.LevelStorage;
@@ -59,7 +59,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 //$$     private static boolean expandedStorageFailed = false;
 //$$
 //$$     public static <T extends ScreenHandler> void handleItemsFromScreen(@NotNull ScreenHandler screen) {
-//$$         MinecraftClient mc = MinecraftClient.getInstance();
+//$$         Minecraft mc = Minecraft.getInstance();
 //$$         {
 //$$ //            System.out.println("===============================2");
 //$$         MemoryDatabase database = MemoryDatabase.getCurrent();
@@ -171,15 +171,15 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 //$$         return stacks;
 //$$     }
 //$$
-//$$     public static Vec3d getAveragePos(BlockPos basePos, Collection<BlockPos> connected) {
-//$$         Vec3d base = Vec3d.of(basePos);
+//$$     public static Vec3 getAveragePos(BlockPos basePos, Collection<BlockPos> connected) {
+//$$         Vec3 base = Vec3.of(basePos);
 //$$         for (BlockPos pos : connected) {
-//$$             base = base.add(Vec3d.of(pos));
+//$$             base = base.add(Vec3.of(pos));
 //$$         }
-//$$         return base.multiply(1f / (1 + connected.size())).subtract(Vec3d.of(basePos));
+//$$         return base.multiply(1f / (1 + connected.size())).subtract(Vec3.of(basePos));
 //$$     }
 //$$
-//$$     public static Collection<BlockPos> getConnected(@NotNull World world, BlockPos pos) {
+//$$     public static Collection<BlockPos> getConnected(@NotNull Level world, BlockPos pos) {
 //$$         BlockState state = world.getBlockState(pos);
 //$$         if (state.getBlock() instanceof ChestBlock) {
 //$$             if (state.get(ChestBlock.CHEST_TYPE) != ChestType.SINGLE) {
@@ -272,10 +272,10 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 //$$     }
 //$$
 //$$     public static boolean checkExistsInWorld(Memory memory) {
-//$$         return checkExistsInWorld(memory, MinecraftClient.getInstance().world);
+//$$         return checkExistsInWorld(memory, Minecraft.getInstance().world);
 //$$     }
 //$$
-//$$     public static boolean checkExistsInWorld(Memory memory, ClientWorld world) {
+//$$     public static boolean checkExistsInWorld(Memory memory, ClientLevel world) {
 //$$         BlockPos pos = memory.getPosition();
 //$$         if (world != null && pos != null) {
 //$$             WorldChunk chunk = world.getWorldChunk(pos);
@@ -284,7 +284,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 //$$         return true;
 //$$     }
 //$$
-//$$     public static boolean isValidInventoryHolder(Block block, World world, BlockPos pos) {
+//$$     public static boolean isValidInventoryHolder(Block block, Level world, BlockPos pos) {
 //$$         //if (FabricLoader.getInstance().isModLoaded("universalcomponents")) {
 //$$         //return UniversalComponentsHandler.isValidInventoryHolder(block, world, pos);
 //$$         //} else {
@@ -292,7 +292,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 //$$         //}
 //$$     }
 //$$
-//$$     public static void checkValidCycle(ClientWorld world) {
+//$$     public static void checkValidCycle(ClientLevel world) {
 //$$         if (world.getTime() % ChestTracker.CONFIG.databaseOptions.destroyedMemoryCheckInterval == 0) {
 //$$             MemoryDatabase database = MemoryDatabase.getCurrent();
 //$$             if (database != null) {

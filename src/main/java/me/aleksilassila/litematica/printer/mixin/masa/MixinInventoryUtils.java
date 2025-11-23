@@ -5,25 +5,20 @@ package me.aleksilassila.litematica.printer.mixin.masa;
 
 import fi.dy.masa.litematica.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor.canPickToSlot;
-import static me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor.setNextPickSlotIndex;
-
 @Mixin(InventoryUtils.class)
 public class MixinInventoryUtils {
     @Inject(at = @At("TAIL"),method = "schematicWorldPickBlock")
-    private static void schematicWorldPickBlock(ItemStack stack, BlockPos pos, World schematicWorld, MinecraftClient mc, CallbackInfo ci) {
-        if (mc.player != null && !ItemStack.areItemsAndComponentsEqual(mc.player.getMainHandStack(), stack
+    private static void schematicWorldPickBlock(ItemStack stack, BlockPos pos, Level schematicWorld, Minecraft mc, CallbackInfo ci) {
+        if (mc.player != null && !ItemStack.isSameItemSameComponents(mc.player.getMainHandItem(), stack
         ) && (
                 LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() ||
                         LitematicaPrinterMod.QUICK_SHULKER.getBooleanValue()
@@ -33,6 +28,11 @@ public class MixinInventoryUtils {
         }
     }
 
+    // !!!!!!!!!!未从Yarn迁移到Mojmap!!!!!!!!!!
+    // !!!!!!!!!!未从Yarn迁移到Mojmap!!!!!!!!!!
+    // !!!!!!!!!!未从Yarn迁移到Mojmap!!!!!!!!!!
+    // !!!!!!!!!!未从Yarn迁移到Mojmap!!!!!!!!!!
+    // !!!!!!!!!!未从Yarn迁移到Mojmap!!!!!!!!!!
 //    /**
 //     * @author BlinkWhite
 //     * @reason 去除优先选择目前已选择的槽位

@@ -3,19 +3,16 @@ package me.aleksilassila.litematica.printer.mixin.jackf;
 //#if MC >= 12001
 import fi.dy.masa.malilib.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import red.jackf.chesttracker.impl.compat.mods.searchables.SearchablesUtil;
 import red.jackf.chesttracker.impl.config.ChestTrackerConfig;
 import red.jackf.chesttracker.impl.gui.screen.ChestTrackerScreen;
@@ -39,13 +36,13 @@ public abstract class ChestTrackerScreenMixin extends Screen {
     @Shadow(remap = false) private VerticalScrollWidget scroll;
     @Shadow(remap = false) private List<ItemStack> items = Collections.emptyList();
 
-    protected ChestTrackerScreenMixin(Text title) {
+    protected ChestTrackerScreenMixin(Component title) {
         super(title);
     }
 
     /**
-     * @author
-     * @reason
+     * @author zhaixianyu
+     * @reason 支持搜索箱子内物品
      */
     @Overwrite(remap = false)
     private void filter(String filter){
@@ -123,14 +120,14 @@ public abstract class ChestTrackerScreenMixin extends Screen {
             this.scroll.setDisabled(filtered.size() <= guiConfig.gridWidth * guiConfig.gridHeight);
         }).start();
     }
-    @Shadow(remap = false) private Identifier currentMemoryKey;
+    @Shadow(remap = false) private ResourceLocation currentMemoryKey;
 
     @Inject(at = @At("HEAD"), method = "updateItems",remap = false)
     private void upDateItems(CallbackInfo ci) {
         MemoryUtils.currentMemoryKey = currentMemoryKey;
     }
 
-    @Shadow public abstract void close();
+    @Shadow public abstract void onClose();
 
     //#if MC < 12109
     //$$ @Inject(at = @At("HEAD"),method = "keyPressed", cancellable = true)

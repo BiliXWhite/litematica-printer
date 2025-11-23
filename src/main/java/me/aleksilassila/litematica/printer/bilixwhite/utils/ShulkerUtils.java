@@ -5,17 +5,17 @@ import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import net.kyrptonaught.quickshulker.client.ClientUtil;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.item.ItemStack;
 
 public class ShulkerUtils {
-    static final MinecraftClient client = MinecraftClient.getInstance();
+    static final Minecraft client = Minecraft.getInstance();
     static IConfigOptionListEntry openMode = LitematicaPrinterMod.QUICK_SHULKER_MODE.getOptionListValue();
 
     public static void openShulker(ItemStack stack, int shulkerBoxSlot) {
         if (openMode == State.QuickShulkerModeType.CLICK_SLOT) {
-            client.interactionManager.clickSlot(client.player.currentScreenHandler.syncId, shulkerBoxSlot, 1, SlotActionType.PICKUP, client.player);
+            client.gameMode.handleInventoryMouseClick(client.player.containerMenu.containerId, shulkerBoxSlot, 1, ClickType.PICKUP, client.player);
         } else if (openMode == State.QuickShulkerModeType.INVOKE) {
             if (Statistics.loadQuickShulker) {
                 try {

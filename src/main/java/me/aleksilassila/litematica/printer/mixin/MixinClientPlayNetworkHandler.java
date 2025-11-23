@@ -4,12 +4,12 @@ import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.protocol.game.ClientboundContainerSetContentPacket;
+import net.minecraft.network.protocol.game.ClientboundSetHealthPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.network.packet.s2c.play.HealthUpdateS2CPacket;
-import net.minecraft.network.packet.s2c.play.InventoryS2CPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -20,15 +20,11 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.Inventor
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem.reSwitchItem;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 
-// TODO(Ravel): can not resolve target class ClientPlayNetworkHandler
-// TODO(Ravel): can not resolve target class ClientPlayNetworkHandler
-@Mixin(ClientPlayNetworkHandler.class)
+@Mixin(ClientPacketListener.class)
 public abstract class MixinClientPlayNetworkHandler {
 
-    // TODO(Ravel): no target class
-// TODO(Ravel): no target class
-    @Inject(at = @At("TAIL"),method = "onInventory")
-    public void onInventory(InventoryS2CPacket packet, CallbackInfo ci) {
+    @Inject(at = @At("TAIL"),method = "handleContainerContent")
+    public void onInventory(ClientboundContainerSetContentPacket packet, CallbackInfo ci) {
         if(isOpenHandler){
             InventoryUtils.switchInv();
         }
@@ -36,17 +32,15 @@ public abstract class MixinClientPlayNetworkHandler {
             SwitchItem.reSwitchItem();
         }
 
-        if (MinecraftClient.getInstance().player != null && printerMemoryAdding) {
-            MinecraftClient.getInstance().player.closeHandledScreen();
+        if (Minecraft.getInstance().player != null && printerMemoryAdding) {
+            Minecraft.getInstance().player.closeContainer();
         }
         if(num == 1 || num == 3)ZxyUtils.syncInv();
     }
 
-    // TODO(Ravel): no target class
-// TODO(Ravel): no target class
-    @Inject(method = "onHealthUpdate", at = @At("RETURN"))
-    private void injectHealthUpdate(HealthUpdateS2CPacket packet, CallbackInfo ci) {
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+    @Inject(method = "handleSetHealth", at = @At("RETURN"))
+    private void injectHealthUpdate(ClientboundSetHealthPacket packet, CallbackInfo ci) {
+        LocalPlayer player = Minecraft.getInstance().player;
 
         if (player == null) {
             return;

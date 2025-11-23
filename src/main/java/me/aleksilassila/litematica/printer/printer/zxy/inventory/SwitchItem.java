@@ -3,17 +3,17 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 import fi.dy.masa.malilib.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.ShulkerUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class SwitchItem {
     @NotNull
-    static MinecraftClient client = MinecraftClient.getInstance();
+    static Minecraft client = Minecraft.getInstance();
     public static ItemStack reSwitchItem = null;
     public static Map<ItemStack,ItemStatistics> itemStacks = new HashMap<>();
     public static void removeItem(ItemStack itemStack){
@@ -34,16 +34,16 @@ public class SwitchItem {
         ItemStatistics itemStatistics = itemStacks.get(itemStack);
         if(itemStatistics != null) itemStatistics.syncUseTime();
     }
-    public static void newItem(ItemStack itemStack, BlockPos pos, RegistryKey<World> key, int slot, int shulkerBox){
+    public static void newItem(ItemStack itemStack, BlockPos pos, ResourceKey<Level> key, int slot, int shulkerBox){
         if(shulkerBox != -1) itemStacks.put(itemStack,new ItemStatistics(key,pos,slot,shulkerBox));
     }
     public static void openInv(ItemStack itemStack) {
-        if(!client.player.currentScreenHandler.equals(client.player.playerScreenHandler) || Statistics.closeScreen > 0){
+        if(!client.player.containerMenu.equals(client.player.inventoryMenu) || Statistics.closeScreen > 0){
             return;
         }
-        ScreenHandler sc = client.player.currentScreenHandler;
+        AbstractContainerMenu sc = client.player.containerMenu;
         if (sc.slots.stream().skip(9).limit(sc.slots.size() - 10)
-                .noneMatch(slot -> InventoryUtils.areStacksEqual(slot.getStack(), reSwitchItem))) {
+                .noneMatch(slot -> InventoryUtils.areStacksEqual(slot.getItem(), reSwitchItem))) {
             itemStacks.remove(reSwitchItem);
             reSwitchItem = null;
             return;
@@ -53,7 +53,7 @@ public class SwitchItem {
             if (itemStatistics.key != null && OpenInventoryPacket.key == null) {
                 OpenInventoryPacket.sendOpenInventory(itemStatistics.pos, itemStatistics.key);
             } else {
-                ShulkerUtils.openShulker(sc.slots.get(itemStatistics.shulkerBoxSlot).getStack(), itemStatistics.shulkerBoxSlot);
+                ShulkerUtils.openShulker(sc.slots.get(itemStatistics.shulkerBoxSlot).getItem(), itemStatistics.shulkerBoxSlot);
             }
             Statistics.closeScreen++;
         } else {
@@ -80,48 +80,48 @@ public class SwitchItem {
         if(itemStack != null) {
             reSwitchItem = itemStack;
             openInv(itemStack);
-        } else client.inGameHud.setOverlayMessage(Text.of("背包已满，请先清理"),false);
+        } else client.gui.setOverlayMessage(Component.nullToEmpty("背包已满，请先清理"),false);
     }
     public static void reSwitchItem() {
         if(client.player == null || reSwitchItem == null) return;
-        ClientPlayerEntity player = client.player;
-        ScreenHandler sc = player.currentScreenHandler;
-        if (sc.equals(player.playerScreenHandler)) return;
+        LocalPlayer player = client.player;
+        AbstractContainerMenu sc = player.containerMenu;
+        if (sc.equals(player.inventoryMenu)) return;
 
         List<Integer> sameItem = new ArrayList<>();
         for (int i = 0; i < sc.slots.size(); i++) {
             Slot slot = sc.slots.get(i);
-            if(!(slot.inventory instanceof PlayerInventory) &&
-                    InventoryUtils.areStacksEqual(reSwitchItem,slot.getStack()) &&
-                    slot.getStack().getCount() < slot.getStack().getMaxCount()
+            if(!(slot.container instanceof Inventory) &&
+                    InventoryUtils.areStacksEqual(reSwitchItem,slot.getItem()) &&
+                    slot.getItem().getCount() < slot.getItem().getMaxStackSize()
             ) sameItem.add(i);
-            if(slot.inventory instanceof PlayerInventory && client.interactionManager != null && InventoryUtils.areStacksEqual(slot.getStack(),reSwitchItem)){
+            if(slot.container instanceof Inventory && client.gameMode != null && InventoryUtils.areStacksEqual(slot.getItem(),reSwitchItem)){
                 int slot1 = itemStacks.get(reSwitchItem).slot;
                 boolean reInv = false;
                 //检查记录的槽位是否有物品
-                if(sc.slots.get(slot1).getStack().isEmpty()){
-                    client.interactionManager.clickSlot(sc.syncId, i, 0, SlotActionType.PICKUP, client.player);
-                    client.interactionManager.clickSlot(sc.syncId, slot1, 0, SlotActionType.PICKUP, client.player);
+                if(sc.slots.get(slot1).getItem().isEmpty()){
+                    client.gameMode.handleInventoryMouseClick(sc.containerId, i, 0, ClickType.PICKUP, client.player);
+                    client.gameMode.handleInventoryMouseClick(sc.containerId, slot1, 0, ClickType.PICKUP, client.player);
                     reInv = true;
                 } else {
                     int count = reSwitchItem.getCount();
-                    client.interactionManager.clickSlot(sc.syncId, i, 0, SlotActionType.PICKUP, client.player);
+                    client.gameMode.handleInventoryMouseClick(sc.containerId, i, 0, ClickType.PICKUP, client.player);
                     for (Integer integer : sameItem) {
-                        int count1 = sc.slots.get(integer).getStack().getCount();
-                        int maxCount = sc.slots.get(integer).getStack().getMaxCount();
+                        int count1 = sc.slots.get(integer).getItem().getCount();
+                        int maxCount = sc.slots.get(integer).getItem().getMaxStackSize();
                         int i1 = maxCount - count1;
                         count -= i1;
-                        client.interactionManager.clickSlot(sc.syncId, integer, 0, SlotActionType.PICKUP, client.player);
+                        client.gameMode.handleInventoryMouseClick(sc.containerId, integer, 0, ClickType.PICKUP, client.player);
                         if (count<=0) reInv = true;
                     }
                 }
                 removeItem(reSwitchItem);
                 reSwitchItem = null;
-                player.closeHandledScreen();
+                player.closeContainer();
                 if(!reInv) {
-                    client.inGameHud.setOverlayMessage(Text.of("复原库存物品失败"),false);
+                    client.gui.setOverlayMessage(Component.nullToEmpty("复原库存物品失败"),false);
                 }
-                client.interactionManager.clickSlot(sc.syncId, i, 0, SlotActionType.PICKUP, client.player);
+                client.gameMode.handleInventoryMouseClick(sc.containerId, i, 0, ClickType.PICKUP, client.player);
                 return;
             }
         }
@@ -131,12 +131,12 @@ public class SwitchItem {
         itemStacks = new HashMap<>();
     }
     public static class ItemStatistics {
-        public RegistryKey<World> key;
+        public ResourceKey<Level> key;
         public BlockPos pos;
         public int slot;
         public int shulkerBoxSlot;
         public long useTime = System.currentTimeMillis();
-        public ItemStatistics(RegistryKey<World> key, BlockPos pos, int slot, int shulkerBox) {
+        public ItemStatistics(ResourceKey<Level> key, BlockPos pos, int slot, int shulkerBox) {
             this.key = key;
             this.pos = pos;
             this.slot = slot;

@@ -7,17 +7,14 @@ import fi.dy.masa.malilib.hotkeys.KeyAction;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
-import net.minecraft.client.MinecraftClient;
-
-
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 //#if MC >= 12001
 import fi.dy.masa.malilib.util.GuiUtils;
-import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 import red.jackf.chesttracker.impl.memory.MemoryBankAccessImpl;
@@ -36,12 +33,12 @@ import static me.aleksilassila.litematica.printer.config.Configs.OPEN_SCREEN;
 
 //监听按键
 public class HotkeysCallback implements IHotkeyCallback {
-    MinecraftClient client = MinecraftClient.getInstance();
+    Minecraft client = Minecraft.getInstance();
 
     //激活的热键会被key记录
     @Override
     public boolean onKeyAction(KeyAction action, IKeybind key) {
-        if (this.client.player == null || this.client.world == null) return false;
+        if (this.client.player == null || this.client.level == null) return false;
         if(key == OPEN_SCREEN.getKeybind()){
             client.setScreen(new ConfigUi());
             return true;
@@ -70,8 +67,8 @@ public class HotkeysCallback implements IHotkeyCallback {
             return true;
         }
         //#if MC >= 12001
-        else if(GuiUtils.getCurrentScreen() instanceof HandledScreen<?> &&
-                !(GuiUtils.getCurrentScreen() instanceof CreativeInventoryScreen))
+        else if(GuiUtils.getCurrentScreen() instanceof AbstractContainerScreen<?> &&
+                !(GuiUtils.getCurrentScreen() instanceof CreativeModeInventoryScreen))
         {
             if(key == LAST.getKeybind()){
                 SearchItem.page = --SearchItem.page <= -1 ? SearchItem.maxPage-1 : SearchItem.page;
@@ -84,9 +81,9 @@ public class HotkeysCallback implements IHotkeyCallback {
             else if(key == DELETE.getKeybind()){
                 MemoryBankImpl memoryBank = MemoryBankAccessImpl.INSTANCE.getLoadedInternal().orElse(null);
                 if (memoryBank!= null && OpenInventoryPacket.key != null && client.player != null) {
-                    memoryBank.removeMemory(OpenInventoryPacket.key.getValue(),OpenInventoryPacket.pos);
+                    memoryBank.removeMemory(OpenInventoryPacket.key.location(),OpenInventoryPacket.pos);
                     OpenInventoryPacket.key = null;
-                    client.player.closeHandledScreen();
+                    client.player.closeContainer();
                 }
             }
         }

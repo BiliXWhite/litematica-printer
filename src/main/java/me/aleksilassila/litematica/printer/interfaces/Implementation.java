@@ -1,15 +1,50 @@
 package me.aleksilassila.litematica.printer.interfaces;
 
-import me.aleksilassila.litematica.printer.mixin.PlayerMoveC2SPacketAccessor;
-import net.minecraft.block.*;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.entity.player.PlayerAbilities;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-//import net.minecraft.network.Packet;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
-import net.minecraft.util.math.Direction;
+import me.aleksilassila.litematica.printer.mixin.ServerboundMovePlayerPacketAccessor;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.Direction;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+import net.minecraft.world.entity.player.Abilities;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.AbstractFurnaceBlock;
+import net.minecraft.world.level.block.AnvilBlock;
+import net.minecraft.world.level.block.BarrelBlock;
+import net.minecraft.world.level.block.BeaconBlock;
+import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.block.BellBlock;
+import net.minecraft.world.level.block.BlastFurnaceBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.BrewingStandBlock;
+import net.minecraft.world.level.block.CakeBlock;
+import net.minecraft.world.level.block.CartographyTableBlock;
+import net.minecraft.world.level.block.CommandBlock;
+import net.minecraft.world.level.block.ComparatorBlock;
+import net.minecraft.world.level.block.CrafterBlock;
+import net.minecraft.world.level.block.CraftingTableBlock;
+import net.minecraft.world.level.block.DispenserBlock;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.DragonEggBlock;
+import net.minecraft.world.level.block.DropperBlock;
+import net.minecraft.world.level.block.EnchantingTableBlock;
+import net.minecraft.world.level.block.FenceGateBlock;
+import net.minecraft.world.level.block.FlowerPotBlock;
+import net.minecraft.world.level.block.GrindstoneBlock;
+import net.minecraft.world.level.block.HopperBlock;
+import net.minecraft.world.level.block.JukeboxBlock;
+import net.minecraft.world.level.block.LecternBlock;
+import net.minecraft.world.level.block.LeverBlock;
+import net.minecraft.world.level.block.LoomBlock;
+import net.minecraft.world.level.block.NoteBlock;
+import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.RepeaterBlock;
+import net.minecraft.world.level.block.ScaffoldingBlock;
+import net.minecraft.world.level.block.ShulkerBoxBlock;
+import net.minecraft.world.level.block.SmithingTableBlock;
+import net.minecraft.world.level.block.SmokerBlock;
+import net.minecraft.world.level.block.StonecutterBlock;
+import net.minecraft.world.level.block.TrapDoorBlock;
 
 /**
  * Dirty class that contains anything and everything that is
@@ -27,15 +62,15 @@ public class Implementation {
     public static final Item[] AXES = {Items.DIAMOND_AXE, Items.IRON_AXE, Items.GOLDEN_AXE,
             Items.NETHERITE_AXE, Items.STONE_AXE, Items.WOODEN_AXE};
 
-    public static PlayerAbilities getAbilities(ClientPlayerEntity playerEntity) {
+    public static Abilities getAbilities(LocalPlayer playerEntity) {
         return playerEntity.getAbilities();
     }
 
-    public static void sendLookPacket(ClientPlayerEntity playerEntity, Direction playerShouldBeFacingYaw, Direction playerShouldBeFacingPitch) {
-        playerEntity.networkHandler.sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(
+    public static void sendLookPacket(LocalPlayer playerEntity, Direction playerShouldBeFacingYaw, Direction playerShouldBeFacingPitch) {
+        playerEntity.connection.send(new ServerboundMovePlayerPacket.Rot(
                 Implementation.getRequiredYaw(playerShouldBeFacingYaw),
                 Implementation.getRequiredPitch(playerShouldBeFacingPitch),
-                playerEntity.isOnGround()
+                playerEntity.onGround()
                 //#if MC > 12101
                 ,playerEntity.horizontalCollision
                 //#endif
@@ -43,24 +78,24 @@ public class Implementation {
     }
 
     public static boolean isLookOnlyPacket(Packet<?> packet) {
-        return packet instanceof PlayerMoveC2SPacket.LookAndOnGround;
+        return packet instanceof ServerboundMovePlayerPacket.Rot;
     }
 
     public static boolean isLookAndMovePacket(Packet<?> packet) {
-        return packet instanceof PlayerMoveC2SPacket.Full;
+        return packet instanceof ServerboundMovePlayerPacket.PosRot;
     }
 
-    public static Packet<?> getFixedLookPacket(ClientPlayerEntity playerEntity, Packet<?> packet, Direction directionYaw, Direction directionPitch) {
+    public static Packet<?> getFixedLookPacket(LocalPlayer playerEntity, Packet<?> packet, Direction directionYaw, Direction directionPitch) {
         if (directionYaw == null || directionPitch == null) return packet;
 
         float yaw = Implementation.getRequiredYaw(directionYaw);
         float pitch = Implementation.getRequiredPitch(directionPitch);
 
-        double x = ((PlayerMoveC2SPacketAccessor) packet).getX();
-        double y = ((PlayerMoveC2SPacketAccessor) packet).getY();
-        double z = ((PlayerMoveC2SPacketAccessor) packet).getZ();
-        boolean onGround = ((PlayerMoveC2SPacketAccessor) packet).getOnGround();
-        return new PlayerMoveC2SPacket.Full(x, y, z, yaw, pitch, onGround
+        double x = ((ServerboundMovePlayerPacketAccessor) packet).getX();
+        double y = ((ServerboundMovePlayerPacketAccessor) packet).getY();
+        double z = ((ServerboundMovePlayerPacketAccessor) packet).getZ();
+        boolean onGround = ((ServerboundMovePlayerPacketAccessor) packet).getOnGround();
+        return new ServerboundMovePlayerPacket.PosRot(x, y, z, yaw, pitch, onGround
                 //#if MC > 12101
                 ,playerEntity.horizontalCollision
                 //#endif
@@ -69,7 +104,7 @@ public class Implementation {
 
     public static float getRequiredYaw(Direction playerShouldBeFacing) {
         if (playerShouldBeFacing.getAxis().isHorizontal()) {
-            return playerShouldBeFacing.getPositiveHorizontalDegrees();
+            return playerShouldBeFacing.toYRot();
         } else {
             return 0;
         }
@@ -98,9 +133,9 @@ public class Implementation {
             CraftingTableBlock.class, // 工作台
             LeverBlock.class, // 拉杆
             DoorBlock.class, // 门
-            TrapdoorBlock.class, // 活板门
+            TrapDoorBlock.class, // 活板门
             BedBlock.class, // 床
-            RedstoneWireBlock.class, // 红石线
+            RedStoneWireBlock.class, // 红石线
             ScaffoldingBlock.class, // 脚手架
             HopperBlock.class, // 漏斗
             EnchantingTableBlock.class, // 附魔台

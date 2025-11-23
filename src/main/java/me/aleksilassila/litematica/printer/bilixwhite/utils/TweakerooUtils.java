@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;

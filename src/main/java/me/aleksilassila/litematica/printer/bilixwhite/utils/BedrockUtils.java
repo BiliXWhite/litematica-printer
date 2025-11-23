@@ -2,15 +2,14 @@ package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
-import net.minecraft.block.Block;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.BlockPos;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
 import java.lang.reflect.Method;
 
 public class BedrockUtils {
-    private static final MinecraftClient client = MinecraftClient.getInstance();
+    private static final Minecraft client = Minecraft.getInstance();
     private static Object taskManagerInstance;
     private static Method addBlockTaskMethod;
     private static Method addRegionTaskMethod;
@@ -27,12 +26,12 @@ public class BedrockUtils {
                 Class<?> taskManagerClass = Class.forName("com.github.bunnyi116.bedrockminer.task.TaskManager");
                 Method getInstanceMethod = taskManagerClass.getDeclaredMethod("getInstance");
                 taskManagerInstance = getInstanceMethod.invoke(null);
-                addBlockTaskMethod = taskManagerClass.getDeclaredMethod("addBlockTask", ClientWorld.class, BlockPos.class, Block.class);
-                addRegionTaskMethod = taskManagerClass.getDeclaredMethod("addRegionTask", String.class, ClientWorld.class, BlockPos.class, BlockPos.class);
+                addBlockTaskMethod = taskManagerClass.getDeclaredMethod("addBlockTask", ClientLevel.class, BlockPos.class, Block.class);
+                addRegionTaskMethod = taskManagerClass.getDeclaredMethod("addRegionTask", String.class, ClientLevel.class, BlockPos.class, BlockPos.class);
                 clearTaskMethod = taskManagerClass.getDeclaredMethod("clearTask");
                 isRunningMethod = taskManagerClass.getDeclaredMethod("isRunning");
                 setRunningMethod = taskManagerClass.getDeclaredMethod("setRunning", boolean.class, boolean.class);
-                isInTasksMethod = taskManagerClass.getDeclaredMethod("isInTasks", ClientWorld.class, BlockPos.class);
+                isInTasksMethod = taskManagerClass.getDeclaredMethod("isInTasks", ClientLevel.class, BlockPos.class);
                 isBedrockMinerFeatureEnableMethod = taskManagerClass.getDeclaredMethod("isBedrockMinerFeatureEnable");
                 setBedrockMinerFeatureEnableMethod = taskManagerClass.getDeclaredMethod("setBedrockMinerFeatureEnable", boolean.class);
             } catch (Exception e) {
@@ -42,7 +41,7 @@ public class BedrockUtils {
         }
     }
 
-    public static void addToBreakList(BlockPos pos, ClientWorld world) {
+    public static void addToBreakList(BlockPos pos, ClientLevel world) {
         if (taskManagerInstance == null) return;
         try {
             Block block = world.getBlockState(pos).getBlock();
@@ -52,7 +51,7 @@ public class BedrockUtils {
         }
     }
 
-    public static void addRegionTask(String name, ClientWorld world, BlockPos pos1, BlockPos pos2) {
+    public static void addRegionTask(String name, ClientLevel world, BlockPos pos1, BlockPos pos2) {
         if (taskManagerInstance == null) return;
         try {
             addRegionTaskMethod.invoke(taskManagerInstance, name, world, pos1, pos2);
@@ -117,7 +116,7 @@ public class BedrockUtils {
         }
     }
     // 待测试
-    public static boolean isInTasks(ClientWorld world, BlockPos blockPos) { // 修正方法名和参数
+    public static boolean isInTasks(ClientLevel world, BlockPos blockPos) { // 修正方法名和参数
         if (taskManagerInstance == null) return false;
         try {
             return (boolean) isInTasksMethod.invoke(taskManagerInstance, world, blockPos);

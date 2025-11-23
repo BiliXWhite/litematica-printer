@@ -7,16 +7,16 @@ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPa
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import red.jackf.chesttracker.api.memory.Memory;
 import red.jackf.chesttracker.api.memory.MemoryBank;
@@ -38,7 +38,7 @@ import java.util.Optional;
 
 public class MemoryUtils {
     @NotNull
-    static MinecraftClient client = MinecraftClient.getInstance();
+    static Minecraft client = Minecraft.getInstance();
 
     public static MemoryBankImpl PRINTER_MEMORY = null;
 //    public static MemoryBankImpl memoryBankImpl = MemoryBankAccessImpl.INSTANCE.getLoadedInternal().get();
@@ -46,7 +46,7 @@ public class MemoryUtils {
     //点击的物品
     public static ItemStack itemStack = null;
     //当前打开的维度
-    public static Identifier currentMemoryKey = null;
+    public static ResourceLocation currentMemoryKey = null;
     //远程取物返回包中的方块数据
     public static BlockState blockState = null;
     //箱子追踪搜索请求
@@ -62,7 +62,7 @@ public class MemoryUtils {
             Storage.delete(id);
             createPrinterMemory();
         }
-        client.inGameHud.setOverlayMessage(Text.of("打印机库存已清空"), false);
+        client.gui.setOverlayMessage(Component.nullToEmpty("打印机库存已清空"), false);
     }
 
     public static void setup() {
@@ -77,7 +77,7 @@ public class MemoryUtils {
 
         //关闭屏幕后保存 在屏蔽掉ui的情况下 这里可能无法触发 建议在mixin中调用保存方法
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-            if (screen instanceof HandledScreen<?> sc) {
+            if (screen instanceof AbstractContainerScreen<?> sc) {
                 ScreenEvents.remove(screen).register(screen1 -> {
 //                    saveMemory(sc.getScreenHandler());
                 });
@@ -89,7 +89,7 @@ public class MemoryUtils {
         //保存打印机库存
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> unLoad());
     }
-    public static void saveMemory(ScreenHandler sc){
+    public static void saveMemory(AbstractContainerMenu sc){
         if(PRINTER_MEMORY != null && ZxyUtils.printerMemoryAdding || Printer.printerMemorySync)
             save(sc , PRINTER_MEMORY);
         MemoryBankAccessImpl.INSTANCE.getLoadedInternal().ifPresent(memoryBank -> save(sc, memoryBank));
@@ -136,17 +136,17 @@ public class MemoryUtils {
         Storage.save(PRINTER_MEMORY);
     }
 
-    public static void save(ScreenHandler screen , MemoryBank memoryBank) {
+    public static void save(AbstractContainerMenu screen , MemoryBank memoryBank) {
         if (memoryBank == null || OpenInventoryPacket.key == null || blockState == null || !LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue()) return;
         List<BlockPos> connected;
-        if (ZxyUtils.printerMemoryAdding && client.world != null) {
-            connected = ConnectedBlocksGrabber.getConnected(client.world, client.world.getBlockState(OpenInventoryPacket.pos), OpenInventoryPacket.pos);
+        if (ZxyUtils.printerMemoryAdding && client.level != null) {
+            connected = ConnectedBlocksGrabber.getConnected(client.level, client.level.getBlockState(OpenInventoryPacket.pos), OpenInventoryPacket.pos);
         } else connected = null;
         List<ItemStack> items;
         if (screen !=null)
             items = screen.slots.stream()
-                    .filter(slot -> !(slot.inventory instanceof PlayerInventory))
-                    .map(Slot::getStack)
+                    .filter(slot -> !(slot.container instanceof Inventory))
+                    .map(Slot::getItem)
                     .toList();
         else return;
 
@@ -165,7 +165,7 @@ public class MemoryUtils {
 //                .toEntry(OpenInventoryPacket.key.getValue(), OpenInventoryPacket.pos)
 //        );
         if (memory != null) {
-            memoryBank.addMemory(OpenInventoryPacket.key.getValue(),OpenInventoryPacket.pos,memory);
+            memoryBank.addMemory(OpenInventoryPacket.key.location(),OpenInventoryPacket.pos,memory);
         }
     }
 }

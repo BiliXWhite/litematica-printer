@@ -3,7 +3,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 //#if MC < 12001
 //$$ import net.fabricmc.api.EnvType;
 //$$ import net.fabricmc.api.Environment;
-//$$ import net.minecraft.item.Item;
+//$$ import net.minecraft.world.item.Item;
 //$$ import net.minecraft.nbt.NbtCompound;
 //$$ import org.jetbrains.annotations.Nullable;
 //$$

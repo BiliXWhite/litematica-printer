@@ -11,9 +11,9 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 //$$ import net.fabricmc.api.EnvType;
 //$$ import net.fabricmc.api.Environment;
 //$$ import net.fabricmc.loader.api.FabricLoader;
-//$$ import net.minecraft.client.MinecraftClient;
+//$$ import net.minecraft.client.Minecraft;
 //$$ import net.minecraft.client.network.ClientPlayNetworkHandler;
-//$$ import net.minecraft.client.network.ClientPlayerEntity;
+//$$ import net.minecraft.client.player.LocalPlayer;
 //$$ import net.minecraft.client.realms.dto.RealmsServer;
 //$$ import net.minecraft.item.ItemStack;
 //$$ import net.minecraft.nbt.NbtCompound;
@@ -72,7 +72,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 //$$     }
 //$$
 //$$     public static @Nullable String getUsableId() {
-//$$         MinecraftClient mc = MinecraftClient.getInstance();
+//$$         Minecraft mc = Minecraft.getInstance();
 //$$         String id = null;
 //$$         String print = null;
 //$$         ClientPlayNetworkHandler cpnh = mc.getNetworkHandler();
@@ -290,7 +290,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 //$$     public List<Memory> findItems(ItemStack toFind, Identifier worldId) {
 //$$         List<Memory> found = new ArrayList();
 //$$         Map<BlockPos, Memory> location = (Map)this.locations.get(worldId);
-//$$         ClientPlayerEntity playerEntity = MinecraftClient.getInstance().player;
+//$$         LocalPlayer playerEntity = Minecraft.getInstance().player;
 //$$         if (location != null && playerEntity != null) {
 //$$             Iterator var6 = location.entrySet().iterator();
 //$$
