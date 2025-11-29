@@ -8,7 +8,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 //#if MC <= 11802
-//$$ import net.minecraft.text.TranslatableText;
+//$$ import net.minecraft.network.chat.TranslatableComponent;
 //#endif
 public class StringUtils {
 
@@ -49,11 +49,11 @@ public class StringUtils {
         //#if MC > 11904
         guiGraphics.drawString(client.font, text, x, y, color, withShadow);
         //#else
-        //$$ if (matrices == null)
+        //$$ if (poseStack == null)
         //$$     throw new NullPointerException("PoseStack is null");
         //$$ if (withShadow)
-        //$$     client.textRenderer.drawWithShadow(matrices, text, x, y, color);
-        //$$ else client.textRenderer.draw(matrices, text, x, y, color);
+        //$$     client.font.drawShadow(poseStack, text, x, y, color);
+        //$$ else client.font.draw(poseStack, text, x, y, color);
         //#endif
     }
 
@@ -61,7 +61,7 @@ public class StringUtils {
         //#if MC > 11802
         return Component.translatable(LitematicaPrinterMod.MOD_ID + ".config.name." + key);
         //#else
-        //$$ return new TranslatableText(LitematicaPrinterMod.MOD_ID + ".config.name." + key);
+        //$$ return new TranslatableComponent(LitematicaPrinterMod.MOD_ID + ".config.name." + key);
         //#endif
     }
 
@@ -69,7 +69,7 @@ public class StringUtils {
         //#if MC > 11802
         return Component.translatable(LitematicaPrinterMod.MOD_ID + ".config.comment." + key);
         //#else
-        //$$ return new TranslatableText(LitematicaPrinterMod.MOD_ID + ".config.comment." + key);
+        //$$ return new TranslatableComponent(LitematicaPrinterMod.MOD_ID + ".config.comment." + key);
         //#endif
     }
 
@@ -77,7 +77,7 @@ public class StringUtils {
         //#if MC > 11802
         return Component.translatable(LitematicaPrinterMod.MOD_ID + "." + key);
         //#else
-        //$$ return new TranslatableText(LitematicaPrinterMod.MOD_ID + "." + key);
+        //$$ return new TranslatableComponent(LitematicaPrinterMod.MOD_ID + "." + key);
         //#endif
     }
 }

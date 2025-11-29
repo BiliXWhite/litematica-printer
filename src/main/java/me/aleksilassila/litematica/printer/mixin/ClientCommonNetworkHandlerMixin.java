@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl;
 import net.minecraft.core.Direction;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
@@ -13,8 +12,16 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+
+//#if MC > 12001
+import net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl;
 @Mixin(value = ClientCommonPacketListenerImpl.class)
+//#else
+//$$ import net.minecraft.client.multiplayer.ClientPacketListener;
+//$$ @Mixin(value = ClientPacketListener.class)
+//#endif
 public class ClientCommonNetworkHandlerMixin {
+
     @Final
     @Shadow
     protected Connection connection;

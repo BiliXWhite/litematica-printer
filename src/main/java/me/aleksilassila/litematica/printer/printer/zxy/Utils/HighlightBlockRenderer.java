@@ -13,7 +13,6 @@ import org.joml.Matrix4f;
 
 import java.util.*;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.Tesselator;
 
 
@@ -28,6 +27,10 @@ import fi.dy.masa.malilib.render.RenderContext;
 //#if MC == 12105
 //$$ import net.minecraft.client.renderer.FogParameters;
 //$$ import com.mojang.blaze3d.buffers.BufferUsage;
+//#endif
+
+//#if MC > 12006
+import com.mojang.blaze3d.vertex.MeshData;
 //#endif
 
 public class HighlightBlockRenderer implements IRenderer {
@@ -61,9 +64,9 @@ public class HighlightBlockRenderer implements IRenderer {
 
     //#if MC > 12004
     public void test3(Matrix4f matrices, Color4f color4f, Set<BlockPos> posSet){
-        //#else
-        //$$ public void test3(MatrixStack matrices ,Color4f color4f, Set<BlockPos> posSet){
-        //#endif
+    //#else
+    //$$ public void test3(PoseStack matrices, Color4f color4f, Set<BlockPos> posSet){
+    //#endif
         for (BlockPos pos : posSet) {
             //#if MC > 12104
                 //#if MC == 12105
@@ -105,7 +108,7 @@ public class HighlightBlockRenderer implements IRenderer {
             //#endif
         MeshData meshData;
         //#else
-        //$$ BufferBuilder buffer = tesselator.getBuffer();
+        //$$ BufferBuilder buffer = tesselator.getBuilder();
         //$$ buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         //#endif
         for (BlockPos pos : posSet) {
@@ -133,7 +136,7 @@ public class HighlightBlockRenderer implements IRenderer {
 
 
                 //#else
-                //$$ tesselator.draw();
+                //$$ tesselator.end();
                 //#endif
             }
         }
@@ -165,9 +168,9 @@ public class HighlightBlockRenderer implements IRenderer {
     @Override
     //#if MC > 12004
     public void onRenderWorldLast(Matrix4f matrices, Matrix4f projMatrix){
-        //#else
-        //$$ public void onRenderWorldLast(MatrixStack matrices, Matrix4f projMatrix){
-        //#endif
+    //#else
+    //$$ public void onRenderWorldLast(PoseStack matrices, Matrix4f projMatrix){
+    //#endif
         //更改渲染
         setMap.forEach((k,v) -> {
             HighlightTheProject highlightTheProject = highlightTheProjectMap.get(k);

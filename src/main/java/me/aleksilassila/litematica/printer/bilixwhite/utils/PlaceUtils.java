@@ -247,7 +247,7 @@ public class PlaceUtils {
         //#if MC > 12004
         if (InventoryUtils.areStacksEqualIgnoreNbt(stackReference, player.getMainHandItem())) {
         //#else
-        //$$ if (InventoryUtils.areStacksEqual(stackReference, player.getNonEquipmentItems())) {
+        //$$ if (InventoryUtils.areStacksEqual(stackReference, player.getMainHandItem())) {
         //#endif
             return false;
         }

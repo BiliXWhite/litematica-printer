@@ -5,7 +5,6 @@ import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
 import me.aleksilassila.litematica.printer.printer.State;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
@@ -16,9 +15,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //#if MC <= 11904
 //$$import com.mojang.blaze3d.systems.RenderSystem;
-//$$import net.minecraft.client.util.math.MatrixStack;
+//$$import com.mojang.blaze3d.vertex.PoseStack;
 //$$import org.lwjgl.opengl.GL11;
 //$$import org.lwjgl.opengl.GL11C;
+//#elseif MC > 12006
+import net.minecraft.client.DeltaTracker;
 //#endif
 
 import java.awt.*;
@@ -27,14 +28,13 @@ import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.MODE_SWIT
 
 @Mixin(Gui.class)
 public abstract class MixinGui {
-    //TODO: fix preprocess codes
     @Inject(method = "renderItemHotbar", at = @At("TAIL"))
-    //#if MC > 12004
+    //#if MC > 12006
     private void hookRenderItemHotbar(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
     //#elseif MC > 11904
-    //$$private void hookRenderItemHotbar(float tickDelta, DrawContext context, CallbackInfo ci) {
+    //$$private void hookRenderItemHotbar(GuiGraphics guiGraphics, float f, CallbackInfo ci) {
     //#else
-    //$$private void hookRenderItemHotbar(float tickDelta, MatrixStack matrices, CallbackInfo ci) {
+    //$$private void hookRenderItemHotbar(float f, PoseStack poseStack, CallbackInfo ci) {
     //#endif
         Minecraft mc = Minecraft.getInstance();
         float width = mc.getWindow().getGuiScaledWidth();
@@ -44,7 +44,7 @@ public abstract class MixinGui {
             if (!mc.player.isSpectator() && LitematicaPrinterMod.PRINT_SWITCH.getBooleanValue() && !PrinterUtils.isBedrockMode()) {
                 if (LitematicaPrinterMod.RENDER_HUD.getBooleanValue()) {
                     //#if MC <= 11904
-                    //$$ StringUtils.initMatrix(matrices);
+                    //$$ StringUtils.initMatrix(poseStack);
                     //#else
                     StringUtils.initGuiGraphics(guiGraphics);
                     //#endif
@@ -65,8 +65,8 @@ public abstract class MixinGui {
                         guiGraphics.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
                         guiGraphics.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getPrinter().getProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
                         //#else
-                        //$$ DrawableHelper.fill(matrices, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
-                        //$$ DrawableHelper.fill(matrices, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getPrinter().getProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
+                        //$$ GuiComponent.fill(poseStack, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
+                        //$$ GuiComponent.fill(poseStack, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getPrinter().getProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
                         //#endif
                     }
                     StringUtils.drawString(LitematicaPrinterMod.PRINTER_MODE.getOptionListValue().getDisplayName(), (int) (width / 2), (int) (height / 2 + 52), new Color(255, 255, 255, 255).getRGB(), true, true);

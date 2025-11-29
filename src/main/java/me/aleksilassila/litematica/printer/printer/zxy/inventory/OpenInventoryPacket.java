@@ -10,12 +10,8 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -27,14 +23,22 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.monster.Shulker;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+//#if MC > 12004
+import net.minecraft.world.level.block.Block;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+//#else
+//$$ import net.minecraft.world.InteractionHand;
+//#endif
 
 //#if MC >= 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
@@ -49,12 +53,20 @@ import java.util.HashMap;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
 import static me.aleksilassila.litematica.printer.printer.Printer.printerMemorySync;
-import static net.minecraft.world.level.block.ShulkerBoxBlock.FACING;
 
+//#if MC > 12004
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.HelloPackage.HELLO_REMOTE_INTERACTIONS_ID;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.OpenPackage.OPEN_INVENTORY_ID;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.ReturnPackage.OPEN_RETURN_ID;
+//#endif
+
+//#if MC >= 11904
+import net.minecraft.core.registries.Registries;
+//#else
+//$$ import net.minecraft.core.Registry;
+//#endif
+
 public class OpenInventoryPacket {
 
     @NotNull
@@ -78,9 +90,9 @@ public class OpenInventoryPacket {
     private static final ResourceLocation OPEN_RETURN = ResourceLocation.fromNamespaceAndPath("openreturn", "open_return");
     private static final ResourceLocation HELLO_REMOTE_INTERACTIONS = ResourceLocation.fromNamespaceAndPath("hello", "hello_remote_interactions");
     //#else
-    //$$ private static final Identifier OPEN_INVENTORY = new Identifier("remoteinventory", "open_inventory");
-    //$$ private static final Identifier OPEN_RETURN = new Identifier("openreturn", "open_return");
-    //$$ private static final Identifier HELLO_REMOTE_INTERACTIONS = new Identifier("hello", "hello_remote_interactions");
+    //$$ private static final ResourceLocation OPEN_INVENTORY = new ResourceLocation("remoteinventory", "open_inventory");
+    //$$ private static final ResourceLocation OPEN_RETURN = new ResourceLocation("openreturn", "open_return");
+    //$$ private static final ResourceLocation HELLO_REMOTE_INTERACTIONS = new ResourceLocation("hello", "hello_remote_interactions");
     //#endif
     public static ArrayList<ServerPlayer> playerlist = new ArrayList<>();
 
@@ -218,11 +230,11 @@ public class OpenInventoryPacket {
         //#else
         //$$ ServerPlayNetworking.registerGlobalReceiver(OPEN_INVENTORY, (server, player, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
         //$$     BlockPos pos = packetByteBuf.readBlockPos();
-        //#if MC < 11904
-        //$$ RegistryKey<World> key = RegistryKey.of(Registry.WORLD_KEY, packetByteBuf.readIdentifier());
-        //#else
-        //$$ RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, packetByteBuf.readIdentifier());
-        //#endif
+            //#if MC < 11904
+            //$$ ResourceKey<Level> key = ResourceKey.create(Registry.DIMENSION_REGISTRY, packetByteBuf.readResourceLocation());
+            //#else
+            //$$ ResourceKey<Level> key = ResourceKey.create(Registries.DIMENSION, packetByteBuf.readResourceLocation());
+            //#endif
         //$$     server.execute(() -> openInv(server, player, pos, key));
         //$$ });
         //#endif
@@ -232,7 +244,7 @@ public class OpenInventoryPacket {
         //#if MC > 12004
         ServerPlayNetworking.send(player,new HelloPackage());
         //#else
-        //$$ ServerPlayNetworking.send(player, HELLO_REMOTE_INTERACTIONS, new PacketByteBuf(Unpooled.buffer()));
+        //$$ ServerPlayNetworking.send(player, HELLO_REMOTE_INTERACTIONS, new FriendlyByteBuf(Unpooled.buffer()));
         //#endif
     }
 
@@ -255,11 +267,11 @@ public class OpenInventoryPacket {
 
         if (!isInv || blockState.isAir() || (blockEntity instanceof ShulkerBoxBlockEntity entity &&
                 //#if MC > 12103
-                !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(FACING), 0.0F, 0.5F, pos.getBottomCenter()).move(pos).deflate(1.0E-6)) &&
+                !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(BlockStateProperties.FACING), 0.0F, 0.5F, pos.getBottomCenter()).move(pos).deflate(1.0E-6)) &&
                 //#elseif MC <= 12103 && MC > 12004
-                //$$ //!client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
+                //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(BlockStateProperties.FACING), 0.0F, 0.5F).move(pos).deflate(1.0E-6)) &&
                 //#elseif MC <= 12004
-                //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
+                //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(blockState.getValue(BlockStateProperties.FACING), 0.0f, 0.5f).move(pos).deflate(1.0E-6)) &&
                 //#endif
                 entity.getAnimationStatus() == ShulkerBoxBlockEntity.AnimationStatus.CLOSED)) {
             System.out.println("openFail" + pos);
@@ -281,7 +293,7 @@ public class OpenInventoryPacket {
         //#if MC > 12004
         InteractionResult r = blockState.useWithoutItem(world, player, new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false));
         //#else
-        //$$ ActionResult r = blockState.onUse(world, player, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(pos), Direction.UP, pos, false));
+        //$$ InteractionResult r = blockState.use(world, player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false));
         //#endif
 
         if ((r != null && (!r.equals(InteractionResult.CONSUME)
@@ -321,7 +333,7 @@ public class OpenInventoryPacket {
         openPackage.pos = pos;
         ClientPlayNetworking.send(openPackage);
         //#else
-        //$$ ClientPlayNetworking.send(OPEN_INVENTORY, new PacketByteBuf(buf));
+        //$$ ClientPlayNetworking.send(OPEN_INVENTORY, new FriendlyByteBuf(buf));
         //#endif
 
     }
@@ -345,9 +357,9 @@ public class OpenInventoryPacket {
         } else {
             if (key != null) {
                 //#if MC < 11904
-                //$$ String translationKey = key.getValue().toString();
+                //$$ String translationKey = key.location().toString();
                 //$$ String translate = StringUtils.translate(translationKey);
-                //$$ if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toString()),false);
+                //$$ if (client.player != null) me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils.printChatMessage("打开容器失败 \n位于"+ translate+"  "+pos.toString());
                 //#else
                 String translationKey = key.location().toLanguageKey();
                 String translate = StringUtils.translate(translationKey);
@@ -357,8 +369,8 @@ public class OpenInventoryPacket {
                 //#if MC >= 12001
                 MemoryUtils.PRINTER_MEMORY.removeMemory(key.location(), pos);
                 //#else
-                //$$ red.jackf.chesttracker.memory.MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
-                //$$ me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase.getCurrent().removePos(key.getValue() , pos);
+                //$$ red.jackf.chesttracker.memory.MemoryDatabase.getCurrent().removePos(key.location() , pos);
+                //$$ me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase.getCurrent().removePos(key.location() , pos);
                 //#endif
             }
             if (Minecraft.getInstance().player != null) {

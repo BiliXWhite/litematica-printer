@@ -24,7 +24,7 @@ public class MixinServerWorld {
                 //#if MC > 11802
                 list.world.shouldTickBlocksAt(list.pos);
                 //#else
-                //$$ list.world.shouldTick(list.pos);
+                //$$ list.world.shouldTickBlocksAt(ChunkPos.asLong(list.pos));
                 //#endif
             }
 //            BlockState state =  list.state;

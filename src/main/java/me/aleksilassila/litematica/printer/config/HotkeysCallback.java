@@ -17,11 +17,12 @@ import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import fi.dy.masa.malilib.util.GuiUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
+import net.minecraft.resources.ResourceLocation;
 import red.jackf.chesttracker.impl.memory.MemoryBankAccessImpl;
 import red.jackf.chesttracker.impl.memory.MemoryBankImpl;
 //#else
-//$$ import net.minecraft.text.Text;
-//$$ import net.minecraft.util.Identifier;
+//$$ import net.minecraft.network.chat.Component;
+//$$ import net.minecraft.resources.ResourceLocation;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //#endif
 
@@ -58,11 +59,11 @@ public class HotkeysCallback implements IHotkeyCallback {
             //#else
             //$$ MemoryDatabase database = MemoryDatabase.getCurrent();
             //$$ if (database != null) {
-            //$$     for (Identifier dimension : database.getDimensions()) {
-            //$$         database.clearDimension(dimension);
+            //$$ for (ResourceLocation dimension : database.getDimensions()) {
+            //$$     database.clearDimension(dimension);
             //$$     }
             //$$ }
-            //$$ client.inGameHud.setOverlayMessage(Text.of("打印机库存已清空"), false);
+            //$$ client.gui.setOverlayMessage(Component.nullToEmpty("打印机库存已清空"), false);
             //#endif
             return true;
         }

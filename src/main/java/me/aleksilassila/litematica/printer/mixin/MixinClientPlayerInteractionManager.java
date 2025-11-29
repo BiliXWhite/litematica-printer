@@ -31,13 +31,13 @@ public abstract class MixinClientPlayerInteractionManager implements IClientPlay
     {
         useItemOn(minecraft.player,
                 //#if MC < 11904
-//$$ 				client.level,
+                //$$ minecraft.level,
                 //#endif
                 InteractionHand.MAIN_HAND,
                 new BlockHitResult(hitVec, side, pos, false));
         useItem(minecraft.player,
                 //#if MC < 11904
-//$$ 				client.level,
+                //$$ minecraft.level,
                 //#endif
                 InteractionHand.MAIN_HAND);
     }
@@ -53,7 +53,7 @@ public abstract class MixinClientPlayerInteractionManager implements IClientPlay
     @Shadow
     public abstract InteractionResult useItem(Player playerEntity_1,
                                               //#if MC < 11904
-//$$ 											   Level world,
+                                              //$$ Level world,
                                               //#endif
                                               InteractionHand hand_1);
 }
