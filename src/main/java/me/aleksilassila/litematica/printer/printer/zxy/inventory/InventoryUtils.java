@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.litematica.config.Configs;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.ShulkerUtils;
 import me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.Printer;
@@ -176,11 +177,7 @@ public class InventoryUtils {
                             c = a == -1 ? c : a;
                             ZxyUtils.switchPlayerInvToHotbarAir(c);
                             fi.dy.masa.malilib.util.InventoryUtils.swapSlots(sc, y, c);
-                            //#if MC > 12101
-                            player.getInventory().setSelectedSlot(c);
-                            //#else
-                            //$$ player.getInventory().selectedSlot = c;
-                            //#endif
+                            PreprocessUtils.setSelectedSlot(player.getInventory(), c);
                             player.closeContainer();
                             //刷新濳影盒
                             if (shulkerBoxSlot != -1) {

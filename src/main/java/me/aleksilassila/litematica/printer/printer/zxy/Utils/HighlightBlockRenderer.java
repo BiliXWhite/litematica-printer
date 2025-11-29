@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
 import fi.dy.masa.malilib.config.options.ConfigColor;
 import fi.dy.masa.malilib.event.RenderEventHandler;
 import fi.dy.masa.malilib.interfaces.IRenderer;
@@ -14,8 +15,20 @@ import java.util.*;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.Tesselator;
+
+
+//#if MC <= 12104
+//$$ import net.minecraft.client.Minecraft;
+//$$ import net.minecraft.client.renderer.GameRenderer;
+//#elseif MC > 12101
 import fi.dy.masa.malilib.render.MaLiLibPipelines;
 import fi.dy.masa.malilib.render.RenderContext;
+//#endif
+
+//#if MC == 12105
+//$$ import net.minecraft.client.renderer.FogParameters;
+//$$ import com.mojang.blaze3d.buffers.BufferUsage;
+//#endif
 
 public class HighlightBlockRenderer implements IRenderer {
     public static HighlightBlockRenderer instance = new HighlightBlockRenderer();
@@ -53,21 +66,21 @@ public class HighlightBlockRenderer implements IRenderer {
         //#endif
         for (BlockPos pos : posSet) {
             //#if MC > 12104
-            //#if MC == 12105
-            //$$ RenderUtils.renderAreaSides(pos,pos,color4f,matrices);
-            //#endif
+                //#if MC == 12105
+                //$$ RenderUtils.renderAreaSides(pos,pos,color4f,matrices);
+                //#endif
             RenderSystem.setShaderFog(RenderSystem.getShaderFog());
             //#else
-            //$$ RenderUtils.renderAreaSides(pos,pos,color4f,matrices,client);
+            //$$ RenderUtils.renderAreaSides(pos,pos,color4f,matrices, Minecraft.getInstance());
             //#endif
         }
 
         //#if MC > 12104
-        //#if MC > 12105
-        RenderSystem.setShaderFog(RenderSystem.getShaderFog());
-        //#else
-        //$$ RenderSystem.setShaderFog(Fog.DUMMY);
-        //#endif
+            //#if MC > 12105
+            RenderSystem.setShaderFog(RenderSystem.getShaderFog());
+            //#else
+            //$$ RenderSystem.setShaderFog(FogParameters.NO_FOG);
+            //#endif
         //#else
         //$$ RenderSystem.enableBlend();
         //$$ RenderSystem.disableCull();
@@ -75,31 +88,31 @@ public class HighlightBlockRenderer implements IRenderer {
 
         //#if MC > 12101
         //#else
-        //$$ RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+        //$$ RenderSystem.setShader(GameRenderer::getPositionColorShader);
         //#endif
-        Tesselator tessellator = Tesselator.getInstance();
+        Tesselator tesselator = Tesselator.getInstance();
 
         //#if MC > 12006
-        //#if MC > 12104
-        //#if MC == 12105
-        //$$ RenderContext ctx = new RenderContext(MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT, BufferUsage.STATIC_WRITE);
-        //#else
-        RenderContext ctx = new RenderContext(() -> threadName, MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT);
-        //#endif
-        BufferBuilder buffer = ctx.getBuilder();
-        //#else
-        //$$ BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-        //#endif
+            //#if MC > 12104
+                //#if MC == 12105
+                //$$ RenderContext ctx = new RenderContext(MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT, BufferUsage.STATIC_WRITE);
+                //#else
+                RenderContext ctx = new RenderContext(() -> threadName, MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT);
+                //#endif
+            BufferBuilder buffer = ctx.getBuilder();
+            //#else
+            //$$ BufferBuilder buffer = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+            //#endif
         MeshData meshData;
         //#else
-        //$$ BufferBuilder buffer = tessellator.getBuffer();
-        //$$ buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+        //$$ BufferBuilder buffer = tesselator.getBuffer();
+        //$$ buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         //#endif
         for (BlockPos pos : posSet) {
             //#if MC >= 12105
             RenderUtils.renderAreaSidesBatched(pos, pos, color4f, 0.002, buffer);
             //#else
-            //$$ RenderUtils.renderAreaSidesBatched(pos, pos, color4f, 0.002, buffer, client);
+            //$$ RenderUtils.renderAreaSidesBatched(pos, pos, color4f, 0.002, buffer, Minecraft.getInstance());
             //#endif
         }
         try
@@ -108,19 +121,19 @@ public class HighlightBlockRenderer implements IRenderer {
                 //#if MC > 12006
                 meshData = buffer.buildOrThrow();
 
-                //#if MC > 12104
-                ctx.upload(meshData, true);
-                ctx.startResorting(meshData, ctx.createVertexSorter(fi.dy.masa.malilib.render.RenderUtils.camPos()));
-                meshData.close();
-                ctx.drawPost();
-                //#else
-                //$$ BufferRenderer.drawWithGlobalProgram(meshData);
-                //$$ meshData.close();
-                //#endif
+                    //#if MC > 12104
+                    ctx.upload(meshData, true);
+                    ctx.startResorting(meshData, ctx.createVertexSorter(fi.dy.masa.malilib.render.RenderUtils.camPos()));
+                    meshData.close();
+                    ctx.drawPost();
+                    //#else
+                    //$$ BufferUploader.drawWithShader(meshData);
+                    //$$ meshData.close();
+                    //#endif
 
 
                 //#else
-                //$$ tessellator.draw();
+                //$$ tesselator.draw();
                 //#endif
             }
         }
@@ -142,16 +155,6 @@ public class HighlightBlockRenderer implements IRenderer {
     //如果不注册无法渲染，
     public static void init(){
         RenderEventHandler.getInstance().registerWorldLastRenderer(instance);
-//        MyThreadManager.createThread(threadName,new Thread(() -> {
-//            while (!Thread.currentThread().isInterrupted()){
-//                try {
-//                    Thread.sleep(80);
-//                } catch (InterruptedException ignored) {}
-//
-//
-//            }
-//        }));
-
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client1) -> {
             for (Map.Entry<String, HighlightTheProject> stringHighlightTheProjectEntry : highlightTheProjectMap.entrySet()) {
                 stringHighlightTheProjectEntry.getValue().pos.clear();

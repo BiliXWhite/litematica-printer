@@ -31,8 +31,8 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.c
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList;
 
 //#if MC <= 12103
-//$$ import net.minecraft.entity.player.PlayerInventory;
-//$$ import net.minecraft.item.ItemStack;
+//$$ import net.minecraft.world.entity.player.Inventory;
+//$$ import net.minecraft.world.item.ItemStack;
 //#endif
 
 @Environment(EnvType.CLIENT)
@@ -71,10 +71,10 @@ public abstract class MixinMinecraftClient {
         original.call(instance, pos, b);
     }
     //#else
-    //$$ @WrapOperation(method = "doItemPick",at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerInventory;getSlotWithStack(Lnet/minecraft/item/ItemStack;)I" ))
-    //$$ private int doItemPick(PlayerInventory instance, ItemStack stack, Operation<Integer> original) {
+    //$$ @WrapOperation(method = "pickBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;findSlotMatchingItem(Lnet/minecraft/world/item/ItemStack;)I" ))
+    //$$ private int doItemPick(Inventory instance, ItemStack stack, Operation<Integer> original) {
     //$$     int slotWithStack = original.call(instance, stack);
-    //$$     if(!player.getAbilities().creativeMode && (CLOUD_INVENTORY.getBooleanValue() || QUICK_SHULKER.getBooleanValue()) && slotWithStack == -1){
+    //$$     if(!player.getAbilities().instabuild && (CLOUD_INVENTORY.getBooleanValue() || QUICK_SHULKER.getBooleanValue()) && slotWithStack == -1){
     //$$         Item item = stack.getItem();
     //$$         lastNeedItemList.add(item);
     //$$         InventoryUtils.switchItem();

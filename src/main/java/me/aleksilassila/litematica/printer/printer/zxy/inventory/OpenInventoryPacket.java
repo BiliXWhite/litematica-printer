@@ -43,6 +43,10 @@ import red.jackf.chesttracker.api.providers.InteractionTracker;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+//#if MC <= 12105
+//$$ import java.util.Comparator;
+//#endif
+
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
 import static me.aleksilassila.litematica.printer.printer.Printer.printerMemorySync;
 import static net.minecraft.world.level.block.ShulkerBoxBlock.FACING;
@@ -59,7 +63,7 @@ public class OpenInventoryPacket {
     //#if MC > 12104
     private static final TicketType OPEN_TICKET = TicketType.UNKNOWN;
     //#else
-    //$$ private static final ChunkTicketType<ChunkPos> OPEN_TICKET = ChunkTicketType.create("openInv", Comparator.comparingLong(ChunkPos::toLong), 2);
+    //$$ private static final TicketType<ChunkPos> OPEN_TICKET = TicketType.create("openInv", Comparator.comparingLong(ChunkPos::toLong), 2);
     //#endif
     public static HashMap<ServerPlayer, TickList> tickMap = new HashMap<>();
     public static boolean openIng = false;
@@ -240,7 +244,7 @@ public class OpenInventoryPacket {
             //#if MC > 12104
             world.getChunkSource().addTicketWithRadius(OPEN_TICKET, new ChunkPos(pos), 2);
             //#else
-            //$$ world.getChunkManager().addTicket(OPEN_TICKET, new ChunkPos(pos), 2, new ChunkPos(pos));
+            //$$ world.getChunkSource().addRegionTicket(OPEN_TICKET, new ChunkPos(pos), 2, new ChunkPos(pos));
             //#endif
         }
         playerlist.add(player);
@@ -347,11 +351,7 @@ public class OpenInventoryPacket {
                 //#else
                 String translationKey = key.location().toLanguageKey();
                 String translate = StringUtils.translate(translationKey);
-                //#if MC > 12101
                 if (client.player != null) client.player.displayClientMessage(Component.nullToEmpty("打开容器失败 \n位于"+ translate+"  "+pos.getCenter().toString()),false);
-                //#else
-                //$$ if (client.player != null) client.player.sendMessage(Text.of("打开容器失败 \n位于"+ translate+"  "+pos.toCenterPos().toString()));
-                //#endif
                 //#endif
 
                 //#if MC >= 12001
