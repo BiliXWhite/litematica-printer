@@ -84,7 +84,7 @@
   "litematica_printer.update.password": "下载密码：%s",
   "litematica_printer.update.recommendation": "强烈建议升级到最新版本，以修复潜在的严重问题。",
   "litematica_printer.update.repository": "代码仓库：",
-  "modmenu.descriptionTranslation.modmenu": "Litematica的扩展模组，为1.18+的版本增加了缺失的打印机功能。",
-  "modmenu.nameTranslation.modmenu": "投影打印机 三改版",
-  "modmenu.summaryTranslation.modmenu": "§l该版本基于宅咸鱼的版本进行修改。§r\n我也不知道在这里写什么喵~\n如果你的语言表达能力很优秀，欢迎前来github为我们贡献这里的文字！"
+  "modmenu.summaryTranslation.litematica-printer": "Litematica的扩展模组，为1.18+的版本增加了缺失的打印机功能。",
+  "modmenu.nameTranslation.litematica-printer": "投影打印机 三改版",
+  "modmenu.descriptionTranslation.litematica-printer": "§l该版本基于宅咸鱼的版本进行修改。§r\n我也不知道在这里写什么喵~\n如果你的语言表达能力很优秀，欢迎前来github为我们贡献这里的文字！"
 }
