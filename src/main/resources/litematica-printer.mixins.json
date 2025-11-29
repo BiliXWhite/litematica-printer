@@ -25,7 +25,7 @@
   "client": [
     "ClientCommonNetworkHandlerMixin",
     "MixinClientPlayerEntity",
-    "MixinClientPlayerInteractionManager",
+    "MixinMultiPlayerGameMode",
     "MixinClientPlayNetworkHandler",
     "ServerboundMovePlayerPacketAccessor",
     "bilixwhite.visuals.MixinGui",
