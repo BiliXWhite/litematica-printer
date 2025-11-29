@@ -13,7 +13,7 @@ import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
-import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
+import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
@@ -702,7 +702,7 @@ public class Printer extends PrinterUtils {
                 //$$ ));
                 //#endif
             } else {
-                ((IClientPlayerInteractionManager) client.getConnection())
+                ((IMultiPlayerGameMode) client.gameMode)
                         .rightClickBlock(target, side, hitVec);
             }
 

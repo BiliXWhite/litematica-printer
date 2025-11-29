@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin;
 
-import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
+import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.Shadow;
 //#endif
 
 @Mixin(MultiPlayerGameMode.class)
-public abstract class MixinClientPlayerInteractionManager implements IClientPlayerInteractionManager {
+public abstract class MixinMultiPlayerGameMode implements IMultiPlayerGameMode {
     @Final
     @Shadow
     private Minecraft minecraft;

@@ -372,7 +372,6 @@ public class PlacementGuide extends PrinterUtils {
                 var beObserveBlockState = world.getBlockState(pos.relative(facing));
                 var outputBlockPos = pos.relative(facing.getOpposite());
                 BlockState outputState = worldSchematic.getBlockState(outputBlockPos);
-                BlockPos observerPosWorld = PlaceUtils.getObserverPosition(pos, world);
                 BlockPos observerPosSchematic = PlaceUtils.getObserverPosition(pos, worldSchematic);
                 if (LitematicaPrinterMod.SAFELY_OBSERVER.getBooleanValue()) {
                     if (State.get(pos.relative(facing)) == State.CORRECT) {
@@ -834,7 +833,7 @@ public class PlacementGuide extends PrinterUtils {
 
         // 其他
         FARMLAND(FarmBlock.class), // 耕地
-        DIRT_PATH(DirtPathBlock.class), // 泥土小径
+        DIRT_PATH(DirtPathBlock.class), // 土径
         DEAD_CORAL(BaseCoralPlantTypeBlock.class), // 死珊瑚
         NETHER_PORTAL(NetherPortalBlock.class), // 下界传送门
         SKIP(SkullBlock.class, SignBlock.class, LiquidBlock.class, BubbleColumnBlock.class, WaterlilyBlock.class), // 跳过
