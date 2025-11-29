@@ -5,16 +5,13 @@ import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
-import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -28,6 +25,9 @@ import java.util.concurrent.CompletableFuture;
 
 //#if MC >= 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
+
 //#else
 //$$ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 //#endif
@@ -35,14 +35,21 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import java.net.URI;
 //#endif
 
+//#if MC > 11802
+import net.minecraft.network.chat.Component;
+//#else
+//$$ import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
+//$$ import net.minecraft.network.chat.TextComponent;
+//#endif
+
 @Mixin(LocalPlayer.class)
 public class MixinClientPlayerEntity extends AbstractClientPlayer {
     public MixinClientPlayerEntity(ClientLevel world, GameProfile profile
-                                   //#if MC == 11902
-                                   //$$ , @Nullable PlayerPublicKey publicKey) {super(world, profile, publicKey);
-                                   //#else
+                                    //#if MC == 11902
+                                    //$$ , @Nullable PlayerPublicKey publicKey) {super(world, profile, publicKey);
+                                    //#else
     ) {super(world, profile);
-        //#endif
+                                    //#endif
     }
     
     @Final
@@ -124,31 +131,30 @@ public class MixinClientPlayerEntity extends AbstractClientPlayer {
                             Component.literal("------------------------").withStyle(ChatFormatting.GRAY));
                     //#else
                     //$$ minecraft.gui.getChat().addMessage(
-                    //$$         new LiteralText(String.format(StringUtils.get("update.available").toString(), version, newVersion))
-                    //$$                 .formatted(Formatting.YELLOW));
+                    //$$         new TextComponent(String.format(StringUtils.get("update.available").toString(), version, newVersion))
+                    //$$                 .setStyle(Style.EMPTY.applyFormats(ChatFormatting.YELLOW)));
                     //$$ minecraft.gui.getChat().addMessage(
-                    //$$         new LiteralText(StringUtils.get("update.recommendation").toString())
-                    //$$                 .formatted(Formatting.RED));
+                    //$$         new TextComponent(StringUtils.get("update.recommendation").toString())
+                    //$$                 .setStyle(Style.EMPTY.applyFormats(ChatFormatting.RED)));
                     //$$ minecraft.gui.getChat().addMessage(
-                    //$$         new LiteralText(StringUtils.get("update.repository").toString())
-                    //$$                 .formatted(Formatting.WHITE));
+                    //$$         new TextComponent(StringUtils.get("update.repository").toString())
+                    //$$                 .setStyle(Style.EMPTY.applyFormats(ChatFormatting.WHITE)));
                     //$$ minecraft.gui.getChat().addMessage(
-                    //$$         new LiteralText("https://github.com/BiliXWhite/litematica-printer")
+                    //$$         new TextComponent("https://github.com/BiliXWhite/litematica-printer")
                     //$$                 .setStyle(Style.EMPTY
                     //$$                         .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/BiliXWhite/litematica-printer"))
-                    //$$                         .withUnderline(true)
-                    //$$                         .withColor(Formatting.BLUE)));
+                    //$$                         .withUnderlined(true)));
                     //$$ minecraft.gui.getChat().addMessage(
-                    //$$         new LiteralText(StringUtils.get("update.download").toString())
+                    //$$         new TextComponent(StringUtils.get("update.download").toString())
                     //$$                 .setStyle(Style.EMPTY
                     //$$                         .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://xeno.lanzoue.com/b00l1v20vi"))
                     //$$                         .withBold(true)
-                    //$$                         .withColor(Formatting.GREEN)));
+                    //$$                         .withColor(ChatFormatting.GREEN)));
                     //$$ minecraft.gui.getChat().addMessage(
-                    //$$         new LiteralText(String.format(StringUtils.get("update.password").toString(), "cgxw")
-                    //$$                 .formatted(Formatting.WHITE)));
+                    //$$         new TextComponent(String.format(StringUtils.get("update.password").toString(), "cgxw")
+                    //$$                 .formatted(ChatFormatting.WHITE)));
                     //$$ minecraft.gui.getChat().addMessage(
-                    //$$         new LiteralText("------------------------").formatted(Formatting.GRAY));
+                    //$$         new TextComponent("------------------------").withStyle(ChatFormatting.GRAY));
                     //#endif
                 });
             }

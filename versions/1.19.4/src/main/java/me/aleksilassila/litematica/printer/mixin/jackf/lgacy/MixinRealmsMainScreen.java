@@ -1,12 +1,12 @@
 
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 
+import com.mojang.realmsclient.RealmsMainScreen;
+import com.mojang.realmsclient.dto.RealmsServer;
 import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.realms.dto.RealmsServer;
-import net.minecraft.client.realms.gui.screen.RealmsMainScreen;
+import net.minecraft.client.gui.screens.Screen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

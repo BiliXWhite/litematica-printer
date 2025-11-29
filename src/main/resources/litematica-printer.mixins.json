@@ -20,7 +20,7 @@
     "openinv.MixinPlayerEntity",
     "openinv.MixinServerPlayerEntity",
     "openinv.MixinServerWorld",
-    "openinv.PlayerManagerMixin"
+    "openinv.PlayerListMixin"
   ],
   "client": [
     "ClientCommonNetworkHandlerMixin",

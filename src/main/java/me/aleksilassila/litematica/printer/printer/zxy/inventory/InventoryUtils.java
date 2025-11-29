@@ -7,9 +7,6 @@ import me.aleksilassila.litematica.printer.bilixwhite.utils.ShulkerUtils;
 import me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
-//#if MC > 11904
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -26,17 +23,21 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+//#if MC > 11904
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#else
-//$$ import net.minecraft.util.Identifier;
-//$$ import net.minecraft.registry.RegistryKey;
+//$$ import net.minecraft.core.Registry;
+//$$ import net.minecraft.resources.ResourceLocation;
+//$$ import net.minecraft.resources.ResourceKey;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
-//#if MC > 11902
-//$$ import net.minecraft.registry.RegistryKeys;
-//#else
-//#endif
+    //#if MC > 11902
+    //$$ import net.minecraft.core.registries.Registries;
+    //#endif
 //#endif
 
 
@@ -45,7 +46,6 @@ import java.util.HashSet;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.openIng;
-import static net.minecraft.world.level.block.ShulkerBoxBlock.FACING;
 
 public class InventoryUtils {
     static final Minecraft client = Minecraft.getInstance();
@@ -62,11 +62,11 @@ public class InventoryUtils {
                 if ((isInventory && blockState.getMenuProvider(client.level, pos) == null) ||
                         (blockEntity instanceof ShulkerBoxBlockEntity entity &&
                                 //#if MC > 12103
-                                !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(FACING), 0.0F, 0.5F, pos.getBottomCenter()).move(pos).deflate(1.0E-6)) &&
+                                !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(BlockStateProperties.FACING), 0.0F, 0.5F, pos.getBottomCenter()).move(pos).deflate(1.0E-6)) &&
                                 //#elseif MC <= 12103 && MC > 12004
-                                //$$ //!client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
+                                //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(BlockStateProperties.FACING), 0.0F, 0.5F).move(pos).deflate(1.0E-6)) &&
                                 //#elseif MC <= 12004
-                                //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
+                                //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(blockState.getValue(BlockStateProperties.FACING), 0.0f, 0.5f).move(pos).deflate(1.0E-6)) &&
                                 //#endif
                                 entity.getAnimationStatus() == ShulkerBoxBlockEntity.AnimationStatus.CLOSED)) {
                     return false;
@@ -101,11 +101,7 @@ public class InventoryUtils {
             } else if (LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue()) {
                 for (Item item : lastNeedItemList) {
                     //#if MC >= 12001
-                    //#if MC > 12004
                     MemoryUtils.currentMemoryKey = client.level.dimension().location();
-                    //#else
-                    //$$ MemoryUtils.currentMemoryKey = client.world.getDimensionKey().getValue();
-                    //#endif
                     MemoryUtils.itemStack = new ItemStack(item);
                     if (SearchItem.search(true)) {
                         closeScreen++;
@@ -117,14 +113,14 @@ public class InventoryUtils {
                     //$$
                     //$$    MemoryDatabase database = MemoryDatabase.getCurrent();
                     //$$    if (database != null) {
-                    //$$        for (Identifier dimension : database.getDimensions()) {
-                    //$$            for (Memory memory : database.findItems(item.getDefaultStack(), dimension)) {
+                    //$$        for (ResourceLocation dimension : database.getDimensions()) {
+                    //$$            for (Memory memory : database.findItems(item.getDefaultInstance(), dimension)) {
                     //$$                MemoryUtils.setLatestPos(memory.getPosition());
-                    //#if MC < 11904
-                    //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(Registry.WORLD_KEY, dimension));
-                    //#else
-                    //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), RegistryKey.of(RegistryKeys.WORLD, dimension));
-                    //#endif
+                        //#if MC < 11904
+                        //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), ResourceKey.create(Registry.DIMENSION_REGISTRY, dimension));
+                        //#else
+                        //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), ResourceKey.create(Registries.DIMENSION, dimension));
+                        //#endif
                     //$$                if(closeScreen == 0)closeScreen++;
                     //$$                Printer.printerMemorySync = true;
                     //$$                isOpenHandler = true;

@@ -20,7 +20,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.monster.Shulker;
@@ -128,18 +127,18 @@ public class ZxyUtils {
                 BlockEntity blockEntity = client.level.getBlockEntity(pos);
                 boolean isInventory = InventoryUtils.isInventory(client.level,pos);
                 try {
-                    if ((isInventory && blockState.getMenuProvider(client.level,pos) == null) ||
+                    if ((isInventory && blockState.getMenuProvider(client.level, pos) == null) ||
                             (blockEntity instanceof ShulkerBoxBlockEntity entity &&
-                                    //#if MC > 12103
-                                    !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(FACING), 0.0F, 0.5F, pos.getBottomCenter()).move(pos).deflate(1.0E-6)) &&
-                                    //#elseif MC <= 12103 && MC > 12004
-                                    //$$ //!client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(1.0F, blockState.get(FACING), 0.0F, 0.5F).offset(pos).contract(1.0E-6)) &&
-                                    //#elseif MC <= 12004
-                                    //$$ !client.world.isSpaceEmpty(ShulkerEntity.calculateBoundingBox(blockState.get(FACING), 0.0f, 0.5f).offset(pos).contract(1.0E-6)) &&
-                                    //#endif
-                                    entity.getAnimationStatus() == ShulkerBoxBlockEntity.AnimationStatus.CLOSED)) {
+                                //#if MC > 12103
+                                !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(FACING), 0.0F, 0.5F, pos.getBottomCenter()).move(pos).deflate(1.0E-6)) &&
+                                //#elseif MC <= 12103 && MC > 12004
+                                //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(FACING), 0.0F, 0.5F).move(pos).deflate(1.0E-6)) &&
+                                //#elseif MC <= 12004
+                                //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(blockState.getValue(FACING), 0.0f, 0.5f).move(pos).deflate(1.0E-6)) &&
+                                //#endif
+                                entity.getAnimationStatus() == ShulkerBoxBlockEntity.AnimationStatus.CLOSED)) {
                         client.gui.setOverlayMessage(Component.nullToEmpty("容器无法打开"), false);
-                    }else if(!isInventory){
+                    } else if (!isInventory) {
                         client.gui.setOverlayMessage(Component.nullToEmpty("这不是容器 无法同步"), false);
                         return;
                     }
@@ -361,12 +360,7 @@ public class ZxyUtils {
 
 
     public static void actionBar(String message){
-        //#if MC > 11802
-        MutableComponent translatable = Component.translatable(message);
-        //#else
-        //$$ TranslatableText translatable = new TranslatableText(message);
-        //#endif
-        client.gui.setOverlayMessage(translatable,false);
+        client.gui.setOverlayMessage(Component.nullToEmpty(message),false);
     }
 
 

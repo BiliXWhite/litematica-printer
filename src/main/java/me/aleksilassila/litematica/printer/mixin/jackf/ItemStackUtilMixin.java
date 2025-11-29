@@ -12,13 +12,20 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.enchantment.ItemEnchantments;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import red.jackf.chesttracker.impl.util.ItemStacks;
+
+    //#if MC > 12004
+    import net.minecraft.world.item.enchantment.ItemEnchantments;
+    //#endif
+
+    //#if MC <= 12006
+    //$$ import net.minecraft.core.registries.BuiltInRegistries;
+    //#endif
 
 @Mixin(ItemStacks.class)
 public class ItemStackUtilMixin {
@@ -35,19 +42,19 @@ public class ItemStackUtilMixin {
                     String translate = StringUtils.translate(translationKey);
                     return translate != null && (translate.contains(filter) || PinYinSearch.hasPinYin(translate, filter));
                     //#else
-                    //$$ if (testLang(ench.value().getTranslationKey(), filter)) return true;
-                    //$$ var resloc = Registries.ENCHANTMENT.getId(ench.value());
+                    //$$ if (testLang(ench.value().getDescriptionId(), filter)) return true;
+                    //$$ var resloc = BuiltInRegistries.ENCHANTMENT.getKey(ench.value());
                     //$$ return resloc != null && (resloc.toString().contains(filter) || PinYinSearch.hasPinYin(resloc.toString(), filter));
                     //#endif
                 })) cir.setReturnValue(true);
         //#else
-        //$$ var enchantments = EnchantmentHelper.get(stack);
+        //$$ var enchantments = EnchantmentHelper.getEnchantments(stack);
         //$$ if (enchantments.isEmpty()) return;
         //$$ if (enchantments.keySet().stream()
         //$$         .anyMatch(ench -> {
-        //$$             if (testLang(ench.getTranslationKey(), filter)) return true;
-        //$$             var resloc = Registries.ENCHANTMENT.getKey(ench);
-        //$$             return resloc.isPresent() && PinYinSearch.hasPinYin(resloc.toString(), filter);
+        //$$             if (testLang(ench.getDescriptionId(), filter)) return true;
+        //$$              var resloc = BuiltInRegistries.ENCHANTMENT.getKey(ench);
+        //$$             return resloc != null && PinYinSearch.hasPinYin(resloc.getNamespace(), filter);
         //$$         })
         //$$ ) cir.setReturnValue(true);
         //#endif
