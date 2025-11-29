@@ -11,6 +11,7 @@ import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.interfaces.IClientPlayerInteractionManager;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
@@ -666,7 +667,7 @@ public class Printer extends PrinterUtils {
 
             Vec3 hitVec = !termsOfUse
                     ? Vec3.atCenterOf(target)
-                    .add(Vec3.atLowerCornerOf(side.getUnitVec3i()).scale(0.5))
+                    .add(Vec3.atLowerCornerOf(PreprocessUtils.getVec3iFromDirection(side)).scale(0.5))
                     .add(hitModifier.yRot((direction.toYRot() + 90) % 360).scale(0.5))
                     : hitModifier;
 

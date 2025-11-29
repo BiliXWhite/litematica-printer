@@ -5,6 +5,7 @@ import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 
@@ -354,11 +355,7 @@ public class ZxyUtils {
         if (usePacket) {
             client.getConnection().send(new ServerboundSetCarriedItemPacket(slot));
         }
-        //#if MC > 12101
-        inventory.setSelectedSlot(slot);
-        //#else
-        //$$ inventory.selectedSlot = slot;
-        //#endif
+        PreprocessUtils.setSelectedSlot(inventory, slot);
     }
 
 

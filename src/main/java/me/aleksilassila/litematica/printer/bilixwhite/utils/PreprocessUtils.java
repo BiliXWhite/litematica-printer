@@ -1,7 +1,11 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
+import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.Vec3i;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public class PreprocessUtils {
@@ -9,7 +13,7 @@ public class PreprocessUtils {
         //#if MC > 12104
         return inventory.getSelectedSlot();
         //#else
-        //$$ return inventory.selectedSlot;
+        //$$ return inventory.selected;
         //#endif
     }
 
@@ -17,7 +21,7 @@ public class PreprocessUtils {
         //#if MC > 12101
         inventory.setSelectedSlot(slot);
         //#else
-        //$$ inventory.selectedSlot = slot;
+        //$$ inventory.selected = slot;
         //#endif
     }
 
@@ -25,7 +29,23 @@ public class PreprocessUtils {
         //#if MC > 12104
         return inventory.getNonEquipmentItems();
         //#else
-        //$$ return inventory.main;
+        //$$ return inventory.items;
+        //#endif
+    }
+
+    public static Vec3i getVec3iFromDirection(Direction direction) {
+        //#if MC > 12101
+        return direction.getUnitVec3i();
+        //#else
+        //$$ return direction.getNormal();
+        //#endif
+    }
+
+    public static Component getNameFromItem(Item item) {
+        //#if MC > 12101
+        return item.getName();
+        //#else
+        //$$ return item.getDescription();
         //#endif
     }
 }

@@ -3,6 +3,7 @@ package me.aleksilassila.litematica.printer.printer;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
@@ -481,7 +482,12 @@ public class PlacementGuide extends PrinterUtils {
                 if (block instanceof HorizontalDirectionalBlock ||
                         block instanceof StonecutterBlock
                         //#if MC >= 11904
-                        || block instanceof FlowerBedBlock
+                        || block instanceof
+                            //#if MC >= 12105
+                            FlowerBedBlock
+                            //#else
+                            //$$ PinkPetalsBlock
+                            //#endif
                         //#endif
                 ) {
                     Direction facing = requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING);
@@ -616,7 +622,7 @@ public class PlacementGuide extends PrinterUtils {
                 }
                 //#if MC >= 11904
                 case FLOWERBED -> {
-                    if (currentState.getValue(FlowerBedBlock.AMOUNT) <= requiredState.getValue(FlowerBedBlock.AMOUNT)) {
+                    if (currentState.getValue(BlockStateProperties.FLOWER_AMOUNT) <= requiredState.getValue(BlockStateProperties.FLOWER_AMOUNT)) {
                         return new ClickAction().setItem(requiredState.getBlock().asItem());
                     } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(pos);
                 }
@@ -651,13 +657,13 @@ public class PlacementGuide extends PrinterUtils {
                         if (playerHasAccessToItem(mc.player, Items.GLASS_BOTTLE))
                             return new ClickAction().setItem(Items.GLASS_BOTTLE);
                         else
-                            mc.gui.setOverlayMessage(Component.nullToEmpty("降低炼药锅内水位需要 §l§6" + Items.GLASS_BOTTLE.getName()), false);
+                            mc.gui.setOverlayMessage(Component.nullToEmpty("降低炼药锅内水位需要 §l§6" + PreprocessUtils.getNameFromItem(Items.GLASS_BOTTLE)), false);
                     }
                     if (currentState.getValue(LayeredCauldronBlock.LEVEL) < requiredState.getValue(LayeredCauldronBlock.LEVEL))
                         if (playerHasAccessToItem(mc.player, Items.POTION))
                             return new ClickAction().setItem(Items.POTION);
                         else
-                            mc.gui.setOverlayMessage(Component.nullToEmpty("增加炼药锅内水位需要 §l§6" + Items.POTION.getName()), false);
+                            mc.gui.setOverlayMessage(Component.nullToEmpty("增加炼药锅内水位需要 §l§6" + PreprocessUtils.getNameFromItem(Items.GLASS_BOTTLE)), false);
                 }
                 case DAYLIGHT_DETECTOR -> {
                     if (currentState.getValue(DaylightDetectorBlock.INVERTED) != requiredState.getValue(DaylightDetectorBlock.INVERTED)) return new ClickAction();
@@ -808,7 +814,13 @@ public class PlacementGuide extends PrinterUtils {
         NOTE_BLOCK(NoteBlock.class), // 音符盒
         END_PORTAL_FRAME(EndPortalFrameBlock.class), // 末地传送门框架
         //#if MC >= 11904
-        FLOWERBED(FlowerBedBlock.class), // 花簇（ojng你看看你这是什么抽象命名）
+        FLOWERBED(
+                //#if MC >= 12105
+                FlowerBedBlock
+                //#else
+                //$$ PinkPetalsBlock
+                //#endif
+                .class), // 花簇（ojng你看看你这是什么抽象命名）
         //#endif
         VINES(VineBlock.class), // 藤蔓
         GLOW_LICHEN(GlowLichenBlock.class), // 发光地衣

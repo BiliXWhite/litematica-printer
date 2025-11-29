@@ -13,13 +13,10 @@ import me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.State;
 import static me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor.getEmptyPickBlockableHotbarSlot;
 import static me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor.getPickBlockTargetSlot;
-import com.google.common.primitives.Shorts;
-import com.google.common.primitives.SignedBytes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
-import net.minecraft.network.HashedStack;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.world.entity.player.Inventory;
@@ -43,6 +40,11 @@ import me.aleksilassila.litematica.printer.mixin.bilixwhite.accessors.EasyPlaceU
 //$$ import fi.dy.masa.litematica.util.WorldUtils;
 //#endif
 
+//#if MC >= 12105
+import net.minecraft.network.HashedStack;
+import com.google.common.primitives.Shorts;
+import com.google.common.primitives.SignedBytes;
+//#endif
 import java.util.List;
 
 public class PlaceUtils {

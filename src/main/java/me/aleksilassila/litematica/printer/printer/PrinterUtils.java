@@ -3,6 +3,7 @@ package me.aleksilassila.litematica.printer.printer;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.block.SlabBlock;
@@ -100,7 +101,7 @@ public class PrinterUtils {
         sides.put(requiredDir, new Vec3(0, 0, 0));
 
         if (world.getBlockState(pos).hasProperty(SlabBlock.TYPE)) {
-            sides.put(requiredDir.getOpposite(), Vec3.atLowerCornerOf(requiredDir.getUnitVec3i()).scale(0.5));
+            sides.put(requiredDir.getOpposite(), Vec3.atLowerCornerOf(PreprocessUtils.getVec3iFromDirection(requiredDir)).scale(0.5));
         }
 
         for (Direction side : horizontalDirections) {
@@ -112,7 +113,7 @@ public class PrinterUtils {
                 }
             }
 
-            sides.put(side, Vec3.atLowerCornerOf(requiredDir.getUnitVec3i()).scale(0.25));
+            sides.put(side, Vec3.atLowerCornerOf(PreprocessUtils.getVec3iFromDirection(requiredDir)).scale(0.25));
         }
 
         return sides;
