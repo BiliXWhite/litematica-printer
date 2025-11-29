@@ -5,6 +5,11 @@ import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.LdcInsnNode
 
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+
+apply(plugin: "java")
 apply(plugin: "fabric-loom")
 apply(plugin: "maven-publish")
 apply(plugin: "com.replaymod.preprocess")
@@ -14,6 +19,7 @@ int mcVersion = 1
 preprocess {
     mcVersion = vars.get().get("MC")
 }
+
 
 repositories {
     // 海外源
@@ -94,41 +100,65 @@ configurations {
         }
     }
 }
-def sakura = mcVersion > 12006
-//  1 = modImplementation 2 = modImplementation include 	3 = modApi	4 = modCompileOnly  5 = modImplementation file
-def mod_dependencies = [
-        [(sakura ? "com.github.sakura-ryoko:malilib" : "fi.dy.masa.malilib")                        , "malilib",            1],
-        [(sakura ? "com.github.sakura-ryoko:tweakeroo" :"curse.maven:tweakeroo-297344")             , "tweakeroo",          1],
-        [(sakura ? "com.github.sakura-ryoko:litematica" :"curse.maven:litematica-308892")           , "litematica",         1],
-        [getYACL(), "yacl", mcVersion >= 12001 ? 1 : 0],
-        ["maven.modrinth:chest-tracker", "chesttracker", mcVersion < 12105 ? 1 : 4],   //TODO 箱子追踪未更新21.5
-        ["maven.modrinth:where-is-it", "whereisit", mcVersion < 12105 ? 1 : 4],
-        [getQuickShulker(), "quick_shulker", mcVersion > 12004 ? 5 : 1],
-        ["red.jackf.jackfredlib:jackfredlib"                    , "jackfredlib",        mcVersion >= 12001 ? 1 : 0],
-        ["com.blamejared.searchables"                           , "searchables",        mcVersion >= 12001 ? 1 : 0],
-        ["maven.modrinth:modmenu"                               , "modmenu",            1],
-        ["maven.modrinth:cloth-config"                          , "cloth_config",       mcVersion < 12001 ? 1 : 0],
-        ["me.shedaniel.cloth.api:cloth-api"                     , "cloth_api",          mcVersion < 11904 ? 1 : 0],
-        ["io.github.cottonmc:LibGui"                            , "LibGui",             mcVersion < 12001 ? 1 : 0],
-]
 
-String getYACL(){
-    return mcVersion == 12002 ?
-            "maven.modrinth:yacl" :
-            "dev.isxander:yet-another-config-lib"
-}
-
-String getQuickShulker() {
-    String path = "curse.maven:quick-shulker-362669"
-    if (mcVersion == 12006) { path = "libs/quickshulker-1.4.3-1.20.6.jar"
-    } else if (mcVersion == 12101) { path = "libs/quickshulker-2.0.1-1.21.1.jar"
-    } else if (mcVersion == 12103) { path = "libs/quickshulker-2.2.1-1.21.3.jar"
-    } else if (mcVersion == 12104) { path = "libs/quickshulker-2.3.1-1.21.4.jar"
-    } else if (mcVersion == 12105) { path = "libs/quickshulker-2.4.1-1.21.5.jar"
-    } else if (mcVersion == 12106) { path = "libs/quickshulker-2.5.0-1.21.6.jar"
-    } else if (mcVersion == 12109) { path = "libs/quickshulker-2.8.0-1.21.9.jar"
+def downloadExternalMod = { String urlStr, String customFilename = null ->
+    def client = HttpClient.newBuilder()
+            .followRedirects(HttpClient.Redirect.NORMAL)
+            .build()
+    def request = HttpRequest.newBuilder()
+            .uri(URI.create(urlStr))
+            .GET()
+            .build()
+    def response = client.send(request, HttpResponse.BodyHandlers.ofInputStream())
+    if (response.statusCode() != 200) {
+        throw new IOException("Failed to download: HTTP ${response.statusCode}")
     }
-    return path
+    // 确定文件名
+    String filename
+    // 1. 优先使用自定义文件名
+    if (customFilename != null && !customFilename.isEmpty()) {
+        filename = customFilename
+    }
+    // 2. 尝试从 Content-Disposition 头获取文件名
+    else {
+        def contentDisposition = response.headers().firstValue("Content-Disposition").orElse(null)
+        if (contentDisposition != null && contentDisposition.contains("filename=")) {
+            // 提取文件名，处理带引号和不带引号的情况
+            def matcher = (contentDisposition =~ /filename=["']?([^"']+)["']?/)
+            if (matcher.find()) {
+                filename = matcher.group(1)
+            }
+        }
+        // 3. 如果仍未获取到文件名，从URL路径中提取
+        if (filename == null) {
+            def path = URI.create(urlStr).getPath()
+            filename = path.substring(path.lastIndexOf('/') + 1)
+
+            // 如果URL中的文件名是空的或无效，使用默认文件名
+            if (filename.isEmpty() || filename.contains("?")) {
+                def domain = URI.create(urlStr).getHost()
+                def timestamp = System.currentTimeMillis()
+                filename = "downloaded-from-${domain}-${timestamp}.jar"
+            }
+        }
+    }
+    // 确保文件名以.jar结尾（如果不是）
+    if (!filename.endsWith('.jar')) {
+        filename += '.jar'
+    }
+    def libsDir = new File("$rootDir/libs")
+    libsDir.mkdirs()
+    File target = new File(libsDir, filename)
+    if (!target.exists()) {
+        println "Downloading external mod: $filename from $urlStr"
+        target.withOutputStream { out ->
+            response.body().transferTo(out)
+        }
+        println "Downloaded: ${target.name} (${target.length()} bytes)"
+    } else {
+        println "File already exists: $filename"
+    }
+    return target
 }
 
 dependencies {
@@ -141,33 +171,87 @@ dependencies {
 
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    modImplementation "maven.modrinth:modmenu:${project.property("modmenu")}"
 
-    mod_dependencies.forEach { item ->
-        def dependencyNotation = item[0]
-        def id = item[1]
-        def mode = item[2]
-        if (mode == 0) return
-        def idFix= mode != 5 ? "${dependencyNotation}:${project.property("${id}")}" : ""
-        if (mode == 1) {
-            modImplementation idFix
-        } else if (mode == 2) {
-            modImplementation include(idFix)
-        } else if (mode == 3) {
-            modApi idFix
-        } else if (mode == 4) {
-            modCompileOnly idFix
-        } else if (mode == 45) {
-            modCompileOnly files(dependencyNotation)
-        } else if (mode == 5) {
-            modImplementation files(dependencyNotation)
+    // masa相关引用
+    def sakura = mcVersion > 12006
+    def malilib = sakura ? "com.github.sakura-ryoko:malilib" : "fi.dy.masa.malilib";
+    def tweakeroo = sakura ? "com.github.sakura-ryoko:tweakeroo" : "curse.maven:tweakeroo-297344"
+    def litematica = sakura ? "com.github.sakura-ryoko:litematica" : "curse.maven:litematica-308892"
+    modImplementation "$malilib:${project.property("malilib")}"
+    modImplementation "$tweakeroo:${project.property("tweakeroo")}"
+    modImplementation "$litematica:${project.property("litematica")}"
+
+
+    if (mcVersion >= 12001) {
+        def yacl = mcVersion == 12002 ? "maven.modrinth:yacl" : "dev.isxander:yet-another-config-lib"
+        modImplementation "$yacl:${project.property("yacl")}"
+    }
+
+    //TODO 箱子追踪未更新21.5
+    if (mcVersion < 12105) {
+        modImplementation "maven.modrinth:chest-tracker:${project.property("chesttracker")}"
+    } else {
+        modCompileOnly "maven.modrinth:chest-tracker:${project.property("chesttracker")}"
+    }
+
+    if (mcVersion < 12105) {
+        modImplementation "maven.modrinth:where-is-it:${project.property("whereisit")}"
+    } else {
+        modCompileOnly "maven.modrinth:where-is-it:${project.property("whereisit")}"
+    }
+
+    if (mcVersion >= 12001) {
+        modImplementation "red.jackf.jackfredlib:jackfredlib:${project.property("jackfredlib")}"
+    }
+
+    if (mcVersion >= 12001) {
+        modImplementation "com.blamejared.searchables:${project.property("searchables")}"
+    }
+
+    if (mcVersion < 12001) {
+        modImplementation "maven.modrinth:cloth-config:${project.property("cloth_config")}"
+    }
+
+    if (mcVersion < 11904) {
+        modImplementation "me.shedaniel.cloth.api:cloth-api:${project.property("cloth_api")}"
+    }
+
+    if (mcVersion < 12001) {
+        modImplementation "io.github.cottonmc:LibGui:${project.property("LibGui")}"
+    }
+
+    if (mcVersion > 12004) {
+        def quickshulkerMap = [
+                12006: "https://github.com/Haocen2004/quickshulker/releases/download/1.20.6-1.4.3/quickshulker-1.4.3-1.20.6.jar",
+                12101: "https://github.com/MoRanpcy/quickshulker/releases/download/2.0.3-1.21.1/quickshulker-2.0.3-1.21.1.jar",
+                12102: "https://github.com/MoRanpcy/quickshulker/releases/download/2.1.3-1.21.2/quickshulker-2.1.3-1.21.2.jar",
+                12103: "https://github.com/MoRanpcy/quickshulker/releases/download/2.2.3-1.21.3/quickshulker-2.2.3-1.21.3.jar",
+                12104: "https://github.com/MoRanpcy/quickshulker/releases/download/2.3.3-1.21.4/quickshulker-2.3.3-1.21.4.jar",
+                12105: "https://github.com/MoRanpcy/quickshulker/releases/download/2.4.3-1.21.5/quickshulker-2.4.3-1.21.5.jar",
+                12106: "https://github.com/MoRanpcy/quickshulker/releases/download/2.5.2-1.21.6/quickshulker-2.5.2-1.21.6.jar",
+                12107: "https://github.com/MoRanpcy/quickshulker/releases/download/2.6.2-1.21.7/quickshulker-2.6.2-1.21.7.jar",
+                12108: "https://github.com/MoRanpcy/quickshulker/releases/download/2.7.2-1.21.8/quickshulker-2.7.2-1.21.8.jar",
+                12109: "https://github.com/MoRanpcy/quickshulker/releases/download/2.8.2-1.21.9/quickshulker-2.8.2-1.21.9.jar",
+                12110: "https://github.com/MoRanpcy/quickshulker/releases/download/2.9.1-1.21.10/quickshulker-2.9.1-1.21.10.jar",
+        ]
+        def selectedUrl = quickshulkerMap[mcVersion]
+        if (selectedUrl != null) {
+            def quickshulkerFile = downloadExternalMod(selectedUrl);
+            if (quickshulkerFile.exists()) {
+                modImplementation files(quickshulkerFile)
+            }
         }
+
+    } else {
+        modImplementation "curse.maven:quick-shulker-362669:${project.property("quick_shulker")}"
     }
 
     //使用通用版本..大概
     runtimeOnly(project(path: ":fabricWrapper"))
 }
 def time = new Date().format("yyMMdd", TimeZone.getTimeZone("GMT+08:00"))
-version(project.mod_version+"+" + time)
+version(project.mod_version + "+" + time)
 group = project.mod_maven_group
 
 base {
@@ -288,7 +372,6 @@ publishing {
         }
     }
 }
-
 
 
 ImmutableMap<Object, Object> replaceTokenMap = ImmutableMap.builder()
