@@ -84,7 +84,7 @@
   "litematica_printer.update.password": "Password: %s",
   "litematica_printer.update.recommendation": "It is strongly recommended to upgrade to the latest version to fix potential issues.",
   "litematica_printer.update.repository": "Repository:",
-  "modmenu.descriptionTranslation.modmenu": "An extension mod for Litematica, adding missing printer functionality for versions 1.18+.",
-  "modmenu.nameTranslation.modmenu": "Projection Printer White's Version",
-  "modmenu.summaryTranslation.modmenu": "§lThis version is based on the modification by ZhaiXianYu. §r\nI'm not sure what to write here :P\nIf you have excellent language skills, we're welcome to contribute this on GitHub!"
+  "modmenu.summaryTranslation.litematica-printer": "An extension mod for Litematica, adding missing printer functionality for versions 1.18+.",
+  "modmenu.nameTranslation.litematica-printer": "Projection Printer White's Version",
+  "modmenu.descriptionTranslation.litematica-printer": "§lThis version is based on the modification by ZhaiXianYu. §r\nI'm not sure what to write here :P\nIf you have excellent language skills, we're welcome to contribute this on GitHub!"
 }
