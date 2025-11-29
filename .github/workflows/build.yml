@@ -1,8 +1,8 @@
 name: build
 on:
-#  push:
-#    paths-ignore:
-#      - '*.md'
+  push:
+    paths-ignore:
+      - '*.md'
   pull_request:
   workflow_dispatch:
 
