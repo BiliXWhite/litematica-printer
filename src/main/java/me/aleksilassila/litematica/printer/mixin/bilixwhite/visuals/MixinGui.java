@@ -31,10 +31,12 @@ public abstract class MixinGui {
     @Inject(method = "renderItemHotbar", at = @At("TAIL"))
     //#if MC > 12006
     private void hookRenderItemHotbar(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+    //#elseif MC > 12004
+    //$$ private void hookRenderItemHotbar(GuiGraphics guiGraphics, float f, CallbackInfo ci) {
     //#elseif MC > 11904
-    //$$private void hookRenderItemHotbar(float f, GuiGraphics guiGraphics, CallbackInfo ci) {
+    //$$ private void hookRenderItemHotbar(float f, GuiGraphics guiGraphics, CallbackInfo ci) {
     //#else
-    //$$private void hookRenderItemHotbar(float f, PoseStack poseStack, CallbackInfo ci) {
+    //$$ private void hookRenderItemHotbar(float f, PoseStack poseStack, CallbackInfo ci) {
     //#endif
         Minecraft mc = Minecraft.getInstance();
         float width = mc.getWindow().getGuiScaledWidth();
