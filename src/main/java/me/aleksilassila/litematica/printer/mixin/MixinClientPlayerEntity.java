@@ -23,11 +23,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.concurrent.CompletableFuture;
 
-//#if MC >= 12001
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
-
+//#if MC >= 12001 && MC <= 12104
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 //#else
 //$$ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 //#endif
@@ -65,9 +64,9 @@ public class MixinClientPlayerEntity extends AbstractClientPlayer {
     
     @Inject(at = @At("HEAD"), method = "closeContainer")
     public void close(CallbackInfo ci) {
-        //#if MC >= 12001
-        if(Statistics.loadChestTracker) MemoryUtils.saveMemory(this.containerMenu);
-        OpenInventoryPacket.reSet();
+        //#if MC >= 12001 && MC <= 12104
+        //$$ if(Statistics.loadChestTracker) MemoryUtils.saveMemory(this.containerMenu);
+        //$$ OpenInventoryPacket.reSet();
         //#endif
     }
     

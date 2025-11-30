@@ -24,11 +24,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-//#if MC > 11904
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
-import red.jackf.chesttracker.api.providers.InteractionTracker;
-//#else
+//#if MC > 11904 && MC <= 12104
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
+//$$ import red.jackf.chesttracker.api.providers.InteractionTracker;
+//#elseif MC <= 11904
 //$$ import net.minecraft.core.Registry;
 //$$ import net.minecraft.resources.ResourceLocation;
 //$$ import net.minecraft.resources.ResourceKey;
@@ -100,16 +100,16 @@ public class InventoryUtils {
                 return true;
             } else if (LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue()) {
                 for (Item item : lastNeedItemList) {
-                    //#if MC >= 12001
-                    MemoryUtils.currentMemoryKey = client.level.dimension().location();
-                    MemoryUtils.itemStack = new ItemStack(item);
-                    if (SearchItem.search(true)) {
-                        closeScreen++;
-                        isOpenHandler = true;
-                        Printer.printerMemorySync = true;
-                        return true;
-                    }
-                    //#else
+                    //#if MC >= 12001 && MC <= 12104
+                    //$$ MemoryUtils.currentMemoryKey = client.level.dimension().location();
+                    //$$ MemoryUtils.itemStack = new ItemStack(item);
+                    //$$ if (SearchItem.search(true)) {
+                    //$$     closeScreen++;
+                    //$$     isOpenHandler = true;
+                    //$$     Printer.printerMemorySync = true;
+                    //$$     return true;
+                    //$$ }
+                    //#elseif MC < 12001
                     //$$
                     //$$    MemoryDatabase database = MemoryDatabase.getCurrent();
                     //$$    if (database != null) {
@@ -215,8 +215,8 @@ public class InventoryUtils {
                         try {
                             shulkerBoxSlot = i;
 //                            ClientUtil.CheckAndSend(stack,i);
-                            //#if MC >= 12001
-                            if (loadChestTracker) InteractionTracker.INSTANCE.clear();
+                            //#if MC >= 12001 && MC <= 12104
+                            //$$ if (loadChestTracker) InteractionTracker.INSTANCE.clear();
                             //#endif
                             ShulkerUtils.openShulker(stack, shulkerBoxSlot);
                             closeScreen++;

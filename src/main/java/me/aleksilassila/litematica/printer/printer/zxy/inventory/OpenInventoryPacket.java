@@ -40,9 +40,9 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //$$ import net.minecraft.world.InteractionHand;
 //#endif
 
-//#if MC >= 12001
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-import red.jackf.chesttracker.api.providers.InteractionTracker;
+//#if MC >= 12001 && MC <= 12104
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+//$$ import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#endif
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -314,9 +314,9 @@ public class OpenInventoryPacket {
         OpenInventoryPacket.pos = null;
         OpenInventoryPacket.key = null;
         //避免箱子追踪重复保存，
-        //#if MC >= 12001
+        //#if MC >= 12001 && MC <= 12104
         //避免箱子追踪胡乱记录，若不清空，则会吧打开容器前右键的方块视为目标容器
-        InteractionTracker.INSTANCE.clear();
+        //$$ InteractionTracker.INSTANCE.clear();
         //#endif
         if (client.player != null && !client.player.containerMenu.equals(client.player.inventoryMenu))
             client.player.closeContainer();
@@ -350,8 +350,8 @@ public class OpenInventoryPacket {
             return;
         }
         if (open) {
-            //#if MC >= 12001
-            MemoryUtils.blockState = state;
+            //#if MC >= 12001 && MC <= 12104
+            //$$ MemoryUtils.blockState = state;
             //#endif
 //            client.player.sendMessage(Text.of("return "+state.toString()));
         } else {
@@ -366,9 +366,9 @@ public class OpenInventoryPacket {
                 if (client.player != null) client.player.displayClientMessage(Component.nullToEmpty("打开容器失败 \n位于"+ translate+"  "+pos.getCenter().toString()),false);
                 //#endif
 
-                //#if MC >= 12001
-                MemoryUtils.PRINTER_MEMORY.removeMemory(key.location(), pos);
-                //#else
+                //#if MC >= 12001 && MC <= 12104
+                //$$ MemoryUtils.PRINTER_MEMORY.removeMemory(key.location(), pos);
+                //#elseif MC < 12001
                 //$$ red.jackf.chesttracker.memory.MemoryDatabase.getCurrent().removePos(key.location() , pos);
                 //$$ me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase.getCurrent().removePos(key.location() , pos);
                 //#endif

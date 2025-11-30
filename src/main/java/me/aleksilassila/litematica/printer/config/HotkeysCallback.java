@@ -4,6 +4,7 @@ import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
+import fi.dy.masa.malilib.util.GuiUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
@@ -13,14 +14,14 @@ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPa
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
-//#if MC >= 12001
-import fi.dy.masa.malilib.util.GuiUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
-import net.minecraft.resources.ResourceLocation;
-import red.jackf.chesttracker.impl.memory.MemoryBankAccessImpl;
-import red.jackf.chesttracker.impl.memory.MemoryBankImpl;
-//#else
+//#if MC >= 12001 && MC <= 12104
+//$$ import fi.dy.masa.malilib.util.GuiUtils;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
+//$$ import net.minecraft.resources.ResourceLocation;
+//$$ import red.jackf.chesttracker.impl.memory.MemoryBankAccessImpl;
+//$$ import red.jackf.chesttracker.impl.memory.MemoryBankImpl;
+//#elseif MC < 12001
 //$$ import net.minecraft.network.chat.Component;
 //$$ import net.minecraft.resources.ResourceLocation;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
@@ -54,9 +55,9 @@ public class HotkeysCallback implements IHotkeyCallback {
             startAddPrinterInventory();
             return true;
         }else if(key == REMOVE_PRINT_INVENTORY.getKeybind()){
-            //#if MC >= 12001
-            MemoryUtils.deletePrinterMemory();
-            //#else
+            //#if MC >= 12001 && MC <= 12104
+            //$$ MemoryUtils.deletePrinterMemory();
+            //#elseif MC < 12001
             //$$ MemoryDatabase database = MemoryDatabase.getCurrent();
             //$$ if (database != null) {
             //$$ for (ResourceLocation dimension : database.getDimensions()) {
@@ -67,32 +68,27 @@ public class HotkeysCallback implements IHotkeyCallback {
             //#endif
             return true;
         }
-        //#if MC >= 12001
-        else if(GuiUtils.getCurrentScreen() instanceof AbstractContainerScreen<?> &&
-                !(GuiUtils.getCurrentScreen() instanceof CreativeModeInventoryScreen))
-        {
-            if(key == LAST.getKeybind()){
-                SearchItem.page = --SearchItem.page <= -1 ? SearchItem.maxPage-1 : SearchItem.page;
-                SearchItem.openInventory(SearchItem.page);
-            }
-            else if(key == NEXT.getKeybind()){
-                SearchItem.page = ++SearchItem.page >= SearchItem.maxPage ? 0 : SearchItem.page;
-                SearchItem.openInventory(SearchItem.page);
-            }
-            else if(key == DELETE.getKeybind()){
-                MemoryBankImpl memoryBank = MemoryBankAccessImpl.INSTANCE.getLoadedInternal().orElse(null);
-                if (memoryBank!= null && OpenInventoryPacket.key != null && client.player != null) {
-                    memoryBank.removeMemory(OpenInventoryPacket.key.location(),OpenInventoryPacket.pos);
-                    OpenInventoryPacket.key = null;
-                    client.player.closeContainer();
-                }
-            }
-        }
+        //#if MC >= 12001 && MC <= 12104
+        //$$     else if (GuiUtils.getCurrentScreen() instanceof AbstractContainerScreen<?> &&
+        //$$            !(GuiUtils.getCurrentScreen() instanceof CreativeModeInventoryScreen)) {
+        //$$     if(key == LAST.getKeybind()){
+        //$$         SearchItem.page = --SearchItem.page <= -1 ? SearchItem.maxPage-1 : SearchItem.page;
+        //$$         SearchItem.openInventory(SearchItem.page);
+        //$$     }
+        //$$     else if(key == NEXT.getKeybind()){
+        //$$         SearchItem.page = ++SearchItem.page >= SearchItem.maxPage ? 0 : SearchItem.page;
+        //$$         SearchItem.openInventory(SearchItem.page);
+        //$$     }
+        //$$     else if(key == DELETE.getKeybind()){
+        //$$         MemoryBankImpl memoryBank = MemoryBankAccessImpl.INSTANCE.getLoadedInternal().orElse(null);
+        //$$         if (memoryBank!= null && OpenInventoryPacket.key != null && client.player != null) {
+        //$$             memoryBank.removeMemory(OpenInventoryPacket.key.location(),OpenInventoryPacket.pos);
+        //$$             OpenInventoryPacket.key = null;
+        //$$             client.player.closeContainer();
+        //$$         }
+        //$$     }
+        //$$ }
         //#endif
-        else if (key == TOGGLE_PRINTING_MODE.getKeybind()) {
-            StringUtils.printChatMessage("开关打印机时调用");
-            BreakManager.instance().clear();
-        }
         return false;
     }
 
