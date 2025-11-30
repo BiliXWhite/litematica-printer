@@ -44,11 +44,11 @@ repositories {
         }
     }
     maven {
-        // 快捷潜影盒
-        name = "Kryptonaught Maven"
+        // 快捷潜影盒1.20.6以下所需要的
+        name = "Kyrptonaught Maven"
         url = "https://maven.kyrptonaught.dev"
         content {
-            includeGroupAndSubgroups("dev.kryptonaught")
+            includeGroupAndSubgroups("net.kyrptonaught")
         }
     }
     maven {
@@ -239,9 +239,6 @@ dependencies {
     if (mcVersion < 12105) {
         modImplementation "maven.modrinth:chest-tracker:${project.property("chesttracker")}"
         modImplementation "maven.modrinth:where-is-it:${project.property("whereisit")}"
-    } else {
-        modCompileOnly "maven.modrinth:chest-tracker:${project.property("chesttracker")}"
-        modCompileOnly "maven.modrinth:where-is-it:${project.property("whereisit")}"
     }
 
     if (mcVersion >= 12001) {
@@ -275,7 +272,7 @@ dependencies {
 
     } else {
         modImplementation "curse.maven:quick-shulker-362669:${project.property("quick_shulker")}"
-        //modImplementation "net.kyrptonaught:kyrptconfig:${project.property("kyrptconfig")}"
+        modImplementation "net.kyrptonaught:kyrptconfig:${project.property("kyrptconfig")}"
     }
 
     //使用通用版本..大概

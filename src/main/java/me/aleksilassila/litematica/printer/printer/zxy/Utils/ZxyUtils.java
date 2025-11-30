@@ -38,9 +38,9 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-//#if MC >= 12001
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-//#else
+//#if MC >= 12001 && MC <= 12104
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+//#elseif MC < 12001
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //#endif
 
@@ -70,8 +70,8 @@ public class ZxyUtils {
         getReadyColor();
         if (LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() && !printerMemoryAdding) {
             printerMemoryAdding = true;
-            //#if MC >= 12001
-            if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
+            //#if MC >= 12001 && MC <= 12104
+            //$$ if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
             //#endif
 
             for (String string : LitematicaPrinterMod.INVENTORY_LIST.getStrings()) {

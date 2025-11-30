@@ -19,8 +19,8 @@ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPa
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 
-//#if MC >= 12001
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+//#if MC >= 12001 && MC <= 12104
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#endif
 
 import java.util.List;
@@ -470,10 +470,10 @@ public class LitematicaPrinterMod implements ModInitializer, ClientModInitialize
         OpenInventoryPacket.registerReceivePacket();
         OpenInventoryPacket.registerClientReceivePacket();
 
-        //#if MC >= 12001
-        if (loadChestTracker) {
-            MemoryUtils.setup();
-        }
+        //#if MC >= 12001 && MC <= 12104
+        //$$ if (loadChestTracker) {
+        //$$     MemoryUtils.setup();
+        //$$ }
         //#endif
 
         TOGGLE_PRINTING_MODE.getKeybind().setCallback(
