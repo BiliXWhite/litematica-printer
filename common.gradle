@@ -255,7 +255,8 @@ dependencies {
     }
 
     // 模组菜单
-    modImplementation "maven.modrinth:modmenu:${project.property("modmenu")}"
+    modImplementation "com.terraformersmc:modmenu:${project.property("modmenu")}"
+
     if (mcVersion < 12001) {
         modImplementation "io.github.cottonmc:LibGui:${project.property("LibGui")}"
     }
@@ -302,11 +303,11 @@ loom {
                 "--username",
                 "PrinterTest"
         ])
-        runDir("run/client")
+        runDir("../../run/client")
     }
 
     runConfigs.named("server") {
-        runDir("run/server")
+        runDir("../../run/server")
     }
 }
 
