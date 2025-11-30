@@ -261,8 +261,8 @@ dependencies {
     }
 
     //快捷潜影盒
-    if (mcVersion > 12006) {
-        def selectedUrl = "https://github.com/MoRanpcy/quickshulker/releases/download/${project.property("quickshulker")}/quickshulker-${project.property("quickshulker")}.jar"
+    if (mcVersion >= 12006) {
+        def selectedUrl = project.property("quickshulker")
         if (selectedUrl != null) {
             def quickshulkerFile = downloadExternalMod(selectedUrl);
             if (quickshulkerFile.exists()) {
@@ -272,6 +272,9 @@ dependencies {
 
     } else {
         modImplementation "curse.maven:quick-shulker-362669:${project.property("quick_shulker")}"
+    }
+    if (mcVersion <= 12006) {
+        // 快捷潜影盒依赖
         modImplementation "net.kyrptonaught:kyrptconfig:${project.property("kyrptconfig")}"
     }
 
