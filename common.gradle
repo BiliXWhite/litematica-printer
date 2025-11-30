@@ -22,19 +22,63 @@ preprocess {
 
 
 repositories {
-    // 海外源
-    maven { url = "https://masa.dy.fi/maven" }
-    maven { url = "https://www.cursemaven.com" }
-    maven { url = "https://maven.fabricmc.net" }
-    maven { url = "https://maven.kyrptonaught.dev" }
-    maven { url = "https://maven.terraformersmc.com/releases" }
-    maven { url = "https://maven.shedaniel.me/" }
-    maven { url = "https://api.modrinth.com/maven" }
-
-    // 特定用途仓库
+    maven {
+        name = "Masa"
+        url = "https://masa.dy.fi/maven"
+        content {
+            includeGroupAndSubgroups("fi.dy.masa")
+        }
+    }
+    maven {
+        name = "CurseMaven"
+        url = "https://www.cursemaven.com"
+        content {
+            includeGroupAndSubgroups("curse.maven")
+        }
+    }
+    maven {
+        name = "FabricMC"
+        url = "https://maven.fabricmc.net"
+        content {
+            includeGroupAndSubgroups("net.fabricmc")
+        }
+    }
+    maven {
+        // 快捷潜影盒
+        name = "Kryptonaught Maven"
+        url = "https://maven.kyrptonaught.dev"
+        content {
+            includeGroupAndSubgroups("dev.kryptonaught")
+        }
+    }
+    maven {
+        // ModMenu
+        name = "TerraformersMC"
+        url = "https://maven.terraformersmc.com/releases"
+        content {
+            includeGroupAndSubgroups("com.terraformersmc")
+        }
+    }
+    maven {
+        name = "Shedaniel Maven"
+        url = "https://maven.shedaniel.me/"
+        content {
+            includeGroupAndSubgroups("me.shedaniel.cloth")
+        }
+    }
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+        content {
+            includeGroupAndSubgroups("maven.modrinth")
+        }
+    }
     maven {
         name = "CottonMC"
         url = "https://server.bbkr.space/artifactory/libs-release"
+        content {
+            includeGroupAndSubgroups("io.github.cottonmc")
+        }
     }
     maven {
         name = "jackfredReleases"
@@ -51,22 +95,21 @@ repositories {
         }
     }
     maven {
+        // 拼音搜索
+        name = "Pinyin4j"
+        url = "https://mvnrepository.com/artifact/com.belerweb/pinyin4j"
+        content {
+            includeGroupAndSubgroups("com.belerweb")
+        }
+    }
+    maven {
+        // YACL
         name = "QuiltMC"
         url = uri("https://maven.quiltmc.org/repository/release")
         content {
             includeGroupAndSubgroups("org.quiltmc")
         }
     }
-
-    // 拼音搜索
-    maven {
-        url = "https://mvnrepository.com/artifact/com.belerweb/pinyin4j"
-        content {
-            includeGroupAndSubgroups("com.belerweb")
-        }
-    }
-
-    // YACL
     maven {
         name = "Xander Maven"
         url = uri("https://maven.isxander.dev/releases")
@@ -83,8 +126,13 @@ repositories {
             includeGroupAndSubgroups("org.quiltmc")
         }
     }
-
-    maven { url = 'https://jitpack.io' }
+    maven {
+        name = "Jitpack"
+        url = "https://jitpack.io"
+        content {
+            includeGroupAndSubgroups("com.github")
+        }
+    }
 }
 
 configurations {
@@ -171,7 +219,6 @@ dependencies {
 
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    modImplementation "maven.modrinth:modmenu:${project.property("modmenu")}"
 
     // masa相关引用
     def sakura = mcVersion > 12006
@@ -188,24 +235,17 @@ dependencies {
         modImplementation "$yacl:${project.property("yacl")}"
     }
 
-    //TODO 箱子追踪未更新21.5
+    // 箱子追踪
     if (mcVersion < 12105) {
         modImplementation "maven.modrinth:chest-tracker:${project.property("chesttracker")}"
-    } else {
-        modCompileOnly "maven.modrinth:chest-tracker:${project.property("chesttracker")}"
-    }
-
-    if (mcVersion < 12105) {
         modImplementation "maven.modrinth:where-is-it:${project.property("whereisit")}"
     } else {
+        modCompileOnly "maven.modrinth:chest-tracker:${project.property("chesttracker")}"
         modCompileOnly "maven.modrinth:where-is-it:${project.property("whereisit")}"
     }
 
     if (mcVersion >= 12001) {
         modImplementation "red.jackf.jackfredlib:jackfredlib:${project.property("jackfredlib")}"
-    }
-
-    if (mcVersion >= 12001) {
         modImplementation "com.blamejared.searchables:${project.property("searchables")}"
     }
 
@@ -217,25 +257,15 @@ dependencies {
         modImplementation "me.shedaniel.cloth.api:cloth-api:${project.property("cloth_api")}"
     }
 
+    // 模组菜单
+    modImplementation "maven.modrinth:modmenu:${project.property("modmenu")}"
     if (mcVersion < 12001) {
         modImplementation "io.github.cottonmc:LibGui:${project.property("LibGui")}"
     }
 
-    if (mcVersion > 12004) {
-        def quickshulkerMap = [
-                12006: "https://github.com/Haocen2004/quickshulker/releases/download/1.20.6-1.4.3/quickshulker-1.4.3-1.20.6.jar",
-                12101: "https://github.com/MoRanpcy/quickshulker/releases/download/2.0.3-1.21.1/quickshulker-2.0.3-1.21.1.jar",
-                12102: "https://github.com/MoRanpcy/quickshulker/releases/download/2.1.3-1.21.2/quickshulker-2.1.3-1.21.2.jar",
-                12103: "https://github.com/MoRanpcy/quickshulker/releases/download/2.2.3-1.21.3/quickshulker-2.2.3-1.21.3.jar",
-                12104: "https://github.com/MoRanpcy/quickshulker/releases/download/2.3.3-1.21.4/quickshulker-2.3.3-1.21.4.jar",
-                12105: "https://github.com/MoRanpcy/quickshulker/releases/download/2.4.3-1.21.5/quickshulker-2.4.3-1.21.5.jar",
-                12106: "https://github.com/MoRanpcy/quickshulker/releases/download/2.5.2-1.21.6/quickshulker-2.5.2-1.21.6.jar",
-                12107: "https://github.com/MoRanpcy/quickshulker/releases/download/2.6.2-1.21.7/quickshulker-2.6.2-1.21.7.jar",
-                12108: "https://github.com/MoRanpcy/quickshulker/releases/download/2.7.2-1.21.8/quickshulker-2.7.2-1.21.8.jar",
-                12109: "https://github.com/MoRanpcy/quickshulker/releases/download/2.8.2-1.21.9/quickshulker-2.8.2-1.21.9.jar",
-                12110: "https://github.com/MoRanpcy/quickshulker/releases/download/2.9.1-1.21.10/quickshulker-2.9.1-1.21.10.jar",
-        ]
-        def selectedUrl = quickshulkerMap[mcVersion]
+    //快捷潜影盒
+    if (mcVersion > 12006) {
+        def selectedUrl = "https://github.com/MoRanpcy/quickshulker/releases/download/${project.property("quickshulker")}/quickshulker-${project.property("quickshulker")}.jar"
         if (selectedUrl != null) {
             def quickshulkerFile = downloadExternalMod(selectedUrl);
             if (quickshulkerFile.exists()) {
@@ -245,6 +275,7 @@ dependencies {
 
     } else {
         modImplementation "curse.maven:quick-shulker-362669:${project.property("quick_shulker")}"
+        //modImplementation "net.kyrptonaught:kyrptconfig:${project.property("kyrptconfig")}"
     }
 
     //使用通用版本..大概
