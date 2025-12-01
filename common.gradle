@@ -109,14 +109,7 @@ repositories {
             includeGroupAndSubgroups("com.belerweb")
         }
     }
-    maven {
-        // YACL
-        name = "QuiltMC"
-        url = uri("https://maven.quiltmc.org/repository/release")
-        content {
-            includeGroupAndSubgroups("org.quiltmc")
-        }
-    }
+    // YACL
     maven {
         name = "Xander Maven"
         url = uri("https://maven.isxander.dev/releases")
@@ -125,11 +118,12 @@ repositories {
             includeGroupAndSubgroups("org.quiltmc")
         }
     }
+    // YACL快照
     maven {
         name = "Xander Snapshot Maven"
         url = uri("https://maven.isxander.dev/snapshots")
         content {
-            includeGroupAndSubgroups("dev.isxander")
+            includeGroup("dev.isxander")
             includeGroupAndSubgroups("org.quiltmc")
         }
     }
@@ -217,76 +211,63 @@ def downloadExternalMod = { String urlStr, String customFilename = null ->
 }
 
 dependencies {
-    //拼音
-    implementation include("com.belerweb:pinyin4j:${project.pinyin_version}")
-
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     //mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     mappings(loom.officialMojangMappings())
-
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    implementation include("com.belerweb:pinyin4j:${project.pinyin_version}")           // 拼音
+    modImplementation "com.terraformersmc:modmenu:${project.property("modmenu")}"       // 模组菜单
 
     // masa相关引用
-    def sakura = mcVersion > 12006
-    def malilib = sakura ? "com.github.sakura-ryoko:malilib" : "fi.dy.masa.malilib";
-    def tweakeroo = sakura ? "com.github.sakura-ryoko:tweakeroo" : "curse.maven:tweakeroo-297344"
-    def litematica = sakura ? "com.github.sakura-ryoko:litematica" : "curse.maven:litematica-308892"
-    modImplementation "$malilib:${project.property("malilib")}"
-    modImplementation "$tweakeroo:${project.property("tweakeroo")}"
-    modImplementation "$litematica:${project.property("litematica")}"
-
-
-    if (mcVersion >= 12001) {
-        def yacl = mcVersion == 12002 ? "maven.modrinth:yacl" : "dev.isxander:yet-another-config-lib"
-        modImplementation "$yacl:${project.property("yacl")}"
+    if (mcVersion > 12006) {
+        modImplementation "com.github.sakura-ryoko:malilib:${project.property("malilib")}"
+        modImplementation "com.github.sakura-ryoko:litematica:${project.property("litematica")}"
+        modImplementation "com.github.sakura-ryoko:tweakeroo:${project.property("tweakeroo")}"
+    } else {
+        // 冲突根源：tweakeroo 和 litematica 这两个mod都对同一个类 ServerPlayNetworkHandler 中的同一个方法使用了 @Redirect 注入。
+        // 优先级问题：litematica 的Mixin优先级是1010，tweakeroo 的优先级是1005。由于litematica优先级更高，它的注入先被应用，导致tweakeroo的注入找不到目标方法而失败。
+        // 这应该就是点进设置崩溃的原因吧
+        modImplementation "fi.dy.masa.malilib:${project.property("malilib")}"
+        modImplementation "curse.maven:litematica-308892:${project.property("litematica")}"
+        modImplementation "curse.maven:tweakeroo-297344:${project.property("tweakeroo")}"
     }
 
-    // 箱子追踪
     if (mcVersion < 12105) {
+        // 箱子追踪
         modImplementation "maven.modrinth:chest-tracker:${project.property("chesttracker")}"
         modImplementation "maven.modrinth:where-is-it:${project.property("whereisit")}"
     }
 
-    if (mcVersion >= 12001) {
-        modImplementation "red.jackf.jackfredlib:jackfredlib:${project.property("jackfredlib")}"
-        modImplementation "com.blamejared.searchables:${project.property("searchables")}"
-    }
-
-    if (mcVersion < 12001) {
-        modImplementation "maven.modrinth:cloth-config:${project.property("cloth_config")}"
-    }
-
-    if (mcVersion < 11904) {
-        modImplementation "me.shedaniel.cloth.api:cloth-api:${project.property("cloth_api")}"
-    }
-
-    // 模组菜单
-    modImplementation "com.terraformersmc:modmenu:${project.property("modmenu")}"
-
-    if (mcVersion < 12001) {
-        modImplementation "io.github.cottonmc:LibGui:${project.property("LibGui")}"
-    }
-
-    //快捷潜影盒
     if (mcVersion >= 12006) {
-        def selectedUrl = project.property("quickshulker")
+        //快捷潜影盒
+        def selectedUrl = project.property("quickshulker").toString()
         if (selectedUrl != null) {
             def quickshulkerFile = downloadExternalMod(selectedUrl);
             if (quickshulkerFile.exists()) {
                 modImplementation files(quickshulkerFile)
             }
         }
-
     } else {
+        //快捷潜影盒
+        modImplementation "net.kyrptonaught:kyrptconfig:${project.property("kyrptconfig")}" // 快捷潜影盒依赖
         modImplementation "curse.maven:quick-shulker-362669:${project.property("quick_shulker")}"
     }
-    if (mcVersion <= 12006) {
-        // 快捷潜影盒依赖
-        modImplementation "net.kyrptonaught:kyrptconfig:${project.property("kyrptconfig")}"
+
+    if (mcVersion >= 12001) {
+        modImplementation "dev.isxander:yet-another-config-lib:${project.property("yacl")}"
+        modImplementation "red.jackf.jackfredlib:jackfredlib:${project.property("jackfredlib")}"
+        modImplementation "com.blamejared.searchables:${project.property("searchables")}"
+    } else {
+        modImplementation "maven.modrinth:cloth-config:${project.property("cloth_config")}"
+        modImplementation "io.github.cottonmc:LibGui:${project.property("LibGui")}"
     }
 
-    //使用通用版本..大概
+    if (mcVersion < 11904) {
+        modImplementation "me.shedaniel.cloth.api:cloth-api:${project.property("cloth_api")}"
+    }
+
+    //这是Fabric平台的运行时包装器，仅运行时需要
     runtimeOnly(project(path: ":fabricWrapper"))
 }
 def time = new Date().format("yyMMdd", TimeZone.getTimeZone("GMT+08:00"))
@@ -294,14 +275,18 @@ version(project.mod_version + "+" + time)
 group = project.mod_maven_group
 
 base {
-    // 这是文件初始名字，但是我也不知道为什么会无缘无故加上时间
     archivesName.set("$project.mod_archives_base_name-$project.minecraft_version")
 }
 
 loom {
-    def commonVmArgs = ['-Dmixin.debug.export=true']
+    def commonVmArgs = [
+            "-Dmixin.debug.export=true",
+            "-Dmixin.debug.countInjections=true",
+            "-DmixinAuditor.audit=true"
+    ]
     runConfigs.named("client") {
         ideConfigGenerated = true
+        vmArgs commonVmArgs
         programArgs([
                 "--width",
                 "1280",
