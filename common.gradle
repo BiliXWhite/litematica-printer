@@ -60,6 +60,13 @@ repositories {
         }
     }
     maven {
+        name "Nucleoid"
+        url "https://maven.nucleoid.xyz/"
+        content {
+            includeGroupAndSubgroups("eu.pb4")
+        }
+    }
+    maven {
         name = "Shedaniel Maven"
         url = "https://maven.shedaniel.me/"
         content {
