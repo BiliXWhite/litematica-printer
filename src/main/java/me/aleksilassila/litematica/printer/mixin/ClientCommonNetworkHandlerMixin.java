@@ -35,9 +35,9 @@ public class ClientCommonNetworkHandlerMixin {
      * @reason Fix look direction when printing while moving the camera
      */
     //#if MC < 12004
-    //$$ @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;send(Lnet/minecraft/network/packet/Packet;)V"),method = "sendPacket(Lnet/minecraft/network/packet/Packet;)V")
+    //$$ @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Connection;send(Lnet/minecraft/network/protocol/Packet;)V"),method = "send(Lnet/minecraft/network/protocol/Packet;)V")
     //#else
-    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Connection;send(Lnet/minecraft/network/protocol/Packet;)V"),method = "send")
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Connection;send(Lnet/minecraft/network/protocol/Packet;)V"), method = "send")
     //#endif
     public void sendPacket(Connection instance, Packet<?> packet, Operation<Void> original) {
         Direction directionYaw = Printer.getPrinter().queue.lookDirYaw;
