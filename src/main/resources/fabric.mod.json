@@ -42,7 +42,7 @@
   },
   "custom": {
     "modmenu": {
-      "parent": "${mod_id}-wrapper"
+      "parent": "${mod_wrapper_id}"
     }
   }
 }

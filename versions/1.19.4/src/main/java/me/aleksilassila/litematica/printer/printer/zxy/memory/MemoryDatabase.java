@@ -71,7 +71,7 @@ public class MemoryDatabase {
         String var10000;
         if (cpnh != null && cpnh.getConnection().isConnected()) {
             if (mc.getSingleplayerServer() != null) {
-                id = "singleplayer-" + MemoryUtils.getSingleplayerName(((AccessorMinecraftServer)mc.getSingleplayerServer()).getSession());
+                id = "singleplayer-" + MemoryUtils.getSingleplayerName(((AccessorMinecraftServer) mc.getSingleplayerServer()).getSession());
             } else if (mc.isConnectedToRealms()) {
                 RealmsServer server = MemoryUtils.getLastRealmsServer();
                 if (server == null) {
@@ -120,39 +120,32 @@ public class MemoryDatabase {
 
     public void load() {
         Path loadPath = this.getFilePath();
-
         try {
             if (Files.exists(loadPath)) {
                 FileReader reader = new FileReader(loadPath.toString(), StandardCharsets.UTF_8);
                 Map<ResourceLocation, Map<BlockPos, Memory>> raw = GsonHandler.get().fromJson(new JsonReader(reader), (new TypeToken<Map<ResourceLocation, Map<BlockPos, Memory>>>() {
                 }).getType());
                 if (raw == null) {
-                    this.locations = new ConcurrentHashMap();
-                    this.namedLocations = new ConcurrentHashMap();
+                    this.locations = new ConcurrentHashMap<>();
+                    this.namedLocations = new ConcurrentHashMap<>();
                 } else {
-                    this.locations = new ConcurrentHashMap();
-                    Iterator var4 = raw.entrySet().iterator();
-
-                    while(var4.hasNext()) {
-                        Map.Entry<ResourceLocation, Map<BlockPos, Memory>> entry = (Map.Entry)var4.next();
-                        this.locations.put((ResourceLocation)entry.getKey(), new ConcurrentHashMap((Map)entry.getValue()));
+                    this.locations = new ConcurrentHashMap<>();
+                    for (Map.Entry<ResourceLocation, Map<BlockPos, Memory>> entry : raw.entrySet()) {
+                        this.locations.put(entry.getKey(), new ConcurrentHashMap<>(entry.getValue()));
                     }
-
                     this.generateNamedLocations();
                 }
             } else {
-                this.locations = new ConcurrentHashMap();
-                this.namedLocations = new ConcurrentHashMap();
+                this.locations = new ConcurrentHashMap<>();
+                this.namedLocations = new ConcurrentHashMap<>();
             }
-        } catch (Exception var6) {
-
+        } catch (Exception ignored) {
         }
-
     }
 
     private void generateNamedLocations() {
-        ConcurrentMap<ResourceLocation, ConcurrentMap<BlockPos, Memory>> namedLocations = new ConcurrentHashMap();
-        Iterator var2 = this.locations.keySet().iterator();
+        ConcurrentMap<ResourceLocation, ConcurrentMap<BlockPos, Memory>> namedLocations = new ConcurrentHashMap<>();
+        Iterator<ResourceLocation> var2 = this.locations.keySet().iterator();
         this.namedLocations = namedLocations;
     }
 
@@ -161,20 +154,20 @@ public class MemoryDatabase {
     }
 
     public boolean positionExists(ResourceLocation worldId, BlockPos pos) {
-        return this.locations.containsKey(worldId) && ((ConcurrentMap)this.locations.get(worldId)).containsKey(pos);
+        return this.locations.containsKey(worldId) && (this.locations.get(worldId)).containsKey(pos);
     }
 
     public List<ItemStack> getItems(ResourceLocation worldId) {
         if (this.locations.containsKey(worldId)) {
-            Map<LightweightStack, Integer> count = new HashMap();
-            Map<BlockPos, Memory> location = (Map)this.locations.get(worldId);
+            Map<LightweightStack, Integer> count = new HashMap<>();
+            Map<BlockPos, Memory> location = this.locations.get(worldId);
             location.forEach((pos, memory) -> {
                 memory.getItems().forEach((stack) -> {
                     LightweightStack lightweightStack = new LightweightStack(stack.getItem(), stack.getTag());
                     count.merge(lightweightStack, stack.getCount(), Integer::sum);
                 });
             });
-            List<ItemStack> results = new ArrayList();
+            List<ItemStack> results = new ArrayList<>();
             count.forEach((lightweightStack, integer) -> {
                 ItemStack stack = new ItemStack(lightweightStack.item(), integer);
                 stack.setTag(lightweightStack.tag());
@@ -187,11 +180,11 @@ public class MemoryDatabase {
     }
 
     public Collection<Memory> getAllMemories(ResourceLocation worldId) {
-        return (Collection)(this.locations.containsKey(worldId) ? ((ConcurrentMap)this.locations.get(worldId)).values() : Collections.emptyList());
+        return (this.locations.containsKey(worldId) ? (this.locations.get(worldId)).values() : Collections.emptyList());
     }
 
     public Collection<Memory> getNamedMemories(ResourceLocation worldId) {
-        return (Collection)(this.namedLocations.containsKey(worldId) ? ((ConcurrentMap)this.namedLocations.get(worldId)).values() : Collections.emptyList());
+        return (this.namedLocations.containsKey(worldId) ? (this.namedLocations.get(worldId)).values() : Collections.emptyList());
     }
 
     public void mergeItems(ResourceLocation worldId, Memory memory, Collection<BlockPos> toRemove) {
@@ -199,34 +192,29 @@ public class MemoryDatabase {
             if (!this.locations.containsKey(worldId)) {
                 return;
             }
-
             boolean exists = false;
-            Iterator var5 = ((ConcurrentMap)this.locations.get(worldId)).values().iterator();
-
-            while(var5.hasNext()) {
-                Memory existingMemory = (Memory)var5.next();
+            for (Memory existingMemory : (this.locations.get(worldId)).values()) {
                 if (Objects.equals(existingMemory.getPosition(), memory.getPosition())) {
                     exists = true;
                     break;
                 }
             }
-
             if (!exists) {
                 return;
             }
         }
 
         MemoryUtils.setForceNextMerge(false);
-        ConcurrentMap map;
+        ConcurrentMap<BlockPos, Memory> map;
         if (this.locations.containsKey(worldId)) {
-            map = (ConcurrentMap)this.locations.get(worldId);
+            map = this.locations.get(worldId);
             map.remove(memory.getPosition());
             Objects.requireNonNull(map);
             toRemove.forEach(map::remove);
         }
 
         if (this.namedLocations.containsKey(worldId)) {
-            map = (ConcurrentMap)this.namedLocations.get(worldId);
+            map = this.namedLocations.get(worldId);
             map.remove(memory.getPosition());
             Objects.requireNonNull(map);
             toRemove.forEach(map::remove);
@@ -236,7 +224,7 @@ public class MemoryDatabase {
     }
 
     public void mergeItems(ResourceLocation worldId, Memory memory) {
-        if (memory.getItems().size() > 0 || memory.getTitle() != null /*|| !ChestTracker.CONFIG.miscOptions.rememberNewChests*/) {
+        if (!memory.getItems().isEmpty() || memory.getTitle() != null /*|| !ChestTracker.CONFIG.miscOptions.rememberNewChests*/) {
             this.addItem(worldId, memory, this.locations);
             if (memory.getTitle() != null) {
                 this.addItem(worldId, memory, this.namedLocations);
@@ -246,19 +234,17 @@ public class MemoryDatabase {
     }
 
     private void addItem(ResourceLocation worldId, Memory memory, ConcurrentMap<ResourceLocation, ConcurrentMap<BlockPos, Memory>> map) {
-        ConcurrentMap<BlockPos, Memory> memoryMap = (ConcurrentMap)map.computeIfAbsent(worldId, (identifier) -> {
-            return new ConcurrentHashMap();
-        });
+        ConcurrentMap<BlockPos, Memory> memoryMap = map.computeIfAbsent(worldId, (identifier) -> new ConcurrentHashMap<>());
         memoryMap.put(memory.getPosition(), memory);
     }
 
     public void removePos(ResourceLocation worldId, BlockPos pos) {
-        Map<BlockPos, Memory> location = (Map)this.locations.get(worldId);
+        Map<BlockPos, Memory> location = this.locations.get(worldId);
         if (location != null) {
             location.remove(pos);
         }
 
-        Map<BlockPos, Memory> namedLocation = (Map)this.namedLocations.get(worldId);
+        Map<BlockPos, Memory> namedLocation = this.namedLocations.get(worldId);
         if (namedLocation != null) {
             namedLocation.remove(pos);
         }
@@ -266,31 +252,28 @@ public class MemoryDatabase {
     }
 
     public List<Memory> findItems(ItemStack toFind, ResourceLocation worldId) {
-        List<Memory> found = new ArrayList();
-        Map<BlockPos, Memory> location = (Map)this.locations.get(worldId);
+        List<Memory> found = new ArrayList<>();
+        Map<BlockPos, Memory> location = this.locations.get(worldId);
         LocalPlayer playerEntity = Minecraft.getInstance().player;
         if (location != null && playerEntity != null) {
-            Iterator var6 = location.entrySet().iterator();
+            Iterator<Map.Entry<BlockPos, Memory>> var6 = location.entrySet().iterator();
 
-            while(true) {
-                Map.Entry entry;
+            while (true) {
+                Map.Entry<BlockPos, Memory> entry;
                 do {
-                    while(true) {
+                    while (true) {
                         do {
                             do {
                                 if (!var6.hasNext()) {
                                     return found;
                                 }
-
-                                entry = (Map.Entry)var6.next();
-                            } while(entry.getKey() == null);
-                        } while(!((Memory)entry.getValue()).getItems().stream().anyMatch((candidate) -> {
-                            return MemoryUtils.areStacksEquivalent(toFind, candidate, toFind.getTag() == null || toFind.getTag().equals(FULL_DURABILITY_TAG));
-                        }));
+                                entry = var6.next();
+                            } while (entry.getKey() == null);
+                        } while ((entry.getValue()).getItems().stream().noneMatch((candidate) -> MemoryUtils.areStacksEquivalent(toFind, candidate, toFind.getTag() == null || toFind.getTag().equals(FULL_DURABILITY_TAG))));
                         break;
                     }
-                } while(((Memory)entry.getValue()).getPosition() == null);
-                found.add((Memory)entry.getValue());
+                } while ((entry.getValue()).getPosition() == null);
+                found.add(entry.getValue());
             }
         } else {
             return found;

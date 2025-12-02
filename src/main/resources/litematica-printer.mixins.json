@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "me.aleksilassila.litematica.printer.mixin",
-  "compatibilityLevel": "{{COMPATIBILITY_LEVEL}}",
+  "compatibilityLevel": "${compatibility_level}",
   "mixins": [
     "bilixwhite.accessors.EasyPlaceUtilsAccessor",
     "bilixwhite.others.MixinClientConnection",
