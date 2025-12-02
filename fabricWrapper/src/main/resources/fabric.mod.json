@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "${mod_id}-wrapper",
+  "id": "${mod_wrapper_id}",
   "version": "${mod_version}",
-  "icon": "assets/${mod_id}/icon.png",
+  "icon": "assets/${mod_wrapper_id}/icon.png",
   "name": "${mod_name}",
   "description": "${mod_description}",
   "authors": [
