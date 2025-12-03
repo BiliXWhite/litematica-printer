@@ -1,5 +1,13 @@
 @file:Suppress("UnstableApiUsage")
 
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.tree.ClassNode
+import org.objectweb.asm.tree.LdcInsnNode
+import java.io.FileOutputStream
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URI
@@ -102,6 +110,11 @@ fun downloadExternalMod(downloadUrl: String, fileName: String? = null): File? {
 
 // ========================== 依赖配置 ==========================
 dependencies {
+    // 编译时依赖（仅构建脚本使用，不打入模组 jar）
+    implementation("com.google.guava:guava:32.1.3-jre")
+    implementation("org.ow2.asm:asm:9.5")
+    implementation("org.ow2.asm:asm-tree:9.5")
+
     // 核心依赖
     minecraft("com.mojang:minecraft:$minecraftVersion")
     mappings(loom.officialMojangMappings())
@@ -170,19 +183,19 @@ dependencies {
 loom {
     val commonVmArgs = listOf(
         "-Dmixin.debug.export=true",
-        "-Dmixin.debug.countInjections=true",
-        "-DmixinAuditor.audit=true"
+//        "-Dmixin.debug.countInjections=true",
+//        "-DmixinAuditor.audit=true"
     )
-
+    val programArgs = listOf(
+        "--width", "1280",
+        "--height", "720",
+        "--username", "PrinterTest"
+    )
     runs {
         named("client") {
             ideConfigGenerated(true)
             vmArgs(commonVmArgs)
-            programArgs(
-                "--width", "1280",
-                "--height", "720",
-                "--username", "PrinterTest"
-            )
+            programArgs(programArgs)
             runDir = "../../run/client"
         }
 
