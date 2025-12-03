@@ -9,10 +9,8 @@ import fi.dy.masa.malilib.util.InventoryUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
-import me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor;
+import me.aleksilassila.litematica.printer.mixin.masa.litematica.util.InventoryUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.State;
-import static me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor.getEmptyPickBlockableHotbarSlot;
-import static me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor.getPickBlockTargetSlot;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -212,12 +210,12 @@ public class PlaceUtils {
 
             // 尝试寻找一个空的可拾取方块的热键栏槽位
             if (sourceSlot == -1 || !Inventory.isHotbarSlot(sourceSlot)) {
-                hotbarSlot = getEmptyPickBlockableHotbarSlot(inventory);
+                hotbarSlot = InventoryUtilsAccessor.getEmptyPickBlockableHotbarSlot(inventory);
             }
 
             // 如果没有空槽位，则寻找一个可拾取方块的热键栏槽位
             if (hotbarSlot == -1) {
-                hotbarSlot = getPickBlockTargetSlot(player);
+                hotbarSlot = InventoryUtilsAccessor.getPickBlockTargetSlot(player);
             }
 
             if (hotbarSlot != -1) {
