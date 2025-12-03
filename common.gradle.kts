@@ -1,322 +1,172 @@
 @file:Suppress("UnstableApiUsage")
 
 import java.io.IOException
+import java.net.HttpURLConnection
 import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.text.SimpleDateFormat
 import java.util.*
 
 plugins {
-    id("java")
     id("maven-publish")
     id("fabric-loom")
     id("com.replaymod.preprocess")
     id("me.fallenbreath.yamlang")
 }
 
-val mcVersion = project.property("mcVersion") as Int
-val modId = project.property("mod_id") as String
-val modWrapperId = project.property("mod_wrapper_id") as String
-val modName = project.property("mod_name") as String
-val modMavenGroup = project.property("mod_maven_group") as String
-val modVersion = project.property("mod_version") as String
-val modArchivesBaseName = project.property("mod_archives_base_name") as String
-val modDescription = project.property("mod_description") as String
-val modHomepage = project.property("mod_homepage") as String
-val modLicense = project.property("mod_license") as String
-val modSources = project.property("mod_sources") as String
-val loaderVersion = project.property("loader_version") as String
+// ========================== 基础属性配置 ==========================
+val props = project.properties
+val mcVersion = props["mcVersion"] as Int
+val modId = props["mod_id"] as String
+val modWrapperId = props["mod_wrapper_id"] as String
+val modName = props["mod_name"] as String
+val modMavenGroup = props["mod_maven_group"] as String
+val modVersion = props["mod_version"] as String
+val modArchivesBaseName = props["mod_archives_base_name"] as String
+val modDescription = props["mod_description"] as String
+val modHomepage = props["mod_homepage"] as String
+val modLicense = props["mod_license"] as String
+val modSources = props["mod_sources"] as String
+val loaderVersion = props["loader_version"] as String
 
-val minecraftDependency = project.property("minecraft_dependency") as String
-val minecraftVersion = project.property("minecraft_version") as String
-val fabricApiVersion = project.property("fabric_version") as String
+val minecraftDependency = props["minecraft_dependency"] as String
+val minecraftVersion = props["minecraft_version"] as String
+val fabricApiVersion = props["fabric_version"] as String
 
-// 根据 Minecraft 版本确定所需的 Java 兼容性版本
+// Java 兼容性配置
 val javaCompatibility = when {
     mcVersion >= 12005 -> JavaVersion.VERSION_21    // 1.20.5+      需要 Java 21
     mcVersion >= 11800 -> JavaVersion.VERSION_17    // 1.18-1.20.4  需要 Java 17
     mcVersion >= 11700 -> JavaVersion.VERSION_16    // 1.17.x       需要 Java 16
     else -> JavaVersion.VERSION_1_8                 // 1.16.x 及以下使用 Java 8
 }
-val mixinCompatibilityLevel = javaCompatibility // Mixin 兼容性级别与 Java 兼容性版本保持一致
+val mixinCompatibilityLevel = javaCompatibility
 
-val time = SimpleDateFormat("yyMMdd").apply {
+// 版本号（添加构建时间戳）
+val buildTimestamp = SimpleDateFormat("yyMMdd").apply {
     timeZone = TimeZone.getTimeZone("GMT+08:00")
 }.format(Date())
 
-version = "$modVersion+$time"
+version = "$modVersion+$buildTimestamp"
 group = modMavenGroup
 
-repositories {
+// ========================== 仓库配置 ==========================
+fun RepositoryHandler.addMavenRepo(name: String, url: String, vararg groups: String) {
     maven {
-        name = "Masa"
-        url = uri("https://masa.dy.fi/maven")
+        this.name = name
+        this.url = uri(url)
         content {
-            includeGroupAndSubgroups("fi.dy.masa")
-        }
-    }
-    maven {
-        name = "CurseMaven"
-        url = uri("https://www.cursemaven.com")
-        content {
-            includeGroupAndSubgroups("curse.maven")
-        }
-    }
-    maven {
-        name = "FabricMC"
-        url = uri("https://maven.fabricmc.net")
-        content {
-            includeGroupAndSubgroups("net.fabricmc")
-        }
-    }
-    maven {
-        // 快捷潜影盒1.20.6以下所需要的
-        name = "Kyrptonaught Maven"
-        url = uri("https://maven.kyrptonaught.dev")
-        content {
-            includeGroupAndSubgroups("net.kyrptonaught")
-        }
-    }
-    maven {
-        // ModMenu
-        name = "TerraformersMC"
-        url = uri("https://maven.terraformersmc.com/releases")
-        content {
-            includeGroupAndSubgroups("com.terraformersmc")
-        }
-    }
-    maven {
-        name = "Nucleoid"
-        url = uri("https://maven.nucleoid.xyz/")
-        content {
-            includeGroupAndSubgroups("eu.pb4")
-        }
-    }
-    maven {
-        name = "Shedaniel Maven"
-        url = uri("https://maven.shedaniel.me/")
-        content {
-            includeGroupAndSubgroups("me.shedaniel.cloth")
-        }
-    }
-    maven {
-        name = "Modrinth"
-        url = uri("https://api.modrinth.com/maven")
-        content {
-            includeGroupAndSubgroups("maven.modrinth")
-        }
-    }
-    maven {
-        name = "CottonMC"
-        url = uri("https://server.bbkr.space/artifactory/libs-release")
-        content {
-            includeGroupAndSubgroups("io.github.cottonmc")
-        }
-    }
-    maven {
-        name = "jackfredReleases"
-        url = uri("https://maven.jackf.red/releases")
-        content {
-            includeGroupAndSubgroups("red.jackf")
-        }
-    }
-    maven {
-        name = "BlameJared"
-        url = uri("https://maven.blamejared.com")
-        content {
-            includeGroupAndSubgroups("com.blamejared.searchables")
-        }
-    }
-    maven {
-        // 拼音搜索
-        name = "Pinyin4j"
-        url = uri("https://mvnrepository.com/artifact/com.belerweb/pinyin4j")
-        content {
-            includeGroupAndSubgroups("com.belerweb")
-        }
-    }
-    // YACL
-    maven {
-        name = "Xander Maven"
-        url = uri("https://maven.isxander.dev/releases")
-        content {
-            includeGroupAndSubgroups("dev.isxander")
-            includeGroupAndSubgroups("org.quiltmc")
-        }
-    }
-    // YACL快照
-    maven {
-        name = "Xander Snapshot Maven"
-        url = uri("https://maven.isxander.dev/snapshots")
-        content {
-            includeGroup("dev.isxander")
-            includeGroupAndSubgroups("org.quiltmc")
-        }
-    }
-    maven {
-        name = "Jitpack"
-        url = uri("https://jitpack.io")
-        content {
-            includeGroupAndSubgroups("com.github")
-        }
-    }
-}
-
-fun downloadExternalMod(urlStr: String, customFilename: String? = null): File {
-    val client = HttpClient.newBuilder()
-        .followRedirects(HttpClient.Redirect.NORMAL)
-        .build()
-    val request = HttpRequest.newBuilder()
-        .uri(URI.create(urlStr))
-        .GET()
-        .build()
-    val response = client.send(request, HttpResponse.BodyHandlers.ofInputStream())
-    if (response.statusCode() != 200) {
-        throw IOException("Failed to download: HTTP ${response.statusCode()}")
-    }
-    // 确定文件名
-    var filename: String
-    // 1. 优先使用自定义文件名
-    if (customFilename != null && customFilename.isNotEmpty()) {
-        filename = customFilename
-    } else {
-        // 2. 尝试从 Content-Disposition 头获取文件名
-        val contentDisposition = response.headers().firstValue("Content-Disposition").orElse(null)
-        if (contentDisposition != null && contentDisposition.contains("filename=")) {
-            // 提取文件名，处理带引号和不带引号的情况
-            val pattern = """filename=["']?([^"']+)["']?""".toRegex()
-            val matcher = pattern.find(contentDisposition)
-            if (matcher != null) {
-                filename = matcher.groupValues[1]
-            } else {
-                filename = getFilenameFromUrl(urlStr)
+            groups.forEach { group ->
+                if (group.contains('*')) {
+                    includeGroup(group)
+                } else {
+                    includeGroupAndSubgroups(group)
+                }
             }
-        } else {
-            // 3. 如果仍未获取到文件名，从URL路径中提取
-            filename = getFilenameFromUrl(urlStr)
         }
-    }
-
-    // 确保文件名以.jar结尾（如果不是）
-    if (!filename.endsWith(".jar")) {
-        filename += ".jar"
-    }
-
-    val libsDir = File("$rootDir/libs")
-    libsDir.mkdirs()
-    val target = File(libsDir, filename)
-
-    if (!target.exists()) {
-        println("Downloading external mod: $filename from $urlStr")
-        target.outputStream().use { out ->
-            response.body().transferTo(out)
-        }
-        println("Downloaded: ${target.name} (${target.length()} bytes)")
-    } else {
-        println("File already exists: $filename")
-    }
-
-    return target
-}
-
-// 辅助函数：从URL路径中提取文件名
-private fun getFilenameFromUrl(urlStr: String): String {
-    val path = URI.create(urlStr).path
-    val filename = path.substring(path.lastIndexOf('/') + 1)
-
-    // 如果URL中的文件名是空的或无效，使用默认文件名
-    return if (filename.isEmpty() || filename.contains("?")) {
-        val domain = URI.create(urlStr).host
-        val timestamp = System.currentTimeMillis()
-        "downloaded-from-$domain-$timestamp.jar"
-    } else {
-        filename
     }
 }
 
+repositories {
+    // 常用 Fabric 生态仓库
+    addMavenRepo("FabricMC", "https://maven.fabricmc.net", "net.fabricmc")
+    addMavenRepo("Masa", "https://masa.dy.fi/maven", "fi.dy.masa")
+    addMavenRepo("CurseMaven", "https://www.cursemaven.com", "curse.maven")
+    addMavenRepo("TerraformersMC", "https://maven.terraformersmc.com/releases", "com.terraformersmc")
+    addMavenRepo("Nucleoid", "https://maven.nucleoid.xyz/", "eu.pb4")
+    addMavenRepo("Shedaniel", "https://maven.shedaniel.me/", "me.shedaniel.cloth")
+    addMavenRepo("Modrinth", "https://api.modrinth.com/maven", "maven.modrinth")
+    addMavenRepo("CottonMC", "https://server.bbkr.space/artifactory/libs-release", "io.github.cottonmc")
+    addMavenRepo("Jackfred", "https://maven.jackf.red/releases", "red.jackf")
+    addMavenRepo("BlameJared", "https://maven.blamejared.com", "com.blamejared.searchables")
+    addMavenRepo("Pinyin4j", "https://mvnrepository.com/artifact/com.belerweb/pinyin4j", "com.belerweb")
+    addMavenRepo("Jitpack", "https://jitpack.io", "com.github")
+
+    // YACL 相关仓库
+    addMavenRepo("XanderReleases", "https://maven.isxander.dev/releases", "dev.isxander", "org.quiltmc")
+    addMavenRepo("XanderSnapshots", "https://maven.isxander.dev/snapshots", "dev.isxander", "org.quiltmc")
+
+    // 其他依赖仓库
+    addMavenRepo("Kyrptonaught", "https://maven.kyrptonaught.dev", "net.kyrptonaught")
+}
+
+// ========================== Gradle 扩展函数（方便调用） ==========================
+fun downloadExternalMod(downloadUrl: String, fileName: String? = null): File? {
+    return rootProject.downloadFile(
+        downloadUrl = downloadUrl,
+        outputDirPath = "${rootProject.projectDir}/libs",
+        fileName = fileName
+    )
+}
+
+// ========================== 依赖配置 ==========================
 dependencies {
+    // 核心依赖
     minecraft("com.mojang:minecraft:$minecraftVersion")
-    // mappings "net.fabricmc:yarn:${yarnMappings}:v2"
     mappings(loom.officialMojangMappings())
     modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
     modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
-    implementation(project.dependencies.create("com.belerweb:pinyin4j:${property("pinyin_version")}") as Any)
-    include("com.belerweb:pinyin4j:${property("pinyin_version")}")
-    modImplementation("com.terraformersmc:modmenu:${property("modmenu")}")       // 模组菜单
 
-    // masa相关引用
+    // 拼音库（内嵌）
+    val pinyinVersion = props["pinyin_version"] as String
+    implementation("com.belerweb:pinyin4j:$pinyinVersion")
+    include("com.belerweb:pinyin4j:$pinyinVersion")
+
+    // ModMenu
+    modImplementation("com.terraformersmc:modmenu:${props["modmenu"]}")
+
+    // Masa 系列模组（根据 MC 版本选择）
     if (mcVersion > 12006) {
-        modImplementation("com.github.sakura-ryoko:malilib:${property("malilib")}")
-        modImplementation("com.github.sakura-ryoko:litematica:${property("litematica")}")
-        modImplementation("com.github.sakura-ryoko:tweakeroo:${property("tweakeroo")}")
+        modImplementation("com.github.sakura-ryoko:malilib:${props["malilib"]}")
+        modImplementation("com.github.sakura-ryoko:litematica:${props["litematica"]}")
+        modImplementation("com.github.sakura-ryoko:tweakeroo:${props["tweakeroo"]}")
     } else {
-        // 冲突根源：tweakeroo 和 litematica 这两个mod都对同一个类 ServerPlayNetworkHandler 中的同一个方法使用了 @Redirect 注入。
-        // 优先级问题：litematica 的Mixin优先级是1010，tweakeroo 的优先级是1005。由于litematica优先级更高，它的注入先被应用，导致tweakeroo的注入找不到目标方法而失败。
-        // 这应该就是点进设置崩溃的原因吧
-        modImplementation("fi.dy.masa.malilib:${property("malilib")}")
-        modImplementation("curse.maven:litematica-308892:${property("litematica")}")
-        modImplementation("curse.maven:tweakeroo-297344:${property("tweakeroo")}")
+        modImplementation("fi.dy.masa.malilib:${props["malilib"]}")
+        modImplementation("curse.maven:litematica-308892:${props["litematica"]}")
+        modImplementation("curse.maven:tweakeroo-297344:${props["tweakeroo"]}")
     }
 
+    // 箱子追踪相关（1.21.5 以下）
     if (mcVersion < 12105) {
-        // 箱子追踪
-        modImplementation("maven.modrinth:chest-tracker:${property("chesttracker")}")
-        modImplementation("maven.modrinth:where-is-it:${property("whereisit")}")
+        modImplementation("maven.modrinth:chest-tracker:${props["chesttracker"]}")
+        modImplementation("maven.modrinth:where-is-it:${props["whereisit"]}")
     }
 
-    //快捷潜影盒
+    // 快捷潜影盒（根据 MC 版本选择）
     if (mcVersion >= 12006) {
-
-        val selectedUrl = property("quickshulker").toString()
-        if (selectedUrl.isNotEmpty()) {
-            val quickshulkerFile = downloadExternalMod(selectedUrl)
-            if (quickshulkerFile.exists()) {
+        val quickshulkerUrl = props["quickshulker"].toString()
+        if (quickshulkerUrl.isNotEmpty()) {
+            val quickshulkerFile = downloadExternalMod(quickshulkerUrl)
+            if (quickshulkerFile != null && quickshulkerFile.exists()) {
                 modImplementation(files(quickshulkerFile))
             }
         }
     } else {
-        modImplementation("curse.maven:quick-shulker-362669:${property("quick_shulker")}")
-        modImplementation("net.kyrptonaught:kyrptconfig:${property("kyrptconfig")}") // 快捷潜影盒依赖
+        modImplementation("curse.maven:quick-shulker-362669:${props["quick_shulker"]}")
+        modImplementation("net.kyrptonaught:kyrptconfig:${props["kyrptconfig"]}")
     }
 
+    // 配置界面库（根据 MC 版本选择）
     if (mcVersion >= 12001) {
-        modImplementation("dev.isxander:yet-another-config-lib:${property("yacl")}")
-        modImplementation("red.jackf.jackfredlib:jackfredlib:${property("jackfredlib")}")
-        modImplementation("com.blamejared.searchables:${property("searchables")}")
+        modImplementation("dev.isxander:yet-another-config-lib:${props["yacl"]}")
+        modImplementation("red.jackf.jackfredlib:jackfredlib:${props["jackfredlib"]}")
+        modImplementation("com.blamejared.searchables:${props["searchables"]}")
     } else {
-        modImplementation("maven.modrinth:cloth-config:${property("cloth_config")}")
-        modImplementation("io.github.cottonmc:LibGui:${property("LibGui")}")
+        modImplementation("maven.modrinth:cloth-config:${props["cloth_config"]}")
+        modImplementation("io.github.cottonmc:LibGui:${props["LibGui"]}")
     }
 
+    // Cloth API（1.19.4 以下）
     if (mcVersion < 11904) {
-        modImplementation("me.shedaniel.cloth.api:cloth-api:${property("cloth_api")}")
+        modImplementation("me.shedaniel.cloth.api:cloth-api:${props["cloth_api"]}")
     }
 
-    //这是Fabric平台的运行时包装器，仅运行时需要
+    // Fabric 包装器（运行时）
     runtimeOnly(project(":fabricWrapper"))
 }
 
-configurations {
-    create("productionRuntimeClient") {
-        configurations.filter {
-            it.name in listOf(
-                "minecraftLibraries",
-                "loaderLibraries",
-                "minecraftRuntimeLibraries"
-            )
-        }.forEach { superConfiguration ->
-            extendsFrom(superConfiguration)
-        }
-    }
-}
-
-
-base {
-    archivesName.set("$modArchivesBaseName-$minecraftVersion")
-}
-
+// ========================== Loom 配置 ==========================
 loom {
     val commonVmArgs = listOf(
         "-Dmixin.debug.export=true",
@@ -329,11 +179,9 @@ loom {
             ideConfigGenerated(true)
             vmArgs(commonVmArgs)
             programArgs(
-                listOf(
-                    "--width", "1280",
-                    "--height", "720",
-                    "--username", "PrinterTest"
-                )
+                "--width", "1280",
+                "--height", "720",
+                "--username", "PrinterTest"
             )
             runDir = "../../run/client"
         }
@@ -344,19 +192,18 @@ loom {
     }
 }
 
+// ========================== Java 配置 ==========================
 java {
     sourceCompatibility = javaCompatibility
     targetCompatibility = javaCompatibility
-
     withSourcesJar()
 }
 
-tasks {
-    // --- 资源处理 (Resource Processing) ---
-    // 如果 IDEA 抱怨 "Cannot resolve resource filtering of MatchingCopyAction"，并且你想知道原因
-    // 请参阅 https://youtrack.jetbrains.com/issue/IDEA-296490
+// ========================== 任务配置 ==========================
+tasks.apply {
+    // 资源处理
     withType<ProcessResources> {
-        val propertyMap = mapOf(
+        val resourceProps = mapOf(
             "mod_id" to modId,
             "mod_wrapper_id" to modWrapperId,
             "mod_name" to modName,
@@ -369,54 +216,223 @@ tasks {
             "minecraft_dependency" to minecraftDependency,
             "compatibility_level" to "JAVA_${mixinCompatibilityLevel.majorVersion}"
         )
-        inputs.properties(propertyMap)
+        inputs.properties(resourceProps)
         filesMatching(listOf("fabric.mod.json", "*.mixins.json")) {
-            expand(propertyMap)
+            expand(resourceProps)
         }
     }
 
-    // --- Java 编译配置 ---
-    // 确保编码设置为 UTF-8，无论系统默认值是什么
-    // 这修复了某些特殊字符无法正确显示的边缘情况
-    // 参阅 http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
+    // Java 编译配置
     withType<JavaCompile> {
         options.encoding = "UTF-8"
-        // 添加编译器参数以显示弃用和未检查的警告
         options.compilerArgs.addAll(listOf("-Xlint:deprecation", "-Xlint:unchecked"))
         if (javaCompatibility <= JavaVersion.VERSION_1_8) {
-            // 如果使用 Java 8 或更低版本，压制 "source/target value 8 is obsolete..." 的警告
             options.compilerArgs.add("-Xlint:-options")
         }
     }
 
+    // JAR 打包配置
     withType<Jar> {
-        // 将 LICENSE 文件添加到 JAR 包中
         from(rootProject.file("LICENSE")) {
             rename { "${it}_${modArchivesBaseName}" }
         }
     }
 }
 
-// https://github.com/Fallen-Breath/yamlang
+// ========================== Yamlang 配置 ==========================
 yamlang {
-    targetSourceSets.set(setOf(sourceSets.main.get())) // 指定要处理的源集
-    inputDir.set("assets/${modId}/lang") // 指定语言文件目录
+    targetSourceSets.set(setOf(sourceSets.main.get()))
+    inputDir.set("assets/${modId}/lang")
 }
 
-// --- Maven 发布配置 ---
+// ========================== Maven 发布配置 ==========================
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            from(components["java"]) // 从 Java 插件获取要发布的组件
-            artifactId = modId // 设置产物 ID (Artifact ID)
-            version = modVersion // 设置产物版本
+            from(components["java"])
+            artifactId = modId
+            version = modVersion
         }
     }
-    // 请参阅 https://docs.gradle.org/current/userguide/publishing_maven.html 了解如何设置发布。
     repositories {
         mavenLocal()
         maven {
             url = uri("$rootDir/publish")
         }
     }
+}
+
+// ========================== 辅助配置 ==========================
+configurations {
+    create("productionRuntimeClient") {
+        configurations.filter {
+            it.name in listOf("minecraftLibraries", "loaderLibraries", "minecraftRuntimeLibraries")
+        }.forEach { extendsFrom(it) }
+    }
+}
+
+/**
+ * 通用文件下载工具
+ * 特性：
+ * 1. 支持任意 HTTP/HTTPS 链接
+ * 2. 自定义输出目录（自动创建）
+ * 3. 可选文件名（优先级：用户指定 > 服务器响应头 > 链接提取）
+ * 4. 超时控制（连接10秒，读取30秒）
+ * 5. 文件完整性校验（非空校验）
+ * 6. 友好日志输出
+ */
+object ExternalModDownloader {
+    // 默认超时配置（毫秒）
+    private const val CONNECT_TIMEOUT = 10000
+    private const val READ_TIMEOUT = 30000
+
+    // 默认 User-Agent（避免部分服务器拒绝）
+    private val USER_AGENT = "Gradle/${GradleVersion.current().version}"
+
+    /**
+     * 下载文件
+     * @param project Gradle 项目实例（用于日志和路径处理）
+     * @param downloadUrl 下载链接（必填）
+     * @param outputDir 输出目录（必填，自动创建）
+     * @param fileName 自定义文件名（可选，为 null 时自动识别）
+     * @return 下载后的文件对象，失败返回 null
+     */
+    fun download(
+        project: Project,
+        downloadUrl: String,
+        outputDir: File,
+        fileName: String? = null
+    ): File? {
+        val trimmedUrl = downloadUrl.trim()
+        require(trimmedUrl.isNotBlank()) { "下载链接不能为空！" }
+        require(outputDir.isDirectory || outputDir.mkdirs()) { "无法创建输出目录：${outputDir.absolutePath}" }
+        println()
+        project.logger.log(LogLevel.LIFECYCLE, "开始下载：$trimmedUrl")
+        project.logger.log(LogLevel.LIFECYCLE, "输出目录：${outputDir.absolutePath}")
+        return try {
+            // 1. 建立连接，获取响应信息（用于提取文件名和校验）
+            val connection = createConnection(trimmedUrl)
+            connection.connect()
+            // 2. 处理文件名（优先级：用户指定 > 响应头 > 链接提取）
+            val targetFileName = fileName ?: getFileNameFromResponse(connection) ?: extractFileNameFromUrl(trimmedUrl)
+            ?: throw IOException("无法识别文件名，请手动指定 fileName 参数")
+            // 3. 构建目标文件
+            val targetFile = outputDir.resolve(targetFileName)
+            // 4. 检查文件是否已存在（避免重复下载）
+            if (targetFile.exists() && targetFile.length() > 0) {
+                project.logger.log(LogLevel.LIFECYCLE, "文件已存在，跳过下载：${targetFile.absolutePath}")
+                return targetFile
+            }
+            // 5. 执行下载
+            project.logger.log(LogLevel.LIFECYCLE, "正在下载：${targetFile.absolutePath}")
+            downloadFile(connection, targetFile)
+            // 6. 校验文件完整性
+            if (!targetFile.exists() || targetFile.length() == 0L) {
+                throw IOException("下载的文件为空或损坏")
+            }
+            project.logger.log(LogLevel.LIFECYCLE, "下载成功：${targetFile.absolutePath}")
+            targetFile
+
+        } catch (e: IllegalArgumentException) {
+            project.logger.log(LogLevel.ERROR, "下载参数错误：${e.message}")
+            null
+        } catch (e: IOException) {
+            project.logger.log(LogLevel.ERROR, "下载失败：${e.message}", e)
+            null
+        } catch (e: Exception) {
+            project.logger.log(LogLevel.ERROR, "未知错误：${e.message}", e)
+            null
+        }
+    }
+
+    /**
+     * 创建 HTTP 连接并配置超时和请求头
+     */
+    private fun createConnection(urlString: String): HttpURLConnection {
+        val url = URI.create(urlString).toURL()
+        val connection = url.openConnection() as HttpURLConnection
+        // 配置超时
+        connection.connectTimeout = CONNECT_TIMEOUT
+        connection.readTimeout = READ_TIMEOUT
+        // 配置请求头
+        connection.setRequestProperty("User-Agent", USER_AGENT)
+        connection.setRequestProperty("Accept", "*/*")
+        connection.instanceFollowRedirects = true  // 自动跟随重定向
+        return connection
+    }
+
+    /**
+     * 从服务器响应头提取文件名
+     * 支持 Content-Disposition 响应头（如：attachment; filename="xxx.jar"）
+     */
+    private fun getFileNameFromResponse(connection: HttpURLConnection): String? {
+        return try {
+            val disposition = connection.getHeaderField("Content-Disposition")
+            if (disposition.isNullOrBlank()) return null
+            // 匹配 filename="xxx" 或 filename=xxx 格式
+            val filenamePattern = Regex("filename[\"=]?([^\";]+)")
+            val matchResult = filenamePattern.find(disposition)
+            matchResult?.groupValues?.get(1)?.trim()?.takeIf { it.contains('.') }
+        } catch (e: Exception) {
+            null  // 提取失败时返回 null， fallback 到链接提取
+        }
+    }
+
+    /**
+     * 从 URL 提取文件名（处理带参数的链接）
+     * 示例：
+     * - https://xxx.com/mod.jar → mod.jar
+     * - https://xxx.com/download?file=mod-1.0.jar → mod-1.0.jar
+     * - https://xxx.com/mod.jar?v=123 → mod.jar
+     */
+    private fun extractFileNameFromUrl(urlString: String): String? {
+        return try {
+            // 去掉 ? 和 # 后面的参数
+            val cleanUrl = urlString.split('?', '#').first()
+            // 提取最后一个 / 后的部分
+            val fileName = cleanUrl.substringAfterLast('/')
+            // 确保文件名有扩展名（至少3个字符，如 .jar、.zip）
+            if (fileName.contains('.') && fileName.substringAfterLast('.').length >= 2) {
+                fileName
+            } else {
+                // 无有效扩展名时，默认用 .jar（针对模组场景）
+                "downloaded-file-${System.currentTimeMillis()}.jar"
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /**
+     * 实际写入文件
+     */
+    private fun downloadFile(connection: HttpURLConnection, targetFile: File) {
+        connection.inputStream.use { inputStream ->
+            Files.copy(inputStream, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        }
+    }
+}
+
+/**
+ * Gradle 项目扩展函数（简化调用）
+ * 示例：project.downloadFile("url", file("outputDir"), "custom.jar")
+ */
+fun Project.downloadFile(
+    downloadUrl: String,
+    outputDir: File,
+    fileName: String? = null
+): File? {
+    return ExternalModDownloader.download(this, downloadUrl, outputDir, fileName)
+}
+
+/**
+ * 重载扩展函数（支持字符串格式的输出目录路径）
+ * 示例：project.downloadFile("url", "outputDir", "custom.jar")
+ */
+fun Project.downloadFile(
+    downloadUrl: String,
+    outputDirPath: String,
+    fileName: String? = null
+): File? {
+    return downloadFile(downloadUrl, file(outputDirPath), fileName)
 }
