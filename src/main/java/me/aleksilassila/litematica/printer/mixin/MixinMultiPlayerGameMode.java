@@ -27,7 +27,7 @@ public abstract class MixinMultiPlayerGameMode implements IMultiPlayerGameMode {
     private Minecraft minecraft;
 
     @Override
-    public void rightClickBlock(BlockPos pos, Direction side, Vec3 hitVec)
+    public void litematica_printer$rightClickBlock(BlockPos pos, Direction side, Vec3 hitVec)
     {
         useItemOn(minecraft.player,
                 //#if MC < 11904
