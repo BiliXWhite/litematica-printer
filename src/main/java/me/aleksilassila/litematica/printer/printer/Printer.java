@@ -702,8 +702,9 @@ public class Printer extends PrinterUtils {
                 //$$ ));
                 //#endif
             } else {
-                ((IMultiPlayerGameMode) client.gameMode)
-                        .rightClickBlock(target, side, hitVec);
+                if (client.gameMode != null) {
+                    ((IMultiPlayerGameMode) client.gameMode).litematica_printer$rightClickBlock(target, side, hitVec);
+                }
             }
 
             if (needSneak && !wasSneak) setShift(player, false);
