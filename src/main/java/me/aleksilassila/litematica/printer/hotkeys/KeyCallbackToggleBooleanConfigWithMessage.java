@@ -8,7 +8,6 @@ import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.StringUtils;
 import net.minecraft.client.Minecraft;
-import org.jetbrains.annotations.Nullable;
 
 public class KeyCallbackToggleBooleanConfigWithMessage extends KeyCallbackToggleBoolean {
     public KeyCallbackToggleBooleanConfigWithMessage(IConfigBoolean config) {
