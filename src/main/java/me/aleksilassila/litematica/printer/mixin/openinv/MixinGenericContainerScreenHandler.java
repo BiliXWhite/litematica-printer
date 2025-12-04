@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(ChestMenu.class)
 public class MixinGenericContainerScreenHandler {
-    @Inject(at = @At("HEAD"), method = "removed",cancellable = true,locals = LocalCapture.CAPTURE_FAILHARD)
+    @Inject(at = @At("HEAD"), method = "removed", cancellable = true)
     public void onClosed(Player player, CallbackInfo ci) {
         if(!(player instanceof ServerPlayer)) return;
         for (ServerPlayer player1 : OpenInventoryPacket.playerlist) {
