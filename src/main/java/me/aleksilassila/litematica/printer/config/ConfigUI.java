@@ -9,14 +9,14 @@ import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
 
 import java.util.List;
-import static me.aleksilassila.litematica.printer.config.ConfigUi.Tab.*;
+import static me.aleksilassila.litematica.printer.config.ConfigUI.Tab.*;
 import static me.aleksilassila.litematica.printer.config.Configs.addGeneral;
 import static me.aleksilassila.litematica.printer.config.Configs.addHotkeys;
 
-public class ConfigUi extends GuiConfigsBase {
+public class ConfigUI extends GuiConfigsBase {
     private static Tab tab = Tab.ALL;
 
-    public ConfigUi() {
+    public ConfigUI() {
         super(10, 50, LitematicaPrinterMod.MOD_ID, null, "投影打印机 " + UpdateChecker.version);
     }
 
@@ -35,33 +35,16 @@ public class ConfigUi extends GuiConfigsBase {
 
     private int createButton(int x, int y, int width, Tab tab) {
         ButtonGeneric button = new ButtonGeneric(x, y, width, 20, tab.name);
-        button.setEnabled(ConfigUi.tab != tab);
+        button.setEnabled(ConfigUI.tab != tab);
         this.addButton(button, new ButtonListener(tab, this));
 
         return button.getWidth() + 2;
     }
 
-    //按钮宽度
-//    @Override
-//    protected int getConfigWidth()
-//    {
-//        Tab tab = ConfigUi.tab;
-//
-//        if (tab == Tab.ALL)
-//        {
-//            return 120;
-//        }
-//        else if (tab == Tab.GENERAL)
-//        {
-//            return 60;
-//        }
-//        return 260;
-//    }
-
     @Override
     public List<ConfigOptionWrapper> getConfigs() {
         List<? extends IConfigBase> configs;
-        Tab tab = ConfigUi.tab;
+        Tab tab = ConfigUI.tab;
         if (tab == Tab.ALL) {
             configs = Configs.addAllConfigs();
         } else if(tab == GENERAL) {
@@ -82,11 +65,11 @@ public class ConfigUi extends GuiConfigsBase {
         return ConfigOptionWrapper.createFor(configs);
     }
 
-    private record ButtonListener(Tab tab, ConfigUi parent) implements IButtonActionListener {
+    private record ButtonListener(Tab tab, ConfigUI parent) implements IButtonActionListener {
 
         @Override
             public void actionPerformedWithButton(ButtonBase button, int mouseButton) {
-                ConfigUi.tab = this.tab;
+                ConfigUI.tab = this.tab;
                 this.parent.reCreateListWidget();
                 this.parent.getListWidget().resetScrollbarPosition();
                 this.parent.initGui();

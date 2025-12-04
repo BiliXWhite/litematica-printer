@@ -4,17 +4,17 @@ import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import fi.dy.masa.malilib.util.GuiUtils;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
-import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import me.aleksilassila.litematica.printer.printer.State;
-import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+
+
+
 //#if MC >= 12001 && MC <= 12104
+//$$ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+//$$ import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 //$$ import fi.dy.masa.malilib.util.GuiUtils;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
@@ -42,7 +42,7 @@ public class HotkeysCallback implements IHotkeyCallback {
     public boolean onKeyAction(KeyAction action, IKeybind key) {
         if (this.client.player == null || this.client.level == null) return false;
         if(key == OPEN_SCREEN.getKeybind()){
-            client.setScreen(new ConfigUi());
+            client.setScreen(new ConfigUI());
             return true;
         }else if(key == SYNC_INVENTORY.getKeybind()){
             startOrOffSyncInventory();

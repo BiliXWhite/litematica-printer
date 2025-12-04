@@ -7,6 +7,7 @@ import fi.dy.masa.malilib.config.*;
 import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.util.JsonUtils;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.State;
 
 import java.io.File;
@@ -18,7 +19,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.l
 
 public class Configs implements IConfigHandler {
     public static Configs INSTANCE = new Configs();
-    private static final String FILE_PATH = "./config/" + MOD_ID + ".json";
+    private static final String FILE_PATH = "./config/" + LitematicaPrinterMod.MOD_ID + ".json";
     private static final File CONFIG_DIR = new File("./config");
     //mod
     public static final ConfigHotkey OPEN_SCREEN = new ConfigHotkey( "打开菜单", "Z,Y","也就是你现在看到的这个界面的热键。");

@@ -3,14 +3,13 @@ package me.aleksilassila.litematica.printer;
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.litematica.config.Hotkeys;
 import fi.dy.masa.malilib.config.IConfigBase;
-import fi.dy.masa.malilib.config.options.*;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.config.options.*;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
@@ -19,10 +18,6 @@ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPa
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 
-//#if MC >= 12001 && MC <= 12104
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-//#endif
-
 import java.util.List;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
@@ -30,421 +25,120 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.l
 public class LitematicaPrinterMod implements ModInitializer, ClientModInitializer {
     public static final String MOD_ID = "litematica_printer";
     public static final String I18N_PREFIX = MOD_ID + ".config";
+
     //========================================
-    //           Config Settings
+    //     Config Settings (配置设置)
     //========================================
-    public static final ConfigInteger PRINTER_SPEED = new ConfigInteger(
-            "printerSpeed", 1, 0, 20, "printerSpeed"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigInteger BLOCKS_PER_TICK = new ConfigInteger(
-            "printerBlocksPerTick", 4, 0, 24, "printerBlocksPerTick"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigInteger PLACE_COOLDOWN = new ConfigInteger(
-            "printerPlaceCooldown", 3, 0, 64, "printerPlaceCooldown"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigInteger PRINTER_RANGE = new ConfigInteger(
-            "printerRange", 6, 1, 256, "printerRange"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigBoolean PLACE_USE_PACKET = new ConfigBoolean(
-            "printerUsePacket", false, "printerUsePacket"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigOptionList ITERATOR_SHAPE = new ConfigOptionList(
-            "printerIteratorShape", State.RadiusShapeType.SPHERE, "printerIteratorShape"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigOptionList MODE_SWITCH = new ConfigOptionList(
-            "模式切换", State.ModeType.SINGLE,
-            "§d单模§r：仅运行一个模式。\n§d多模§r：可多个模式同时运行。\n" +
-                    "切换后需要重新打开设置菜单才能显示模式的。"
-    );
-    public static final ConfigOptionList PRINTER_MODE = new ConfigOptionList(
-            "打印机模式", State.PrintModeType.PRINTER,
-            "打印机的工作模式。\n" +
-                    "§d打印§r：还原投影里的方块，包括方块的部分数据(如方向，开关等)。\n" +
-                    "§d挖掘§r：挖掘选区范围内的方块，不包括液体。\n" +
-                    "§d基岩§r：利用bug破坏选区范围内的基岩，可能只在特定条件下有效。\n" +
-                    "§d流体§r：在选区范围内放置方块，流体会被替换为§6排流体方块名单§r里的方块。\n" +
-                    "§d填充§r：在范围内打印§6填充方块列表§r里的方块。\n" +
-                    "\n§b§lTips:§r 除了§d打印§r模式外，操作区域范围是基于Litematica的选区范围进行的。"
-    );
-    public static final ConfigBoolean MULTI_BREAK = new ConfigBoolean(
-            "多模阻断", true,
-            "启用后将按模式优先级运行，同时启用多个模式时优先级低的无法执行。"
-    );
-    public static final ConfigBoolean RENDER_LAYER_LIMIT = new ConfigBoolean(
-            "渲染层数限制", false,
-            "根据§6Litematica§r的渲染层数限制来限制打印机的工作范围。"
-    );
-    public static final ConfigBoolean PRINT_IN_AIR = new ConfigBoolean(
-            "凭空放置", true,
-            "无视是否有方块面支撑，直接放置方块。"
-    );
-    public static final ConfigBooleanHotkeyed PRINT_WATER = new ConfigBooleanHotkeyed(
-            "printWater", false, "", "printWater"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigBoolean PRINT_SWITCH = new ConfigBoolean(
-            "打印状态", false,
-            "打印的开关状态。"
-    );
-    public static final ConfigBoolean EASYPLACE_PROTOCOL = new ConfigBoolean(
-            "easyPlaceProtocol", false, "easyPlaceProtocol"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigBooleanHotkeyed USE_EASYPLACE = new ConfigBooleanHotkeyed(
-            "轻松放置模式", false, "",
-            "启用后会调用轻松放置来进行放置，因为轻松放置本身会使用放置协议，" +
-                    "所以在开启了这个功能后无需启用§6§l精准放置§r。"
-    );
-    public static final ConfigBoolean FORCED_SNEAK = new ConfigBoolean(
-            "打印时潜行", false,
-            "在打印过程中，会自动潜行以防止对方块进行交互。"
-    );
-    public static final ConfigBoolean REPLACE = new ConfigBoolean(
-            "覆盖打印", true,
-            "无视§6§l覆盖方块列表§r中的方块直接进行打印，例如:草、雪片等。"
-    );
-    public static final ConfigBoolean STRIP_LOGS = new ConfigBoolean(
-            "printerAutoStripLogs", false,
-            "printerAutoStripLogs"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigHotkey SWITCH_PRINTER_MODE = new ConfigHotkey(
-            "切换模式", "",
-            "切换打印机的工作模式。"
-    );
-    public static final ConfigBooleanHotkeyed MINE = new ConfigBooleanHotkeyed(
-            "挖掘", false, "",
-            "挖掘所选区内的方块。"
-    );
-    public static final ConfigBooleanHotkeyed FLUID = new ConfigBooleanHotkeyed(
-            "排流体", false, "",
-            "在岩浆源、水源处放方块默认是§6排流体方块名单§r里的方块。"
-    );
-    public static final ConfigBooleanHotkeyed FILL = new ConfigBooleanHotkeyed(
-            "填充", false, "",
-            "在选区范围内放置§6填充方块名单§r里的方块。"
-    );
-    public static final ConfigBooleanHotkeyed BEDROCK = new ConfigBooleanHotkeyed(
-            "破基岩", false, "",
-            "调用BedrockMiner模组进行破基岩，如果未安装BedrockMiner模组则无法使用。"
-    );
-    public static final ConfigHotkey CLOSE_ALL_MODE = new ConfigHotkey(
-            "关闭全部模式", "LEFT_CONTROL,G",
-            "关闭全部模式，若此时为单模模式将模式恢复为打印。"
-    );
-    public static final ConfigStringList FLUID_BLOCK_LIST = new ConfigStringList(
-            "排流体-方块名单", ImmutableList.of("minecraft:sand"), StringUtils.getComment("blocklist").getString()
-    );
-    public static final ConfigStringList FLUID_LIST = new ConfigStringList(
-            "排流体-液体名单", ImmutableList.of("minecraft:water", "minecraft:lava"), StringUtils.getComment("blocklist").getString()
-    );
-    public static final ConfigStringList FILL_BLOCK_LIST = new ConfigStringList(
-            "填充方块名单", ImmutableList.of("minecraft:cobblestone"), StringUtils.getComment("blocklist").getString()
-    );
-    public static final ConfigBoolean PUT_SKIP = new ConfigBoolean(
-            "跳过放置", false,
-            "开启后会§6§l跳过放置列表§r内的方块。"
-    );
-    public static final ConfigBoolean QUICK_SHULKER = new ConfigBoolean(
-            "printerQuickShulker", false, "printerQuickShulker"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigOptionList QUICK_SHULKER_MODE = new ConfigOptionList(
-            "printerQuickShulkerMode", State.QuickShulkerModeType.INVOKE, "printerQuickShulkerMode"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigInteger QUICK_SHULKER_COOLDOWN = new ConfigInteger(
-            "printerQuickShulkerCooldown", 10, 0, 20, "printerQuickShulkerCooldown"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigBoolean CLOUD_INVENTORY = new ConfigBoolean(
-            "远程交互容器", false,
-            "在服务器支持远程交互容器或单机的情况下可以远程交互\n" +
-                    "替换的位置为投影的预设位置。"
-    );
-    public static final ConfigBoolean AUTO_INVENTORY = new ConfigBoolean(
-            "自动设置远程交互", false,
-            "在服务器若允许使用则自动开启远程交互容器，反之则自动关闭"
-    );
-    public static final ConfigBoolean STORE_ORDERLY = new ConfigBoolean(
-            "有序存放", false,
-            "在背包满时尝试将从远程交互容器或快捷潜影盒中取出的物品还原到之前位置。"
-                    //#if MC == 11802
-                    //$$ + "\n在1.18.2版本表现不好，可能会会导致卡顿，建议关闭。"
-            //#endif
-    );
-    public static final ConfigStringList INVENTORY_LIST = new ConfigStringList(
-            "库存白名单", ImmutableList.of("minecraft:chest"),
-            "打印机库存的白名单，只有白名单内的容器才会被记录。\n" + StringUtils.getComment("blocklist").getString()
-    );
-    public static final ConfigOptionList EXCAVATE_LIMITER = new ConfigOptionList(
-            "挖掘模式限制器", State.ExcavateListMode.CUSTOM,
-            "使用Tweakeroo挖掘限制预设或自定义挖掘限制预设。\n" +
-                    "§dTweakeroo预设§r：使用Tweakeroo的挖掘限制预设，" +
-                    "§d自定义§r：使用自定义的挖掘限制预设。"
-    );
-    public static final ConfigOptionList EXCAVATE_LIMIT = new ConfigOptionList(
-            "挖掘模式限制", UsageRestriction.ListType.NONE,
-            "挖掘模式限制的过滤方式，有无限制、白名单、黑名单三种。\n" +
-                    "§d无限制§r：不限制任何方块\n" +
-                    "§d白名单§r：仅允许白名单内的方块被挖掘\n" +
-                    "§d黑名单§r：禁止黑名单内的方块被挖掘\n" +
-                    "§l使用Tweakeroo挖掘限制预设时，此项会被忽略。§r"
-    );
-    public static final ConfigStringList EXCAVATE_WHITELIST = new ConfigStringList(
-            "挖掘白名单", ImmutableList.of(""), StringUtils.getComment("blocklist").getString()
-    );
-    public static final ConfigStringList EXCAVATE_BLACKLIST = new ConfigStringList(
-            "挖掘黑名单", ImmutableList.of(""), StringUtils.getComment("blocklist").getString()
-    );
-    public static final ConfigStringList PUT_SKIP_LIST = new ConfigStringList(
-            "跳过放置名单", ImmutableList.of(""), StringUtils.getComment("blocklist").getString()
-    );
-    public static final ConfigStringList REPLACEABLE_LIST = new ConfigStringList(
-            "覆盖方块列表", ImmutableList.of(
-            "minecraft:snow", "minecraft:lava", "minecraft:water",
-            "minecraft:bubble_column", "minecraft:short_grass"
-    ),
-            "打印时将忽略这些错误方块，直接在该位置打印。\n" +
-                    StringUtils.getComment("blocklist").getString()
-    );
-    public static final ConfigColor SYNC_INVENTORY_COLOR = new ConfigColor(
-            "容器同步与打印机添加库存高亮颜色", "#4CFF4CE6",
-            "给容器同步和打印机添加库存的方块添加高亮颜色\n" +
-                    "如果不需要高亮颜色可以设置为§l#00000000§r。"
-    );
-    public static final ConfigBoolean REPLACE_CORAL = new ConfigBoolean(
-            "替换珊瑚", false,
-            "启用后打印失活珊瑚时，如果背包里没有失活珊瑚，会自动使用活珊瑚替换。如果背包里同时有活珊瑚和失活珊瑚，则会优先使用失活珊瑚打印。"
-    );
-    public static final ConfigBoolean RENDER_HUD = new ConfigBoolean(
-            "显示打印机HUD", false,
-            "在打印机工作时显示工作模式和处理的方块（排流体与填充除外）。\n在开启§6§l延迟检测§r时也显示接收数据包间的延迟。"
-    );
-    public static final ConfigBoolean LAG_CHECK = new ConfigBoolean(
-            "printerLagCheck", true,
-            "printerLagCheck"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigOptionList ITERATION_ORDER = new ConfigOptionList(
-            "printerIteratorMode", State.IterationOrderType.XZY, "printerIteratorMode"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigBoolean X_REVERSE = new ConfigBoolean(
-            "printerXAxisReverse", false, "printerXAxisReverse"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigBoolean Y_REVERSE = new ConfigBoolean(
-            "printerYAxisReverse", false, "printerYAxisReverse"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigBoolean Z_REVERSE = new ConfigBoolean(
-            "printerZAxisReverse", false, "printerZAxisReverse"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigBoolean FALLING_CHECK = new ConfigBoolean(
-            "printerFallingBlockCheck", true, "printerFallingBlockCheck"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigBoolean BREAK_WRONG_BLOCK = new ConfigBoolean(
-            "printBreakWrongBlock", false, "printBreakWrongBlock"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigBoolean DEBUG_OUTPUT = new ConfigBoolean(
-            "debugOutput", false,
-            "debugOutput"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigBoolean NOTE_BLOCK_TUNING = new ConfigBoolean(
-            "printerAutoTuning", true, "printerAutoTuning"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigBoolean SAFELY_OBSERVER = new ConfigBoolean(
-            "printerSafelyObserver", true, "printerSafelyObserver"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigBoolean BREAK_EXTRA_BLOCK = new ConfigBoolean(
-            "printerBreakExtraBlock", false, "printerBreakExtraBlock"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
+    public static final OptionInteger PRINTER_SPEED = OptionInteger.create(I18n.PRINTER_SPEED, 1, 0, 20);
+    public static final OptionInteger BLOCKS_PER_TICK = OptionInteger.create(I18n.PRINTER_BLOCKS_PER_TICK, 4, 0, 24);
+    public static final OptionInteger PLACE_COOLDOWN = OptionInteger.create(I18n.PRINTER_PLACE_COOLDOWN, 3, 0, 64);
+    public static final OptionInteger PRINTER_RANGE = OptionInteger.create(I18n.PRINTER_RANGE, 6, 1, 256);
+    public static final OptionInteger QUICK_SHULKER_COOLDOWN = OptionInteger.create(I18n.PRINTER_QUICK_SHULKER_COOLDOWN, 10, 0, 20);
+    public static final OptionInteger ITERATOR_USE_TIME = OptionInteger.create(I18n.PRINTER_ITERATOR_USE_TIME, 8, 0, 128);
 
-    public static final ConfigBoolean BREAK_WRONG_STATE_BLOCK = new ConfigBoolean(
-            "printerBreakWrongStateBlock", false, "printerBreakWrongStateBlock"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
+    public static final OptionBoolean PLACE_USE_PACKET = OptionBoolean.create(I18n.PRINTER_USE_PACKET, false);
+    public static final OptionBoolean STRIP_LOGS = OptionBoolean.create(I18n.PRINTER_AUTO_STRIP_LOGS, false);
+    public static final OptionBoolean QUICK_SHULKER = OptionBoolean.create(I18n.PRINTER_QUICK_SHULKER, false);
+    public static final OptionBoolean LAG_CHECK = OptionBoolean.create(I18n.PRINTER_LAG_CHECK, true);
+    public static final OptionBoolean X_REVERSE = OptionBoolean.create(I18n.PRINTER_X_AXIS_REVERSE, false);
+    public static final OptionBoolean Y_REVERSE = OptionBoolean.create(I18n.PRINTER_Y_AXIS_REVERSE, false);
+    public static final OptionBoolean Z_REVERSE = OptionBoolean.create(I18n.PRINTER_Z_AXIS_REVERSE, false);
+    public static final OptionBoolean FALLING_CHECK = OptionBoolean.create(I18n.PRINTER_FALLING_BLOCK_CHECK, true);
+    public static final OptionBoolean BREAK_WRONG_BLOCK = OptionBoolean.create(I18n.PRINT_BREAK_WRONG_BLOCK, false);
+    public static final OptionBoolean DEBUG_OUTPUT = OptionBoolean.create(I18n.DEBUG_OUTPUT, false);
+    public static final OptionBoolean NOTE_BLOCK_TUNING = OptionBoolean.create(I18n.PRINTER_AUTO_TUNING, true);
+    public static final OptionBoolean SAFELY_OBSERVER = OptionBoolean.create(I18n.PRINTER_SAFELY_OBSERVER, true);
+    public static final OptionBoolean BREAK_EXTRA_BLOCK = OptionBoolean.create(I18n.PRINTER_BREAK_EXTRA_BLOCK, false);
+    public static final OptionBoolean BREAK_WRONG_STATE_BLOCK = OptionBoolean.create(I18n.PRINTER_BREAK_WRONG_STATE_BLOCK, false);
+    public static final OptionBoolean SKIP_WATERLOGGED_BLOCK = OptionBoolean.create(I18n.PRINTER_SKIP_WATERLOGGED, false);
+    public static final OptionBoolean UPDATE_CHECK = OptionBoolean.create(I18n.UPDATE_CHECK, true);
+    public static final OptionBoolean FILL_COMPOSTER = OptionBoolean.create(I18n.PRINTER_AUTO_FILL_COMPOSTER, false);
+    public static final OptionBoolean FILL_FLOWING_FLUID = OptionBoolean.create(I18n.FLUID_MODE_FILL_FLOWING, true);
+    public static final OptionBoolean AUTO_DISABLE_PRINTER = OptionBoolean.create(I18n.PRINTER_AUTO_DISABLE, true);
+    public static final OptionBoolean EASYPLACE_PROTOCOL = OptionBoolean.create(I18n.EASY_PLACE_PROTOCOL, false);
 
-    public static final ConfigBoolean SKIP_WATERLOGGED_BLOCK = new ConfigBoolean(
-            "printerSkipWaterlogged", false, "printerSkipWaterlogged"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
+    public static final OptionList ITERATOR_SHAPE = OptionList.create(I18n.PRINTER_ITERATOR_SHAPE, State.RadiusShapeType.SPHERE);
+    public static final OptionList QUICK_SHULKER_MODE = OptionList.create(I18n.PRINTER_QUICK_SHULKER_MODE, State.QuickShulkerModeType.INVOKE);
+    public static final OptionList ITERATION_ORDER = OptionList.create(I18n.PRINTER_ITERATOR_MODE, State.IterationOrderType.XZY);
+    public static final OptionList FILL_BLOCK_FACING = OptionList.create(I18n.FILL_MODE_FACING, State.FillModeFacingType.DOWN);
 
-    public static final ConfigInteger ITERATOR_USE_TIME = new ConfigInteger(
-            "printerIteratorUseTime", 8, 0, 128, "printerIteratorUseTime"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
+    public static final OptionStringList FLUID_BLOCK_LIST = OptionStringList.create(I18n.FLUID_BLOCK_LIST, ImmutableList.of("minecraft:sand"));
+    public static final OptionStringList FLUID_LIST = OptionStringList.create(I18n.FLUID_LIST, ImmutableList.of("minecraft:water", "minecraft:lava"));
+    public static final OptionStringList FILL_BLOCK_LIST = OptionStringList.create(I18n.FILL_BLOCK_LIST, ImmutableList.of("minecraft:cobblestone"));
+    public static final OptionStringList INVENTORY_LIST = OptionStringList.create(
+            I18n.INVENTORY_LIST,
+            ImmutableList.of("minecraft:chest"),
+            "\n",
+            StringUtils.literal("打印机库存的白名单，只有白名单内的容器才会被记录。"),
+            I18n.INVENTORY_LIST.getConfigComment()
+    );
+    public static final OptionStringList EXCAVATE_WHITELIST = OptionStringList.create(I18n.EXCAVATE_WHITELIST, ImmutableList.of(""));
+    public static final OptionStringList EXCAVATE_BLACKLIST = OptionStringList.create(I18n.EXCAVATE_BLACKLIST, ImmutableList.of(""));
+    public static final OptionStringList PUT_SKIP_LIST = OptionStringList.create(I18n.PUT_SKIP_LIST, ImmutableList.of(""));
+    public static final OptionStringList REPLACEABLE_LIST = OptionStringList.create(
+            I18n.REPLACEABLE_LIST,
+            ImmutableList.of(
+                    "minecraft:snow", "minecraft:lava", "minecraft:water",
+                    "minecraft:bubble_column", "minecraft:short_grass"
+            ),
+            "\n",
+            StringUtils.literal("打印时将忽略这些错误方块，直接在该位置打印。"),
+            I18n.REPLACEABLE_LIST.getConfigComment()
+    );
 
-    public static final ConfigBoolean UPDATE_CHECK = new ConfigBoolean(
-            "updateCheck", true, "updateCheck"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
+
+    public static final OptionList MODE_SWITCH = OptionList.create(I18n.MODE_SWITCH, State.ModeType.SINGLE);
+    public static final OptionList PRINTER_MODE = OptionList.create(I18n.PRINTER_MODE, State.PrintModeType.PRINTER);
+
+    public static final OptionBoolean MULTI_BREAK = OptionBoolean.create(I18n.MULTI_BREAK, true);
+    public static final OptionBoolean RENDER_LAYER_LIMIT = OptionBoolean.create(I18n.RENDER_LAYER_LIMIT, false);
+    public static final OptionBoolean PRINT_IN_AIR = OptionBoolean.create(I18n.PRINT_IN_AIR, true);
+
+    public static final OptionBooleanHotkeyed PRINT_WATER = OptionBooleanHotkeyed.create(I18n.PRINT_WATER, false);
+    public static final OptionBoolean PRINT_SWITCH = OptionBoolean.create(I18n.PRINT_SWITCH, false);
+    public static final OptionBooleanHotkeyed USE_EASYPLACE = OptionBooleanHotkeyed.create(I18n.USE_EASYPLACE, false);
+    public static final OptionBoolean FORCED_SNEAK = OptionBoolean.create(I18n.FORCED_SNEAK, false);
+    public static final OptionBoolean REPLACE = OptionBoolean.create(I18n.REPLACE, true);
+
+    public static final OptionHotkey SWITCH_PRINTER_MODE = OptionHotkey.create(I18n.SWITCH_PRINTER_MODE);
+    public static final OptionBooleanHotkeyed MINE = OptionBooleanHotkeyed.create(I18n.MINE, false);
+    public static final OptionBooleanHotkeyed FLUID = OptionBooleanHotkeyed.create(I18n.FLUID, false);
+    public static final OptionBooleanHotkeyed FILL = OptionBooleanHotkeyed.create(I18n.FILL, false);
+    public static final OptionBooleanHotkeyed BEDROCK = OptionBooleanHotkeyed.create(I18n.BEDROCK, false);
+    public static final OptionHotkey CLOSE_ALL_MODE = OptionHotkey.create(I18n.CLOSE_ALL_MODE, "LEFT_CONTROL,G");
+    public static final OptionBoolean PUT_SKIP = OptionBoolean.create(I18n.PUT_SKIP, false);
+    public static final OptionBoolean CLOUD_INVENTORY = OptionBoolean.create(I18n.CLOUD_INVENTORY, false);
+    public static final OptionBoolean AUTO_INVENTORY = OptionBoolean.create(I18n.AUTO_INVENTORY, false);
+    public static final OptionBoolean STORE_ORDERLY = OptionBoolean.create(I18n.STORE_ORDERLY, false, "\n",
+            I18n.STORE_ORDERLY.getConfigComment()
+            //#if MC == 11802
+            //$$ ,StringUtils.literal("在1.18.2版本表现不好，可能会导致卡顿，建议关闭。")
             //#endif
-            ;
-    public static final ConfigBoolean FILL_COMPOSTER = new ConfigBoolean(
-            "printerAutoFillComposter", false, "printerAutoFillComposter"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigBoolean FILL_FLOWING_FLUID = new ConfigBoolean(
-            "fluidModeFillFlowing", true, "fluidModeFillFlowing"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigOptionList FILL_BLOCK_FACING = new ConfigOptionList(
-            "fillModeFacing", State.FillModeFacingType.DOWN, "fillModeFacing"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
-    public static final ConfigBoolean AUTO_DISABLE_PRINTER = new ConfigBoolean(
-            "printerAutoDisable", true, "printerAutoDisable"
-    )
-            //#if MC > 12006
-            .apply(I18N_PREFIX)
-            //#endif
-            ;
+    );
+
+    public static final OptionList EXCAVATE_LIMITER = OptionList.create(I18n.EXCAVATE_LIMITER, State.ExcavateListMode.CUSTOM);
+    public static final OptionList EXCAVATE_LIMIT = OptionList.create(I18n.EXCAVATE_LIMIT, UsageRestriction.ListType.NONE);
+    public static final OptionColor SYNC_INVENTORY_COLOR = OptionColor.create(I18n.SYNC_INVENTORY_COLOR, "#4CFF4CE6");
+    public static final OptionBoolean REPLACE_CORAL = OptionBoolean.create(I18n.REPLACE_CORAL, false);
+    public static final OptionBoolean RENDER_HUD = OptionBoolean.create(I18n.RENDER_HUD, false);
+
     //========================================
     //                  热键
     //========================================
-    public static final ConfigHotkey PRINT = new ConfigHotkey(
-            "打印", "", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY,
-            "在按着绑定按键的时候打印方块。"
-    );
-    public static final ConfigHotkey TOGGLE_PRINTING_MODE = new ConfigHotkey(
-            "打印状态开关", "CAPS_LOCK", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY,
-            "切换打印状态，开启或关闭打印机的工作状态。"
-    );
-    public static final ConfigHotkey SYNC_INVENTORY = new ConfigHotkey(
-            "容器同步", "",
-            "按下热键后会记录看向容器的物品。\n" +
-                    "将投影选区内的同类型容器中的物品，同步至记录的容器。"
-    );
-    public static final ConfigBooleanHotkeyed SYNC_INVENTORY_CHECK = new ConfigBooleanHotkeyed(
-            "同步时检查背包", false, "",
-            "容器同步时检查背包，如果填充物不足，则不会打开容器"
-    );
-    public static final ConfigHotkey PRINTER_INVENTORY = new ConfigHotkey(
-            "打印机库存", "",
-            "如果远程取物的目标是未加载的区块将会增加取物品的时间，用投影选区后按下热键\n" +
-                    "打印机工作时将会使用该库存内的物品\n" +
-                    "建议库存区域内放置假人来常加载区块"
-    );
-    public static final ConfigHotkey REMOVE_PRINT_INVENTORY = new ConfigHotkey(
-            "清空打印机库存", "",
-            "清空打印机库存"
-    );
+    public static final OptionHotkey PRINT = OptionHotkey.create(I18n.PRINT, KeybindSettings.PRESS_ALLOWEXTRA_EMPTY);
+    public static final OptionHotkey TOGGLE_PRINTING_MODE = OptionHotkey.create(I18n.TOGGLE_PRINTING_MODE, "CAPS_LOCK", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY);
+    public static final OptionHotkey SYNC_INVENTORY = OptionHotkey.create(I18n.SYNC_INVENTORY);
+    public static final OptionBooleanHotkeyed SYNC_INVENTORY_CHECK = OptionBooleanHotkeyed.create(I18n.SYNC_INVENTORY_CHECK, false);
+    public static final OptionHotkey PRINTER_INVENTORY = OptionHotkey.create(I18n.PRINTER_INVENTORY);
+    public static final OptionHotkey REMOVE_PRINT_INVENTORY = OptionHotkey.create(I18n.REMOVE_PRINT_INVENTORY);
+
+    //#if MC >= 12001
     private static final KeybindSettings GUI_NO_ORDER = KeybindSettings.create(
             KeybindSettings.Context.GUI, KeyAction.PRESS, false, false, false, true
     );
-    //#if MC >= 12001
-    public static final ConfigHotkey LAST = new ConfigHotkey(
-            "上一个箱子", "", GUI_NO_ORDER, ""
-    );
-    public static final ConfigHotkey NEXT = new ConfigHotkey(
-            "下一个箱子", "", GUI_NO_ORDER, ""
-    );
-    public static final ConfigHotkey DELETE = new ConfigHotkey(
-            "删除当前容器", "", GUI_NO_ORDER, ""
-    );
+    public static final OptionHotkey LAST = OptionHotkey.create(I18n.LAST, GUI_NO_ORDER);
+    public static final OptionHotkey NEXT = OptionHotkey.create(I18n.NEXT, GUI_NO_ORDER);
+    public static final OptionHotkey DELETE = OptionHotkey.create(I18n.DELETE, GUI_NO_ORDER);
     //#endif
 
     public static List<IConfigBase> getHotkeyList() {
@@ -472,7 +166,7 @@ public class LitematicaPrinterMod implements ModInitializer, ClientModInitialize
 
         //#if MC >= 12001 && MC <= 12104
         //$$ if (loadChestTracker) {
-        //$$     MemoryUtils.setup();
+        //$$     me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.setup();
         //$$ }
         //#endif
 
