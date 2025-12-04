@@ -3,7 +3,6 @@ package me.aleksilassila.litematica.printer;
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.litematica.config.Hotkeys;
 import fi.dy.masa.malilib.config.IConfigBase;
-import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
