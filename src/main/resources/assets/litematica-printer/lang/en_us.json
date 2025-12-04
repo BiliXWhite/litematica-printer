@@ -175,5 +175,9 @@
   "litematica_printer.config.name.excavateWhitelist": "Excavation Whitelist",
   "litematica_printer.config.comment.excavateWhitelist": "Only mines blocks in this list (applies to mining mode).\nYou can enter a block ID or its translated name, e.g.: §bminecraft:stone§r. \nIf preceded by §b#§r, tag matching is used (matches blocks by tag), e.g.: §l#logs§r. \nIf entering text with a filter (separated by a comma), e.g.: §lstone,c§r. \nWhere “c” means using contains matching (tries direct match first).",
   "litematica_printer.config.name.excavateBlacklist": "Excavation Blacklist",
-  "litematica_printer.config.comment.excavateBlacklist": "Skips mining blocks in this list (applies to mining mode).\nYou can enter a block ID or its translated name, e.g.: §bminecraft:stone§r. \nIf preceded by §b#§r, tag matching is used (matches blocks by tag), e.g.: §l#logs§r. \nIf entering text with a filter (separated by a comma), e.g.: §lstone,c§r. \nWhere “c” means using contains matching (tries direct match first)."
+  "litematica_printer.config.comment.excavateBlacklist": "Skips mining blocks in this list (applies to mining mode).\nYou can enter a block ID or its translated name, e.g.: §bminecraft:stone§r. \nIf preceded by §b#§r, tag matching is used (matches blocks by tag), e.g.: §l#logs§r. \nIf entering text with a filter (separated by a comma), e.g.: §lstone,c§r. \nWhere “c” means using contains matching (tries direct match first).",
+
+  "litematica_printer.message.toggled": "Toggled %s %s",
+  "litematica_printer.message.value.off": "OFF",
+  "litematica_printer.message.value.on": "ON"
 }
