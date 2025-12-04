@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer;
 
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * 本地化翻译枚举，管理所有打印机模组的翻译键
@@ -128,9 +129,12 @@ public enum I18n {
     REMOVE_PRINT_INVENTORY("removePrintInventory", Type.CONFIG),
     LAST("last", Type.CONFIG),
     NEXT("next", Type.CONFIG),
-    DELETE("delete", Type.CONFIG);
+    DELETE("delete", Type.CONFIG),
 
-    // ===================== 内部枚举类型标记 =====================
+    MESSAGE_TOGGLED("message.toggled", Type.BASE),
+    MESSAGE_VALUE_OFF("message.value.off", Type.BASE),
+    MESSAGE_VALUE_ON("message.value.on", Type.BASE);
+
     private enum Type {
         BASE,        // 基础项（拼接mod前缀：modid.xxx）
         CONFIG,      // 配置项（可生成name/comment）
@@ -138,92 +142,65 @@ public enum I18n {
         RAW          // 原始key（直接使用，不拼接）
     }
 
-    // ===================== 常量定义 =====================
     private static final String MOD_PREFIX = LitematicaPrinterMod.MOD_ID + ".";
     private static final String CONFIG_PREFIX = MOD_PREFIX + "config.";
     private static final String CONFIG_NAME_PREFIX = CONFIG_PREFIX + "name.";
     private static final String CONFIG_COMMENT_PREFIX = CONFIG_PREFIX + "comment.";
     private static final String CONFIG_LIST_PREFIX = CONFIG_PREFIX + "list.";
 
-    // ===================== 成员变量 =====================
     private final String keySegment;
     private final Type type;
 
-    // ===================== 构造器 =====================
     I18n(String keySegment, Type type) {
         this.keySegment = keySegment;
         this.type = type;
     }
 
-    // ===================== 核心方法（按类型生成key） =====================
-    /**
-     * 获取完整的翻译key（内部使用，给getString/getComponent用）
-     */
-    private String getFullKey() {
+
+    public String getFullKey() {
         return switch (type) {
             case BASE -> MOD_PREFIX + keySegment;
-            case CONFIG, CONFIG_LIST -> keySegment; // 配置项/列表的keySegment在getConfigXXX中拼接
-            case RAW -> keySegment; // ModMenu直接用原始key
+            case CONFIG -> CONFIG_NAME_PREFIX + keySegment;
+            case CONFIG_LIST -> CONFIG_LIST_PREFIX + keySegment;
+            case RAW -> keySegment;
         };
     }
 
-    // ===================== 对外暴露的方法（语义化+类型校验） =====================
-    /**
-     * 获取基础翻译组件（适用于：基础提示、菜单、更新等非配置项）
-     * @throws IllegalArgumentException 若枚举项类型不匹配
-     */
-    public MutableComponent getBaseComponent() {
+    public Component getBaseComponent() {
         if (type != Type.BASE) {
             throw new IllegalArgumentException("枚举项 " + name() + " 不是基础项，无法调用getBaseComponent()");
         }
         return StringUtils.translatable(getFullKey());
     }
 
-    /**
-     * 获取配置项「名称」组件（仅CONFIG类型可用）
-     * @throws IllegalArgumentException 若枚举项类型不匹配
-     */
-    public MutableComponent getConfigName() {
+    public Component getConfigName() {
         if (type != Type.CONFIG) {
             throw new IllegalArgumentException("枚举项 " + name() + " 不是配置项，无法调用getConfigName()");
         }
         return StringUtils.translatable(CONFIG_NAME_PREFIX + keySegment);
     }
 
-    /**
-     * 获取配置项「注释」组件（仅CONFIG类型可用）
-     * @throws IllegalArgumentException 若枚举项类型不匹配
-     */
-    public MutableComponent getConfigComment() {
+    public Component getConfigComment() {
         if (type != Type.CONFIG) {
             throw new IllegalArgumentException("枚举项 " + name() + " 不是配置项，无法调用getConfigComment()");
         }
         return StringUtils.translatable(CONFIG_COMMENT_PREFIX + keySegment);
     }
 
-    /**
-     * 获取配置列表值组件（仅CONFIG_LIST类型可用）
-     * @throws IllegalArgumentException 若枚举项类型不匹配
-     */
-    public MutableComponent getConfigList() {
+    public Component getConfigList() {
         if (type != Type.CONFIG_LIST) {
             throw new IllegalArgumentException("枚举项 " + name() + " 不是配置列表项，无法调用getConfigList()");
         }
         return StringUtils.translatable(CONFIG_LIST_PREFIX + keySegment);
     }
 
-    /**
-     * 获取原始key组件（仅RAW类型可用，如ModMenu）
-     * @throws IllegalArgumentException 若枚举项类型不匹配
-     */
-    public MutableComponent getRawComponent() {
+    public Component getRawComponent() {
         if (type != Type.RAW) {
             throw new IllegalArgumentException("枚举项 " + name() + " 不是原始key项，无法调用getRawComponent()");
         }
         return StringUtils.translatable(keySegment);
     }
 
-    // ===================== 便捷方法：获取字符串（避免重复调用getString()） =====================
     public String getBaseString() {
         return getBaseComponent().getString();
     }
@@ -244,14 +221,21 @@ public enum I18n {
         return getRawComponent().getString();
     }
 
-    // ===================== 兼容方法：获取配置项的简化key（用于配置注册） =====================
-    /**
-     * 获取配置项的简化key（如 debugOutput），仅CONFIG类型可用
-     */
     public String getConfigSimpleKey() {
         if (type != Type.CONFIG) {
             throw new IllegalArgumentException("枚举项 " + name() + " 不是配置项，无法调用getConfigSimpleKey()");
         }
         return keySegment;
     }
+
+
+    public static @Nullable I18n get(String name) {
+        for (I18n i18n : values()) {
+            if (i18n.getFullKey().equalsIgnoreCase(name)) {
+                return i18n;
+            }
+        }
+        return null;
+    }
+
 }

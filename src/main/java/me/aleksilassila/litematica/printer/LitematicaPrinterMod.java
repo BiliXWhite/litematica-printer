@@ -3,13 +3,14 @@ package me.aleksilassila.litematica.printer;
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.litematica.config.Hotkeys;
 import fi.dy.masa.malilib.config.IConfigBase;
+import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.options.*;
+import me.aleksilassila.litematica.printer.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
@@ -169,6 +170,7 @@ public class LitematicaPrinterMod implements ModInitializer, ClientModInitialize
         //$$     me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.setup();
         //$$ }
         //#endif
+
 
         TOGGLE_PRINTING_MODE.getKeybind().setCallback(
                 new KeyCallbackToggleBooleanConfigWithMessage(PRINT_SWITCH)

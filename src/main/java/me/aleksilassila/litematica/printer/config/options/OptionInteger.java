@@ -3,7 +3,7 @@ package me.aleksilassila.litematica.printer.config.options;
 import fi.dy.masa.malilib.config.options.ConfigInteger;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.StringUtils;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
 
 public class OptionInteger extends ConfigInteger {
     private OptionInteger(I18n i18n, int defaultValue) {
@@ -14,7 +14,7 @@ public class OptionInteger extends ConfigInteger {
         super(i18n.getConfigNameString(), defaultValue, minValue, maxValue, i18n.getConfigCommentString());
     }
 
-    private OptionInteger(I18n i18n, int defaultValue, int minValue, int maxValue, String delimiter, MutableComponent... comments) {
+    private OptionInteger(I18n i18n, int defaultValue, int minValue, int maxValue, String delimiter, Component... comments) {
         super(i18n.getConfigNameString(), defaultValue, minValue, maxValue, StringUtils.mergeComments(delimiter, comments));
     }
 
@@ -34,11 +34,11 @@ public class OptionInteger extends ConfigInteger {
         return new OptionInteger(i18n, defaultValue, Integer.MIN_VALUE, maxValue);
     }
 
-    public static OptionInteger create(I18n i18n, int defaultValue, String delimiter, MutableComponent... comments) {
+    public static OptionInteger create(I18n i18n, int defaultValue, String delimiter, Component... comments) {
         return new OptionInteger(i18n, defaultValue, Integer.MIN_VALUE, Integer.MAX_VALUE, delimiter, comments);
     }
 
-    public static OptionInteger create(I18n i18n, int defaultValue, MutableComponent... comments) {
+    public static OptionInteger create(I18n i18n, int defaultValue, Component... comments) {
         return new OptionInteger(i18n, defaultValue, Integer.MIN_VALUE, Integer.MAX_VALUE, "", comments);
     }
 }

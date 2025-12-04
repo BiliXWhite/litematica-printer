@@ -4,7 +4,7 @@ import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.StringUtils;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
 
 public class OptionHotkey extends ConfigHotkey {
     private OptionHotkey(I18n i18n, String defaultStorageString) {
@@ -15,7 +15,7 @@ public class OptionHotkey extends ConfigHotkey {
         super(i18n.getConfigNameString(), defaultStorageString, settings, StringUtils.EMPTY.getString());
     }
 
-    private OptionHotkey(I18n i18n, String defaultStorageString, KeybindSettings settings, String delimiter, MutableComponent... comments) {
+    private OptionHotkey(I18n i18n, String defaultStorageString, KeybindSettings settings, String delimiter, Component... comments) {
         super(i18n.getConfigNameString(), defaultStorageString, settings, StringUtils.mergeComments(delimiter, comments));
     }
 
@@ -35,19 +35,19 @@ public class OptionHotkey extends ConfigHotkey {
         return new OptionHotkey(i18n, "", settings);
     }
 
-    public static OptionHotkey create(I18n i18n, KeybindSettings settings, String delimiter, MutableComponent... comments) {
+    public static OptionHotkey create(I18n i18n, KeybindSettings settings, String delimiter, Component... comments) {
         return new OptionHotkey(i18n, "", settings, delimiter, comments);
     }
 
-    public static OptionHotkey create(I18n i18n, KeybindSettings settings, MutableComponent... comments) {
+    public static OptionHotkey create(I18n i18n, KeybindSettings settings, Component... comments) {
         return new OptionHotkey(i18n, "", settings, "", comments);
     }
 
-    public static OptionHotkey create(I18n i18n, String defaultValue, KeybindSettings settings, String delimiter, MutableComponent... comments) {
+    public static OptionHotkey create(I18n i18n, String defaultValue, KeybindSettings settings, String delimiter, Component... comments) {
         return new OptionHotkey(i18n, defaultValue, settings, delimiter, comments);
     }
 
-    public static OptionHotkey create(I18n i18n, String defaultValue, KeybindSettings settings, MutableComponent... comments) {
+    public static OptionHotkey create(I18n i18n, String defaultValue, KeybindSettings settings, Component... comments) {
         return new OptionHotkey(i18n, defaultValue, settings, "", comments);
     }
 }
