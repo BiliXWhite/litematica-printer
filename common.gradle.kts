@@ -102,11 +102,6 @@ fun downloadExternalMod(downloadUrl: String, fileName: String? = null): File? {
 
 // ========================== 依赖配置 ==========================
 dependencies {
-    // 编译时依赖（仅构建脚本使用，不打入模组 jar）
-    implementation("com.google.guava:guava:32.1.3-jre")
-    implementation("org.ow2.asm:asm:9.5")
-    implementation("org.ow2.asm:asm-tree:9.5")
-
     // 核心依赖
     minecraft("com.mojang:minecraft:$minecraftVersion")
     mappings(loom.officialMojangMappings())
