@@ -1,13 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.Opcodes
-import org.objectweb.asm.tree.ClassNode
-import org.objectweb.asm.tree.LdcInsnNode
-import java.io.FileOutputStream
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URI
@@ -272,15 +264,6 @@ publishing {
         maven {
             url = uri("$rootDir/publish")
         }
-    }
-}
-
-// ========================== 辅助配置 ==========================
-configurations {
-    create("productionRuntimeClient") {
-        configurations.filter {
-            it.name in listOf("minecraftLibraries", "loaderLibraries", "minecraftRuntimeLibraries")
-        }.forEach { extendsFrom(it) }
     }
 }
 
