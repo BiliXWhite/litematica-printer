@@ -71,24 +71,20 @@ fun RepositoryHandler.addMavenRepo(name: String, url: String, vararg groups: Str
 repositories {
     // 常用 Fabric 生态仓库
     addMavenRepo("FabricMC", "https://maven.fabricmc.net", "net.fabricmc")
-    addMavenRepo("Masa", "https://masa.dy.fi/maven", "fi.dy.masa")
     addMavenRepo("CurseMaven", "https://www.cursemaven.com", "curse.maven")
+    addMavenRepo("Modrinth", "https://api.modrinth.com/maven", "maven.modrinth")
     addMavenRepo("TerraformersMC", "https://maven.terraformersmc.com/releases", "com.terraformersmc")
+    addMavenRepo("Masa", "https://masa.dy.fi/maven", "fi.dy.masa")
     addMavenRepo("Nucleoid", "https://maven.nucleoid.xyz/", "eu.pb4")
     addMavenRepo("Shedaniel", "https://maven.shedaniel.me/", "me.shedaniel.cloth")
-    addMavenRepo("Modrinth", "https://api.modrinth.com/maven", "maven.modrinth")
     addMavenRepo("CottonMC", "https://server.bbkr.space/artifactory/libs-release", "io.github.cottonmc")
-    addMavenRepo("Jackfred", "https://maven.jackf.red/releases", "red.jackf")
     addMavenRepo("BlameJared", "https://maven.blamejared.com", "com.blamejared.searchables")
     addMavenRepo("Pinyin4j", "https://mvnrepository.com/artifact/com.belerweb/pinyin4j", "com.belerweb")
-    addMavenRepo("Jitpack", "https://jitpack.io", "com.github")
-
-    // YACL 相关仓库
     addMavenRepo("XanderReleases", "https://maven.isxander.dev/releases", "dev.isxander", "org.quiltmc")
     addMavenRepo("XanderSnapshots", "https://maven.isxander.dev/snapshots", "dev.isxander", "org.quiltmc")
-
-    // 其他依赖仓库
     addMavenRepo("Kyrptonaught", "https://maven.kyrptonaught.dev", "net.kyrptonaught")
+    addMavenRepo("Jackfred", "https://maven.jackf.red/releases", "red.jackf")
+    addMavenRepo("Jitpack", "https://jitpack.io", "com.github")
 }
 
 // ========================== Gradle 扩展函数（方便调用） ==========================
@@ -301,11 +297,9 @@ object ExternalModDownloader {
         project.logger.log(LogLevel.LIFECYCLE, "开始下载：$trimmedUrl")
         project.logger.log(LogLevel.LIFECYCLE, "输出目录：${outputDir.absolutePath}")
         return try {
-            // 1. 建立连接，获取响应信息（用于提取文件名和校验）
-            val connection = createConnection(trimmedUrl)
-            connection.connect()
             // 2. 处理文件名（优先级：用户指定 > 响应头 > 链接提取）
-            val targetFileName = fileName ?: getFileNameFromResponse(connection) ?: extractFileNameFromUrl(trimmedUrl)
+            // val targetFileName = fileName ?: getFileNameFromResponse(connection) ?: extractFileNameFromUrl(trimmedUrl)
+            val targetFileName = fileName ?: extractFileNameFromUrl(trimmedUrl)
             ?: throw IOException("无法识别文件名，请手动指定 fileName 参数")
             // 3. 构建目标文件
             val targetFile = outputDir.resolve(targetFileName)
@@ -314,6 +308,9 @@ object ExternalModDownloader {
                 project.logger.log(LogLevel.LIFECYCLE, "文件已存在，跳过下载：${targetFile.absolutePath}")
                 return targetFile
             }
+            // 1. 建立连接，获取响应信息（用于提取文件名和校验）
+            val connection = createConnection(trimmedUrl)
+            connection.connect()
             // 5. 执行下载
             project.logger.log(LogLevel.LIFECYCLE, "正在下载：${targetFile.absolutePath}")
             downloadFile(connection, targetFile)
