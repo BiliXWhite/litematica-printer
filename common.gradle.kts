@@ -166,8 +166,8 @@ dependencies {
 loom {
     val commonVmArgs = listOf(
         "-Dmixin.debug.export=true",
-//        "-Dmixin.debug.countInjections=true",
-//        "-DmixinAuditor.audit=true"
+        "-Dmixin.debug.countInjections=true",
+        "-DmixinAuditor.audit=true"
     )
     val programArgs = listOf(
         "--width", "1280",
@@ -294,8 +294,7 @@ object ExternalModDownloader {
         require(trimmedUrl.isNotBlank()) { "下载链接不能为空！" }
         require(outputDir.isDirectory || outputDir.mkdirs()) { "无法创建输出目录：${outputDir.absolutePath}" }
         println()
-        project.logger.log(LogLevel.LIFECYCLE, "开始下载：$trimmedUrl")
-        project.logger.log(LogLevel.LIFECYCLE, "输出目录：${outputDir.absolutePath}")
+
         return try {
             // 2. 处理文件名（优先级：用户指定 > 响应头 > 链接提取）
             // val targetFileName = fileName ?: getFileNameFromResponse(connection) ?: extractFileNameFromUrl(trimmedUrl)
@@ -308,6 +307,8 @@ object ExternalModDownloader {
                 project.logger.log(LogLevel.LIFECYCLE, "文件已存在，跳过下载：${targetFile.absolutePath}")
                 return targetFile
             }
+            project.logger.log(LogLevel.LIFECYCLE, "开始下载：$trimmedUrl")
+            project.logger.log(LogLevel.LIFECYCLE, "输出目录：${outputDir.absolutePath}")
             // 1. 建立连接，获取响应信息（用于提取文件名和校验）
             val connection = createConnection(trimmedUrl)
             connection.connect()
