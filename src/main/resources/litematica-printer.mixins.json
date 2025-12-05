@@ -13,7 +13,7 @@
     "masa.KeyCallbackToggleBooleanConfigWithMessageMixin",
     "masa.MixinInventoryUtils",
     "masa.WorldUtilsMixin",
-    "openinv.ClientPlayNetworkHandlerMixin",
+    "openinv.MixinClientPlayNetworkHandler",
     "openinv.InventoryMixin",
     "openinv.MixinGenericContainerScreenHandler",
     "openinv.MixinLootableContainerBlockEntity",
@@ -23,7 +23,7 @@
     "openinv.PlayerListMixin"
   ],
   "client": [
-    "ClientCommonNetworkHandlerMixin",
+    "MixinClientCommonNetworkHandler",
     "MixinClientPlayerEntity",
     "MixinMultiPlayerGameMode",
     "MixinClientPlayNetworkHandler",
