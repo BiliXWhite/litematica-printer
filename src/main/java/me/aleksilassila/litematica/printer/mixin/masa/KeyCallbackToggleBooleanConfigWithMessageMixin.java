@@ -23,8 +23,11 @@ public class KeyCallbackToggleBooleanConfigWithMessageMixin extends KeyCallbackT
     @Inject(at = @At("HEAD"),method = "onKeyAction",remap = false, cancellable = true)
     public void onKeyAction(KeyAction action, IKeybind key, CallbackInfoReturnable<Boolean> cir){
         String name = config.getName();
+        //TODO: 暂时不太清楚是什么, 硬编码的？
         if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE) &&
-                (name.equals("挖掘") || name.equals("排流体") || name.equals("填充") || name.equals("破基岩"))) cir.setReturnValue(false);
+                (name.equals("挖掘") || name.equals("排流体") || name.equals("填充") || name.equals("破基岩"))) {
+            cir.setReturnValue(false);
+        }
     }
 }
 
