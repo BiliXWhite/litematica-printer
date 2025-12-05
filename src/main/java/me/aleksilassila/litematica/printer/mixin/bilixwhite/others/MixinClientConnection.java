@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Connection.class)
 public class MixinClientConnection {
-/**
+    /**
      * @author BiliXWhite
      * @reason 用于延迟检测
      */
