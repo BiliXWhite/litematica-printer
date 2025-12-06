@@ -69,27 +69,30 @@ fun RepositoryHandler.addMavenRepo(name: String, url: String, vararg groups: Str
 }
 
 repositories {
-// 1. 官方核心仓库（优先级最高，速度快、稳定性强）
-    mavenCentral() // 基础 Java 依赖（如 pinyin4j）
-    addMavenRepo("FabricMC", "https://maven.fabricmc.net", "net.fabricmc") // Fabric API、Loader 官方源
-    addMavenRepo("Masa", "https://masa.dy.fi/maven", "fi.dy.masa") // MaLiLib、Litematica 官方源（核心前置）
+    // 官方核心仓库
+    mavenCentral()
 
-    // 2. 主流模组仓库（生态内常用，依赖覆盖广）
-    addMavenRepo("Modrinth", "https://api.modrinth.com/maven", "maven.modrinth") // Modrinth 平台模组（如 Cloth Config）
-    addMavenRepo("CurseMaven", "https://www.cursemaven.com", "curse.maven") // CurseForge 模组（如 Litematica 旧版本）
-    addMavenRepo("TerraformersMC", "https://maven.terraformersmc.com/releases", "com.terraformersmc") // ModMenu 官方源
-    addMavenRepo("Nucleoid", "https://maven.nucleoid.xyz/", "eu.pb4")   // ModMenu 依赖
+    // 基础仓库
+    addMavenRepo("FabricMC", "https://maven.fabricmc.net")
+    addMavenRepo("Fallen-Breath", "https://maven.fallenbreath.me/releases")
 
-    // 3. 生态常用第三方仓库（针对性依赖，如配置库、工具库）
-    addMavenRepo("Shedaniel", "https://maven.shedaniel.me/", "me.shedaniel.cloth") // Cloth API/Config 官方源
-    addMavenRepo("XanderReleases", "https://maven.isxander.dev/releases", "dev.isxander", "org.quiltmc") // YACL 配置库
-    addMavenRepo("Jackfred", "https://maven.jackf.red/releases", "red.jackf") // JackFredLib 依赖
-    addMavenRepo("BlameJared", "https://maven.blamejared.com", "com.blamejared.searchables") // Searchables 配置库
-    addMavenRepo("Kyrptonaught", "https://maven.kyrptonaught.dev", "net.kyrptonaught") // KyrptConfig 依赖
-    addMavenRepo("CottonMC", "https://server.bbkr.space/artifactory/libs-release", "io.github.cottonmc") // LibGui 依赖
+    // 主流模组仓库
+    addMavenRepo("Modrinth", "https://api.modrinth.com/maven", "maven.modrinth")
+    addMavenRepo("CurseMaven", "https://www.cursemaven.com", "curse.maven")
 
-    // 4. 兜底仓库（最后使用，仅用于非官方/小众依赖）
-    addMavenRepo("Jitpack", "https://jitpack.io", "com.github") // 第三方 GitHub 模组（如 sakura-ryoko 分支）
+    // ModMenu 官方源
+    addMavenRepo("TerraformersMC", "https://maven.terraformersmc.com/releases")
+    addMavenRepo("Nucleoid", "https://maven.nucleoid.xyz/")   // ModMenu依赖 Text Placeholder API
+
+    addMavenRepo("Masa", "https://masa.dy.fi/maven")
+    addMavenRepo("Shedaniel", "https://maven.shedaniel.me/") // Cloth API/Config 官方源
+    addMavenRepo("XanderReleases", "https://maven.isxander.dev/releases")
+    addMavenRepo("Jackfred", "https://maven.jackf.red/releases") // JackFredLib 依赖
+    addMavenRepo("BlameJared", "https://maven.blamejared.com") // Searchables 配置库
+    addMavenRepo("Kyrptonaught", "https://maven.kyrptonaught.dev") // KyrptConfig 依赖
+    addMavenRepo("CottonMC", "https://server.bbkr.space/artifactory/libs-release") // LibGui 依赖
+
+    addMavenRepo("Jitpack", "https://jitpack.io")
     addMavenRepo("Pinyin4j", "https://mvnrepository.com/artifact/com.belerweb/pinyin4j", "com.belerweb")// 拼音库
 }
 
@@ -111,9 +114,7 @@ dependencies {
     modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
 
     // 拼音库（内嵌）
-    val pinyinVersion = props["pinyin_version"] as String
-    implementation("com.belerweb:pinyin4j:$pinyinVersion")
-    include("com.belerweb:pinyin4j:$pinyinVersion")
+    modImplementation("com.belerweb:pinyin4j:${props["pinyin_version"]}")
 
     // ModMenu
     modImplementation("com.terraformersmc:modmenu:${props["modmenu"]}")
@@ -172,8 +173,8 @@ dependencies {
 loom {
     val commonVmArgs = listOf(
         "-Dmixin.debug.export=true",
-        "-Dmixin.debug.countInjections=true",
-        "-DmixinAuditor.audit=true"
+//        "-Dmixin.debug.countInjections=true",
+//        "-DmixinAuditor.audit=true"
     )
     val programArgs = listOf(
         "--width", "1280",

@@ -11,8 +11,6 @@ plugins {
     id("me.fallenbreath.yamlang") version "1.5.0" apply false
 }
 
-
-
 preprocess {
     val mc11802 = createNode("1.18.2", 1_18_02, "mojang")
     val mc11904 = createNode("1.19.4", 1_19_04, "mojang")
