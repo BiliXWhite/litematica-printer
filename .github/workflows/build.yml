@@ -29,9 +29,13 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
             ./.gradle
-          key: ${{ runner.os }}-gradle  # 固定缓存键，不依赖文件哈希
+          key: ${{ runner.os }}-gradle-${{ hashFiles(
+            'gradle/wrapper/gradle-wrapper.properties',
+            '**/*.gradle*',
+            '**/gradle.properties'
+            ) }}
           restore-keys: |
-            ${{ runner.os }}-gradle
+            ${{ runner.os }}-gradle-
 
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
