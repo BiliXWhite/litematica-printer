@@ -84,9 +84,9 @@
   "litematica_printer.update.password": "下载密码：%s",
   "litematica_printer.update.recommendation": "强烈建议升级到最新版本，以修复潜在的严重问题。",
   "litematica_printer.update.repository": "代码仓库：",
-  "modmenu.summaryTranslation.litematica-printer": "Litematica的扩展模组，为1.18+的版本增加了缺失的打印机功能。",
-  "modmenu.nameTranslation.litematica-printer": "投影打印机 三改版",
-  "modmenu.descriptionTranslation.litematica-printer": "§l该版本基于宅咸鱼的版本进行修改。§r\n我也不知道在这里写什么喵~\n如果你的语言表达能力很优秀，欢迎前来github为我们贡献这里的文字！",
+  "modmenu.summaryTranslation.litematica_printer": "Litematica的扩展模组，为1.18+的版本增加了缺失的打印机功能。",
+  "modmenu.nameTranslation.litematica_printer": "投影打印机 三改版",
+  "modmenu.descriptionTranslation.litematica_printer": "§l该版本基于宅咸鱼的版本进行修改。§r\n我也不知道在这里写什么喵~\n如果你的语言表达能力很优秀，欢迎前来github为我们贡献这里的文字！",
 
 
   "litematica_printer.config.name.modeSwitch": "模式切换",
@@ -142,14 +142,14 @@
   "litematica_printer.config.comment.renderHud": "在打印机工作时显示工作模式和处理的方块（排流体与填充除外）。\n在开启§6§l延迟检测§r时也显示接收数据包间的延迟。",
 
 
-  "litematica_printer.hotkey.print": "在按着绑定按键的时候打印方块。",
-  "litematica_printer.hotkey.togglePrintingMode": "切换打印状态，开启或关闭打印机的工作状态。",
-  "litematica_printer.hotkey.syncInventory": "按下热键后会记录看向容器的物品。\n将投影选区内的同类型容器中的物品，同步至记录的容器。",
-  "litematica_printer.hotkey.printerInventory": "如果远程取物的目标是未加载的区块将会增加取物品的时间，用投影选区后按下热键\n打印机工作时将会使用该库存内的物品\n建议库存区域内放置假人来常加载区块",
-  "litematica_printer.hotkey.removePrintInventory": "清空打印机库存",
-  "litematica_printer.hotkey.last": "切换到上一个箱子",
-  "litematica_printer.hotkey.next": "切换到下一个箱子",
-  "litematica_printer.hotkey.delete": "删除当前容器",
+  "litematica_printer.config.comment.print": "在按着绑定按键的时候打印方块。",
+  "litematica_printer.config.comment.togglePrintingMode": "切换打印状态，开启或关闭打印机的工作状态。",
+  "litematica_printer.config.comment.syncInventory": "按下热键后会记录看向容器的物品。\n将投影选区内的同类型容器中的物品，同步至记录的容器。",
+  "litematica_printer.config.comment.printerInventory": "如果远程取物的目标是未加载的区块将会增加取物品的时间，用投影选区后按下热键\n打印机工作时将会使用该库存内的物品\n建议库存区域内放置假人来常加载区块",
+  "litematica_printer.config.comment.removePrintInventory": "清空打印机库存",
+  "litematica_printer.config.comment.last": "切换到上一个箱子",
+  "litematica_printer.config.comment.next": "切换到下一个箱子",
+  "litematica_printer.config.comment.delete": "删除当前容器",
 
   "litematica_printer.config.name.print": "打印热键",
   "litematica_printer.config.name.togglePrintingMode": "切换打印状态热键",
@@ -181,5 +181,25 @@
 
   "litematica_printer.message.toggled": "已切换 %s 为 %s",
   "litematica_printer.message.value.off": "关闭",
-  "litematica_printer.message.value.on": "开启"
+  "litematica_printer.message.value.on": "开启",
+
+
+  "litematica_printer.config.list.printMode.printer": "打印",
+  "litematica_printer.config.list.printMode.mine": "挖掘",
+  "litematica_printer.config.list.printMode.fluid": "流体",
+  "litematica_printer.config.list.printMode.fill": "填充",
+  "litematica_printer.config.list.printMode.bedrock": "破基岩",
+
+  "litematica_printer.config.list.excavateListMode.tweakeroo": "Tweakeroo预设",
+  "litematica_printer.config.list.excavateListMode.custom": "自定义",
+
+  "litematica_printer.config.list.modeType.multi": "多模",
+  "litematica_printer.config.list.modeType.single": "单模",
+
+  "litematica_printer.config.list.iterationOrder.xyz": "X→Y→Z",
+  "litematica_printer.config.list.iterationOrder.xzy": "X→Z→Y",
+  "litematica_printer.config.list.iterationOrder.yxz": "Y→X→Z",
+  "litematica_printer.config.list.iterationOrder.yzx": "Y→Z→X",
+  "litematica_printer.config.list.iterationOrder.zxy": "Z→X→Y",
+  "litematica_printer.config.list.iterationOrder.zyx": "Z→Y→X"
 }

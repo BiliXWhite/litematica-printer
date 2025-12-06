@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.bilixwhite.visuals;
 
-import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
@@ -24,7 +24,7 @@ import net.minecraft.client.DeltaTracker;
 
 import java.awt.*;
 
-import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.MODE_SWITCH;
+import static me.aleksilassila.litematica.printer.InitHandler.MODE_SWITCH;
 
 @Mixin(Gui.class)
 public abstract class MixinGui {
@@ -43,8 +43,8 @@ public abstract class MixinGui {
         float height = mc.getWindow().getGuiScaledHeight();
         if (mc.player != null) {
             // 检查玩家是否是观察者模式
-            if (!mc.player.isSpectator() && LitematicaPrinterMod.PRINT_SWITCH.getBooleanValue() && !PrinterUtils.isBedrockMode()) {
-                if (LitematicaPrinterMod.RENDER_HUD.getBooleanValue()) {
+            if (!mc.player.isSpectator() && InitHandler.PRINT_SWITCH.getBooleanValue() && !PrinterUtils.isBedrockMode()) {
+                if (InitHandler.RENDER_HUD.getBooleanValue()) {
                     //#if MC <= 11904
                     //$$ StringUtils.initMatrix(poseStack);
                     //#else
@@ -58,7 +58,7 @@ public abstract class MixinGui {
 //                        StringUtils.drawText("实际液体: " + Printer.currentState.getFluidState().getBlockState().getBlock().getName().getString() + " " + Printer.currentState.getFluidState().getBlockState().getBlock().toString(), 50, 77, Color.ORANGE.getRGB(), true);
 //                    }
 
-                    if (LitematicaPrinterMod.LAG_CHECK.getBooleanValue()) {
+                    if (InitHandler.LAG_CHECK.getBooleanValue()) {
                         StringUtils.drawString(Printer.packetTick + "Tick", (int) (width / 2), (int) (height / 2 - 22), new Color(255, 255, 255, 255).getRGB(), true, true);
                     }
                     if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE) ) {
@@ -71,7 +71,7 @@ public abstract class MixinGui {
                         //$$ GuiComponent.fill(poseStack, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getPrinter().getProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
                         //#endif
                     }
-                    StringUtils.drawString(LitematicaPrinterMod.PRINTER_MODE.getOptionListValue().getDisplayName(), (int) (width / 2), (int) (height / 2 + 52), new Color(255, 255, 255, 255).getRGB(), true, true);
+                    StringUtils.drawString(InitHandler.PRINTER_MODE.getOptionListValue().getDisplayName(), (int) (width / 2), (int) (height / 2 + 52), new Color(255, 255, 255, 255).getRGB(), true, true);
 
                     if (Printer.requiredState != null)
                         StringUtils.drawString(Printer.requiredState.getBlock().getName().getString(), (int) (width / 2), (int) (height / 2 + 64), new Color(255, 255, 255, 255).getRGB(), true, true);

@@ -25,8 +25,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.CLOUD_INVENTORY;
-import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.QUICK_SHULKER;
+import static me.aleksilassila.litematica.printer.InitHandler.CLOUD_INVENTORY;
+import static me.aleksilassila.litematica.printer.InitHandler.QUICK_SHULKER;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList;
 

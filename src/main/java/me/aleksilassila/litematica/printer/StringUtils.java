@@ -6,7 +6,7 @@ import java.util.StringJoiner;
 
 public class StringUtils {
 
-    public static Component EMPTY = literal("");
+    public final static Component EMPTY = literal("");
 
     public static Component translatable(String key) {
         //#if MC > 11802

@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 
+import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
@@ -23,8 +24,8 @@ public class MixinClientPlayerEntity {
     @Inject(at = @At("HEAD"), method = "clientSideCloseContainer")
     public void closeScreen(CallbackInfo ci) {
         BlockPos pos = MemoryUtils.getLatestPos();
-        if(Statistics.loadChestTracker && LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() &&
-                (LitematicaPrinterMod.PRINT_SWITCH.getBooleanValue() || LitematicaPrinterMod.PRINT.getKeybind().isPressed() || printerMemoryAdding || syncPrinterInventory) &&(
+        if(Statistics.loadChestTracker && InitHandler.CLOUD_INVENTORY.getBooleanValue() &&
+                (InitHandler.PRINT_SWITCH.getBooleanValue() || InitHandler.PRINT.getKeybind().isPressed() || printerMemoryAdding || syncPrinterInventory) &&(
                 pos != null || MemoryUtils.getMemoryPos() != null)){
             if(!minecraft.player.containerMenu.equals(minecraft.player.inventoryMenu)){
                 MemoryUtils.handleItemsFromScreen(minecraft.player.containerMenu);

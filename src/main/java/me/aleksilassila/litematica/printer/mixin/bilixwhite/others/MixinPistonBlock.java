@@ -13,7 +13,7 @@ public class MixinPistonBlock {
     private BlockState fixStateForPlacement(BlockState blockState) {
         if (Printer.pistonNeedFix) {
             Printer.pistonNeedFix = false;
-            //TODO: check if this is correct
+            //TODO: 检查这是否正确
             if (Printer.requiredState.getBlock() instanceof PistonBaseBlock) {
                 blockState = Printer.requiredState.setValue(PistonBaseBlock.EXTENDED, false);
             }

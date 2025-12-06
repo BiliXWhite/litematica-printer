@@ -69,22 +69,31 @@ fun RepositoryHandler.addMavenRepo(name: String, url: String, vararg groups: Str
 }
 
 repositories {
-    // 常用 Fabric 生态仓库
-    addMavenRepo("FabricMC", "https://maven.fabricmc.net", "net.fabricmc")
-    addMavenRepo("CurseMaven", "https://www.cursemaven.com", "curse.maven")
+    // 官方核心仓库
+    mavenCentral()
+
+    // 基础仓库
+    addMavenRepo("FabricMC", "https://maven.fabricmc.net")
+    addMavenRepo("Fallen-Breath", "https://maven.fallenbreath.me/releases")
+
+    // 主流模组仓库
     addMavenRepo("Modrinth", "https://api.modrinth.com/maven", "maven.modrinth")
-    addMavenRepo("TerraformersMC", "https://maven.terraformersmc.com/releases", "com.terraformersmc")
-    addMavenRepo("Masa", "https://masa.dy.fi/maven", "fi.dy.masa")
-    addMavenRepo("Nucleoid", "https://maven.nucleoid.xyz/", "eu.pb4")
-    addMavenRepo("Shedaniel", "https://maven.shedaniel.me/", "me.shedaniel.cloth")
-    addMavenRepo("CottonMC", "https://server.bbkr.space/artifactory/libs-release", "io.github.cottonmc")
-    addMavenRepo("BlameJared", "https://maven.blamejared.com", "com.blamejared.searchables")
-    addMavenRepo("Pinyin4j", "https://mvnrepository.com/artifact/com.belerweb/pinyin4j", "com.belerweb")
-    addMavenRepo("XanderReleases", "https://maven.isxander.dev/releases", "dev.isxander", "org.quiltmc")
-    addMavenRepo("XanderSnapshots", "https://maven.isxander.dev/snapshots", "dev.isxander", "org.quiltmc")
-    addMavenRepo("Kyrptonaught", "https://maven.kyrptonaught.dev", "net.kyrptonaught")
-    addMavenRepo("Jackfred", "https://maven.jackf.red/releases", "red.jackf")
-    addMavenRepo("Jitpack", "https://jitpack.io", "com.github")
+    addMavenRepo("CurseMaven", "https://www.cursemaven.com", "curse.maven")
+
+    // ModMenu 官方源
+    addMavenRepo("TerraformersMC", "https://maven.terraformersmc.com/releases")
+    addMavenRepo("Nucleoid", "https://maven.nucleoid.xyz/")   // ModMenu依赖 Text Placeholder API
+
+    addMavenRepo("Masa", "https://masa.dy.fi/maven")
+    addMavenRepo("Shedaniel", "https://maven.shedaniel.me/") // Cloth API/Config 官方源
+    addMavenRepo("XanderReleases", "https://maven.isxander.dev/releases")
+    addMavenRepo("Jackfred", "https://maven.jackf.red/releases") // JackFredLib 依赖
+    addMavenRepo("BlameJared", "https://maven.blamejared.com") // Searchables 配置库
+    addMavenRepo("Kyrptonaught", "https://maven.kyrptonaught.dev") // KyrptConfig 依赖
+    addMavenRepo("CottonMC", "https://server.bbkr.space/artifactory/libs-release") // LibGui 依赖
+
+    addMavenRepo("Jitpack", "https://jitpack.io")
+    addMavenRepo("Pinyin4j", "https://mvnrepository.com/artifact/com.belerweb/pinyin4j", "com.belerweb")// 拼音库
 }
 
 // ========================== Gradle 扩展函数（方便调用） ==========================
@@ -105,9 +114,7 @@ dependencies {
     modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
 
     // 拼音库（内嵌）
-    val pinyinVersion = props["pinyin_version"] as String
-    implementation("com.belerweb:pinyin4j:$pinyinVersion")
-    include("com.belerweb:pinyin4j:$pinyinVersion")
+    modImplementation("com.belerweb:pinyin4j:${props["pinyin_version"]}")
 
     // ModMenu
     modImplementation("com.terraformersmc:modmenu:${props["modmenu"]}")
@@ -294,8 +301,7 @@ object ExternalModDownloader {
         require(trimmedUrl.isNotBlank()) { "下载链接不能为空！" }
         require(outputDir.isDirectory || outputDir.mkdirs()) { "无法创建输出目录：${outputDir.absolutePath}" }
         println()
-        project.logger.log(LogLevel.LIFECYCLE, "开始下载：$trimmedUrl")
-        project.logger.log(LogLevel.LIFECYCLE, "输出目录：${outputDir.absolutePath}")
+
         return try {
             // 2. 处理文件名（优先级：用户指定 > 响应头 > 链接提取）
             // val targetFileName = fileName ?: getFileNameFromResponse(connection) ?: extractFileNameFromUrl(trimmedUrl)
@@ -308,6 +314,8 @@ object ExternalModDownloader {
                 project.logger.log(LogLevel.LIFECYCLE, "文件已存在，跳过下载：${targetFile.absolutePath}")
                 return targetFile
             }
+            project.logger.log(LogLevel.LIFECYCLE, "开始下载：$trimmedUrl")
+            project.logger.log(LogLevel.LIFECYCLE, "输出目录：${outputDir.absolutePath}")
             // 1. 建立连接，获取响应信息（用于提取文件名和校验）
             val connection = createConnection(trimmedUrl)
             connection.connect()
