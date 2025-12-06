@@ -199,5 +199,11 @@
   "litematica_printer.config.list.iterationOrder.yxz": "Y→X→Z",
   "litematica_printer.config.list.iterationOrder.yzx": "Y→Z→X",
   "litematica_printer.config.list.iterationOrder.zxy": "Z→X→Y",
-  "litematica_printer.config.list.iterationOrder.zyx": "Z→Y→X"
+  "litematica_printer.config.list.iterationOrder.zyx": "Z→Y→X",
+
+  "litematica_printer.config.name.openScreen": "Open Settings Menu",
+  "litematica_printer.config.comment.openScreen": "Hotkey to open the printer settings menu (this interface).",
+
+  "litematica_printer.config.name.inventoryList": "Inventory Whitelist",
+  "litematica_printer.config.comment.inventoryList": "Whitelist of containers that the printer will record. Only containers in this list are tracked."
 }

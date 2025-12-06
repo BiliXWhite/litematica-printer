@@ -25,7 +25,7 @@ import static me.aleksilassila.litematica.printer.config.ConfigFactory.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
 
 public class InitHandler implements IInitializationHandler {
-
+    // @formatter:off
 
     public static final ConfigStringList FLUID_BLOCK_LIST = stringList(I18n.FLUID_BLOCK_LIST, ImmutableList.of("minecraft:sand"));
     public static final ConfigStringList FLUID_LIST = stringList(I18n.FLUID_LIST, ImmutableList.of("minecraft:water", "minecraft:lava"));
@@ -33,7 +33,6 @@ public class InitHandler implements IInitializationHandler {
     public static final ConfigStringList INVENTORY_LIST = stringList(
             I18n.INVENTORY_LIST,
             ImmutableList.of("minecraft:chest")
-//            , literal("打印机库存的白名单，只有白名单内的容器才会被记录。").getString()
     );
     public static final ConfigStringList EXCAVATE_WHITELIST = stringList(I18n.EXCAVATE_WHITELIST, ImmutableList.of(""));
     public static final ConfigStringList EXCAVATE_BLACKLIST = stringList(I18n.EXCAVATE_BLACKLIST, ImmutableList.of(""));
@@ -44,7 +43,6 @@ public class InitHandler implements IInitializationHandler {
                     "minecraft:snow", "minecraft:lava", "minecraft:water",
                     "minecraft:bubble_column", "minecraft:short_grass"
             )
-//            , literal("打印时将忽略这些错误方块，直接在该位置打印。").getString()
     );
 
     public static final ConfigOptionList ITERATOR_SHAPE     = optionList(I18n.PRINTER_ITERATOR_SHAPE    , State.RadiusShapeType.SPHERE);
@@ -58,7 +56,6 @@ public class InitHandler implements IInitializationHandler {
     public static final ConfigOptionList EXCAVATE_LIMIT     = optionList(I18n.EXCAVATE_LIMIT, UsageRestriction.ListType.NONE);
     public static final ConfigColor SYNC_INVENTORY_COLOR    = color(I18n.SYNC_INVENTORY_COLOR, "#4CFF4CE6");
 
-    // @formatter:off
 
     public static final ConfigBoolean PLACE_USE_PACKET          = bool(I18n.PRINTER_USE_PACKET              , false);
     public static final ConfigBoolean STRIP_LOGS                = bool(I18n.PRINTER_AUTO_STRIP_LOGS         , false);
@@ -110,7 +107,7 @@ public class InitHandler implements IInitializationHandler {
     public static final ConfigBooleanHotkeyed SYNC_INVENTORY_CHECK  = booleanHotkey(I18n.SYNC_INVENTORY_CHECK     ,false);
 
 
-    public static final ConfigHotkey OPEN_SCREEN = new ConfigHotkey("打开菜单", "Z,Y", "也就是你现在看到的这个界面的热键。");
+    public static final ConfigHotkey OPEN_SCREEN            = hotkey(I18n.OPEN_SCREEN, "Z,Y");
     public static final ConfigHotkey PRINT                  = hotkey(I18n.PRINT, KeybindSettings.PRESS_ALLOWEXTRA_EMPTY);
     public static final ConfigHotkey TOGGLE_PRINTING_MODE   = hotkey(I18n.TOGGLE_PRINTING_MODE, "CAPS_LOCK", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY);
     public static final ConfigHotkey CLOSE_ALL_MODE         = hotkey(I18n.CLOSE_ALL_MODE,       "LEFT_CONTROL,G");
