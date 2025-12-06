@@ -154,7 +154,10 @@ public enum I18n {
     ITERATION_ORDER_YXZ("iterationOrder.yxz"),
     ITERATION_ORDER_YZX("iterationOrder.yzx"),
     ITERATION_ORDER_ZXY("iterationOrder.zxy"),
-    ITERATION_ORDER_ZYX("iterationOrder.zyx");
+    ITERATION_ORDER_ZYX("iterationOrder.zyx"),
+
+
+    OPEN_SCREEN("openScreen");
 
 
     // @formatter:on

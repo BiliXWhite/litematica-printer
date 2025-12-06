@@ -17,10 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(ConfigBase.class)
 public abstract class MixinIConfigBase<T extends IConfigBase> implements IConfigBase, IConfigResettable, IConfigNotifiable<T>, ConfigBaseExtension {
     @Shadow
-    @Final
-    private String name;
-
-    @Shadow
     public abstract String getName();
 
     @Shadow
@@ -51,6 +47,8 @@ public abstract class MixinIConfigBase<T extends IConfigBase> implements IConfig
     public void litematica_getComment(CallbackInfoReturnable<String> cir) {
         if (litematica_printer$translateCommentKey != null && !litematica_printer$translateCommentKey.isEmpty()) {
             cir.setReturnValue(StringUtils.getTranslatedOrFallback(litematica_printer$translateCommentKey, litematica_printer$translateCommentKey));
+        } else if (litematica_printer$translateNameKey != null && !litematica_printer$translateNameKey.isEmpty()) {
+            cir.setReturnValue(StringUtils.getTranslatedOrFallback(litematica_printer$translateNameKey, litematica_printer$translateCommentKey));
         }
     }
 
