@@ -23,12 +23,12 @@ public class StringUtils {
 
     public static void info(String message) {
         Litematica.
-        //#if MC < 12103 && MC != 12101
-        //$$ logger
-        //#else
-        LOGGER
-        //#endif
-        .info("[Printer] {}", message);
+                //#if MC < 12103 && MC != 12101
+                //$$ logger
+                //#else
+                        LOGGER
+                //#endif
+                .info("[Printer] {}", message);
     }
 
 

@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.printer;
 
 import fi.dy.masa.litematica.world.WorldSchematic;
-import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
@@ -62,17 +62,17 @@ public class PlacementGuide extends PrinterUtils {
         BlockState currentState = world.getBlockState(pos);
         BlockState requiredState = worldSchematic.getBlockState(pos);
 
-        if (LitematicaPrinterMod.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && PlaceUtils.isWaterRequired(requiredState))
+        if (InitHandler.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && PlaceUtils.isWaterRequired(requiredState))
             return null;
 
-        if (LitematicaPrinterMod.PRINT_WATER.getBooleanValue() && PlaceUtils.isWaterRequired(requiredState)) {
+        if (InitHandler.PRINT_WATER.getBooleanValue() && PlaceUtils.isWaterRequired(requiredState)) {
             if (currentState.getBlock() instanceof IceBlock) {
                 BreakManager.addBlockToBreak(pos);
                 return null;
             }
             if (!PlaceUtils.isCorrectWaterLevel(requiredState, currentState)) {
                 if (!currentState.isAir() && !(currentState.getBlock() instanceof LiquidBlock)) {
-                    if (LitematicaPrinterMod.BREAK_WRONG_BLOCK.getBooleanValue()) {
+                    if (InitHandler.BREAK_WRONG_BLOCK.getBooleanValue()) {
                         BreakManager.addBlockToBreak(pos);
                     }
                     return null;
@@ -132,7 +132,7 @@ public class PlacementGuide extends PrinterUtils {
                 Action action = new Action().setSides(requiredState.getValue(RotatedPillarBlock.AXIS));
                 Item[] items = {requiredState.getBlock().asItem()};
 
-                if (LitematicaPrinterMod.STRIP_LOGS.getBooleanValue()) {
+                if (InitHandler.STRIP_LOGS.getBooleanValue()) {
                     for (Map.Entry<Block, Block> entry : STRIPPED_LOGS.entrySet()) {
                         if (requiredState.getBlock() == entry.getValue()) {
                             items = new Item[]{entry.getValue().asItem(), entry.getKey().asItem()};
@@ -306,7 +306,7 @@ public class PlacementGuide extends PrinterUtils {
                         : Direction.DOWN;
 
                 // 如果不是死亡珊瑚或不需要替换，直接返回基础Action
-                if (!LitematicaPrinterMod.REPLACE_CORAL.getBooleanValue()) {
+                if (!InitHandler.REPLACE_CORAL.getBooleanValue()) {
                     return new Action()
                             .setSides(facing)
                             .setRequiresSupport();
@@ -373,7 +373,7 @@ public class PlacementGuide extends PrinterUtils {
                 var outputBlockPos = pos.relative(facing.getOpposite());
                 BlockState outputState = worldSchematic.getBlockState(outputBlockPos);
                 BlockPos observerPosSchematic = PlaceUtils.getObserverPosition(pos, worldSchematic);
-                if (LitematicaPrinterMod.SAFELY_OBSERVER.getBooleanValue()) {
+                if (InitHandler.SAFELY_OBSERVER.getBooleanValue()) {
                     if (State.get(pos.relative(facing)) == State.CORRECT) {
                         // 如果侦测面也是侦测器，那么检查这个侦测器的侦测面是否正确
                         if (beObserveBlockState.getBlock() instanceof ObserverBlock) {
@@ -516,7 +516,7 @@ public class PlacementGuide extends PrinterUtils {
                 }
 
                 //方块型珊瑚的替换
-                if (LitematicaPrinterMod.REPLACE_CORAL.getBooleanValue() && block.getDescriptionId().endsWith("_coral_block")) {
+                if (InitHandler.REPLACE_CORAL.getBooleanValue() && block.getDescriptionId().endsWith("_coral_block")) {
                     //例子：block.minecraft.dead_tube_coral
                     String type = block.getDescriptionId().replace("block.minecraft.dead_", "").replace("_coral_block", "");
                     switch (type) {
@@ -533,7 +533,7 @@ public class PlacementGuide extends PrinterUtils {
             }
         }
         else if (state == State.WRONG_STATE) {
-            boolean printerBreakWrongStateBlock = LitematicaPrinterMod.BREAK_WRONG_STATE_BLOCK.getBooleanValue();
+            boolean printerBreakWrongStateBlock = InitHandler.BREAK_WRONG_STATE_BLOCK.getBooleanValue();
             switch (requiredType) {
                 case SLAB -> {
                     if (requiredState.getValue(SlabBlock.TYPE) == SlabType.DOUBLE) {
@@ -603,7 +603,7 @@ public class PlacementGuide extends PrinterUtils {
                     else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(pos);
                 }
                 case NOTE_BLOCK -> {
-                    if (LitematicaPrinterMod.NOTE_BLOCK_TUNING.getBooleanValue() && !Objects.equals(requiredState.getValue(NoteBlock.NOTE), currentState.getValue(NoteBlock.NOTE)))
+                    if (InitHandler.NOTE_BLOCK_TUNING.getBooleanValue() && !Objects.equals(requiredState.getValue(NoteBlock.NOTE), currentState.getValue(NoteBlock.NOTE)))
                         return new ClickAction();
                 }
                 case CAMPFIRE -> {
@@ -679,7 +679,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setSides(Direction.DOWN).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
                 }
                 case COMPOSTER -> {
-                    if (!LitematicaPrinterMod.FILL_COMPOSTER.getBooleanValue()) return null;
+                    if (!InitHandler.FILL_COMPOSTER.getBooleanValue()) return null;
                     if (currentState.getValue(ComposterBlock.LEVEL) < requiredState.getValue(ComposterBlock.LEVEL)) {
                         return new ClickAction().setItems(compostableItems);
                     }
@@ -733,7 +733,7 @@ public class PlacementGuide extends PrinterUtils {
             case CAULDRON -> {
                 if (Arrays.asList(requiredType.classes).contains(currentState.getBlock().getClass()))
                     return null;
-                else if (LitematicaPrinterMod.BREAK_WRONG_BLOCK.getBooleanValue() && BreakManager.canBreakBlock(pos))
+                else if (InitHandler.BREAK_WRONG_BLOCK.getBooleanValue() && BreakManager.canBreakBlock(pos))
                     BreakManager.addBlockToBreak(pos);
             }
 
@@ -744,12 +744,12 @@ public class PlacementGuide extends PrinterUtils {
             }
 
             default -> {
-                if (LitematicaPrinterMod.REPLACE_CORAL.getBooleanValue() && requiredState.getBlock().getDescriptionId().contains("coral")) {
+                if (InitHandler.REPLACE_CORAL.getBooleanValue() && requiredState.getBlock().getDescriptionId().contains("coral")) {
                     return null;
                 }
 
-                boolean printBreakWrongBlock = LitematicaPrinterMod.BREAK_WRONG_BLOCK.getBooleanValue();
-                boolean printerBreakExtraBlock = LitematicaPrinterMod.BREAK_EXTRA_BLOCK.getBooleanValue();
+                boolean printBreakWrongBlock = InitHandler.BREAK_WRONG_BLOCK.getBooleanValue();
+                boolean printerBreakExtraBlock = InitHandler.BREAK_EXTRA_BLOCK.getBooleanValue();
 
                 if (printBreakWrongBlock || printerBreakExtraBlock) {
                     if (BreakManager.canBreakBlock(pos)) {
@@ -995,7 +995,7 @@ public class PlacementGuide extends PrinterUtils {
                 BlockPos neighborPos = pos.relative(side);
                 BlockState neighborState = world.getBlockState(neighborPos);
 
-                if (LitematicaPrinterMod.PRINT_IN_AIR.getBooleanValue() &&
+                if (InitHandler.PRINT_IN_AIR.getBooleanValue() &&
                         !this.requiresSupport &&
                         !Implementation.isInteractive(neighborState.getBlock())
                 ) return side;
@@ -1087,7 +1087,7 @@ public class PlacementGuide extends PrinterUtils {
         public void queueAction(Printer.Queue queue, BlockPos center, Direction side, boolean useShift) {
 //            System.out.println("Queued click?: " + center.relative(side).toString() + ", side: " + side.getOpposite());
 
-            if (LitematicaPrinterMod.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport) {
+            if (InitHandler.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport) {
                 queue.queueClick(center, side.getOpposite(), getSides().get(side),
                         useShift);
             } else {

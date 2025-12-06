@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.printer.zxy.memory;
 
+import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
@@ -103,7 +104,7 @@ public abstract class MemoryUtils {
                 Block block = state.getBlock();
 //                System.out.println(state);
                 boolean k = true;
-                for (String string : LitematicaPrinterMod.INVENTORY_LIST.getStrings()) {
+                for (String string : InitHandler.INVENTORY_LIST.getStrings()) {
                     if (PreprocessUtils.getRegistries().BLOCK.getKey(block).toString().contains(string)) {
                         k = false;
                         break;

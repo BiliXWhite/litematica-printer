@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin;
 
-import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
@@ -46,9 +46,9 @@ public abstract class MixinClientPlayNetworkHandler {
             return;
         }
 
-        if (packet.getHealth() == 0 && LitematicaPrinterMod.AUTO_DISABLE_PRINTER.getBooleanValue()) {
+        if (packet.getHealth() == 0 && InitHandler.AUTO_DISABLE_PRINTER.getBooleanValue()) {
             ZxyUtils.actionBar(StringUtils.get("auto_disable_notice").getString());
-            LitematicaPrinterMod.PRINT_SWITCH.setBooleanValue(false);
+            InitHandler.PRINT_SWITCH.setBooleanValue(false);
         }
     }
 }

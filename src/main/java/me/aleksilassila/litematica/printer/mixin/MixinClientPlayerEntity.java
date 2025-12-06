@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin;
 
 import com.mojang.authlib.GameProfile;
-import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
@@ -57,7 +57,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayer {
     
     @Inject(at = @At("HEAD"), method = "resetPos")
     public void init(CallbackInfo ci) {
-        if (LitematicaPrinterMod.UPDATE_CHECK.getBooleanValue() && !Printer.updateChecked)
+        if (InitHandler.UPDATE_CHECK.getBooleanValue() && !Printer.updateChecked)
             CompletableFuture.runAsync(this::checkForUpdates);
         Printer.updateChecked = true;
     }
@@ -75,7 +75,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayer {
         Printer printer = Printer.getPrinter();
         ZxyUtils.tick();
         printer.tick();
-        if (!(LitematicaPrinterMod.PRINT_SWITCH.getBooleanValue() || LitematicaPrinterMod.PRINT.getKeybind().isPressed())) {
+        if (!(InitHandler.PRINT_SWITCH.getBooleanValue() || InitHandler.PRINT.getKeybind().isPressed())) {
             return;
         }
         BreakManager.instance().onTick();

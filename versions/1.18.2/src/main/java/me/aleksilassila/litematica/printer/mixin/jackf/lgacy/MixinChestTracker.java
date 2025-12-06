@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 
+import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import net.minecraft.core.Registry;
@@ -20,7 +21,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInve
 public class MixinChestTracker {
     @Inject(at = @At("TAIL"),method = "searchForItem")
     private static void searchForItem(ItemStack stack, CallbackInfo ci) {
-        if(!LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() || key != null) return;
+        if(!InitHandler.CLOUD_INVENTORY.getBooleanValue() || key != null) return;
         MemoryDatabase database = MemoryDatabase.getCurrent();
         if (database != null) {
             int num = 0;

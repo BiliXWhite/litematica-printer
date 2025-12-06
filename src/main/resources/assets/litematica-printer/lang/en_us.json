@@ -84,9 +84,9 @@
   "litematica_printer.update.password": "Password: %s",
   "litematica_printer.update.recommendation": "It is strongly recommended to upgrade to the latest version to fix potential issues.",
   "litematica_printer.update.repository": "Repository:",
-  "modmenu.summaryTranslation.litematica-printer": "An extension mod for Litematica, adding missing printer functionality for versions 1.18+.",
-  "modmenu.nameTranslation.litematica-printer": "Projection Printer White's Version",
-  "modmenu.descriptionTranslation.litematica-printer": "§lThis version is based on the modification by ZhaiXianYu. §r\nI'm not sure what to write here :P\nIf you have excellent language skills, we're welcome to contribute this on GitHub!",
+  "modmenu.summaryTranslation.litematica_printer": "An extension mod for Litematica, adding missing printer functionality for versions 1.18+.",
+  "modmenu.nameTranslation.litematica_printer": "Projection Printer White's Version",
+  "modmenu.descriptionTranslation.litematica_printer": "§lThis version is based on the modification by ZhaiXianYu. §r\nI'm not sure what to write here :P\nIf you have excellent language skills, we're welcome to contribute this on GitHub!",
 
 
   "litematica_printer.config.name.modeSwitch": "Mode Switch",
@@ -140,14 +140,14 @@
   "litematica_printer.config.comment.replaceCoral": "Replace dead coral with live coral if dead coral is unavailable. Prioritizes dead coral if both are present.",
   "litematica_printer.config.comment.renderHud": "Show working mode and processed blocks (excludes fluids/fill) while printing.\nShows packet delay if §6§lLag Check§r is enabled.",
 
-  "litematica_printer.hotkey.print": "Print blocks while holding the bound key.",
-  "litematica_printer.hotkey.togglePrintingMode": "Toggle printer state (on/off).",
-  "litematica_printer.hotkey.syncInventory": "Record items in the targeted container when pressed.\nSync items from same-type containers in the schematic to the recorded container.",
-  "litematica_printer.hotkey.printerInventory": "Increases item retrieval time if target is unloaded. Use schematic selection then press to set.\nPrinter will use items from this inventory.\nRecommended to place a dummy to keep the chunk loaded.",
-  "litematica_printer.hotkey.removePrintInventory": "Clear printer inventory.",
-  "litematica_printer.hotkey.last": "Switch to previous chest",
-  "litematica_printer.hotkey.next": "Switch to next chest",
-  "litematica_printer.hotkey.delete": "Delete current container",
+  "litematica_printer.config.comment.print": "Print blocks while holding the bound key.",
+  "litematica_printer.config.comment.togglePrintingMode": "Toggle printer state (on/off).",
+  "litematica_printer.config.comment.syncInventory": "Record items in the targeted container when pressed.\nSync items from same-type containers in the schematic to the recorded container.",
+  "litematica_printer.config.comment.printerInventory": "Increases item retrieval time if target is unloaded. Use schematic selection then press to set.\nPrinter will use items from this inventory.\nRecommended to place a dummy to keep the chunk loaded.",
+  "litematica_printer.config.comment.removePrintInventory": "Clear printer inventory.",
+  "litematica_printer.config.comment.last": "Switch to previous chest",
+  "litematica_printer.config.comment.next": "Switch to next chest",
+  "litematica_printer.config.comment.delete": "Delete current container",
 
   "litematica_printer.config.name.print": "Print Hotkey",
   "litematica_printer.config.name.togglePrintingMode": "Toggle Printing State Hotkey",
@@ -179,5 +179,25 @@
 
   "litematica_printer.message.toggled": "Toggled %s %s",
   "litematica_printer.message.value.off": "OFF",
-  "litematica_printer.message.value.on": "ON"
+  "litematica_printer.message.value.on": "ON",
+
+
+  "litematica_printer.config.list.printMode.printer": "Printer",
+  "litematica_printer.config.list.printMode.mine": "Mine",
+  "litematica_printer.config.list.printMode.fluid": "Fluid",
+  "litematica_printer.config.list.printMode.fill": "Fill",
+  "litematica_printer.config.list.printMode.bedrock": "Break Bedrock",
+
+  "litematica_printer.config.list.excavateListMode.tweakeroo": "Tweakeroo Preset",
+  "litematica_printer.config.list.excavateListMode.custom": "Custom",
+
+  "litematica_printer.config.list.modeType.multi": "Multi Mode",
+  "litematica_printer.config.list.modeType.single": "Single Mode",
+
+  "litematica_printer.config.list.iterationOrder.xyz": "X→Y→Z",
+  "litematica_printer.config.list.iterationOrder.xzy": "X→Z→Y",
+  "litematica_printer.config.list.iterationOrder.yxz": "Y→X→Z",
+  "litematica_printer.config.list.iterationOrder.yzx": "Y→Z→X",
+  "litematica_printer.config.list.iterationOrder.zxy": "Z→X→Y",
+  "litematica_printer.config.list.iterationOrder.zyx": "Z→Y→X"
 }

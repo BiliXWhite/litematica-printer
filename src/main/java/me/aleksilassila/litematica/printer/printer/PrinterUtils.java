@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.printer;
 
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
-import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import net.minecraft.world.entity.player.Inventory;
@@ -27,8 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.MODE_SWITCH;
-import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.PRINTER_MODE;
+import static me.aleksilassila.litematica.printer.InitHandler.MODE_SWITCH;
+import static me.aleksilassila.litematica.printer.InitHandler.PRINTER_MODE;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList;
 
 //#if MC < 11900
@@ -120,7 +120,7 @@ public class PrinterUtils {
     }
 
     static boolean isLimitedByTheNumberOfLayers(BlockPos pos) {
-        return LitematicaPrinterMod.RENDER_LAYER_LIMIT.getBooleanValue() && !DataManager.getRenderLayerRange().isPositionWithinRange(pos);
+        return InitHandler.RENDER_LAYER_LIMIT.getBooleanValue() && !DataManager.getRenderLayerRange().isPositionWithinRange(pos);
     }
 
     /**
@@ -151,21 +151,21 @@ public class PrinterUtils {
     }
 
     public static boolean isMineMode() {
-        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && LitematicaPrinterMod.MINE.getBooleanValue())
+        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && InitHandler.MINE.getBooleanValue())
                 || PRINTER_MODE.getOptionListValue() == State.PrintModeType.MINE;
     }
 
     public static boolean isFillMode() {
-        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && LitematicaPrinterMod.FILL.getBooleanValue())
+        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && InitHandler.FILL.getBooleanValue())
                 || PRINTER_MODE.getOptionListValue() == State.PrintModeType.FILL;
     }
     public static boolean isFluidMode() {
-        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && LitematicaPrinterMod.FLUID.getBooleanValue())
+        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && InitHandler.FLUID.getBooleanValue())
                 || PRINTER_MODE.getOptionListValue() == State.PrintModeType.FLUID;
     }
 
     public static boolean isBedrockMode() {
-        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && LitematicaPrinterMod.BEDROCK.getBooleanValue())
+        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && InitHandler.BEDROCK.getBooleanValue())
                 || PRINTER_MODE.getOptionListValue() == State.PrintModeType.BEDROCK;
     }
 }
