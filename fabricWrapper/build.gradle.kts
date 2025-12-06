@@ -27,8 +27,16 @@ val time = SimpleDateFormat("yyMMdd")
     .format(Date())
     .toString()
 
+var fullProjectVersion: String;
+val buildNumber = System.getenv("GITHUB_RUN_NUMBER")
+if (buildNumber != null) {
+    fullProjectVersion = "$modVersion+$time+build.$buildNumber"
+} else {
+    fullProjectVersion = "$modVersion+$time"
+}
+
 group = modMavenGroup
-version = "$modVersion+$time"
+version = fullProjectVersion
 
 base {
     archivesName.set("$modArchivesBaseName-versionpack")
@@ -182,6 +190,7 @@ java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
+
 
 // 发布配置
 publishing {
