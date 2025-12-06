@@ -22,7 +22,7 @@ jobs:
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
       - name: build fabricWrapper subproject
-        run: ./gradlew :fabricWrapper:build
+        run: ./gradlew :fabricWrapper:build --stacktrace
       - name: capture build artifacts
         uses: actions/upload-artifact@v4
         with:
