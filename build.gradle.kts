@@ -53,7 +53,7 @@ tasks.register("cleanPreprocessSources") {
 }
 
 fun detectSystemProxy(): Any {
-    // 优先尝试通过 netsh winhttp show advproxy 获取 WinHTTP 代理
+    // Try to get WinHTTP proxy using 'netsh winhttp show advproxy' on Windows
     if (System.getProperty("os.name").lowercase().contains("windows")) {
         try {
             val proc = Runtime.getRuntime().exec(arrayOf("cmd", "/c", "netsh winhttp show advproxy"))
@@ -65,7 +65,7 @@ fun detectSystemProxy(): Any {
                     return "disabled"
                 }
             } else {
-                println("[系统代理检测]未检测到 ProxyIsEnabled 字段。")
+                println("ProxyIsEnabled field not detected.")
                 return false
             }
             val matcher = """"Proxy":\s*"([^"]+)"""".toRegex().find(output)
@@ -78,18 +78,43 @@ fun detectSystemProxy(): Any {
                 }
             }
         } catch (e: Exception) {
-            println("[系统代理检测]WinHTTP 代理检测失败: ${e.message}")
+            println("WinHTTP proxy detection failed: ${e.message}")
             return false
         }
     }
+
+    // Try to get system proxy settings on Unix-like systems (Linux and macOS)
+    if (System.getProperty("os.name").lowercase().contains("linux") || System.getProperty("os.name").lowercase()
+            .contains("mac")
+    ) {
+        try {
+            val env = System.getenv()
+            val httpProxy = env["http_proxy"] ?: env["HTTP_PROXY"]
+            val httpsProxy = env["https_proxy"] ?: env["HTTPS_PROXY"]
+
+            if (httpProxy != null || httpsProxy != null) {
+                var proxy = (httpProxy ?: httpsProxy)!!
+                if (proxy.contains(":")) {
+                    proxy = proxy.replaceFirst("""https?://""".toRegex(), "")
+                    val (host, port) = proxy.split(":", limit = 2)
+                    return mapOf("host" to host, "port" to port.toInt())
+                }
+            }
+        } catch (e: Exception) {
+            println("Unix-like system proxy detection failed: ${e.message}")
+            return false
+        }
+    }
+
     return false
 }
 
 val proxy = detectSystemProxy()
 when {
     proxy == "disabled" -> {
-        println("[系统代理检测]系统代理已禁用。")
+        println("System proxy is disabled.")
     }
+
     proxy is Map<*, *> -> {
         val proxyHost = proxy["host"] as String
         val proxyPort = proxy["port"] as Int
@@ -97,9 +122,10 @@ when {
         System.setProperty("http.proxyPort", proxyPort.toString())
         System.setProperty("https.proxyHost", proxyHost)
         System.setProperty("https.proxyPort", proxyPort.toString())
-        println("[系统代理检测]发现系统代理: $proxyHost:$proxyPort")
+        println("Detected system proxy: $proxyHost:$proxyPort")
     }
+
     else -> {
-        println("[系统代理检测]未检测到系统代理。")
+        println("No system proxy detected.")
     }
 }
