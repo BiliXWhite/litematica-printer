@@ -3,7 +3,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
-import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
@@ -44,8 +44,8 @@ import java.util.*;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //#endif
 
-import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.SYNC_INVENTORY_CHECK;
-import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.SYNC_INVENTORY_COLOR;
+import static me.aleksilassila.litematica.printer.InitHandler.SYNC_INVENTORY_CHECK;
+import static me.aleksilassila.litematica.printer.InitHandler.SYNC_INVENTORY_COLOR;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
 import static net.minecraft.world.level.block.ShulkerBoxBlock.FACING;
@@ -68,13 +68,13 @@ public class ZxyUtils {
     private static int sequence = 0;
     public static void startAddPrinterInventory(){
         getReadyColor();
-        if (LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() && !printerMemoryAdding) {
+        if (InitHandler.CLOUD_INVENTORY.getBooleanValue() && !printerMemoryAdding) {
             printerMemoryAdding = true;
             //#if MC >= 12001 && MC <= 12104
             //$$ if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
             //#endif
 
-            for (String string : LitematicaPrinterMod.INVENTORY_LIST.getStrings()) {
+            for (String string : InitHandler.INVENTORY_LIST.getStrings()) {
                 invBlockList.addAll(filterBlocksByName(string).stream().filter(InventoryUtils::canOpenInv).toList());
             }
             highlightPosList.addAll(invBlockList);
@@ -169,7 +169,7 @@ public class ZxyUtils {
         }
     }
     public static boolean openInv(BlockPos pos,boolean ignoreThePrompt){
-        if(LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() && OpenInventoryPacket.key == null) {
+        if(InitHandler.CLOUD_INVENTORY.getBooleanValue() && OpenInventoryPacket.key == null) {
             OpenInventoryPacket.sendOpenInventory(pos, client.level.dimension());
             return true;
         } else {
@@ -210,7 +210,7 @@ public class ZxyUtils {
                 //按下热键后记录看向的容器 开始同步容器 只会触发一次
                 targetBlockInv = new ArrayList<>();
                 targetItemsCount = new HashMap<>();
-                if (client.player != null && (!LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() || openIng) && !client.player.containerMenu.equals(client.player.inventoryMenu)) {
+                if (client.player != null && (!InitHandler.CLOUD_INVENTORY.getBooleanValue() || openIng) && !client.player.containerMenu.equals(client.player.inventoryMenu)) {
                     for (int i = 0; i < client.player.containerMenu.slots.get(0).container.getContainerSize(); i++) {
                         ItemStack copy = client.player.containerMenu.slots.get(i).getItem().copy();
                         itemsCount(targetItemsCount,copy);
@@ -237,7 +237,7 @@ public class ZxyUtils {
                                 .anyMatch(player ->
                                         ItemStack.isSameItemSameComponents(player.getKey(), target.getKey()) && target.getValue() <= player.getValue()))) return;
 
-                if ((!LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
+                if ((!InitHandler.CLOUD_INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
                     for (BlockPos pos : syncPosList) {
                         if (!openInv(pos,true)) continue;
                         closeScreen++;
@@ -315,11 +315,11 @@ public class ZxyUtils {
         }
         addInv();
 
-        if (LitematicaPrinterMod.CLOSE_ALL_MODE.getKeybind().isPressed()) {
-            LitematicaPrinterMod.MINE.setBooleanValue(false);
-            LitematicaPrinterMod.FLUID.setBooleanValue(false);
-            LitematicaPrinterMod.PRINT_SWITCH.setBooleanValue(false);
-            LitematicaPrinterMod.PRINTER_MODE.setOptionListValue(State.PrintModeType.PRINTER);
+        if (InitHandler.CLOSE_ALL_MODE.getKeybind().isPressed()) {
+            InitHandler.MINE.setBooleanValue(false);
+            InitHandler.FLUID.setBooleanValue(false);
+            InitHandler.PRINT_SWITCH.setBooleanValue(false);
+            InitHandler.PRINTER_MODE.setOptionListValue(State.PrintModeType.PRINTER);
             client.gui.setOverlayMessage(Component.nullToEmpty("已关闭全部模式"), false);
         }
         OpenInventoryPacket.tick();

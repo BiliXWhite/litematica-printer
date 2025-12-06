@@ -8,13 +8,14 @@ import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.util.JsonUtils;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.config.hotkeys.HotkeysCallback;
 import me.aleksilassila.litematica.printer.printer.State;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.*;
+import static me.aleksilassila.litematica.printer.InitHandler.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
 
 public class Configs implements IConfigHandler {
@@ -149,7 +150,7 @@ public class Configs implements IConfigHandler {
         list.add(SWITCH_PRINTER_MODE);
 
 
-		if(loadChestTracker){
+        if(loadChestTracker){
             list.add(PRINTER_INVENTORY);
             list.add(REMOVE_PRINT_INVENTORY);
             //#if MC >= 12001
@@ -190,7 +191,7 @@ public class Configs implements IConfigHandler {
             JsonElement jsonElement = JsonUtils.parseJsonFile(settingFile);
             if (jsonElement != null && jsonElement.isJsonObject()) {
                 JsonObject obj = jsonElement.getAsJsonObject();
-                ConfigUtils.readConfigBase(obj, MOD_ID, addAllConfigs());
+                ConfigUtils.readConfigBase(obj, LitematicaPrinterMod.MOD_ID, addAllConfigs());
             }
         }
     }
@@ -199,14 +200,14 @@ public class Configs implements IConfigHandler {
     public void save() {
         if ((CONFIG_DIR.exists() && CONFIG_DIR.isDirectory()) || CONFIG_DIR.mkdirs()) {
             JsonObject configRoot = new JsonObject();
-            ConfigUtils.writeConfigBase(configRoot, MOD_ID, addAllConfigs());
+            ConfigUtils.writeConfigBase(configRoot, LitematicaPrinterMod.MOD_ID, addAllConfigs());
             JsonUtils.writeJsonToFile(configRoot, new File(FILE_PATH));
         }
     }
 
     public static void init(){
         Configs.INSTANCE.load();
-        ConfigManager.getInstance().registerConfigHandler(MOD_ID, Configs.INSTANCE);
+        ConfigManager.getInstance().registerConfigHandler(LitematicaPrinterMod.MOD_ID, Configs.INSTANCE);
 
         InputEventHandler.getKeybindManager().registerKeybindProvider(InputHandler.getInstance());
         InputEventHandler.getInputManager().registerKeyboardInputHandler(InputHandler.getInstance());

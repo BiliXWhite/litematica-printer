@@ -8,7 +8,7 @@ import fi.dy.masa.malilib.util.InfoUtils;
 import fi.dy.masa.malilib.util.InventoryUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.State;
 import net.minecraft.client.Minecraft;
@@ -80,7 +80,7 @@ public class PlaceUtils {
     }
 
     public static Direction getFillModeFacing() {
-        return switch (LitematicaPrinterMod.FILL_BLOCK_FACING.getOptionListValue().getStringValue()) {
+        return switch (InitHandler.FILL_BLOCK_FACING.getOptionListValue().getStringValue()) {
             case "down" -> Direction.DOWN;
             case "east" -> Direction.EAST;
             case "south" -> Direction.SOUTH;
@@ -92,8 +92,8 @@ public class PlaceUtils {
 
 
     public static boolean canInteracted(BlockPos blockPos) {
-        var range = LitematicaPrinterMod.PRINTER_RANGE.getIntegerValue();
-        return switch (LitematicaPrinterMod.ITERATOR_SHAPE.getOptionListValue().getStringValue()) {
+        var range = InitHandler.PRINTER_RANGE.getIntegerValue();
+        return switch (InitHandler.ITERATOR_SHAPE.getOptionListValue().getStringValue()) {
             case "sphere" -> canInteractedEuclidean(blockPos, range);
             case "octahedron" -> canInteractedManhattan(blockPos, range);
             default -> true;
@@ -185,7 +185,7 @@ public class PlaceUtils {
     }
 
     public static void setHotbarSlot(int slot, Inventory inventory) {
-        boolean usePacket = LitematicaPrinterMod.PLACE_USE_PACKET.getBooleanValue();
+        boolean usePacket = InitHandler.PLACE_USE_PACKET.getBooleanValue();
         if (usePacket) {
             client.getConnection().send(new ServerboundSetCarriedItemPacket(slot));
         }
@@ -254,7 +254,7 @@ public class PlaceUtils {
 
         if (slot != -1) {
             int currentHotbarSlot = PreprocessUtils.getSelectedSlot(player.getInventory());
-            if (LitematicaPrinterMod.PLACE_USE_PACKET.getBooleanValue()) {
+            if (InitHandler.PLACE_USE_PACKET.getBooleanValue()) {
                 NonNullList<Slot> slots = player.inventoryMenu.slots;
                 int totalSlots = slots.size();
                 List<ItemStack> copies = Lists.newArrayListWithCapacity(totalSlots);

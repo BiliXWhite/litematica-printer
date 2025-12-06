@@ -23,8 +23,8 @@ import java.util.Set;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
 import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
-import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.*;
-import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.EXCAVATE_WHITELIST;
+import static me.aleksilassila.litematica.printer.InitHandler.*;
+import static me.aleksilassila.litematica.printer.InitHandler.EXCAVATE_WHITELIST;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
 
 public class BreakManager {

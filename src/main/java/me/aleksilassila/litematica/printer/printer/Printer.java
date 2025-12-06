@@ -8,7 +8,7 @@ import fi.dy.masa.litematica.util.EasyPlaceProtocol;
 import fi.dy.masa.litematica.util.PlacementHandler;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
-import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
@@ -47,7 +47,7 @@ import java.util.*;
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static fi.dy.masa.litematica.util.WorldUtils.applyCarpetProtocolHitVec;
 import static fi.dy.masa.litematica.util.WorldUtils.applyPlacementProtocolV3;
-import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.*;
+import static me.aleksilassila.litematica.printer.InitHandler.*;
 import static me.aleksilassila.litematica.printer.printer.State.PrintModeType.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.*;
@@ -335,7 +335,7 @@ public class Printer extends PrinterUtils {
 
         //从这里才算作开始
         tickStartTime = System.currentTimeMillis();
-        tickEndTime = tickStartTime + LitematicaPrinterMod.ITERATOR_USE_TIME.getIntegerValue();
+        tickEndTime = tickStartTime + InitHandler.ITERATOR_USE_TIME.getIntegerValue();
 
         // 优先执行队列中的点击操作
         if (tickRate != 0) {
@@ -358,20 +358,20 @@ public class Printer extends PrinterUtils {
 
         if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)) {
             boolean multiBreakBooleanValue = MULTI_BREAK.getBooleanValue();
-            if (LitematicaPrinterMod.MINE.getBooleanValue()) {
+            if (InitHandler.MINE.getBooleanValue()) {
                 printerYAxisReverse = true;
                 mineMode();
                 if (multiBreakBooleanValue) return;
             }
-            if (LitematicaPrinterMod.FLUID.getBooleanValue()) {
+            if (InitHandler.FLUID.getBooleanValue()) {
                 fluidMode();
                 if (multiBreakBooleanValue) return;
             }
-            if (LitematicaPrinterMod.FILL.getBooleanValue()) {
+            if (InitHandler.FILL.getBooleanValue()) {
                 fillMode();
                 if (multiBreakBooleanValue) return;
             }
-            if (LitematicaPrinterMod.BEDROCK.getBooleanValue()) {
+            if (InitHandler.BEDROCK.getBooleanValue()) {
                 printerYAxisReverse = true;
                 bedrockMode();
                 if (multiBreakBooleanValue) return;
@@ -422,7 +422,7 @@ public class Printer extends PrinterUtils {
             PlacementGuide.Action action = guide.getAction(world, schematic, pos);
             if (action == null) continue;
 
-            if (LitematicaPrinterMod.FALLING_CHECK.getBooleanValue() && requiredState.getBlock() instanceof FallingBlock) {
+            if (InitHandler.FALLING_CHECK.getBooleanValue() && requiredState.getBlock() instanceof FallingBlock) {
                 //检查方块下面方块是否正确，否则跳过放置
                 BlockPos downPos = pos.below();
                 if (world.getBlockState(downPos) != schematic.getBlockState(downPos)) {

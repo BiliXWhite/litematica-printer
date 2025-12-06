@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 
+import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 import net.fabricmc.api.EnvType;
@@ -23,7 +24,7 @@ public abstract class MixinClientConnection {
             at = {@At("HEAD")}
     )
     public void chestTracker$onDisconnectHandler(Component ignored, CallbackInfo ci) {
-        if(!LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue()) return;
+        if(!InitHandler.CLOUD_INVENTORY.getBooleanValue()) return;
         MemoryDatabase database = MemoryDatabase.getCurrent();
         if (database != null) {
             MemoryDatabase.clearCurrent();
