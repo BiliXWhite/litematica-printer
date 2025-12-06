@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.litematica.config.Configs;
-import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.ShulkerUtils;
 import me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor;
@@ -44,7 +44,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 import java.util.HashSet;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.openIng;
 
 public class InventoryUtils {
@@ -91,14 +90,14 @@ public class InventoryUtils {
             AbstractContainerMenu sc = player.containerMenu;
             if (!player.containerMenu.equals(player.inventoryMenu)) return false;
             //排除合成栏 装备栏 副手
-            if (LitematicaPrinterMod.STORE_ORDERLY.getBooleanValue() && sc.slots.stream().skip(9).limit(sc.slots.size() - 10).noneMatch(slot -> slot.getItem().isEmpty())
-                    && (LitematicaPrinterMod.QUICK_SHULKER.getBooleanValue() || LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue())) {
+            if (InitHandler.STORE_ORDERLY.getBooleanValue() && sc.slots.stream().skip(9).limit(sc.slots.size() - 10).noneMatch(slot -> slot.getItem().isEmpty())
+                    && (InitHandler.QUICK_SHULKER.getBooleanValue() || InitHandler.CLOUD_INVENTORY.getBooleanValue())) {
                 SwitchItem.checkItems();
                 return true;
             }
-            if (LitematicaPrinterMod.QUICK_SHULKER.getBooleanValue() && openShulker(lastNeedItemList)) {
+            if (InitHandler.QUICK_SHULKER.getBooleanValue() && openShulker(lastNeedItemList)) {
                 return true;
-            } else if (LitematicaPrinterMod.CLOUD_INVENTORY.getBooleanValue()) {
+            } else if (InitHandler.CLOUD_INVENTORY.getBooleanValue()) {
                 for (Item item : lastNeedItemList) {
                     //#if MC >= 12001 && MC <= 12104
                     //$$ MemoryUtils.currentMemoryKey = client.level.dimension().location();
@@ -159,7 +158,7 @@ public class InventoryUtils {
                         try {
                             int c = Integer.parseInt(s) - 1;
                             if (BuiltInRegistries.ITEM.getKey(player.getInventory().getItem(c).getItem()).toString().contains("shulker_box") &&
-                                    LitematicaPrinterMod.QUICK_SHULKER.getBooleanValue()) {
+                                    InitHandler.QUICK_SHULKER.getBooleanValue()) {
                                 Minecraft.getInstance().gui.setOverlayMessage(Component.nullToEmpty("濳影盒占用了预选栏"), false);
                                 continue;
                             }
@@ -216,12 +215,12 @@ public class InventoryUtils {
                             shulkerBoxSlot = i;
 //                            ClientUtil.CheckAndSend(stack,i);
                             //#if MC >= 12001 && MC <= 12104
-                            //$$ if (loadChestTracker) InteractionTracker.INSTANCE.clear();
+                            //$$ if (me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker) InteractionTracker.INSTANCE.clear();
                             //#endif
                             ShulkerUtils.openShulker(stack, shulkerBoxSlot);
                             closeScreen++;
                             isOpenHandler = true;
-                            Printer.getPrinter().shulkerCooldown = LitematicaPrinterMod.QUICK_SHULKER_COOLDOWN.getIntegerValue();
+                            Printer.getPrinter().shulkerCooldown = InitHandler.QUICK_SHULKER_COOLDOWN.getIntegerValue();
                             return true;
                         } catch (Exception e) {
                         }

@@ -1,146 +1,163 @@
 package me.aleksilassila.litematica.printer;
 
 import net.minecraft.network.chat.Component;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * 本地化翻译枚举，管理所有打印机模组的翻译键
  */
 public enum I18n {
+    // @formatter:off
 
     // 基础提示（非配置项）
-    AUTO_DISABLE_NOTICE("auto_disable_notice", Type.BASE),
-    PRINT_COMPLETE_NOTICE("print_complete_notice", Type.BASE), // 新增：打印完成通知（基础提示）
+    AUTO_DISABLE_NOTICE("auto_disable_notice"),
+    PRINT_COMPLETE_NOTICE("print_complete_notice"), // 新增：打印完成通知（基础提示）
 
     // 配置项（核心，可生成name/comment）
-    BLOCKLIST("blocklist", Type.CONFIG),
-    DEBUG_OUTPUT("debugOutput", Type.CONFIG),
-    EASY_PLACE_PROTOCOL("easyPlaceProtocol", Type.CONFIG),
-    FILL_MODE_FACING("fillModeFacing", Type.CONFIG),
-    FLUID_MODE_FILL_FLOWING("fluidModeFillFlowing", Type.CONFIG),
-    PRINT_BREAK_WRONG_BLOCK("printBreakWrongBlock", Type.CONFIG),
-    PRINT_WATER("printWater", Type.CONFIG),
-    PRINTER_AUTO_DISABLE("printerAutoDisable", Type.CONFIG),
-    PRINTER_AUTO_FILL_COMPOSTER("printerAutoFillComposter", Type.CONFIG),
-    PRINTER_AUTO_STRIP_LOGS("printerAutoStripLogs", Type.CONFIG),
-    PRINTER_AUTO_TUNING("printerAutoTuning", Type.CONFIG),
-    PRINTER_BLOCKS_PER_TICK("printerBlocksPerTick", Type.CONFIG),
-    PRINTER_BREAK_EXTRA_BLOCK("printerBreakExtraBlock", Type.CONFIG),
-    PRINTER_BREAK_WRONG_STATE_BLOCK("printerBreakWrongStateBlock", Type.CONFIG),
-    PRINTER_FALLING_BLOCK_CHECK("printerFallingBlockCheck", Type.CONFIG),
-    PRINTER_ITERATOR_MODE("printerIteratorMode", Type.CONFIG),
-    PRINTER_ITERATOR_SHAPE("printerIteratorShape", Type.CONFIG),
-    PRINTER_ITERATOR_USE_TIME("printerIteratorUseTime", Type.CONFIG),
-    PRINTER_LAG_CHECK("printerLagCheck", Type.CONFIG),
-    PRINTER_PLACE_COOLDOWN("printerPlaceCooldown", Type.CONFIG),
-    PRINTER_QUICK_SHULKER("printerQuickShulker", Type.CONFIG),
-    PRINTER_QUICK_SHULKER_COOLDOWN("printerQuickShulkerCooldown", Type.CONFIG),
-    PRINTER_QUICK_SHULKER_MODE("printerQuickShulkerMode", Type.CONFIG),
-    PRINTER_RANGE("printerRange", Type.CONFIG),
-    PRINTER_SAFELY_OBSERVER("printerSafelyObserver", Type.CONFIG),
-    PRINTER_SKIP_WATERLOGGED("printerSkipWaterlogged", Type.CONFIG),
-    PRINTER_SPEED("printerSpeed", Type.CONFIG),
-    PRINTER_USE_PACKET("printerUsePacket", Type.CONFIG),
-    PRINTER_WORKING_COUNT_PER_TICK("printerWorkingCountPerTick", Type.CONFIG),
-    PRINTER_X_AXIS_REVERSE("printerXAxisReverse", Type.CONFIG),
-    PRINTER_Y_AXIS_REVERSE("printerYAxisReverse", Type.CONFIG),
-    PRINTER_Z_AXIS_REVERSE("printerZAxisReverse", Type.CONFIG),
-    UPDATE_CHECK("updateCheck", Type.CONFIG),
+    BLOCKLIST("blocklist"),
+    DEBUG_OUTPUT("debugOutput"),
+    EASY_PLACE_PROTOCOL("easyPlaceProtocol"),
+    FILL_MODE_FACING("fillModeFacing"),
+    FLUID_MODE_FILL_FLOWING("fluidModeFillFlowing"),
+    PRINT_BREAK_WRONG_BLOCK("printBreakWrongBlock"),
+    PRINT_WATER("printWater"),
+    PRINTER_AUTO_DISABLE("printerAutoDisable"),
+    PRINTER_AUTO_FILL_COMPOSTER("printerAutoFillComposter"),
+    PRINTER_AUTO_STRIP_LOGS("printerAutoStripLogs"),
+    PRINTER_AUTO_TUNING("printerAutoTuning"),
+    PRINTER_BLOCKS_PER_TICK("printerBlocksPerTick"),
+    PRINTER_BREAK_EXTRA_BLOCK("printerBreakExtraBlock"),
+    PRINTER_BREAK_WRONG_STATE_BLOCK("printerBreakWrongStateBlock"),
+    PRINTER_FALLING_BLOCK_CHECK("printerFallingBlockCheck"),
+    PRINTER_ITERATOR_MODE("printerIteratorMode"),
+    PRINTER_ITERATOR_SHAPE("printerIteratorShape"),
+    PRINTER_ITERATOR_USE_TIME("printerIteratorUseTime"),
+    PRINTER_LAG_CHECK("printerLagCheck"),
+    PRINTER_PLACE_COOLDOWN("printerPlaceCooldown"),
+    PRINTER_QUICK_SHULKER("printerQuickShulker"),
+    PRINTER_QUICK_SHULKER_COOLDOWN("printerQuickShulkerCooldown"),
+    PRINTER_QUICK_SHULKER_MODE("printerQuickShulkerMode"),
+    PRINTER_RANGE("printerRange"),
+    PRINTER_SAFELY_OBSERVER("printerSafelyObserver"),
+    PRINTER_SKIP_WATERLOGGED("printerSkipWaterlogged"),
+    PRINTER_SPEED("printerSpeed"),
+    PRINTER_USE_PACKET("printerUsePacket"),
+    PRINTER_WORKING_COUNT_PER_TICK("printerWorkingCountPerTick"),
+    PRINTER_X_AXIS_REVERSE("printerXAxisReverse"),
+    PRINTER_Y_AXIS_REVERSE("printerYAxisReverse"),
+    PRINTER_Z_AXIS_REVERSE("printerZAxisReverse"),
+    UPDATE_CHECK("updateCheck"),
 
-    MODE_SWITCH("modeSwitch", Type.CONFIG),
-    PRINTER_MODE("printerMode", Type.CONFIG),
-    MULTI_BREAK("multiBreak", Type.CONFIG),
-    RENDER_LAYER_LIMIT("renderLayerLimit", Type.CONFIG),
-    PRINT_IN_AIR("printInAir", Type.CONFIG),
-    PRINT_SWITCH("printSwitch", Type.CONFIG),
-    USE_EASYPLACE("useEasyplace", Type.CONFIG),
-    FORCED_SNEAK("forcedSneak", Type.CONFIG),
-    REPLACE("replace", Type.CONFIG),
-    SWITCH_PRINTER_MODE("switchPrinterMode", Type.CONFIG),
-    MINE("mine", Type.CONFIG),
-    FLUID("fluid", Type.CONFIG),
-    FILL("fill", Type.CONFIG),
-    BEDROCK("bedrock", Type.CONFIG),
-    CLOSE_ALL_MODE("closeAllMode", Type.CONFIG),
-    PUT_SKIP("putSkip", Type.CONFIG),
-    CLOUD_INVENTORY("cloudInventory", Type.CONFIG),
-    AUTO_INVENTORY("autoInventory", Type.CONFIG),
-    STORE_ORDERLY("storeOrderly", Type.CONFIG),
-    EXCAVATE_LIMITER("excavateLimiter", Type.CONFIG),
-    EXCAVATE_LIMIT("excavateLimit", Type.CONFIG),
-    SYNC_INVENTORY_COLOR("syncInventoryColor", Type.CONFIG),
-    REPLACE_CORAL("replaceCoral", Type.CONFIG),
-    RENDER_HUD("renderHud", Type.CONFIG),
-    STRIP_LOGS("stripLogs", Type.CONFIG),
+    MODE_SWITCH("modeSwitch"),
+    PRINTER_MODE("printerMode"),
+    MULTI_BREAK("multiBreak"),
+    RENDER_LAYER_LIMIT("renderLayerLimit"),
+    PRINT_IN_AIR("printInAir"),
+    PRINT_SWITCH("printSwitch"),
+    USE_EASYPLACE("useEasyplace"),
+    FORCED_SNEAK("forcedSneak"),
+    REPLACE("replace"),
+    SWITCH_PRINTER_MODE("switchPrinterMode"),
+    MINE("mine"),
+    FLUID("fluid"),
+    FILL("fill"),
+    BEDROCK("bedrock"),
+    CLOSE_ALL_MODE("closeAllMode"),
+    PUT_SKIP("putSkip"),
+    CLOUD_INVENTORY("cloudInventory"),
+    AUTO_INVENTORY("autoInventory"),
+    STORE_ORDERLY("storeOrderly"),
+    EXCAVATE_LIMITER("excavateLimiter"),
+    EXCAVATE_LIMIT("excavateLimit"),
+    SYNC_INVENTORY_COLOR("syncInventoryColor"),
+    REPLACE_CORAL("replaceCoral"),
+    RENDER_HUD("renderHud"),
+    STRIP_LOGS("stripLogs"),
 
     // 配置列表值（仅生成list key）
-    FILL_MODE_FACING_DOWN("fillModeFacing.down", Type.CONFIG_LIST),
-    FILL_MODE_FACING_EAST("fillModeFacing.east", Type.CONFIG_LIST),
-    FILL_MODE_FACING_NORTH("fillModeFacing.north", Type.CONFIG_LIST),
-    FILL_MODE_FACING_SOUTH("fillModeFacing.south", Type.CONFIG_LIST),
-    FILL_MODE_FACING_UP("fillModeFacing.up", Type.CONFIG_LIST),
-    FILL_MODE_FACING_WEST("fillModeFacing.west", Type.CONFIG_LIST),
-    ITERATOR_SHAPE_TYPE_CUBE("iteratorShapeType.cube", Type.CONFIG_LIST),
-    ITERATOR_SHAPE_TYPE_OCTAHEDRON("iteratorShapeType.octahedron", Type.CONFIG_LIST),
-    ITERATOR_SHAPE_TYPE_SPHERE("iteratorShapeType.sphere", Type.CONFIG_LIST),
-    PRINTER_QUICK_SHULKER_MODE_CLICK_SLOT("printerQuickShulkerMode.click_slot", Type.CONFIG_LIST),
-    PRINTER_QUICK_SHULKER_MODE_INVOKE("printerQuickShulkerMode.invoke", Type.CONFIG_LIST),
+    FILL_MODE_FACING_DOWN("fillModeFacing.down"),
+    FILL_MODE_FACING_EAST("fillModeFacing.east"),
+    FILL_MODE_FACING_NORTH("fillModeFacing.north"),
+    FILL_MODE_FACING_SOUTH("fillModeFacing.south"),
+    FILL_MODE_FACING_UP("fillModeFacing.up"),
+    FILL_MODE_FACING_WEST("fillModeFacing.west"),
 
-    FLUID_BLOCK_LIST("fluidBlockList", Type.CONFIG),
-    FLUID_LIST("fluidList", Type.CONFIG),
-    FILL_BLOCK_LIST("fillBlockList", Type.CONFIG),
-    INVENTORY_LIST("inventoryList", Type.CONFIG),
-    EXCAVATE_WHITELIST("excavateWhitelist", Type.CONFIG),
-    EXCAVATE_BLACKLIST("excavateBlacklist", Type.CONFIG),
-    PUT_SKIP_LIST("putSkipList", Type.CONFIG),
-    REPLACEABLE_LIST("replaceableList", Type.CONFIG),
+    ITERATOR_SHAPE_TYPE_CUBE("iteratorShapeType.cube"),
+    ITERATOR_SHAPE_TYPE_OCTAHEDRON("iteratorShapeType.octahedron"),
+    ITERATOR_SHAPE_TYPE_SPHERE("iteratorShapeType.sphere"),
+
+    PRINTER_QUICK_SHULKER_MODE_CLICK_SLOT("printerQuickShulkerMode.click_slot"),
+    PRINTER_QUICK_SHULKER_MODE_INVOKE("printerQuickShulkerMode.invoke"),
+
+    FLUID_BLOCK_LIST("fluidBlockList"),
+    FLUID_LIST("fluidList"),
+    FILL_BLOCK_LIST("fillBlockList"),
+    INVENTORY_LIST("inventoryList"),
+    EXCAVATE_WHITELIST("excavateWhitelist"),
+    EXCAVATE_BLACKLIST("excavateBlacklist"),
+    PUT_SKIP_LIST("putSkipList"),
+    REPLACEABLE_LIST("replaceableList"),
 
     // 菜单相关（非配置项）
-    MENU_SETTINGS_BUTTON("menu.settings_button", Type.BASE),
+    MENU_SETTINGS_BUTTON("menu.settings_button"),
 
     // 更新相关（非配置项）
-    UPDATE_AVAILABLE("update.available", Type.BASE),
-    UPDATE_DOWNLOAD("update.download", Type.BASE),
-    UPDATE_FAILED("update.failed", Type.BASE),
-    UPDATE_PASSWORD("update.password", Type.BASE),
-    UPDATE_RECOMMENDATION("update.recommendation", Type.BASE),
-    UPDATE_REPOSITORY("update.repository", Type.BASE),
+    UPDATE_AVAILABLE("update.available"),
+    UPDATE_DOWNLOAD("update.download"),
+    UPDATE_FAILED("update.failed"),
+    UPDATE_PASSWORD("update.password"),
+    UPDATE_RECOMMENDATION("update.recommendation"),
+    UPDATE_REPOSITORY("update.repository"),
 
-    // ModMenu 相关（完整key直接传入，无需拼接）
-    MODMENU_SUMMARY("modmenu.summaryTranslation.litematica-printer", Type.RAW),
-    MODMENU_NAME("modmenu.nameTranslation.litematica-printer", Type.RAW),
-    MODMENU_DESCRIPTION("modmenu.descriptionTranslation.litematica-printer", Type.RAW),
 
     // 热键相关（BASE类型，非配置项但需翻译）
-    PRINT_HOTKEY("hotkey.print", Type.BASE),
-    TOGGLE_PRINTING_MODE_HOTKEY("hotkey.togglePrintingMode", Type.BASE),
-    SYNC_INVENTORY_HOTKEY("hotkey.syncInventory", Type.BASE),
-    SYNC_INVENTORY_CHECK("syncInventoryCheck", Type.CONFIG),
-    PRINTER_INVENTORY_HOTKEY("hotkey.printerInventory", Type.BASE),
-    REMOVE_PRINT_INVENTORY_HOTKEY("hotkey.removePrintInventory", Type.BASE),
-    LAST_HOTKEY("hotkey.last", Type.BASE),
-    NEXT_HOTKEY("hotkey.next", Type.BASE),
-    DELETE_HOTKEY("hotkey.delete", Type.BASE),
+    PRINT_HOTKEY("hotkey.print"),
+    TOGGLE_PRINTING_MODE_HOTKEY("hotkey.togglePrintingMode"),
+    SYNC_INVENTORY_HOTKEY("hotkey.syncInventory"),
+    SYNC_INVENTORY_CHECK("syncInventoryCheck"),
+    PRINTER_INVENTORY_HOTKEY("hotkey.printerInventory"),
+    REMOVE_PRINT_INVENTORY_HOTKEY("hotkey.removePrintInventory"),
+    LAST_HOTKEY("hotkey.last"),
+    NEXT_HOTKEY("hotkey.next"),
+    DELETE_HOTKEY("hotkey.delete"),
 
-    PRINT("print", Type.CONFIG),
-    TOGGLE_PRINTING_MODE("togglePrintingMode", Type.CONFIG),
-    SYNC_INVENTORY("syncInventory", Type.CONFIG),
-    PRINTER_INVENTORY("printerInventory", Type.CONFIG),
-    REMOVE_PRINT_INVENTORY("removePrintInventory", Type.CONFIG),
-    LAST("last", Type.CONFIG),
-    NEXT("next", Type.CONFIG),
-    DELETE("delete", Type.CONFIG),
+    PRINT("print"),
+    TOGGLE_PRINTING_MODE("togglePrintingMode"),
+    SYNC_INVENTORY("syncInventory"),
+    PRINTER_INVENTORY("printerInventory"),
+    REMOVE_PRINT_INVENTORY("removePrintInventory"),
+    LAST("last"),
+    NEXT("next"),
+    DELETE("delete"),
 
-    MESSAGE_TOGGLED("message.toggled", Type.BASE),
-    MESSAGE_VALUE_OFF("message.value.off", Type.BASE),
-    MESSAGE_VALUE_ON("message.value.on", Type.BASE);
+    MESSAGE_TOGGLED("message.toggled"),
+    MESSAGE_VALUE_OFF("message.value.off"),
+    MESSAGE_VALUE_ON("message.value.on"),
 
-    private enum Type {
-        BASE,        // 基础项（拼接mod前缀：modid.xxx）
-        CONFIG,      // 配置项（可生成name/comment）
-        CONFIG_LIST, // 配置列表值（仅生成list key）
-        RAW          // 原始key（直接使用，不拼接）
-    }
+    // 配置列表选项 - 打印模式
+    PRINT_MODE_PRINTER("printMode.printer"),
+    PRINT_MODE_MINE("printMode.mine"),
+    PRINT_MODE_FLUID("printMode.fluid"),
+    PRINT_MODE_FILL("printMode.fill"),
+    PRINT_MODE_BEDROCK("printMode.bedrock"),
+
+    // 配置列表选项 - 挖掘列表模式
+    EXCAVATE_LIST_MODE_TWEAKEROO("excavateListMode.tweakeroo"),
+    EXCAVATE_LIST_MODE_CUSTOM("excavateListMode.custom"),
+
+    // 配置列表选项 - 运行模式（多模/单模）
+    MODE_TYPE_MULTI("modeType.multi"),
+    MODE_TYPE_SINGLE("modeType.single"),
+
+    // 配置列表选项 - 迭代顺序
+    ITERATION_ORDER_XYZ("iterationOrder.xyz"),
+    ITERATION_ORDER_XZY("iterationOrder.xzy"),
+    ITERATION_ORDER_YXZ("iterationOrder.yxz"),
+    ITERATION_ORDER_YZX("iterationOrder.yzx"),
+    ITERATION_ORDER_ZXY("iterationOrder.zxy"),
+    ITERATION_ORDER_ZYX("iterationOrder.zyx");
+
+
+    // @formatter:on
 
     private static final String MOD_PREFIX = LitematicaPrinterMod.MOD_ID + ".";
     private static final String CONFIG_PREFIX = MOD_PREFIX + "config.";
@@ -148,94 +165,89 @@ public enum I18n {
     private static final String CONFIG_COMMENT_PREFIX = CONFIG_PREFIX + "comment.";
     private static final String CONFIG_LIST_PREFIX = CONFIG_PREFIX + "list.";
 
-    private final String keySegment;
-    private final Type type;
+    private final String key;
+    private final boolean isRawKey;
 
-    I18n(String keySegment, Type type) {
-        this.keySegment = keySegment;
-        this.type = type;
+    public String getKey() {
+        return key;
     }
 
-
-    public String getFullKey() {
-        return switch (type) {
-            case BASE -> MOD_PREFIX + keySegment;
-            case CONFIG -> CONFIG_NAME_PREFIX + keySegment;
-            case CONFIG_LIST -> CONFIG_LIST_PREFIX + keySegment;
-            case RAW -> keySegment;
-        };
+    public boolean isRawKey() {
+        return isRawKey;
     }
 
-    public Component getBaseComponent() {
-        if (type != Type.BASE) {
-            throw new IllegalArgumentException("枚举项 " + name() + " 不是基础项，无法调用getBaseComponent()");
+    I18n(String key, boolean isRawKey) {
+        this.key = key;
+        this.isRawKey = isRawKey;
+    }
+
+    I18n(String key) {
+        this(key, false);
+    }
+
+    public String getConfigKey() {
+        if (isRawKey) {
+            return key;
+        } else {
+            return CONFIG_PREFIX + key;
         }
-        return StringUtils.translatable(getFullKey());
     }
 
-    public Component getConfigName() {
-        if (type != Type.CONFIG) {
-            throw new IllegalArgumentException("枚举项 " + name() + " 不是配置项，无法调用getConfigName()");
+    public String getConfigNameKey() {
+        if (isRawKey) {
+            return key;
+        } else {
+            return CONFIG_NAME_PREFIX + key;
         }
-        return StringUtils.translatable(CONFIG_NAME_PREFIX + keySegment);
     }
 
-    public Component getConfigComment() {
-        if (type != Type.CONFIG) {
-            throw new IllegalArgumentException("枚举项 " + name() + " 不是配置项，无法调用getConfigComment()");
+    public String getConfigCommentKey() {
+        if (isRawKey) {
+            return key;
+        } else {
+            return CONFIG_COMMENT_PREFIX + key;
         }
-        return StringUtils.translatable(CONFIG_COMMENT_PREFIX + keySegment);
     }
 
-    public Component getConfigList() {
-        if (type != Type.CONFIG_LIST) {
-            throw new IllegalArgumentException("枚举项 " + name() + " 不是配置列表项，无法调用getConfigList()");
+    public String getConfigListKey() {
+        if (isRawKey) {
+            return key;
+        } else {
+            return CONFIG_LIST_PREFIX + key;
         }
-        return StringUtils.translatable(CONFIG_LIST_PREFIX + keySegment);
     }
 
-    public Component getRawComponent() {
-        if (type != Type.RAW) {
-            throw new IllegalArgumentException("枚举项 " + name() + " 不是原始key项，无法调用getRawComponent()");
+    public Component getKeyComponent() {
+        return StringUtils.translatable(key);
+    }
+
+    public Component getConfigKeyComponent() {
+        return StringUtils.translatable(getConfigKey());
+    }
+
+    public Component getConfigNameKeyComponent() {
+        return StringUtils.translatable(getConfigNameKey());
+    }
+
+    public Component getConfigCommentKeyComponent() {
+        return StringUtils.translatable(getConfigCommentKey());
+    }
+
+    public Component getConfigListKeyComponent() {
+        return StringUtils.translatable(getConfigListKey());
+    }
+
+    public String getSimpleKey() {
+        if (key == null || key.isEmpty()) {
+            return key == null ? "" : key;
         }
-        return StringUtils.translatable(keySegment);
-    }
-
-    public String getBaseString() {
-        return getBaseComponent().getString();
-    }
-
-    public String getConfigNameString() {
-        return getConfigName().getString();
-    }
-
-    public String getConfigCommentString() {
-        return getConfigComment().getString();
-    }
-
-    public String getConfigListString() {
-        return getConfigList().getString();
-    }
-
-    public String getRawString() {
-        return getRawComponent().getString();
-    }
-
-    public String getConfigSimpleKey() {
-        if (type != Type.CONFIG) {
-            throw new IllegalArgumentException("枚举项 " + name() + " 不是配置项，无法调用getConfigSimpleKey()");
+        int lastDotIndex = key.lastIndexOf('.');
+        if (lastDotIndex == -1) {
+            return key;
         }
-        return keySegment;
-    }
-
-
-    public static @Nullable I18n get(String name) {
-        for (I18n i18n : values()) {
-            if (i18n.getFullKey().equalsIgnoreCase(name)) {
-                return i18n;
-            }
+        if (lastDotIndex == key.length() - 1) {
+            return "";
         }
-        return null;
+        return key.substring(lastDotIndex + 1);
     }
-
 }

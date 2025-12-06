@@ -2,8 +2,8 @@ package me.aleksilassila.litematica.printer.printer;
 
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
-import fi.dy.masa.malilib.util.StringUtils;
-import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.I18n;
+import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -12,8 +12,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.HashSet;
 import java.util.Set;
 
-import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.I18N_PREFIX;
-
 public enum State {
     MISSING_BLOCK,
     WRONG_STATE,
@@ -21,24 +19,22 @@ public enum State {
     CORRECT;
 
     public static State get(BlockState schematicBlockState, BlockState currentBlockState) {
-
-        Set<String> replaceSet = new HashSet<>(LitematicaPrinterMod.REPLACEABLE_LIST.getStrings());
-
+        Set<String> replaceSet = new HashSet<>(InitHandler.REPLACEABLE_LIST.getStrings());
         // 如果两个方块状态完全相同，则返回正确状态
         if (schematicBlockState == currentBlockState)
             return CORRECT;
-        // 如果方块类型相同但状态不同，则返回错误状态
+            // 如果方块类型相同但状态不同，则返回错误状态
         else if (schematicBlockState.getBlock().defaultBlockState() == currentBlockState.getBlock().defaultBlockState())
             return WRONG_STATE;
-        // 如果原理图中方块不为空，且实际方块为空，则返回缺失方块状态
+            // 如果原理图中方块不为空，且实际方块为空，则返回缺失方块状态
         else if (!schematicBlockState.isAir() && currentBlockState.isAir())
             return MISSING_BLOCK;
-        // 如果启用了替换功能，且当前方块在可替换列表中，则返回缺失方块状态（实际上这会和破坏额外方块打架）
-        else if (LitematicaPrinterMod.REPLACE.getBooleanValue() &&
-                replaceSet.stream().anyMatch(string -> !Filters.equalsName(string,schematicBlockState) &&
-                        Filters.equalsName(string,currentBlockState)) && !schematicBlockState.isAir()
+            // 如果启用了替换功能，且当前方块在可替换列表中，则返回缺失方块状态（实际上这会和破坏额外方块打架）
+        else if (InitHandler.REPLACE.getBooleanValue() &&
+                replaceSet.stream().anyMatch(string -> !Filters.equalsName(string, schematicBlockState) &&
+                        Filters.equalsName(string, currentBlockState)) && !schematicBlockState.isAir()
         ) return MISSING_BLOCK;
-        // 其他情况返回错误方块状态
+            // 其他情况返回错误方块状态
         else return WRONG_BLOCK;
     }
 
@@ -49,35 +45,32 @@ public enum State {
     }
 
 
-
     public enum PrintModeType implements IConfigOptionListEntry {
-        PRINTER("printer", "打印"),
-        MINE("mine", "挖掘"),
-        FLUID("fluid", "流体"),
-        FILL("fill", "填充"),
-        BEDROCK("bedrock", "破基岩");
+        PRINTER(I18n.PRINT_MODE_PRINTER),
+        MINE(I18n.PRINT_MODE_MINE),
+        FLUID(I18n.PRINT_MODE_FLUID),
+        FILL(I18n.PRINT_MODE_FILL),
+        BEDROCK(I18n.PRINT_MODE_BEDROCK);
 
-        private final String configString;
-        private final String translationKey;
+        private final I18n i18n;
 
-        PrintModeType(String configString, String translationKey) {
-            this.configString = configString;
-            this.translationKey = translationKey;
+        PrintModeType(I18n i18n) {
+            this.i18n = i18n;
         }
+
         @Override
         public String getStringValue() {
-            return this.configString;
+            return this.i18n.getSimpleKey();
         }
 
         @Override
         public String getDisplayName() {
-            return StringUtils.translate(this.translationKey);
+            return this.i18n.getConfigListKeyComponent().getString();
         }
 
         @Override
         public IConfigOptionListEntry cycle(boolean forward) {
             int id = this.ordinal();
-
             if (forward) {
                 if (++id >= values().length) {
                     id = 0;
@@ -87,7 +80,6 @@ public enum State {
                     id = values().length - 1;
                 }
             }
-
             return values()[id % values().length];
         }
 
@@ -98,7 +90,7 @@ public enum State {
 
         public static PrintModeType fromStringStatic(String name) {
             for (PrintModeType mode : PrintModeType.values()) {
-                if (mode.configString.equalsIgnoreCase(name)) {
+                if (mode.getStringValue().equalsIgnoreCase(name)) {
                     return mode;
                 }
             }
@@ -106,31 +98,30 @@ public enum State {
             return PrintModeType.PRINTER;
         }
     }
+
     public enum ExcavateListMode implements IConfigOptionListEntry {
-        TWEAKEROO("tweakeroo", "Tweakeroo预设"),
-        CUSTOM("custom", "自定义");
+        TWEAKEROO(I18n.EXCAVATE_LIST_MODE_TWEAKEROO),
+        CUSTOM(I18n.EXCAVATE_LIST_MODE_CUSTOM);
 
-        private final String configString;
-        private final String translationKey;
+        private final I18n i18n;
 
-        ExcavateListMode(String configString, String translationKey) {
-            this.configString = configString;
-            this.translationKey = translationKey;
+        ExcavateListMode(I18n i18n) {
+            this.i18n = i18n;
         }
+
         @Override
         public String getStringValue() {
-            return this.configString;
+            return this.i18n.getSimpleKey();
         }
 
         @Override
         public String getDisplayName() {
-            return StringUtils.translate(this.translationKey);
+            return this.i18n.getConfigListKeyComponent().getString();
         }
 
         @Override
         public IConfigOptionListEntry cycle(boolean forward) {
             int id = this.ordinal();
-
             if (forward) {
                 if (++id >= values().length) {
                     id = 0;
@@ -140,7 +131,6 @@ public enum State {
                     id = values().length - 1;
                 }
             }
-
             return values()[id % values().length];
         }
 
@@ -151,7 +141,7 @@ public enum State {
 
         public static ExcavateListMode fromStringStatic(String name) {
             for (ExcavateListMode mode : ExcavateListMode.values()) {
-                if (mode.configString.equalsIgnoreCase(name)) {
+                if (mode.getStringValue().equalsIgnoreCase(name)) {
                     return mode;
                 }
             }
@@ -159,25 +149,26 @@ public enum State {
             return ExcavateListMode.CUSTOM;
         }
     }
+
     public enum ModeType implements IConfigOptionListEntry {
-        MULTI("multi", "多模"),
-        SINGLE("single", "单模");
+        MULTI(I18n.MODE_TYPE_MULTI),
+        SINGLE(I18n.MODE_TYPE_SINGLE);
 
-        private final String configString;
-        private final String translationKey;
+        private final I18n i18n;
 
-        ModeType(String configString, String translationKey) {
-            this.configString = configString;
-            this.translationKey = translationKey;
+        ModeType(I18n i18n) {
+            this.i18n = i18n;
         }
+
+
         @Override
         public String getStringValue() {
-            return this.configString;
+            return this.i18n.getSimpleKey();
         }
 
         @Override
         public String getDisplayName() {
-            return StringUtils.translate(this.translationKey);
+            return this.i18n.getConfigListKeyComponent().getString();
         }
 
         @Override
@@ -204,7 +195,7 @@ public enum State {
 
         public static ModeType fromStringStatic(String name) {
             for (ModeType mode : ModeType.values()) {
-                if (mode.configString.equalsIgnoreCase(name)) {
+                if (mode.getStringValue().equalsIgnoreCase(name)) {
                     return mode;
                 }
             }
@@ -214,30 +205,29 @@ public enum State {
     }
 
     public enum RadiusShapeType implements IConfigOptionListEntry {
-        SPHERE("sphere"),
-        OCTAHEDRON("octahedron"),
-        CUBE("cube");
+        SPHERE(I18n.ITERATOR_SHAPE_TYPE_SPHERE),
+        OCTAHEDRON(I18n.ITERATOR_SHAPE_TYPE_OCTAHEDRON),
+        CUBE(I18n.ITERATOR_SHAPE_TYPE_CUBE);
 
-        private final String configString;
+        private final I18n i18n;
 
-        RadiusShapeType(String configString) {
-            this.configString = configString;
+        RadiusShapeType(I18n i18n) {
+            this.i18n = i18n;
         }
 
         @Override
         public String getStringValue() {
-            return this.configString;
+            return this.i18n.getSimpleKey();
         }
 
         @Override
         public String getDisplayName() {
-            return StringUtils.translate(I18N_PREFIX + ".list.iteratorShapeType." + this.configString);
+            return this.i18n.getConfigListKeyComponent().getString();
         }
 
         @Override
         public IConfigOptionListEntry cycle(boolean forward) {
             int id = this.ordinal();
-
             if (forward) {
                 if (++id >= values().length) {
                     id = 0;
@@ -247,7 +237,6 @@ public enum State {
                     id = values().length - 1;
                 }
             }
-
             return values()[id % values().length];
         }
 
@@ -258,40 +247,37 @@ public enum State {
 
         public static RadiusShapeType fromStringStatic(String name) {
             for (RadiusShapeType mode : RadiusShapeType.values()) {
-                if (mode.configString.equalsIgnoreCase(name)) {
+                if (mode.getStringValue().equalsIgnoreCase(name)) {
                     return mode;
                 }
             }
-
             return RadiusShapeType.SPHERE;
         }
     }
 
 
     public enum IterationOrderType implements IConfigOptionListEntry {
-        XYZ("xyz", "X→Y→Z"),
-        XZY("xzy", "X→Z→Y"),
-        YXZ("yxz", "Y→X→Z"),
-        YZX("yzx", "Y→Z→X"),
-        ZXY("zxy", "Z→X→Y"),
-        ZYX("zyx", "Z→Y→X");
+        XYZ(I18n.ITERATION_ORDER_XYZ),
+        XZY(I18n.ITERATION_ORDER_XZY),
+        YXZ(I18n.ITERATION_ORDER_YXZ),
+        YZX(I18n.ITERATION_ORDER_YZX),
+        ZXY(I18n.ITERATION_ORDER_ZXY),
+        ZYX(I18n.ITERATION_ORDER_ZYX);
 
-        private final String configString;
-        private final String displayName;
+        private final I18n i18n;
 
-        IterationOrderType(String configString, String displayName) {
-            this.configString = configString;
-            this.displayName = displayName;
+        IterationOrderType(I18n i18n) {
+            this.i18n = i18n;
         }
 
         @Override
         public String getStringValue() {
-            return this.configString;
+            return this.i18n.getSimpleKey();
         }
 
         @Override
         public String getDisplayName() {
-            return this.displayName;
+            return this.i18n.getConfigListKeyComponent().getString();
         }
 
         @Override
@@ -316,7 +302,7 @@ public enum State {
 
         public static IterationOrderType fromStringStatic(String name) {
             for (IterationOrderType type : IterationOrderType.values()) {
-                if (type.configString.equalsIgnoreCase(name)) {
+                if (type.getStringValue().equalsIgnoreCase(name)) {
                     return type;
                 }
             }
@@ -325,22 +311,23 @@ public enum State {
     }
 
     public enum QuickShulkerModeType implements IConfigOptionListEntry {
-        CLICK_SLOT("click_slot"),
-        INVOKE("invoke");
+        CLICK_SLOT(I18n.PRINTER_QUICK_SHULKER_MODE_CLICK_SLOT),
+        INVOKE(I18n.PRINTER_QUICK_SHULKER_MODE_INVOKE);
 
-        private final String configString;
-        QuickShulkerModeType(String configString) {
-            this.configString = configString;
+        private final I18n i18n;
+
+        QuickShulkerModeType(I18n i18n) {
+            this.i18n = i18n;
         }
 
         @Override
         public String getStringValue() {
-            return this.configString;
+            return this.i18n.getSimpleKey();
         }
 
         @Override
         public String getDisplayName() {
-            return StringUtils.translate(I18N_PREFIX + ".list.printerQuickShulkerMode." + this.configString);
+            return this.i18n.getConfigListKeyComponent().getString();
         }
 
         @Override
@@ -365,34 +352,35 @@ public enum State {
 
         public static QuickShulkerModeType fromStringStatic(String name) {
             for (QuickShulkerModeType type : QuickShulkerModeType.values()) {
-                if (type.configString.equalsIgnoreCase(name)) {
+                if (type.getStringValue().equalsIgnoreCase(name)) {
                     return type;
                 }
             }
             return QuickShulkerModeType.CLICK_SLOT;
         }
     }
+
     public enum FillModeFacingType implements IConfigOptionListEntry {
-        DOWN("down"),
-        UP("up"),
-        WEST("west"),
-        EAST("east"),
-        NORTH("north"),
-        SOUTH("south");
+        DOWN(I18n.FILL_MODE_FACING_DOWN),
+        UP(I18n.FILL_MODE_FACING_UP),
+        WEST(I18n.FILL_MODE_FACING_WEST),
+        EAST(I18n.FILL_MODE_FACING_EAST),
+        NORTH(I18n.FILL_MODE_FACING_NORTH),
+        SOUTH(I18n.FILL_MODE_FACING_SOUTH);
 
-        private final String configString;
+        private final I18n i18n;
 
-        FillModeFacingType(String configString) {
-            this.configString = configString;
+        FillModeFacingType(I18n i18n) {
+            this.i18n = i18n;
         }
 
         @Override
         public String getStringValue() {
-            return this.configString;
+            return this.i18n.getSimpleKey();
         }
 
         public String getDisplayName() {
-            return StringUtils.translate(I18N_PREFIX + ".list.fillModeFacing." + this.configString);
+            return this.i18n.getConfigListKeyComponent().getString();
         }
 
         @Override
@@ -417,7 +405,7 @@ public enum State {
 
         public static FillModeFacingType fromStringStatic(String name) {
             for (FillModeFacingType type : FillModeFacingType.values()) {
-                if (type.configString.equalsIgnoreCase(name)) {
+                if (type.getStringValue().equalsIgnoreCase(name)) {
                     return type;
                 }
             }

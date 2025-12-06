@@ -20,15 +20,22 @@ import net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl;
 //$$ import net.minecraft.client.multiplayer.ClientPacketListener;
 //$$ @Mixin(value = ClientPacketListener.class)
 //#endif
-public class ClientCommonNetworkHandlerMixin {
-
+public class MixinClientCommonNetworkHandler {
     @Final
     @Shadow
+    //#if MC > 11802
     protected Connection connection;
+    //#else
+    //$$ private Connection connection;
+    //#endif
 
     @Final
     @Shadow
+    //#if MC > 11802
     protected Minecraft minecraft;
+    //#else
+    //$$ private Minecraft minecraft;
+    //#endif
 
     /**
      * @author zhaixianyu

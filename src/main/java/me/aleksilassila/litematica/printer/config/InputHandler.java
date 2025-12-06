@@ -6,7 +6,6 @@ import fi.dy.masa.malilib.hotkeys.IKeybindProvider;
 import fi.dy.masa.malilib.hotkeys.IKeyboardInputHandler;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 
-
 //注册按键
 public class InputHandler implements IKeybindProvider, IKeyboardInputHandler {
     private static final InputHandler INSTANCE = new InputHandler();
@@ -24,11 +23,11 @@ public class InputHandler implements IKeybindProvider, IKeyboardInputHandler {
 
     @Override
     public void addHotkeys(IKeybindManager manager) {
-        manager.addHotkeysForCategory(LitematicaPrinterMod.MOD_ID, "按下式",Configs.addKeyList());
-        manager.addHotkeysForCategory(LitematicaPrinterMod.MOD_ID, "切换式",Configs.addSwitchKey());
+        manager.addHotkeysForCategory(LitematicaPrinterMod.MOD_ID, "按下式", Configs.addKeyList());
+        manager.addHotkeysForCategory(LitematicaPrinterMod.MOD_ID, "切换式", Configs.addSwitchKey());
     }
 
-    public static InputHandler getInstance(){
+    public static InputHandler getInstance() {
         return INSTANCE;
     }
 }

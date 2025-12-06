@@ -14,7 +14,7 @@ import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.USE_EASYPLACE;
+import static me.aleksilassila.litematica.printer.InitHandler.USE_EASYPLACE;
 import static me.aleksilassila.litematica.printer.printer.Printer.easyPos;
 
 @Mixin(WorldUtils.class)

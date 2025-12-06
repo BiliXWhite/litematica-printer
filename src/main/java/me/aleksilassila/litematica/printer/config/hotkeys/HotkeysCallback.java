@@ -1,15 +1,15 @@
-package me.aleksilassila.litematica.printer.config;
+package me.aleksilassila.litematica.printer.config.hotkeys;
 
+import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
-import fi.dy.masa.malilib.config.IConfigOptionListEntry;
+import me.aleksilassila.litematica.printer.config.ConfigUI;
+import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.State;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.client.Minecraft;
-
-
 
 //#if MC >= 12001 && MC <= 12104
 //$$ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -27,11 +27,9 @@ import net.minecraft.client.Minecraft;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //#endif
 
-import static me.aleksilassila.litematica.printer.LitematicaPrinterMod.*;
+import static me.aleksilassila.litematica.printer.InitHandler.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.startAddPrinterInventory;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.startOrOffSyncInventory;
-
-import static me.aleksilassila.litematica.printer.config.Configs.OPEN_SCREEN;
 
 //监听按键
 public class HotkeysCallback implements IHotkeyCallback {
@@ -41,20 +39,20 @@ public class HotkeysCallback implements IHotkeyCallback {
     @Override
     public boolean onKeyAction(KeyAction action, IKeybind key) {
         if (this.client.player == null || this.client.level == null) return false;
-        if(key == OPEN_SCREEN.getKeybind()){
+        if (key == OPEN_SCREEN.getKeybind()) {
             client.setScreen(new ConfigUI());
             return true;
-        }else if(key == SYNC_INVENTORY.getKeybind()){
+        } else if (key == SYNC_INVENTORY.getKeybind()) {
             startOrOffSyncInventory();
             return true;
-        }else if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE) && key == SWITCH_PRINTER_MODE.getKeybind()){
+        } else if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE) && key == SWITCH_PRINTER_MODE.getKeybind()) {
             IConfigOptionListEntry cycle = PRINTER_MODE.getOptionListValue().cycle(true);
             PRINTER_MODE.setOptionListValue(cycle);
             ZxyUtils.actionBar(PRINTER_MODE.getOptionListValue().getDisplayName());
-        }else if(key == PRINTER_INVENTORY.getKeybind()){
+        } else if (key == PRINTER_INVENTORY.getKeybind()) {
             startAddPrinterInventory();
             return true;
-        }else if(key == REMOVE_PRINT_INVENTORY.getKeybind()){
+        } else if (key == REMOVE_PRINT_INVENTORY.getKeybind()) {
             //#if MC >= 12001 && MC <= 12104
             //$$ MemoryUtils.deletePrinterMemory();
             //#elseif MC < 12001
@@ -93,7 +91,7 @@ public class HotkeysCallback implements IHotkeyCallback {
     }
 
     //设置反馈到onKeyAction()方法的快捷键
-    public static void init(){
+    public static void init() {
         HotkeysCallback hotkeysCallback = new HotkeysCallback();
 
         for (ConfigHotkey configHotkey : Configs.addKeyList()) {

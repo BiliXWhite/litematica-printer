@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.hotkeys;
+package me.aleksilassila.litematica.printer.config.hotkeys;
 
 import fi.dy.masa.malilib.config.IConfigBoolean;
 import fi.dy.masa.malilib.gui.GuiBase;
@@ -22,13 +22,9 @@ public class KeyCallbackToggleBooleanConfigWithMessage extends KeyCallbackToggle
     }
 
     private static void printBooleanConfigToggleMessage(String name, boolean newValue) {
-//        I18n i18n = I18n.get(name);
-//        if (i18n != null) {
-//            name = StringUtils.translatable(i18n.getFullKey()).getString();
-//        }
-        String pre = newValue ? GuiBase.TXT_GREEN : GuiBase.TXT_RED;
-        String status = pre + (newValue ? I18n.MESSAGE_VALUE_ON : I18n.MESSAGE_VALUE_OFF).getBaseString() + GuiBase.TXT_RST;
-        String message = String.format(I18n.MESSAGE_TOGGLED.getBaseString(), StringUtils.translatable(name).getString(), status);
-        Minecraft.getInstance().gui.setOverlayMessage(StringUtils.literal(message), false);
+//        String pre = newValue ? GuiBase.TXT_GREEN : GuiBase.TXT_RED;
+//        String status = pre + (newValue ? I18n.MESSAGE_VALUE_ON : I18n.MESSAGE_VALUE_OFF).getBaseString() + GuiBase.TXT_RST;
+//        String message = String.format(I18n.MESSAGE_TOGGLED.getBaseString(), StringUtils.translatable(name).getString(), status);
+//        Minecraft.getInstance().gui.setOverlayMessage(StringUtils.literal(message), false);
     }
 }

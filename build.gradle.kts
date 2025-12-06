@@ -11,8 +11,6 @@ plugins {
     id("me.fallenbreath.yamlang") version "1.5.0" apply false
 }
 
-
-
 preprocess {
     val mc11802 = createNode("1.18.2", 1_18_02, "mojang")
     val mc11904 = createNode("1.19.4", 1_19_04, "mojang")
@@ -36,7 +34,7 @@ preprocess {
     mc12101.link(mc12103, null)
     mc12103.link(mc12104, null)
     mc12104.link(mc12105, file("versions/mapping-1.21.4-1.21.5.txt"))
-    mc12105.link(mc12106, file("versions/mapping-1.21.5-1.21.6.txt"))
+    mc12105.link(mc12106, null)
     mc12105.link(mc12106, null)
     mc12106.link(mc12109, null)
 

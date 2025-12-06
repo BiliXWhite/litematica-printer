@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ClientPacketListener.class)
-public class ClientPlayNetworkHandlerMixin {
+public class MixinClientPlayNetworkHandler {
     @Inject(at = @At("HEAD"),method = "handleLogin")
     private void onGameJoin(ClientboundLoginPacket packet, CallbackInfo ci) {
         OpenInventoryPacket.remoteTime = System.currentTimeMillis();
