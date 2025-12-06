@@ -15,4 +15,5 @@ run/
 
 out/
 /libs/
-/versions/1.20.4/out/
+/versions/*/build/.gradle/
+.run/
