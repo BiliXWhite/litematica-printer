@@ -549,21 +549,19 @@ public class Printer extends PrinterUtils {
         if (items == null || items.length == 0) {
             items = new Item[]{Items.AIR};
         }
-
         Inventory inv = player.getInventory();
         boolean isCreativeMode = Implementation.getAbilities(player).instabuild;
-
         // 创造模式
         if (isCreativeMode) {
             var stack = new ItemStack(items[0]);
             return PlaceUtils.setPickedItemToHand(stack, client);
         }
-
         // 找到背包中可用的物品
         for (Item item : items) {
             int slot = -1;
             for (int i = 0; i < inv.getContainerSize(); i++) {
-                if (inv.getItem(i).getItem() == item && inv.getItem(i).getCount() > 0) {
+                ItemStack itemStack = inv.getItem(i);
+                if (itemStack.getItem().equals(item)) {
                     slot = i;
                     break;
                 }
