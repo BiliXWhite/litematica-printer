@@ -129,9 +129,6 @@ public class InitHandler implements IInitializationHandler {
     @Override
     public void registerModHandlers() {
         reSetConfig();
-        OpenInventoryPacket.init();
-        OpenInventoryPacket.registerReceivePacket();
-        OpenInventoryPacket.registerClientReceivePacket();
 
         //#if MC >= 12001 && MC <= 12104
         //$$ if (loadChestTracker) {
