@@ -205,22 +205,17 @@ public class PlaceUtils {
                 InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_valid_slots_configured");
                 return false;
             }
-
             int hotbarSlot = sourceSlot;
-
             // 尝试寻找一个空的可拾取方块的热键栏槽位
             if (sourceSlot == -1 || !Inventory.isHotbarSlot(sourceSlot)) {
                 hotbarSlot = InventoryUtilsAccessor.getEmptyPickBlockableHotbarSlot(inventory);
             }
-
             // 如果没有空槽位，则寻找一个可拾取方块的热键栏槽位
             if (hotbarSlot == -1) {
                 hotbarSlot = InventoryUtilsAccessor.getPickBlockTargetSlot(player);
             }
-
             if (hotbarSlot != -1) {
                 setHotbarSlot(hotbarSlot, inventory);
-
                 if (EntityUtils.isCreativeMode(player)) {
                     PreprocessUtils.getMainStacks(inventory).set(hotbarSlot, stack.copy());
                     client.gameMode.handleCreativeModeItemAdd(client.player.getMainHandItem(), 36 + hotbarSlot);
@@ -241,7 +236,6 @@ public class PlaceUtils {
 
     public static boolean swapItemToMainHand(ItemStack stackReference, Minecraft mc) {
         Player player = mc.player;
-
         //#if MC > 12004
         if (InventoryUtils.areStacksEqualIgnoreNbt(stackReference, player.getMainHandItem())) {
         //#else
@@ -249,9 +243,7 @@ public class PlaceUtils {
         //#endif
             return false;
         }
-
         int slot = InventoryUtils.findSlotWithItem(player.inventoryMenu, stackReference, true);
-
         if (slot != -1) {
             int currentHotbarSlot = PreprocessUtils.getSelectedSlot(player.getInventory());
             if (InitHandler.PLACE_USE_PACKET.getBooleanValue()) {
@@ -261,7 +253,6 @@ public class PlaceUtils {
                 for (Slot slotItem : slots) {
                     copies.add(slotItem.getItem().copy());
                 }
-
                 Int2ObjectMap<
                         //#if MC >= 12105
                         HashedStack
@@ -282,7 +273,6 @@ public class PlaceUtils {
                         );
                     }
                 }
-
                 //#if MC >= 12105
                 HashedStack hashedStack = HashedStack.create(player.inventoryMenu.getCarried(), client.getConnection().decoratedHashOpsGenenerator());
                 //#endif
