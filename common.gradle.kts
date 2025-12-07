@@ -125,9 +125,12 @@ dependencies {
         modImplementation("com.github.sakura-ryoko:litematica:${props["litematica"]}")
         modImplementation("com.github.sakura-ryoko:tweakeroo:${props["tweakeroo"]}")
     } else {
-        modImplementation("fi.dy.masa.malilib:${props["malilib"]}")
-        modImplementation("curse.maven:litematica-308892:${props["litematica"]}")
-        modImplementation("curse.maven:tweakeroo-297344:${props["tweakeroo"]}")
+//        modImplementation("fi.dy.masa.malilib:${props["malilib"]}")
+//        modImplementation("curse.maven:litematica-308892:${props["litematica"]}")
+//        modImplementation("curse.maven:tweakeroo-297344:${props["tweakeroo"]}")
+        modImplementation("maven.modrinth:malilib:${props["malilib"]}")
+        modImplementation("maven.modrinth:litematica:${props["litematica"]}")
+        modImplementation("maven.modrinth:tweakeroo:${props["tweakeroo"]}")
     }
 
     // 箱子追踪相关（1.21.5 以下）
