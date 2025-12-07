@@ -158,7 +158,7 @@ public enum I18n {
     private final String key;
     private final boolean isRawKey;
 
-    public String getKey() {
+    public String getRawKey() {
         return key;
     }
 
@@ -173,6 +173,15 @@ public enum I18n {
 
     I18n(String key) {
         this(key, false);
+    }
+
+    /*** 获取key(带模组ID前缀)  ***/
+    public String getKey() {
+        if (isRawKey) {
+            return key;
+        } else {
+            return MOD_PREFIX + key;
+        }
     }
 
     public String getConfigKey() {
@@ -207,8 +216,12 @@ public enum I18n {
         }
     }
 
+    public Component getRawKeyComponent() {
+        return StringUtils.translatable(getRawKey());
+    }
+
     public Component getKeyComponent() {
-        return StringUtils.translatable(key);
+        return StringUtils.translatable(getKey());
     }
 
     public Component getConfigKeyComponent() {

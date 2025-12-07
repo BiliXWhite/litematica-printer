@@ -21,8 +21,6 @@ public class Configs implements IConfigHandler {
     public static Configs INSTANCE = new Configs();
     private static final String FILE_PATH = "./config/" + LitematicaPrinterMod.MOD_ID + ".json";
     private static final File CONFIG_DIR = new File("./config");
-    //mod
-    public static final ConfigHotkey OPEN_SCREEN = new ConfigHotkey( "打开菜单", "Z,Y","也就是你现在看到的这个界面的热键。");
 
     //===========通用设置===========
     public static ImmutableList<IConfigBase> addGeneral(){
