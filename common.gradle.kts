@@ -146,10 +146,14 @@ dependencies {
             }
         }
         // 快捷潜影盒依赖(运行时)
-        runtimeOnly("me.fallenbreath:conditional-mixin-fabric:0.6.4")
+        if (mcVersion==12006){  // 1.20.6 是 Haocen2004/quickshulker 分支, 所以还是使用之前老版本的依赖
+            modImplementation ("net.kyrptonaught:kyrptconfig:${props["kyrptconfig"]}") // 快捷潜影盒依赖(运行时)
+        }else{
+            modImplementation ("me.fallenbreath:conditional-mixin-fabric:0.6.4")
+        }
     } else {
         modImplementation("curse.maven:quick-shulker-362669:${props["quick_shulker"]}")
-        runtimeOnly("net.kyrptonaught:kyrptconfig:${props["kyrptconfig"]}") // 快捷潜影盒依赖(运行时)
+        modImplementation ("net.kyrptonaught:kyrptconfig:${props["kyrptconfig"]}") // 快捷潜影盒依赖(运行时)
     }
 
     // 暂时不知是什么依赖
@@ -171,10 +175,14 @@ dependencies {
 
 // ========================== Loom 配置 ==========================
 loom {
+    mixin{
+    }
     val commonVmArgs = listOf(
         "-Dmixin.debug.export=true",
-//        "-Dmixin.debug.countInjections=true",
-//        "-DmixinAuditor.audit=true"
+        "-Dmixin.debug.verbose=true", // 新增：打印详细 Mixin 加载日志
+        "-Dmixin.env.remapRefMap=true", // 新增：修复 Mixin RefMap 重映射问题
+        "-Dfabric.debug.accessWidener=true" // 新增：打印 accessWidener 加载日志
+        // "-Dmixin.debug.ignore=net.kyrptonaught.quickshulker.json:ScreenMixin" // 临时禁用冲突的 Mixin（按需）
     )
     val programArgs = listOf(
         "--width", "1280",
