@@ -9,6 +9,22 @@ import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.client.Minecraft;
 
+//#if MC >= 12001 && MC <= 12104
+//$$ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+//$$ import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
+//$$ import fi.dy.masa.malilib.util.GuiUtils;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
+//$$ import net.minecraft.resources.ResourceLocation;
+//$$ import red.jackf.chesttracker.impl.memory.MemoryBankAccessImpl;
+//$$ import red.jackf.chesttracker.impl.memory.MemoryBankImpl;
+//#elseif MC < 12001
+//$$ import net.minecraft.network.chat.Component;
+//$$ import net.minecraft.resources.ResourceLocation;
+//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
+//#endif
+
 import static me.aleksilassila.litematica.printer.InitHandler.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.startAddPrinterInventory;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.startOrOffSyncInventory;
