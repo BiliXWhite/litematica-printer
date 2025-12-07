@@ -7,9 +7,11 @@ import fi.dy.masa.litematica.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.InitHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -28,41 +30,31 @@ public class MixinInventoryUtils {
         }
     }
 
-    // !!!!!!!!!!未从Yarn迁移到Mojmap!!!!!!!!!!
-    // !!!!!!!!!!未从Yarn迁移到Mojmap!!!!!!!!!!
-    // !!!!!!!!!!未从Yarn迁移到Mojmap!!!!!!!!!!
-    // !!!!!!!!!!未从Yarn迁移到Mojmap!!!!!!!!!!
-    // !!!!!!!!!!未从Yarn迁移到Mojmap!!!!!!!!!!
-//    /**
-//     * @author BlinkWhite
-//     * @reason 去除优先选择目前已选择的槽位
-//     */
-//    @Overwrite
-//    private static int getPickBlockTargetSlot(PlayerEntity player) {
-//        if (InventoryUtilsAccessor.getPICK_BLOCKABLE_SLOTS().isEmpty()) {
-//            return -1;
-//        }
-//
-//        int slotNum;
-//
-//        if (InventoryUtilsAccessor.getNextPickSlotIndex() >= InventoryUtilsAccessor.getPICK_BLOCKABLE_SLOTS().size()) {
-//            InventoryUtilsAccessor.setNextPickSlotIndex(0);
-//        }
-//
-//        for (int i = 0; i < InventoryUtilsAccessor.getPICK_BLOCKABLE_SLOTS().size(); ++i) {
-//            slotNum = InventoryUtilsAccessor.getPICK_BLOCKABLE_SLOTS().get(InventoryUtilsAccessor.getNextPickSlotIndex());
-//
-//            setNextPickSlotIndex(InventoryUtilsAccessor.getNextPickSlotIndex() + 1);
-//
-//            if (InventoryUtilsAccessor.getNextPickSlotIndex() >= InventoryUtilsAccessor.getPICK_BLOCKABLE_SLOTS().size()) {
-//                InventoryUtilsAccessor.setNextPickSlotIndex(0);
-//            }
-//
-//            if (canPickToSlot(player.getInventory(), slotNum)) {
-//                return slotNum;
-//            }
-//        }
-//
-//        return -1;
-//    }
+    /**
+     * @author BlinkWhite
+     * @reason 去除优先选择目前已选择的槽位
+     */
+    @Overwrite
+    private static int getPickBlockTargetSlot(Player player) {
+        if (InventoryUtilsAccessor.getPICK_BLOCKABLE_SLOTS().isEmpty()) {
+            return -1;
+        }
+        int slotNum;
+        if (InventoryUtilsAccessor.getNextPickSlotIndex() >= InventoryUtilsAccessor.getPICK_BLOCKABLE_SLOTS().size()) {
+            InventoryUtilsAccessor.setNextPickSlotIndex(0);
+        }
+        for (int i = 0; i < InventoryUtilsAccessor.getPICK_BLOCKABLE_SLOTS().size(); ++i) {
+            slotNum = InventoryUtilsAccessor.getPICK_BLOCKABLE_SLOTS().get(InventoryUtilsAccessor.getNextPickSlotIndex());
+
+            InventoryUtilsAccessor.setNextPickSlotIndex(InventoryUtilsAccessor.getNextPickSlotIndex() + 1);
+
+            if (InventoryUtilsAccessor.getNextPickSlotIndex() >= InventoryUtilsAccessor.getPICK_BLOCKABLE_SLOTS().size()) {
+                InventoryUtilsAccessor.setNextPickSlotIndex(0);
+            }
+            if (InventoryUtilsAccessor.canPickToSlot(player.getInventory(), slotNum)) {
+                return slotNum;
+            }
+        }
+        return -1;
+    }
 }
