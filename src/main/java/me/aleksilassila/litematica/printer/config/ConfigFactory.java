@@ -8,7 +8,8 @@ import me.aleksilassila.litematica.printer.I18n;
 
 public class ConfigFactory {
 
-    public static <T extends ConfigBase<?>> T setI18n(I18n i18n, T config) {
+    // 使用Mixin新增接口, 修改masa底层方法实现的
+    public static <T extends ConfigBase<?>> T buildI18n(I18n i18n, T config) {
         ConfigBaseExtension extension = (ConfigBaseExtension) config;
         extension.litematica_printer$setTranslateNameKey(i18n.getConfigNameKey());
         extension.litematica_printer$setTranslateCommentKey(i18n.getConfigCommentKey());
@@ -17,7 +18,7 @@ public class ConfigFactory {
 
     public static ConfigBooleanHotkeyed booleanHotkey(I18n i18n, boolean defaultValue, String defaultHotkey, String comment) {
         ConfigBooleanHotkeyed config = new ConfigBooleanHotkeyed(i18n.getKey(), defaultValue, defaultHotkey, comment);
-        return setI18n(i18n, config);
+        return buildI18n(i18n, config);
     }
 
     public static ConfigBooleanHotkeyed booleanHotkey(I18n i18n, boolean defaultValue, String defaultHotkey) {
@@ -34,7 +35,7 @@ public class ConfigFactory {
 
     public static ConfigBoolean bool(I18n i18n, boolean defaultValue, String comment) {
         ConfigBoolean config = new ConfigBoolean(i18n.getKey(), defaultValue, comment);
-        return setI18n(i18n, config);
+        return buildI18n(i18n, config);
     }
 
     public static ConfigBoolean bool(I18n i18n, boolean defaultValue) {
@@ -48,7 +49,7 @@ public class ConfigFactory {
 
     public static ConfigHotkey hotkey(I18n i18n, String defaultStorageString, KeybindSettings settings, String comment) {
         ConfigHotkey config = new ConfigHotkey(i18n.getKey(), defaultStorageString, settings, comment);
-        return setI18n(i18n, config);
+        return buildI18n(i18n, config);
     }
 
     public static ConfigHotkey hotkey(I18n i18n, String defaultStorageString, KeybindSettings settings) {
@@ -70,7 +71,7 @@ public class ConfigFactory {
 
     public static ConfigInteger integer(I18n i18n, int defaultValue, int minValue, int maxValue, boolean useSlider, String comment) {
         ConfigInteger config = new ConfigInteger(i18n.getKey(), defaultValue, minValue, maxValue, useSlider, comment);
-        return setI18n(i18n, config);
+        return buildI18n(i18n, config);
     }
 
     public static ConfigInteger integer(I18n i18n, int defaultValue, int minValue, int maxValue, boolean useSlider) {
@@ -92,7 +93,7 @@ public class ConfigFactory {
 
     public static ConfigStringList stringList(I18n i18n, ImmutableList<String> defaultValue, String comment) {
         ConfigStringList config = new ConfigStringList(i18n.getKey(), defaultValue, comment);
-        return setI18n(i18n, config);
+        return buildI18n(i18n, config);
     }
 
     public static ConfigStringList stringList(I18n i18n, ImmutableList<String> defaultValue) {
@@ -101,7 +102,7 @@ public class ConfigFactory {
 
     public static ConfigString string(I18n i18n, String defaultValue, String comment) {
         ConfigString config = new ConfigString(i18n.getKey(), defaultValue, comment);
-        return setI18n(i18n, config);
+        return buildI18n(i18n, config);
     }
 
     public static ConfigString string(I18n i18n, String defaultValue) {
@@ -115,7 +116,7 @@ public class ConfigFactory {
 
     public static ConfigOptionList optionList(I18n i18n, IConfigOptionListEntry defaultValue, String comment) {
         ConfigOptionList config = new ConfigOptionList(i18n.getKey(), defaultValue, comment);
-        return setI18n(i18n, config);
+        return buildI18n(i18n, config);
     }
 
     public static ConfigOptionList optionList(I18n i18n, IConfigOptionListEntry defaultValue) {
@@ -124,7 +125,7 @@ public class ConfigFactory {
 
     public static ConfigColor color(I18n i18n, String defaultValue, String comment) {
         ConfigColor config = new ConfigColor(i18n.getKey(), defaultValue, comment);
-        return setI18n(i18n, config);
+        return buildI18n(i18n, config);
     }
 
     public static ConfigColor color(I18n i18n, String defaultValue) {
