@@ -1,31 +1,13 @@
-package me.aleksilassila.litematica.printer.config.hotkeys;
+package me.aleksilassila.litematica.printer.config;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import me.aleksilassila.litematica.printer.config.ConfigUI;
-import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.client.Minecraft;
-
-//#if MC >= 12001 && MC <= 12104
-//$$ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-//$$ import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
-//$$ import fi.dy.masa.malilib.util.GuiUtils;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
-//$$ import net.minecraft.resources.ResourceLocation;
-//$$ import red.jackf.chesttracker.impl.memory.MemoryBankAccessImpl;
-//$$ import red.jackf.chesttracker.impl.memory.MemoryBankImpl;
-//#elseif MC < 12001
-//$$ import net.minecraft.network.chat.Component;
-//$$ import net.minecraft.resources.ResourceLocation;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
-//#endif
 
 import static me.aleksilassila.litematica.printer.InitHandler.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.startAddPrinterInventory;
@@ -38,7 +20,9 @@ public class HotkeysCallback implements IHotkeyCallback {
     //激活的热键会被key记录
     @Override
     public boolean onKeyAction(KeyAction action, IKeybind key) {
-        if (this.client.player == null || this.client.level == null) return false;
+        if (this.client.player == null || this.client.level == null) {
+            return false;
+        }
         if (key == OPEN_SCREEN.getKeybind()) {
             client.setScreen(new ConfigUI());
             return true;

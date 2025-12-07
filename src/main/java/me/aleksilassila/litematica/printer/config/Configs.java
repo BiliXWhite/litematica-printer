@@ -8,7 +8,6 @@ import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.util.JsonUtils;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
-import me.aleksilassila.litematica.printer.config.hotkeys.HotkeysCallback;
 import me.aleksilassila.litematica.printer.printer.State;
 
 import java.io.File;
