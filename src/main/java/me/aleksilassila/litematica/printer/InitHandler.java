@@ -20,7 +20,6 @@ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPa
 import java.util.ArrayList;
 import java.util.List;
 
-import static me.aleksilassila.litematica.printer.StringUtils.literal;
 import static me.aleksilassila.litematica.printer.config.ConfigFactory.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
 
