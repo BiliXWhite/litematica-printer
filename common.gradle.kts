@@ -136,7 +136,7 @@ dependencies {
         modImplementation("maven.modrinth:where-is-it:${props["whereisit"]}")
     }
 
-    // 快捷潜影盒（根据 MC 版本选择）
+    // 快捷潜影盒
     if (mcVersion >= 12006) {
         val quickshulkerUrl = props["quickshulker"].toString()
         if (quickshulkerUrl.isNotEmpty()) {
@@ -145,12 +145,14 @@ dependencies {
                 modImplementation(files(quickshulkerFile))
             }
         }
+        // 快捷潜影盒依赖(运行时)
+        runtimeOnly("me.fallenbreath:conditional-mixin-fabric:0.6.4")
     } else {
         modImplementation("curse.maven:quick-shulker-362669:${props["quick_shulker"]}")
-        modImplementation("net.kyrptonaught:kyrptconfig:${props["kyrptconfig"]}")
+        runtimeOnly("net.kyrptonaught:kyrptconfig:${props["kyrptconfig"]}") // 快捷潜影盒依赖(运行时)
     }
 
-    // 配置界面库（根据 MC 版本选择）
+    // 暂时不知是什么依赖
     if (mcVersion >= 12001) {
         modImplementation("dev.isxander:yet-another-config-lib:${props["yacl"]}")
         modImplementation("red.jackf.jackfredlib:jackfredlib:${props["jackfredlib"]}")
@@ -159,13 +161,11 @@ dependencies {
         modImplementation("maven.modrinth:cloth-config:${props["cloth_config"]}")
         modImplementation("io.github.cottonmc:LibGui:${props["LibGui"]}")
     }
-
-    // Cloth API（1.19.4 以下）
     if (mcVersion < 11904) {
         modImplementation("me.shedaniel.cloth.api:cloth-api:${props["cloth_api"]}")
     }
 
-    // Fabric 包装器（运行时）
+    // Fabric 包装器（运行时, 正常情况下可以不用, 这里模拟用户环境, 一起加载到游戏）
     runtimeOnly(project(":fabricWrapper"))
 }
 
