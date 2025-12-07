@@ -114,7 +114,7 @@ dependencies {
     modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
 
     // 拼音库（内嵌）
-    modImplementation("com.belerweb:pinyin4j:${props["pinyin_version"]}")
+    modImplementation("com.belerweb:pinyin4j:${props["pinyin_version"]}")?.let { include(it) }
 
     // ModMenu
     modImplementation("com.terraformersmc:modmenu:${props["modmenu"]}")
