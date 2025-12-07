@@ -207,6 +207,5 @@
   "litematica_printer.config.comment.openScreen": "打开打印机设置菜单的热键（即当前界面）。",
 
   "litematica_printer.config.name.inventoryList": "库存白名单",
-  "litematica_printer.config.comment.inventoryList": "打印机库存的白名单，只有白名单内的容器才会被记录。",
-
+  "litematica_printer.config.comment.inventoryList": "打印机库存的白名单，只有白名单内的容器才会被记录。"
 }
