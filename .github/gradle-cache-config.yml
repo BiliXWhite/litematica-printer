@@ -1,0 +1,13 @@
+# Gradle缓存清理&配置参数
+cache:
+  # 清理超过N天的缓存文件（核心可配置项）
+  clean_old_days: 8
+  # 需要缓存/清理的Gradle目录列表
+  cache_paths:
+    - ~/.gradle/caches
+    - ~/.gradle/wrapper
+    - ./.gradle
+  # 云端缓存键前缀（所有分支共用）
+  cache_key_prefix: "${{ runner.os }}-gradle-common"
+  # 是否在PR触发时执行清理（true/false）
+  clean_on_pr: false
