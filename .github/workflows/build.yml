@@ -30,8 +30,8 @@ jobs:
       - name: Load Gradle cache config
         id: load_cache_config
         run: |
-          # 安装yq（解析YAML配置文件）
-          sudo apt update && sudo apt install -y yq
+          # 安装yq（解析YAML配置文件，优化更新速度）
+          sudo apt update -o Acquire::Update::Parallel=true && sudo apt install -y yq
           
           # 配置文件路径（项目内的配置文件）
           CONFIG_FILE=".github/gradle-cache-config.yml"
@@ -39,7 +39,9 @@ jobs:
           # 读取配置值（不存在则用默认值）
           CLEAN_OLD_DAYS=$(yq -r '.cache.clean_old_days' "$CONFIG_FILE" || echo 8)
           CACHE_PATHS=$(yq -r '.cache.cache_paths | @sh' "$CONFIG_FILE" || echo "~/.gradle/caches ~/.gradle/wrapper ./.gradle")
-          CACHE_KEY_PREFIX=$(yq -r '.cache.cache_key_prefix' "$CONFIG_FILE" || echo "${{ runner.os }}-gradle-common")
+          # 拼接系统名到缓存前缀（修复变量解析）
+          BASE_PREFIX=$(yq -r '.cache.cache_key_prefix' "$CONFIG_FILE" || echo "gradle-common")
+          CACHE_KEY_PREFIX="${{ runner.os }}-$BASE_PREFIX"
           CLEAN_ON_PR=$(yq -r '.cache.clean_on_pr' "$CONFIG_FILE" || echo false)
           
           # 将配置值输出为步骤变量（供后续步骤使用）
@@ -64,14 +66,15 @@ jobs:
         run: |
           # 从步骤输出读取配置值
           CLEAN_DAYS=${{ steps.load_cache_config.outputs.clean_old_days }}
-          CACHE_PATHS=(${{ steps.load_cache_config.outputs.cache_paths }})
+          # 安全解析路径（处理~和环境变量）
+          CACHE_PATHS=($(eval echo ${{ steps.load_cache_config.outputs.cache_paths }}))
           
           echo "🔍 开始清理超过 $CLEAN_DAYS 天的Gradle缓存文件..."
           
           # 遍历配置的缓存路径，执行清理
           for dir in "${CACHE_PATHS[@]}"; do
-            # 解析绝对路径（处理~符号）
-            abs_dir=$(eval echo "$dir")
+            # 解析绝对路径
+            abs_dir=$(realpath "$dir" 2>/dev/null || true)
             if [ -d "$abs_dir" ]; then
               echo "📂 清理目录：$abs_dir"
               # 删除超过指定天数的文件
@@ -80,7 +83,7 @@ jobs:
               find "$abs_dir" -type d -empty -delete
               echo "✅ 目录 $abs_dir 清理完成"
             else
-              echo "⚠️ 目录 $abs_dir 不存在，跳过"
+              echo "⚠️ 目录 $dir（解析后：$abs_dir）不存在，跳过"
             fi
           done
 
@@ -91,16 +94,16 @@ jobs:
           (github.event_name == 'workflow_dispatch') || 
           (github.event_name == 'pull_request' && steps.load_cache_config.outputs.clean_on_pr == 'true')
         run: |
-          # 安装GitHub CLI
-          sudo apt update && sudo apt install gh -y
+          # 安装GitHub CLI（优化更新速度）
+          sudo apt update -o Acquire::Update::Parallel=true && sudo apt install -y gh
           echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
           
           # 从步骤输出读取缓存键前缀
           CACHE_PREFIX=${{ steps.load_cache_config.outputs.cache_key_prefix }}
           echo "🔍 清理云端缓存（前缀：$CACHE_PREFIX）..."
           
-          # 列出所有匹配前缀的缓存，按创建时间倒序
-          CACHE_LIST=$(gh cache list --limit 100 | grep "$CACHE_PREFIX" | sort -k3r)
+          # 列出更多匹配缓存（提升到200条避免漏删）
+          CACHE_LIST=$(gh cache list --limit 200 | grep "$CACHE_PREFIX" | sort -k3r)
           
           if [ -n "$CACHE_LIST" ]; then
             # 保留最新1份，删除其余
@@ -117,11 +120,11 @@ jobs:
 
       # ========== 根据配置执行Gradle缓存 ==========
       - name: Cache Gradle dependencies (config-driven)
-        uses: actions/cache@v3
+        uses: actions/cache@v4  # 升级到最新版
         with:
           # 从配置读取缓存路径
           path: ${{ steps.load_cache_config.outputs.cache_paths }}
-          # 从配置读取缓存键前缀（固定键，所有分支共用）
+          # 从配置读取缓存键前缀
           key: ${{ steps.load_cache_config.outputs.cache_key_prefix }}
 
       - name: make gradle wrapper executable

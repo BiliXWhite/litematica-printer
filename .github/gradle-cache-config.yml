@@ -8,6 +8,6 @@ cache:
     - ~/.gradle/wrapper
     - ./.gradle
   # 云端缓存键前缀（所有分支共用）
-  cache_key_prefix: "${{ runner.os }}-gradle-common"
+  cache_key_prefix: "gradle-common"
   # 是否在PR触发时执行清理（true/false）
   clean_on_pr: false
