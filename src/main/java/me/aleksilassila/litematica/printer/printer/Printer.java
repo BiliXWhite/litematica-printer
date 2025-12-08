@@ -568,8 +568,7 @@ public class Printer extends PrinterUtils {
             }
             if (slot != -1) {
                 orderlyStoreItem = inv.getItem(slot);
-                var stack = new ItemStack(item);
-                return PlaceUtils.setPickedItemToHand(slot, stack, client);
+                return PlaceUtils.setPickedItemToHand(slot, orderlyStoreItem, client);
             }
             lastNeedItemList.add(item);
         }
