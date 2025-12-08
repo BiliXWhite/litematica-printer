@@ -1,19 +1,14 @@
 name: build
 on:
   push:
-    paths-ignore:
-      - '*.md'
+    paths-ignore: ['*.md']
   pull_request:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-24.04
-    permissions:
-      # 允许删除云端缓存
-      actions: write
     steps:
-      # 1. 拉取代码（基础步骤）
       - name: checkout repository
         uses: actions/checkout@v4
 
@@ -26,97 +21,37 @@ jobs:
           java-version: '21'
           distribution: 'microsoft'
 
-      # 2. 加载缓存配置（核心配置读取）
-      - name: Load Gradle cache config
-        id: load_cache_config
-        run: |
-          # 安装yq（解析YAML配置文件）
-          sudo apt update -o Acquire::Update::Parallel=true && sudo apt install -y yq
-          
-          CONFIG_FILE=".github/gradle-cache-config.yml"
-          
-          # 读取配置值（不存在则用默认值）
-          CLEAN_OLD_DAYS=$(yq -r '.cache.clean_old_days' "$CONFIG_FILE" || echo 8)
-          CACHE_PATHS=$(yq -r '.cache.cache_paths | @sh' "$CONFIG_FILE" || echo "~/.gradle/caches ~/.gradle/wrapper ./.gradle")
-          BASE_PREFIX=$(yq -r '.cache.cache_key_prefix' "$CONFIG_FILE" || echo "gradle-common")
-          CACHE_KEY_PREFIX="${{ runner.os }}-$BASE_PREFIX"
-          CLEAN_ON_PR=$(yq -r '.cache.clean_on_pr' "$CONFIG_FILE" || echo false)
-          
-          # 输出变量
-          echo "clean_old_days=$CLEAN_OLD_DAYS" >> $GITHUB_OUTPUT
-          echo "cache_paths=$CACHE_PATHS" >> $GITHUB_OUTPUT
-          echo "cache_key_prefix=$CACHE_KEY_PREFIX" >> $GITHUB_OUTPUT
-          echo "clean_on_pr=$CLEAN_ON_PR" >> $GITHUB_OUTPUT
-          
-          # 打印配置（调试用）
-          echo "📌 加载的缓存配置："
-          echo "  清理超过 $CLEAN_OLD_DAYS 天的文件"
-          echo "  缓存路径：$CACHE_PATHS"
-          echo "  缓存键前缀：$CACHE_KEY_PREFIX"
-          echo "  PR触发时清理：$CLEAN_ON_PR"
+      - name: Cache Gradle dependencies (公共缓存)
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ./.gradle
+          # 固定缓存键（公共缓存），不依赖文件哈希
+          key: ${{ runner.os }}-gradle-common
+          # 恢复键与主键一致，确保优先使用公共缓存
+          restore-keys: |
+            ${{ runner.os }}-gradle-common
 
-      # 3. 清理旧缓存（本地+云端）
-      - name: Clean old Gradle files (config-driven)
-        if: >
-          (github.event_name == 'push') || 
-          (github.event_name == 'workflow_dispatch') || 
-          (github.event_name == 'pull_request' && steps.load_cache_config.outputs.clean_on_pr == 'true')
+      - name: 清理缓存中超过指定天数的旧文件（统一配置天数）
         run: |
-          CLEAN_DAYS=${{ steps.load_cache_config.outputs.clean_old_days }}
-          CACHE_PATHS=($(eval echo ${{ steps.load_cache_config.outputs.cache_paths }}))
+          # 在这里统一设置清理天数（例如7天，需要修改时只改这里）
+          CLEAN_DAYS=7
           
-          echo "🔍 开始清理超过 $CLEAN_DAYS 天的Gradle缓存文件..."
-          for dir in "${CACHE_PATHS[@]}"; do
-            abs_dir=$(realpath "$dir" 2>/dev/null || true)
-            if [ -d "$abs_dir" ]; then
-              echo "📂 清理目录：$abs_dir"
-              find "$abs_dir" -type f -mtime +"$CLEAN_DAYS" -delete
-              find "$abs_dir" -type d -empty -delete
-              echo "✅ 目录 $abs_dir 清理完成"
-            else
-              echo "⚠️ 目录 $dir（解析后：$abs_dir）不存在，跳过"
-            fi
-          done
+          # 清理 ~/.gradle/caches 中指定天数前的文件
+          find ~/.gradle/caches -type f -mtime +$CLEAN_DAYS -delete
+          # 清理 ~/.gradle/wrapper 中指定天数前的文件
+          find ~/.gradle/wrapper -type f -mtime +$CLEAN_DAYS -delete
+          # 清理项目内 .gradle 目录中指定天数前的文件
+          find ./.gradle -type f -mtime +$CLEAN_DAYS -delete
 
-      - name: Clean redundant cloud cache (config-driven)
-        if: >
-          (github.event_name == 'push') || 
-          (github.event_name == 'workflow_dispatch') || 
-          (github.event_name == 'pull_request' && steps.load_cache_config.outputs.clean_on_pr == 'true')
-        run: |
-          sudo apt update -o Acquire::Update::Parallel=true && sudo apt install -y gh
-          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-          
-          CACHE_PREFIX=${{ steps.load_cache_config.outputs.cache_key_prefix }}
-          echo "🔍 清理云端缓存（前缀：$CACHE_PREFIX）..."
-          
-          CACHE_LIST=$(gh cache list --limit 200 | grep "$CACHE_PREFIX" | sort -k3r)
-          if [ -n "$CACHE_LIST" ]; then
-            LATEST_ID=$(echo "$CACHE_LIST" | head -n1 | awk '{print $1}')
-            echo "🔒 保留最新云端缓存ID：$LATEST_ID"
-            echo "$CACHE_LIST" | tail -n +2 | while read -r cache_id _ _; do
-              [ -n "$cache_id" ] && gh cache delete "$cache_id" --confirm
-            done
-            echo "✅ 云端缓存清理完成"
-          else
-            echo "⚠️ 未找到匹配的云端缓存，跳过"
-          fi
-
-      # 4. 先执行构建（关键调整：构建在缓存上传前）
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
 
       - name: build fabricWrapper subproject
         run: ./gradlew :fabricWrapper:build --stacktrace
 
-      # 5. 构建完成后，上传最新的Gradle缓存
-      - name: Cache Gradle dependencies (config-driven)
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.load_cache_config.outputs.cache_paths }}
-          key: ${{ steps.load_cache_config.outputs.cache_key_prefix }}
-
-      # 6. 最后上传构建产物
       - name: capture build artifacts
         uses: actions/upload-artifact@v4
         with:

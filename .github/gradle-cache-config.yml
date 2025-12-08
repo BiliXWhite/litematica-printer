@@ -1,6 +1,0 @@
-# Gradle缓存清理&配置参数
-cache:
-  # 清理超过N天的缓存文件（核心可配置项）
-  clean_old_days: 8
-  # 是否在PR触发时执行清理（true/false）
-  clean_on_pr: false
