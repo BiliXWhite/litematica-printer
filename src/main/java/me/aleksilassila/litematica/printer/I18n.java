@@ -93,6 +93,9 @@ public enum I18n {
 
     FLUID_BLOCK_LIST       ("fluidBlockList"),
     FLUID_LIST             ("fluidList"),
+    FILL_BLOCK_MODE        ("fillBlockMode"),
+    FILE_BLOCK_MODE_TYPE_WHITELIST        ("fillBlockModeType.whitelist"),
+    FILE_BLOCK_MODE_TYPE_HANDHELD         ("fillBlockModeType.handheld"),
     FILL_BLOCK_LIST        ("fillBlockList"),
     INVENTORY_LIST         ("inventoryList"),
     EXCAVATE_WHITELIST     ("excavateWhitelist"),

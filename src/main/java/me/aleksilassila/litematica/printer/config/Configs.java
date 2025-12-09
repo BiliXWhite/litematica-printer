@@ -50,6 +50,7 @@ public class Configs implements IConfigHandler {
         list.add(RENDER_LAYER_LIMIT);
         list.add(FLUID_BLOCK_LIST);
         list.add(FLUID_LIST);
+        list.add(FILL_BLOCK_MODE);
         list.add(FILL_BLOCK_LIST);
         list.add(FILL_BLOCK_FACING);
         if(loadChestTracker) list.add(INVENTORY_LIST);

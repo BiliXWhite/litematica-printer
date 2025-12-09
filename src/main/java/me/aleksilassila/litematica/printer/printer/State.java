@@ -203,6 +203,55 @@ public enum State {
             return ModeType.SINGLE;
         }
     }
+    public enum FileBlockModeType implements IConfigOptionListEntry {
+        WHITELIST(I18n.FILE_BLOCK_MODE_TYPE_WHITELIST),
+        HANDHELD(I18n.FILE_BLOCK_MODE_TYPE_HANDHELD);
+
+        private final I18n i18n;
+
+        FileBlockModeType(I18n i18n) {
+            this.i18n = i18n;
+        }
+
+        @Override
+        public String getStringValue() {
+            return this.i18n.getSimpleKey();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return this.i18n.getConfigListKeyComponent().getString();
+        }
+
+        @Override
+        public IConfigOptionListEntry cycle(boolean forward) {
+            int id = this.ordinal();
+            if (forward) {
+                if (++id >= values().length) {
+                    id = 0;
+                }
+            } else {
+                if (--id < 0) {
+                    id = values().length - 1;
+                }
+            }
+            return values()[id % values().length];
+        }
+
+        @Override
+        public FileBlockModeType fromString(String name) {
+            return fromStringStatic(name);
+        }
+
+        public static FileBlockModeType fromStringStatic(String name) {
+            for (FileBlockModeType mode : FileBlockModeType.values()) {
+                if (mode.getStringValue().equalsIgnoreCase(name)) {
+                    return mode;
+                }
+            }
+            return FileBlockModeType.WHITELIST;
+        }
+    }
 
     public enum RadiusShapeType implements IConfigOptionListEntry {
         SPHERE(I18n.ITERATOR_SHAPE_TYPE_SPHERE),

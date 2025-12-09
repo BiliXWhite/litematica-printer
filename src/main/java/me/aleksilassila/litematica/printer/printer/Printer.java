@@ -16,12 +16,12 @@ import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -216,16 +216,28 @@ public class Printer extends PrinterUtils {
 
     void fillMode() {
         requiredState = null;
-        if (!FILL_BLOCK_LIST.getStrings().equals(fillBlocklist)) {
-            fillBlocklist.clear();
-            fillBlocklist.addAll(FILL_BLOCK_LIST.getStrings());
-            if (FILL_BLOCK_LIST.getStrings().isEmpty()) return;
+
+        if (FILL_BLOCK_MODE.getOptionListValue() == State.FileBlockModeType.HANDHELD){
+            // 手持物品模式：直接读取玩家当前手持物品
+            if (client.player == null) return; // 玩家为空时直接返回
+            ItemStack heldStack = client.player.getMainHandItem(); // 获取主手物品
+            if (heldStack.isEmpty() || heldStack.getCount() <= 0) return; // 主手无物品时跳过填充
             fillModeItemList.clear();
-            for (String itemName : fillBlocklist) {
-                List<Item> list = BuiltInRegistries.ITEM.stream().filter(item -> equalsItemName(itemName, new ItemStack(item))).toList();
-                fillModeItemList.addAll(list);
-            }
+            fillModeItemList.add(heldStack.getItem());
             fillItemsArray = fillModeItemList.toArray(new Item[0]);
+        }
+        if (FILL_BLOCK_MODE.getOptionListValue() == State.FileBlockModeType.WHITELIST){
+            if (!FILL_BLOCK_LIST.getStrings().equals(fillBlocklist)) {
+                fillBlocklist.clear();
+                fillBlocklist.addAll(FILL_BLOCK_LIST.getStrings());
+                if (FILL_BLOCK_LIST.getStrings().isEmpty()) return;
+                fillModeItemList.clear();
+                for (String itemName : fillBlocklist) {
+                    List<Item> list = BuiltInRegistries.ITEM.stream().filter(item -> equalsItemName(itemName, new ItemStack(item))).toList();
+                    fillModeItemList.addAll(list);
+                }
+                fillItemsArray = fillModeItemList.toArray(new Item[0]);
+            }
         }
 
         BlockPos pos;
@@ -335,7 +347,7 @@ public class Printer extends PrinterUtils {
 
         //从这里才算作开始
         tickStartTime = System.currentTimeMillis();
-        tickEndTime = tickStartTime + InitHandler.ITERATOR_USE_TIME.getIntegerValue();
+        tickEndTime = tickStartTime + ITERATOR_USE_TIME.getIntegerValue();
 
         // 优先执行队列中的点击操作
         if (tickRate != 0) {
@@ -408,7 +420,7 @@ public class Printer extends PrinterUtils {
             // 检查放置跳过列表
             if (PUT_SKIP.getBooleanValue()) {
                 Set<String> skipSet = new HashSet<>(PUT_SKIP_LIST.getStrings()); // 转换为 HashSet
-                if (skipSet.stream().anyMatch(s -> Filters.equalsName(s, requiredState))) {
+                if (skipSet.stream().anyMatch(s -> equalsName(s, requiredState))) {
                     continue;
                 }
             }
@@ -422,7 +434,7 @@ public class Printer extends PrinterUtils {
             PlacementGuide.Action action = guide.getAction(world, schematic, pos);
             if (action == null) continue;
 
-            if (InitHandler.FALLING_CHECK.getBooleanValue() && requiredState.getBlock() instanceof FallingBlock) {
+            if (FALLING_CHECK.getBooleanValue() && requiredState.getBlock() instanceof FallingBlock) {
                 //检查方块下面方块是否正确，否则跳过放置
                 BlockPos downPos = pos.below();
                 if (world.getBlockState(downPos) != schematic.getBlockState(downPos)) {
@@ -688,7 +700,7 @@ public class Printer extends PrinterUtils {
             if (PLACE_USE_PACKET.getBooleanValue()) {
                 //#if MC >= 11904
                 player.connection.send(new ServerboundUseItemOnPacket(
-                        net.minecraft.world.InteractionHand.MAIN_HAND,
+                        InteractionHand.MAIN_HAND,
                         new BlockHitResult(hitVec, side, target, false),
                         ZxyUtils.getSequence()
                 ));
