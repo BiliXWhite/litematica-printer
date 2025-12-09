@@ -47,8 +47,8 @@ public class MixinClientCommonNetworkHandler {
     @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Connection;send(Lnet/minecraft/network/protocol/Packet;)V"), method = "send")
     //#endif
     public void sendPacket(Connection instance, Packet<?> packet, Operation<Void> original) {
-        Direction directionYaw = Printer.getPrinter().queue.lookDirYaw;
-        Direction directionPitch = Printer.getPrinter().queue.lookDirPitch;
+        Direction directionYaw = Printer.getInstance().queue.lookDirYaw;
+        Direction directionPitch = Printer.getInstance().queue.lookDirPitch;
         if ((directionYaw != null || directionPitch != null) && Implementation.isLookAndMovePacket(packet)) {
             Packet<?> fixedPacket = Implementation.getFixedLookPacket(minecraft.player, packet, directionYaw, directionPitch);
             if (fixedPacket != null) {

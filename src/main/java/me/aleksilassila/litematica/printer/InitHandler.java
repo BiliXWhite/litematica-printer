@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import fi.dy.masa.litematica.config.Hotkeys;
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.options.*;
+import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
@@ -11,17 +12,16 @@ import fi.dy.masa.malilib.interfaces.IInitializationHandler;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.config.InputHandler;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
-import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static me.aleksilassila.litematica.printer.config.ConfigFactory.*;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker;
 
 public class InitHandler implements IInitializationHandler {
     // @formatter:off
@@ -51,11 +51,11 @@ public class InitHandler implements IInitializationHandler {
     public static final ConfigOptionList ITERATION_ORDER    = optionList(I18n.PRINTER_ITERATOR_MODE     , State.IterationOrderType.XZY);
     public static final ConfigOptionList FILL_BLOCK_FACING  = optionList(I18n.FILL_MODE_FACING          , State.FillModeFacingType.DOWN);
 
-    public static final ConfigOptionList MODE_SWITCH        = optionList(I18n.MODE_SWITCH, State.ModeType.SINGLE);
-    public static final ConfigOptionList PRINTER_MODE       = optionList(I18n.PRINTER_MODE, State.PrintModeType.PRINTER);
-    public static final ConfigOptionList EXCAVATE_LIMITER   = optionList(I18n.EXCAVATE_LIMITER, State.ExcavateListMode.CUSTOM);
-    public static final ConfigOptionList EXCAVATE_LIMIT     = optionList(I18n.EXCAVATE_LIMIT, UsageRestriction.ListType.NONE);
-    public static final ConfigColor SYNC_INVENTORY_COLOR    = color(I18n.SYNC_INVENTORY_COLOR, "#4CFF4CE6");
+    public static final ConfigOptionList MODE_SWITCH        = optionList(I18n.MODE_SWITCH               , State.ModeType.SINGLE);
+    public static final ConfigOptionList PRINTER_MODE       = optionList(I18n.PRINTER_MODE              , State.PrintModeType.PRINTER);
+    public static final ConfigOptionList EXCAVATE_LIMITER   = optionList(I18n.EXCAVATE_LIMITER          , State.ExcavateListMode.CUSTOM);
+    public static final ConfigOptionList EXCAVATE_LIMIT     = optionList(I18n.EXCAVATE_LIMIT            , UsageRestriction.ListType.NONE);
+    public static final ConfigColor SYNC_INVENTORY_COLOR    = color(I18n.SYNC_INVENTORY_COLOR           , "#4CFF4CE6");
 
 
     public static final ConfigBoolean PLACE_USE_PACKET          = bool(I18n.PRINTER_USE_PACKET              , false);
@@ -91,13 +91,12 @@ public class InitHandler implements IInitializationHandler {
     public static final ConfigBoolean REPLACE_CORAL             = bool(I18n.REPLACE_CORAL                   , false);
     public static final ConfigBoolean RENDER_HUD                = bool(I18n.RENDER_HUD                      , false);
 
-    public static final ConfigInteger PRINTER_SPEED = integer(I18n.PRINTER_SPEED, 1, 0, 20);
-    public static final ConfigInteger BLOCKS_PER_TICK = integer(I18n.PRINTER_BLOCKS_PER_TICK, 4, 0, 24);
-    public static final ConfigInteger PLACE_COOLDOWN = integer(I18n.PRINTER_PLACE_COOLDOWN, 3, 0, 64);
-    public static final ConfigInteger PRINTER_RANGE = integer(I18n.PRINTER_RANGE, 6, 1, 256);
-    public static final ConfigInteger QUICK_SHULKER_COOLDOWN = integer(I18n.PRINTER_QUICK_SHULKER_COOLDOWN, 10, 0, 20);
-    public static final ConfigInteger ITERATOR_USE_TIME = integer(I18n.PRINTER_ITERATOR_USE_TIME, 8, 0, 128);
-
+    public static final ConfigInteger PRINTER_SPEED             = integer(I18n.PRINTER_SPEED                    , 1, 0, 20);
+    public static final ConfigInteger BLOCKS_PER_TICK           = integer(I18n.PRINTER_BLOCKS_PER_TICK          , 4, 0, 24);
+    public static final ConfigInteger PLACE_COOLDOWN            = integer(I18n.PRINTER_PLACE_COOLDOWN           , 3, 0, 64);
+    public static final ConfigInteger PRINTER_RANGE             = integer(I18n.PRINTER_RANGE                    , 6, 1, 256);
+    public static final ConfigInteger QUICK_SHULKER_COOLDOWN    = integer(I18n.PRINTER_QUICK_SHULKER_COOLDOWN   , 10, 0, 20);
+    public static final ConfigInteger ITERATOR_USE_TIME         = integer(I18n.PRINTER_ITERATOR_USE_TIME        , 8, 0, 128);
 
     public static final ConfigBooleanHotkeyed PRINT_WATER           = booleanHotkey(I18n.PRINT_WATER              ,false);
     public static final ConfigBooleanHotkeyed USE_EASYPLACE         = booleanHotkey(I18n.USE_EASYPLACE            ,false);
@@ -130,29 +129,34 @@ public class InitHandler implements IInitializationHandler {
 
     @Override
     public void registerModHandlers() {
-        reSetConfig();
+        // 箱子追踪
+        if (!Statistics.loadChestTracker) {
+            AUTO_INVENTORY.setBooleanValue(false);  // 自动设置远程交互
+            CLOUD_INVENTORY.setBooleanValue(false); // 远程交互容器
+        }
+
+        InputEventHandler.getKeybindManager().registerKeybindProvider(InputHandler.getInstance());
+        InputEventHandler.getInputManager().registerKeyboardInputHandler(InputHandler.getInstance());
 
         //#if MC >= 12001 && MC <= 12104
-        //$$ if (loadChestTracker) {
+        //$$ if (Statistics.loadChestTracker) {
         //$$     me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.setup();
         //$$ }
         //#endif
 
-        TOGGLE_PRINTING_MODE.getKeybind().setCallback(
-                new KeyCallbackToggleBooleanConfigWithMessage(PRINT_SWITCH)
-        );
+        // 切换打印状态热键
+        TOGGLE_PRINTING_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(PRINT_SWITCH));
 
+        // 打印状态值被修改
         PRINT_SWITCH.setValueChangeCallback(b -> {
             if (!b.getBooleanValue()) {
-                Printer.getPrinter().basePos = null;
-                Printer.getPrinter().clearQueue();
-                Printer.pistonNeedFix = false;
-                Printer.requiredState = null;
+                Printer.getInstance().basePos = null;
+                Printer.getInstance().clearQueue();
+                Printer.getInstance().pistonNeedFix = false;
+                Printer.getInstance().requiredState = null;
                 if (Statistics.loadBedrockMiner) {
-                    if (BedrockUtils.isWorking()) {
-                        BedrockUtils.setWorking(false);
-                        BedrockUtils.setBedrockMinerFeatureEnable(true);
-                    }
+                    BedrockUtils.setWorking(false);
+                    BedrockUtils.setBedrockMinerFeatureEnable(true);
                 }
             }
         });
@@ -167,23 +171,11 @@ public class InitHandler implements IInitializationHandler {
         list.add(PRINT);
         list.add(TOGGLE_PRINTING_MODE);
         list.add(CLOSE_ALL_MODE);
-
         if (MODE_SWITCH.getOptionListValue() == State.ModeType.SINGLE) {
             list.add(SWITCH_PRINTER_MODE);
         }
-
         return ImmutableList.copyOf(list);
     }
 
-
-    //========================================
-    //           Utility Methods
-    //========================================
-    private void reSetConfig() {
-        if (!loadChestTracker) {
-            AUTO_INVENTORY.setBooleanValue(false);
-            CLOUD_INVENTORY.setBooleanValue(false);
-        }
-    }
 }
 

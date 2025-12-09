@@ -94,7 +94,7 @@ public class HotkeysCallback implements IHotkeyCallback {
     public static void init() {
         HotkeysCallback hotkeysCallback = new HotkeysCallback();
 
-        for (ConfigHotkey configHotkey : Configs.addKeyList()) {
+        for (ConfigHotkey configHotkey : Configs.getKeyList()) {
             configHotkey.getKeybind().setCallback(hotkeysCallback);
         }
     }

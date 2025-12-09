@@ -11,6 +11,14 @@ public enum I18n {
 
     OPEN_SCREEN("openScreen"),
 
+    TAB_ALL("category.all"),
+    TAB_GENERAL("category.general"),
+    TAB_PUT("category.put"),
+    TAB_EXCAVATE("category.excavate"),
+    TAB_BEDROCK("category.bedrock"),
+    TAB_HOTKEYS("category.hotkeys"),
+    TAB_COLOR("category.color"),
+
     // 基础提示（非配置项）
     AUTO_DISABLE_NOTICE                 ("auto_disable_notice"),
     PRINT_COMPLETE_NOTICE               ("print_complete_notice"), // 新增：打印完成通知（基础提示）

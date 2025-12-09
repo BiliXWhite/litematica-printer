@@ -21,6 +21,6 @@ public class MixinClientConnection {
         // 减少性能开销
         if ((!InitHandler.PRINT_SWITCH.getBooleanValue() && !InitHandler.PRINT.getKeybind().isPressed()) || !InitHandler.LAG_CHECK.getBooleanValue())
             return;
-        Printer.packetTick = 0;
+        Printer.getInstance().packetTick = 0;
     }
 }

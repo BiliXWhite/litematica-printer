@@ -119,7 +119,7 @@ public class PrinterUtils {
         return sides;
     }
 
-    static boolean isLimitedByTheNumberOfLayers(BlockPos pos) {
+    public static boolean isLimitedByTheNumberOfLayers(BlockPos pos) {
         return InitHandler.RENDER_LAYER_LIMIT.getBooleanValue() && !DataManager.getRenderLayerRange().isPositionWithinRange(pos);
     }
 
