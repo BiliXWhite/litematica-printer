@@ -207,5 +207,11 @@
   "litematica_printer.config.comment.openScreen": "打开打印机设置菜单的热键（即当前界面）。",
 
   "litematica_printer.config.name.inventoryList": "库存白名单",
-  "litematica_printer.config.comment.inventoryList": "打印机库存的白名单，只有白名单内的容器才会被记录。"
+  "litematica_printer.config.comment.inventoryList": "打印机库存的白名单，只有白名单内的容器才会被记录。",
+
+  "litematica_printer.config.name.fillBlockMode": "填充方块模式",
+  "litematica_printer.config.comment.fillBlockMode": "选择填充方块的模式：白名单模式（使用配置列表内的物品）、手持物品模式（使用当前主手手持的物品）",
+  "litematica_printer.config.list.fillBlockModeType.whitelist": "白名单模式",
+  "litematica_printer.config.list.fillBlockModeType.handheld": "手持物品模式"
+
 }

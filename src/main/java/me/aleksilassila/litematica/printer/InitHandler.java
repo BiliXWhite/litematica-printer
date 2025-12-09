@@ -28,6 +28,8 @@ public class InitHandler implements IInitializationHandler {
 
     public static final ConfigStringList FLUID_BLOCK_LIST = stringList(I18n.FLUID_BLOCK_LIST, ImmutableList.of("minecraft:sand"));
     public static final ConfigStringList FLUID_LIST = stringList(I18n.FLUID_LIST, ImmutableList.of("minecraft:water", "minecraft:lava"));
+
+    public static final ConfigOptionList FILL_BLOCK_MODE = optionList(I18n.FILL_BLOCK_MODE, State.FileBlockModeType.WHITELIST);
     public static final ConfigStringList FILL_BLOCK_LIST = stringList(I18n.FILL_BLOCK_LIST, ImmutableList.of("minecraft:cobblestone"));
     public static final ConfigStringList INVENTORY_LIST = stringList(
             I18n.INVENTORY_LIST,
