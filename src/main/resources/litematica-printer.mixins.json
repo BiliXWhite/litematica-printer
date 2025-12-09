@@ -10,7 +10,6 @@
     "bilixwhite.visuals.MixinGui",
     "masa.BlockItemMixin",
     "masa.InventoryUtilsAccessor",
-    "masa.KeyCallbackToggleBooleanConfigWithMessageMixin",
     "masa.MixinInventoryUtils",
     "masa.WorldUtilsMixin",
     "masa.config.MixinIConfigBase",
