@@ -91,10 +91,10 @@ public class MemoryUtils {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> unLoad());
     }
     public static void saveMemory(AbstractContainerMenu sc){
-        if(PRINTER_MEMORY != null && ZxyUtils.printerMemoryAdding || Printer.printerMemorySync)
+        if(PRINTER_MEMORY != null && ZxyUtils.printerMemoryAdding || Printer.getInstance().printerMemorySync)
             save(sc , PRINTER_MEMORY);
         MemoryBankAccessImpl.INSTANCE.getLoadedInternal().ifPresent(memoryBank -> save(sc, memoryBank));
-        Printer.printerMemorySync = false;
+        Printer.getInstance().printerMemorySync = false;
     }
     public static void createPrinterMemory(){
         Optional<Coordinate> current = Coordinate.getCurrent();

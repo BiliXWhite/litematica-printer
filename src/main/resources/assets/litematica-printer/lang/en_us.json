@@ -210,5 +210,21 @@
   "litematica_printer.config.name.fillBlockMode": "Fill Block Mode",
   "litematica_printer.config.comment.fillBlockMode": "Select the mode for filling blocks: Whitelist Mode (use items in the config list) or Handheld Item Mode (use the item in your main hand)",
   "litematica_printer.config.list.fillBlockModeType.whitelist": "Whitelist Mode",
-  "litematica_printer.config.list.fillBlockModeType.handheld": "Handheld Item Mode"
+  "litematica_printer.config.list.fillBlockModeType.handheld": "Handheld Item Mode",
+
+  "litematica_printer.config.name.category.all": "All",
+  "litematica_printer.config.comment.category.all": "Total category containing all configuration items, view/modify all printer-related settings",
+  "litematica_printer.config.name.category.general": "General",
+  "litematica_printer.config.comment.category.general": "Core general settings of the printer, including basic configurations such as printing speed, working radius, and iteration rules",
+  "litematica_printer.config.name.category.put": "Placement",
+  "litematica_printer.config.comment.category.put": "Block placement related configurations, including placement cooldown, skip rules, easy placement, ice breaking to release water and other printing behavior settings",
+  "litematica_printer.config.name.category.excavate": "Excavation",
+  "litematica_printer.config.comment.category.excavate": "Excavation mode related configurations, including excavation limits, whitelist/blacklist, breaking wrong blocks and other excavation behavior settings",
+  "litematica_printer.config.name.category.bedrock": "Bedrock Breaking",
+  "litematica_printer.config.comment.category.bedrock": "Bedrock destruction related configurations, integrating bedrock breaking function settings of BedrockMiner mod",
+  "litematica_printer.config.name.category.hotkeys": "Hotkeys",
+  "litematica_printer.config.comment.category.hotkeys": "Shortcut key configurations for all printer functions, including hotkey binding for printing, mode switching, container synchronization, etc.",
+  "litematica_printer.config.name.category.color": "Color",
+  "litematica_printer.config.comment.category.color": "Printer interface highlight color configuration, such as highlight color settings for container synchronization and inventory addition"
+
 }

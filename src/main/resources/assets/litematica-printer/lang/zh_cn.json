@@ -212,6 +212,21 @@
   "litematica_printer.config.name.fillBlockMode": "填充方块模式",
   "litematica_printer.config.comment.fillBlockMode": "选择填充方块的模式：白名单模式（使用配置列表内的物品）、手持物品模式（使用当前主手手持的物品）",
   "litematica_printer.config.list.fillBlockModeType.whitelist": "白名单模式",
-  "litematica_printer.config.list.fillBlockModeType.handheld": "手持物品模式"
+  "litematica_printer.config.list.fillBlockModeType.handheld": "手持物品模式",
+
+  "litematica_printer.config.name.category.all": "全部",
+  "litematica_printer.config.comment.category.all": "包含所有配置项的总分类，可查看/修改所有打印机相关设置",
+  "litematica_printer.config.name.category.general": "通用",
+  "litematica_printer.config.comment.category.general": "打印机核心通用设置，包含打印速度、工作半径、迭代规则等基础配置",
+  "litematica_printer.config.name.category.put": "放置",
+  "litematica_printer.config.comment.category.put": "方块放置相关配置，包含放置冷却、跳过规则、轻松放置、破冰放水等打印行为设置",
+  "litematica_printer.config.name.category.excavate": "挖掘",
+  "litematica_printer.config.comment.category.excavate": "挖掘模式相关配置，包含挖掘限制、白名单/黑名单、破坏错误方块等挖掘行为设置",
+  "litematica_printer.config.name.category.bedrock": "破基岩",
+  "litematica_printer.config.comment.category.bedrock": "基岩破坏相关配置，集成BedrockMiner模组的破基岩功能设置",
+  "litematica_printer.config.name.category.hotkeys": "热键",
+  "litematica_printer.config.comment.category.hotkeys": "打印机所有功能的快捷键配置，包含打印、切换模式、同步容器等热键绑定",
+  "litematica_printer.config.name.category.color": "颜色",
+  "litematica_printer.config.comment.category.color": "打印机界面高亮颜色配置，如容器同步、库存添加的高亮色设置"
 
 }

@@ -3,6 +3,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 import fi.dy.masa.malilib.util.StringUtils;
 import io.netty.buffer.Unpooled;
 import me.aleksilassila.litematica.printer.InitHandler;
+import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -52,7 +53,6 @@ import java.util.HashMap;
 //#endif
 
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
-import static me.aleksilassila.litematica.printer.printer.Printer.printerMemorySync;
 
 //#if MC > 12004
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -379,7 +379,7 @@ public class OpenInventoryPacket {
             Statistics.closeScreen--;
             openIng = false;
             isOpenHandler = false;
-            printerMemorySync = false;
+            Printer.getInstance().printerMemorySync = false;
             key = null;
             pos = null;
         }

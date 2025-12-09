@@ -9,18 +9,18 @@ import fi.dy.masa.litematica.util.PlacementHandler;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.InitHandler;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
+import me.aleksilassila.litematica.printer.function.FunctionExtension;
+import me.aleksilassila.litematica.printer.function.FunctionMode;
+import me.aleksilassila.litematica.printer.function.Functions;
 import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.block.*;
 import net.minecraft.client.Minecraft;
@@ -29,8 +29,6 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.block.piston.PistonBaseBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -59,66 +57,35 @@ import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
 //#endif
 
 public class Printer extends PrinterUtils {
-    public static HashSet<Item> fluidModeItemList = new HashSet<>();
-    public static HashSet<Fluid> fluidModeList = new HashSet<>();
-    public static HashSet<Item> fillModeItemList = new HashSet<>();
-    public static Item[] fluidItemsArray = new Item[0];
-    public static Fluid[] fluidArray = new Fluid[0];
-    public static Item[] fillItemsArray = new Item[0];
-    public static boolean printerMemorySync = false;
-    public static BlockPos easyPos = null;
-    public static Map<BlockPos, Integer> placeCooldownList = new HashMap<>();
-    static ItemStack orderlyStoreItem; //有序存放临时存储
-    private static Printer INSTANCE = null;
+    public boolean printerMemorySync = false;
+    public BlockPos easyPos = null;
+    public Map<BlockPos, Integer> placeCooldownList = new HashMap<>();
+    public ItemStack orderlyStoreItem; //有序存放临时存储
     public int shulkerCooldown = 0;
-    public static long tickStartTime;
-    public static long tickEndTime;
+    public long tickStartTime;
+    public long tickEndTime;
 
     @NotNull
     public static final Minecraft client = Minecraft.getInstance();
     public final PlacementGuide guide;
     public final Queue queue;
-    public final BreakManager breakManager = BreakManager.instance();
     //强制循环半径
     public BlockPos basePos = null;
     public MyBox myBox;
-    int printRange = PRINTER_RANGE.getIntegerValue();
-    boolean printerYAxisReverse = false;
-    int tickRate = PRINTER_SPEED.getIntegerValue();
-    List<String> fluidBlocklist = new ArrayList<>();
-    List<String> fluidList = new ArrayList<>();
-    List<String> fillBlocklist = new ArrayList<>();
-    private boolean needDelay;
-    private int printerWorkingCountPerTick = BLOCKS_PER_TICK.getIntegerValue();
-    private int waitTicks = 0;
-
-    public static int packetTick;
-    public static boolean updateChecked = false;
-    public static BlockState requiredState;
-
-
+    public int printRange = PRINTER_RANGE.getIntegerValue();
+    public boolean printerYAxisReverse = false;
+    public int tickRate = PRINTER_SPEED.getIntegerValue();
+    public boolean needDelay;
+    public int printerWorkingCountPerTick = BLOCKS_PER_TICK.getIntegerValue();
+    public int waitTicks = 0;
+    public int packetTick;
+    public boolean updateChecked = false;
+    public BlockState requiredState;
     // 活塞修复
-    public static boolean pistonNeedFix = false;
+    public boolean pistonNeedFix = false;
+    public float workProgress = 0;
 
-    private float workProgress = 0;
-
-    private Printer(@NotNull Minecraft client) {
-
-        this.guide = new PlacementGuide(client);
-        this.queue = new Queue(this);
-
-        INSTANCE = this;
-    }
-
-    public static @NotNull Printer getPrinter() {
-        if (INSTANCE == null) {
-            INSTANCE = new Printer(client);
-        }
-        return INSTANCE;
-    }
-
-
-    BlockPos getBlockPos() {
+    public BlockPos getBlockPos() {
         if (ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) return null;
         LocalPlayer player = client.player;
         if (player == null) return null;
@@ -163,151 +130,6 @@ public class Printer extends PrinterUtils {
         return null;
     }
 
-    void fluidMode() {
-        requiredState = null;
-        if (!FLUID_BLOCK_LIST.getStrings().equals(fluidBlocklist)) {
-            fluidBlocklist.clear();
-            fluidBlocklist.addAll(FLUID_BLOCK_LIST.getStrings());
-            if (FLUID_BLOCK_LIST.getStrings().isEmpty()) return;
-            fluidModeItemList.clear();
-            for (String itemName : fluidBlocklist) {
-                List<Item> list = BuiltInRegistries.ITEM.stream().filter(item -> equalsItemName(itemName, new ItemStack(item))).toList();
-                fluidModeItemList.addAll(list);
-            }
-            fluidItemsArray = fluidModeItemList.toArray(new Item[0]);
-        }
-
-        if (!FLUID_LIST.getStrings().equals(fluidList)) {
-            fluidList.clear();
-            fluidList.addAll(FLUID_LIST.getStrings());
-            if (FLUID_LIST.getStrings().isEmpty()) return;
-            fluidModeList.clear();
-            for (String itemName : fluidList) {
-                List<Fluid> list = BuiltInRegistries.FLUID.stream().filter(item -> equalsBlockName(itemName, item.defaultFluidState().createLegacyBlock())).toList();
-                fluidModeList.addAll(list);
-            }
-            fluidArray = fluidModeList.toArray(new Fluid[0]);
-        }
-
-        BlockPos pos;
-        while ((pos = getBlockPos()) != null) {
-            if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printerWorkingCountPerTick == 0) return;
-
-            if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
-            // 跳过冷却中的位置
-            if (placeCooldownList.containsKey(pos)) continue;
-            placeCooldownList.put(pos, PLACE_COOLDOWN.getIntegerValue());
-
-            FluidState fluidState = client.level.getBlockState(pos).getFluidState();
-            if (Arrays.asList(fluidArray).contains(fluidState.getType())) {
-                if (!FILL_FLOWING_FLUID.getBooleanValue() && !fluidState.isSource()) continue;
-                if (switchToItems(client.player, fluidItemsArray)) {
-                    new PlacementGuide.Action().queueAction(queue, pos, Direction.UP, false);
-                    if (tickRate == 0) {
-                        queue.sendQueue(client.player);
-                        if (BLOCKS_PER_TICK.getIntegerValue() != 0) printerWorkingCountPerTick--;
-                        continue;
-                    }
-                    return;
-                }
-            }
-        }
-    }
-
-    void fillMode() {
-        requiredState = null;
-
-        if (FILL_BLOCK_MODE.getOptionListValue() == State.FileBlockModeType.HANDHELD){
-            // 手持物品模式：直接读取玩家当前手持物品
-            if (client.player == null) return; // 玩家为空时直接返回
-            ItemStack heldStack = client.player.getMainHandItem(); // 获取主手物品
-            if (heldStack.isEmpty() || heldStack.getCount() <= 0) return; // 主手无物品时跳过填充
-            fillModeItemList.clear();
-            fillModeItemList.add(heldStack.getItem());
-            fillItemsArray = fillModeItemList.toArray(new Item[0]);
-        }
-        if (FILL_BLOCK_MODE.getOptionListValue() == State.FileBlockModeType.WHITELIST){
-            if (!FILL_BLOCK_LIST.getStrings().equals(fillBlocklist)) {
-                fillBlocklist.clear();
-                fillBlocklist.addAll(FILL_BLOCK_LIST.getStrings());
-                if (FILL_BLOCK_LIST.getStrings().isEmpty()) return;
-                fillModeItemList.clear();
-                for (String itemName : fillBlocklist) {
-                    List<Item> list = BuiltInRegistries.ITEM.stream().filter(item -> equalsItemName(itemName, new ItemStack(item))).toList();
-                    fillModeItemList.addAll(list);
-                }
-                fillItemsArray = fillModeItemList.toArray(new Item[0]);
-            }
-        }
-
-        BlockPos pos;
-        while ((pos = getBlockPos()) != null) {
-            if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printerWorkingCountPerTick == 0) return;
-
-            if (!TempData.xuanQuFanWeiNei_p(pos)) continue;
-            // 跳过冷却中的位置
-            if (placeCooldownList.containsKey(pos)) continue;
-            placeCooldownList.put(pos, PLACE_COOLDOWN.getIntegerValue());
-
-            var currentState = client.level.getBlockState(pos);
-            if (currentState.isAir() || (currentState.getBlock() instanceof LiquidBlock) || REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> equalsBlockName(s, currentState))) {
-                if (switchToItems(client.player, fillItemsArray)) {
-                    new PlacementGuide.Action().setLookDirection(PlaceUtils.getFillModeFacing().getOpposite()).queueAction(queue, pos, PlaceUtils.getFillModeFacing(), false);
-                    if (tickRate == 0) {
-                        queue.sendQueue(client.player);
-                        if (BLOCKS_PER_TICK.getIntegerValue() != 0) printerWorkingCountPerTick--;
-                        continue;
-                    }
-                    return;
-                }
-            }
-        }
-    }
-
-
-    BlockPos breakPos = null;
-
-    void mineMode() {
-        BlockPos pos;
-        while ((pos = breakPos == null ? getBlockPos() : breakPos) != null) {
-            if (BreakManager.breakRestriction(client.level.getBlockState(pos)) &&
-                    breakManager.breakBlock(pos)) {
-                requiredState = client.level.getBlockState(pos);
-                breakPos = pos;
-                return;
-            }
-            // 清空临时位置
-            breakPos = null;
-        }
-    }
-
-    public void bedrockMode() {
-        if (client.player.isCreative()) {
-            ZxyUtils.actionBar("创造模式无法使用破基岩模式！");
-            return;
-        }
-        if (!Statistics.loadBedrockMiner) {
-            ZxyUtils.actionBar("未安装Bedrock Miner模组/游戏版本小于1.19，无法破基岩！");
-            return;
-        }
-        if (!BedrockUtils.isWorking()) {
-            BedrockUtils.setWorking(true);
-        }
-        if (BedrockUtils.isBedrockMinerFeatureEnable()) {   // 限制原功能(手动点击或使用方块：添加、开关)
-            BedrockUtils.setBedrockMinerFeatureEnable(false);
-        }
-        BlockPos pos;
-        while ((pos = getBlockPos()) != null) {
-            if (client.player != null &&
-                    (!PlaceUtils.canInteracted(pos) || isLimitedByTheNumberOfLayers(pos) || !TempData.xuanQuFanWeiNei_p(pos))) {
-                continue;
-            }
-            BedrockUtils.addToBreakList(pos, client.level);
-            // 原谅我使用硬编码plz 我真的不想写太多的优化了555
-            placeCooldownList.put(pos, 100);
-        }
-    }
-
     public void tick() {
         if (shulkerCooldown > 0) {
             shulkerCooldown--;
@@ -331,9 +153,12 @@ public class Printer extends PrinterUtils {
                 return;
             packetTick++;
         }
+
         LocalPlayer player = client.player;
-        if (player == null) return;
         ClientLevel world = client.level;
+        if (world == null || player == null)
+            return;
+
         // 预载常用配置值
         printRange = PRINTER_RANGE.getIntegerValue();
         tickRate = PRINTER_SPEED.getIntegerValue();
@@ -368,38 +193,15 @@ public class Printer extends PrinterUtils {
             return;
         }
 
-        if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)) {
-            boolean multiBreakBooleanValue = MULTI_BREAK.getBooleanValue();
-            if (InitHandler.MINE.getBooleanValue()) {
-                printerYAxisReverse = true;
-                mineMode();
-                if (multiBreakBooleanValue) return;
-            }
-            if (InitHandler.FLUID.getBooleanValue()) {
-                fluidMode();
-                if (multiBreakBooleanValue) return;
-            }
-            if (InitHandler.FILL.getBooleanValue()) {
-                fillMode();
-                if (multiBreakBooleanValue) return;
-            }
-            if (InitHandler.BEDROCK.getBooleanValue()) {
-                printerYAxisReverse = true;
-                bedrockMode();
-                if (multiBreakBooleanValue) return;
-            }
-        } else if (PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType modeType && modeType != PRINTER) {
-            switch (modeType) {
-                case MINE -> {
-                    printerYAxisReverse = true;
-                    mineMode();
+        // 非打印模式
+        if (PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType modeType && modeType != PRINTER) {
+            for (FunctionExtension function: Functions.LIST){
+                if (function instanceof FunctionMode functionMode){
+                    if (!functionMode.canTick()){
+                        continue;
+                    }
                 }
-                case FLUID -> fluidMode();
-                case FILL -> fillMode();
-                case BEDROCK -> {
-                    printerYAxisReverse = true;
-                    bedrockMode();
-                }
+                function.tick(this,client, world, player);
             }
             return;
         }
@@ -532,7 +334,7 @@ public class Printer extends PrinterUtils {
             if (isFluidMode() && !(currentState.getBlock() instanceof LiquidBlock)) {
                 finishedCount++;
             }
-            if (isFillMode() && Arrays.asList(fillItemsArray).contains(currentState.getBlock().asItem())) {
+            if (isFillMode() && Arrays.asList(Functions.FUNCTION_FILL.getFillItemsArray()).contains(currentState.getBlock().asItem())) {
                 finishedCount++;
             }
             if (isMineMode() && currentState.isAir()) {
@@ -587,7 +389,6 @@ public class Printer extends PrinterUtils {
         return false;
     }
 
-
     public void swapHandWithSlot(LocalPlayer player, int slot) {
         ItemStack stack = player.getInventory().getItem(slot);
         PlaceUtils.setPickedItemToHand(stack, client);
@@ -632,7 +433,7 @@ public class Printer extends PrinterUtils {
         }
     }
 
-    public static class Queue {
+    public class Queue {
         final Printer printerInstance;
         public BlockPos target;
         public Direction side;
@@ -741,4 +542,35 @@ public class Printer extends PrinterUtils {
             this.needSneak = false;
         }
     }
+
+    //region 单例
+
+    private static Printer INSTANCE = null;
+
+    private Printer(@NotNull Minecraft client) {
+        this.guide = new PlacementGuide(client);
+        this.queue = new Queue(this);
+        INSTANCE = this;
+    }
+
+    public static @NotNull Printer getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new Printer(client);
+        }
+        return INSTANCE;
+    }
+
+    //endregion
+
+    //region get; set;
+
+    public int getPrinterWorkingCountPerTick() {
+        return printerWorkingCountPerTick;
+    }
+
+    public int getPrintRange() {
+        return printRange;
+    }
+
+    //endregion
 }

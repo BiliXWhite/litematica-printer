@@ -105,7 +105,7 @@ public class InventoryUtils {
                     //$$ if (SearchItem.search(true)) {
                     //$$     closeScreen++;
                     //$$     isOpenHandler = true;
-                    //$$     Printer.printerMemorySync = true;
+                    //$$     Printer.getInstance().printerMemorySync = true;
                     //$$     return true;
                     //$$ }
                     //#elseif MC < 12001
@@ -121,7 +121,7 @@ public class InventoryUtils {
                         //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), ResourceKey.create(Registries.DIMENSION, dimension));
                         //#endif
                     //$$                if(closeScreen == 0)closeScreen++;
-                    //$$                Printer.printerMemorySync = true;
+                    //$$                Printer.getInstance().printerMemorySync = true;
                     //$$                isOpenHandler = true;
                     //$$                return true;
                     //$$            }
@@ -200,7 +200,7 @@ public class InventoryUtils {
     }
 
     static boolean openShulker(HashSet<Item> items) {
-        if (Printer.getPrinter().shulkerCooldown > 0) {
+        if (Printer.getInstance().shulkerCooldown > 0) {
             return false;
         }
         for (Item item : items) {
@@ -220,7 +220,7 @@ public class InventoryUtils {
                             ShulkerUtils.openShulker(stack, shulkerBoxSlot);
                             closeScreen++;
                             isOpenHandler = true;
-                            Printer.getPrinter().shulkerCooldown = InitHandler.QUICK_SHULKER_COOLDOWN.getIntegerValue();
+                            Printer.getInstance().shulkerCooldown = InitHandler.QUICK_SHULKER_COOLDOWN.getIntegerValue();
                             return true;
                         } catch (Exception e) {
                         }

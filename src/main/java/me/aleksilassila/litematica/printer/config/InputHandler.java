@@ -13,18 +13,18 @@ public class InputHandler implements IKeybindProvider, IKeyboardInputHandler {
     @Override
     public void addKeysToMap(IKeybindManager manager) {
         //没被添加到的,按下按键时不会被识别
-        for (IHotkey hotkey : Configs.addKeyList()) {
+        for (IHotkey hotkey : Configs.getKeyList()) {
             manager.addKeybindToMap(hotkey.getKeybind());
         }
-        for (IHotkey hotkey : Configs.addSwitchKey()) {
+        for (IHotkey hotkey : Configs.getSwitchKey()) {
             manager.addKeybindToMap(hotkey.getKeybind());
         }
     }
 
     @Override
     public void addHotkeys(IKeybindManager manager) {
-        manager.addHotkeysForCategory(LitematicaPrinterMod.MOD_ID, "按下式", Configs.addKeyList());
-        manager.addHotkeysForCategory(LitematicaPrinterMod.MOD_ID, "切换式", Configs.addSwitchKey());
+        manager.addHotkeysForCategory(LitematicaPrinterMod.MOD_ID, "按下式", Configs.getKeyList());
+        manager.addHotkeysForCategory(LitematicaPrinterMod.MOD_ID, "切换式", Configs.getSwitchKey());
     }
 
     public static InputHandler getInstance() {

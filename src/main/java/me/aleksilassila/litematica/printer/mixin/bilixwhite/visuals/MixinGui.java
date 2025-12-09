@@ -51,30 +51,30 @@ public abstract class MixinGui {
                     StringUtils.initGuiGraphics(guiGraphics);
                     //#endif
 
-//                    if (Printer.requiredState != null) {
-//                        StringUtils.drawText("投影：" + Printer.requiredState.getBlock().getName().getString(), 50, 50, Color.CYAN.getRGB(), true);
+//                    if (Printer.getInstance().requiredState != null) {
+//                        StringUtils.drawText("投影：" + Printer.getInstance().requiredState.getBlock().getName().getString(), 50, 50, Color.CYAN.getRGB(), true);
 //                        StringUtils.drawText("实际: " + Printer.currentState.getBlock().getName().getString(), 50, 59, Color.ORANGE.getRGB(), true);
-//                        StringUtils.drawText("投影液体：" + Printer.requiredState.getFluidState().getBlockState().getBlock().getName().getString(), 50, 68, Color.CYAN.getRGB(), true);
+//                        StringUtils.drawText("投影液体：" + Printer.getInstance().requiredState.getFluidState().getBlockState().getBlock().getName().getString(), 50, 68, Color.CYAN.getRGB(), true);
 //                        StringUtils.drawText("实际液体: " + Printer.currentState.getFluidState().getBlockState().getBlock().getName().getString() + " " + Printer.currentState.getFluidState().getBlockState().getBlock().toString(), 50, 77, Color.ORANGE.getRGB(), true);
 //                    }
 
                     if (InitHandler.LAG_CHECK.getBooleanValue()) {
-                        StringUtils.drawString(Printer.packetTick + "Tick", (int) (width / 2), (int) (height / 2 - 22), new Color(255, 255, 255, 255).getRGB(), true, true);
+                        StringUtils.drawString(Printer.getInstance().packetTick + "Tick", (int) (width / 2), (int) (height / 2 - 22), new Color(255, 255, 255, 255).getRGB(), true, true);
                     }
                     if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE) ) {
-                        StringUtils.drawString((int) (Printer.getPrinter().getProgress() * 100) + "%", (int) (width / 2), (int) (height / 2 + 22), new Color(255, 255, 255, 255).getRGB(), true, true);
+                        StringUtils.drawString((int) (Printer.getInstance().getProgress() * 100) + "%", (int) (width / 2), (int) (height / 2 + 22), new Color(255, 255, 255, 255).getRGB(), true, true);
                         //#if MC > 11904
                         guiGraphics.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
-                        guiGraphics.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getPrinter().getProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
+                        guiGraphics.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getInstance().getProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
                         //#else
                         //$$ GuiComponent.fill(poseStack, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
-                        //$$ GuiComponent.fill(poseStack, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getPrinter().getProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
+                        //$$ GuiComponent.fill(poseStack, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getInstance().getProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
                         //#endif
                     }
                     StringUtils.drawString(InitHandler.PRINTER_MODE.getOptionListValue().getDisplayName(), (int) (width / 2), (int) (height / 2 + 52), new Color(255, 255, 255, 255).getRGB(), true, true);
 
-                    if (Printer.requiredState != null)
-                        StringUtils.drawString(Printer.requiredState.getBlock().getName().getString(), (int) (width / 2), (int) (height / 2 + 64), new Color(255, 255, 255, 255).getRGB(), true, true);
+                    if (Printer.getInstance().requiredState != null)
+                        StringUtils.drawString(Printer.getInstance().requiredState.getBlock().getName().getString(), (int) (width / 2), (int) (height / 2 + 64), new Color(255, 255, 255, 255).getRGB(), true, true);
                 }
             }
         }

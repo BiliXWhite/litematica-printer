@@ -57,9 +57,9 @@ public class MixinClientPlayerEntity extends AbstractClientPlayer {
     
     @Inject(at = @At("HEAD"), method = "resetPos")
     public void init(CallbackInfo ci) {
-        if (InitHandler.UPDATE_CHECK.getBooleanValue() && !Printer.updateChecked)
+        if (InitHandler.UPDATE_CHECK.getBooleanValue() && !Printer.getInstance().updateChecked)
             CompletableFuture.runAsync(this::checkForUpdates);
-        Printer.updateChecked = true;
+        Printer.getInstance().updateChecked = true;
     }
     
     @Inject(at = @At("HEAD"), method = "closeContainer")
@@ -72,7 +72,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayer {
     
     @Inject(at = @At("TAIL"), method = "tick")
     public void tick(CallbackInfo ci) {
-        Printer printer = Printer.getPrinter();
+        Printer printer = Printer.getInstance();
         ZxyUtils.tick();
         printer.tick();
         if (!(InitHandler.PRINT_SWITCH.getBooleanValue() || InitHandler.PRINT.getKeybind().isPressed())) {
