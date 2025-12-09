@@ -17,10 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(value = ConfigBase.class)
 public abstract class MixinConfigBase<T extends IConfigBase> implements IConfigBase, IConfigResettable, IConfigNotifiable<T>, ConfigBaseExtension {
     @Shadow
-    public abstract String getName();
-
-    @Shadow
-    public abstract String getPrettyName();
+    protected String prettyName;
 
     @Unique
     private String litematica_printer$translateNameKey;
@@ -32,16 +29,9 @@ public abstract class MixinConfigBase<T extends IConfigBase> implements IConfigB
     @Inject(method = "getPrettyName", at = @At("HEAD"), cancellable = true)
     public void litematica_printer$getPrettyName(CallbackInfoReturnable<String> cir) {
         if (litematica_printer$translateNameKey != null && !litematica_printer$translateNameKey.isEmpty()) {
-            cir.setReturnValue(StringUtils.getTranslatedOrFallback(litematica_printer$translateNameKey, litematica_printer$translateCommentKey));
+            cir.setReturnValue(StringUtils.getTranslatedOrFallback(litematica_printer$translateNameKey, prettyName));
         }
     }
-
-//    @Inject(method = "getName", at = @At("HEAD"), cancellable = true)
-//    public void litematica_printer$getName(CallbackInfoReturnable<String> cir) {
-//        if (litematica_printer$translateNameKey != null && !litematica_printer$translateNameKey.isEmpty()) {
-//            cir.setReturnValue(StringUtils.getTranslatedOrFallback(litematica_printer$translateNameKey, name));
-//        }
-//    }
 
     @Inject(method = "getComment", at = @At("HEAD"), cancellable = true)
     public void litematica_printer$getComment(CallbackInfoReturnable<String> cir) {

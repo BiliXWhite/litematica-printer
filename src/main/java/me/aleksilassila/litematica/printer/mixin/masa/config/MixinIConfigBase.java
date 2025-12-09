@@ -14,10 +14,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public interface MixinIConfigBase {
     @Inject(method = "getConfigGuiDisplayName", at = @At("HEAD"), cancellable = true, remap = false)
     default void litematica_printer$getConfigGuiDisplayName(CallbackInfoReturnable<String> cir) {
-        ConfigBase<?> configBase = (ConfigBase<?>) this;
-        ConfigBaseExtension extension = (ConfigBaseExtension) configBase;
-        if (extension.litematica_printer$getTranslateNameKey() != null) {
-            cir.setReturnValue(configBase.getPrettyName());
+        if (this instanceof ConfigBase<?> configBase) {
+            if (configBase instanceof ConfigBaseExtension extension) {
+                if (extension.litematica_printer$getTranslateNameKey() != null) {
+                    cir.setReturnValue(configBase.getPrettyName());
+                }
+            }
         }
     }
 }
