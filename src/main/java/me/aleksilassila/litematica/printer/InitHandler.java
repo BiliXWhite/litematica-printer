@@ -155,8 +155,10 @@ public class InitHandler implements IInitializationHandler {
                 Printer.getInstance().pistonNeedFix = false;
                 Printer.getInstance().requiredState = null;
                 if (Statistics.loadBedrockMiner) {
-                    BedrockUtils.setWorking(false);
-                    BedrockUtils.setBedrockMinerFeatureEnable(true);
+                    if (BedrockUtils.isWorking()){
+                        BedrockUtils.setWorking(false);
+                        BedrockUtils.setBedrockMinerFeatureEnable(true);
+                    }
                 }
             }
         });
