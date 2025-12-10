@@ -4,6 +4,7 @@ import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.printer.PrinterUtils;
 import me.aleksilassila.litematica.printer.printer.State;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -76,6 +77,8 @@ public class FunctionFluidMode extends FunctionModeBase {
         while ((pos = printer.getBlockPos()) != null) {
             if (InitHandler.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0)
                 return;
+            if (PrinterUtils.isLimitedByTheNumberOfLayers(pos))
+                continue;
             if (!Printer.TempData.xuanQuFanWeiNei_p(pos))
                 continue;
             // 跳过冷却中的位置
