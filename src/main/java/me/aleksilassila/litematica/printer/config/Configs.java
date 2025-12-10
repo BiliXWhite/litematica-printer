@@ -7,7 +7,6 @@ import fi.dy.masa.malilib.config.*;
 import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.util.JsonUtils;
-import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
@@ -140,7 +139,7 @@ public class Configs implements IConfigHandler {
         List<IConfigBase> list = new ArrayList<>();
         list.add(OPEN_SCREEN);                  // 打开设置菜单
         list.add(PRINT);                        // 打印热键
-        list.add(TOGGLE_PRINTING_MODE);         // 切换打印状态热键
+        list.add(PRINT_SWITCH);         // 切换打印状态
         // 切换打印状态热键
         if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)) {
             list.add(SWITCH_PRINTER_MODE);      // 切换模式

@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.config.options.*;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
+import fi.dy.masa.malilib.util.StringUtils;
 import me.aleksilassila.litematica.printer.I18n;
 
 public class ConfigFactory {
@@ -16,13 +17,21 @@ public class ConfigFactory {
         return config;
     }
 
-    public static ConfigBooleanHotkeyed booleanHotkey(I18n i18n, boolean defaultValue, String defaultHotkey, String comment) {
-        ConfigBooleanHotkeyed config = new ConfigBooleanHotkeyed(i18n.getRawKey(), defaultValue, defaultHotkey, comment);
+    public static ConfigBooleanHotkeyed booleanHotkey(I18n i18n, boolean defaultValue, String defaultHotkey, KeybindSettings settings, String comment) {
+        ConfigBooleanHotkeyed config = new ConfigBooleanHotkeyed(i18n.getRawKey(), defaultValue, defaultHotkey, settings, comment, StringUtils.splitCamelCase(i18n.getRawKey()));
         return buildI18n(i18n, config);
     }
 
+    public static ConfigBooleanHotkeyed booleanHotkey(I18n i18n, boolean defaultValue, String defaultHotkey, KeybindSettings settings) {
+        return booleanHotkey(i18n, defaultValue, defaultHotkey, settings, i18n.getConfigCommentKeyComponent().getString());
+    }
+
     public static ConfigBooleanHotkeyed booleanHotkey(I18n i18n, boolean defaultValue, String defaultHotkey) {
-        return booleanHotkey(i18n, defaultValue, defaultHotkey, i18n.getConfigCommentKeyComponent().getString());
+        return booleanHotkey(i18n, defaultValue, defaultHotkey, KeybindSettings.DEFAULT);
+    }
+
+    public static ConfigBooleanHotkeyed booleanHotkey(I18n i18n, boolean defaultValue, String defaultHotkey, String comment) {
+        return booleanHotkey(i18n, defaultValue, defaultHotkey, KeybindSettings.DEFAULT, comment);
     }
 
     public static ConfigBooleanHotkeyed booleanHotkey(I18n i18n, boolean defaultValue) {

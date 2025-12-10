@@ -93,7 +93,6 @@ public class HotkeysCallback implements IHotkeyCallback {
     //设置反馈到onKeyAction()方法的快捷键
     public static void init() {
         HotkeysCallback hotkeysCallback = new HotkeysCallback();
-
         for (ConfigHotkey configHotkey : Configs.getKeyList()) {
             configHotkey.getKeybind().setCallback(hotkeysCallback);
         }
