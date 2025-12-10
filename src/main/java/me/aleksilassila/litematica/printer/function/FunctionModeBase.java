@@ -4,13 +4,14 @@ import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.printer.Printer;
 
+import me.aleksilassila.litematica.printer.printer.PrinterUtils;
 import me.aleksilassila.litematica.printer.printer.State;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class FunctionModeBase implements FunctionExtension {
+public abstract class FunctionModeBase extends PrinterUtils implements FunctionExtension {
     public abstract State.PrintModeType getPrintModeType();
 
     public abstract ConfigBoolean getCurrentConfig();

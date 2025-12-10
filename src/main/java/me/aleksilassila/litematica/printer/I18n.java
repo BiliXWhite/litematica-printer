@@ -138,6 +138,7 @@ public enum I18n {
     PRINT_MODE_MINE        ("printMode.mine"),
     PRINT_MODE_FLUID       ("printMode.fluid"),
     PRINT_MODE_FILL        ("printMode.fill"),
+    PRINT_MODE_REPLACE     ("printMode.replace"),
     PRINT_MODE_BEDROCK     ("printMode.bedrock"),
 
     // 配置列表选项 - 挖掘列表模式

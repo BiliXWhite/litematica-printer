@@ -66,6 +66,7 @@ public class Configs implements IConfigHandler {
         list.add(FILL_BLOCK_MODE);                  // 填充方块模式
         list.add(FILL_BLOCK_LIST);                  // 填充方块名单
         list.add(FILL_BLOCK_FACING);                // 填充 - 模式朝向
+
         // 箱子追踪
         if(Statistics.loadChestTracker)
         {
@@ -147,6 +148,7 @@ public class Configs implements IConfigHandler {
             list.add(MINE);                     // 挖掘
             list.add(FLUID);                    // 排流体
             list.add(FILL);                     // 填充
+//            list.add(REPLACE_BLOCK);            // 替换
             list.add(BEDROCK);                  // 破基岩
         }
         list.add(CLOSE_ALL_MODE);               // 关闭全部模式
@@ -198,6 +200,7 @@ public class Configs implements IConfigHandler {
         list.add(MINE);             // 挖掘
         list.add(FLUID);            // 排流体
         list.add(FILL);             // 填充
+//        list.add(REPLACE_BLOCK);    // 替换
         list.add(BEDROCK);          // 破基岩
         list.add(PRINT_WATER);      // 打印 - 破冰放水
         list.add(USE_EASYPLACE);    // 轻松放置模式

@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
-import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
@@ -32,9 +31,11 @@ public class Filters {
         });
         return b.get() || str1.equals(str2);
     }
+
     public static boolean equalsBlockName(String blockName, BlockState blockState){
         return equalsName(blockName,blockState);
     }
+
     public static boolean equalsItemName(String itemName, ItemStack itemStack){
         return equalsName(itemName,itemStack);
     }
