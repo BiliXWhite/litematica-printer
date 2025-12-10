@@ -91,10 +91,11 @@ public class FunctionFluidMode extends FunctionModeBase {
                     continue;
                 if (printer.switchToItems(client.player, fluidItemsArray)) {
                     new PlacementGuide.Action().queueAction(printer.queue, pos, Direction.UP, false);
-                    if (printer.getPrintRange() == 0) {
+                    if (printer.tickRate == 0) {
                         printer.queue.sendQueue(client.player);
-                        if (InitHandler.BLOCKS_PER_TICK.getIntegerValue() != 0)
+                        if (InitHandler.BLOCKS_PER_TICK.getIntegerValue() != 0) {
                             printer.printerWorkingCountPerTick--;
+                        }
                         continue;
                     }
                     return;
