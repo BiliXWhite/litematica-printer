@@ -204,7 +204,6 @@ public class BreakManager {
         ClientLevel world = client.level;
         BlockState currentState = world.getBlockState(pos);
         Block block = currentState.getBlock();
-
         // 检查方块是否可以破坏，如果可以则执行挖掘操作
         if (canBreakBlock(pos)) {
             if (!ModLoadStatus.isTweakerooLoaded()){
@@ -214,7 +213,6 @@ public class BreakManager {
                 }
             }
             client.gameMode.continueDestroyBlock(pos, Direction.DOWN);
-            client.gameMode.stopDestroyBlock();
             return (world.getBlockState(pos).is(block) && !client.player.isCreative());
         }
         return false;

@@ -84,18 +84,17 @@ public class Printer extends PrinterUtils {
     public float workProgress = 0;
 
     public BlockPos getBlockPos() {
-        if (ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) return null;
+        if (ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime)
+            return null;
         LocalPlayer player = client.player;
-        if (player == null) return null;
-
+        if (player == null)
+            return null;
         BlockPos playerPos = player.getOnPos();
-
         // 如果 basePos 为空，则初始化为玩家当前位置，并扩展 myBox 范围
         if (basePos == null) {
             basePos = playerPos;
             myBox = new MyBox(basePos).inflate(printRange);
         }
-
         double threshold = printRange * 0.7;
         if (!basePos.closerThan(playerPos, threshold)) {
             basePos = null;
@@ -108,7 +107,6 @@ public class Printer extends PrinterUtils {
         myBox.zIncrement = !Z_REVERSE.getBooleanValue();
 
         Iterator<BlockPos> iterator = myBox.iterator;
-
         while (iterator.hasNext()) {
             if (ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) return null;
             BlockPos pos = iterator.next();
@@ -120,9 +118,7 @@ public class Printer extends PrinterUtils {
             ) {
                 return pos;
             }
-
         }
-
         // 如果没有找到符合条件的位置，重置 basePos 并返回 null
         basePos = null;
         return null;
@@ -232,7 +228,9 @@ public class Printer extends PrinterUtils {
             }
 
             // 跳过冷却中的位置
-            if (placeCooldownList.containsKey(pos)) continue;
+            if (placeCooldownList.containsKey(pos)) {
+                continue;
+            }
             // 放置冷却
             placeCooldownList.put(pos, PLACE_COOLDOWN.getIntegerValue());
 
@@ -304,7 +302,8 @@ public class Printer extends PrinterUtils {
                     }
 
                     queue.sendQueue(player);
-                    if (BLOCKS_PER_TICK.getIntegerValue() != 0) printerWorkingCountPerTick--;
+                    if (BLOCKS_PER_TICK.getIntegerValue() != 0)
+                        printerWorkingCountPerTick--;
                     continue;
                 }
                 return;
@@ -458,12 +457,10 @@ public class Printer extends PrinterUtils {
                     return;
                 }
             }
-
             this.target = target;
             this.side = side;
             this.hitModifier = hitModifier;
             this.needSneak = needSneak;
-
         }
 
         public void sendQueue(LocalPlayer player) {
@@ -494,13 +491,15 @@ public class Printer extends PrinterUtils {
 
             boolean wasSneak = player.isShiftKeyDown();
 
-            if (needSneak && !wasSneak) setShift(player, true);
-            else if (!needSneak && wasSneak) setShift(player, false);
+            if (needSneak && !wasSneak) {
+                setShift(player, true);
+            } else if (!needSneak && wasSneak){
+                setShift(player, false);
+            }
 
             if (PRINTER_SPEED.getIntegerValue() >= 1 && lookDirYaw != null) {
                 Implementation.sendLookPacket(player, lookDirYaw, lookDirPitch);
             }
-
 
             if (PLACE_USE_PACKET.getBooleanValue()) {
                 //#if MC >= 11904
@@ -521,8 +520,11 @@ public class Printer extends PrinterUtils {
                 }
             }
 
-            if (needSneak && !wasSneak) setShift(player, false);
-            else if (!needSneak && wasSneak) setShift(player, true);
+            if (needSneak && !wasSneak) {
+                setShift(player, false);
+            } else if (!needSneak && wasSneak) {
+                setShift(player, true);
+            }
 
             clearQueue();
         }
@@ -562,18 +564,6 @@ public class Printer extends PrinterUtils {
             INSTANCE = new Printer(client);
         }
         return INSTANCE;
-    }
-
-    //endregion
-
-    //region get; set;
-
-    public int getPrinterWorkingCountPerTick() {
-        return printerWorkingCountPerTick;
-    }
-
-    public int getPrintRange() {
-        return printRange;
     }
 
     //endregion
