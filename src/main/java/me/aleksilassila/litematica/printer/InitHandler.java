@@ -25,7 +25,7 @@ import static me.aleksilassila.litematica.printer.config.ConfigFactory.*;
 public class InitHandler implements IInitializationHandler {
     // @formatter:off
 
-    public static final ConfigBooleanHotkeyed REPLACE_BLOCK = new ConfigBooleanHotkeyed("替换", false,"", "替换方块，通过\"替换方块名单\"配置");
+//    public static final ConfigBooleanHotkeyed REPLACE_BLOCK = new ConfigBooleanHotkeyed("替换", false,"", "替换方块，通过\"替换方块名单\"配置");
 
     public static final ConfigStringList FLUID_BLOCK_LIST = stringList(I18n.FLUID_BLOCK_LIST, ImmutableList.of("minecraft:sand"));
     public static final ConfigStringList FLUID_LIST = stringList(I18n.FLUID_LIST, ImmutableList.of("minecraft:water", "minecraft:lava"));

@@ -319,7 +319,7 @@ public class ZxyUtils {
             InitHandler.MINE.setBooleanValue(false);
             InitHandler.FLUID.setBooleanValue(false);
             InitHandler.PRINT_SWITCH.setBooleanValue(false);
-            InitHandler.REPLACE_BLOCK.setBooleanValue(false);
+//            InitHandler.REPLACE_BLOCK.setBooleanValue(false);
             InitHandler.PRINTER_MODE.setOptionListValue(State.PrintModeType.PRINTER);
             client.gui.setOverlayMessage(Component.nullToEmpty("已关闭全部模式"), false);
         }
