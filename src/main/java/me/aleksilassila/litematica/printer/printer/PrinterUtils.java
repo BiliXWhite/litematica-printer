@@ -120,7 +120,10 @@ public class PrinterUtils {
     }
 
     public static boolean isLimitedByTheNumberOfLayers(BlockPos pos) {
-        return InitHandler.RENDER_LAYER_LIMIT.getBooleanValue() && !DataManager.getRenderLayerRange().isPositionWithinRange(pos);
+        if (InitHandler.RENDER_LAYER_LIMIT.getBooleanValue()) {
+            return !DataManager.getRenderLayerRange().isPositionWithinRange(pos);
+        }
+        return false;
     }
 
     /**
