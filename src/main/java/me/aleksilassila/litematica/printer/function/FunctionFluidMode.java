@@ -25,7 +25,7 @@ import java.util.List;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsItemName;
 
-public class FunctionFluidMode extends FunctionMode {
+public class FunctionFluidMode extends FunctionModeBase {
     List<String> fluidBlocklist = new ArrayList<>();
     List<String> fluidList = new ArrayList<>();
     public HashSet<Item> fluidModeItemList = new HashSet<>();

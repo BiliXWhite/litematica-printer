@@ -53,24 +53,19 @@ public class ConfigUI extends GuiConfigsBase {
     }
 
     public enum Tab {
-        // @formatter:off
-        ALL     (I18n.TAB_ALL       , Configs.getAllConfigs()   ),
-        GENERAL (I18n.TAB_GENERAL   , Configs.getGeneral()      ),
-        PUT     (I18n.TAB_PUT       , Configs.getPut()          ),
-        EXCAVATE(I18n.TAB_EXCAVATE  , Configs.getExcavate()     ),
-        FILL    (I18n.FILL          , Configs.getFills()        ),
-//        BEDROCK (I18n.TAB_BEDROCK   , Configs.getBedrock()      ),
-        HOTKEYS (I18n.TAB_HOTKEYS   , Configs.getHotkeys()      ),
-        COLOR   (I18n.TAB_COLOR     , Configs.getColor()        ),
-        ;
-        // @formatter:on
+        ALL(I18n.TAB_ALL),
+        GENERAL(I18n.TAB_GENERAL),
+        PUT(I18n.TAB_PUT),
+        EXCAVATE(I18n.TAB_EXCAVATE),
+        FILL(I18n.FILL),
+//        BEDROCK(I18n.TAB_BEDROCK, false),
+        HOTKEYS(I18n.TAB_HOTKEYS),
+        COLOR(I18n.TAB_COLOR);
 
         private final I18n i18n;
-        private final ImmutableList<IConfigBase> configs;
 
-        Tab(I18n i18n, ImmutableList<IConfigBase> configs) {
+        Tab(I18n i18n) {
             this.i18n = i18n;
-            this.configs = configs;
         }
 
         public String getName() {
@@ -82,7 +77,16 @@ public class ConfigUI extends GuiConfigsBase {
         }
 
         public ImmutableList<IConfigBase> getConfigs() {
-            return configs;
+            return switch (this) {
+                case ALL -> Configs.getAllConfigs();
+                case GENERAL -> Configs.getGeneral();
+                case PUT -> Configs.getPut();
+                case EXCAVATE -> Configs.getExcavate();
+                case FILL -> Configs.getFills();
+//                case BEDROCK -> Configs.getBedrock();
+                case HOTKEYS -> Configs.getHotkeys();
+                case COLOR -> Configs.getColor();
+            };
         }
     }
 }

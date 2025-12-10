@@ -10,7 +10,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class FunctionMode implements FunctionExtension {
+public abstract class FunctionModeBase implements FunctionExtension {
     public abstract State.PrintModeType getPrintModeType();
 
     public abstract ConfigBoolean getCurrentConfig();

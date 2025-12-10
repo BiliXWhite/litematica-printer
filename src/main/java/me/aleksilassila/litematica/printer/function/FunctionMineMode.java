@@ -11,7 +11,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.NotNull;
 
-public class FunctionMineMode extends FunctionMode {
+public class FunctionMineMode extends FunctionModeBase {
     public final BreakManager breakManager = BreakManager.instance();
     BlockPos breakPos = null;
 
