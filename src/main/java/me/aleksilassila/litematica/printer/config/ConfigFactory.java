@@ -26,12 +26,12 @@ public class ConfigFactory {
         return booleanHotkey(i18n, defaultValue, defaultHotkey, settings, i18n.getConfigCommentKeyComponent().getString());
     }
 
-    public static ConfigBooleanHotkeyed booleanHotkey(I18n i18n, boolean defaultValue, String defaultHotkey) {
-        return booleanHotkey(i18n, defaultValue, defaultHotkey, KeybindSettings.DEFAULT);
-    }
-
     public static ConfigBooleanHotkeyed booleanHotkey(I18n i18n, boolean defaultValue, String defaultHotkey, String comment) {
         return booleanHotkey(i18n, defaultValue, defaultHotkey, KeybindSettings.DEFAULT, comment);
+    }
+
+    public static ConfigBooleanHotkeyed booleanHotkey(I18n i18n, boolean defaultValue, String defaultHotkey) {
+        return booleanHotkey(i18n, defaultValue, defaultHotkey, KeybindSettings.DEFAULT);
     }
 
     public static ConfigBooleanHotkeyed booleanHotkey(I18n i18n, boolean defaultValue) {
