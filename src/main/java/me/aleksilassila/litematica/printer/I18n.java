@@ -122,7 +122,6 @@ public enum I18n {
 
     SYNC_INVENTORY_CHECK   ("syncInventoryCheck"),
     PRINT                  ("print"),
-    TOGGLE_PRINTING_MODE   ("togglePrintingMode"),
     SYNC_INVENTORY         ("syncInventory"),
     PRINTER_INVENTORY      ("printerInventory"),
     REMOVE_PRINT_INVENTORY ("removePrintInventory"),

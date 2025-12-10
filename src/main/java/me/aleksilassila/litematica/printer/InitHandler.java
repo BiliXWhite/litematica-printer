@@ -6,7 +6,6 @@ import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.options.*;
 import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.interfaces.IInitializationHandler;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
@@ -81,7 +80,6 @@ public class InitHandler implements IInitializationHandler {
     public static final ConfigBoolean MULTI_BREAK               = bool(I18n.MULTI_BREAK                     , true );
     public static final ConfigBoolean RENDER_LAYER_LIMIT        = bool(I18n.RENDER_LAYER_LIMIT              , false);
     public static final ConfigBoolean PRINT_IN_AIR              = bool(I18n.PRINT_IN_AIR                    , true );
-    public static final ConfigBoolean PRINT_SWITCH              = bool(I18n.PRINT_SWITCH                    , false);
     public static final ConfigBoolean FORCED_SNEAK              = bool(I18n.FORCED_SNEAK                    , false);
     public static final ConfigBoolean REPLACE                   = bool(I18n.REPLACE                         , true );
     public static final ConfigBoolean PUT_SKIP                  = bool(I18n.PUT_SKIP                        , false);
@@ -105,11 +103,10 @@ public class InitHandler implements IInitializationHandler {
     public static final ConfigBooleanHotkeyed FILL                  = booleanHotkey(I18n.FILL                     ,false);
     public static final ConfigBooleanHotkeyed BEDROCK               = booleanHotkey(I18n.BEDROCK                  ,false);
     public static final ConfigBooleanHotkeyed SYNC_INVENTORY_CHECK  = booleanHotkey(I18n.SYNC_INVENTORY_CHECK     ,false);
-
+    public static final ConfigBooleanHotkeyed PRINT_SWITCH          = booleanHotkey(I18n.PRINT_SWITCH     ,false, "CAPS_LOCK", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY);
 
     public static final ConfigHotkey OPEN_SCREEN            = hotkey(I18n.OPEN_SCREEN, "Z,Y");
     public static final ConfigHotkey PRINT                  = hotkey(I18n.PRINT, KeybindSettings.PRESS_ALLOWEXTRA_EMPTY);
-    public static final ConfigHotkey TOGGLE_PRINTING_MODE   = hotkey(I18n.TOGGLE_PRINTING_MODE, "CAPS_LOCK", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY);
     public static final ConfigHotkey CLOSE_ALL_MODE         = hotkey(I18n.CLOSE_ALL_MODE,       "LEFT_CONTROL,G");
     public static final ConfigHotkey SWITCH_PRINTER_MODE    = hotkey(I18n.SWITCH_PRINTER_MODE       );
     public static final ConfigHotkey SYNC_INVENTORY         = hotkey(I18n.SYNC_INVENTORY            );
@@ -144,9 +141,6 @@ public class InitHandler implements IInitializationHandler {
         //$$ }
         //#endif
 
-        // 切换打印状态热键
-        TOGGLE_PRINTING_MODE.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(PRINT_SWITCH));
-
         // 打印状态值被修改
         PRINT_SWITCH.setValueChangeCallback(b -> {
             if (!b.getBooleanValue()) {
@@ -171,7 +165,7 @@ public class InitHandler implements IInitializationHandler {
     public static List<IConfigBase> getHotkeyList() {
         List<IConfigBase> list = new ArrayList<>(Hotkeys.HOTKEY_LIST);
         list.add(PRINT);
-        list.add(TOGGLE_PRINTING_MODE);
+        list.add(PRINT_SWITCH);
         list.add(CLOSE_ALL_MODE);
         if (MODE_SWITCH.getOptionListValue() == State.ModeType.SINGLE) {
             list.add(SWITCH_PRINTER_MODE);
