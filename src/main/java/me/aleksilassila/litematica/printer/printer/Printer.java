@@ -192,7 +192,6 @@ public class Printer extends PrinterUtils {
             return;
         }
 
-
         for (FunctionExtension function: Functions.LIST){
             if (function instanceof FunctionModeBase functionModeBase){
                 if (!functionModeBase.canTick()){
@@ -215,10 +214,13 @@ public class Printer extends PrinterUtils {
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
             // 检查每刻放置方块是否超出限制
-            if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printerWorkingCountPerTick == 0) return;
+            if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printerWorkingCountPerTick == 0)
+                return;
             // 是否在渲染层内
-            if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) continue;
-            if (!isSchematicBlock(pos)) continue;
+            if (PrinterUtils.isLimitedByTheNumberOfLayers(pos))
+                continue;
+            if (!isSchematicBlock(pos))
+                continue;
 
             requiredState = schematic.getBlockState(pos);
 

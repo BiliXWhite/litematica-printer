@@ -5,6 +5,7 @@ import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.printer.PrinterUtils;
 import me.aleksilassila.litematica.printer.printer.State;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -65,6 +66,8 @@ public class FunctionFillMode extends FunctionModeBase {
         while ((pos = printer.getBlockPos()) != null) {
             if (InitHandler.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0)
                 return;
+            if (PrinterUtils.isLimitedByTheNumberOfLayers(pos))
+                continue;
             if (!Printer.TempData.xuanQuFanWeiNei_p(pos))
                 continue;
             // 跳过冷却中的位置
@@ -74,7 +77,7 @@ public class FunctionFillMode extends FunctionModeBase {
             var currentState = level.getBlockState(pos);
             if (currentState.isAir() || (currentState.getBlock() instanceof LiquidBlock) || InitHandler.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> equalsBlockName(s, currentState))) {
                 if (handheld || printer.switchToItems(client.player, getFillItemsArray())) {
-                    if (handheld){
+                    if (handheld) {
                         ItemStack heldStack = player.getMainHandItem(); // 获取主手物品
                         if (heldStack.isEmpty() || heldStack.getCount() <= 0) return; // 主手无物品时跳过填充
                     }

@@ -4,6 +4,7 @@ import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.printer.PrinterUtils;
 import me.aleksilassila.litematica.printer.printer.State;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -29,8 +30,10 @@ public class FunctionMineMode extends FunctionModeBase {
     public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
         BlockPos pos;
         while ((pos = breakPos == null ? printer.getBlockPos() : breakPos) != null) {
-            if (BreakManager.breakRestriction(client.level.getBlockState(pos)) && breakManager.breakBlock(pos)) {
-                Printer.getInstance().requiredState = client.level.getBlockState(pos);
+            if (PrinterUtils.isLimitedByTheNumberOfLayers(pos))
+                continue;
+            if (BreakManager.breakRestriction(level.getBlockState(pos)) && breakManager.breakBlock(pos)) {
+                Printer.getInstance().requiredState = level.getBlockState(pos);
                 breakPos = pos;
                 return;
             }
