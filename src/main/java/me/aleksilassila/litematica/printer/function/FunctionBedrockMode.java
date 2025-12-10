@@ -35,7 +35,7 @@ public class FunctionBedrockMode extends FunctionModeBase {
             return;
         }
         if (!Statistics.loadBedrockMiner) {
-            ZxyUtils.actionBar("未安装Bedrock Miner模组/游戏版本小于1.19，无法破基岩！");
+            ZxyUtils.actionBar("未安装 Fabric-Bedrock-Miner 模组/游戏版本小于1.19，无法破基岩！");
             return;
         }
         if (!BedrockUtils.isWorking()) {
