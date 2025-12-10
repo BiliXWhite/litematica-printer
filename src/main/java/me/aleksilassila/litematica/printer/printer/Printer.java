@@ -100,25 +100,28 @@ public class Printer extends PrinterUtils {
             basePos = null;
             return null;
         }
-        myBox.initIterator();
-        myBox.setIterationMode(ITERATION_ORDER.getOptionListValue());
-        myBox.xIncrement = !X_REVERSE.getBooleanValue();
-        myBox.yIncrement = Y_REVERSE.getBooleanValue() == printerYAxisReverse;
-        myBox.zIncrement = !Z_REVERSE.getBooleanValue();
+        if (ITERATION_ORDER.getOptionListValue() instanceof State.IterationOrderType iterationOrderType){
+            myBox.initIterator();
+            myBox.setIterationMode(iterationOrderType);
+            myBox.xIncrement = !X_REVERSE.getBooleanValue();
+            myBox.yIncrement = Y_REVERSE.getBooleanValue() == printerYAxisReverse;
+            myBox.zIncrement = !Z_REVERSE.getBooleanValue();
 
-        Iterator<BlockPos> iterator = myBox.iterator;
-        while (iterator.hasNext()) {
-            if (ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) return null;
-            BlockPos pos = iterator.next();
-            // 只有在形状为球体的时候才判断在不在距离内
-            if (
-                    ((isPrinterMode() && isSchematicBlock(pos)) ||
-                            TempData.xuanQuFanWeiNei_p(pos)) &&
-                            PlaceUtils.canInteracted(pos)
-            ) {
-                return pos;
+            Iterator<BlockPos> iterator = myBox.iterator;
+            while (iterator.hasNext()) {
+                if (ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) return null;
+                BlockPos pos = iterator.next();
+                // 只有在形状为球体的时候才判断在不在距离内
+                if (
+                        ((isPrinterMode() && isSchematicBlock(pos)) ||
+                                TempData.xuanQuFanWeiNei_p(pos)) &&
+                                PlaceUtils.canInteracted(pos)
+                ) {
+                    return pos;
+                }
             }
         }
+
         // 如果没有找到符合条件的位置，重置 basePos 并返回 null
         basePos = null;
         return null;
