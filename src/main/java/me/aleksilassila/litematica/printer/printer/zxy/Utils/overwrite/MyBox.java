@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
+import me.aleksilassila.litematica.printer.printer.State;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
@@ -15,9 +16,9 @@ public class MyBox extends AABB implements Iterable<BlockPos> {
     public boolean xIncrement = true;
     public boolean zIncrement = true;
     public Iterator<BlockPos> iterator;
-    private IConfigOptionListEntry iterationMode = XZY;
+    private State.IterationOrderType iterationMode = XZY;
 
-    public void setIterationMode(IConfigOptionListEntry mode) {
+    public void setIterationMode(State.IterationOrderType mode) {
         this.iterationMode = mode;
     }
 

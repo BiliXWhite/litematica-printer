@@ -22,20 +22,18 @@ public class Configs implements IConfigHandler {
     private static final String FILE_PATH = "./config/" + LitematicaPrinterMod.MOD_ID + ".json";
     private static final File CONFIG_DIR = new File("./config");
 
-    // @formatter:off
 
     //===========通用设置===========
-    public static ImmutableList<IConfigBase> getGeneral(){
+    public static ImmutableList<IConfigBase> getGeneral() {
         List<IConfigBase> list = new ArrayList<>();
         // 箱子追踪
-        if(Statistics.loadChestTracker)
-        {
+        if (Statistics.loadChestTracker) {
             list.add(CLOUD_INVENTORY);              // 远程交互容器
             list.add(AUTO_INVENTORY);               // 自动设置远程交互
         }
         list.add(PRINT_SWITCH);                     // 打印状态
         list.add(PRINTER_SPEED);                    // 核心 - 打印速度
-        if (PRINTER_SPEED.getIntegerValue() == 0){  // 核心 - 打印速度
+        if (PRINTER_SPEED.getIntegerValue() == 0) {  // 核心 - 打印速度
             list.add(BLOCKS_PER_TICK);              // 核心 - 每刻放置方块数
         }
         list.add(PRINTER_RANGE);                    // 核心 - 工作半径长度
@@ -54,10 +52,9 @@ public class Configs implements IConfigHandler {
         list.add(Z_REVERSE);                        // 迭代-Z轴反向
         list.add(MODE_SWITCH);                      // 模式切换
         // 模式切换
-        if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)) {
+        if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)) {
             list.add(PRINTER_MODE);                 // 打印机模式
-        }
-        else {
+        } else {
             list.add(MULTI_BREAK);                  // 多模阻断
         }
         list.add(RENDER_LAYER_LIMIT);               // 渲染层数限制
@@ -68,8 +65,7 @@ public class Configs implements IConfigHandler {
         list.add(FILL_BLOCK_FACING);                // 填充 - 模式朝向
 
         // 箱子追踪
-        if(Statistics.loadChestTracker)
-        {
+        if (Statistics.loadChestTracker) {
             list.add(INVENTORY_LIST);               // 库存白名单
         }
         list.add(DEBUG_OUTPUT);                     // 调试输出
@@ -79,7 +75,7 @@ public class Configs implements IConfigHandler {
     }
 
     //===========放置设置===========
-    public static ImmutableList<IConfigBase> getPut(){
+    public static ImmutableList<IConfigBase> getPut() {
         List<IConfigBase> list = new ArrayList<>();
         list.add(PUT_SKIP);                 // 跳过放置
         list.add(PUT_SKIP_LIST);            // 跳过放置名单
@@ -106,10 +102,10 @@ public class Configs implements IConfigHandler {
     }
 
     //===========挖掘设置===========
-    public static ImmutableList<IConfigBase> getExcavate(){
+    public static ImmutableList<IConfigBase> getExcavate() {
         List<IConfigBase> list = new ArrayList<>();
         list.add(EXCAVATE_LIMITER);         // 挖掘模式限制器
-        if(EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.CUSTOM)){
+        if (EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.CUSTOM)) {
             list.add(EXCAVATE_LIMIT);       // 挖掘模式限制
             list.add(EXCAVATE_WHITELIST);   // 挖掘白名单
             list.add(EXCAVATE_BLACKLIST);   // 挖掘黑名单
@@ -118,9 +114,9 @@ public class Configs implements IConfigHandler {
     }
 
     //===========填充设置===========
-    public static ImmutableList<IConfigBase> getFills(){
+    public static ImmutableList<IConfigBase> getFills() {
         List<IConfigBase> list = new ArrayList<>();
-        if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)) {
+        if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)) {
             list.add(FILL);                         // 填充
         }
         list.add(FILL_BLOCK_MODE);                  // 填充方块模式
@@ -130,19 +126,19 @@ public class Configs implements IConfigHandler {
     }
 
     //===========破基岩设置===========
-    public static ImmutableList<IConfigBase> getBedrock(){
+    public static ImmutableList<IConfigBase> getBedrock() {
         List<IConfigBase> list = new ArrayList<>();
         return ImmutableList.copyOf(list);
     }
 
     //===========热键设置===========
-    public static ImmutableList<IConfigBase> getHotkeys(){
+    public static ImmutableList<IConfigBase> getHotkeys() {
         List<IConfigBase> list = new ArrayList<>();
         list.add(OPEN_SCREEN);                  // 打开设置菜单
         list.add(PRINT);                        // 打印热键
         list.add(PRINT_SWITCH);         // 切换打印状态
         // 切换打印状态热键
-        if(MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)) {
+        if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)) {
             list.add(SWITCH_PRINTER_MODE);      // 切换模式
         } else {
             list.add(MINE);                     // 挖掘
@@ -154,7 +150,7 @@ public class Configs implements IConfigHandler {
         list.add(CLOSE_ALL_MODE);               // 关闭全部模式
         list.add(SYNC_INVENTORY);               // 同步容器热键
         // 箱子追踪
-        if(Statistics.loadChestTracker) {
+        if (Statistics.loadChestTracker) {
             list.add(PRINTER_INVENTORY);        // 设置打印机库存热键
             list.add(REMOVE_PRINT_INVENTORY);   // 清空打印机库存热键
             //#if MC >= 12001
@@ -167,7 +163,7 @@ public class Configs implements IConfigHandler {
     }
 
     //===========颜色设置===========
-    public static ImmutableList<IConfigBase> getColor(){
+    public static ImmutableList<IConfigBase> getColor() {
         List<IConfigBase> list = new ArrayList<>();
         list.add(SYNC_INVENTORY_COLOR); // 容器同步与打印机添加库存高亮颜色
 
@@ -175,14 +171,14 @@ public class Configs implements IConfigHandler {
     }
 
     //按下时激活
-    public static ImmutableList<ConfigHotkey> getKeyList(){
+    public static ImmutableList<ConfigHotkey> getKeyList() {
         ArrayList<ConfigHotkey> list = new ArrayList<>();
         list.add(OPEN_SCREEN);                  // 打开设置菜单
         list.add(SYNC_INVENTORY);               // 同步容器热键
         list.add(SWITCH_PRINTER_MODE);          // 切换模式
 
         // 箱子追踪
-        if(Statistics.loadChestTracker) {
+        if (Statistics.loadChestTracker) {
             list.add(PRINTER_INVENTORY);        // 设置打印机库存热键
             list.add(REMOVE_PRINT_INVENTORY);   // 清空打印机库存热键
             //#if MC >= 12001
@@ -195,7 +191,7 @@ public class Configs implements IConfigHandler {
     }
 
     //切换型开关
-    public static ImmutableList<IHotkeyTogglable> getSwitchKey(){
+    public static ImmutableList<IHotkeyTogglable> getSwitchKey() {
         ArrayList<IHotkeyTogglable> list = new ArrayList<>();
         list.add(MINE);             // 挖掘
         list.add(FLUID);            // 排流体
@@ -207,7 +203,7 @@ public class Configs implements IConfigHandler {
         return ImmutableList.copyOf(list);
     }
 
-    public static ImmutableList<IConfigBase> getAllConfigs(){
+    public static ImmutableList<IConfigBase> getAllConfigs() {
         List<IConfigBase> list = new ArrayList<>();
         list.addAll(getGeneral());  // 通用
         list.addAll(getPut());      // 放置
@@ -215,10 +211,9 @@ public class Configs implements IConfigHandler {
         list.addAll(getBedrock());  // 破基岩
         list.addAll(getHotkeys());  // 热键
         list.addAll(getColor());    // 颜色
+        list = list.stream().distinct().toList();   // 去重
         return ImmutableList.copyOf(list);
     }
-
-    // @formatter:on
 
     @Override
     public void load() {

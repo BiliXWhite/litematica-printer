@@ -51,17 +51,18 @@ public class PlaceUtils {
 
     /**
      * 判断该方块是否需要水
+     *
      * @param blockState 要判断的方块
      * @return 是否含水（是水）
      */
     public static boolean isWaterRequired(BlockState blockState) {
         return
-            blockState.is(Blocks.WATER) &&
-                    blockState.getValue(LiquidBlock.LEVEL) == 0 || (
-                blockState.getProperties().contains(BlockStateProperties.WATERLOGGED) &&
-                blockState.getValue(BlockStateProperties.WATERLOGGED)
-            ) ||
-                blockState.getBlock() instanceof BubbleColumnBlock;
+                blockState.is(Blocks.WATER) &&
+                        blockState.getValue(LiquidBlock.LEVEL) == 0 || (
+                        blockState.getProperties().contains(BlockStateProperties.WATERLOGGED) &&
+                                blockState.getValue(BlockStateProperties.WATERLOGGED)
+                ) ||
+                        blockState.getBlock() instanceof BubbleColumnBlock;
     }
 
     public static boolean isCorrectWaterLevel(BlockState requiredState, BlockState currentState) {
@@ -80,32 +81,40 @@ public class PlaceUtils {
     }
 
     public static Direction getFillModeFacing() {
-        return switch (InitHandler.FILL_BLOCK_FACING.getOptionListValue().getStringValue()) {
-            case "down" -> Direction.DOWN;
-            case "east" -> Direction.EAST;
-            case "south" -> Direction.SOUTH;
-            case "west" -> Direction.WEST;
-            case "north" -> Direction.NORTH;
-            default -> Direction.UP;
-        };
+        if (InitHandler.FILL_BLOCK_FACING.getOptionListValue() instanceof State.FillModeFacingType fillModeFacingType){
+            return switch (fillModeFacingType) {
+                case DOWN -> Direction.DOWN;
+                case UP -> Direction.UP;
+                case WEST -> Direction.WEST;
+                case EAST -> Direction.EAST;
+                case NORTH -> Direction.NORTH;
+                case SOUTH -> Direction.SOUTH;
+            };
+        }
+        return Direction.UP;
     }
 
-
+    // 判断是否可交互
     public static boolean canInteracted(BlockPos blockPos) {
         var range = InitHandler.PRINTER_RANGE.getIntegerValue();
-        return switch (InitHandler.ITERATOR_SHAPE.getOptionListValue().getStringValue()) {
-            case "sphere" -> canInteractedEuclidean(blockPos, range);
-            case "octahedron" -> canInteractedManhattan(blockPos, range);
-            default -> true;
-        };
+        if (InitHandler.ITERATOR_SHAPE.getOptionListValue() instanceof State.RadiusShapeType radiusShapeType) {
+            return switch (radiusShapeType) {
+                case SPHERE -> canInteractedEuclidean(blockPos, range);
+                case OCTAHEDRON -> canInteractedManhattan(blockPos, range);
+                case CUBE -> canInteractedCube(blockPos, range);
+            };
+        }
+        return true;
     }
 
+    // 球面（欧几里得距离）
     public static boolean canInteractedEuclidean(BlockPos blockPos, double range) {
         var player = client.player;
         if (player == null || blockPos == null) return false;
         return player.getEyePosition().distanceToSqr(Vec3.atCenterOf(blockPos)) <= range * range;
     }
 
+    // 八面体（曼哈顿距离）
     public static boolean canInteractedManhattan(BlockPos pos, int range) {
         BlockPos center = client.player.blockPosition();
         int dx = Math.abs(pos.getX() - center.getX());
@@ -114,12 +123,23 @@ public class PlaceUtils {
         return dx + dy + dz <= range;
     }
 
+    // 立方体（CUBE）：以玩家方块位置为中心
+    public static boolean canInteractedCube(BlockPos pos, int range) {
+        var player = client.player;
+        if (player == null || pos == null) return false;
+        BlockPos center = player.blockPosition();
+        int dx = Math.abs(pos.getX() - center.getX());
+        int dy = Math.abs(pos.getY() - center.getY());
+        int dz = Math.abs(pos.getZ() - center.getZ());
+        return dx <= range && dy <= range && dz <= range;
+    }
+
     /**
      * 获取面向这个位置的侦测器的位置。
      * 该方法会检查给定位置周围的六个方向，查找是否有朝向相反方向的观察者方块。
      * 如果找到，则返回该观察者方块的位置；否则返回 null。
      *
-     * @param pos 要检查的中心位置
+     * @param pos   要检查的中心位置
      * @param world 当前的世界对象
      * @return 观察者方块的位置，如果未找到则返回 null
      */
@@ -142,7 +162,7 @@ public class PlaceUtils {
      * 该方法会检查给定位置周围的六个方向，查找是否有朝向该位置方向的观察者方块。
      * 如果找到，则返回该观察者方块的位置；否则返回 null。
      *
-     * @param pos 要检查的中心位置
+     * @param pos   要检查的中心位置
      * @param world 当前的世界对象
      * @return 观察者方块的位置，如果未找到则返回 null
      */
@@ -177,8 +197,7 @@ public class PlaceUtils {
         return State.get(beObverseBlockSchematic, beObverseBlock);
     }
 
-    public static boolean setPickedItemToHand(ItemStack stack, Minecraft mc)
-    {
+    public static boolean setPickedItemToHand(ItemStack stack, Minecraft mc) {
         if (mc.player == null) return false;
         int slotNum = mc.player.getInventory().findSlotMatchingItem(stack);
         return setPickedItemToHand(slotNum, stack, mc);
@@ -238,9 +257,9 @@ public class PlaceUtils {
         Player player = mc.player;
         //#if MC > 12004
         if (InventoryUtils.areStacksEqualIgnoreNbt(stackReference, player.getMainHandItem())) {
-        //#else
-        //$$ if (InventoryUtils.areStacksEqual(stackReference, player.getMainHandItem())) {
-        //#endif
+            //#else
+            //$$ if (InventoryUtils.areStacksEqual(stackReference, player.getMainHandItem())) {
+            //#endif
             return false;
         }
         int slot = InventoryUtils.findSlotWithItem(player.inventoryMenu, stackReference, true);
