@@ -15,7 +15,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.LiquidBlock;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,7 +23,7 @@ import java.util.List;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsItemName;
 
-public class FunctionFillMode extends FunctionMode {
+public class FunctionFillMode extends FunctionModeBase {
     private final HashSet<Item> fillModeItemList = new HashSet<>();
     private final List<String> fillBlocklist = new ArrayList<>();
 

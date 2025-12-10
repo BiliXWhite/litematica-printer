@@ -8,12 +8,11 @@ import fi.dy.masa.litematica.util.EasyPlaceProtocol;
 import fi.dy.masa.litematica.util.PlacementHandler;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
-import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.function.FunctionExtension;
-import me.aleksilassila.litematica.printer.function.FunctionMode;
+import me.aleksilassila.litematica.printer.function.FunctionModeBase;
 import me.aleksilassila.litematica.printer.function.Functions;
 import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
@@ -193,17 +192,21 @@ public class Printer extends PrinterUtils {
             return;
         }
 
-        // 非打印模式
-        if (PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType modeType && modeType != PRINTER) {
-            for (FunctionExtension function: Functions.LIST){
-                if (function instanceof FunctionMode functionMode){
-                    if (!functionMode.canTick()){
-                        continue;
-                    }
+
+        for (FunctionExtension function: Functions.LIST){
+            if (function instanceof FunctionModeBase functionModeBase){
+                if (!functionModeBase.canTick()){
+                    continue;
                 }
-                function.tick(this,client, world, player);
             }
-            return;
+            function.tick(this,client, world, player);
+        }
+
+        // 单模, 非打印模式,
+        if (MODE_SWITCH.getOptionListValue() instanceof State.ModeType modeType && modeType == State.ModeType.SINGLE) {
+            if (PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType printModeType && printModeType != PRINTER) {
+                return;
+            }
         }
 
         // 遍历当前区域内所有符合条件的位置

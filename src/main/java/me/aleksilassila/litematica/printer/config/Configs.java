@@ -210,6 +210,7 @@ public class Configs implements IConfigHandler {
         list.addAll(getGeneral());  // 通用
         list.addAll(getPut());      // 放置
         list.addAll(getExcavate()); // 挖掘
+        list.addAll(getBedrock());  // 破基岩
         list.addAll(getHotkeys());  // 热键
         list.addAll(getColor());    // 颜色
         return ImmutableList.copyOf(list);

@@ -15,7 +15,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.NotNull;
 
-public class FunctionBedrockMode extends FunctionMode {
+public class FunctionBedrockMode extends FunctionModeBase {
 
     @Override
     public State.PrintModeType getPrintModeType() {
