@@ -1,7 +1,6 @@
 package me.aleksilassila.litematica.printer.printer;
 
 import fi.dy.masa.litematica.data.DataManager;
-
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
 import fi.dy.masa.litematica.util.EasyPlaceProtocol;
@@ -192,13 +191,13 @@ public class Printer extends PrinterUtils {
             return;
         }
 
-        for (FunctionExtension function: Functions.LIST){
-            if (function instanceof FunctionModeBase functionModeBase){
-                if (!functionModeBase.canTick()){
+        for (FunctionExtension function : Functions.LIST) {
+            if (function instanceof FunctionModeBase functionModeBase) {
+                if (!functionModeBase.canTick()) {
                     continue;
                 }
             }
-            function.tick(this,client, world, player);
+            function.tick(this, client, world, player);
         }
 
         // 单模, 非打印模式,

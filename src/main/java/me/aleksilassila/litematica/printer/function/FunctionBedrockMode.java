@@ -46,8 +46,7 @@ public class FunctionBedrockMode extends FunctionModeBase {
         }
         BlockPos pos;
         while ((pos = printer.getBlockPos()) != null) {
-            if (client.player != null &&
-                    (!PlaceUtils.canInteracted(pos) || PrinterUtils.isLimitedByTheNumberOfLayers(pos) || !Printer.TempData.xuanQuFanWeiNei_p(pos))) {
+            if (!PlaceUtils.canInteracted(pos) || PrinterUtils.isLimitedByTheNumberOfLayers(pos) || !Printer.TempData.xuanQuFanWeiNei_p(pos)) {
                 continue;
             }
             BedrockUtils.addToBreakList(pos, client.level);

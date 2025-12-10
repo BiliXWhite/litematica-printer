@@ -13,8 +13,8 @@ import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.NotNull;
 
 public class FunctionMineMode extends FunctionModeBase {
-    public final BreakManager breakManager = BreakManager.instance();
-    BlockPos breakPos = null;
+    private final BreakManager breakManager = BreakManager.instance();
+    private BlockPos breakPos = null;
 
     @Override
     public State.PrintModeType getPrintModeType() {
@@ -30,15 +30,14 @@ public class FunctionMineMode extends FunctionModeBase {
     public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
         BlockPos pos;
         while ((pos = breakPos == null ? printer.getBlockPos() : breakPos) != null) {
-            if (PrinterUtils.isLimitedByTheNumberOfLayers(pos))
-                continue;
-            if (BreakManager.breakRestriction(level.getBlockState(pos)) && breakManager.breakBlock(pos)) {
-                Printer.getInstance().requiredState = level.getBlockState(pos);
-                breakPos = pos;
-                return;
+            if (!PrinterUtils.isLimitedByTheNumberOfLayers(pos)) {
+                if (BreakManager.breakRestriction(level.getBlockState(pos)) && breakManager.breakBlock(pos)) {
+                    Printer.getInstance().requiredState = level.getBlockState(pos);
+                    breakPos = pos;
+                    return;
+                }
             }
-            // 清空临时位置
-            breakPos = null;
+            breakPos = null;    // 一定要清空临时位置, 否则会进入死循环
         }
     }
 }
