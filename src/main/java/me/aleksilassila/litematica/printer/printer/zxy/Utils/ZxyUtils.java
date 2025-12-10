@@ -357,12 +357,9 @@ public class ZxyUtils {
         PreprocessUtils.setSelectedSlot(inventory, slot);
     }
 
-
-
     public static void actionBar(String message){
         client.gui.setOverlayMessage(Component.nullToEmpty(message),false);
     }
-
 
     /**
      * 从当前选中的区域中筛选出指定名称的方块，并返回这些方块的位置列表。
