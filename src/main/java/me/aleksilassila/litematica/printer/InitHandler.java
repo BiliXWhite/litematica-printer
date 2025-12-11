@@ -159,6 +159,18 @@ public class InitHandler implements IInitializationHandler {
             }
         });
 
+        // 切换模式时, 关闭破基岩
+        PRINTER_MODE.setValueChangeCallback(b->{
+            if (!b.getOptionListValue().equals(State.PrintModeType.BEDROCK)) {
+                if (Statistics.loadBedrockMiner) {
+                    if (BedrockUtils.isWorking()){
+                        BedrockUtils.setWorking(false);
+                        BedrockUtils.setBedrockMinerFeatureEnable(true);
+                    }
+                }
+            }
+        });
+
         Configs.init();
         HighlightBlockRenderer.init();
     }
