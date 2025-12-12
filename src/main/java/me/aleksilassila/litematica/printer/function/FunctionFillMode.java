@@ -18,15 +18,14 @@ import net.minecraft.world.level.block.LiquidBlock;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsItemName;
 
 public class FunctionFillMode extends FunctionModeBase {
-    private final HashSet<Item> fillModeItemList = new HashSet<>();
-    private final List<String> fillBlocklist = new ArrayList<>();
+    private List<Item> fillModeItemList = new ArrayList<>();
+    private List<String> fillcaCheBlocklist = new ArrayList<>();
 
     @Override
     public State.PrintModeType getPrintModeType() {
@@ -42,23 +41,26 @@ public class FunctionFillMode extends FunctionModeBase {
     public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
         Printer.getInstance().requiredState = null;
         boolean handheld = false;
-        fillModeItemList.clear();
         // 手持物品
         if (InitHandler.FILL_BLOCK_MODE.getOptionListValue() == State.FileBlockModeType.HANDHELD) {
             handheld = true;
             ItemStack heldStack = player.getMainHandItem(); // 获取主手物品
-            if (heldStack.isEmpty() || heldStack.getCount() <= 0) return; // 主手无物品时跳过填充
-            fillModeItemList.add(heldStack.getItem());
+            if (heldStack.isEmpty() || heldStack.getCount() <= 0) {
+                return; // 主手无物品时跳过填充
+            }
+            fillModeItemList = List.of(heldStack.getItem());
         }
         // 白名单模式
         if (InitHandler.FILL_BLOCK_MODE.getOptionListValue() == State.FileBlockModeType.WHITELIST) {
-            if (!InitHandler.FILL_BLOCK_LIST.getStrings().equals(fillBlocklist)) {
-                fillBlocklist.clear();
-                fillBlocklist.addAll(InitHandler.FILL_BLOCK_LIST.getStrings());
-                if (InitHandler.FILL_BLOCK_LIST.getStrings().isEmpty()) return;
-                for (String itemName : fillBlocklist) {
-                    List<Item> list = BuiltInRegistries.ITEM.stream().filter(item -> equalsItemName(itemName, new ItemStack(item))).toList();
-                    fillModeItemList.addAll(list);
+            // 每次去MC注册表中获取会造成大量卡顿, 所以仅在玩家修改了填充列表, 再去读取以便注册表
+            List<String> strings = InitHandler.FILL_BLOCK_LIST.getStrings();
+            if (!strings.equals(fillcaCheBlocklist)) {
+                fillcaCheBlocklist = new ArrayList<>(strings);
+                if (strings.isEmpty()) {
+                    return;
+                }
+                for (String itemName : fillcaCheBlocklist) {
+                    fillModeItemList = BuiltInRegistries.ITEM.stream().filter(item -> equalsItemName(itemName, new ItemStack(item))).toList();
                 }
             }
         }
@@ -76,7 +78,7 @@ public class FunctionFillMode extends FunctionModeBase {
             Printer.getInstance().placeCooldownList.put(pos, InitHandler.PLACE_COOLDOWN.getIntegerValue());
             var currentState = level.getBlockState(pos);
             if (currentState.isAir() || (currentState.getBlock() instanceof LiquidBlock) || InitHandler.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> equalsBlockName(s, currentState))) {
-                if (handheld || printer.switchToItems(client.player, getFillItemsArray())) {
+                if (handheld || printer.switchToItems(player, getFillItemsArray())) {
                     if (handheld) {
                         ItemStack heldStack = player.getMainHandItem(); // 获取主手物品
                         if (heldStack.isEmpty() || heldStack.getCount() <= 0) return; // 主手无物品时跳过填充
@@ -92,6 +94,7 @@ public class FunctionFillMode extends FunctionModeBase {
                         }
                         continue;
                     }
+                    printer.queue.sendQueue(player);
                     return;
                 }
             }

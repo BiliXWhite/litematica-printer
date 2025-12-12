@@ -2,10 +2,13 @@ package me.aleksilassila.litematica.printer.function;
 
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import me.aleksilassila.litematica.printer.InitHandler;
+import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
 import me.aleksilassila.litematica.printer.printer.State;
+import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -18,21 +21,17 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsItemName;
 
 public class FunctionFluidMode extends FunctionModeBase {
-    List<String> fluidBlocklist = new ArrayList<>();
-    List<String> fluidList = new ArrayList<>();
-    public HashSet<Item> fluidModeItemList = new HashSet<>();
-    public HashSet<Fluid> fluidModeList = new HashSet<>();
-    public Item[] fluidItemsArray = new Item[0];
-    public Fluid[] fluidArray = new Fluid[0];
+    private List<String> fillBlocks = new ArrayList<>();
+    private List<Item> fillItems = new ArrayList<>();
+
+    private List<String> fluidBlocks = new ArrayList<>();
+    private List<Fluid> fluis = List.of(new Fluid[0]);
 
     @Override
     public State.PrintModeType getPrintModeType() {
@@ -47,30 +46,31 @@ public class FunctionFluidMode extends FunctionModeBase {
     @Override
     public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
         Printer.getInstance().requiredState = null;
-        if (!InitHandler.FLUID_BLOCK_LIST.getStrings().equals(fluidBlocklist)) {
-            fluidBlocklist.clear();
-            fluidBlocklist.addAll(InitHandler.FLUID_BLOCK_LIST.getStrings());
-            if (InitHandler.FLUID_BLOCK_LIST.getStrings().isEmpty())
+        // 填充方块
+        List<String> fileBlocks = InitHandler.FLUID_BLOCK_LIST.getStrings();
+        if (!fileBlocks.equals(fillBlocks)) {
+            fillBlocks = new ArrayList<>(fileBlocks);
+            if (fileBlocks.isEmpty()) {
                 return;
-            fluidModeItemList.clear();
-            for (String itemName : fluidBlocklist) {
+            }
+            fillItems = new ArrayList<>();
+            for (String itemName : fillBlocks) {
                 List<Item> list = BuiltInRegistries.ITEM.stream().filter(item -> equalsItemName(itemName, new ItemStack(item))).toList();
-                fluidModeItemList.addAll(list);
+                fillItems.addAll(list);
             }
-            fluidItemsArray = fluidModeItemList.toArray(new Item[0]);
         }
-
-        if (!InitHandler.FLUID_LIST.getStrings().equals(fluidList)) {
-            fluidList.clear();
-            fluidList.addAll(InitHandler.FLUID_LIST.getStrings());
-            if (InitHandler.FLUID_LIST.getStrings().isEmpty())
+        // 流体方块
+        List<String> fluidBlocks = InitHandler.FLUID_LIST.getStrings();
+        if (!fluidBlocks.equals(this.fluidBlocks)) {
+            this.fluidBlocks = new ArrayList<>(fluidBlocks);
+            if (fluidBlocks.isEmpty()) {
                 return;
-            fluidModeList.clear();
-            for (String itemName : fluidList) {
-                List<Fluid> list = BuiltInRegistries.FLUID.stream().filter(item -> equalsBlockName(itemName, item.defaultFluidState().createLegacyBlock())).toList();
-                fluidModeList.addAll(list);
             }
-            fluidArray = fluidModeList.toArray(new Fluid[0]);
+            fluis = new ArrayList<>();
+            for (String itemName : this.fluidBlocks) {
+                List<Fluid> list = BuiltInRegistries.FLUID.stream().filter(item -> equalsBlockName(itemName, item.defaultFluidState().createLegacyBlock())).toList();
+                fluis.addAll(list);
+            }
         }
 
         BlockPos pos;
@@ -86,18 +86,19 @@ public class FunctionFluidMode extends FunctionModeBase {
                 continue;
             Printer.getInstance().placeCooldownList.put(pos, InitHandler.PLACE_COOLDOWN.getIntegerValue());
             FluidState fluidState = level.getBlockState(pos).getFluidState();
-            if (Arrays.asList(fluidArray).contains(fluidState.getType())) {
+            if (fluis.contains(fluidState.getType())) {
                 if (!InitHandler.FILL_FLOWING_FLUID.getBooleanValue() && !fluidState.isSource())
                     continue;
-                if (printer.switchToItems(client.player, fluidItemsArray)) {
+                if (printer.switchToItems(player, fillItems.toArray(new Item[0]))) {
                     new PlacementGuide.Action().queueAction(printer.queue, pos, Direction.UP, false);
                     if (printer.tickRate == 0) {
-                        printer.queue.sendQueue(client.player);
+                        printer.queue.sendQueue(player);
                         if (InitHandler.BLOCKS_PER_TICK.getIntegerValue() != 0) {
                             printer.printerWorkingCountPerTick--;
                         }
                         continue;
                     }
+                    printer.queue.sendQueue(player);
                     return;
                 }
             }
