@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.utils;
 
 import net.minecraft.network.chat.Component;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.StringJoiner;
 
@@ -30,6 +31,10 @@ public class StringUtils {
         //#else
         //$$ return new net.minecraft.network.chat.TextComponent(text);
         //#endif
+    }
+
+    public static Component nullToEmpty(@Nullable String string) {
+        return string != null ? literal(string) : EMPTY;
     }
 
     public static String mergeComments(String delimiter, Component... customComments) {

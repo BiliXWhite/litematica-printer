@@ -7,8 +7,6 @@ import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
-import me.aleksilassila.litematica.printer.printer.State;
-
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
@@ -38,6 +36,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+
 //#if MC >= 12001 && MC <= 12104
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#elseif MC < 12001
@@ -47,7 +46,7 @@ import java.util.*;
 import static me.aleksilassila.litematica.printer.InitHandler.SYNC_INVENTORY_CHECK;
 import static me.aleksilassila.litematica.printer.InitHandler.SYNC_INVENTORY_COLOR;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
+import static me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus.closeScreen;
 import static net.minecraft.world.level.block.ShulkerBoxBlock.FACING;
 
 public class ZxyUtils {
@@ -66,7 +65,8 @@ public class ZxyUtils {
     public static String syncInventoryId = "syncInventory";
 
     private static int sequence = 0;
-    public static void startAddPrinterInventory(){
+
+    public static void startAddPrinterInventory() {
         getReadyColor();
         if (InitHandler.CLOUD_INVENTORY.getBooleanValue() && !printerMemoryAdding) {
             printerMemoryAdding = true;
@@ -80,6 +80,7 @@ public class ZxyUtils {
             highlightPosList.addAll(invBlockList);
         }
     }
+
     public static void addInv() {
         if (printerMemoryAdding && !openIng && OpenInventoryPacket.key == null) {
             if (invBlockList.isEmpty()) {
@@ -108,11 +109,11 @@ public class ZxyUtils {
     public static int num = 0;
     static BlockPos blockPos = null;
     static Set<BlockPos> highlightPosList = new LinkedHashSet<>();
-    static Map<ItemStack,Integer> targetItemsCount = new HashMap<>();
-    static Map<ItemStack,Integer> playerItemsCount = new HashMap<>();
+    static Map<ItemStack, Integer> targetItemsCount = new HashMap<>();
+    static Map<ItemStack, Integer> playerItemsCount = new HashMap<>();
 
-    private static void getReadyColor(){
-        HighlightBlockRenderer.createHighlightBlockList(syncInventoryId,SYNC_INVENTORY_COLOR);
+    private static void getReadyColor() {
+        HighlightBlockRenderer.createHighlightBlockList(syncInventoryId, SYNC_INVENTORY_COLOR);
         highlightPosList = HighlightBlockRenderer.getHighlightBlockPosList(syncInventoryId);
     }
 
@@ -125,18 +126,18 @@ public class ZxyUtils {
             if (client.level != null) {
                 block = client.level.getBlockState(pos).getBlock();
                 BlockEntity blockEntity = client.level.getBlockEntity(pos);
-                boolean isInventory = InventoryUtils.isInventory(client.level,pos);
+                boolean isInventory = InventoryUtils.isInventory(client.level, pos);
                 try {
                     if ((isInventory && blockState.getMenuProvider(client.level, pos) == null) ||
                             (blockEntity instanceof ShulkerBoxBlockEntity entity &&
-                                //#if MC > 12103
-                                !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(FACING), 0.0F, 0.5F, pos.getBottomCenter()).move(pos).deflate(1.0E-6)) &&
-                                //#elseif MC <= 12103 && MC > 12004
-                                //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(FACING), 0.0F, 0.5F).move(pos).deflate(1.0E-6)) &&
-                                //#elseif MC <= 12004
-                                //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(blockState.getValue(FACING), 0.0f, 0.5f).move(pos).deflate(1.0E-6)) &&
-                                //#endif
-                                entity.getAnimationStatus() == ShulkerBoxBlockEntity.AnimationStatus.CLOSED)) {
+                                    //#if MC > 12103
+                                    !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(FACING), 0.0F, 0.5F, pos.getBottomCenter()).move(pos).deflate(1.0E-6)) &&
+                                    //#elseif MC <= 12103 && MC > 12004
+                                    //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(FACING), 0.0F, 0.5F).move(pos).deflate(1.0E-6)) &&
+                                    //#elseif MC <= 12004
+                                    //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(blockState.getValue(FACING), 0.0f, 0.5f).move(pos).deflate(1.0E-6)) &&
+                                    //#endif
+                                    entity.getAnimationStatus() == ShulkerBoxBlockEntity.AnimationStatus.CLOSED)) {
                         client.gui.setOverlayMessage(Component.nullToEmpty("容器无法打开"), false);
                     } else if (!isInventory) {
                         client.gui.setOverlayMessage(Component.nullToEmpty("这不是容器 无法同步"), false);
@@ -152,7 +153,7 @@ public class ZxyUtils {
             if (!syncPosList.isEmpty()) {
                 if (client.player == null) return;
                 client.player.closeContainer();
-                if (!openInv(pos,false)){
+                if (!openInv(pos, false)) {
                     syncPosList = new LinkedList<>();
                     return;
                 }
@@ -160,7 +161,7 @@ public class ZxyUtils {
                 closeScreen++;
                 num = 1;
             }
-        } else if(!syncPosList.isEmpty()){
+        } else if (!syncPosList.isEmpty()) {
             syncPosList.forEach(highlightPosList::remove);
             syncPosList = new LinkedList<>();
             if (client.player != null) client.player.clientSideCloseContainer();
@@ -168,26 +169,29 @@ public class ZxyUtils {
             client.gui.setOverlayMessage(Component.nullToEmpty("已取消同步"), false);
         }
     }
-    public static boolean openInv(BlockPos pos,boolean ignoreThePrompt){
-        if(InitHandler.CLOUD_INVENTORY.getBooleanValue() && OpenInventoryPacket.key == null) {
+
+    public static boolean openInv(BlockPos pos, boolean ignoreThePrompt) {
+        if (InitHandler.CLOUD_INVENTORY.getBooleanValue() && OpenInventoryPacket.key == null) {
             OpenInventoryPacket.sendOpenInventory(pos, client.level.dimension());
             return true;
         } else {
             if (client.player != null && !PlaceUtils.canInteracted(pos)) {
-                if(!ignoreThePrompt) client.gui.setOverlayMessage(Component.nullToEmpty("距离过远无法打开容器"), false);
+                if (!ignoreThePrompt)
+                    client.gui.setOverlayMessage(Component.nullToEmpty("距离过远无法打开容器"), false);
                 return false;
             }
-            if (client.gameMode != null){
+            if (client.gameMode != null) {
                 //#if MC < 11904
                 //$$ client.gameMode.useItemOn(client.player, client.level, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(pos), Direction. DOWN, pos, false));
                 //#else
-                client.gameMode.useItemOn(client.player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(pos), Direction.DOWN,pos,false));
+                client.gameMode.useItemOn(client.player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(pos), Direction.DOWN, pos, false));
                 //#endif
                 return true;
             } else return false;
         }
     }
-    public static void itemsCount(Map<ItemStack,Integer> itemsCount , ItemStack itemStack){
+
+    public static void itemsCount(Map<ItemStack, Integer> itemsCount, ItemStack itemStack) {
         // 判断是否存在可合并的键
         Optional<Map.Entry<ItemStack, Integer>> entry = itemsCount.entrySet().stream()
                 .filter(e -> ItemStack.isSameItemSameComponents(e.getKey(), itemStack))
@@ -213,7 +217,7 @@ public class ZxyUtils {
                 if (client.player != null && (!InitHandler.CLOUD_INVENTORY.getBooleanValue() || openIng) && !client.player.containerMenu.equals(client.player.inventoryMenu)) {
                     for (int i = 0; i < client.player.containerMenu.slots.get(0).container.getContainerSize(); i++) {
                         ItemStack copy = client.player.containerMenu.slots.get(i).getItem().copy();
-                        itemsCount(targetItemsCount,copy);
+                        itemsCount(targetItemsCount, copy);
                         targetBlockInv.add(copy);
                     }
                     //上面如果不使用copy()在关闭容器后会使第一个元素号变该物品成总数 非常有趣...
@@ -230,16 +234,17 @@ public class ZxyUtils {
                 client.gui.setOverlayMessage(Component.nullToEmpty("剩余 " + syncPosList.size() + " 个容器. 再次按下快捷键取消同步"), false);
                 if (!client.player.containerMenu.equals(client.player.inventoryMenu)) return;
                 NonNullList<Slot> slots = client.player.inventoryMenu.slots;
-                slots.forEach(slot -> itemsCount(playerItemsCount,slot.getItem()));
+                slots.forEach(slot -> itemsCount(playerItemsCount, slot.getItem()));
 
                 if (SYNC_INVENTORY_CHECK.getBooleanValue() && !targetItemsCount.entrySet().stream()
                         .allMatch(target -> playerItemsCount.entrySet().stream()
                                 .anyMatch(player ->
-                                        ItemStack.isSameItemSameComponents(player.getKey(), target.getKey()) && target.getValue() <= player.getValue()))) return;
+                                        ItemStack.isSameItemSameComponents(player.getKey(), target.getKey()) && target.getValue() <= player.getValue())))
+                    return;
 
                 if ((!InitHandler.CLOUD_INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
                     for (BlockPos pos : syncPosList) {
-                        if (!openInv(pos,true)) continue;
+                        if (!openInv(pos, true)) continue;
                         closeScreen++;
                         blockPos = pos;
                         num = 3;
@@ -255,7 +260,7 @@ public class ZxyUtils {
                 //开始同步 在打开容器后触发
                 AbstractContainerMenu sc = client.player.containerMenu;
                 if (sc.equals(client.player.inventoryMenu)) return;
-                int size = Math.min(targetBlockInv.size(),sc.slots.get(0).container.getContainerSize());
+                int size = Math.min(targetBlockInv.size(), sc.slots.get(0).container.getContainerSize());
 
                 int times = 0;
                 for (int i = 0; i < size; i++) {
@@ -263,8 +268,8 @@ public class ZxyUtils {
                     ItemStack item2 = targetBlockInv.get(i).copy();
                     int currNum = item1.getCount();
                     int tarNum = item2.getCount();
-                    boolean same = ItemStack.isSameItemSameComponents(item1,item2.copy()) && !item1.isEmpty();
-                    if(ItemStack.isSameItemSameComponents(item1,item2) && currNum == tarNum) continue;
+                    boolean same = ItemStack.isSameItemSameComponents(item1, item2.copy()) && !item1.isEmpty();
+                    if (ItemStack.isSameItemSameComponents(item1, item2) && currNum == tarNum) continue;
                     //不和背包交互
                     if (same) {
                         //有多
@@ -283,7 +288,7 @@ public class ZxyUtils {
                         ItemStack stack = sc.slots.get(i1).getItem();
                         ItemStack currStack = sc.slots.get(i).getItem();
                         currNum = currStack.getCount();
-                        boolean same2 = thereAreItems = ItemStack.isSameItemSameComponents(item2,stack);
+                        boolean same2 = thereAreItems = ItemStack.isSameItemSameComponents(item2, stack);
                         if (same2 && !stack.isEmpty()) {
                             int i2 = stack.getCount();
                             client.gameMode.handleInventoryMouseClick(sc.containerId, i1, 0, ClickType.PICKUP, client.player);
@@ -314,15 +319,6 @@ public class ZxyUtils {
             syncInv();
         }
         addInv();
-
-        if (InitHandler.CLOSE_ALL_MODE.getKeybind().isPressed()) {
-            InitHandler.MINE.setBooleanValue(false);
-            InitHandler.FLUID.setBooleanValue(false);
-            InitHandler.PRINT_SWITCH.setBooleanValue(false);
-//            InitHandler.REPLACE_BLOCK.setBooleanValue(false);
-            InitHandler.PRINTER_MODE.setOptionListValue(State.PrintModeType.PRINTER);
-            client.gui.setOverlayMessage(Component.nullToEmpty("已关闭全部模式"), false);
-        }
         OpenInventoryPacket.tick();
     }
 
@@ -340,7 +336,7 @@ public class ZxyUtils {
         }
     }
 
-    public static void exitGameReSet(){
+    public static void exitGameReSet() {
         SwitchItem.reSet();
         isRemote = false;
         clientTry = false;
@@ -358,8 +354,8 @@ public class ZxyUtils {
         PreprocessUtils.setSelectedSlot(inventory, slot);
     }
 
-    public static void actionBar(String message){
-        client.gui.setOverlayMessage(Component.nullToEmpty(message),false);
+    public static void actionBar(String message) {
+        client.gui.setOverlayMessage(Component.nullToEmpty(message), false);
     }
 
     /**

@@ -40,10 +40,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
     //#endif
 //#endif
 
-
-
 import java.util.HashSet;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.closeScreen;
+import static me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus.closeScreen;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.openIng;
 
 public class InventoryUtils {
@@ -215,7 +213,7 @@ public class InventoryUtils {
                             shulkerBoxSlot = i;
 //                            ClientUtil.CheckAndSend(stack,i);
                             //#if MC >= 12001 && MC <= 12104
-                            //$$ if (me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics.loadChestTracker) InteractionTracker.INSTANCE.clear();
+                            //$$ if (me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus.isLoadChestTrackerLoaded()) InteractionTracker.INSTANCE.clear();
                             //#endif
                             ShulkerUtils.openShulker(stack, shulkerBoxSlot);
                             closeScreen++;

@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.malilib.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.ShulkerUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
+import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -42,7 +42,7 @@ public class SwitchItem {
     }
 
     public static void openInv(ItemStack itemStack) {
-        if (!client.player.containerMenu.equals(client.player.inventoryMenu) || Statistics.closeScreen > 0) {
+        if (!client.player.containerMenu.equals(client.player.inventoryMenu) || ModLoadStatus.closeScreen > 0) {
             return;
         }
         AbstractContainerMenu sc = client.player.containerMenu;
@@ -59,7 +59,7 @@ public class SwitchItem {
             } else {
                 ShulkerUtils.openShulker(sc.slots.get(itemStatistics.shulkerBoxSlot).getItem(), itemStatistics.shulkerBoxSlot);
             }
-            Statistics.closeScreen++;
+            ModLoadStatus.closeScreen++;
         } else {
             removeItem(reSwitchItem);
             reSwitchItem = null;

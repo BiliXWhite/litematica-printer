@@ -9,7 +9,7 @@ import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.util.JsonUtils;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.State;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
+import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ public class Configs implements IConfigHandler {
     public static ImmutableList<IConfigBase> getGeneral() {
         List<IConfigBase> list = new ArrayList<>();
         // 箱子追踪
-        if (Statistics.loadChestTracker) {
+        if (ModLoadStatus.isLoadChestTrackerLoaded()) {
             list.add(CLOUD_INVENTORY);              // 远程交互容器
             list.add(AUTO_INVENTORY);               // 自动设置远程交互
         }
@@ -65,7 +65,7 @@ public class Configs implements IConfigHandler {
         list.add(FILL_BLOCK_FACING);                // 填充 - 模式朝向
 
         // 箱子追踪
-        if (Statistics.loadChestTracker) {
+        if (ModLoadStatus.isLoadChestTrackerLoaded()) {
             list.add(INVENTORY_LIST);               // 库存白名单
         }
         list.add(DEBUG_OUTPUT);                     // 调试输出
@@ -150,7 +150,7 @@ public class Configs implements IConfigHandler {
         list.add(CLOSE_ALL_MODE);               // 关闭全部模式
         list.add(SYNC_INVENTORY);               // 同步容器热键
         // 箱子追踪
-        if (Statistics.loadChestTracker) {
+        if (ModLoadStatus.isLoadChestTrackerLoaded()) {
             list.add(PRINTER_INVENTORY);        // 设置打印机库存热键
             list.add(REMOVE_PRINT_INVENTORY);   // 清空打印机库存热键
             //#if MC >= 12001
@@ -178,7 +178,7 @@ public class Configs implements IConfigHandler {
         list.add(SWITCH_PRINTER_MODE);          // 切换模式
 
         // 箱子追踪
-        if (Statistics.loadChestTracker) {
+        if (ModLoadStatus.isLoadChestTrackerLoaded()) {
             list.add(PRINTER_INVENTORY);        // 设置打印机库存热键
             list.add(REMOVE_PRINT_INVENTORY);   // 清空打印机库存热键
             //#if MC >= 12001

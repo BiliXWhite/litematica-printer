@@ -1,9 +1,8 @@
 package me.aleksilassila.litematica.printer.printer.zxy.memory;
 
 import me.aleksilassila.litematica.printer.InitHandler;
-import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
@@ -40,6 +39,7 @@ import red.jackf.chesttracker.compat.ExpandedStorageHandler;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.syncPrinterInventory;
 import static red.jackf.chesttracker.ChestTracker.id;
@@ -48,7 +48,7 @@ import com.mojang.realmsclient.dto.RealmsServer;
 
 @Environment(EnvType.CLIENT)
 public abstract class MemoryUtils {
-    public static final ResourceLocation ENDER_CHEST_ID = Statistics.loadChestTracker ? id("ender_chest") : null;
+    public static final ResourceLocation ENDER_CHEST_ID = ModLoadStatus.isLoadChestTrackerLoaded() ? id("ender_chest") : null;
     @Nullable
     private static BlockPos latestPos = null;
     @Nullable
@@ -91,7 +91,7 @@ public abstract class MemoryUtils {
         }
 
 
-        if(mc.screen == null){
+        if (mc.screen == null) {
             //        System.out.println("========================1");
             checkValidCycle(mc.level);
             red.jackf.chesttracker.memory.MemoryDatabase database = red.jackf.chesttracker.memory.MemoryDatabase.getCurrent();
@@ -136,7 +136,8 @@ public abstract class MemoryUtils {
         MemoryUtils.latestPos = null;
         syncPrinterInventory = false;
     }
-    public static BlockPos getMemoryPos(){
+
+    public static BlockPos getMemoryPos() {
         return red.jackf.chesttracker.memory.MemoryUtils.getLatestPos();
     }
 
@@ -219,7 +220,8 @@ public abstract class MemoryUtils {
 //        if (title.getContent() instanceof TranslatableTextContent) { // Likely the default.
         /*if (title instanceof TranslatableText) { // Likely the default.
             return null;
-        } else */if (blockEntity instanceof MenuProvider) {
+        } else */
+        if (blockEntity instanceof MenuProvider) {
             return title;
         } else {
             return null;
