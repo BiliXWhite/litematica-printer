@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
+import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -21,7 +21,7 @@ public class BedrockUtils {
     private static Method setBedrockMinerFeatureEnableMethod;
 
     static {
-        if (Statistics.loadBedrockMiner) {
+        if (ModLoadStatus.isBedrockMinerLoaded()) {
             try {
                 Class<?> taskManagerClass = Class.forName("com.github.bunnyi116.bedrockminer.task.TaskManager");
                 Method getInstanceMethod = taskManagerClass.getDeclaredMethod("getInstance");

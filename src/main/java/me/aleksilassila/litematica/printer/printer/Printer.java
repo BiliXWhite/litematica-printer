@@ -131,7 +131,6 @@ public class Printer extends PrinterUtils {
         if (shulkerCooldown > 0) {
             shulkerCooldown--;
         }
-
         Iterator<Map.Entry<BlockPos, Integer>> iterator = placeCooldownList.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<BlockPos, Integer> entry = iterator.next();
@@ -150,7 +149,6 @@ public class Printer extends PrinterUtils {
                 return;
             packetTick++;
         }
-
         LocalPlayer player = client.player;
         ClientLevel world = client.level;
         if (world == null || player == null)

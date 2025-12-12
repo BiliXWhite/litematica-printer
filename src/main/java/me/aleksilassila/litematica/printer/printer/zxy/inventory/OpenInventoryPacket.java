@@ -4,7 +4,7 @@ import fi.dy.masa.malilib.util.StringUtils;
 import io.netty.buffer.Unpooled;
 import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.printer.Printer;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
+import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -376,7 +376,7 @@ public class OpenInventoryPacket {
             if (Minecraft.getInstance().player != null) {
                 Minecraft.getInstance().player.closeContainer();
             }
-            Statistics.closeScreen--;
+            ModLoadStatus.closeScreen--;
             openIng = false;
             isOpenHandler = false;
             Printer.getInstance().printerMemorySync = false;

@@ -7,7 +7,7 @@ import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
 import me.aleksilassila.litematica.printer.printer.State;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
+import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -34,7 +34,7 @@ public class FunctionBedrockMode extends FunctionModeBase {
             ZxyUtils.actionBar("创造模式无法使用破基岩模式！");
             return;
         }
-        if (!Statistics.loadBedrockMiner) {
+        if (!ModLoadStatus.isBedrockMinerLoaded()) {
             ZxyUtils.actionBar("未安装 Fabric-Bedrock-Miner 模组/游戏版本小于1.19，无法破基岩！");
             return;
         }

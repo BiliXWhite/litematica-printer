@@ -15,7 +15,9 @@ import me.aleksilassila.litematica.printer.config.InputHandler;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Statistics;
+import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.MessageUtils;
+import me.aleksilassila.litematica.printer.utils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -129,7 +131,7 @@ public class InitHandler implements IInitializationHandler {
     @Override
     public void registerModHandlers() {
         // 箱子追踪
-        if (!Statistics.loadChestTracker) {
+        if (!ModLoadStatus.isLoadChestTrackerLoaded()) {
             AUTO_INVENTORY.setBooleanValue(false);  // 自动设置远程交互
             CLOUD_INVENTORY.setBooleanValue(false); // 远程交互容器
         }
@@ -138,10 +140,22 @@ public class InitHandler implements IInitializationHandler {
         InputEventHandler.getInputManager().registerKeyboardInputHandler(InputHandler.getInstance());
 
         //#if MC >= 12001 && MC <= 12104
-        //$$ if (Statistics.loadChestTracker) {
+        //$$ if (ModLoadStatus.isLoadChestTrackerLoaded()) {
         //$$     me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.setup();
         //$$ }
         //#endif
+
+        CLOSE_ALL_MODE.getKeybind().setCallback((action, keybind) -> {
+            if (keybind.isPressed()){
+                InitHandler.MINE.setBooleanValue(false);
+                InitHandler.FLUID.setBooleanValue(false);
+                InitHandler.PRINT_SWITCH.setBooleanValue(false);
+//            InitHandler.REPLACE_BLOCK.setBooleanValue(false);
+                InitHandler.PRINTER_MODE.setOptionListValue(State.PrintModeType.PRINTER);
+                MessageUtils.setOverlayMessage(StringUtils.nullToEmpty("已关闭全部模式"));
+            }
+            return true;
+        });
 
         // 打印状态值被修改
         PRINT_SWITCH.setValueChangeCallback(b -> {
@@ -150,8 +164,8 @@ public class InitHandler implements IInitializationHandler {
                 Printer.getInstance().clearQueue();
                 Printer.getInstance().pistonNeedFix = false;
                 Printer.getInstance().requiredState = null;
-                if (Statistics.loadBedrockMiner) {
-                    if (BedrockUtils.isWorking()){
+                if (ModLoadStatus.isBedrockMinerLoaded()) {
+                    if (BedrockUtils.isWorking()) {
                         BedrockUtils.setWorking(false);
                         BedrockUtils.setBedrockMinerFeatureEnable(true);
                     }
@@ -160,10 +174,10 @@ public class InitHandler implements IInitializationHandler {
         });
 
         // 切换模式时, 关闭破基岩
-        PRINTER_MODE.setValueChangeCallback(b->{
+        PRINTER_MODE.setValueChangeCallback(b -> {
             if (!b.getOptionListValue().equals(State.PrintModeType.BEDROCK)) {
-                if (Statistics.loadBedrockMiner) {
-                    if (BedrockUtils.isWorking()){
+                if (ModLoadStatus.isBedrockMinerLoaded()) {
+                    if (BedrockUtils.isWorking()) {
                         BedrockUtils.setWorking(false);
                         BedrockUtils.setBedrockMinerFeatureEnable(true);
                     }
