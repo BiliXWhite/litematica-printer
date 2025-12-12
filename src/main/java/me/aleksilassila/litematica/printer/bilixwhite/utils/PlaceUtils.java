@@ -81,7 +81,7 @@ public class PlaceUtils {
     }
 
     public static Direction getFillModeFacing() {
-        if (InitHandler.FILL_BLOCK_FACING.getOptionListValue() instanceof State.FillModeFacingType fillModeFacingType){
+        if (InitHandler.FILL_BLOCK_FACING.getOptionListValue() instanceof State.FillModeFacingType fillModeFacingType) {
             return switch (fillModeFacingType) {
                 case DOWN -> Direction.DOWN;
                 case UP -> Direction.UP;
@@ -94,9 +94,29 @@ public class PlaceUtils {
         return Direction.UP;
     }
 
+
+    public static double getPlayerBlockInteractionRange(double defaultRange) {
+        //#if MC>=12005
+        if (client.player != null) {
+            return client.player.blockInteractionRange();
+        }
+        //#else
+        //$$ if (client.gameMode != null) {
+        //$$    return client.gameMode.getPickRange();
+        //$$ }
+        //#endif
+        return defaultRange;
+    }
+
+    public static double getPlayerBlockInteractionRange() {
+        return getPlayerBlockInteractionRange(4.5F);
+    }
+
     // 判断是否可交互
     public static boolean canInteracted(BlockPos blockPos) {
-        var range = InitHandler.PRINTER_RANGE.getIntegerValue();
+        int workRange = InitHandler.PRINTER_RANGE.getIntegerValue();
+        int playerRange = (int) Math.ceil(getPlayerBlockInteractionRange());
+        int range = Math.min(workRange, playerRange);
         if (InitHandler.ITERATOR_SHAPE.getOptionListValue() instanceof State.RadiusShapeType radiusShapeType) {
             return switch (radiusShapeType) {
                 case SPHERE -> canInteractedEuclidean(blockPos, range);
