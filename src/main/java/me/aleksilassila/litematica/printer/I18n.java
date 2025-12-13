@@ -21,7 +21,6 @@ public enum I18n {
 
     // 基础提示（非配置项）
     AUTO_DISABLE_NOTICE                 ("auto_disable_notice"),
-    PRINT_COMPLETE_NOTICE               ("print_complete_notice"), // 新增：打印完成通知（基础提示）
 
     // 配置项（核心，可生成name/comment）
     BLOCKLIST                           ("blocklist"),
