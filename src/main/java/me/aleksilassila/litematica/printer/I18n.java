@@ -10,20 +10,25 @@ import net.minecraft.network.chat.MutableComponent;
 public enum I18n {
     // @formatter:off
 
+    // 这个是之前做回调开关时候添加的开关提示语, 现在应该是用不到了
+    MESSAGE_TOGGLED        ("message.toggled"),
+    MESSAGE_VALUE_OFF      ("message.value.off"),
+    MESSAGE_VALUE_ON       ("message.value.on"),
+
     OPEN_SCREEN("openScreen"),
 
-    TAB_ALL("category.all"),
-    TAB_GENERAL("category.general"),
-    TAB_PUT("category.put"),
+    TAB_ALL     ("category.all"),
+    TAB_GENERAL ("category.general"),
+    TAB_PUT     ("category.put"),
     TAB_EXCAVATE("category.excavate"),
-    TAB_BEDROCK("category.bedrock"),
-    TAB_HOTKEYS("category.hotkeys"),
-    TAB_COLOR("category.color"),
+    TAB_BEDROCK ("category.bedrock"),
+    TAB_HOTKEYS ("category.hotkeys"),
+    TAB_COLOR   ("category.color"),
 
-    // 基础提示（非配置项）
+    // 基础提示
     AUTO_DISABLE_NOTICE                 ("auto_disable_notice"),
 
-    // 配置项（核心，可生成name/comment）
+    // 配置项
     BLOCKLIST                           ("blocklist"),
     DEBUG_OUTPUT                        ("debugOutput"),
     EASY_PLACE_PROTOCOL                 ("easyPlaceProtocol"),
@@ -128,10 +133,6 @@ public enum I18n {
     LAST                   ("last"),
     NEXT                   ("next"),
     DELETE                 ("delete"),
-
-    MESSAGE_TOGGLED        ("message.toggled"),
-    MESSAGE_VALUE_OFF      ("message.value.off"),
-    MESSAGE_VALUE_ON       ("message.value.on"),
 
     // 配置列表选项 - 打印模式
     PRINT_MODE_PRINTER     ("printMode.printer"),

@@ -7,9 +7,9 @@ import fi.dy.masa.litematica.util.EasyPlaceProtocol;
 import fi.dy.masa.litematica.util.PlacementHandler;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
+import me.aleksilassila.litematica.printer.Debug;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
 import me.aleksilassila.litematica.printer.function.FunctionExtension;
 import me.aleksilassila.litematica.printer.function.FunctionModeBase;
 import me.aleksilassila.litematica.printer.function.Functions;
@@ -20,6 +20,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.utils.PlayerLookUtils;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.block.*;
 import net.minecraft.client.Minecraft;
@@ -242,10 +243,10 @@ public class Printer extends PrinterUtils {
 
             // 调试输出
             if (DEBUG_OUTPUT.getBooleanValue()) {
-                StringUtils.info("方块名: " + requiredState.getBlock().getName().getString());
-                StringUtils.info("方块位置: " + pos.toShortString());
-                StringUtils.info("方块类名: " + requiredState.getBlock().getClass().getName());
-                StringUtils.info("方块ID: " + requiredState.getBlock().getClass().getName());
+                Debug.write("方块名: {}", requiredState.getBlock().getName().getString());
+                Debug.write("方块位置: {}", pos.toShortString());
+                Debug.write("方块类名: {}", requiredState.getBlock().getClass().getName());
+                Debug.write("方块ID: {}", BuiltInRegistries.BLOCK.getKey(requiredState.getBlock()));
             }
 
             if (FALLING_CHECK.getBooleanValue() && requiredState.getBlock() instanceof FallingBlock) {

@@ -6,6 +6,7 @@ import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
+import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import me.aleksilassila.litematica.printer.utils.StringUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -88,13 +89,13 @@ public class MixinClientPlayerEntity extends AbstractClientPlayer {
 
             if (!version.equals(newVersion)) {
                 minecraft.execute(() -> {
-                    minecraft.gui.getChat().addMessage(I18n.UPDATE_AVAILABLE.getKeyComponent(version, newVersion)
+                    MessageUtils.addMessage(I18n.UPDATE_AVAILABLE.getKeyComponent(version, newVersion)
                             .withStyle(ChatFormatting.YELLOW));
-                    minecraft.gui.getChat().addMessage(I18n.UPDATE_RECOMMENDATION.getKeyComponent()
+                    MessageUtils.addMessage(I18n.UPDATE_RECOMMENDATION.getKeyComponent()
                             .withStyle(ChatFormatting.RED));
-                    minecraft.gui.getChat().addMessage(I18n.UPDATE_REPOSITORY.getKeyComponent()
+                    MessageUtils.addMessage(I18n.UPDATE_REPOSITORY.getKeyComponent()
                             .withStyle(ChatFormatting.WHITE));
-                    minecraft.gui.getChat().addMessage(StringUtils.literal("https://github.com/BiliXWhite/litematica-printer")
+                    MessageUtils.addMessage(StringUtils.literal("https://github.com/BiliXWhite/litematica-printer")
                             .setStyle(Style.EMPTY
                                     //#if MC >= 12105
                                     .withClickEvent(new ClickEvent.OpenUrl(URI.create("https://github.com/BiliXWhite/litematica-printer")))
@@ -103,7 +104,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayer {
                                     //#endif
                                     .withUnderlined(true)
                                     .withColor(ChatFormatting.BLUE)));
-                    minecraft.gui.getChat().addMessage(I18n.UPDATE_DOWNLOAD.getKeyComponent()
+                    MessageUtils.addMessage(I18n.UPDATE_DOWNLOAD.getKeyComponent()
                             .setStyle(Style.EMPTY
                                     //#if MC >= 12105
                                     .withClickEvent(new ClickEvent.OpenUrl(URI.create("https://xeno.lanzoue.com/b00l1v20vi")))
@@ -112,9 +113,9 @@ public class MixinClientPlayerEntity extends AbstractClientPlayer {
                                     //#endif
                                     .withBold(true)
                                     .withColor(ChatFormatting.GREEN)));
-                    minecraft.gui.getChat().addMessage(I18n.UPDATE_PASSWORD.getKeyComponent("cgxw")
+                    MessageUtils.addMessage(I18n.UPDATE_PASSWORD.getKeyComponent("cgxw")
                             .withStyle(ChatFormatting.WHITE));
-                    minecraft.gui.getChat().addMessage(
+                    MessageUtils.addMessage(
                             StringUtils.literal("------------------------").withStyle(ChatFormatting.GRAY));
                 });
             }
