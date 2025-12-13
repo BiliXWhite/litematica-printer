@@ -119,11 +119,12 @@ dependencies {
     // ModMenu
     modImplementation("com.terraformersmc:modmenu:${props["modmenu"]}")
 
-    // bunnyi116/fabric-bedrock-miner
-    // 模组版本号是写死了, 因为现在是用的预处理器, 所以使用mc变量就行(其实是我懒得在版本配置中去添加)
-    if (mcVersion >= 11900) {
-        modImplementation("maven.modrinth:next-fabric-bedrock-miner:v1.4.8-mc$minecraftVersion")
-    }
+
+//    // bunnyi116/fabric-bedrock-miner 测试时去掉注释可以不用自己下载模组
+//    // 模组版本号是写死了, 因为现在是用的预处理器, 所以使用mc变量就行(其实是我懒得在版本配置中去添加)
+//    if (mcVersion >= 11900) {
+//        modImplementation("maven.modrinth:next-fabric-bedrock-miner:v1.4.8-mc$minecraftVersion")
+//    }
 
     // Masa 系列模组（根据 MC 版本选择）
     if (mcVersion > 12006) {
