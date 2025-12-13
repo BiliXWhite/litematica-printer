@@ -19,6 +19,7 @@ import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
+import me.aleksilassila.litematica.printer.utils.PlayerLookUtils;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.block.*;
 import net.minecraft.client.Minecraft;
@@ -47,6 +48,7 @@ import static me.aleksilassila.litematica.printer.InitHandler.*;
 import static me.aleksilassila.litematica.printer.printer.State.PrintModeType.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.*;
+
 //#if MC > 12105
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
@@ -73,7 +75,6 @@ public class Printer extends PrinterUtils {
     public int printRange = PRINTER_RANGE.getIntegerValue();
     public boolean printerYAxisReverse = false;
     public int tickRate = PRINTER_SPEED.getIntegerValue();
-    public boolean needDelay;
     public int printerWorkingCountPerTick = BLOCKS_PER_TICK.getIntegerValue();
     public int waitTicks = 0;
     public int packetTick;
@@ -100,7 +101,7 @@ public class Printer extends PrinterUtils {
             basePos = null;
             return null;
         }
-        if (ITERATION_ORDER.getOptionListValue() instanceof State.IterationOrderType iterationOrderType){
+        if (ITERATION_ORDER.getOptionListValue() instanceof State.IterationOrderType iterationOrderType) {
             myBox.initIterator();
             myBox.setIterationMode(iterationOrderType);
             myBox.xIncrement = !X_REVERSE.getBooleanValue();
@@ -171,16 +172,14 @@ public class Printer extends PrinterUtils {
 
         // 优先执行队列中的点击操作
         if (tickRate != 0) {
-            queue.sendQueue(player);
             if ((tickStartTime / 50) % tickRate != 0) {
                 return;
             }
         }
 
-        // 0tick修复
-        if (needDelay) {
+        // 先处理掉上一个需要等待任务
+        if (queue.needWait) {
             queue.sendQueue(player);
-            needDelay = false;
         }
 
         if (waitTicks > 0) {
@@ -237,7 +236,17 @@ public class Printer extends PrinterUtils {
 
             // 检查放置条件
             PlacementGuide.Action action = guide.getAction(world, schematic, pos);
-            if (action == null) continue;
+            if (action == null) {
+                continue;
+            }
+
+            // 调试输出
+            if (DEBUG_OUTPUT.getBooleanValue()) {
+                StringUtils.info("方块名: " + requiredState.getBlock().getName().getString());
+                StringUtils.info("方块位置: " + pos.toShortString());
+                StringUtils.info("方块类名: " + requiredState.getBlock().getClass().getName());
+                StringUtils.info("方块ID: " + requiredState.getBlock().getClass().getName());
+            }
 
             if (FALLING_CHECK.getBooleanValue() && requiredState.getBlock() instanceof FallingBlock) {
                 //检查方块下面方块是否正确，否则跳过放置
@@ -251,15 +260,6 @@ public class Printer extends PrinterUtils {
             Direction side = action.getValidSide(world, pos);
             if (side == null) continue;
 
-            // 调试输出
-            if (DEBUG_OUTPUT.getBooleanValue()) {
-                StringUtils.info("方块名: " + requiredState.getBlock().getName().getString());
-                StringUtils.info("方块类名: " + requiredState.getBlock().getClass().getName());
-                StringUtils.info("方块ID: " + requiredState.getBlock().getClass().getName());
-            }
-
-            if (needDelay) continue;
-
             Item[] reqItems = action.getRequiredItems(requiredState.getBlock());
             if (switchToItems(player, reqItems)) {
                 boolean useShift = (Implementation.isInteractive(world.getBlockState(pos.relative(side)).getBlock()) && !(action instanceof PlacementGuide.ClickAction))
@@ -272,20 +272,22 @@ public class Printer extends PrinterUtils {
                 Vec3 hitModifier = usePrecisionPlacement(pos, requiredState);
                 if (hitModifier != null) {
                     queue.hitModifier = hitModifier;
-                    queue.termsOfUse = true;
+                    queue.useProtocol = true;
                 }
 
-                if (action.getLookDirection() != null)
-                    sendLook(player, action.getLookDirection(), action.getLookDirectionPitch());
+                if (action.getLookDirectionYaw() != null)
+                    setLook(action.getLookDirectionYaw(), action.getLookDirectionPitch());
 
                 var block = requiredState.getBlock();
                 if (block instanceof PistonBaseBlock) {
                     pistonNeedFix = true;
                 }
-
+                queue.sendQueue(player);    // 处理当前队列
                 waitTicks = action.getWaitTick();
-
                 if (tickRate == 0) {
+                    if (queue.needWait) {   // 当前队列需要等待, 退出0TICK循环
+                        return;
+                    }
                     if (block instanceof PistonBaseBlock ||
                             block instanceof ObserverBlock ||
                             block instanceof DispenserBlock ||
@@ -298,11 +300,8 @@ public class Printer extends PrinterUtils {
                             || block instanceof GrindstoneBlock
                             || block instanceof LadderBlock
                     ) {
-                        needDelay = true;
                         return;
                     }
-
-                    queue.sendQueue(player);
                     if (BLOCKS_PER_TICK.getIntegerValue() != 0)
                         printerWorkingCountPerTick--;
                     continue;
@@ -398,10 +397,7 @@ public class Printer extends PrinterUtils {
         PlaceUtils.setPickedItemToHand(stack, client);
     }
 
-    public void sendLook(LocalPlayer player, Direction directionYaw, Direction directionPitch) {
-        if (directionYaw != null || directionPitch != null) {
-            Implementation.sendLookPacket(player, directionYaw, directionPitch);
-        }
+    public void setLook(Direction directionYaw, Direction directionPitch) {
         queue.lookDirYaw = directionYaw;
         queue.lookDirPitch = directionPitch;
     }
@@ -442,16 +438,17 @@ public class Printer extends PrinterUtils {
         public BlockPos target;
         public Direction side;
         public Vec3 hitModifier;
-        public boolean needSneak = false;
-        public boolean termsOfUse = false;
+        public boolean useShift = false;
+        public boolean useProtocol = false;
         public Direction lookDirYaw = null;
         public Direction lookDirPitch = null;
+        public boolean needWait = false;
 
         public Queue(Printer printerInstance) {
             this.printerInstance = printerInstance;
         }
 
-        public void queueClick(@NotNull BlockPos target, @NotNull Direction side, @NotNull Vec3 hitModifier, boolean needSneak) {
+        public void queueClick(@NotNull BlockPos target, @NotNull Direction side, @NotNull Vec3 hitModifier, boolean useShift) {
             if (PRINTER_SPEED.getIntegerValue() != 0) {
                 if (this.target != null) {
                     System.out.println("Was not ready yet.");
@@ -461,26 +458,35 @@ public class Printer extends PrinterUtils {
             this.target = target;
             this.side = side;
             this.hitModifier = hitModifier;
-            this.needSneak = needSneak;
+            this.useShift = useShift;
         }
 
         public void sendQueue(LocalPlayer player) {
-            if (target == null || side == null || hitModifier == null) return;
+            if (target == null || side == null || hitModifier == null) {
+                clearQueue();
+                return;
+            }
 
-            Direction direction = side.getAxis() == Direction.Axis.Y
-                    ? (lookDirYaw != null && lookDirYaw.getAxis().isHorizontal()
-                    ? lookDirYaw
-                    : (lookDirPitch != null && lookDirPitch.getAxis().isHorizontal()
-                    ? lookDirPitch
-                    : Direction.UP))
-                    : side;
+            Direction direction = side;
+            if (side.getAxis().isVertical()) {
+                if (lookDirYaw != null && lookDirYaw.getAxis().isHorizontal()) {
+                    direction = lookDirYaw;
+                } else if (lookDirPitch != null && lookDirPitch.getAxis().isHorizontal()) {
+                    direction = lookDirPitch;
+                } else {
+                    direction = Direction.UP;
+                }
+            }
 
-            Vec3 hitVec = !termsOfUse
-                    ? Vec3.atCenterOf(target)
-                    .add(Vec3.atLowerCornerOf(PreprocessUtils.getVec3iFromDirection(side)).scale(0.5))
-                    .add(hitModifier.yRot((direction.toYRot() + 90) % 360).scale(0.5))
-                    : hitModifier;
-
+            Vec3 hitVec;
+            if (!useProtocol) {
+                Vec3 targetCenter = Vec3.atCenterOf(target);
+                Vec3 sideOffset = Vec3.atLowerCornerOf(PreprocessUtils.getVec3iFromDirection(side)).scale(0.5);
+                Vec3 rotatedHitModifier = hitModifier.yRot((direction.toYRot() + 90) % 360).scale(0.5);
+                hitVec = targetCenter.add(sideOffset).add(rotatedHitModifier);
+            } else {
+                hitVec = hitModifier;
+            }
 
             if (orderlyStoreItem != null) {
                 if (orderlyStoreItem.isEmpty()) {
@@ -492,14 +498,26 @@ public class Printer extends PrinterUtils {
 
             boolean wasSneak = player.isShiftKeyDown();
 
-            if (needSneak && !wasSneak) {
+            if (useShift && !wasSneak) {
                 setShift(player, true);
-            } else if (!needSneak && wasSneak){
+            } else if (!useShift && wasSneak) {
                 setShift(player, false);
             }
 
-            if (PRINTER_SPEED.getIntegerValue() >= 1 && lookDirYaw != null) {
-                Implementation.sendLookPacket(player, lookDirYaw, lookDirPitch);
+            if (!needWait && (lookDirYaw != null || lookDirPitch != null)) {
+                if (lookDirYaw != null) {
+                    PlayerLookUtils.setYaw(PlayerLookUtils.getRequiredYaw(lookDirYaw));
+                }
+                if (lookDirPitch != null) {
+                    PlayerLookUtils.setPitch(PlayerLookUtils.getRequiredPitch(lookDirPitch));
+                }
+                if (PlayerLookUtils.isModifying()) {    // 如果在修改, 发送一次视角包
+                    PlayerLookUtils.sendLookPacket(player);
+                }
+                if (PlayerLookUtils.isModifyYaw()) {
+                    needWait = true;
+                    return;
+                }
             }
 
             if (PLACE_USE_PACKET.getBooleanValue()) {
@@ -521,9 +539,9 @@ public class Printer extends PrinterUtils {
                 }
             }
 
-            if (needSneak && !wasSneak) {
+            if (useShift && !wasSneak) {
                 setShift(player, false);
-            } else if (!needSneak && wasSneak) {
+            } else if (!useShift && wasSneak) {
                 setShift(player, true);
             }
 
@@ -537,6 +555,7 @@ public class Printer extends PrinterUtils {
             //#else
             //$$ ServerboundPlayerCommandPacket packet = new ServerboundPlayerCommandPacket(player, shift ? ServerboundPlayerCommandPacket.Action.PRESS_SHIFT_KEY : ServerboundPlayerCommandPacket.Action.RELEASE_SHIFT_KEY);
             //#endif
+
             player.setShowDeathScreen(shift);
             player.connection.send(packet);
         }
@@ -546,7 +565,12 @@ public class Printer extends PrinterUtils {
             this.side = null;
             this.hitModifier = null;
             this.lookDirYaw = null;
-            this.needSneak = false;
+            this.lookDirPitch = null;
+            this.useShift = false;
+            this.needWait = false;
+            if (PlayerLookUtils.isModifying()) {
+                PlayerLookUtils.resetFull();
+            }
         }
     }
 
