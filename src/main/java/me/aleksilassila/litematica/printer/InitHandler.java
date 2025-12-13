@@ -17,6 +17,7 @@ import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
+import me.aleksilassila.litematica.printer.utils.PlayerLookUtils;
 import me.aleksilassila.litematica.printer.utils.StringUtils;
 
 import java.util.ArrayList;
@@ -171,6 +172,9 @@ public class InitHandler implements IInitializationHandler {
                     }
                 }
             }
+            if (PlayerLookUtils.isModifyPitch()) {
+                PlayerLookUtils.resetFull();
+            }
         });
 
         // 切换模式时, 关闭破基岩
@@ -182,6 +186,9 @@ public class InitHandler implements IInitializationHandler {
                         BedrockUtils.setBedrockMinerFeatureEnable(true);
                     }
                 }
+            }
+            if (PlayerLookUtils.isModifyPitch()) {
+                PlayerLookUtils.resetFull();
             }
         });
 

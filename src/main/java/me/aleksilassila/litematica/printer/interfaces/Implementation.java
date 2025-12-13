@@ -1,10 +1,6 @@
 package me.aleksilassila.litematica.printer.interfaces;
 
-import me.aleksilassila.litematica.printer.mixin.ServerboundMovePlayerPacketAccessor;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.Direction;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -48,103 +44,6 @@ public class Implementation {
      */
     public static Abilities getAbilities(LocalPlayer playerEntity) {
         return playerEntity.getAbilities();
-    }
-
-    /**
-     * 发送玩家视角旋转数据包给服务器（控制玩家朝向）
-     * @param playerEntity 本地玩家实例
-     * @param playerShouldBeFacingYaw 水平方向朝向（决定偏航角Yaw）
-     * @param playerShouldBeFacingPitch 垂直方向朝向（决定俯仰角Pitch）
-     */
-    public static void sendLookPacket(LocalPlayer playerEntity, Direction playerShouldBeFacingYaw, Direction playerShouldBeFacingPitch) {
-        playerEntity.connection.send(new ServerboundMovePlayerPacket.Rot(
-                Implementation.getRequiredYaw(playerShouldBeFacingYaw),
-                Implementation.getRequiredPitch(playerShouldBeFacingPitch),
-                playerEntity.onGround()
-                //#if MC > 12101
-                ,playerEntity.horizontalCollision
-                //#endif
-        ));
-    }
-
-    /**
-     * 判断数据包是否为「仅视角旋转」的数据包
-     * @param packet 待判断的网络数据包
-     * @return true=仅视角旋转数据包（Rot类型），false=其他类型
-     */
-    public static boolean isLookOnlyPacket(Packet<?> packet) {
-        return packet instanceof ServerboundMovePlayerPacket.Rot;
-    }
-
-    /**
-     * 判断数据包是否为「视角+移动」的数据包
-     * @param packet 待判断的网络数据包
-     * @return true=视角+移动数据包（PosRot类型），false=其他类型
-     */
-    public static boolean isLookAndMovePacket(Packet<?> packet) {
-        return packet instanceof ServerboundMovePlayerPacket.PosRot;
-    }
-
-    /**
-     * 修正视角+移动数据包的朝向（替换为指定的方向）
-     * @param playerEntity 本地玩家实例
-     * @param packet 原始的视角+移动数据包
-     * @param directionYaw 目标水平方向（偏航）
-     * @param directionPitch 目标垂直方向（俯仰）
-     * @return 修正后的视角+移动数据包（位置不变，朝向更新）
-     */
-    public static Packet<?> getFixedLookPacket(LocalPlayer playerEntity, Packet<?> packet, Direction directionYaw, Direction directionPitch) {
-        // 若方向为空，直接返回原数据包（不修改）
-        if (directionYaw == null || directionPitch == null) return packet;
-
-        // 计算目标朝向的偏航角和俯仰角
-        float yaw = Implementation.getRequiredYaw(directionYaw);
-        float pitch = Implementation.getRequiredPitch(directionPitch);
-
-        // 通过Mixin Accessor获取原始数据包的私有字段（位置+是否在地面）
-        double x = ((ServerboundMovePlayerPacketAccessor) packet).getX();
-        double y = ((ServerboundMovePlayerPacketAccessor) packet).getY();
-        double z = ((ServerboundMovePlayerPacketAccessor) packet).getZ();
-        boolean onGround = ((ServerboundMovePlayerPacketAccessor) packet).getOnGround();
-
-        // 构建修正后的视角+移动数据包
-        return new ServerboundMovePlayerPacket.PosRot(x, y, z, yaw, pitch, onGround
-                //#if MC > 12101
-                ,playerEntity.horizontalCollision
-                //#endif
-        );
-    }
-
-    /**
-     * 根据方向获取对应的水平旋转角（偏航角Yaw）
-     * @param playerShouldBeFacing 目标方向
-     * @return 偏航角（水平旋转角度，范围0-360°）：仅水平方向有效，非水平方向返回0
-     */
-    public static float getRequiredYaw(Direction playerShouldBeFacing) {
-        // 判断方向是否为水平轴（东/西/南/北）
-        if (playerShouldBeFacing.getAxis().isHorizontal()) {
-            // 将方向转换为对应的偏航角（如东=90°，南=180°）
-            return playerShouldBeFacing.toYRot();
-        } else {
-            // 垂直方向（上/下）返回0°偏航角
-            return 0;
-        }
-    }
-
-    /**
-     * 根据方向获取对应的垂直旋转角（俯仰角Pitch）
-     * @param playerShouldBeFacing 目标方向
-     * @return 俯仰角（垂直旋转角度，范围-90°到90°）：仅垂直方向有效，非垂直方向返回0
-     */
-    public static float getRequiredPitch(Direction playerShouldBeFacing) {
-        // 判断方向是否为垂直轴（上/下）
-        if (playerShouldBeFacing.getAxis().isVertical()) {
-            // 向下=90°，向上=-90°（Minecraft的俯仰角定义）
-            return playerShouldBeFacing == Direction.DOWN ? 90 : -90;
-        } else {
-            // 水平方向返回0°俯仰角
-            return 0;
-        }
     }
 
     /**
