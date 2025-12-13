@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.At;
 
 //#if MC > 12001
 import net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl;
+
 @Mixin(value = ClientCommonPacketListenerImpl.class)
 //#else
 //$$ import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -47,6 +48,13 @@ public class MixinClientCommonNetworkHandler {
     @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Connection;send(Lnet/minecraft/network/protocol/Packet;)V"), method = "send")
     //#endif
     public void sendPacket(Connection instance, Packet<?> packet, Operation<Void> original) {
+        //TODO: 待实现，临时注释掉
+//        if (packet instanceof ServerboundMovePlayerPacketAccessor accessor) {
+//            accessor.setPitch(PlayerLookUtils.getYaw(accessor.getYaw()));
+//            accessor.setPitch(PlayerLookUtils.getPitch(accessor.getPitch()));
+//            accessor.setOnGround(PlayerLookUtils.getOnGround(accessor.getOnGround()));
+//            accessor.setHasRot(PlayerLookUtils.getHasRot(accessor.getHasRot()));
+//        }
         Direction directionYaw = Printer.getInstance().queue.lookDirYaw;
         Direction directionPitch = Printer.getInstance().queue.lookDirPitch;
         if ((directionYaw != null || directionPitch != null) && Implementation.isLookAndMovePacket(packet)) {
