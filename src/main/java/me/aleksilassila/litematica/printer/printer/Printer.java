@@ -172,22 +172,11 @@ public class Printer extends PrinterUtils {
         tickStartTime = System.currentTimeMillis();
         tickEndTime = tickStartTime + ITERATOR_USE_TIME.getIntegerValue();
 
-        // 优先执行队列中的点击操作
-        if (tickRate != 0) {
-            queue.sendQueue(player);
-            if ((tickStartTime / 50) % tickRate != 0) {
-                return;
-            }
+        if (tickRate != 0 && (tickStartTime / 50) % tickRate != 0) {
+            return;
         }
 
-        // 0tick修复
-        if (zeroTick) {
-            queue.sendQueue(player);
-            if (queue.needWait) {
-                queue.sendQueue(player);
-            }
-            zeroTick = false;
-        }
+        queue.sendQueue(player);
 
         if (waitTicks > 0) {
             waitTicks--;
@@ -272,7 +261,7 @@ public class Printer extends PrinterUtils {
                 Debug.write("方块ID: {}", BuiltInRegistries.BLOCK.getKey(requiredState.getBlock()));
             }
 
-            if (zeroTick) {
+            if (queue.needWait) {
                 continue;
             }
 
@@ -301,11 +290,10 @@ public class Printer extends PrinterUtils {
                 }
                 waitTicks = action.getWaitTick();
                 if (tickRate == 0) {
-                    if (queue.preCheckNeedWait()){
-                        zeroTick = true;
+                    queue.sendQueue(player);
+                    if (queue.needWait) {
                         return;
                     }
-                    queue.sendQueue(player);
                     if (BLOCKS_PER_TICK.getIntegerValue() != 0) {
                         printerWorkingCountPerTick--;
                     }
