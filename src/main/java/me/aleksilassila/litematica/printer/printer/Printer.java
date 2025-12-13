@@ -83,6 +83,7 @@ public class Printer extends PrinterUtils {
     public BlockState requiredState;
     // 活塞修复
     public boolean pistonNeedFix = false;
+    public boolean zeroTick = false;
     public float workProgress = 0;
 
     public BlockPos getBlockPos() {
@@ -173,14 +174,19 @@ public class Printer extends PrinterUtils {
 
         // 优先执行队列中的点击操作
         if (tickRate != 0) {
+            queue.sendQueue(player);
             if ((tickStartTime / 50) % tickRate != 0) {
                 return;
             }
         }
 
-        // 先处理掉上一个需要等待任务
-        if (queue.needWait) {
+        // 0tick修复
+        if (zeroTick) {
             queue.sendQueue(player);
+            if (queue.needWait) {
+                queue.sendQueue(player);
+            }
+            zeroTick = false;
         }
 
         if (waitTicks > 0) {
@@ -210,13 +216,16 @@ public class Printer extends PrinterUtils {
         BlockPos pos;
         while ((pos = getBlockPos()) != null) {
             // 检查每刻放置方块是否超出限制
-            if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printerWorkingCountPerTick == 0)
+            if (BLOCKS_PER_TICK.getIntegerValue() != 0 && printerWorkingCountPerTick == 0) {
                 return;
+            }
             // 是否在渲染层内
-            if (PrinterUtils.isLimitedByTheNumberOfLayers(pos))
+            if (PrinterUtils.isLimitedByTheNumberOfLayers(pos)) {
                 continue;
-            if (!isSchematicBlock(pos))
+            }
+            if (!isSchematicBlock(pos)) {
                 continue;
+            }
 
             requiredState = schematic.getBlockState(pos);
 
@@ -241,14 +250,6 @@ public class Printer extends PrinterUtils {
                 continue;
             }
 
-            // 调试输出
-            if (DEBUG_OUTPUT.getBooleanValue()) {
-                Debug.write("方块名: {}", requiredState.getBlock().getName().getString());
-                Debug.write("方块位置: {}", pos.toShortString());
-                Debug.write("方块类名: {}", requiredState.getBlock().getClass().getName());
-                Debug.write("方块ID: {}", BuiltInRegistries.BLOCK.getKey(requiredState.getBlock()));
-            }
-
             if (FALLING_CHECK.getBooleanValue() && requiredState.getBlock() instanceof FallingBlock) {
                 //检查方块下面方块是否正确，否则跳过放置
                 BlockPos downPos = pos.below();
@@ -259,7 +260,21 @@ public class Printer extends PrinterUtils {
             }
 
             Direction side = action.getValidSide(world, pos);
-            if (side == null) continue;
+            if (side == null) {
+                continue;
+            }
+
+            // 调试输出
+            if (DEBUG_OUTPUT.getBooleanValue()) {
+                Debug.write("方块名: {}", requiredState.getBlock().getName().getString());
+                Debug.write("方块位置: {}", pos.toShortString());
+                Debug.write("方块类名: {}", requiredState.getBlock().getClass().getName());
+                Debug.write("方块ID: {}", BuiltInRegistries.BLOCK.getKey(requiredState.getBlock()));
+            }
+
+            if (zeroTick) {
+                continue;
+            }
 
             Item[] reqItems = action.getRequiredItems(requiredState.getBlock());
             if (switchToItems(player, reqItems)) {
@@ -276,35 +291,24 @@ public class Printer extends PrinterUtils {
                     queue.useProtocol = true;
                 }
 
-                if (action.getLookDirectionYaw() != null)
+                if (action.getLookDirectionYaw() != null) {
                     setLook(action.getLookDirectionYaw(), action.getLookDirectionPitch());
+                }
 
                 var block = requiredState.getBlock();
                 if (block instanceof PistonBaseBlock) {
                     pistonNeedFix = true;
                 }
-                queue.sendQueue(player);    // 处理当前队列
                 waitTicks = action.getWaitTick();
                 if (tickRate == 0) {
-                    if (queue.needWait) {   // 当前队列需要等待, 退出0TICK循环
+                    if (queue.preCheckNeedWait()){
+                        zeroTick = true;
                         return;
                     }
-                    if (block instanceof PistonBaseBlock ||
-                            block instanceof ObserverBlock ||
-                            block instanceof DispenserBlock ||
-                            block instanceof BarrelBlock ||
-                            block instanceof WallBannerBlock
-                            //#if MC >= 12101
-                            || block instanceof CrafterBlock
-                            //#endif
-                            || block instanceof WallSignBlock
-                            || block instanceof GrindstoneBlock
-                            || block instanceof LadderBlock
-                    ) {
-                        return;
-                    }
-                    if (BLOCKS_PER_TICK.getIntegerValue() != 0)
+                    queue.sendQueue(player);
+                    if (BLOCKS_PER_TICK.getIntegerValue() != 0) {
                         printerWorkingCountPerTick--;
+                    }
                     continue;
                 }
                 return;
@@ -460,6 +464,11 @@ public class Printer extends PrinterUtils {
             this.side = side;
             this.hitModifier = hitModifier;
             this.useShift = useShift;
+        }
+
+        public boolean preCheckNeedWait() {
+            return (lookDirYaw!=null && lookDirYaw.getAxis().isHorizontal())
+                    || (lookDirPitch!=null && lookDirPitch.getAxis().isHorizontal());
         }
 
         public void sendQueue(LocalPlayer player) {
