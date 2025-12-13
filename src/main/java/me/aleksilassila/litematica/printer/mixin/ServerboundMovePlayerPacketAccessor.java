@@ -6,21 +6,45 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(ServerboundMovePlayerPacket.class)
 public interface ServerboundMovePlayerPacketAccessor {
-      @Accessor("x")
+    @Accessor("x")
     double getX();
 
-      @Accessor("y")
+    @Accessor("y")
     double getY();
 
-      @Accessor("z")
+    @Accessor("z")
     double getZ();
 
-      @Accessor("yRot")
+    @Accessor("yRot")
     float getYaw();
 
-      @Accessor("onGround")
+    @Accessor("xRot")
+    float getPitch();
+
+    @Accessor("onGround")
     boolean getOnGround();
 
-      @Accessor("hasPos")
-    boolean changePosition();
+    @Accessor("hasRot")
+    boolean getHasRot();
+
+    @Accessor("x")
+    void setX(double x);
+
+    @Accessor("y")
+    void setY(double y);
+
+    @Accessor("z")
+    void setZ(double z);
+
+    @Accessor("yRot")
+    void setYaw(float yaw);
+
+    @Accessor("xRot")
+    void setPitch(float pitch);
+
+    @Accessor("onGround")
+    void setOnGround(boolean onGround);
+
+    @Accessor("hasRot")
+    void setHasRot(boolean hasRot);
 }
