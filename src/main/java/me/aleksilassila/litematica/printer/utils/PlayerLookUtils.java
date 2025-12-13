@@ -1,13 +1,12 @@
 package me.aleksilassila.litematica.printer.utils;
 
-import me.aleksilassila.litematica.printer.interfaces.Implementation;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 
-import static com.github.bunnyi116.bedrockminer.BedrockMiner.player;
-
 public class PlayerLookUtils {
+    static Minecraft minecraft;
     private static boolean modifyYaw = false;
     private static boolean modifyPitch = false;
     private static boolean modifyOnGround = false;
@@ -76,16 +75,20 @@ public class PlayerLookUtils {
 
     // 根据当前视角(如果正在修改, 则会使用正在修改的视角)
     public static Direction getPlacementDirection() {
+        LocalPlayer player = minecraft.player;
         float currentYaw = getYaw(player != null ? player.getYRot() : 0F);
         float currentPitch = getPitch(player != null ? player.getXRot() : 0F);
         return DirectionUtils.orderedByNearest(currentYaw, currentPitch)[0].getOpposite();
     }
 
     public static ServerboundMovePlayerPacket getLookPacket(float yaw, float pitch) {
+        LocalPlayer player = minecraft.player;
+        boolean onGround = player == null;
+
         //#if MC > 12101
-        return new ServerboundMovePlayerPacket.Rot(yaw, pitch, player.onGround(), false);
+        return new ServerboundMovePlayerPacket.Rot(yaw, pitch, onGround, false);
         //#else
-        //$$ return new ServerboundMovePlayerPacket.Rot(yaw, pitch, player.onGround());
+        //$$ return new ServerboundMovePlayerPacket.Rot(yaw, pitch, onGround);
         //#endif
     }
 
