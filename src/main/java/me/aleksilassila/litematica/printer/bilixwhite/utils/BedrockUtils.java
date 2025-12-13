@@ -1,128 +1,117 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
-import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
+
+import fi.dy.masa.malilib.config.options.ConfigStringList;
+import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
-import java.lang.reflect.Method;
+
+import java.util.ArrayList;
+import java.util.List;
+
+//#if MC > 11900
+import com.github.bunnyi116.bedrockminer.config.Config;
+import com.github.bunnyi116.bedrockminer.task.TaskManager;
+//#endif
 
 public class BedrockUtils {
-    private static final Minecraft client = Minecraft.getInstance();
-    private static Object taskManagerInstance;
-    private static Method addBlockTaskMethod;
-    private static Method addRegionTaskMethod;
-    private static Method clearTaskMethod;
-    private static Method isRunningMethod;
-    private static Method setRunningMethod;
-    private static Method isInTasksMethod;
-    private static Method isBedrockMinerFeatureEnableMethod;
-    private static Method setBedrockMinerFeatureEnableMethod;
 
-    static {
-        if (ModLoadStatus.isBedrockMinerLoaded()) {
-            try {
-                Class<?> taskManagerClass = Class.forName("com.github.bunnyi116.bedrockminer.task.TaskManager");
-                Method getInstanceMethod = taskManagerClass.getDeclaredMethod("getInstance");
-                taskManagerInstance = getInstanceMethod.invoke(null);
-                addBlockTaskMethod = taskManagerClass.getDeclaredMethod("addBlockTask", ClientLevel.class, BlockPos.class, Block.class);
-                addRegionTaskMethod = taskManagerClass.getDeclaredMethod("addRegionTask", String.class, ClientLevel.class, BlockPos.class, BlockPos.class);
-                clearTaskMethod = taskManagerClass.getDeclaredMethod("clearTask");
-                isRunningMethod = taskManagerClass.getDeclaredMethod("isRunning");
-                setRunningMethod = taskManagerClass.getDeclaredMethod("setRunning", boolean.class, boolean.class);
-                isInTasksMethod = taskManagerClass.getDeclaredMethod("isInTasks", ClientLevel.class, BlockPos.class);
-                isBedrockMinerFeatureEnableMethod = taskManagerClass.getDeclaredMethod("isBedrockMinerFeatureEnable");
-                setBedrockMinerFeatureEnableMethod = taskManagerClass.getDeclaredMethod("setBedrockMinerFeatureEnable", boolean.class);
-            } catch (Exception e) {
-                e.printStackTrace();
-                taskManagerInstance = null;
+    public static void init() {
+        //#if MC > 11900
+        Config.getInstance().pistonDirections = getDirection(InitHandler.BEDROCK_MINER_PISTON_DIRECTIONS);
+        Config.getInstance().pistonFacings = getDirection(InitHandler.BEDROCK_MINER_PISTON_FACINGS);
+        Config.getInstance().redstoneTorchDirections = getDirection(InitHandler.BEDROCK_MINER_REDSTONE_TORCH_DIRECTIONS);
+        Config.getInstance().redstoneTorchFacings = getDirection(InitHandler.BEDROCK_MINER_REDSTONE_TORCH_FACINGS);
+        Config.getInstance().limitMax = InitHandler.BEDROCK_MINER_LIMIT_MAX.getIntegerValue();
+        Config.getInstance().shortTsk = InitHandler.BEDROCK_MINER_SHORT_TASK.getBooleanValue();
+        Config.getInstance().save();
+
+        InitHandler.BEDROCK_MINER_PISTON_DIRECTIONS.setValueChangeCallback(b -> {
+            Config.getInstance().pistonDirections = getDirection(InitHandler.BEDROCK_MINER_PISTON_DIRECTIONS);
+        });
+        InitHandler.BEDROCK_MINER_PISTON_FACINGS.setValueChangeCallback(b -> {
+            Config.getInstance().pistonFacings = getDirection(InitHandler.BEDROCK_MINER_PISTON_FACINGS);
+        });
+        InitHandler.BEDROCK_MINER_REDSTONE_TORCH_DIRECTIONS.setValueChangeCallback(b -> {
+            Config.getInstance().redstoneTorchDirections = getDirection(InitHandler.BEDROCK_MINER_REDSTONE_TORCH_DIRECTIONS);
+        });
+        InitHandler.BEDROCK_MINER_REDSTONE_TORCH_FACINGS.setValueChangeCallback(b -> {
+            Config.getInstance().redstoneTorchFacings = getDirection(InitHandler.BEDROCK_MINER_REDSTONE_TORCH_FACINGS);
+        });
+        InitHandler.BEDROCK_MINER_LIMIT_MAX.setValueChangeCallback(config -> {
+            Config.getInstance().limitMax = config.getIntegerValue();
+            Config.getInstance().save();
+        });
+        InitHandler.BEDROCK_MINER_SHORT_TASK.setValueChangeCallback(config -> {
+            Config.getInstance().shortTsk = config.getBooleanValue();
+            Config.getInstance().save();
+        });
+        //#endif
+    }
+
+    public static Direction[] getDirection(ConfigStringList configStringList) {
+        List<Direction> directions = new ArrayList<>();
+        for (String direction : configStringList.getStrings()) {
+            switch (direction) {
+                case "up", "上" -> directions.add(Direction.UP);
+                case "down", "下" -> directions.add(Direction.DOWN);
+                case "north", "北" -> directions.add(Direction.NORTH);
+                case "south", "南" -> directions.add(Direction.SOUTH);
+                case "west", "西" -> directions.add(Direction.WEST);
+                case "east", "东" -> directions.add(Direction.EAST);
             }
         }
+        return directions.toArray(new Direction[0]);
     }
 
     public static void addToBreakList(BlockPos pos, ClientLevel world) {
-        if (taskManagerInstance == null) return;
-        try {
-            Block block = world.getBlockState(pos).getBlock();
-            addBlockTaskMethod.invoke(taskManagerInstance, world, pos, block);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void addRegionTask(String name, ClientLevel world, BlockPos pos1, BlockPos pos2) {
-        if (taskManagerInstance == null) return;
-        try {
-            addRegionTaskMethod.invoke(taskManagerInstance, name, world, pos1, pos2);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        //#if MC > 11900
+        Block block = world.getBlockState(pos).getBlock();
+        TaskManager.getInstance().addBlockTask(world, pos, block);
+        //#endif
     }
 
     public static void clearTask() {
-        if (taskManagerInstance == null) return;
-        try {
-            clearTaskMethod.invoke(null); // clearTask 是静态方法，应传递 null
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        //#if MC > 11900
+        TaskManager.getInstance().removeAll(false);
+        //#endif
     }
 
     public static boolean isWorking() {
-        if (taskManagerInstance == null) return false;
-        try {
-            return (boolean) isRunningMethod.invoke(taskManagerInstance);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        //#if MC > 11900
+        return TaskManager.getInstance().isRunning();
+        //#else
+        //$$ return false;
+        //#endif
     }
 
     public static void setWorking(boolean running) {
-        BedrockUtils.setWorking(running, false);
-    }
-
-    public static void setWorking(boolean running, boolean showMessage) {
+        //#if MC > 11900
+        Minecraft client = Minecraft.getInstance();
         if (client.player != null && client.player.isCreative() && running) {
             ZxyUtils.actionBar("创造模式下不支持破基岩！");
             return;
         }
-        if (taskManagerInstance == null) return; // 提前检查实例
-        try {
-            setRunningMethod.invoke(taskManagerInstance, running, showMessage);
-            if (!running) clearTask();  // 忘记加了
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        TaskManager.getInstance().setRunning(running, false);
+        if (!running) clearTask();
+        //#endif
     }
 
     public static boolean isBedrockMinerFeatureEnable() {
-        if (taskManagerInstance == null) return false;
-        try {
-            return (boolean) isBedrockMinerFeatureEnableMethod.invoke(taskManagerInstance);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        //#if MC > 11900
+        return TaskManager.getInstance().isBedrockMinerFeatureEnable();
+        //#else
+        //$$ return false;
+        //#endif
     }
 
     public static void setBedrockMinerFeatureEnable(boolean bedrockMinerFeatureEnable) {
-        if (taskManagerInstance == null) return;
-        try {
-            setBedrockMinerFeatureEnableMethod.invoke(taskManagerInstance, bedrockMinerFeatureEnable);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    // 待测试
-    public static boolean isInTasks(ClientLevel world, BlockPos blockPos) { // 修正方法名和参数
-        if (taskManagerInstance == null) return false;
-        try {
-            return (boolean) isInTasksMethod.invoke(taskManagerInstance, world, blockPos);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        //#if MC > 11900
+        TaskManager.getInstance().setBedrockMinerFeatureEnable(bedrockMinerFeatureEnable);
+        //#endif
     }
 }

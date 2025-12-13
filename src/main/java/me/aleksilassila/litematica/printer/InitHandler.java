@@ -28,22 +28,33 @@ import static me.aleksilassila.litematica.printer.config.ConfigFactory.*;
 public class InitHandler implements IInitializationHandler {
     // @formatter:off
 
-//    public static final ConfigBooleanHotkeyed REPLACE_BLOCK = new ConfigBooleanHotkeyed("替换", false,"", "替换方块，通过\"替换方块名单\"配置");
+    public static final ConfigBoolean BEDROCK_MINER_SHORT_TASK                          = bool      (I18n.BEDROCK_MINER_SHORT_TASK              , false);
+    public static final ConfigInteger BEDROCK_MINER_LIMIT_MAX                           = integer   (I18n.BEDROCK_MINER_LIMIT_MAX, 1, 1, 20);
+    public static final ConfigStringList BEDROCK_MINER_PISTON_DIRECTIONS            = stringList(I18n.BEDROCK_MINER_PISTON_DIRECTIONS ,
+            ImmutableList.of("up", "down", "north", "south", "west", "east")
+    );
+    public static final ConfigStringList BEDROCK_MINER_PISTON_FACINGS               = stringList(I18n.BEDROCK_MINER_PISTON_FACINGS ,
+            ImmutableList.of("up", "down", "north", "south", "west", "east")
+    );
+    public static final ConfigStringList BEDROCK_MINER_REDSTONE_TORCH_DIRECTIONS    = stringList(I18n.BEDROCK_MINER_REDSTONE_TORCH_DIRECTIONS ,
+            ImmutableList.of("up", "down", "north", "south", "west", "east")
+    );
+    public static final ConfigStringList BEDROCK_MINER_REDSTONE_TORCH_FACINGS       = stringList(I18n.BEDROCK_MINER_REDSTONE_TORCH_FACINGS ,
+            ImmutableList.of("up", "down", "north", "south", "west", "east")
+    );
 
-    public static final ConfigStringList FLUID_BLOCK_LIST = stringList(I18n.FLUID_BLOCK_LIST, ImmutableList.of("minecraft:sand"));
-    public static final ConfigStringList FLUID_LIST = stringList(I18n.FLUID_LIST, ImmutableList.of("minecraft:water", "minecraft:lava"));
+    public static final ConfigStringList FLUID_BLOCK_LIST   = stringList(I18n.FLUID_BLOCK_LIST, ImmutableList.of("minecraft:sand"));
+    public static final ConfigStringList FLUID_LIST         = stringList(I18n.FLUID_LIST, ImmutableList.of("minecraft:water", "minecraft:lava"));
 
-    public static final ConfigOptionList FILL_BLOCK_MODE = optionList(I18n.FILL_BLOCK_MODE, State.FileBlockModeType.WHITELIST);
-    public static final ConfigStringList FILL_BLOCK_LIST = stringList(I18n.FILL_BLOCK_LIST, ImmutableList.of("minecraft:cobblestone"));
-    public static final ConfigStringList INVENTORY_LIST = stringList(
-            I18n.INVENTORY_LIST,
+    public static final ConfigOptionList FILL_BLOCK_MODE    = optionList(I18n.FILL_BLOCK_MODE, State.FileBlockModeType.WHITELIST);
+    public static final ConfigStringList FILL_BLOCK_LIST    = stringList(I18n.FILL_BLOCK_LIST, ImmutableList.of("minecraft:cobblestone"));
+    public static final ConfigStringList INVENTORY_LIST     = stringList(I18n.INVENTORY_LIST,
             ImmutableList.of("minecraft:chest")
     );
     public static final ConfigStringList EXCAVATE_WHITELIST = stringList(I18n.EXCAVATE_WHITELIST, ImmutableList.of(""));
     public static final ConfigStringList EXCAVATE_BLACKLIST = stringList(I18n.EXCAVATE_BLACKLIST, ImmutableList.of(""));
-    public static final ConfigStringList PUT_SKIP_LIST = stringList(I18n.PUT_SKIP_LIST, ImmutableList.of(""));
-    public static final ConfigStringList REPLACEABLE_LIST = stringList(
-            I18n.REPLACEABLE_LIST,
+    public static final ConfigStringList PUT_SKIP_LIST      = stringList(I18n.PUT_SKIP_LIST, ImmutableList.of(""));
+    public static final ConfigStringList REPLACEABLE_LIST   = stringList(I18n.REPLACEABLE_LIST,
             ImmutableList.of(
                     "minecraft:snow", "minecraft:lava", "minecraft:water",
                     "minecraft:bubble_column", "minecraft:short_grass"
@@ -147,7 +158,7 @@ public class InitHandler implements IInitializationHandler {
         //#endif
 
         CLOSE_ALL_MODE.getKeybind().setCallback((action, keybind) -> {
-            if (keybind.isPressed()){
+            if (keybind.isPressed()) {
                 InitHandler.MINE.setBooleanValue(false);
                 InitHandler.FLUID.setBooleanValue(false);
                 InitHandler.PRINT_SWITCH.setBooleanValue(false);
@@ -157,6 +168,7 @@ public class InitHandler implements IInitializationHandler {
             }
             return true;
         });
+
 
         // 打印状态值被修改
         PRINT_SWITCH.setValueChangeCallback(b -> {
@@ -194,6 +206,7 @@ public class InitHandler implements IInitializationHandler {
 
         Configs.init();
         HighlightBlockRenderer.init();
+        BedrockUtils.init();
     }
 
 
