@@ -32,8 +32,8 @@ public class Configs implements IConfigHandler {
             list.add(AUTO_INVENTORY);               // 自动设置远程交互
         }
         list.add(PRINT_SWITCH);                     // 打印状态
-        list.add(PRINTER_SPEED);                    // 核心 - 打印速度
-        if (PRINTER_SPEED.getIntegerValue() == 0) {  // 核心 - 打印速度
+        list.add(PRINTER_SPEED);                    // 核心 - 工作间隔
+        if (PRINTER_SPEED.getIntegerValue() == 0) {  // 核心 - 工作间隔
             list.add(BLOCKS_PER_TICK);              // 核心 - 每刻放置方块数
         }
         list.add(PRINTER_RANGE);                    // 核心 - 工作半径长度
