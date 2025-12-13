@@ -4,6 +4,7 @@
   "package": "me.aleksilassila.litematica.printer.mixin",
   "compatibilityLevel": "${compatibility_level}",
   "mixins": [
+    "MixinServerboundMovePlayerPacket",
     "bilixwhite.accessors.EasyPlaceUtilsAccessor",
     "bilixwhite.others.MixinClientConnection",
     "bilixwhite.others.MixinPistonBlock",
@@ -12,8 +13,8 @@
     "masa.InventoryUtilsAccessor",
     "masa.MixinInventoryUtils",
     "masa.WorldUtilsMixin",
-    "masa.config.MixinIConfigBase",
     "masa.config.MixinConfigBase",
+    "masa.config.MixinIConfigBase",
     "openinv.InventoryMixin",
     "openinv.MixinClientPlayNetworkHandler",
     "openinv.MixinGenericContainerScreenHandler",
