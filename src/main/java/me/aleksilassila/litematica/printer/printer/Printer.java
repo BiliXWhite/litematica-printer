@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.printer;
 
-import com.mojang.datafixers.kinds.IdF;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
@@ -74,7 +73,6 @@ public class Printer extends PrinterUtils {
     public int printRange = PRINTER_RANGE.getIntegerValue();
     public boolean printerYAxisReverse = false;
     public int tickRate = PRINTER_SPEED.getIntegerValue();
-    public int delay;
     public boolean needDelay;
     public int printerWorkingCountPerTick = BLOCKS_PER_TICK.getIntegerValue();
     public int waitTicks = 0;
@@ -143,11 +141,19 @@ public class Printer extends PrinterUtils {
                 entry.setValue(newValue);
             }
         }
+    }
+
+    public void printerTick() {
         if (LAG_CHECK.getBooleanValue()) {
             if (packetTick > 20)
                 return;
             packetTick++;
         }
+        LocalPlayer player = client.player;
+        ClientLevel world = client.level;
+        if (world == null || player == null)
+            return;
+
         // 预载常用配置值
         printRange = PRINTER_RANGE.getIntegerValue();
         tickRate = PRINTER_SPEED.getIntegerValue();
@@ -158,41 +164,30 @@ public class Printer extends PrinterUtils {
         if (isOpenHandler || switchItem() || BreakManager.hasTargets()) {
             return;
         }
-        LocalPlayer player = client.player;
-        ClientLevel world = client.level;
-        if (world == null || player == null) {
-            return;
-        }
+
         //从这里才算作开始
         tickStartTime = System.currentTimeMillis();
         tickEndTime = tickStartTime + ITERATOR_USE_TIME.getIntegerValue();
-        // 进入打印TICK
-        printerTick(world, player);
-    }
 
-    private void printerTick(ClientLevel world,LocalPlayer player) {
-        if (delay > 0) {
-            --delay;
-        }
-        if (tickRate != 0 && (tickStartTime / 50) % tickRate != 0) {
-            return;
-        }
-        if (needDelay) {
-            if (delay <= 0){
-                queue.sendQueue(player);
-                needDelay = false;
-            } else {
+        // 优先执行队列中的点击操作
+        if (tickRate != 0) {
+            queue.sendQueue(player);
+            if ((tickStartTime / 50) % tickRate != 0) {
                 return;
             }
-        } else {
-            queue.sendQueue(player);
         }
 
+        // 0tick修复
+        if (needDelay) {
+            queue.sendQueue(player);
+            needDelay = false;
+        }
 
         if (waitTicks > 0) {
             waitTicks--;
             return;
         }
+
         for (FunctionExtension function : Functions.LIST) {
             if (function instanceof FunctionModeBase functionModeBase) {
                 if (!functionModeBase.canTick()) {
@@ -290,30 +285,23 @@ public class Printer extends PrinterUtils {
 
                 waitTicks = action.getWaitTick();
 
-                if (block instanceof PistonBaseBlock ||
-                        block instanceof ObserverBlock ||
-                        block instanceof DispenserBlock ||
-                        block instanceof BarrelBlock ||
-                        block instanceof WallBannerBlock
-                        //#if MC >= 12101
-                        || block instanceof CrafterBlock
-                        //#endif
-                        || block instanceof WallSignBlock
-                        || block instanceof GrindstoneBlock
-                        || block instanceof LadderBlock
-                ) {
-                    needDelay = true;
-                    delay = 1;
-                    return;
-                }
-
-                if (queue.lookDirYaw != null){
-                    needDelay = true;
-                    delay = 1;
-                    return;
-                }
-
                 if (tickRate == 0) {
+                    if (block instanceof PistonBaseBlock ||
+                            block instanceof ObserverBlock ||
+                            block instanceof DispenserBlock ||
+                            block instanceof BarrelBlock ||
+                            block instanceof WallBannerBlock
+                            //#if MC >= 12101
+                            || block instanceof CrafterBlock
+                            //#endif
+                            || block instanceof WallSignBlock
+                            || block instanceof GrindstoneBlock
+                            || block instanceof LadderBlock
+                    ) {
+                        needDelay = true;
+                        return;
+                    }
+
                     queue.sendQueue(player);
                     if (BLOCKS_PER_TICK.getIntegerValue() != 0)
                         printerWorkingCountPerTick--;
@@ -403,6 +391,11 @@ public class Printer extends PrinterUtils {
             lastNeedItemList.add(item);
         }
         return false;
+    }
+
+    public void swapHandWithSlot(LocalPlayer player, int slot) {
+        ItemStack stack = player.getInventory().getItem(slot);
+        PlaceUtils.setPickedItemToHand(stack, client);
     }
 
     public void sendLook(LocalPlayer player, Direction directionYaw, Direction directionPitch) {
