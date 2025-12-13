@@ -1,7 +1,6 @@
 package me.aleksilassila.litematica.printer;
 
 import me.aleksilassila.litematica.printer.utils.StringUtils;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 /**
@@ -9,6 +8,13 @@ import net.minecraft.network.chat.MutableComponent;
  */
 public enum I18n {
     // @formatter:off
+
+    BEDROCK_MINER_SHORT_TASK                    ("bedrockminer.shortTask"),
+    BEDROCK_MINER_LIMIT_MAX                     ("bedrockminer.limitMax"),
+    BEDROCK_MINER_PISTON_DIRECTIONS             ("bedrockminer.placementPlan.pistonDirections"),
+    BEDROCK_MINER_PISTON_FACINGS                ("bedrockminer.placementPlan.pistonFacings"),
+    BEDROCK_MINER_REDSTONE_TORCH_DIRECTIONS     ("bedrockminer.placementPlan.redstoneTorchDirections"),
+    BEDROCK_MINER_REDSTONE_TORCH_FACINGS        ("bedrockminer.placementPlan.redstoneTorchFacings"),
 
     // 这个是之前做回调开关时候添加的开关提示语, 现在应该是用不到了
     MESSAGE_TOGGLED        ("message.toggled"),
