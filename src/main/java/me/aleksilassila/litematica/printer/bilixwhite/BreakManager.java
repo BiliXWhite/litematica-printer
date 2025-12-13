@@ -91,7 +91,7 @@ public class BreakManager {
             // 执行挖掘进度更新
             boolean success;
             try {
-                if (!ModLoadStatus.isTweakerooLoaded()){
+                if (ModLoadStatus.isTweakerooLoaded()){
                     if (TweakerooUtils.isToolSwitchEnabled())
                     {
                         TweakerooUtils.trySwitchToEffectiveTool(breakPos);
@@ -206,7 +206,7 @@ public class BreakManager {
         Block block = currentState.getBlock();
         // 检查方块是否可以破坏，如果可以则执行挖掘操作
         if (canBreakBlock(pos)) {
-            if (!ModLoadStatus.isTweakerooLoaded()){
+            if (ModLoadStatus.isTweakerooLoaded()) {
                 if (TweakerooUtils.isToolSwitchEnabled())
                 {
                     TweakerooUtils.trySwitchToEffectiveTool(pos);
