@@ -84,7 +84,7 @@ public class FunctionFillMode extends FunctionModeBase {
                         if (heldStack.isEmpty() || heldStack.getCount() <= 0) return; // 主手无物品时跳过填充
                     }
                     new PlacementGuide.Action()
-                            .setLookDirection(PlaceUtils.getFillModeFacing().getOpposite())
+                            .setLookDirectionYaw(PlaceUtils.getFillModeFacing().getOpposite())
                             .queueAction(printer.queue, pos, PlaceUtils.getFillModeFacing(), false);
 
                     if (printer.tickRate == 0) {

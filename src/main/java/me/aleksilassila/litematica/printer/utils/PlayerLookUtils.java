@@ -6,13 +6,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 
 public class PlayerLookUtils {
-    static Minecraft minecraft;
+    static Minecraft minecraft = Minecraft.getInstance();
     private static boolean modifyYaw = false;
     private static boolean modifyPitch = false;
-    private static boolean modifyOnGround = false;
     private static float yaw = 0F;
     private static float pitch = 0F;
-    private static boolean onGround = false;
 
     public static float getYaw(float yaw) {
         return PlayerLookUtils.modifyYaw ? PlayerLookUtils.yaw : yaw;
@@ -22,16 +20,12 @@ public class PlayerLookUtils {
         return PlayerLookUtils.modifyPitch ? PlayerLookUtils.pitch : pitch;
     }
 
-    public static boolean getOnGround(boolean onGround) {
-        return PlayerLookUtils.modifyOnGround ? PlayerLookUtils.onGround : onGround;
-    }
-
     public static boolean getHasRot(boolean hasRot) {
         return isModifying() || hasRot;
     }
 
     public static boolean isModifying() {
-        return modifyYaw || modifyPitch || modifyOnGround;
+        return modifyYaw || modifyPitch;
     }
 
     public static void setYaw(float yaw) {
@@ -44,15 +38,22 @@ public class PlayerLookUtils {
         PlayerLookUtils.modifyPitch = true;
     }
 
-    public static void setOnGround(boolean onGround) {
-        PlayerLookUtils.onGround = onGround;
-        PlayerLookUtils.modifyOnGround = true;
+    public static void setDirection(Direction direction) {
+        setPitch(getRequiredYaw(direction));
+        setPitch(getRequiredPitch(direction));
     }
 
-    public static void setFull(float yaw, float pitch, boolean onGround) {
+    public static boolean isModifyYaw() {
+        return modifyYaw;
+    }
+
+    public static boolean isModifyPitch() {
+        return modifyPitch;
+    }
+
+    public static void setFull(float yaw, float pitch) {
         PlayerLookUtils.setYaw(yaw);
         PlayerLookUtils.setPitch(pitch);
-        PlayerLookUtils.setOnGround(onGround);
     }
 
     public static void resetYaw() {
@@ -63,14 +64,9 @@ public class PlayerLookUtils {
         PlayerLookUtils.modifyPitch = false;
     }
 
-    public static void resetOnGround() {
-        PlayerLookUtils.modifyOnGround = true;
-    }
-
-    public static void restFull() {
+    public static void resetFull() {
         PlayerLookUtils.resetYaw();
         PlayerLookUtils.resetPitch();
-        PlayerLookUtils.resetOnGround();
     }
 
     // 根据当前视角(如果正在修改, 则会使用正在修改的视角)
@@ -84,7 +80,6 @@ public class PlayerLookUtils {
     public static ServerboundMovePlayerPacket getLookPacket(float yaw, float pitch) {
         LocalPlayer player = minecraft.player;
         boolean onGround = player == null;
-
         //#if MC > 12101
         return new ServerboundMovePlayerPacket.Rot(yaw, pitch, onGround, false);
         //#else
@@ -92,7 +87,47 @@ public class PlayerLookUtils {
         //#endif
     }
 
+
+    public static void sendLookPacket(LocalPlayer playerEntity, float yaw, float pitch) {
+        playerEntity.connection.send(getLookPacket(yaw, pitch));
+    }
+
+
     public static void sendLookPacket(LocalPlayer playerEntity) {
-        playerEntity.connection.send(getLookPacket(playerEntity.getYRot(), playerEntity.getXRot()));
+        sendLookPacket(playerEntity, playerEntity.getYRot(), playerEntity.getXRot());
+    }
+
+    /**
+     * 根据方向获取对应的水平旋转角（偏航角Yaw）
+     *
+     * @param playerShouldBeFacing 目标方向
+     * @return 偏航角（水平旋转角度，范围0-360°）：仅水平方向有效，非水平方向返回0
+     */
+    public static float getRequiredYaw(Direction playerShouldBeFacing) {
+        // 判断方向是否为水平轴（东/西/南/北）
+        if (playerShouldBeFacing.getAxis().isHorizontal()) {
+            // 将方向转换为对应的偏航角（如东=90°，南=180°）
+            return playerShouldBeFacing.toYRot();
+        } else {
+            // 垂直方向（上/下）返回0°偏航角
+            return 0;
+        }
+    }
+
+    /**
+     * 根据方向获取对应的垂直旋转角（俯仰角Pitch）
+     *
+     * @param playerShouldBeFacing 目标方向
+     * @return 俯仰角（垂直旋转角度，范围-90°到90°）：仅垂直方向有效，非垂直方向返回0
+     */
+    public static float getRequiredPitch(Direction playerShouldBeFacing) {
+        // 判断方向是否为垂直轴（上/下）
+        if (playerShouldBeFacing.getAxis().isVertical()) {
+            // 向下=90°，向上=-90°（Minecraft的俯仰角定义）
+            return playerShouldBeFacing == Direction.DOWN ? 90 : -90;
+        } else {
+            // 水平方向返回0°俯仰角
+            return 0;
+        }
     }
 }

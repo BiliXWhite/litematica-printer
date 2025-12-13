@@ -33,6 +33,6 @@ public class MixinServerboundMovePlayerPacket {
     //$$ @ModifyVariable(method = "<init>(DDDFFZZZ)V", at = @At("HEAD"), ordinal = 2, argsOnly = true)
     //#endif
     private static boolean modifyHasRot(boolean hasRot) {
-        return PlayerLookUtils.isModifying();
+        return PlayerLookUtils.getHasRot(hasRot);
     }
 }
