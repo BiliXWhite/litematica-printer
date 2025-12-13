@@ -1,15 +1,16 @@
 package me.aleksilassila.litematica.printer.utils;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.StringJoiner;
 
 public class StringUtils {
 
-    public final static Component EMPTY = literal("");
+    public final static MutableComponent EMPTY = literal("");
 
-    public static Component translatable(String key) {
+    public static MutableComponent translatable(String key) {
         //#if MC > 11802
         return Component.translatable(key);
         //#else
@@ -17,7 +18,7 @@ public class StringUtils {
         //#endif
     }
 
-    public static Component translatable(String key, Object... objects) {
+    public static MutableComponent translatable(String key, Object... objects) {
         //#if MC > 11802
         return Component.translatable(key, objects);
         //#else
@@ -25,7 +26,7 @@ public class StringUtils {
         //#endif
     }
 
-    public static Component literal(String text) {
+    public static MutableComponent literal(String text) {
         //#if MC > 11802
         return Component.literal(text);
         //#else
@@ -33,7 +34,7 @@ public class StringUtils {
         //#endif
     }
 
-    public static Component nullToEmpty(@Nullable String string) {
+    public static MutableComponent nullToEmpty(@Nullable String string) {
         return string != null ? literal(string) : EMPTY;
     }
 

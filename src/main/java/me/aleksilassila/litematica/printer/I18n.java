@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer;
 
 import me.aleksilassila.litematica.printer.utils.StringUtils;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 
 /**
  * 本地化翻译枚举，管理所有打印机模组的翻译键
@@ -226,28 +227,52 @@ public enum I18n {
         }
     }
 
-    public Component getRawKeyComponent() {
+    public MutableComponent getRawKeyComponent() {
         return StringUtils.translatable(getRawKey());
     }
 
-    public Component getKeyComponent() {
+    public MutableComponent getRawKeyComponent(Object... objects) {
+        return StringUtils.translatable(getRawKey(), objects);
+    }
+
+    public MutableComponent getKeyComponent() {
         return StringUtils.translatable(getKey());
     }
 
-    public Component getConfigKeyComponent() {
+    public MutableComponent getKeyComponent(Object... objects) {
+        return StringUtils.translatable(getKey(), objects);
+    }
+
+    public MutableComponent getConfigKeyComponent() {
         return StringUtils.translatable(getConfigKey());
     }
 
-    public Component getConfigNameKeyComponent() {
+    public MutableComponent getConfigKeyComponent(Object... objects) {
+        return StringUtils.translatable(getConfigKey(), objects);
+    }
+
+    public MutableComponent getConfigNameKeyComponent() {
         return StringUtils.translatable(getConfigNameKey());
     }
 
-    public Component getConfigCommentKeyComponent() {
+    public MutableComponent getConfigNameKeyComponent(Object... objects) {
+        return StringUtils.translatable(getConfigNameKey(), objects);
+    }
+
+    public MutableComponent getConfigCommentKeyComponent() {
         return StringUtils.translatable(getConfigCommentKey());
     }
 
-    public Component getConfigListKeyComponent() {
+    public MutableComponent getConfigCommentKeyComponent(Object... objects) {
+        return StringUtils.translatable(getConfigCommentKey(), objects);
+    }
+
+    public MutableComponent getConfigListKeyComponent() {
         return StringUtils.translatable(getConfigListKey());
+    }
+
+    public MutableComponent getConfigListKeyComponent(Object... objects) {
+        return StringUtils.translatable(getConfigListKey(), objects);
     }
 
     public String getSimpleKey() {
