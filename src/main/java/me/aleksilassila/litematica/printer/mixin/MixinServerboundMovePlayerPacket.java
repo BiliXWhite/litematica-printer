@@ -30,7 +30,7 @@ public class MixinServerboundMovePlayerPacket {
     //#if MC > 12101
     @ModifyVariable(method = "<init>(DDDFFZZZZ)V", at = @At("HEAD"), ordinal = 3, argsOnly = true)
     //#else
-    //$$ @ModifyVariable(method = "<init>(DDDFFZZZ)V", at = @At("HEAD"), ordinal = 3, argsOnly = true)
+    //$$ @ModifyVariable(method = "<init>(DDDFFZZZ)V", at = @At("HEAD"), ordinal = 2, argsOnly = true)
     //#endif
     private static boolean modifyHasRot(boolean hasRot) {
         return PlayerLookUtils.isModifying();
