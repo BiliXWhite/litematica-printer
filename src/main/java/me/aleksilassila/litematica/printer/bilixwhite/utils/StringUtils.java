@@ -56,28 +56,4 @@ public class StringUtils {
         //$$ else client.font.draw(poseStack, text, x, y, color);
         //#endif
     }
-
-    public static Component getName(String key) {
-        //#if MC > 11802
-        return Component.translatable(LitematicaPrinterMod.MOD_ID + ".config.name." + key);
-        //#else
-        //$$ return new TranslatableComponent(LitematicaPrinterMod.MOD_ID + ".config.name." + key);
-        //#endif
-    }
-
-    public static Component getComment(String key) {
-        //#if MC > 11802
-        return Component.translatable(LitematicaPrinterMod.MOD_ID + ".config.comment." + key);
-        //#else
-        //$$ return new TranslatableComponent(LitematicaPrinterMod.MOD_ID + ".config.comment." + key);
-        //#endif
-    }
-
-    public static Component get(String key) {
-        //#if MC > 11802
-        return Component.translatable(LitematicaPrinterMod.MOD_ID + "." + key);
-        //#else
-        //$$ return new TranslatableComponent(LitematicaPrinterMod.MOD_ID + "." + key);
-        //#endif
-    }
 }
