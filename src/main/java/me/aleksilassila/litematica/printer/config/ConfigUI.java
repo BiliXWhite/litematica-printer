@@ -8,7 +8,6 @@ import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
-import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
 
 import java.util.List;
@@ -27,12 +26,7 @@ public class ConfigUI extends GuiConfigsBase {
         int x = 10;
         int y = 26;
         for (Tab tab : Tab.values()) {
-            if (tab == Tab.BEDROCK && !ModLoadStatus.isBedrockMinerLoaded()) {
-                continue;
-            }
-            if (tab.enable) {
-                x += this.createButton(x, y, -1, tab);
-            }
+            x += this.createButton(x, y, -1, tab);
         }
     }
 
@@ -59,29 +53,19 @@ public class ConfigUI extends GuiConfigsBase {
     }
 
     public enum Tab {
-        // @formatter:off
-
-        ALL     (I18n.TAB_ALL),
-        GENERAL (I18n.TAB_GENERAL),
-        PUT     (I18n.TAB_PUT),
+        ALL(I18n.TAB_ALL),
+        GENERAL(I18n.TAB_GENERAL),
+        PUT(I18n.TAB_PUT),
         EXCAVATE(I18n.TAB_EXCAVATE),
-        FILL    (I18n.FILL),
-        BEDROCK (I18n.TAB_BEDROCK),
-        HOTKEYS (I18n.TAB_HOTKEYS),
-        COLOR   (I18n.TAB_COLOR);
-
-        // @formatter:on
+        FILL(I18n.FILL),
+//        BEDROCK(I18n.TAB_BEDROCK, false),
+        HOTKEYS(I18n.TAB_HOTKEYS),
+        COLOR(I18n.TAB_COLOR);
 
         private final I18n i18n;
-        private final boolean enable;
-
-        Tab(I18n i18n, boolean enable) {
-            this.i18n = i18n;
-            this.enable = enable;
-        }
 
         Tab(I18n i18n) {
-            this(i18n, true);
+            this.i18n = i18n;
         }
 
         public String getName() {
@@ -99,7 +83,7 @@ public class ConfigUI extends GuiConfigsBase {
                 case PUT -> Configs.getPut();
                 case EXCAVATE -> Configs.getExcavate();
                 case FILL -> Configs.getFills();
-                case BEDROCK -> Configs.getBedrock();
+//                case BEDROCK -> Configs.getBedrock();
                 case HOTKEYS -> Configs.getHotkeys();
                 case COLOR -> Configs.getColor();
             };
