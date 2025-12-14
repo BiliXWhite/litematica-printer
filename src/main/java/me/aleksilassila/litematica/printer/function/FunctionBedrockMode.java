@@ -4,7 +4,6 @@ import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
-import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
 import me.aleksilassila.litematica.printer.printer.State;
@@ -14,16 +13,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.LiquidBlock;
 import org.jetbrains.annotations.NotNull;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
-
 public class FunctionBedrockMode extends FunctionModeBase {
-
-    public BlockPos pos1;
-    public BlockPos pos2;
 
     @Override
     public State.PrintModeType getPrintModeType() {
@@ -54,15 +46,12 @@ public class FunctionBedrockMode extends FunctionModeBase {
         }
         BlockPos pos;
         while ((pos = printer.getBlockPos()) != null) {
-            if (PrinterUtils.isLimitedByTheNumberOfLayers(pos))
+            if (!PlaceUtils.canInteracted(pos) || PrinterUtils.isLimitedByTheNumberOfLayers(pos) || !Printer.TempData.xuanQuFanWeiNei_p(pos)) {
                 continue;
-            if (!Printer.TempData.xuanQuFanWeiNei_p(pos))
-                continue;
-            // 跳过冷却中的位置
-            if (Printer.getInstance().placeCooldownList.containsKey(pos))
-                continue;
-            Printer.getInstance().placeCooldownList.put(pos, 100);
+            }
             BedrockUtils.addToBreakList(pos, client.level);
+            // 原谅我使用硬编码plz 我真的不想写太多的优化了555
+            Printer.getInstance().placeCooldownList.put(pos, 100);
         }
     }
 }

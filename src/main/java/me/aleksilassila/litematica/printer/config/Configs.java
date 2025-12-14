@@ -128,14 +128,6 @@ public class Configs implements IConfigHandler {
     //===========破基岩设置===========
     public static ImmutableList<IConfigBase> getBedrock() {
         List<IConfigBase> list = new ArrayList<>();
-        if (ModLoadStatus.isBedrockMinerLoaded()){
-            list.add(BEDROCK_MINER_SHORT_TASK);
-            list.add(BEDROCK_MINER_LIMIT_MAX);
-            list.add(BEDROCK_MINER_PISTON_DIRECTIONS);
-            list.add(BEDROCK_MINER_PISTON_FACINGS);
-            list.add(BEDROCK_MINER_REDSTONE_TORCH_DIRECTIONS);
-            list.add(BEDROCK_MINER_REDSTONE_TORCH_FACINGS);
-        }
         return ImmutableList.copyOf(list);
     }
 
