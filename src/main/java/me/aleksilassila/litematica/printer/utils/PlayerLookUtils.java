@@ -81,9 +81,9 @@ public class PlayerLookUtils {
         LocalPlayer player = minecraft.player;
         boolean onGround = player == null;
         //#if MC > 12101
-        return new ServerboundMovePlayerPacket.Rot(yaw, pitch, onGround, false);
+        return new ServerboundMovePlayerPacket.Rot(getYaw(yaw), getPitch(pitch), onGround, false);
         //#else
-        //$$ return new ServerboundMovePlayerPacket.Rot(yaw, pitch, onGround);
+        //$$ return new ServerboundMovePlayerPacket.Rot(getYaw(yaw), getPitch(pitch), onGround);
         //#endif
     }
 
