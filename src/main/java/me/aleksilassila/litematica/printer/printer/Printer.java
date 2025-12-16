@@ -83,7 +83,6 @@ public class Printer extends PrinterUtils {
     public BlockState requiredState;
     // 活塞修复
     public boolean pistonNeedFix = false;
-    public boolean zeroTick = false;
     public float workProgress = 0;
 
     public BlockPos getBlockPos() {
