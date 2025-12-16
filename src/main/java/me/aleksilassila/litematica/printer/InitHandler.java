@@ -81,7 +81,7 @@ public class InitHandler implements IInitializationHandler {
     public static final ConfigBoolean FILL_COMPOSTER            = bool(I18n.PRINTER_AUTO_FILL_COMPOSTER     , false);
     public static final ConfigBoolean FILL_FLOWING_FLUID        = bool(I18n.FLUID_MODE_FILL_FLOWING         , true );
     public static final ConfigBoolean AUTO_DISABLE_PRINTER      = bool(I18n.PRINTER_AUTO_DISABLE            , true );
-    public static final ConfigBoolean EASYPLACE_PROTOCOL        = bool(I18n.EASY_PLACE_PROTOCOL             , false);
+    public static final ConfigBoolean EASYPLACE_PROTOCOL        = bool(I18n.EASY_PLACE_PROTOCOL             , true );
     public static final ConfigBoolean MULTI_BREAK               = bool(I18n.MULTI_BREAK                     , true );
     public static final ConfigBoolean RENDER_LAYER_LIMIT        = bool(I18n.RENDER_LAYER_LIMIT              , false);
     public static final ConfigBoolean PRINT_IN_AIR              = bool(I18n.PRINT_IN_AIR                    , true );
