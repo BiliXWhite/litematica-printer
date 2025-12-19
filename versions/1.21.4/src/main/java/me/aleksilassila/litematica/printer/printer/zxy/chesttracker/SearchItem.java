@@ -108,11 +108,11 @@ public class SearchItem {
             SearchRequest searchRequest = new SearchRequest();
             SearchRequestPopulator.addItemStack(searchRequest, itemStack, SearchRequestPopulator.Context.FAVOURITE);
             int range = memoryBank.getMetadata().getSearchSettings().searchRange;
-            double rangeSquared = range == Integer.MAX_VALUE ? Integer.MAX_VALUE : range * range;
+            double rangeSquared = range == Integer.MAX_VALUE ? -1 : (double) range * range;
 
             Map<BlockPos,Memory> itemsMap = new LinkedHashMap<>();
             for (Map.Entry<BlockPos, Memory> entry : memoryBank.getMemories().get(key).getMemories().entrySet()) {
-                if (entry.getKey().distToCenterSqr(player.trackingPosition()) > rangeSquared && range != Integer.MAX_VALUE) continue;
+                if (rangeSquared == -1 || entry.getKey().distToCenterSqr(player.trackingPosition()) > rangeSquared) continue;
                 if (entry.getValue().items().stream()
                         .filter(item -> SearchRequest.check(item, searchRequest))
                         .anyMatch(item -> !isPrinterMemory || !((Block.byItem(item.getItem())) instanceof ShulkerBoxBlock))) {

@@ -65,26 +65,6 @@ public class ItemStackUtilMixin {
         return false;
     }
 
-    //    @Inject(at = @At(value = "INVOKE", target = "Ljava/lang/String;contains(Ljava/lang/CharSequence;)Z"), method = "potionOrEffectPredicate", cancellable = true)
-//    private static void stackPotionFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir) {
-//
-//        Potion potion = PotionContentsComponent.getPotion(stack);
-//        if (potion != Potions.EMPTY) {
-//            var langKey = potion.finishTranslationKey(stack.getTranslationKey() + ".effect.");
-//            if (testLang(langKey, filter)) return;
-//            var resloc = Registries.POTION.getKey(potion);
-//            //noinspection ConstantValue
-//            if (resloc.isPresent() && PinYinSearch.hasPinYin(resloc.toString(), filter)) cir.setReturnValue(true);
-//        }
-//        // specific effects
-//        var effects = PotionContentsComponent.getPotionEffects(stack);
-//        for (StatusEffectInstance effect : effects) {
-//            var langKey = effect.getTranslationKey();
-//            if (testLang(langKey, filter)) return;
-//            var resloc = Registries.STATUS_EFFECT.getKey(effect.getEffectType());
-//            if (resloc.isPresent() && PinYinSearch.hasPinYin(resloc.toString(), filter)) cir.setReturnValue(true);
-//        }
-//    }
     @WrapOperation(at = @At(value = "INVOKE", target = "Ljava/lang/String;contains(Ljava/lang/CharSequence;)Z"),method = "potionOrEffectPredicate")
     private static boolean potionOrEffectPredicate(String instance, CharSequence s, Operation<Boolean> original){
         return instance.contains(s) || PinYinSearch.hasPinYin(instance,s.toString());
@@ -101,16 +81,6 @@ public class ItemStackUtilMixin {
     private static boolean tooltipPredicate(String instance, CharSequence s, Operation<Boolean> original){
         return instance.contains(s) || PinYinSearch.hasPinYin(instance,s.toString());
     }
-//    @Inject(at = @At("HEAD"), method = "tooltipPredicate", cancellable = true)
-//    private static void stackTooltipFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir) {
-//        var player = MinecraftClient.getInstance().player;
-//        if (player == null) cir.setReturnValue(false);
-//        var advanced = MinecraftClient.getInstance().options.advancedItemTooltips ? ADVANCED : TooltipType.BASIC;
-//        for (Text line : stack.getTooltip(player, advanced)) {
-    ////            if (line.getString().toLowerCase().contains(filter)) cir.setReturnValue(true);
-//            if (PinYinSearch.hasPinYin(line.getString(), filter)) cir.setReturnValue(true);
-//        }
-//    }
 
     @Inject(at = @At("HEAD"), method = "testLang", cancellable = true, remap = false)
     private static void testLang(String key, String filter, CallbackInfoReturnable<Boolean> cir) {
