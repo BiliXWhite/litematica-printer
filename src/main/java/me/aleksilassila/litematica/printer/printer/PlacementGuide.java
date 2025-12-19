@@ -609,7 +609,7 @@ public class PlacementGuide extends PrinterUtils {
                 }
                 case CAMPFIRE -> {
                     if (!requiredState.getValue(CampfireBlock.LIT) && currentState.getValue(CampfireBlock.LIT))
-                        return new ClickAction().setItems(Implementation.SHOVELS).setSides(Direction.UP);
+                        return new ClickAction().setItems(Implementation.SHOVEL_ITEMS).setSides(Direction.UP);
                     else if (requiredState.getValue(CampfireBlock.LIT) && !currentState.getValue(CampfireBlock.LIT))
                         return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
                     else if (printerBreakWrongStateBlock && requiredState.getValue(CampfireBlock.FACING) != currentState.getValue(CampfireBlock.FACING))
@@ -711,7 +711,7 @@ public class PlacementGuide extends PrinterUtils {
 
                 for (Block soilBlock : soilBlocks) {
                     if (currentState.getBlock().equals(soilBlock))
-                        return new ClickAction().setItems(Implementation.HOES);
+                        return new ClickAction().setItems(Implementation.HOE_ITEMS);
                 }
 
             }
@@ -721,7 +721,7 @@ public class PlacementGuide extends PrinterUtils {
 
                 for (Block soilBlock : soilBlocks) {
                     if (currentState.getBlock().equals(soilBlock))
-                        return new ClickAction().setItems(Implementation.SHOVELS);
+                        return new ClickAction().setItems(Implementation.SHOVEL_ITEMS);
                 }
 
             }
@@ -744,7 +744,7 @@ public class PlacementGuide extends PrinterUtils {
             case STRIP_LOG -> {
                 Block stripped = STRIPPED_LOGS.get(currentState.getBlock());
                 if (stripped != null && stripped == requiredState.getBlock())
-                    return new ClickAction().setItems(Implementation.AXES);
+                    return new ClickAction().setItems(Implementation.AXE_ITEMS);
             }
 
             default -> {

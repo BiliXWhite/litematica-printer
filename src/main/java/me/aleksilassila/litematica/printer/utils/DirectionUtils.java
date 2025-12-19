@@ -1,9 +1,18 @@
 package me.aleksilassila.litematica.printer.utils;
 
 import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 import net.minecraft.util.Mth;
 
 public class DirectionUtils {
+
+    public static Vec3i getVector(Direction direction) {
+        //#if MC >= 12103
+        return direction.getUnitVec3i();
+        //#else
+        //$$ return direction.getNormal();
+        //#endif
+    }
 
     /**
      * 根据指定的偏航角(yaw)和俯仰角(pitch)，返回按最接近视线方向排序的方向数组

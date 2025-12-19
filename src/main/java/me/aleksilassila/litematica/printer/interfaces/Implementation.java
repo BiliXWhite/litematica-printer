@@ -20,21 +20,21 @@ public class Implementation {
      * 所有材质的锄头物品数组（打印机判断是否手持锄头工具时使用）
      * 包含：钻石、铁、金、下界合金、石、木质锄头
      */
-    public static final Item[] HOES = {Items.DIAMOND_HOE, Items.IRON_HOE, Items.GOLDEN_HOE,
+    public static final Item[] HOE_ITEMS = {Items.DIAMOND_HOE, Items.IRON_HOE, Items.GOLDEN_HOE,
             Items.NETHERITE_HOE, Items.STONE_HOE, Items.WOODEN_HOE};
 
     /**
      * 所有材质的铲子物品数组（打印机判断是否手持铲子工具时使用）
      * 包含：钻石、铁、金、下界合金、石、木质铲子
      */
-    public static final Item[] SHOVELS = {Items.DIAMOND_SHOVEL, Items.IRON_SHOVEL, Items.GOLDEN_SHOVEL,
+    public static final Item[] SHOVEL_ITEMS = {Items.DIAMOND_SHOVEL, Items.IRON_SHOVEL, Items.GOLDEN_SHOVEL,
             Items.NETHERITE_SHOVEL, Items.STONE_SHOVEL, Items.WOODEN_SHOVEL};
 
     /**
      * 所有材质的斧头物品数组（打印机判断是否手持斧头工具时使用）
      * 包含：钻石、铁、金、下界合金、石、木质斧头
      */
-    public static final Item[] AXES = {Items.DIAMOND_AXE, Items.IRON_AXE, Items.GOLDEN_AXE,
+    public static final Item[] AXE_ITEMS = {Items.DIAMOND_AXE, Items.IRON_AXE, Items.GOLDEN_AXE,
             Items.NETHERITE_AXE, Items.STONE_AXE, Items.WOODEN_AXE};
 
     /**

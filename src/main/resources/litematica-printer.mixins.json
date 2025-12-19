@@ -4,7 +4,6 @@
   "package": "me.aleksilassila.litematica.printer.mixin",
   "compatibilityLevel": "${compatibility_level}",
   "mixins": [
-    "MixinServerboundMovePlayerPacket",
     "bilixwhite.accessors.EasyPlaceUtilsAccessor",
     "bilixwhite.others.MixinClientConnection",
     "bilixwhite.others.MixinPistonBlock",
@@ -25,7 +24,6 @@
     "openinv.PlayerListMixin"
   ],
   "client": [
-    "MixinClientPlayerEntity",
     "MixinClientPlayNetworkHandler",
     "MixinMultiPlayerGameMode",
     "bilixwhite.visuals.MixinGui",
@@ -42,7 +40,6 @@
     "jackf.lgacy.MixinBlock",
     "jackf.lgacy.MixinChestTracker",
     "jackf.lgacy.MixinClientConnection",
-    "jackf.lgacy.MixinClientPlayerEntity",
     "jackf.lgacy.MixinMemoryDatabase",
     "jackf.lgacy.MixinRealmsMainScreen",
     "jackf.lgacy.MixinWCardPanel",

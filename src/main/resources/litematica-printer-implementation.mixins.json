@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.aleksilassila.litematica.printer.implementation.mixin",
+  "compatibilityLevel": "${compatibility_level}",
+  "mixins": [
+  ],
+  "client": [
+    "MixinLocalPlayer"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
