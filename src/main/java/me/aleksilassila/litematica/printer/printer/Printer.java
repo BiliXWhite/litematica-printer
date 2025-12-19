@@ -147,8 +147,10 @@ public class Printer extends PrinterUtils {
 
     public void printerTick() {
         if (LAG_CHECK.getBooleanValue()) {
-            if (packetTick > 20)
+            if (packetTick > 20) {
+                packetTick++;
                 return;
+            }
             packetTick++;
         }
         LocalPlayer player = client.player;
@@ -167,7 +169,7 @@ public class Printer extends PrinterUtils {
             return;
         }
 
-        //从这里才算作开始
+        // 打印机工作开始
         tickStartTime = System.currentTimeMillis();
         tickEndTime = tickStartTime + ITERATOR_USE_TIME.getIntegerValue();
 
@@ -460,6 +462,7 @@ public class Printer extends PrinterUtils {
 
         public void sendQueue(LocalPlayer player) {
             if (target == null || side == null || hitModifier == null) {
+                Debug.write("放置所需信息缺少！ Target:" + (target == null) + " Side:" + (side == null) + " HitModifier:" + (hitModifier == null));
                 clearQueue();
                 return;
             }
@@ -513,7 +516,7 @@ public class Printer extends PrinterUtils {
                 }
                 if (PlayerLookUtils.isModifyYaw()) {
                     needWait = true;
-                    return;
+                    //return;
                 }
             }
 

@@ -115,15 +115,11 @@ public class PlaceUtils {
     // 判断是否可交互
     public static boolean canInteracted(BlockPos blockPos) {
         int workRange = InitHandler.PRINTER_RANGE.getIntegerValue();
-        // TODO: 临时性注释, 后续添加配置做成可配置的
-//        int playerRange = (int) Math.ceil(getPlayerBlockInteractionRange());
-//        int range = Math.min(workRange, playerRange);
-        int range = workRange;
         if (InitHandler.ITERATOR_SHAPE.getOptionListValue() instanceof State.RadiusShapeType radiusShapeType) {
             return switch (radiusShapeType) {
-                case SPHERE -> canInteractedEuclidean(blockPos, range);
-                case OCTAHEDRON -> canInteractedManhattan(blockPos, range);
-                case CUBE -> canInteractedCube(blockPos, range);
+                case SPHERE -> canInteractedEuclidean(blockPos, workRange);
+                case OCTAHEDRON -> canInteractedManhattan(blockPos, workRange);
+                case CUBE -> canInteractedCube(blockPos, workRange);
             };
         }
         return true;
