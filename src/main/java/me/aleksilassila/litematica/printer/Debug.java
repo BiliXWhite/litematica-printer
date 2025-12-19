@@ -14,10 +14,6 @@ public class Debug {
         LitematicaPrinterMod.LOGGER.info(obj.toString());
     }
 
-    public static void alwaysWrite() {
-        alwaysWrite("");
-    }
-
     public static void write(String var1, Object... var2) {
         if (DEBUG_OUTPUT.getBooleanValue()) {
             LitematicaPrinterMod.LOGGER.info(var1, var2);
