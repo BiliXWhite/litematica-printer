@@ -39,6 +39,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -291,6 +292,20 @@ public class Printer extends PrinterUtils {
                 }
                 waitTicks = action.getWaitTick();
                 if (tickRate == 0) {
+                    if (block instanceof PistonBaseBlock ||
+                            block instanceof ObserverBlock ||
+                            block instanceof DispenserBlock ||
+                            block instanceof BarrelBlock ||
+                            block instanceof WallBannerBlock
+                            //#if MC >= 12101
+                            || block instanceof CrafterBlock
+                            //#endif
+                            || block instanceof WallSignBlock
+                            || block instanceof GrindstoneBlock
+                            || block instanceof LadderBlock
+                    )   {
+                        return;
+                    }
                     queue.sendQueue(player);
                     if (queue.needWait) {
                         return;
@@ -392,8 +407,10 @@ public class Printer extends PrinterUtils {
     }
 
     public void setLook(Direction directionYaw, Direction directionPitch) {
-        queue.lookDirYaw = directionYaw;
-        queue.lookDirPitch = directionPitch;
+        queue.lookDirection = directionYaw;
+        PlayerLookUtils.setYaw(PlayerLookUtils.getRequiredYaw(directionYaw));
+        PlayerLookUtils.setPitch(PlayerLookUtils.getRequiredPitch(directionPitch));
+        PlayerLookUtils.sendLookPacket(client.player);
     }
 
     public void clearQueue() {
@@ -434,8 +451,7 @@ public class Printer extends PrinterUtils {
         public Vec3 hitModifier;
         public boolean useShift = false;
         public boolean useProtocol = false;
-        public Direction lookDirYaw = null;
-        public Direction lookDirPitch = null;
+        public Direction lookDirection = null;
         public boolean needWait = false;
 
         public Queue(Printer printerInstance) {
@@ -455,10 +471,6 @@ public class Printer extends PrinterUtils {
             this.useShift = useShift;
         }
 
-        public boolean preCheckNeedWait() {
-            return (lookDirYaw!=null && lookDirYaw.getAxis().isHorizontal())
-                    || (lookDirPitch!=null && lookDirPitch.getAxis().isHorizontal());
-        }
 
         public void sendQueue(LocalPlayer player) {
             if (target == null || side == null || hitModifier == null) {
@@ -467,22 +479,14 @@ public class Printer extends PrinterUtils {
                 return;
             }
 
-            Direction direction = side;
-            if (side.getAxis().isVertical()) {
-                if (lookDirYaw != null && lookDirYaw.getAxis().isHorizontal()) {
-                    direction = lookDirYaw;
-                } else if (lookDirPitch != null && lookDirPitch.getAxis().isHorizontal()) {
-                    direction = lookDirPitch;
-                } else {
-                    direction = Direction.UP;
-                }
-            }
+            if (lookDirection == null)
+                lookDirection = side;
 
             Vec3 hitVec;
             if (!useProtocol) {
                 Vec3 targetCenter = Vec3.atCenterOf(target);
                 Vec3 sideOffset = Vec3.atLowerCornerOf(PreprocessUtils.getVec3iFromDirection(side)).scale(0.5);
-                Vec3 rotatedHitModifier = hitModifier.yRot((direction.toYRot() + 90) % 360).scale(0.5);
+                Vec3 rotatedHitModifier = hitModifier.yRot((lookDirection.toYRot() + 90) % 360).scale(0.5);
                 hitVec = targetCenter.add(sideOffset).add(rotatedHitModifier);
             } else {
                 hitVec = hitModifier;
@@ -504,21 +508,6 @@ public class Printer extends PrinterUtils {
                 setShift(player, false);
             }
 
-            if (!needWait && (lookDirYaw != null || lookDirPitch != null)) {
-                if (lookDirYaw != null) {
-                    PlayerLookUtils.setYaw(PlayerLookUtils.getRequiredYaw(lookDirYaw));
-                }
-                if (lookDirPitch != null) {
-                    PlayerLookUtils.setPitch(PlayerLookUtils.getRequiredPitch(lookDirPitch));
-                }
-                if (PlayerLookUtils.isModifying()) {    // 如果在修改, 发送一次视角包
-                    PlayerLookUtils.sendLookPacket(player);
-                }
-                if (PlayerLookUtils.isModifyYaw()) {
-                    needWait = true;
-                    //return;
-                }
-            }
 
             if (PLACE_USE_PACKET.getBooleanValue()) {
                 //#if MC >= 11904
@@ -564,8 +553,6 @@ public class Printer extends PrinterUtils {
             this.target = null;
             this.side = null;
             this.hitModifier = null;
-            this.lookDirYaw = null;
-            this.lookDirPitch = null;
             this.useShift = false;
             this.needWait = false;
             if (PlayerLookUtils.isModifying()) {
