@@ -21,9 +21,8 @@ public interface ServerboundMovePlayerPacketAccessor {
     @Accessor("onGround")
     boolean getOnGround();
 
-    @Accessor("hasPos")
-    boolean changePosition();
-
+    //#if MC > 12101
     @Accessor("horizontalCollision")
     boolean getHorizontalCollision();
+    //#endif
 }
