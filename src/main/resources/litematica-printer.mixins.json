@@ -4,7 +4,6 @@
   "package": "me.aleksilassila.litematica.printer.mixin",
   "compatibilityLevel": "${compatibility_level}",
   "mixins": [
-    "MixinServerboundMovePlayerPacket",
     "bilixwhite.accessors.EasyPlaceUtilsAccessor",
     "bilixwhite.others.MixinClientConnection",
     "bilixwhite.others.MixinPistonBlock",
@@ -25,6 +24,8 @@
     "openinv.PlayerListMixin"
   ],
   "client": [
+    "ServerboundMovePlayerPacketAccessor",
+    "MixinClientCommonPacketListener",
     "MixinClientPlayerEntity",
     "MixinClientPlayNetworkHandler",
     "MixinMultiPlayerGameMode",
