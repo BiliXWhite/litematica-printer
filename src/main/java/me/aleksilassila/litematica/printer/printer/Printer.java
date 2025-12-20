@@ -19,7 +19,6 @@ import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
-import me.aleksilassila.litematica.printer.utils.PlayerLookUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.block.*;
@@ -39,7 +38,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -283,7 +281,7 @@ public class Printer extends PrinterUtils {
                 }
 
                 if (action.getLookDirectionYaw() != null) {
-                    setLook(action.getLookDirectionYaw(), action.getLookDirectionPitch());
+                    sendLook(action.getLookDirectionYaw(), action.getLookDirectionPitch());
                 }
 
                 var block = requiredState.getBlock();
@@ -401,16 +399,12 @@ public class Printer extends PrinterUtils {
         return false;
     }
 
-    public void swapHandWithSlot(LocalPlayer player, int slot) {
-        ItemStack stack = player.getInventory().getItem(slot);
-        PlaceUtils.setPickedItemToHand(stack, client);
-    }
-
-    public void setLook(Direction directionYaw, Direction directionPitch) {
-        queue.lookDirection = directionYaw;
-        PlayerLookUtils.setYaw(PlayerLookUtils.getRequiredYaw(directionYaw));
-        PlayerLookUtils.setPitch(PlayerLookUtils.getRequiredPitch(directionPitch));
-        PlayerLookUtils.sendLookPacket(client.player);
+    public void sendLook(Direction directionYaw, Direction directionPitch) {
+        queue.lookDirectionYaw = directionYaw;
+        queue.lookDirectionPitch = directionPitch;
+        if (client.player != null) {
+            Implementation.sendLookPacket(client.player, directionYaw, directionPitch);
+        }
     }
 
     public void clearQueue() {
@@ -451,7 +445,8 @@ public class Printer extends PrinterUtils {
         public Vec3 hitModifier;
         public boolean useShift = false;
         public boolean useProtocol = false;
-        public Direction lookDirection = null;
+        public Direction lookDirectionYaw = null;
+        public Direction lookDirectionPitch = null;
         public boolean needWait = false;
 
         public Queue(Printer printerInstance) {
@@ -479,14 +474,14 @@ public class Printer extends PrinterUtils {
                 return;
             }
 
-            if (lookDirection == null)
-                lookDirection = side;
+            if (lookDirectionYaw == null)
+                lookDirectionYaw = side;
 
             Vec3 hitVec;
             if (!useProtocol) {
                 Vec3 targetCenter = Vec3.atCenterOf(target);
                 Vec3 sideOffset = Vec3.atLowerCornerOf(PreprocessUtils.getVec3iFromDirection(side)).scale(0.5);
-                Vec3 rotatedHitModifier = hitModifier.yRot((lookDirection.toYRot() + 90) % 360).scale(0.5);
+                Vec3 rotatedHitModifier = hitModifier.yRot((lookDirectionYaw.toYRot() + 90) % 360).scale(0.5);
                 hitVec = targetCenter.add(sideOffset).add(rotatedHitModifier);
             } else {
                 hitVec = hitModifier;
@@ -545,7 +540,7 @@ public class Printer extends PrinterUtils {
             //$$ ServerboundPlayerCommandPacket packet = new ServerboundPlayerCommandPacket(player, shift ? ServerboundPlayerCommandPacket.Action.PRESS_SHIFT_KEY : ServerboundPlayerCommandPacket.Action.RELEASE_SHIFT_KEY);
             //#endif
 
-            player.setShowDeathScreen(shift);
+            player.setShiftKeyDown(shift);
             player.connection.send(packet);
         }
 
@@ -555,9 +550,8 @@ public class Printer extends PrinterUtils {
             this.hitModifier = null;
             this.useShift = false;
             this.needWait = false;
-            if (PlayerLookUtils.isModifying()) {
-                PlayerLookUtils.resetFull();
-            }
+            this.lookDirectionYaw = null;
+            this.lookDirectionPitch = null;
         }
     }
 
