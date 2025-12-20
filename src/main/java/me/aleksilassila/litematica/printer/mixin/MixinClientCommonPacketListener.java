@@ -44,6 +44,6 @@ public class MixinClientCommonPacketListener {
     @ModifyArg(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Connection;send(Lnet/minecraft/network/protocol/Packet;)V"), method = "send")
     //#endif
     private Packet<?> modifySendPacket(Packet<?> packet) {
-        return Implementation.getFixedPacket(minecraft.player, packet);
+        return Implementation.getFixedPacket(packet);
     }
 }
