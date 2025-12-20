@@ -54,18 +54,10 @@ public class Implementation {
         return packet instanceof ServerboundMovePlayerPacket.Rot;
     }
 
-    public static boolean isPosRotPacket(Packet<?> packet) {
-        return packet instanceof ServerboundMovePlayerPacket.PosRot;
-    }
-
-    public static boolean isPosPacket(Packet<?> packet) {
-        return packet instanceof ServerboundMovePlayerPacket.Pos;
-    }
-
     public static boolean isMovePlayerPacket(Packet<?> packet) {
         return packet instanceof ServerboundMovePlayerPacket;
     }
-    public static Packet<?> getFixedPacket(LocalPlayer playerEntity, Packet<?> packet) {
+    public static Packet<?> getFixedPacket(Packet<?> packet) {
         Direction directionYaw = Printer.getInstance().queue.lookDirectionYaw;
         Direction directionPitch = Printer.getInstance().queue.lookDirectionPitch;
         
