@@ -75,7 +75,9 @@ public class Implementation {
         float yaw = Implementation.getRequiredYaw(directionYaw);
         float pitch = Implementation.getRequiredPitch(directionPitch);
         boolean onGround = ((ServerboundMovePlayerPacketAccessor) packet).getOnGround();
+        //#if MC > 12101
         boolean horizontalCollision = ((ServerboundMovePlayerPacketAccessor) packet).getHorizontalCollision();
+        //#endif
 
         if (isRotPacket(packet))
             return new ServerboundMovePlayerPacket.Rot(yaw, pitch, onGround
