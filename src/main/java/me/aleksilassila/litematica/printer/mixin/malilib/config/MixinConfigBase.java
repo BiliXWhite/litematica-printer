@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.mixin.masa.config;
+package me.aleksilassila.litematica.printer.mixin.malilib.config;
 
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.IConfigNotifiable;
