@@ -3,13 +3,13 @@ package me.aleksilassila.litematica.printer.interfaces;
 import me.aleksilassila.litematica.printer.mixin.ServerboundMovePlayerPacketAccessor;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.*;
+import org.jetbrains.annotations.Nullable;
 
 public class Implementation {
     /**
@@ -29,104 +29,6 @@ public class Implementation {
      */
     public static final Item[] AXES = {Items.DIAMOND_AXE, Items.IRON_AXE, Items.GOLDEN_AXE,
             Items.NETHERITE_AXE, Items.STONE_AXE, Items.WOODEN_AXE};
-
-    /**
-     * Get player abilities.
-     * @param playerEntity the player
-     * @return player abilities
-     */
-    public static Abilities getAbilities(LocalPlayer playerEntity) {
-        return playerEntity.getAbilities();
-    }
-
-    public static void sendLookPacket(LocalPlayer playerEntity, Direction playerShouldBeFacingYaw, Direction playerShouldBeFacingPitch) {
-        playerEntity.connection.send(new ServerboundMovePlayerPacket.Rot(
-                Implementation.getRequiredYaw(playerShouldBeFacingYaw),
-                Implementation.getRequiredPitch(playerShouldBeFacingPitch),
-                playerEntity.onGround()
-                //#if MC > 12101
-                ,playerEntity.horizontalCollision
-                //#endif
-        ));
-    }
-
-    public static boolean isRotPacket(Packet<?> packet) {
-        return packet instanceof ServerboundMovePlayerPacket.Rot;
-    }
-
-    public static boolean isMovePlayerPacket(Packet<?> packet) {
-        return packet instanceof ServerboundMovePlayerPacket;
-    }
-    public static Packet<?> getFixedPacket(Packet<?> packet) {
-        Direction directionYaw = Printer.getInstance().queue.lookDirectionYaw;
-        Direction directionPitch = Printer.getInstance().queue.lookDirectionPitch;
-        
-        if (!isMovePlayerPacket(packet) || directionYaw == null || directionPitch == null) return packet;
-
-        
-        float yaw = Implementation.getRequiredYaw(directionYaw);
-        float pitch = Implementation.getRequiredPitch(directionPitch);
-        boolean onGround = ((ServerboundMovePlayerPacketAccessor) packet).getOnGround();
-        //#if MC > 12101
-        boolean horizontalCollision = ((ServerboundMovePlayerPacketAccessor) packet).getHorizontalCollision();
-        //#endif
-
-        if (isRotPacket(packet))
-            return new ServerboundMovePlayerPacket.Rot(yaw, pitch, onGround
-                    //#if MC > 12101
-                    , horizontalCollision
-                    //#endif
-                    );
-
-        double x = ((ServerboundMovePlayerPacketAccessor) packet).getX();
-        double y = ((ServerboundMovePlayerPacketAccessor) packet).getY();
-        double z = ((ServerboundMovePlayerPacketAccessor) packet).getZ();
-
-        
-        return new ServerboundMovePlayerPacket.PosRot(x, y, z, yaw, pitch, onGround
-                //#if MC > 12101
-                , horizontalCollision
-                //#endif
-        );
-    }
-
-    public static float getRequiredYaw(Direction playerShouldBeFacing) {
-        
-        if (playerShouldBeFacing.getAxis().isHorizontal()) {
-            
-            return playerShouldBeFacing.toYRot();
-        } else {
-            
-            return 0;
-        }
-    }
-
-    public static float getRequiredPitch(Direction playerShouldBeFacing) {
-        
-        if (playerShouldBeFacing.getAxis().isVertical()) {
-            
-            return playerShouldBeFacing == Direction.DOWN ? 90 : -90;
-        } else {
-            
-            return 0;
-        }
-    }
-
-    /**
-     * 检查方块是否可以交互
-     * @param block 你传入的方块类
-     * @return 是否可以交互
-     */
-    public static boolean isInteractive(Block block) {
-        
-        for (Class<?> clazz : interactiveBlocks) {
-            if (clazz.isInstance(block)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /**
      * 可以交互的方块类
      */
@@ -173,4 +75,79 @@ public class Implementation {
             CrafterBlock.class              // 合成器（自动合成台）
             //#endif
     };
+
+    /**
+     * Get player abilities.
+     *
+     * @param playerEntity the player
+     * @return player abilities
+     */
+    public static Abilities getAbilities(LocalPlayer playerEntity) {
+        return playerEntity.getAbilities();
+    }
+
+    public static void sendLookPacket(LocalPlayer playerEntity, float lookYaw, float lookPitch) {
+        playerEntity.connection.send(new ServerboundMovePlayerPacket.Rot(
+                lookYaw,
+                lookPitch,
+                playerEntity.onGround()
+                //#if MC > 12101
+                , playerEntity.horizontalCollision
+                //#endif
+        ));
+    }
+
+    public static boolean isRotPacket(Packet<?> packet) {
+        return packet instanceof ServerboundMovePlayerPacket.Rot;
+    }
+
+    public static boolean isMovePlayerPacket(Packet<?> packet) {
+        return packet instanceof ServerboundMovePlayerPacket;
+    }
+
+    public static Packet<?> getFixedPacket(Packet<?> packet) {
+        @Nullable Float lookYaw = Printer.getInstance().queue.lookYaw;
+        @Nullable Float lookPitch = Printer.getInstance().queue.lookPitch;
+
+        if (!isMovePlayerPacket(packet) || lookYaw == null || lookPitch == null) return packet;
+
+        boolean onGround = ((ServerboundMovePlayerPacketAccessor) packet).getOnGround();
+        //#if MC > 12101
+        boolean horizontalCollision = ((ServerboundMovePlayerPacketAccessor) packet).getHorizontalCollision();
+        //#endif
+
+        if (isRotPacket(packet))
+            return new ServerboundMovePlayerPacket.Rot(lookYaw, lookPitch, onGround
+                    //#if MC > 12101
+                    , horizontalCollision
+                    //#endif
+            );
+
+        double x = ((ServerboundMovePlayerPacketAccessor) packet).getX();
+        double y = ((ServerboundMovePlayerPacketAccessor) packet).getY();
+        double z = ((ServerboundMovePlayerPacketAccessor) packet).getZ();
+
+
+        return new ServerboundMovePlayerPacket.PosRot(x, y, z, lookYaw, lookPitch, onGround
+                //#if MC > 12101
+                , horizontalCollision
+                //#endif
+        );
+    }
+
+    /**
+     * 检查方块是否可以交互
+     *
+     * @param block 你传入的方块类
+     * @return 是否可以交互
+     */
+    public static boolean isInteractive(Block block) {
+
+        for (Class<?> clazz : interactiveBlocks) {
+            if (clazz.isInstance(block)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

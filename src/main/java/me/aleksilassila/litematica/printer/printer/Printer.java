@@ -19,6 +19,7 @@ import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
+import me.aleksilassila.litematica.printer.utils.DirectionUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.block.*;
@@ -49,6 +50,8 @@ import static me.aleksilassila.litematica.printer.printer.State.PrintModeType.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.*;
 
+import org.jetbrains.annotations.Nullable;
+
 //#if MC > 12105
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
@@ -57,6 +60,11 @@ import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
 //#endif
 
 public class Printer extends PrinterUtils {
+    @NotNull
+    public static final Minecraft client = Minecraft.getInstance();
+    private static Printer INSTANCE = null;
+    public final PlacementGuide guide;
+    public final Queue queue;
     public boolean printerMemorySync = false;
     public BlockPos easyPos = null;
     public Map<BlockPos, Integer> placeCooldownList = new HashMap<>();
@@ -64,11 +72,6 @@ public class Printer extends PrinterUtils {
     public int shulkerCooldown = 0;
     public long tickStartTime;
     public long tickEndTime;
-
-    @NotNull
-    public static final Minecraft client = Minecraft.getInstance();
-    public final PlacementGuide guide;
-    public final Queue queue;
     //强制循环半径
     public BlockPos basePos = null;
     public MyBox myBox;
@@ -83,6 +86,19 @@ public class Printer extends PrinterUtils {
     // 活塞修复
     public boolean pistonNeedFix = false;
     public float workProgress = 0;
+
+    private Printer(@NotNull Minecraft client) {
+        this.guide = new PlacementGuide(client);
+        this.queue = new Queue(this);
+        INSTANCE = this;
+    }
+
+    public static @NotNull Printer getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new Printer(client);
+        }
+        return INSTANCE;
+    }
 
     public BlockPos getBlockPos() {
         if (ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime)
@@ -280,8 +296,8 @@ public class Printer extends PrinterUtils {
                     queue.useProtocol = true;
                 }
 
-                if (action.getLookDirectionYaw() != null) {
-                    sendLook(action.getLookDirectionYaw(), action.getLookDirectionPitch());
+                if (action.getLookYaw() != null && action.getLookPitch() != null) {
+                    sendLook(action.getLookYaw(), action.getLookPitch());
                 }
 
                 var block = requiredState.getBlock();
@@ -301,7 +317,7 @@ public class Printer extends PrinterUtils {
                             || block instanceof WallSignBlock
                             || block instanceof GrindstoneBlock
                             || block instanceof LadderBlock
-                    )   {
+                    ) {
                         return;
                     }
                     queue.sendQueue(player);
@@ -313,6 +329,7 @@ public class Printer extends PrinterUtils {
                     }
                     continue;
                 }
+                queue.sendQueue(player);
                 return;
             }
         }
@@ -399,13 +416,15 @@ public class Printer extends PrinterUtils {
         return false;
     }
 
-    public void sendLook(Direction directionYaw, Direction directionPitch) {
-        queue.lookDirectionYaw = directionYaw;
-        queue.lookDirectionPitch = directionPitch;
+    public void sendLook(float directionYaw, float directionPitch) {
+        queue.lookYaw = directionYaw;
+        queue.lookPitch = directionPitch;
         if (client.player != null) {
             Implementation.sendLookPacket(client.player, directionYaw, directionPitch);
         }
     }
+
+    //region 单例
 
     public void clearQueue() {
         queue.clearQueue();
@@ -445,8 +464,8 @@ public class Printer extends PrinterUtils {
         public Vec3 hitModifier;
         public boolean useShift = false;
         public boolean useProtocol = false;
-        public Direction lookDirectionYaw = null;
-        public Direction lookDirectionPitch = null;
+        public @Nullable Float lookYaw = null;
+        public @Nullable Float lookPitch = null;
         public boolean needWait = false;
 
         public Queue(Printer printerInstance) {
@@ -474,14 +493,18 @@ public class Printer extends PrinterUtils {
                 return;
             }
 
-            if (lookDirectionYaw == null)
-                lookDirectionYaw = side;
+            Direction direction;
+            if (lookYaw == null) {
+                direction = side;
+            } else {
+                direction = DirectionUtils.getHorizontalDirection(lookYaw);
+            }
 
             Vec3 hitVec;
             if (!useProtocol) {
                 Vec3 targetCenter = Vec3.atCenterOf(target);
                 Vec3 sideOffset = Vec3.atLowerCornerOf(PreprocessUtils.getVec3iFromDirection(side)).scale(0.5);
-                Vec3 rotatedHitModifier = hitModifier.yRot((lookDirectionYaw.toYRot() + 90) % 360).scale(0.5);
+                Vec3 rotatedHitModifier = hitModifier.yRot((direction.toYRot() + 90) % 360).scale(0.5);
                 hitVec = targetCenter.add(sideOffset).add(rotatedHitModifier);
             } else {
                 hitVec = hitModifier;
@@ -550,26 +573,9 @@ public class Printer extends PrinterUtils {
             this.hitModifier = null;
             this.useShift = false;
             this.needWait = false;
-            this.lookDirectionYaw = null;
-            this.lookDirectionPitch = null;
+            this.lookYaw = null;
+            this.lookPitch = null;
         }
-    }
-
-    //region 单例
-
-    private static Printer INSTANCE = null;
-
-    private Printer(@NotNull Minecraft client) {
-        this.guide = new PlacementGuide(client);
-        this.queue = new Queue(this);
-        INSTANCE = this;
-    }
-
-    public static @NotNull Printer getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new Printer(client);
-        }
-        return INSTANCE;
     }
 
     //endregion
