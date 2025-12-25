@@ -473,19 +473,53 @@ public class PlacementGuide extends PrinterUtils {
                 // 站立告示牌：处理0-15的16方向旋转值
                 if (signBlock instanceof StandingSignBlock) {
                     int rotation = requiredState.getValue(StandingSignBlock.ROTATION);
-                    float yaw = rotationToPlayerYaw(rotation);
                     return new Action()
-                            .setLookYawPitch(yaw,0.0F)          // 设置16方向对应的水平旋转角
-                            .setRequiresSupport();    // 站立告示牌需要地面支撑
+                            .setLookYawPitch(rotationToPlayerYaw(rotation), 0.0F)
+                            .setRequiresSupport();
                 }
                 // 墙告示牌：保留原有4方向逻辑
-                else if (signBlock instanceof WallSignBlock) {
+                if (signBlock instanceof WallSignBlock) {
                     Direction facing = requiredState.getValue(WallSignBlock.FACING);
                     return new Action()
                             .setSides(facing.getOpposite())
-                            .setLookDirection(facing.getOpposite()) 
+                            .setLookDirection(facing.getOpposite())
                             .setRequiresSupport();
                 }
+                // 天花板悬挂告示牌处理逻辑
+                //#if MC >= 12002
+                if (signBlock instanceof WallHangingSignBlock) {
+                    //TODO: 视乎方向还是有点问题, 待处理
+                    Direction facing = requiredState.getValue(WallHangingSignBlock.FACING);
+                    List<Direction> sides = new ArrayList<>();
+                    if (facing.getAxis() == Direction.Axis.X) {
+                        sides.add(Direction.NORTH);
+                        sides.add(Direction.SOUTH);
+                    } else if (facing.getAxis() == Direction.Axis.Z) {
+                        sides.add(Direction.EAST);
+                        sides.add(Direction.WEST);
+                    }
+                    return new Action()
+                            .setSides(sides.toArray(new Direction[0]))
+                            .setLookDirection(facing.getOpposite())
+                            .setRequiresSupport();
+                }
+                if (signBlock instanceof CeilingHangingSignBlock) {
+                    Direction[] sides = new Direction[]{
+                            Direction.UP,
+                            Direction.NORTH,
+                            Direction.SOUTH,
+                            Direction.WEST,
+                            Direction.EAST
+                    };
+                    int rotation = requiredState.getValue(CeilingHangingSignBlock.ROTATION);
+                    boolean attachFace = requiredState.getValue(CeilingHangingSignBlock.ATTACHED);
+                    return new Action()
+                            .setUseShift(attachFace)
+                            .setSides(sides)
+                            .setLookYawPitch(rotationToPlayerYaw(rotation), 0.0F)
+                            .setRequiresSupport();
+                }
+                //#endif
                 return null;
             }
             case SKIP -> {
@@ -725,20 +759,6 @@ public class PlacementGuide extends PrinterUtils {
                         BreakManager.addBlockToBreak(pos);
                     }
                 }
-                // 新增：处理告示牌WrongState逻辑
-                case SIGN -> {
-                    if (!printerBreakWrongStateBlock) return null;
-                    // 站立告示牌旋转值不匹配，破坏重放
-                    if (currentState.getBlock() instanceof StandingSignBlock &&
-                            !currentState.getValue(StandingSignBlock.ROTATION).equals(requiredState.getValue(StandingSignBlock.ROTATION))) {
-                        BreakManager.addBlockToBreak(pos);
-                    }
-                    // 墙告示牌朝向不匹配，破坏重放
-                    else if (currentState.getBlock() instanceof WallSignBlock &&
-                            currentState.getValue(WallSignBlock.FACING) != requiredState.getValue(WallSignBlock.FACING)) {
-                        BreakManager.addBlockToBreak(pos);
-                    }
-                }
                 case DEFAULT -> {
                     Class<?>[] ignored = new Class<?>[]
                             {FenceBlock.class,
@@ -792,6 +812,17 @@ public class PlacementGuide extends PrinterUtils {
             // 新增：告示牌WrongBlock逻辑
             case SIGN -> {
                 if (InitHandler.BREAK_WRONG_BLOCK.getBooleanValue() && BreakManager.canBreakBlock(pos)) {
+                    boolean isLegitimateSign = currentState.getBlock() instanceof StandingSignBlock
+                            || currentState.getBlock() instanceof WallSignBlock
+                            //#if MC >= 12002
+                            || currentState.getBlock() instanceof WallHangingSignBlock
+                            || currentState.getBlock() instanceof CeilingHangingSignBlock
+                            //#endif
+                            ;
+
+                    if (!isLegitimateSign) {
+                        BreakManager.addBlockToBreak(pos);
+                    }
                     BreakManager.addBlockToBreak(pos);
                 }
             }
@@ -850,7 +881,14 @@ public class PlacementGuide extends PrinterUtils {
         TRIPWIRE_HOOK(TripWireHookBlock.class), // 绊线钩
         RAIL(BaseRailBlock.class), // 铁轨
         PISTON(PistonBaseBlock.class), // 活塞 （为了避免被破坏错误状态破坏）
-        SIGN(StandingSignBlock.class, WallSignBlock.class), // 新增：告示牌（站立/墙）
+        SIGN(
+                StandingSignBlock.class,
+                WallSignBlock.class
+                //#if MC >= 12002
+                , WallHangingSignBlock.class
+                , CeilingHangingSignBlock.class
+                //#endif
+        ),
         // 点击
         FLOWER_POT(FlowerPotBlock.class), // 花盆
         BIG_DRIPLEAF_STEM(BigDripleafStemBlock.class), // 大垂叶茎
