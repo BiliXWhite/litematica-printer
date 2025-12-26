@@ -498,7 +498,8 @@ public class Printer extends PrinterUtils {
 
         public void sendQueue(LocalPlayer player) {
             if (target == null || side == null || hitModifier == null) {
-                Debug.write("放置所需信息缺少！ Target:" + (target == null) + " Side:" + (side == null) + " HitModifier:" + (hitModifier == null));
+                // 会刷屏污染日志
+                // Debug.write("放置所需信息缺少！ Target:" + (target == null) + " Side:" + (side == null) + " HitModifier:" + (hitModifier == null));
                 clearQueue();
                 return;
             }
