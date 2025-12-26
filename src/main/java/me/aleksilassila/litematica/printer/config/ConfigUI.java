@@ -6,8 +6,6 @@ import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
-import fi.dy.masa.malilib.gui.widgets.WidgetBase;
-import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptions;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
@@ -71,11 +69,11 @@ public class ConfigUI extends GuiConfigsBase {
         }
 
         public String getName() {
-            return i18n.getConfigNameKeyComponent().getString();
+            return i18n.getConfigNameComponent().getString();
         }
 
         public String getComment() {
-            return i18n.getConfigCommentKeyComponent().getString();
+            return i18n.getConfigCommentComponent().getString();
         }
 
         public ImmutableList<IConfigBase> getConfigs() {

@@ -19,7 +19,7 @@ public interface ConfigOptionListEntry<T extends Enum<T> & ConfigOptionListEntry
 
     @Override
     default String getDisplayName() {
-        return this.getI18n().getConfigListKeyComponent().getString();
+        return this.getI18n().getConfigListComponent().getString();
     }
 
     @Override
