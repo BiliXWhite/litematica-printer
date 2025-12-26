@@ -79,14 +79,10 @@ public class MixinClientPlayerEntity extends AbstractClientPlayer {
 
     @Inject(at = @At("TAIL"), method = "tick")
     public void tick(CallbackInfo ci) {
-        Printer printer = Printer.getInstance();
         ZxyUtils.tick();
-        printer.tick();
-        if (!(InitHandler.PRINT_SWITCH.getBooleanValue() || InitHandler.PRINT.getKeybind().isPressed())) {
-            return;
-        }
         BreakManager.instance().onTick();
-        printer.printerTick();
+        Printer printer = Printer.getInstance();
+        printer.onGameTick();
     }
 
     @Unique

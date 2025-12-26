@@ -62,6 +62,9 @@ public class BreakManager {
 
     // 每tick调用一次的方法
     public void onTick() {
+        if (!(InitHandler.PRINT_SWITCH.getBooleanValue() || InitHandler.PRINT.getKeybind().isPressed())) {
+            return;
+        }
         if (client.player == null || client.level == null || client.gameMode == null) return;
 
         // 性能优化：提前检查是否有必要继续执行
@@ -167,7 +170,7 @@ public class BreakManager {
     }
 
     public static boolean breakRestriction(BlockState blockState) {
-        if (EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.TWEAKEROO)) {
+        if (EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
             if (!ModLoadStatus.isTweakerooLoaded()) return true;
             UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
