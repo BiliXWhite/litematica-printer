@@ -46,16 +46,16 @@ public abstract class MixinGui {
             if (!mc.player.isSpectator() && InitHandler.PRINT_SWITCH.getBooleanValue() && !PrinterUtils.isBedrockMode()) {
                 if (InitHandler.RENDER_HUD.getBooleanValue()) {
                     //#if MC <= 11904
-                    //$$ StringUtils.initMatrix(poseStack);
+                    //$$ RenderUtils.initMatrix(poseStack);
                     //#else
                     RenderUtils.initGuiGraphics(guiGraphics);
                     //#endif
 
 //                    if (Printer.getInstance().requiredState != null) {
-//                        StringUtils.drawText("投影：" + Printer.getInstance().requiredState.getBlock().getName().getString(), 50, 50, Color.CYAN.getRGB(), true);
-//                        StringUtils.drawText("实际: " + Printer.currentState.getBlock().getName().getString(), 50, 59, Color.ORANGE.getRGB(), true);
-//                        StringUtils.drawText("投影液体：" + Printer.getInstance().requiredState.getFluidState().getBlockState().getBlock().getName().getString(), 50, 68, Color.CYAN.getRGB(), true);
-//                        StringUtils.drawText("实际液体: " + Printer.currentState.getFluidState().getBlockState().getBlock().getName().getString() + " " + Printer.currentState.getFluidState().getBlockState().getBlock().toString(), 50, 77, Color.ORANGE.getRGB(), true);
+//                        RenderUtils.drawText("投影：" + Printer.getInstance().requiredState.getBlock().getName().getString(), 50, 50, Color.CYAN.getRGB(), true);
+//                        RenderUtils.drawText("实际: " + Printer.currentState.getBlock().getName().getString(), 50, 59, Color.ORANGE.getRGB(), true);
+//                        RenderUtils.drawText("投影液体：" + Printer.getInstance().requiredState.getFluidState().getBlockState().getBlock().getName().getString(), 50, 68, Color.CYAN.getRGB(), true);
+//                        RenderUtils.drawText("实际液体: " + Printer.currentState.getFluidState().getBlockState().getBlock().getName().getString() + " " + Printer.currentState.getFluidState().getBlockState().getBlock().toString(), 50, 77, Color.ORANGE.getRGB(), true);
 //                    }
 
                     if (InitHandler.LAG_CHECK.getBooleanValue()) {
