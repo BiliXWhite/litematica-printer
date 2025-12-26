@@ -18,12 +18,12 @@ public class ConfigFactory {
     }
 
     public static ConfigBooleanHotkeyed booleanHotkey(I18n i18n, boolean defaultValue, String defaultHotkey, KeybindSettings settings, String comment) {
-        ConfigBooleanHotkeyed config = new ConfigBooleanHotkeyed(i18n.getRawKey(), defaultValue, defaultHotkey, settings, comment, StringUtils.splitCamelCase(i18n.getRawKey()));
+        ConfigBooleanHotkeyed config = new ConfigBooleanHotkeyed(i18n.getId(), defaultValue, defaultHotkey, settings, comment, StringUtils.splitCamelCase(i18n.getId()));
         return buildI18n(i18n, config);
     }
 
     public static ConfigBooleanHotkeyed booleanHotkey(I18n i18n, boolean defaultValue, String defaultHotkey, KeybindSettings settings) {
-        return booleanHotkey(i18n, defaultValue, defaultHotkey, settings, i18n.getConfigCommentKeyComponent().getString());
+        return booleanHotkey(i18n, defaultValue, defaultHotkey, settings, i18n.getConfigCommentComponent().getString());
     }
 
     public static ConfigBooleanHotkeyed booleanHotkey(I18n i18n, boolean defaultValue, String defaultHotkey, String comment) {
@@ -43,12 +43,12 @@ public class ConfigFactory {
     }
 
     public static ConfigBoolean bool(I18n i18n, boolean defaultValue, String comment) {
-        ConfigBoolean config = new ConfigBoolean(i18n.getRawKey(), defaultValue, comment);
+        ConfigBoolean config = new ConfigBoolean(i18n.getId(), defaultValue, comment);
         return buildI18n(i18n, config);
     }
 
     public static ConfigBoolean bool(I18n i18n, boolean defaultValue) {
-        return bool(i18n, defaultValue, i18n.getConfigCommentKeyComponent().getString());
+        return bool(i18n, defaultValue, i18n.getConfigCommentComponent().getString());
     }
 
     public static ConfigBoolean bool(I18n i18n) {
@@ -57,12 +57,12 @@ public class ConfigFactory {
 
 
     public static ConfigHotkey hotkey(I18n i18n, String defaultStorageString, KeybindSettings settings, String comment) {
-        ConfigHotkey config = new ConfigHotkey(i18n.getRawKey(), defaultStorageString, settings, comment);
+        ConfigHotkey config = new ConfigHotkey(i18n.getId(), defaultStorageString, settings, comment);
         return buildI18n(i18n, config);
     }
 
     public static ConfigHotkey hotkey(I18n i18n, String defaultStorageString, KeybindSettings settings) {
-        return hotkey(i18n, defaultStorageString, settings, i18n.getConfigCommentKeyComponent().getString());
+        return hotkey(i18n, defaultStorageString, settings, i18n.getConfigCommentComponent().getString());
     }
 
     public static ConfigHotkey hotkey(I18n i18n, String defaultStorageString) {
@@ -79,12 +79,12 @@ public class ConfigFactory {
 
 
     public static ConfigInteger integer(I18n i18n, int defaultValue, int minValue, int maxValue, boolean useSlider, String comment) {
-        ConfigInteger config = new ConfigInteger(i18n.getRawKey(), defaultValue, minValue, maxValue, useSlider, comment);
+        ConfigInteger config = new ConfigInteger(i18n.getId(), defaultValue, minValue, maxValue, useSlider, comment);
         return buildI18n(i18n, config);
     }
 
     public static ConfigInteger integer(I18n i18n, int defaultValue, int minValue, int maxValue, boolean useSlider) {
-        return integer(i18n, defaultValue, minValue, maxValue, useSlider, i18n.getConfigCommentKeyComponent().getString());
+        return integer(i18n, defaultValue, minValue, maxValue, useSlider, i18n.getConfigCommentComponent().getString());
     }
 
     public static ConfigInteger integer(I18n i18n, int defaultValue, int minValue, int maxValue) {
@@ -101,21 +101,21 @@ public class ConfigFactory {
 
 
     public static ConfigStringList stringList(I18n i18n, ImmutableList<String> defaultValue, String comment) {
-        ConfigStringList config = new ConfigStringList(i18n.getRawKey(), defaultValue, comment);
+        ConfigStringList config = new ConfigStringList(i18n.getId(), defaultValue, comment);
         return buildI18n(i18n, config);
     }
 
     public static ConfigStringList stringList(I18n i18n, ImmutableList<String> defaultValue) {
-        return stringList(i18n, defaultValue, i18n.getConfigCommentKeyComponent().getString());
+        return stringList(i18n, defaultValue, i18n.getConfigCommentComponent().getString());
     }
 
     public static ConfigString string(I18n i18n, String defaultValue, String comment) {
-        ConfigString config = new ConfigString(i18n.getRawKey(), defaultValue, comment);
+        ConfigString config = new ConfigString(i18n.getId(), defaultValue, comment);
         return buildI18n(i18n, config);
     }
 
     public static ConfigString string(I18n i18n, String defaultValue) {
-        return string(i18n, defaultValue, i18n.getConfigCommentKeyComponent().getString());
+        return string(i18n, defaultValue, i18n.getConfigCommentComponent().getString());
     }
 
     public static ConfigString string(I18n i18n) {
@@ -124,21 +124,21 @@ public class ConfigFactory {
 
 
     public static ConfigOptionList optionList(I18n i18n, IConfigOptionListEntry defaultValue, String comment) {
-        ConfigOptionList config = new ConfigOptionList(i18n.getRawKey(), defaultValue, comment);
+        ConfigOptionList config = new ConfigOptionList(i18n.getId(), defaultValue, comment);
         return buildI18n(i18n, config);
     }
 
     public static ConfigOptionList optionList(I18n i18n, IConfigOptionListEntry defaultValue) {
-        return optionList(i18n, defaultValue, i18n.getConfigCommentKeyComponent().getString());
+        return optionList(i18n, defaultValue, i18n.getConfigCommentComponent().getString());
     }
 
     public static ConfigColor color(I18n i18n, String defaultValue, String comment) {
-        ConfigColor config = new ConfigColor(i18n.getRawKey(), defaultValue, comment);
+        ConfigColor config = new ConfigColor(i18n.getId(), defaultValue, comment);
         return buildI18n(i18n, config);
     }
 
     public static ConfigColor color(I18n i18n, String defaultValue) {
-        return color(i18n, defaultValue, i18n.getConfigCommentKeyComponent().getString());
+        return color(i18n, defaultValue, i18n.getConfigCommentComponent().getString());
     }
 }
 

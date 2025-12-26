@@ -44,7 +44,7 @@ public abstract class MixinClientPlayNetworkHandler {
             return;
         }
         if (packet.getHealth() == 0 && InitHandler.AUTO_DISABLE_PRINTER.getBooleanValue()) {
-            ZxyUtils.actionBar(I18n.AUTO_DISABLE_NOTICE.getKeyComponent().getString());
+            ZxyUtils.actionBar(I18n.AUTO_DISABLE_NOTICE.getComponent().getString());
             InitHandler.PRINT_SWITCH.setBooleanValue(false);
         }
     }

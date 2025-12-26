@@ -12,10 +12,10 @@ public enum ButtonType {
     }
 
     public String getLabelKey() {
-        return this.i18n.getKey();
+        return this.i18n.getWithPrefixKey();
     }
 
     public String getDisplayName() {
-        return this.i18n.getKeyComponent().getString();
+        return this.i18n.getComponent().getString();
     }
 }
