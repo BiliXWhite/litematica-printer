@@ -474,6 +474,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (signBlock instanceof StandingSignBlock) {
                     int rotation = requiredState.getValue(StandingSignBlock.ROTATION);
                     return new Action()
+                            .setSides(Direction.DOWN)
                             .setLookYawPitch(rotationToPlayerYaw(rotation), 0.0F)
                             .setRequiresSupport();
                 }
@@ -504,18 +505,11 @@ public class PlacementGuide extends PrinterUtils {
                             .setRequiresSupport();
                 }
                 if (signBlock instanceof CeilingHangingSignBlock) {
-                    Direction[] sides = new Direction[]{
-                            Direction.UP,
-                            Direction.NORTH,
-                            Direction.SOUTH,
-                            Direction.WEST,
-                            Direction.EAST
-                    };
                     int rotation = requiredState.getValue(CeilingHangingSignBlock.ROTATION);
                     boolean attachFace = requiredState.getValue(CeilingHangingSignBlock.ATTACHED);
                     return new Action()
                             .setUseShift(attachFace)
-                            .setSides(sides)
+                            .setSides(Direction.UP)
                             .setLookYawPitch(rotationToPlayerYaw(rotation), 0.0F)
                             .setRequiresSupport();
                 }

@@ -3,9 +3,9 @@ package me.aleksilassila.litematica.printer.function;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
+import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
-import me.aleksilassila.litematica.printer.printer.State;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -17,8 +17,8 @@ public class FunctionMineMode extends FunctionModeBase {
     private BlockPos breakPos = null;
 
     @Override
-    public State.PrintModeType getPrintModeType() {
-        return State.PrintModeType.MINE;
+    public PrintModeType getPrintModeType() {
+        return PrintModeType.MINE;
     }
 
     @Override

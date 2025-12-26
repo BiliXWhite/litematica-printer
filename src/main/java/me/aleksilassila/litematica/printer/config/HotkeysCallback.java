@@ -5,7 +5,7 @@ import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import me.aleksilassila.litematica.printer.printer.State;
+import me.aleksilassila.litematica.printer.config.enums.ModeType;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.client.Minecraft;
 
@@ -45,7 +45,7 @@ public class HotkeysCallback implements IHotkeyCallback {
         } else if (key == SYNC_INVENTORY.getKeybind()) {
             startOrOffSyncInventory();
             return true;
-        } else if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE) && key == SWITCH_PRINTER_MODE.getKeybind()) {
+        } else if (MODE_SWITCH.getOptionListValue().equals(ModeType.SINGLE) && key == SWITCH_PRINTER_MODE.getKeybind()) {
             IConfigOptionListEntry cycle = PRINTER_MODE.getOptionListValue().cycle(true);
             PRINTER_MODE.setOptionListValue(cycle);
             ZxyUtils.actionBar(PRINTER_MODE.getOptionListValue().getDisplayName());
