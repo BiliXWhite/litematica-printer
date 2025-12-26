@@ -96,11 +96,11 @@ public class MixinClientPlayerEntity extends AbstractClientPlayer {
 
             if (!version.equals(newVersion)) {
                 minecraft.execute(() -> {
-                    MessageUtils.addMessage(I18n.UPDATE_AVAILABLE.getKeyComponent(version, newVersion)
+                    MessageUtils.addMessage(I18n.UPDATE_AVAILABLE.getComponent(version, newVersion)
                             .withStyle(ChatFormatting.YELLOW));
-                    MessageUtils.addMessage(I18n.UPDATE_RECOMMENDATION.getKeyComponent()
+                    MessageUtils.addMessage(I18n.UPDATE_RECOMMENDATION.getComponent()
                             .withStyle(ChatFormatting.RED));
-                    MessageUtils.addMessage(I18n.UPDATE_REPOSITORY.getKeyComponent()
+                    MessageUtils.addMessage(I18n.UPDATE_REPOSITORY.getComponent()
                             .withStyle(ChatFormatting.WHITE));
                     MessageUtils.addMessage(StringUtils.literal("https://github.com/BiliXWhite/litematica-printer")
                             .setStyle(Style.EMPTY
@@ -111,7 +111,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayer {
                                     //#endif
                                     .withUnderlined(true)
                                     .withColor(ChatFormatting.BLUE)));
-                    MessageUtils.addMessage(I18n.UPDATE_DOWNLOAD.getKeyComponent()
+                    MessageUtils.addMessage(I18n.UPDATE_DOWNLOAD.getComponent()
                             .setStyle(Style.EMPTY
                                     //#if MC >= 12105
                                     .withClickEvent(new ClickEvent.OpenUrl(URI.create("https://xeno.lanzoue.com/b00l1v20vi")))
@@ -120,7 +120,7 @@ public class MixinClientPlayerEntity extends AbstractClientPlayer {
                                     //#endif
                                     .withBold(true)
                                     .withColor(ChatFormatting.GREEN)));
-                    MessageUtils.addMessage(I18n.UPDATE_PASSWORD.getKeyComponent("cgxw")
+                    MessageUtils.addMessage(I18n.UPDATE_PASSWORD.getComponent("cgxw")
                             .withStyle(ChatFormatting.WHITE));
                     MessageUtils.addMessage(
                             StringUtils.literal("------------------------").withStyle(ChatFormatting.GRAY));

@@ -39,7 +39,7 @@ public class UpdateChecker {
             }
         } catch (Exception exception) {
             System.out.println("无法检查更新: " + exception.getMessage());
-            MessageUtils.addMessage(I18n.UPDATE_FAILED.getKeyComponent());
+            MessageUtils.addMessage(I18n.UPDATE_FAILED.getComponent());
         }
         return null;
     }
