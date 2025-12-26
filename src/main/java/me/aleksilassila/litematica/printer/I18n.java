@@ -11,13 +11,11 @@ import org.jetbrains.annotations.Nullable;
 public class I18n {
     // @formatter:off
 
-    // 原有静态前缀常量保留
-    private static final String PREFIX_CONFIG = "config";
     // 原枚举值改为静态I18n实例（保持原有命名和key不变）
     // 这个是之前做回调开关时候添加的开关提示语, 现在应该是用不到了
-    public static final I18n MESSAGE_TOGGLED        = config("message.toggled");
-    public static final I18n MESSAGE_VALUE_OFF      = config("message.value.off");
-    public static final I18n MESSAGE_VALUE_ON       = config("message.value.on");
+    public static final I18n MESSAGE_TOGGLED        = of("message.toggled");
+    public static final I18n MESSAGE_VALUE_OFF      = of("message.value.off");
+    public static final I18n MESSAGE_VALUE_ON       = of("message.value.on");
     public static final I18n OPEN_SCREEN = config("openScreen");
     public static final I18n TAB_ALL     = config("category.all");
     public static final I18n TAB_GENERAL = config("category.general");
@@ -27,7 +25,7 @@ public class I18n {
     public static final I18n TAB_HOTKEYS = config("category.hotkeys");
     public static final I18n TAB_COLOR   = config("category.color");
     // 基础提示
-    public static final I18n AUTO_DISABLE_NOTICE                 = config("auto_disable_notice");
+    public static final I18n AUTO_DISABLE_NOTICE                 = of("auto_disable_notice");
     // 配置项
     public static final I18n BLOCKLIST                           = config("blocklist");
     public static final I18n DEBUG_OUTPUT                        = config("debugOutput");
@@ -144,9 +142,10 @@ public class I18n {
     public static final I18n ITERATION_ORDER_YXZ    = config("iterationOrder.yxz");
     public static final I18n ITERATION_ORDER_YZX    = config("iterationOrder.yzx");
     public static final I18n ITERATION_ORDER_ZXY    = config("iterationOrder.zxy");
-
     // @formatter:on
     public static final I18n ITERATION_ORDER_ZYX = config("iterationOrder.zyx");
+    // 原有静态前缀常量保留
+    private static final String PREFIX_CONFIG = "config";
     private static final String PREFIX_NAME = "name";
     private static final String PREFIX_COMMENT = "comment";
     private static final String PREFIX_LIST = "list";
@@ -174,6 +173,10 @@ public class I18n {
 
     public static I18n of(@Nullable String prefix, String key) {
         return new I18n(prefix, key);
+    }
+
+    public static I18n of(String key) {
+        return new I18n(LitematicaPrinterMod.MOD_ID, key);
     }
 
     public static I18n config(String key) {
