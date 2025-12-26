@@ -4,17 +4,18 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
-public class StringUtils {
+// 这应该是渲染工具而不是字符串工具
+public class RenderUtils {
     public static final Minecraft client = Minecraft.getInstance();
     private static PoseStack poseStack;
     private static GuiGraphics guiGraphics;
 
     public static void initMatrix(PoseStack poseStack) {
-        StringUtils.poseStack = poseStack;
+        RenderUtils.poseStack = poseStack;
     }
 
     public static void initGuiGraphics(GuiGraphics guiGraphics) {
-        StringUtils.guiGraphics = guiGraphics;
+        RenderUtils.guiGraphics = guiGraphics;
     }
 
     public static void drawString(String text, int x, int y, int color, boolean withShadow) {
