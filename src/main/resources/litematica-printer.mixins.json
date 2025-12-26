@@ -12,8 +12,8 @@
     "masa.InventoryUtilsAccessor",
     "masa.MixinInventoryUtils",
     "masa.WorldUtilsMixin",
-    "masa.config.MixinConfigBase",
-    "masa.config.MixinIConfigBase",
+    "malilib.config.MixinConfigBase",
+    "malilib.config.MixinIConfigBase",
     "openinv.InventoryMixin",
     "openinv.MixinClientPlayNetworkHandler",
     "openinv.MixinGenericContainerScreenHandler",
@@ -24,11 +24,11 @@
     "openinv.PlayerListMixin"
   ],
   "client": [
-    "ServerboundMovePlayerPacketAccessor",
     "MixinClientCommonPacketListener",
     "MixinClientPlayerEntity",
     "MixinClientPlayNetworkHandler",
     "MixinMultiPlayerGameMode",
+    "ServerboundMovePlayerPacketAccessor",
     "bilixwhite.visuals.MixinGui",
     "bilixwhite.visuals.MixinLitematicaGuiMainMenu",
     "jackf.ChestTrackerScreenMixin",
@@ -48,6 +48,7 @@
     "jackf.lgacy.MixinRealmsMainScreen",
     "jackf.lgacy.MixinWCardPanel",
     "jackf.lgacy.WItemListPanelMixin",
+    "malilib.MixinGuiStringListEdit",
     "masa.litematicaSetConfig.InputHandlerMixin",
     "openinv.MixinMinecraftClient",
     "verify.MixinClientConnection"
