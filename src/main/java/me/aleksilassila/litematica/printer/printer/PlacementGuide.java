@@ -58,22 +58,6 @@ public class PlacementGuide extends PrinterUtils {
         return buildAction(world, worldSchematic, ClassHook.DEFAULT, pos, state);
     }
 
-    /**
-     * 将站立告示牌0-15的旋转值转换为MC对应的Yaw角度（水平旋转角）
-     * 0=南(0°)、1=西南偏南(22.5°)、2=西南(45°)、3=西南偏西(67.5°)、4=西(90°)
-     * 5=西北偏西(112.5°)、6=西北(135°)、7=西北偏北(157.5°)、8=北(180°)
-     * 9=东北偏北(202.5°)、10=东北(225°)、11=东北偏东(247.5°)、12=东(270°)
-     * 13=东南偏东(292.5°)、14=东南(315°)、15=东南偏南(337.5°)
-     */
-    private float rotationToPlayerYaw(int rotation) {
-        // 1. 先计算方块正面朝向的原始角度（0°=南，360°=南）
-        float blockFrontYaw = rotation * 22.5F;
-        // 2. 玩家需要看向的角度 = 方块正面朝向 + 180°（反向）
-        float playerLookYaw = blockFrontYaw + 180.0F;
-        // 3. 转换为MC标准的-180°~180°范围
-        return playerLookYaw > 180.0F ? playerLookYaw - 360.0F : playerLookYaw;
-    }
-
     private @Nullable Action buildAction(Level world, WorldSchematic worldSchematic, ClassHook requiredType, BlockPos pos, State state) {
         BlockState currentState = world.getBlockState(pos);
         BlockState requiredState = worldSchematic.getBlockState(pos);
@@ -476,7 +460,7 @@ public class PlacementGuide extends PrinterUtils {
                     int rotation = requiredState.getValue(StandingSignBlock.ROTATION);
                     return new Action()
                             .setSides(Direction.DOWN)
-                            .setLookYawPitch(rotationToPlayerYaw(rotation), 0.0F)
+                            .setLookRotation(rotation)
                             .setRequiresSupport();
                 }
                 // 墙告示牌：保留原有4方向逻辑
@@ -511,7 +495,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action()
                             .setUseShift(attachFace)
                             .setSides(Direction.UP)
-                            .setLookYawPitch(rotationToPlayerYaw(rotation), 0.0F)
+                            .setLookRotation(rotation)
                             .setRequiresSupport();
                 }
                 //#endif
@@ -963,6 +947,11 @@ public class PlacementGuide extends PrinterUtils {
         public Action setLookYawPitch(float lookYaw, float lookPitch) {
             this.lookYaw = lookYaw;
             this.lookPitch = lookPitch;
+            return this;
+        }
+
+        public Action setLookRotation(int rotation) {
+            setLookYawPitch(DirectionUtils.rotationToPlayerYaw(rotation), 0);
             return this;
         }
 
