@@ -4,9 +4,9 @@ import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
+import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
-import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.client.Minecraft;
@@ -18,8 +18,8 @@ import org.jetbrains.annotations.NotNull;
 public class FunctionBedrockMode extends FunctionModeBase {
 
     @Override
-    public State.PrintModeType getPrintModeType() {
-        return State.PrintModeType.BEDROCK;
+    public PrintModeType getPrintModeType() {
+        return PrintModeType.BEDROCK;
     }
 
     @Override

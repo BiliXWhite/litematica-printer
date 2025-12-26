@@ -1,7 +1,6 @@
 package me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite;
 
-import fi.dy.masa.malilib.config.IConfigOptionListEntry;
-import me.aleksilassila.litematica.printer.printer.State;
+import me.aleksilassila.litematica.printer.config.enums.IterationOrderType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
@@ -9,16 +8,16 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-import static me.aleksilassila.litematica.printer.printer.State.IterationOrderType.*;
+import static me.aleksilassila.litematica.printer.config.enums.IterationOrderType.*;
 
 public class MyBox extends AABB implements Iterable<BlockPos> {
     public boolean yIncrement = true;
     public boolean xIncrement = true;
     public boolean zIncrement = true;
     public Iterator<BlockPos> iterator;
-    private State.IterationOrderType iterationMode = XZY;
+    private IterationOrderType iterationMode = XZY;
 
-    public void setIterationMode(State.IterationOrderType mode) {
+    public void setIterationMode(IterationOrderType mode) {
         this.iterationMode = mode;
     }
 

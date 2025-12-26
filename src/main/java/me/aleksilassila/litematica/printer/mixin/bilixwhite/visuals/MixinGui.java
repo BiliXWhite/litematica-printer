@@ -2,9 +2,9 @@ package me.aleksilassila.litematica.printer.mixin.bilixwhite.visuals;
 
 import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
+import me.aleksilassila.litematica.printer.config.enums.ModeType;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
-import me.aleksilassila.litematica.printer.printer.State;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
@@ -61,7 +61,7 @@ public abstract class MixinGui {
                     if (InitHandler.LAG_CHECK.getBooleanValue()) {
                         StringUtils.drawString(Printer.getInstance().packetTick + "Tick", (int) (width / 2), (int) (height / 2 - 22), new Color(255, 255, 255, 255).getRGB(), true, true);
                     }
-                    if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE) ) {
+                    if (MODE_SWITCH.getOptionListValue().equals(ModeType.SINGLE) ) {
                         StringUtils.drawString((int) (Printer.getInstance().getProgress() * 100) + "%", (int) (width / 2), (int) (height / 2 + 22), new Color(255, 255, 255, 255).getRGB(), true, true);
                         //#if MC > 11904
                         guiGraphics.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());

@@ -9,6 +9,8 @@ import fi.dy.masa.malilib.util.InventoryUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.aleksilassila.litematica.printer.InitHandler;
+import me.aleksilassila.litematica.printer.config.enums.FillModeFacingType;
+import me.aleksilassila.litematica.printer.config.enums.RadiusShapeType;
 import me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.State;
 import net.minecraft.client.Minecraft;
@@ -81,7 +83,7 @@ public class PlaceUtils {
     }
 
     public static Direction getFillModeFacing() {
-        if (InitHandler.FILL_BLOCK_FACING.getOptionListValue() instanceof State.FillModeFacingType fillModeFacingType) {
+        if (InitHandler.FILL_BLOCK_FACING.getOptionListValue() instanceof FillModeFacingType fillModeFacingType) {
             return switch (fillModeFacingType) {
                 case DOWN -> Direction.DOWN;
                 case UP -> Direction.UP;
@@ -115,7 +117,7 @@ public class PlaceUtils {
     // 判断是否可交互
     public static boolean canInteracted(BlockPos blockPos) {
         int workRange = InitHandler.PRINTER_RANGE.getIntegerValue();
-        if (InitHandler.ITERATOR_SHAPE.getOptionListValue() instanceof State.RadiusShapeType radiusShapeType) {
+        if (InitHandler.ITERATOR_SHAPE.getOptionListValue() instanceof RadiusShapeType radiusShapeType) {
             return switch (radiusShapeType) {
                 case SPHERE -> canInteractedEuclidean(blockPos, workRange);
                 case OCTAHEDRON -> canInteractedManhattan(blockPos, workRange);

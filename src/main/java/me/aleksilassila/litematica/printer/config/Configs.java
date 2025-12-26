@@ -8,7 +8,8 @@ import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.util.JsonUtils;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
-import me.aleksilassila.litematica.printer.printer.State;
+import me.aleksilassila.litematica.printer.config.enums.ExcavateListMode;
+import me.aleksilassila.litematica.printer.config.enums.ModeType;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 
 import java.io.File;
@@ -52,7 +53,7 @@ public class Configs implements IConfigHandler {
         list.add(Z_REVERSE);                        // 迭代-Z轴反向
         list.add(MODE_SWITCH);                      // 模式切换
         // 模式切换
-        if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)) {
+        if (MODE_SWITCH.getOptionListValue().equals(ModeType.SINGLE)) {
             list.add(PRINTER_MODE);                 // 打印机模式
         } else {
             list.add(MULTI_BREAK);                  // 多模阻断
@@ -105,7 +106,7 @@ public class Configs implements IConfigHandler {
     public static ImmutableList<IConfigBase> getExcavate() {
         List<IConfigBase> list = new ArrayList<>();
         list.add(EXCAVATE_LIMITER);         // 挖掘模式限制器
-        if (EXCAVATE_LIMITER.getOptionListValue().equals(State.ExcavateListMode.CUSTOM)) {
+        if (EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.CUSTOM)) {
             list.add(EXCAVATE_LIMIT);       // 挖掘模式限制
             list.add(EXCAVATE_WHITELIST);   // 挖掘白名单
             list.add(EXCAVATE_BLACKLIST);   // 挖掘黑名单
@@ -116,7 +117,7 @@ public class Configs implements IConfigHandler {
     //===========填充设置===========
     public static ImmutableList<IConfigBase> getFills() {
         List<IConfigBase> list = new ArrayList<>();
-        if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)) {
+        if (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI)) {
             list.add(FILL);                         // 填充
         }
         list.add(FILL_BLOCK_MODE);                  // 填充方块模式
@@ -138,7 +139,7 @@ public class Configs implements IConfigHandler {
         list.add(PRINT);                        // 打印热键
         list.add(PRINT_SWITCH);         // 切换打印状态
         // 切换打印状态热键
-        if (MODE_SWITCH.getOptionListValue().equals(State.ModeType.SINGLE)) {
+        if (MODE_SWITCH.getOptionListValue().equals(ModeType.SINGLE)) {
             list.add(SWITCH_PRINTER_MODE);      // 切换模式
         } else {
             list.add(MINE);                     // 挖掘

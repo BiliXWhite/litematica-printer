@@ -4,6 +4,8 @@ import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
 import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
+import me.aleksilassila.litematica.printer.config.enums.ModeType;
+import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.block.SlabBlock;
@@ -149,26 +151,26 @@ public class PrinterUtils {
     }
 
     public static boolean isPrinterMode() {
-        return MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI)
-                || PRINTER_MODE.getOptionListValue() == State.PrintModeType.PRINTER;
+        return MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI)
+                || PRINTER_MODE.getOptionListValue() == PrintModeType.PRINTER;
     }
 
     public static boolean isMineMode() {
-        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && InitHandler.MINE.getBooleanValue())
-                || PRINTER_MODE.getOptionListValue() == State.PrintModeType.MINE;
+        return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && InitHandler.MINE.getBooleanValue())
+                || PRINTER_MODE.getOptionListValue() == PrintModeType.MINE;
     }
 
     public static boolean isFillMode() {
-        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && InitHandler.FILL.getBooleanValue())
-                || PRINTER_MODE.getOptionListValue() == State.PrintModeType.FILL;
+        return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && InitHandler.FILL.getBooleanValue())
+                || PRINTER_MODE.getOptionListValue() == PrintModeType.FILL;
     }
     public static boolean isFluidMode() {
-        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && InitHandler.FLUID.getBooleanValue())
-                || PRINTER_MODE.getOptionListValue() == State.PrintModeType.FLUID;
+        return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && InitHandler.FLUID.getBooleanValue())
+                || PRINTER_MODE.getOptionListValue() == PrintModeType.FLUID;
     }
 
     public static boolean isBedrockMode() {
-        return (MODE_SWITCH.getOptionListValue().equals(State.ModeType.MULTI) && InitHandler.BEDROCK.getBooleanValue())
-                || PRINTER_MODE.getOptionListValue() == State.PrintModeType.BEDROCK;
+        return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && InitHandler.BEDROCK.getBooleanValue())
+                || PRINTER_MODE.getOptionListValue() == PrintModeType.BEDROCK;
     }
 }
