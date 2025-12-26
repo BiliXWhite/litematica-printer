@@ -50,7 +50,7 @@ import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static fi.dy.masa.litematica.util.WorldUtils.applyCarpetProtocolHitVec;
 import static fi.dy.masa.litematica.util.WorldUtils.applyPlacementProtocolV3;
 import static me.aleksilassila.litematica.printer.InitHandler.*;
-import static me.aleksilassila.litematica.printer.printer.State.PrintModeType.*;
+import static me.aleksilassila.litematica.printer.config.enums.PrintModeType.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.*;
 
