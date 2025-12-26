@@ -1,23 +1,13 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import fi.dy.masa.litematica.Litematica;
-import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.network.chat.Component;
 
-//#if MC <= 11802
-//$$ import net.minecraft.network.chat.TranslatableComponent;
-//#endif
 public class StringUtils {
     public static final Minecraft client = Minecraft.getInstance();
     private static PoseStack poseStack;
     private static GuiGraphics guiGraphics;
-
-    public static void printChatMessage(String message) {
-        client.gui.getChat().addMessage(Component.nullToEmpty(message));
-    }
 
     public static void initMatrix(PoseStack poseStack) {
         StringUtils.poseStack = poseStack;
