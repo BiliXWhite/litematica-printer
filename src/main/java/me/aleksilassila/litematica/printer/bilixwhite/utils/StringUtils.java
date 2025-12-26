@@ -11,8 +11,6 @@ import net.minecraft.network.chat.Component;
 //$$ import net.minecraft.network.chat.TranslatableComponent;
 //#endif
 public class StringUtils {
-
-
     public static final Minecraft client = Minecraft.getInstance();
     private static PoseStack poseStack;
     private static GuiGraphics guiGraphics;
@@ -20,17 +18,6 @@ public class StringUtils {
     public static void printChatMessage(String message) {
         client.gui.getChat().addMessage(Component.nullToEmpty(message));
     }
-
-    public static void info(String message) {
-        Litematica.
-                //#if MC < 12103 && MC != 12101
-                //$$ logger
-                //#else
-                        LOGGER
-                //#endif
-                .info("[Printer] {}", message);
-    }
-
 
     public static void initMatrix(PoseStack poseStack) {
         StringUtils.poseStack = poseStack;
