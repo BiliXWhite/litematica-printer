@@ -11,9 +11,16 @@ import java.util.HashSet;
 import java.util.Set;
 
 public enum State {
+    /** 缺失方块：实际位置为空，或当前方块在可替换列表中且启用了替换功能 */
     MISSING_BLOCK,
+
+    /** 状态错误：方块类型相同，但方块状态（如朝向、亮度等）不一致 */
     WRONG_STATE,
+
+    /** 方块错误：方块类型完全不同，且不满足缺失/状态错误的条件 */
     WRONG_BLOCK,
+
+    /** 正确匹配：原理图方块与实际方块的类型和状态完全一致 */
     CORRECT;
 
     public static State get(BlockState schematicBlockState, BlockState currentBlockState) {
