@@ -121,13 +121,12 @@ public class Printer extends PrinterUtils {
             basePos = null;
             return null;
         }
-        if (ITERATION_ORDER.getOptionListValue() instanceof State.IterationOrderType iterationOrderType) {
+        if (ITERATION_ORDER.getOptionListValue() instanceof IterationOrderType iterationOrderType) {
             myBox.initIterator();
             myBox.setIterationMode(iterationOrderType);
             myBox.xIncrement = !X_REVERSE.getBooleanValue();
             myBox.yIncrement = Y_REVERSE.getBooleanValue() == printerYAxisReverse;
             myBox.zIncrement = !Z_REVERSE.getBooleanValue();
-
             Iterator<BlockPos> iterator = myBox.iterator;
             while (iterator.hasNext()) {
                 if (ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) return null;
@@ -142,13 +141,20 @@ public class Printer extends PrinterUtils {
                 }
             }
         }
-
         // 如果没有找到符合条件的位置，重置 basePos 并返回 null
         basePos = null;
         return null;
     }
 
-    public void tick() {
+    public void onGameTick() {
+        cooldownTick(); // 冷却TICK放在前面,不受开关影响
+        if (!(InitHandler.PRINT_SWITCH.getBooleanValue() || InitHandler.PRINT.getKeybind().isPressed())) {
+            return;
+        }
+        printerTick();
+    }
+
+    private void cooldownTick() {
         if (shulkerCooldown > 0) {
             shulkerCooldown--;
         }
@@ -164,7 +170,7 @@ public class Printer extends PrinterUtils {
         }
     }
 
-    public void printerTick() {
+    private void printerTick() {
         if (LAG_CHECK.getBooleanValue()) {
             if (packetTick > 20) {
                 packetTick++;
@@ -213,8 +219,8 @@ public class Printer extends PrinterUtils {
         }
 
         // 单模, 非打印模式,
-        if (MODE_SWITCH.getOptionListValue() instanceof State.ModeType modeType && modeType == State.ModeType.SINGLE) {
-            if (PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType printModeType && printModeType != PRINTER) {
+        if (MODE_SWITCH.getOptionListValue() instanceof ModeType modeType && modeType == ModeType.SINGLE) {
+            if (PRINTER_MODE.getOptionListValue() instanceof PrintModeType printModeType && printModeType != PRINTER) {
                 return;
             }
         }
