@@ -6,6 +6,7 @@ import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
+import me.aleksilassila.litematica.printer.utils.BlockUtils;
 import me.aleksilassila.litematica.printer.utils.DirectionUtils;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.client.Minecraft;
@@ -1080,7 +1081,7 @@ public class PlacementGuide extends PrinterUtils {
 
 
                 // 检查该侧面是否可以被点击且不可替换
-                if (canBeClicked(world, neighborPos) && !PlaceUtils.isReplaceable(neighborState)) {
+                if (canBeClicked(world, neighborPos) && !BlockUtils.isReplaceable(neighborState)) {
                     validSides.add(side);
                 }
             }

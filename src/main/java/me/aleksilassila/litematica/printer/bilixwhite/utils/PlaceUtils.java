@@ -74,14 +74,6 @@ public class PlaceUtils {
         else return currentState.getValue(LiquidBlock.LEVEL) == 0;
     }
 
-    public static boolean isReplaceable(BlockState state) {
-        //#if MC < 11904
-        //$$ return state.getMaterial().isReplaceable();
-        //#else
-        return state.canBeReplaced();
-        //#endif
-    }
-
     public static Direction getFillModeFacing() {
         if (InitHandler.FILL_BLOCK_FACING.getOptionListValue() instanceof FillModeFacingType fillModeFacingType) {
             return switch (fillModeFacingType) {
