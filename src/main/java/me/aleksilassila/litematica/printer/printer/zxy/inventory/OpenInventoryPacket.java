@@ -359,7 +359,7 @@ public class OpenInventoryPacket {
                 //#if MC < 11904
                 //$$ String translationKey = key.location().toString();
                 //$$ String translate = StringUtils.translate(translationKey);
-                //$$ if (client.player != null) me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils.printChatMessage("打开容器失败 \n位于"+ translate+"  "+pos.toString());
+                //$$ if (client.player != null) me.aleksilassila.litematica.printer.utils.MessageUtils.addMessage("打开容器失败 \n位于"+ translate+"  "+pos.toString());
                 //#else
                 String translationKey = key.location().toLanguageKey();
                 String translate = StringUtils.translate(translationKey);
