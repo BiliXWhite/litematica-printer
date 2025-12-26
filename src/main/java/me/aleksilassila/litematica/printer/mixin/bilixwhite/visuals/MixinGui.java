@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.bilixwhite.visuals;
 
 import me.aleksilassila.litematica.printer.InitHandler;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.RenderUtils;
 import me.aleksilassila.litematica.printer.config.enums.ModeType;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
@@ -48,7 +48,7 @@ public abstract class MixinGui {
                     //#if MC <= 11904
                     //$$ StringUtils.initMatrix(poseStack);
                     //#else
-                    StringUtils.initGuiGraphics(guiGraphics);
+                    RenderUtils.initGuiGraphics(guiGraphics);
                     //#endif
 
 //                    if (Printer.getInstance().requiredState != null) {
@@ -59,10 +59,10 @@ public abstract class MixinGui {
 //                    }
 
                     if (InitHandler.LAG_CHECK.getBooleanValue()) {
-                        StringUtils.drawString(Printer.getInstance().packetTick + "Tick", (int) (width / 2), (int) (height / 2 - 22), new Color(255, 255, 255, 255).getRGB(), true, true);
+                        RenderUtils.drawString(Printer.getInstance().packetTick + "Tick", (int) (width / 2), (int) (height / 2 - 22), new Color(255, 255, 255, 255).getRGB(), true, true);
                     }
                     if (MODE_SWITCH.getOptionListValue().equals(ModeType.SINGLE) ) {
-                        StringUtils.drawString((int) (Printer.getInstance().getProgress() * 100) + "%", (int) (width / 2), (int) (height / 2 + 22), new Color(255, 255, 255, 255).getRGB(), true, true);
+                        RenderUtils.drawString((int) (Printer.getInstance().getProgress() * 100) + "%", (int) (width / 2), (int) (height / 2 + 22), new Color(255, 255, 255, 255).getRGB(), true, true);
                         //#if MC > 11904
                         guiGraphics.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
                         guiGraphics.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getInstance().getProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
@@ -71,10 +71,10 @@ public abstract class MixinGui {
                         //$$ GuiComponent.fill(poseStack, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getInstance().getProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
                         //#endif
                     }
-                    StringUtils.drawString(InitHandler.PRINTER_MODE.getOptionListValue().getDisplayName(), (int) (width / 2), (int) (height / 2 + 52), new Color(255, 255, 255, 255).getRGB(), true, true);
+                    RenderUtils.drawString(InitHandler.PRINTER_MODE.getOptionListValue().getDisplayName(), (int) (width / 2), (int) (height / 2 + 52), new Color(255, 255, 255, 255).getRGB(), true, true);
 
                     if (Printer.getInstance().requiredState != null)
-                        StringUtils.drawString(Printer.getInstance().requiredState.getBlock().getName().getString(), (int) (width / 2), (int) (height / 2 + 64), new Color(255, 255, 255, 255).getRGB(), true, true);
+                        RenderUtils.drawString(Printer.getInstance().requiredState.getBlock().getName().getString(), (int) (width / 2), (int) (height / 2 + 64), new Color(255, 255, 255, 255).getRGB(), true, true);
                 }
             }
         }
