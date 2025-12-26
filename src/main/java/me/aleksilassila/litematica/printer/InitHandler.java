@@ -12,8 +12,8 @@ import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.InputHandler;
+import me.aleksilassila.litematica.printer.config.enums.*;
 import me.aleksilassila.litematica.printer.printer.Printer;
-import me.aleksilassila.litematica.printer.printer.State;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
@@ -32,7 +32,7 @@ public class InitHandler implements IInitializationHandler {
     public static final ConfigStringList FLUID_BLOCK_LIST = stringList(I18n.FLUID_BLOCK_LIST, ImmutableList.of("minecraft:sand"));
     public static final ConfigStringList FLUID_LIST = stringList(I18n.FLUID_LIST, ImmutableList.of("minecraft:water", "minecraft:lava"));
 
-    public static final ConfigOptionList FILL_BLOCK_MODE = optionList(I18n.FILL_BLOCK_MODE, State.FileBlockModeType.WHITELIST);
+    public static final ConfigOptionList FILL_BLOCK_MODE = optionList(I18n.FILL_BLOCK_MODE, FileBlockModeType.WHITELIST);
     public static final ConfigStringList FILL_BLOCK_LIST = stringList(I18n.FILL_BLOCK_LIST, ImmutableList.of("minecraft:cobblestone"));
     public static final ConfigStringList INVENTORY_LIST = stringList(
             I18n.INVENTORY_LIST,
@@ -49,14 +49,14 @@ public class InitHandler implements IInitializationHandler {
             )
     );
 
-    public static final ConfigOptionList ITERATOR_SHAPE     = optionList(I18n.PRINTER_ITERATOR_SHAPE    , State.RadiusShapeType.SPHERE);
-    public static final ConfigOptionList QUICK_SHULKER_MODE = optionList(I18n.PRINTER_QUICK_SHULKER_MODE, State.QuickShulkerModeType.INVOKE);
-    public static final ConfigOptionList ITERATION_ORDER    = optionList(I18n.PRINTER_ITERATOR_MODE     , State.IterationOrderType.XZY);
-    public static final ConfigOptionList FILL_BLOCK_FACING  = optionList(I18n.FILL_MODE_FACING          , State.FillModeFacingType.DOWN);
+    public static final ConfigOptionList ITERATOR_SHAPE     = optionList(I18n.PRINTER_ITERATOR_SHAPE    , RadiusShapeType.SPHERE);
+    public static final ConfigOptionList QUICK_SHULKER_MODE = optionList(I18n.PRINTER_QUICK_SHULKER_MODE, QuickShulkerModeType.INVOKE);
+    public static final ConfigOptionList ITERATION_ORDER    = optionList(I18n.PRINTER_ITERATOR_MODE     , IterationOrderType.XZY);
+    public static final ConfigOptionList FILL_BLOCK_FACING  = optionList(I18n.FILL_MODE_FACING          , FillModeFacingType.DOWN);
 
-    public static final ConfigOptionList MODE_SWITCH        = optionList(I18n.MODE_SWITCH               , State.ModeType.SINGLE);
-    public static final ConfigOptionList PRINTER_MODE       = optionList(I18n.PRINTER_MODE              , State.PrintModeType.PRINTER);
-    public static final ConfigOptionList EXCAVATE_LIMITER   = optionList(I18n.EXCAVATE_LIMITER          , State.ExcavateListMode.CUSTOM);
+    public static final ConfigOptionList MODE_SWITCH        = optionList(I18n.MODE_SWITCH               , ModeType.SINGLE);
+    public static final ConfigOptionList PRINTER_MODE       = optionList(I18n.PRINTER_MODE              , PrintModeType.PRINTER);
+    public static final ConfigOptionList EXCAVATE_LIMITER   = optionList(I18n.EXCAVATE_LIMITER          , ExcavateListMode.CUSTOM);
     public static final ConfigOptionList EXCAVATE_LIMIT     = optionList(I18n.EXCAVATE_LIMIT            , UsageRestriction.ListType.NONE);
     public static final ConfigColor SYNC_INVENTORY_COLOR    = color(I18n.SYNC_INVENTORY_COLOR           , "#4CFF4CE6");
 
@@ -151,7 +151,7 @@ public class InitHandler implements IInitializationHandler {
                 InitHandler.FLUID.setBooleanValue(false);
                 InitHandler.PRINT_SWITCH.setBooleanValue(false);
 //            InitHandler.REPLACE_BLOCK.setBooleanValue(false);
-                InitHandler.PRINTER_MODE.setOptionListValue(State.PrintModeType.PRINTER);
+                InitHandler.PRINTER_MODE.setOptionListValue(PrintModeType.PRINTER);
                 MessageUtils.setOverlayMessage(StringUtils.nullToEmpty("已关闭全部模式"));
             }
             return true;
@@ -175,7 +175,7 @@ public class InitHandler implements IInitializationHandler {
 
         // 切换模式时, 关闭破基岩
         PRINTER_MODE.setValueChangeCallback(b -> {
-            if (!b.getOptionListValue().equals(State.PrintModeType.BEDROCK)) {
+            if (!b.getOptionListValue().equals(PrintModeType.BEDROCK)) {
                 if (ModLoadStatus.isBedrockMinerLoaded()) {
                     if (BedrockUtils.isWorking()) {
                         BedrockUtils.setWorking(false);
@@ -195,7 +195,7 @@ public class InitHandler implements IInitializationHandler {
         list.add(PRINT);
         list.add(PRINT_SWITCH);
         list.add(CLOSE_ALL_MODE);
-        if (MODE_SWITCH.getOptionListValue() == State.ModeType.SINGLE) {
+        if (MODE_SWITCH.getOptionListValue() == ModeType.SINGLE) {
             list.add(SWITCH_PRINTER_MODE);
         }
         return ImmutableList.copyOf(list);

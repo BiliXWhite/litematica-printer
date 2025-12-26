@@ -2,30 +2,31 @@ package me.aleksilassila.litematica.printer.function;
 
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import me.aleksilassila.litematica.printer.InitHandler;
+import me.aleksilassila.litematica.printer.config.enums.ModeType;
+import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.printer.Printer;
 
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
-import me.aleksilassila.litematica.printer.printer.State;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class FunctionModeBase extends PrinterUtils implements FunctionExtension {
-    public abstract State.PrintModeType getPrintModeType();
+    public abstract PrintModeType getPrintModeType();
 
     public abstract ConfigBoolean getCurrentConfig();
 
     public boolean canTick() {
-        if (InitHandler.MODE_SWITCH.getOptionListValue() instanceof State.ModeType modeType) {    // 当前模式
+        if (InitHandler.MODE_SWITCH.getOptionListValue() instanceof ModeType modeType) {    // 当前模式
             // 如果是单模情况
-            if (modeType.equals(State.ModeType.SINGLE)) {
+            if (modeType.equals(ModeType.SINGLE)) {
                 // 检查当前单模模式不等于本类的模式, 那么就不执行TICK
-                if (InitHandler.PRINTER_MODE.getOptionListValue() instanceof State.PrintModeType printModeType && !printModeType.equals(getPrintModeType())) {
+                if (InitHandler.PRINTER_MODE.getOptionListValue() instanceof PrintModeType printModeType && !printModeType.equals(getPrintModeType())) {
                     return false;
                 }
             }
-            if (modeType.equals(State.ModeType.MULTI)){
+            if (modeType.equals(ModeType.MULTI)){
                 return getCurrentConfig().getBooleanValue();
             }
         }

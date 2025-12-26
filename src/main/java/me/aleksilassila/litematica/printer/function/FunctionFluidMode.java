@@ -2,13 +2,10 @@ package me.aleksilassila.litematica.printer.function;
 
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import me.aleksilassila.litematica.printer.InitHandler;
-import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.StringUtils;
+import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
-import me.aleksilassila.litematica.printer.printer.State;
-import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -34,8 +31,8 @@ public class FunctionFluidMode extends FunctionModeBase {
     private List<Fluid> fluis = List.of(new Fluid[0]);
 
     @Override
-    public State.PrintModeType getPrintModeType() {
-        return State.PrintModeType.FLUID;
+    public PrintModeType getPrintModeType() {
+        return PrintModeType.FLUID;
     }
 
     @Override

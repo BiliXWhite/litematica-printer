@@ -3,10 +3,11 @@ package me.aleksilassila.litematica.printer.function;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
+import me.aleksilassila.litematica.printer.config.enums.FileBlockModeType;
+import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
-import me.aleksilassila.litematica.printer.printer.State;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -28,8 +29,8 @@ public class FunctionFillMode extends FunctionModeBase {
     private List<String> fillcaCheBlocklist = new ArrayList<>();
 
     @Override
-    public State.PrintModeType getPrintModeType() {
-        return State.PrintModeType.FILL;
+    public PrintModeType getPrintModeType() {
+        return PrintModeType.FILL;
     }
 
     @Override
@@ -42,7 +43,7 @@ public class FunctionFillMode extends FunctionModeBase {
         Printer.getInstance().requiredState = null;
         boolean handheld = false;
         // 手持物品
-        if (InitHandler.FILL_BLOCK_MODE.getOptionListValue() == State.FileBlockModeType.HANDHELD) {
+        if (InitHandler.FILL_BLOCK_MODE.getOptionListValue() == FileBlockModeType.HANDHELD) {
             handheld = true;
             ItemStack heldStack = player.getMainHandItem(); // 获取主手物品
             if (heldStack.isEmpty() || heldStack.getCount() <= 0) {
@@ -51,7 +52,7 @@ public class FunctionFillMode extends FunctionModeBase {
             fillModeItemList = List.of(heldStack.getItem());
         }
         // 白名单模式
-        if (InitHandler.FILL_BLOCK_MODE.getOptionListValue() == State.FileBlockModeType.WHITELIST) {
+        if (InitHandler.FILL_BLOCK_MODE.getOptionListValue() == FileBlockModeType.WHITELIST) {
             // 每次去MC注册表中获取会造成大量卡顿, 所以仅在玩家修改了填充列表, 再去读取以便注册表
             List<String> strings = InitHandler.FILL_BLOCK_LIST.getStrings();
             if (!strings.equals(fillcaCheBlocklist)) {
