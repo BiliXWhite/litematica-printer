@@ -5,7 +5,7 @@ plugins {
 
     // https://github.com/ReplayMod/preprocessor
     // https://github.com/Fallen-Breath/preprocessor
-    id("com.replaymod.preprocess") version "d452ef7612"
+    id("com.replaymod.preprocess") version "c5abb4fb12"
 
     // https://github.com/Fallen-Breath/yamlang
     id("me.fallenbreath.yamlang") version "1.5.0" apply false
@@ -24,6 +24,7 @@ preprocess {
     val mc12105 = createNode("1.21.5", 1_21_05, "mojang")
     val mc12106 = createNode("1.21.6", 1_21_06, "mojang")
     val mc12109 = createNode("1.21.9", 1_21_09, "mojang")
+    val mc12111 = createNode("1.21.11", 1_21_11, "mojang")
 
     mc11802.link(mc11904, file("versions/mapping-1.18.2-1.19.4.txt"))
     mc11904.link(mc12001, null)
@@ -37,6 +38,7 @@ preprocess {
     mc12105.link(mc12106, null)
     mc12105.link(mc12106, null)
     mc12106.link(mc12109, null)
+    mc12109.link(mc12111, null)
 
     strictExtraMappings.set(false)
 }

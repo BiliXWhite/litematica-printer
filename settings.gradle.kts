@@ -41,7 +41,8 @@ val versions = listOf(
     "1.21.4",
     "1.21.5",
     "1.21.6",
-    "1.21.9"
+    "1.21.9",
+    "1.21.11"
 )
 
 for (version in versions) {
