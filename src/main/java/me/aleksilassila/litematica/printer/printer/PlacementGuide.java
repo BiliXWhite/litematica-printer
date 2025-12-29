@@ -306,9 +306,6 @@ public class PlacementGuide extends PrinterUtils {
                 }
                 ResourceLocation blockId2 = ResourceLocationUtils.of(blockId1.toString().replace("dead_", ""));
                 boolean isBlock = blockId1.toString().contains("block");
-                boolean isWallFan = block instanceof BaseCoralWallFanBlock;
-                Direction facing = isWallFan ? requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite()
-                        : Direction.DOWN;
                 List<Item> items = new ArrayList<>();
                 items.add(block.asItem());
                 if (InitHandler.REPLACE_CORAL.getBooleanValue()) {
@@ -320,6 +317,9 @@ public class PlacementGuide extends PrinterUtils {
 
                 Action action = new Action().setItems(itemsArray);
                 if (!isBlock) {
+                    boolean isWallFan = block instanceof BaseCoralWallFanBlock;
+                    Direction facing = isWallFan ? requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite()
+                            : Direction.DOWN;
                     action.setSides(facing).setRequiresSupport();
                 }
                 return action;
