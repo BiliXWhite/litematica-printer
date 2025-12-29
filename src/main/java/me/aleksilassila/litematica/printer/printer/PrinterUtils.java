@@ -52,11 +52,11 @@ public class PrinterUtils {
 		if (items == null || items.length == 0) return true;
 		if (Implementation.getAbilities(playerEntity).mayBuild) return true;
 		else {
-            if (!client.player.containerMenu.equals(client.player.inventoryMenu)) return false;
+            if (!playerEntity.containerMenu.equals(playerEntity.inventoryMenu)) return false;
             Inventory inv = playerEntity.getInventory();
 			for (Item item : items) {
 				for (int i = 0; i < inv.getContainerSize(); i++) {
-					if (inv.getItem(i).getItem() == item && inv.getItem(i).getCount() > 0) {
+					if (inv.getItem(i).getItem() == item) {
                         return true;
                     }
 				}
