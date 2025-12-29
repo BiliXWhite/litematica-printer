@@ -8,12 +8,14 @@ import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.utils.BlockUtils;
 import me.aleksilassila.litematica.printer.utils.DirectionUtils;
+import me.aleksilassila.litematica.printer.utils.ResourceLocationUtils;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
@@ -51,11 +53,14 @@ public class PlacementGuide extends PrinterUtils {
         for (ClassHook hook : ClassHook.values()) {
             for (Class<?> clazz : hook.classes) {
                 if (clazz != null && clazz.isInstance(requiredState.getBlock())) {
-                    return buildAction(world, worldSchematic, hook, pos, state);
+                    @Nullable Action action = buildAction(world, worldSchematic, hook, pos, state);
+                    if (action != null) {   // 珊瑚直接使用了 Block.class, 为了传递性所以只有不为null时进行返回
+                        return action;
+                    }
                 }
             }
         }
-        return buildAction(world, worldSchematic, ClassHook.DEFAULT, pos, state);
+        return buildAction(world, worldSchematic, ClassHook.DEFAULT, pos, state); // 兜底处理
     }
 
     private @Nullable Action buildAction(Level world, WorldSchematic worldSchematic, ClassHook requiredType, BlockPos pos, State state) {
@@ -293,65 +298,31 @@ public class PlacementGuide extends PrinterUtils {
                     }
                 }
             }
-            //超级无敌写史高手请求出战
             case DEAD_CORAL -> {
-                // 获取基本属性
                 Block block = requiredState.getBlock();
+                ResourceLocation blockId1 = BlockUtils.getIdentifier(block);
+                if (!blockId1.toString().contains("coral")) {
+                    return null;
+                }
+                ResourceLocation blockId2 = ResourceLocationUtils.of(blockId1.toString().replace("dead_", ""));
+                boolean isBlock = blockId1.toString().contains("block");
                 boolean isWallFan = block instanceof BaseCoralWallFanBlock;
                 Direction facing = isWallFan ? requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite()
                         : Direction.DOWN;
-
-                // 如果不是死亡珊瑚或不需要替换，直接返回基础Action
-                if (!InitHandler.REPLACE_CORAL.getBooleanValue()) {
-                    return new Action()
-                            .setSides(facing)
-                            .setRequiresSupport();
+                List<Item> items = new ArrayList<>();
+                items.add(block.asItem());
+                if (InitHandler.REPLACE_CORAL.getBooleanValue()) {
+                    if (!blockId1.equals(blockId2)) {
+                        items.add(BlockUtils.getBlock(blockId2).asItem());
+                    }
                 }
+                Item[] itemsArray = items.toArray(new Item[0]);
 
-                if (playerHasAccessToItem(mc.player, block.asItem()) || mc.player.isCreative()) {
-                    return new Action()
-                            .setSides(facing)
-                            .setRequiresSupport();
+                Action action = new Action().setItems(itemsArray);
+                if (!isBlock) {
+                    action.setSides(facing).setRequiresSupport();
                 }
-
-                String key = block.getDescriptionId();
-                //珊瑚扇
-                if (block instanceof BaseCoralFanBlock) {
-                    String type = key.replace("block.minecraft.dead_", "")
-                            .replace("_coral_wall_fan", "")
-                            .replace("_coral_fan", "");
-
-                    Item fanItem = switch (type) {
-                        case "tube" -> Items.TUBE_CORAL_FAN;
-                        case "brain" -> Items.BRAIN_CORAL_FAN;
-                        case "bubble" -> Items.BUBBLE_CORAL_FAN;
-                        case "fire" -> Items.FIRE_CORAL_FAN;
-                        case "horn" -> Items.HORN_CORAL_FAN;
-                        default -> null;
-                    };
-
-                    return new Action()
-                            .setItem(fanItem)
-                            .setSides(facing)
-                            .setRequiresSupport();
-                }
-
-                //非方块型珊瑚
-                if (block instanceof BaseCoralPlantBlock) {
-                    //例子：block.minecraft.dead_tube_coral
-                    String type = key.replace("block.minecraft.dead_", "").replace("_coral", "");
-                    return new Action().setItem(
-                            switch (type) {
-                                case "tube" -> Items.TUBE_CORAL;
-                                case "brain" -> Items.BRAIN_CORAL;
-                                case "bubble" -> Items.BUBBLE_CORAL;
-                                case "fire" -> Items.FIRE_CORAL;
-                                case "horn" -> Items.HORN_CORAL;
-                                default -> null;
-                            }
-                    ).setSides(Direction.DOWN).setRequiresSupport();
-                }
-
+                return action;
             }
             case FIRE -> {
                 if (requiredState.getBlock() instanceof SoulFireBlock)
@@ -903,7 +874,7 @@ public class PlacementGuide extends PrinterUtils {
         // 其他
         FARMLAND(FarmBlock.class), // 耕地
         DIRT_PATH(DirtPathBlock.class), // 土径
-        DEAD_CORAL(BaseCoralPlantTypeBlock.class), // 死珊瑚
+        DEAD_CORAL(Block.class), // 死珊瑚
         NETHER_PORTAL(NetherPortalBlock.class), // 下界传送门
         SKIP(SkullBlock.class, LiquidBlock.class, BubbleColumnBlock.class, WaterlilyBlock.class), // 跳过：移除SignBlock
         DEFAULT; // 默认
