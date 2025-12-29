@@ -157,20 +157,25 @@ dependencies {
             }
         }
         // 快捷潜影盒依赖(运行时)
-        if (mcVersion==12006){  // 1.20.6 是 Haocen2004/quickshulker 分支, 所以还是使用之前老版本的依赖
-            modImplementation ("net.kyrptonaught:kyrptconfig:${props["kyrptconfig"]}") // 快捷潜影盒依赖(运行时)
-        }else{
-            modImplementation ("me.fallenbreath:conditional-mixin-fabric:0.6.4")
+        if (mcVersion == 12006) {  // 1.20.6 是 Haocen2004/quickshulker 分支, 所以还是使用之前老版本的依赖
+            modImplementation("net.kyrptonaught:kyrptconfig:${props["kyrptconfig"]}") // 快捷潜影盒依赖(运行时)
+        } else {
+            modImplementation("me.fallenbreath:conditional-mixin-fabric:0.6.4")
         }
     } else {
         modImplementation("curse.maven:quick-shulker-362669:${props["quick_shulker"]}")
-        modImplementation ("net.kyrptonaught:kyrptconfig:${props["kyrptconfig"]}") // 快捷潜影盒依赖(运行时)
+        modImplementation("net.kyrptonaught:kyrptconfig:${props["kyrptconfig"]}") // 快捷潜影盒依赖(运行时)
     }
 
     // 暂时不知是什么依赖
     if (mcVersion >= 12001) {
         modImplementation("dev.isxander:yet-another-config-lib:${props["yacl"]}")
-        modImplementation("red.jackf.jackfredlib:jackfredlib:${props["jackfredlib"]}")
+
+        // TODO: 暂时不知道是什么模组的依赖, 不过在1.21.11中会报错, 因为这个库没有最新版本, 移除后正在运行, 不知道有什么BUG
+        // java.lang.NoSuchMethodError: 'long net.minecraft.server.level.ServerLevel.method_8510()'
+        if (mcVersion < 12111) {
+            modImplementation("red.jackf.jackfredlib:jackfredlib:${props["jackfredlib"]}")
+        }
         modImplementation("com.blamejared.searchables:${props["searchables"]}")
     } else {
         modImplementation("maven.modrinth:cloth-config:${props["cloth_config"]}")
@@ -186,14 +191,19 @@ dependencies {
 
 // ========================== Loom 配置 ==========================
 loom {
-    mixin{
+    mixin {
     }
     val commonVmArgs = listOf(
         "-Dmixin.debug.export=true",
-        "-Dmixin.debug.verbose=true", // 新增：打印详细 Mixin 加载日志
-        "-Dmixin.env.remapRefMap=true", // 新增：修复 Mixin RefMap 重映射问题
-        "-Dfabric.debug.accessWidener=true" // 新增：打印 accessWidener 加载日志
-        // "-Dmixin.debug.ignore=net.kyrptonaught.quickshulker.json:ScreenMixin" // 临时禁用冲突的 Mixin（按需）
+        "-Dmixin.debug.verbose=true",
+        "-Dmixin.env.remapRefMap=true",
+//        "-Dfabric.debug.accessWidener=true",
+//        "-Dlog4j2.formatMsgNoLookups=true",
+//        "-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager",
+//        "-XX:+ShowCodeDetailsInExceptionMessages",
+//        "-Dfabric.debug=true",
+//        "-Dfabric.log.level=debug"
+        // "-Dmixin.debug.ignore=net.kyrptonaught.quickshulker.json:ScreenMixin"
     )
     val programArgs = listOf(
         "--width", "1280",
