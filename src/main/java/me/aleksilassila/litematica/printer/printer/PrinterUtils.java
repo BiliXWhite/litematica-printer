@@ -9,6 +9,7 @@ import me.aleksilassila.litematica.printer.config.enums.ModeType;
 import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.config.enums.SelectionType;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
+import me.aleksilassila.litematica.printer.utils.DirectionUtils;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.SlabBlock;
@@ -43,8 +44,6 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.Inventor
 public class PrinterUtils {
 
     public static Direction[] horizontalDirections = new Direction[]{Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
-    @NotNull
-    static Minecraft client = Minecraft.getInstance();
 
     public static boolean playerHasAccessToItem(LocalPlayer playerEntity, Item item) {
         return playerHasAccessToItems(playerEntity, new Item[]{item});
@@ -105,7 +104,7 @@ public class PrinterUtils {
         sides.put(requiredDir, new Vec3(0, 0, 0));
 
         if (world.getBlockState(pos).hasProperty(SlabBlock.TYPE)) {
-            sides.put(requiredDir.getOpposite(), Vec3.atLowerCornerOf(PreprocessUtils.getVec3iFromDirection(requiredDir)).scale(0.5));
+            sides.put(requiredDir.getOpposite(), Vec3.atLowerCornerOf(DirectionUtils.getVector(requiredDir)).scale(0.5));
         }
 
         for (Direction side : horizontalDirections) {
@@ -117,7 +116,7 @@ public class PrinterUtils {
                 }
             }
 
-            sides.put(side, Vec3.atLowerCornerOf(PreprocessUtils.getVec3iFromDirection(requiredDir)).scale(0.25));
+            sides.put(side, Vec3.atLowerCornerOf(DirectionUtils.getVector(requiredDir)).scale(0.25));
         }
 
         return sides;
