@@ -4,7 +4,7 @@ import com.mojang.authlib.GameProfile;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.I18n;
-import me.aleksilassila.litematica.printer.InitHandler;
+import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
@@ -49,23 +49,26 @@ public class MixinClientPlayerEntity extends AbstractClientPlayer {
     @Final
     @Shadow
     public ClientPacketListener connection;
+
     @Final
     @Shadow
     protected Minecraft minecraft;
 
-    public MixinClientPlayerEntity(ClientLevel world, GameProfile profile
-                                   //#if MC == 11902
-                                   //$$ , @Nullable PlayerPublicKey publicKey) {super(world, profile, publicKey);
-                                   //#else
-    ) {
+    //#if MC == 11902
+    //$$ public MixinClientPlayerEntity(ClientLevel world, GameProfile profile, @Nullable PlayerPublicKey publicKey) {
+    //$$    super(world, profile, publicKey);
+    //$$ }
+    //#else
+    public MixinClientPlayerEntity(ClientLevel world, GameProfile profile) {
         super(world, profile);
-        //#endif
     }
+    //#endif
 
     @Inject(at = @At("HEAD"), method = "resetPos")
     public void init(CallbackInfo ci) {
-        if (InitHandler.UPDATE_CHECK.getBooleanValue() && !Printer.getInstance().updateChecked)
+        if (Configs.UPDATE_CHECK.getBooleanValue() && !Printer.getInstance().updateChecked) {
             CompletableFuture.runAsync(this::checkForUpdates);
+        }
         Printer.getInstance().updateChecked = true;
     }
 

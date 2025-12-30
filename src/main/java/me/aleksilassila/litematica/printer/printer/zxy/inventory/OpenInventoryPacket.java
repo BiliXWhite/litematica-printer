@@ -2,10 +2,11 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.malilib.util.StringUtils;
 import io.netty.buffer.Unpooled;
-import me.aleksilassila.litematica.printer.InitHandler;
+import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.utils.ResourceLocationUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.Minecraft;
@@ -69,14 +70,18 @@ import net.minecraft.core.registries.Registries;
 
 public class OpenInventoryPacket {
 
-    @NotNull
-    static Minecraft client = Minecraft.getInstance();
+    private static final @NotNull Minecraft client = Minecraft.getInstance();
+    private static final ResourceLocation OPEN_INVENTORY = ResourceLocationUtils.of("remoteinventory", "open_inventory");
+    private static final ResourceLocation OPEN_RETURN = ResourceLocationUtils.of("openreturn", "open_return");
+    private static final ResourceLocation HELLO_REMOTE_INTERACTIONS = ResourceLocationUtils.of("hello", "hello_remote_interactions");
+
 
     //#if MC > 12104
     private static final TicketType OPEN_TICKET = TicketType.UNKNOWN;
     //#else
     //$$ private static final TicketType<ChunkPos> OPEN_TICKET = TicketType.create("openInv", Comparator.comparingLong(ChunkPos::toLong), 2);
     //#endif
+
     public static HashMap<ServerPlayer, TickList> tickMap = new HashMap<>();
     public static boolean openIng = false;
     public static ResourceKey<Level> key = null;
@@ -85,15 +90,7 @@ public class OpenInventoryPacket {
     public static boolean clientTry = false;
     public static long clientTryTime = 0;
     public static long remoteTime = 0;
-    //#if MC > 12006
-    private static final ResourceLocation OPEN_INVENTORY = ResourceLocation.fromNamespaceAndPath("remoteinventory", "open_inventory");
-    private static final ResourceLocation OPEN_RETURN = ResourceLocation.fromNamespaceAndPath("openreturn", "open_return");
-    private static final ResourceLocation HELLO_REMOTE_INTERACTIONS = ResourceLocation.fromNamespaceAndPath("hello", "hello_remote_interactions");
-    //#else
-    //$$ private static final ResourceLocation OPEN_INVENTORY = new ResourceLocation("remoteinventory", "open_inventory");
-    //$$ private static final ResourceLocation OPEN_RETURN = new ResourceLocation("openreturn", "open_return");
-    //$$ private static final ResourceLocation HELLO_REMOTE_INTERACTIONS = new ResourceLocation("hello", "hello_remote_interactions");
-    //#endif
+
     public static ArrayList<ServerPlayer> playerlist = new ArrayList<>();
 
     //#if MC > 12004
@@ -165,6 +162,7 @@ public class OpenInventoryPacket {
         }
     }
     //#endif
+
     public static void registerClientReceivePacket() {
         //#if MC > 12004
         ClientPlayNetworking.registerGlobalReceiver(OPEN_RETURN_ID, (payload, context) -> {
@@ -181,9 +179,9 @@ public class OpenInventoryPacket {
         ClientPlayNetworking.registerGlobalReceiver(HELLO_REMOTE_INTERACTIONS_ID,(openInventoryPacket,context) -> {
             isRemote = true;
             client.execute(() -> {
-                if (InitHandler.AUTO_INVENTORY.getBooleanValue()) {
+                if (Configs.AUTO_INVENTORY.getBooleanValue()) {
                     ZxyUtils.actionBar("已自动启用远程交互容器!!!");
-                    InitHandler.CLOUD_INVENTORY.setBooleanValue(true);
+                    Configs.CLOUD_INVENTORY.setBooleanValue(true);
                 }
             });
         });
@@ -201,9 +199,9 @@ public class OpenInventoryPacket {
         //$$ ClientPlayNetworking.registerGlobalReceiver(HELLO_REMOTE_INTERACTIONS, (client, playNetworkHandler, packetByteBuf, packetSender) -> {
         //$$     isRemote = true;
         //$$     client.execute(() -> {
-        //$$         if (InitHandler.AUTO_INVENTORY.getBooleanValue()) {
+        //$$         if (Configs.AUTO_INVENTORY.getBooleanValue()) {
         //$$             ZxyUtils.actionBar("已自动启用远程交互容器!!!");
-        //$$             InitHandler.CLOUD_INVENTORY.setBooleanValue(true);
+        //$$             Configs.CLOUD_INVENTORY.setBooleanValue(true);
         //$$         }
         //$$     });
         //$$ });
@@ -281,9 +279,9 @@ public class OpenInventoryPacket {
 //        NamedScreenHandlerFactory handler = null;
 //        try {
 //            //#if MC < 12005
-//            handler = ((BlockWithEntity) blockState.getBlock()).createScreenHandlerFactory(blockState, world, pos);
+//            handler = ((BlockWithEntity) blockState.getBlock()).createScreenHandlerFactory(blockState, level, pos);
 //            //#else
-//            //$$ handler = ((me.aleksilassila.litematica.printer.mixin.openinv.BlockWithEntityMixin) blockState.getBlock()).createScreenHandlerFactory(blockState, world, pos);
+//            //$$ handler = ((me.aleksilassila.litematica.printer.mixin.openinv.BlockWithEntityMixin) blockState.getBlock()).createScreenHandlerFactory(blockState, level, pos);
 //            //#endif
 //        } catch (Exception ignored) {
 //            openReturn(player, blockState, false);
@@ -341,7 +339,7 @@ public class OpenInventoryPacket {
     public static void openReturn(boolean open, BlockState state) {
         if(clientTry){
             ZxyUtils.actionBar("已自动启用远程交互容器!!!");
-            InitHandler.CLOUD_INVENTORY.setBooleanValue(true);
+            Configs.CLOUD_INVENTORY.setBooleanValue(true);
             key = null;
             pos = null;
             remoteTime = 0;
@@ -405,7 +403,7 @@ public class OpenInventoryPacket {
     }
 
     public static void tick(){
-        if (!InitHandler.AUTO_INVENTORY.getBooleanValue()) return;
+        if (!Configs.AUTO_INVENTORY.getBooleanValue()) return;
         if(remoteTime != 0 && !isRemote && remoteTime + 3000L < System.currentTimeMillis()){
             if(!clientTry) {
                 clientTryTime = System.currentTimeMillis();
@@ -414,7 +412,7 @@ public class OpenInventoryPacket {
             clientTry = true;
             if(clientTryTime + 3000L < System.currentTimeMillis() && clientTry){
                 ZxyUtils.actionBar("已自动关闭远程交互容器");
-                InitHandler.CLOUD_INVENTORY.setBooleanValue(false);
+                Configs.CLOUD_INVENTORY.setBooleanValue(false);
                 remoteTime = 0;
                 clientTry = false;
             }

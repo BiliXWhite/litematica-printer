@@ -76,15 +76,7 @@ public class Implementation {
             //#endif
     };
 
-    /**
-     * Get player abilities.
-     *
-     * @param playerEntity the player
-     * @return player abilities
-     */
-    public static Abilities getAbilities(LocalPlayer playerEntity) {
-        return playerEntity.getAbilities();
-    }
+
 
     public static void sendLookPacket(LocalPlayer playerEntity, float lookYaw, float lookPitch) {
         playerEntity.connection.send(new ServerboundMovePlayerPacket.Rot(

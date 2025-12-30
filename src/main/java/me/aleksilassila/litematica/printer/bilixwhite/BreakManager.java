@@ -2,11 +2,12 @@ package me.aleksilassila.litematica.printer.bilixwhite;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
-import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.TweakerooUtils;
+import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.enums.ExcavateListMode;
 import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -24,14 +25,12 @@ import java.util.Set;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
 import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
-import static me.aleksilassila.litematica.printer.InitHandler.*;
-import static me.aleksilassila.litematica.printer.InitHandler.EXCAVATE_WHITELIST;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
 
 public class BreakManager {
-    private static BreakManager INSTANCE = null;
     private static final Set<BlockPos> breakTargets = new HashSet<>();
     private static final Minecraft client = Minecraft.getInstance();
+    private static BreakManager INSTANCE = null;
     private BlockPos breakPos;
     private BlockState state;
 
@@ -60,9 +59,56 @@ public class BreakManager {
         return breakTargets.contains(pos);
     }
 
+    public static boolean canBreakBlock(BlockPos pos) {
+        ClientLevel world = client.level;
+        BlockState currentState = world.getBlockState(pos);
+        return !currentState.isAir() &&
+                !(currentState.getBlock() instanceof LiquidBlock) &&
+                !currentState.is(Blocks.AIR) &&
+                !currentState.is(Blocks.CAVE_AIR) &&
+                !currentState.is(Blocks.VOID_AIR) &&
+                !(currentState.getBlock().defaultDestroyTime() == -1) &&
+                !client.player.blockActionRestricted(client.level, pos, client.gameMode.getPlayerMode());
+    }
+
+    public static boolean breakRestriction(BlockState blockState) {
+        if (Configs.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
+            if (!ModLoadStatus.isTweakerooLoaded()) return true;
+            UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
+            if (listType == UsageRestriction.ListType.BLACKLIST) {
+                return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST
+                        .getStrings()
+                        .stream()
+                        .noneMatch(string -> equalsBlockName(string, blockState));
+            } else if (listType == UsageRestriction.ListType.WHITELIST) {
+                return BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST
+                        .getStrings()
+                        .stream()
+                        .anyMatch(string -> equalsBlockName(string, blockState));
+            } else {
+                return true;
+            }
+        } else {
+            IConfigOptionListEntry optionListValue = Configs.EXCAVATE_LIMIT.getOptionListValue();
+            if (optionListValue == UsageRestriction.ListType.BLACKLIST) {
+                return Configs.EXCAVATE_BLACKLIST
+                        .getStrings()
+                        .stream()
+                        .noneMatch(string -> equalsBlockName(string, blockState));
+            } else if (optionListValue == UsageRestriction.ListType.WHITELIST) {
+                return Configs.EXCAVATE_WHITELIST
+                        .getStrings()
+                        .stream()
+                        .anyMatch(string -> equalsBlockName(string, blockState));
+            } else {
+                return true;
+            }
+        }
+    }
+
     // 每tick调用一次的方法
     public void onTick() {
-        if (!(InitHandler.PRINT_SWITCH.getBooleanValue() || InitHandler.PRINT.getKeybind().isPressed())) {
+        if (!(Configs.PRINT_SWITCH.getBooleanValue() || Configs.PRINT.getKeybind().isPressed())) {
             return;
         }
         if (client.player == null || client.level == null || client.gameMode == null) return;
@@ -84,7 +130,7 @@ public class BreakManager {
 
         while ((breakPos = (!breakTargets.isEmpty() && breakPos != null) ? updateTarget() : null) != null) {
             // 检查方块是否已消失或变为流体
-            if (!PlaceUtils.canInteracted(breakPos) ||
+            if (!PlayerUtils.canInteracted(breakPos) ||
                     !canBreakBlock(breakPos) ||
                     !breakRestriction(state)
             ) {
@@ -95,9 +141,8 @@ public class BreakManager {
             // 执行挖掘进度更新
             boolean success;
             try {
-                if (ModLoadStatus.isTweakerooLoaded()){
-                    if (TweakerooUtils.isToolSwitchEnabled())
-                    {
+                if (ModLoadStatus.isTweakerooLoaded()) {
+                    if (TweakerooUtils.isToolSwitchEnabled()) {
                         TweakerooUtils.trySwitchToEffectiveTool(breakPos);
                     }
                 }
@@ -157,45 +202,6 @@ public class BreakManager {
         state = null;
     }
 
-    public static boolean canBreakBlock(BlockPos pos) {
-        ClientLevel world = client.level;
-        BlockState currentState = world.getBlockState(pos);
-        return !currentState.isAir() &&
-                !(currentState.getBlock() instanceof LiquidBlock) &&
-                !currentState.is(Blocks.AIR) &&
-                !currentState.is(Blocks.CAVE_AIR) &&
-                !currentState.is(Blocks.VOID_AIR) &&
-                !(currentState.getBlock().defaultDestroyTime() == -1) &&
-                !client.player.blockActionRestricted(client.level, pos, client.gameMode.getPlayerMode());
-    }
-
-    public static boolean breakRestriction(BlockState blockState) {
-        if (EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
-            if (!ModLoadStatus.isTweakerooLoaded()) return true;
-            UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
-            if (listType == UsageRestriction.ListType.BLACKLIST) {
-                return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> equalsBlockName(string, blockState));
-            } else if (listType == UsageRestriction.ListType.WHITELIST) {
-                return BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> equalsBlockName(string, blockState));
-            } else {
-                return true;
-            }
-        } else {
-            IConfigOptionListEntry optionListValue = EXCAVATE_LIMIT.getOptionListValue();
-            if (optionListValue == UsageRestriction.ListType.BLACKLIST) {
-                return EXCAVATE_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> equalsBlockName(string, blockState));
-            } else if (optionListValue == UsageRestriction.ListType.WHITELIST) {
-                return EXCAVATE_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> equalsBlockName(string, blockState));
-            } else {
-                return true;
-            }
-        }
-    }
-
     /**
      * 挖掘指定位置的方块
      * 需要每tick都执行一次
@@ -211,8 +217,7 @@ public class BreakManager {
         // 检查方块是否可以破坏，如果可以则执行挖掘操作
         if (canBreakBlock(pos)) {
             if (ModLoadStatus.isTweakerooLoaded()) {
-                if (TweakerooUtils.isToolSwitchEnabled())
-                {
+                if (TweakerooUtils.isToolSwitchEnabled()) {
                     TweakerooUtils.trySwitchToEffectiveTool(pos);
                 }
             }

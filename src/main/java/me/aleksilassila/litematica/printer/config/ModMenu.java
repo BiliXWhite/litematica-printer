@@ -7,7 +7,7 @@ public class ModMenu implements ModMenuApi {
     @Override
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
         return (screen)->{
-            ConfigUI ui = new ConfigUI();
+            ConfigUi ui = new ConfigUi();
             ui.setParent(screen);
             return ui;
         };

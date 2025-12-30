@@ -1,8 +1,8 @@
 package me.aleksilassila.litematica.printer.function;
 
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
-import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
+import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
@@ -23,14 +23,14 @@ public class FunctionMineMode extends FunctionModeBase {
 
     @Override
     public ConfigBoolean getCurrentConfig() {
-        return InitHandler.MINE;
+        return Configs.MINE;
     }
 
     @Override
     public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
         BlockPos pos;
         while ((pos = breakPos == null ? printer.getBlockPos() : breakPos) != null) {
-            if (PrinterUtils.isPositionInSelectionRange(player,pos,InitHandler.MINE_SELECTION_TYPE)) {
+            if (PrinterUtils.isPositionInSelectionRange(player,pos, Configs.MINE_SELECTION_TYPE)) {
                 if (BreakManager.breakRestriction(level.getBlockState(pos)) && breakManager.breakBlock(pos)) {
                     Printer.getInstance().requiredState = level.getBlockState(pos);
                     breakPos = pos;

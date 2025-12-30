@@ -3,14 +3,15 @@ package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
-import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
+import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
+import me.aleksilassila.litematica.printer.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -43,8 +44,8 @@ import java.util.*;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //#endif
 
-import static me.aleksilassila.litematica.printer.InitHandler.SYNC_INVENTORY_CHECK;
-import static me.aleksilassila.litematica.printer.InitHandler.SYNC_INVENTORY_COLOR;
+import static me.aleksilassila.litematica.printer.config.Configs.SYNC_INVENTORY_CHECK;
+import static me.aleksilassila.litematica.printer.config.Configs.SYNC_INVENTORY_COLOR;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
 import static me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus.closeScreen;
 import static net.minecraft.world.level.block.ShulkerBoxBlock.FACING;
@@ -68,13 +69,13 @@ public class ZxyUtils {
 
     public static void startAddPrinterInventory() {
         getReadyColor();
-        if (InitHandler.CLOUD_INVENTORY.getBooleanValue() && !printerMemoryAdding) {
+        if (Configs.CLOUD_INVENTORY.getBooleanValue() && !printerMemoryAdding) {
             printerMemoryAdding = true;
             //#if MC >= 12001 && MC <= 12104
             //$$ if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
             //#endif
 
-            for (String string : InitHandler.INVENTORY_LIST.getStrings()) {
+            for (String string : Configs.INVENTORY_LIST.getStrings()) {
                 invBlockList.addAll(filterBlocksByName(string).stream().filter(InventoryUtils::canOpenInv).toList());
             }
             highlightPosList.addAll(invBlockList);
@@ -171,11 +172,11 @@ public class ZxyUtils {
     }
 
     public static boolean openInv(BlockPos pos, boolean ignoreThePrompt) {
-        if (InitHandler.CLOUD_INVENTORY.getBooleanValue() && OpenInventoryPacket.key == null) {
+        if (Configs.CLOUD_INVENTORY.getBooleanValue() && OpenInventoryPacket.key == null) {
             OpenInventoryPacket.sendOpenInventory(pos, client.level.dimension());
             return true;
         } else {
-            if (client.player != null && !PlaceUtils.canInteracted(pos)) {
+            if (client.player != null && !PlayerUtils.canInteracted(pos)) {
                 if (!ignoreThePrompt)
                     client.gui.setOverlayMessage(Component.nullToEmpty("距离过远无法打开容器"), false);
                 return false;
@@ -214,7 +215,7 @@ public class ZxyUtils {
                 //按下热键后记录看向的容器 开始同步容器 只会触发一次
                 targetBlockInv = new ArrayList<>();
                 targetItemsCount = new HashMap<>();
-                if (client.player != null && (!InitHandler.CLOUD_INVENTORY.getBooleanValue() || openIng) && !client.player.containerMenu.equals(client.player.inventoryMenu)) {
+                if (client.player != null && (!Configs.CLOUD_INVENTORY.getBooleanValue() || openIng) && !client.player.containerMenu.equals(client.player.inventoryMenu)) {
                     for (int i = 0; i < client.player.containerMenu.slots.get(0).container.getContainerSize(); i++) {
                         ItemStack copy = client.player.containerMenu.slots.get(i).getItem().copy();
                         itemsCount(targetItemsCount, copy);
@@ -242,7 +243,7 @@ public class ZxyUtils {
                                         ItemStack.isSameItemSameComponents(player.getKey(), target.getKey()) && target.getValue() <= player.getValue())))
                     return;
 
-                if ((!InitHandler.CLOUD_INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
+                if ((!Configs.CLOUD_INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
                     for (BlockPos pos : syncPosList) {
                         if (!openInv(pos, true)) continue;
                         closeScreen++;
@@ -351,7 +352,7 @@ public class ZxyUtils {
         if (usePacket) {
             client.getConnection().send(new ServerboundSetCarriedItemPacket(slot));
         }
-        PreprocessUtils.setSelectedSlot(inventory, slot);
+        me.aleksilassila.litematica.printer.utils.InventoryUtils.setSelectedSlot(inventory, slot);
     }
 
     public static void actionBar(String message) {

@@ -1,12 +1,10 @@
 package me.aleksilassila.litematica.printer.function;
 
-import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
-import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
+import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.enums.FileBlockModeType;
 import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
-import me.aleksilassila.litematica.printer.config.enums.SelectionType;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
@@ -37,7 +35,7 @@ public class FunctionFillMode extends FunctionModeBase {
 
     @Override
     public ConfigBoolean getCurrentConfig() {
-        return InitHandler.FILL;
+        return Configs.FILL;
     }
 
     @Override
@@ -45,7 +43,7 @@ public class FunctionFillMode extends FunctionModeBase {
         Printer.getInstance().requiredState = null;
         boolean handheld = false;
         // 手持物品
-        if (InitHandler.FILL_BLOCK_MODE.getOptionListValue() == FileBlockModeType.HANDHELD) {
+        if (Configs.FILL_BLOCK_MODE.getOptionListValue() == FileBlockModeType.HANDHELD) {
             handheld = true;
             ItemStack heldStack = player.getMainHandItem(); // 获取主手物品
             if (heldStack.isEmpty() || heldStack.getCount() <= 0) {
@@ -54,9 +52,9 @@ public class FunctionFillMode extends FunctionModeBase {
             fillModeItemList = List.of(heldStack.getItem());
         }
         // 白名单模式
-        if (InitHandler.FILL_BLOCK_MODE.getOptionListValue() == FileBlockModeType.WHITELIST) {
+        if (Configs.FILL_BLOCK_MODE.getOptionListValue() == FileBlockModeType.WHITELIST) {
             // 每次去MC注册表中获取会造成大量卡顿, 所以仅在玩家修改了填充列表, 再去读取以便注册表
-            List<String> strings = InitHandler.FILL_BLOCK_LIST.getStrings();
+            List<String> strings = Configs.FILL_BLOCK_LIST.getStrings();
             if (!strings.equals(fillcaCheBlocklist)) {
                 fillcaCheBlocklist = new ArrayList<>(strings);
                 if (strings.isEmpty()) {
@@ -69,18 +67,18 @@ public class FunctionFillMode extends FunctionModeBase {
         }
         BlockPos pos;
         while ((pos = printer.getBlockPos()) != null) {
-            if (InitHandler.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0)
+            if (Configs.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0)
                 return;
-            if (!PrinterUtils.isPositionInSelectionRange(player, pos, InitHandler.FILL_SELECTION_TYPE))
+            if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.FILL_SELECTION_TYPE))
                 continue;
             if (!Printer.TempData.xuanQuFanWeiNei_p(pos))
                 continue;
             // 跳过冷却中的位置
             if (Printer.getInstance().placeCooldownList.containsKey(pos))
                 continue;
-            Printer.getInstance().placeCooldownList.put(pos, InitHandler.PLACE_COOLDOWN.getIntegerValue());
+            Printer.getInstance().placeCooldownList.put(pos, Configs.PLACE_COOLDOWN.getIntegerValue());
             var currentState = level.getBlockState(pos);
-            if (currentState.isAir() || (currentState.getBlock() instanceof LiquidBlock) || InitHandler.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> equalsBlockName(s, currentState))) {
+            if (currentState.isAir() || (currentState.getBlock() instanceof LiquidBlock) || Configs.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> equalsBlockName(s, currentState))) {
                 if (handheld || printer.switchToItems(player, getFillItemsArray())) {
                     if (handheld) {
                         ItemStack heldStack = player.getMainHandItem(); // 获取主手物品
@@ -92,7 +90,7 @@ public class FunctionFillMode extends FunctionModeBase {
 
                     if (printer.tickRate == 0) {
                         printer.queue.sendQueue(client.player);
-                        if (InitHandler.BLOCKS_PER_TICK.getIntegerValue() != 0) {
+                        if (Configs.BLOCKS_PER_TICK.getIntegerValue() != 0) {
                             printer.printerWorkingCountPerTick--;
                         }
                         continue;
