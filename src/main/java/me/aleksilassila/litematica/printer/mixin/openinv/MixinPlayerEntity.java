@@ -15,8 +15,9 @@ import org.spongepowered.asm.mixin.Mixin;
 @Mixin(value = Player.class)
 public class MixinPlayerEntity {
     //FIXME 等待宅咸鱼更新远程交互
-    //#if MC < 12109
-    //$$ @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;stillValid(Lnet/minecraft/world/entity/player/Player;)Z"), method = "tick")
+
+    //#if MC < 12007
+    //$$ @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/level/inventory/AbstractContainerMenu;stillValid(Lnet/minecraft/level/entity/player/Player;)Z"), method = "tick")
     //$$ public boolean tick(AbstractContainerMenu instance, Player player, Operation<Boolean> original) {
     //$$     if (player instanceof ServerPlayer) {
     //$$         for (ServerPlayer serverPlayer : OpenInventoryPacket.playerlist) {
