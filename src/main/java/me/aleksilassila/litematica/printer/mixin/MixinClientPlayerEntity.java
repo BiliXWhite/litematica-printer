@@ -133,6 +133,16 @@ public class MixinClientPlayerEntity extends AbstractClientPlayer {
     }
 
     @Inject(method = "openTextEdit", at = @At("HEAD"), cancellable = true)
+    //#if MC > 11904
+    public void openTextEdit(SignBlockEntity sign, boolean front, CallbackInfo ci) {
+        openEditSignScreen(sign, front, ci);
+    }
+    //#else
+    //$$ public void openTextEdit(SignBlockEntity sign, CallbackInfo ci) {
+    //$$    openEditSignScreen(sign, false, ci);
+    //$$ }
+    //#endif
+
     public void openEditSignScreen(SignBlockEntity sign, boolean front, CallbackInfo ci) {
         getTargetSignEntity(sign).ifPresent(signBlockEntity ->
         {
