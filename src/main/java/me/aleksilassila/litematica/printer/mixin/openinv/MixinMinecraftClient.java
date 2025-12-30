@@ -70,19 +70,19 @@ public abstract class MixinMinecraftClient {
         }
         original.call(instance, pos, b);
     }
-    //#else
-    //$$ TODO: 以下低版本mixin有错, 分析检查出来的, 待修复
-    //$$ @WrapOperation(method = "pickBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/level/entity/player/Inventory;findSlotMatchingItem(Lnet/minecraft/level/item/ItemStack;)I" ))
-    //$$ private int doItemPick(Inventory instance, ItemStack stack, Operation<Integer> original) {
-    //$$     int slotWithStack = original.call(instance, stack);
-    //$$     if(!player.getAbilities().instabuild && (CLOUD_INVENTORY.getBooleanValue() || QUICK_SHULKER.getBooleanValue()) && slotWithStack == -1){
-    //$$         Item item = stack.getItem();
-    //$$         lastNeedItemList.add(item);
-    //$$         InventoryUtils.switchItem();
-    //$$         return -1;
-    //$$     }
-    //$$     return slotWithStack;
-    //$$ }
+    ////#else
+    ////$$ TODO: 以下低版本mixin有错, 分析检查出来的, 待修复
+    ////$$ @WrapOperation(method = "pickBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/level/entity/player/Inventory;findSlotMatchingItem(Lnet/minecraft/level/item/ItemStack;)I" ))
+    ////$$ private int doItemPick(Inventory instance, ItemStack stack, Operation<Integer> original) {
+    ////$$     int slotWithStack = original.call(instance, stack);
+    ////$$     if(!player.getAbilities().instabuild && (CLOUD_INVENTORY.getBooleanValue() || QUICK_SHULKER.getBooleanValue()) && slotWithStack == -1){
+    ////$$         Item item = stack.getItem();
+    ////$$         lastNeedItemList.add(item);
+    ////$$         InventoryUtils.switchItem();
+    ////$$         return -1;
+    ////$$     }
+    ////$$     return slotWithStack;
+    ////$$ }
     //#endif
 
 }
