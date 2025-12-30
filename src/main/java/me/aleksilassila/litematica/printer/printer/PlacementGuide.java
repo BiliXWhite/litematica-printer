@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class PlacementGuide extends PrinterUtils {
     private static final Map<Block, Block> STRIPPED_LOGS = AxeItemAccessor.getStrippedBlocks();
@@ -50,20 +51,24 @@ public class PlacementGuide extends PrinterUtils {
         var state = State.get(requiredState, world.getBlockState(pos));
         if (!requiredState.canSurvive(world, pos) || state == State.CORRECT)
             return null;
+
+        AtomicReference<Boolean> skip = new AtomicReference<>(false);
         for (ClassHook hook : ClassHook.values()) {
             for (Class<?> clazz : hook.classes) {
                 if (clazz != null && clazz.isInstance(requiredState.getBlock())) {
-                    @Nullable Action action = buildAction(world, worldSchematic, hook, pos, state);
-                    if (action != null) {   // 珊瑚直接使用了 Block.class, 为了传递性所以只有不为null时进行返回
-                        return action;
+                    skip.set(false);
+                    @Nullable Action action = buildAction(world, worldSchematic, hook, pos, state, skip);
+                    if (action == null && skip.get()) {   // 珊瑚直接使用了 Block.class, 为了传递性所以只有不为null时进行返回
+                        continue;
                     }
+                    return action;
                 }
             }
         }
-        return buildAction(world, worldSchematic, ClassHook.DEFAULT, pos, state); // 兜底处理
+        return buildAction(world, worldSchematic, ClassHook.DEFAULT, pos, state, skip); // 兜底处理
     }
 
-    private @Nullable Action buildAction(Level world, WorldSchematic worldSchematic, ClassHook requiredType, BlockPos pos, State state) {
+    private @Nullable Action buildAction(Level world, WorldSchematic worldSchematic, ClassHook requiredType, BlockPos pos, State state, AtomicReference<Boolean> skip) {
         BlockState currentState = world.getBlockState(pos);
         BlockState requiredState = worldSchematic.getBlockState(pos);
 
@@ -302,6 +307,7 @@ public class PlacementGuide extends PrinterUtils {
                 Block block = requiredState.getBlock();
                 ResourceLocation blockId1 = BlockUtils.getIdentifier(block);
                 if (!blockId1.toString().contains("coral")) {
+                    skip.set(true); // 使用了Block, 但不是该指南的方块, 让下一个指南进行处理
                     return null;
                 }
                 ResourceLocation blockId2 = ResourceLocationUtils.of(blockId1.toString().replace("dead_", ""));
