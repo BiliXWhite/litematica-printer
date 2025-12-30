@@ -514,7 +514,7 @@ public class Printer extends PrinterUtils {
             Vec3 hitVec;
             if (!useProtocol) {
                 Vec3 targetCenter = Vec3.atCenterOf(target);
-                Vec3 sideOffset = Vec3.atLowerCornerOf(PreprocessUtils.getVec3iFromDirection(side)).scale(0.5);
+                Vec3 sideOffset = Vec3.atLowerCornerOf(DirectionUtils.getVector(side)).scale(0.5);
                 Vec3 rotatedHitModifier = hitModifier.yRot((direction.toYRot() + 90) % 360).scale(0.5);
                 hitVec = targetCenter.add(sideOffset).add(rotatedHitModifier);
             } else {
