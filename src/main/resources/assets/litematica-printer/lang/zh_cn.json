@@ -204,5 +204,21 @@
   "litematica_printer.update.repository": "代码仓库：",
   "modmenu.descriptionTranslation.litematica_printer": "§l该版本基于宅咸鱼的版本进行修改。§r\n我也不知道在这里写什么喵~\n如果你的语言表达能力很优秀，欢迎前来github为我们贡献这里的文字！",
   "modmenu.nameTranslation.litematica_printer": "投影打印机 三改版",
-  "modmenu.summaryTranslation.litematica_printer": "Litematica的扩展模组，为1.18+的版本增加了缺失的打印机功能。"
+  "modmenu.summaryTranslation.litematica_printer": "Litematica的扩展模组，为1.18+的版本增加了缺失的打印机功能。",
+
+  "litematica_printer.config.list.selectionType.litematica.selection": "投影选区",
+  "litematica_printer.config.list.selectionType.litematica.renderLayer": "投影渲染层",
+  "litematica_printer.config.list.selectionType.litematica.selection.belowPlayer": "投影选区(玩家之下)",
+  "litematica_printer.config.list.selectionType.litematica.selection.abovePlayer": "投影选区(玩家之上)",
+
+  "litematica_printer.config.name.printSelectionType": "打印 - 选区类型",
+  "litematica_printer.config.name.fillSelectionType": "填充 - 选区类型",
+  "litematica_printer.config.name.fluidSelectionType": "排流体 - 选区类型",
+  "litematica_printer.config.name.mineSelectionType": "挖掘 - 选区类型",
+
+  "litematica_printer.config.comment.printerSelectionType": "设置打印模式下打印机的工作选区范围规则：\n§d投影选区§r：使用投影当前选中的完整选区作为工作范围\n§d投影渲染层§r：仅在投影当前渲染层范围内工作\n§d投影选区 玩家之下§r：仅处理选区中玩家所在高度以下的区域\n§d投影选区 玩家之上§r：仅处理选区中玩家所在高度以上的区域",
+  "litematica_printer.config.comment.fillSelectionType": "设置填充模式下打印机的工作选区范围规则：\n§d投影选区§r：使用投影当前选中的完整选区作为工作范围\n§d投影渲染层§r：仅在投影当前渲染层范围内工作\n§d投影选区 玩家之下§r：仅处理选区中玩家所在高度以下的区域\n§d投影选区 玩家之上§r：仅处理选区中玩家所在高度以上的区域",
+  "litematica_printer.config.comment.fluidSelectionType": "设置排流体模式下打印机的工作选区范围规则：\n§d投影选区§r：使用投影当前选中的完整选区作为工作范围\n§d投影渲染层§r：仅在投影当前渲染层范围内工作\n§d投影选区 玩家之下§r：仅处理选区中玩家所在高度以下的区域\n§d投影选区 玩家之上§r：仅处理选区中玩家所在高度以上的区域",
+  "litematica_printer.config.comment.mineSelectionType": "设置挖掘模式下打印机的工作选区范围规则：\n§d投影选区§r：使用投影当前选中的完整选区作为工作范围\n§d投影渲染层§r：仅在投影当前渲染层范围内工作\n§d投影选区 玩家之下§r：仅处理选区中玩家所在高度以下的区域\n§d投影选区 玩家之上§r：仅处理选区中玩家所在高度以上的区域（默认）"
+
 }

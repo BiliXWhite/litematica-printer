@@ -1,10 +1,12 @@
 package me.aleksilassila.litematica.printer.function;
 
+import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.config.enums.FileBlockModeType;
 import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
+import me.aleksilassila.litematica.printer.config.enums.SelectionType;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
@@ -69,7 +71,7 @@ public class FunctionFillMode extends FunctionModeBase {
         while ((pos = printer.getBlockPos()) != null) {
             if (InitHandler.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0)
                 return;
-            if (PrinterUtils.isLimitedByTheNumberOfLayers(pos))
+            if (!PrinterUtils.isPositionInSelectionRange(player, pos, InitHandler.FILL_SELECTION_TYPE))
                 continue;
             if (!Printer.TempData.xuanQuFanWeiNei_p(pos))
                 continue;

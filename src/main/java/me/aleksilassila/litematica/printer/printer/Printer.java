@@ -235,9 +235,9 @@ public class Printer extends PrinterUtils {
                 return;
             }
             // 是否在渲染层内
-            if (PrinterUtils.isLimitedByTheNumberOfLayers(pos)) {
+            if (!PrinterUtils.isPositionInSelectionRange(player,pos, PRINT_SELECTION_TYPE))
                 continue;
-            }
+
             if (!isSchematicBlock(pos)) {
                 continue;
             }
