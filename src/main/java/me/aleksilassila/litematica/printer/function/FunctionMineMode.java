@@ -30,7 +30,7 @@ public class FunctionMineMode extends FunctionModeBase {
     public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
         BlockPos pos;
         while ((pos = breakPos == null ? printer.getBlockPos() : breakPos) != null) {
-            if (!PrinterUtils.isLimitedByTheNumberOfLayers(pos)) {
+            if (PrinterUtils.isPositionInSelectionRange(player,pos,InitHandler.MINE_SELECTION_TYPE)) {
                 if (BreakManager.breakRestriction(level.getBlockState(pos)) && breakManager.breakBlock(pos)) {
                     Printer.getInstance().requiredState = level.getBlockState(pos);
                     breakPos = pos;

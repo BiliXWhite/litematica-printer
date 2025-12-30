@@ -2,12 +2,15 @@ package me.aleksilassila.litematica.printer.printer;
 
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
+import fi.dy.masa.malilib.config.options.ConfigOptionList;
 import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.config.enums.ModeType;
 import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
+import me.aleksilassila.litematica.printer.config.enums.SelectionType;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Half;
@@ -39,32 +42,31 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.Inventor
 
 public class PrinterUtils {
 
+    public static Direction[] horizontalDirections = new Direction[]{Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
     @NotNull
     static Minecraft client = Minecraft.getInstance();
 
-	public static Direction[] horizontalDirections = new Direction[]{Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
+    public static boolean playerHasAccessToItem(LocalPlayer playerEntity, Item item) {
+        return playerHasAccessToItems(playerEntity, new Item[]{item});
+    }
 
-	public static boolean playerHasAccessToItem(LocalPlayer playerEntity, Item item) {
-		return playerHasAccessToItems(playerEntity, new Item[]{item});
-	}
-
-	public static boolean playerHasAccessToItems(LocalPlayer playerEntity, Item[] items) {
-		if (items == null || items.length == 0) return true;
-		if (Implementation.getAbilities(playerEntity).mayBuild) return true;
-		else {
+    public static boolean playerHasAccessToItems(LocalPlayer playerEntity, Item[] items) {
+        if (items == null || items.length == 0) return true;
+        if (Implementation.getAbilities(playerEntity).mayBuild) return true;
+        else {
             if (!playerEntity.containerMenu.equals(playerEntity.inventoryMenu)) return false;
             Inventory inv = playerEntity.getInventory();
-			for (Item item : items) {
-				for (int i = 0; i < inv.getContainerSize(); i++) {
-					if (inv.getItem(i).getItem() == item) {
+            for (Item item : items) {
+                for (int i = 0; i < inv.getContainerSize(); i++) {
+                    if (inv.getItem(i).getItem() == item) {
                         return true;
                     }
-				}
+                }
                 lastNeedItemList.add(item);
             }
-		}
+        }
         return false;
-	}
+    }
 
     public static Direction getHalf(Half half) {
         return half == Half.TOP ? Direction.UP : Direction.DOWN;
@@ -121,11 +123,31 @@ public class PrinterUtils {
         return sides;
     }
 
-    public static boolean isLimitedByTheNumberOfLayers(BlockPos pos) {
-        if (InitHandler.RENDER_LAYER_LIMIT.getBooleanValue()) {
-            return !DataManager.getRenderLayerRange().isPositionWithinRange(pos);
+//    public static boolean isLimitedByTheNumberOfLayers(BlockPos pos) {
+//        if (InitHandler.RENDER_LAYER_LIMIT.getBooleanValue()) {
+//            return !DataManager.getRenderLayerRange().isPositionWithinRange(pos);
+//        }
+//        return false;
+//    }
+
+
+    public static boolean isPositionInSelectionRange(Player player, BlockPos pos, ConfigOptionList selectionTypeConfig) {
+        if (player == null || pos == null || selectionTypeConfig == null) {
+            return false;
         }
-        return false;
+        if (!(selectionTypeConfig.getOptionListValue() instanceof SelectionType selectionType)) {
+            return false;
+        }
+        return switch (selectionType) {
+            // 投影渲染层：坐标在渲染层范围内 → 返回true
+            case LITEMATICA_RENDER_LAYER -> DataManager.getRenderLayerRange().isPositionWithinRange(pos);
+            // 玩家之下：坐标Y ≤ 玩家Y → 返回true
+            case LITEMATICA_SELECTION_BELOW_PLAYER -> pos.getY() <= Math.floor(player.getY());
+            // 玩家之上：坐标Y ≥ 玩家Y → 返回true
+            case LITEMATICA_SELECTION_ABOVE_PLAYER -> pos.getY() >= Math.ceil(player.getY());
+            // 默认（投影完整选区）：所有坐标都有效 → 返回true
+            default -> true;
+        };
     }
 
     /**
@@ -164,6 +186,7 @@ public class PrinterUtils {
         return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && InitHandler.FILL.getBooleanValue())
                 || PRINTER_MODE.getOptionListValue() == PrintModeType.FILL;
     }
+
     public static boolean isFluidMode() {
         return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && InitHandler.FLUID.getBooleanValue())
                 || PRINTER_MODE.getOptionListValue() == PrintModeType.FLUID;
