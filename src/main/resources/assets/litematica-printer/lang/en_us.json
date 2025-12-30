@@ -204,5 +204,22 @@
   "litematica_printer.update.repository": "Repository:",
   "modmenu.descriptionTranslation.litematica_printer": "§lThis version is based on the modification by ZhaiXianYu. §r\nI'm not sure what to write here :P\nIf you have excellent language skills, we're welcome to contribute this on GitHub!",
   "modmenu.nameTranslation.litematica_printer": "Projection Printer White's Version",
-  "modmenu.summaryTranslation.litematica_printer": "An extension mod for Litematica, adding missing printer functionality for versions 1.18+."
+  "modmenu.summaryTranslation.litematica_printer": "An extension mod for Litematica, adding missing printer functionality for versions 1.18+.",
+
+  "litematica_printer.config.list.selectionType.litematica.selection": "Litematica Selection",
+  "litematica_printer.config.list.selectionType.litematica.renderLayer": "Litematica Render Layer",
+  "litematica_printer.config.list.selectionType.litematica.selection.belowPlayer": "Litematica Selection (Below Player)",
+  "litematica_printer.config.list.selectionType.litematica.selection.abovePlayer": "Litematica Selection (Above Player)",
+
+  "litematica_printer.config.name.printSelectionType": "Print - Selection Type",
+  "litematica_printer.config.name.fillSelectionType": "Fill - Selection Type",
+  "litematica_printer.config.name.fluidSelectionType": "Fluid - Selection Type",
+  "litematica_printer.config.name.mineSelectionType": "Mine - Selection Type",
+
+  "litematica_printer.config.comment.printerSelectionType": "Set the working selection range rules for the printer in Print mode:\n§dLitematica Selection§r: Use the full currently selected Litematica selection as the working range\n§dLitematica Render Layer§r: Only work within the current Litematica render layer range\n§dLitematica Selection (Below Player)§r: Only process areas below the player's height in the selection\n§dLitematica Selection (Above Player)§r: Only process areas above the player's height in the selection",
+  "litematica_printer.config.comment.fillSelectionType": "Set the working selection range rules for the printer in Fill mode:\n§dLitematica Selection§r: Use the full currently selected Litematica selection as the working range\n§dLitematica Render Layer§r: Only work within the current Litematica render layer range\n§dLitematica Selection (Below Player)§r: Only process areas below the player's height in the selection\n§dLitematica Selection (Above Player)§r: Only process areas above the player's height in the selection",
+  "litematica_printer.config.comment.fluidSelectionType": "Set the working selection range rules for the printer in Fluid mode:\n§dLitematica Selection§r: Use the full currently selected Litematica selection as the working range\n§dLitematica Render Layer§r: Only work within the current Litematica render layer range\n§dLitematica Selection (Below Player)§r: Only process areas below the player's height in the selection\n§dLitematica Selection (Above Player)§r: Only process areas above the player's height in the selection",
+  "litematica_printer.config.comment.mineSelectionType": "Set the working selection range rules for the printer in Mine mode:\n§dLitematica Selection§r: Use the full currently selected Litematica selection as the working range\n§dLitematica Render Layer§r: Only work within the current Litematica render layer range\n§dLitematica Selection (Below Player)§r: Only process areas below the player's height in the selection\n§dLitematica Selection (Above Player)§r: Only process areas above the player's height in the selection (Default)"
+
+
 }

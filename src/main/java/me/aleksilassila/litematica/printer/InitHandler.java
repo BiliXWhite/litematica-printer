@@ -29,6 +29,11 @@ public class InitHandler implements IInitializationHandler {
 
 //    public static final ConfigBooleanHotkeyed REPLACE_BLOCK = new ConfigBooleanHotkeyed("替换", false,"", "替换方块，通过\"替换方块名单\"配置");
 
+    public static final ConfigOptionList PRINT_SELECTION_TYPE     = optionList(I18n.PRINT_SELECTION_TYPE            , SelectionType.LITEMATICA_SELECTION);
+    public static final ConfigOptionList FILL_SELECTION_TYPE      = optionList(I18n.FILL_SELECTION_TYPE            , SelectionType.LITEMATICA_SELECTION);
+    public static final ConfigOptionList FLUID_SELECTION_TYPE     = optionList(I18n.FLUID_SELECTION_TYPE            , SelectionType.LITEMATICA_SELECTION);
+    public static final ConfigOptionList MINE_SELECTION_TYPE      = optionList(I18n.MINE_SELECTION_TYPE            , SelectionType.LITEMATICA_SELECTION_ABOVE_PLAYER);
+
     public static final ConfigStringList FLUID_BLOCK_LIST = stringList(I18n.FLUID_BLOCK_LIST, ImmutableList.of("minecraft:sand"));
     public static final ConfigStringList FLUID_LIST = stringList(I18n.FLUID_LIST, ImmutableList.of("minecraft:water", "minecraft:lava"));
 
@@ -82,7 +87,7 @@ public class InitHandler implements IInitializationHandler {
     public static final ConfigBoolean AUTO_DISABLE_PRINTER      = bool(I18n.PRINTER_AUTO_DISABLE            , true );
     public static final ConfigBoolean EASYPLACE_PROTOCOL        = bool(I18n.EASY_PLACE_PROTOCOL             , true );
     public static final ConfigBoolean MULTI_BREAK               = bool(I18n.MULTI_BREAK                     , true );
-    public static final ConfigBoolean RENDER_LAYER_LIMIT        = bool(I18n.RENDER_LAYER_LIMIT              , false);
+//    public static final ConfigBoolean RENDER_LAYER_LIMIT        = bool(I18n.RENDER_LAYER_LIMIT              , false);
     public static final ConfigBoolean PRINT_IN_AIR              = bool(I18n.PRINT_IN_AIR                    , true );
     public static final ConfigBoolean FORCED_SNEAK              = bool(I18n.FORCED_SNEAK                    , false);
     public static final ConfigBoolean REPLACE                   = bool(I18n.REPLACE                         , true );

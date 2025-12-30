@@ -58,7 +58,6 @@ public class Configs implements IConfigHandler {
         } else {
             list.add(MULTI_BREAK);                  // 多模阻断
         }
-        list.add(RENDER_LAYER_LIMIT);               // 渲染层数限制
         list.add(FLUID_BLOCK_LIST);                 // 排流体-方块名单
         list.add(FLUID_LIST);                       // 排流体-液体名单
         list.add(FILL_BLOCK_MODE);                  // 填充方块模式
@@ -89,6 +88,7 @@ public class Configs implements IConfigHandler {
         list.add(REPLACE);                  // 覆盖打印
         list.add(REPLACEABLE_LIST);         // 覆盖方块列表
         list.add(REPLACE_CORAL);            // 替换珊瑚
+        list.add(PRINT_SELECTION_TYPE);     // 打印 - 选区类型
         list.add(PRINT_WATER);              // 打印 - 破冰放水
         list.add(STRIP_LOGS);               // 打印 - 自动去皮
         list.add(NOTE_BLOCK_TUNING);        // 打印 - 音符盒自动调音
@@ -107,6 +107,7 @@ public class Configs implements IConfigHandler {
         List<IConfigBase> list = new ArrayList<>();
         list.add(EXCAVATE_LIMITER);         // 挖掘模式限制器
         if (EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.CUSTOM)) {
+            list.add(MINE_SELECTION_TYPE);  // 挖掘 - 选区类型
             list.add(EXCAVATE_LIMIT);       // 挖掘模式限制
             list.add(EXCAVATE_WHITELIST);   // 挖掘白名单
             list.add(EXCAVATE_BLACKLIST);   // 挖掘黑名单
@@ -120,6 +121,7 @@ public class Configs implements IConfigHandler {
         if (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI)) {
             list.add(FILL);                         // 填充
         }
+        list.add(FILL_SELECTION_TYPE);              // 填充 - 选区类型
         list.add(FILL_BLOCK_MODE);                  // 填充方块模式
         list.add(FILL_BLOCK_LIST);                  // 填充方块名单
         list.add(FILL_BLOCK_FACING);                // 填充 - 模式朝向
