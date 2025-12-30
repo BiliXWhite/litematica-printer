@@ -1,14 +1,14 @@
 package me.aleksilassila.litematica.printer.function;
 
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
-import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
+import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.printer.Printer;
-import me.aleksilassila.litematica.printer.printer.PrinterUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -24,7 +24,7 @@ public class FunctionBedrockMode extends FunctionModeBase {
 
     @Override
     public ConfigBoolean getCurrentConfig() {
-        return InitHandler.BEDROCK;
+        return Configs.BEDROCK;
     }
 
     @Override
@@ -46,7 +46,7 @@ public class FunctionBedrockMode extends FunctionModeBase {
         }
         BlockPos pos;
         while ((pos = printer.getBlockPos()) != null) {
-            if (!PlaceUtils.canInteracted(pos) || !Printer.TempData.xuanQuFanWeiNei_p(pos)) {
+            if (!PlayerUtils.canInteracted(pos) || !Printer.TempData.xuanQuFanWeiNei_p(pos)) {
                 continue;
             }
             BedrockUtils.addToBreakList(pos, client.level);

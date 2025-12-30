@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.function;
 
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
-import me.aleksilassila.litematica.printer.InitHandler;
+import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.config.enums.SelectionType;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
@@ -39,14 +39,14 @@ public class FunctionFluidMode extends FunctionModeBase {
 
     @Override
     public ConfigBoolean getCurrentConfig() {
-        return InitHandler.FLUID;
+        return Configs.FLUID;
     }
 
     @Override
     public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
         Printer.getInstance().requiredState = null;
         // 填充方块
-        List<String> fileBlocks = InitHandler.FLUID_BLOCK_LIST.getStrings();
+        List<String> fileBlocks = Configs.FLUID_BLOCK_LIST.getStrings();
         if (!fileBlocks.equals(fillBlocks)) {
             fillBlocks = new ArrayList<>(fileBlocks);
             if (fileBlocks.isEmpty()) {
@@ -59,7 +59,7 @@ public class FunctionFluidMode extends FunctionModeBase {
             }
         }
         // 流体方块
-        List<String> fluidBlocks = InitHandler.FLUID_LIST.getStrings();
+        List<String> fluidBlocks = Configs.FLUID_LIST.getStrings();
         if (!fluidBlocks.equals(this.fluidBlocks)) {
             this.fluidBlocks = new ArrayList<>(fluidBlocks);
             if (fluidBlocks.isEmpty()) {
@@ -74,15 +74,15 @@ public class FunctionFluidMode extends FunctionModeBase {
 
         BlockPos pos;
         while ((pos = printer.getBlockPos()) != null) {
-            if (InitHandler.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0)
+            if (Configs.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0)
                 return;
-            if (!PrinterUtils.isPositionInSelectionRange(player,pos,InitHandler.FLUID_SELECTION_TYPE))
+            if (!PrinterUtils.isPositionInSelectionRange(player,pos, Configs.FLUID_SELECTION_TYPE))
                 continue;
-            if (InitHandler.FLUID_SELECTION_TYPE.getOptionListValue().equals(SelectionType.LITEMATICA_RENDER_LAYER)) {
+            if (Configs.FLUID_SELECTION_TYPE.getOptionListValue().equals(SelectionType.LITEMATICA_RENDER_LAYER)) {
                 if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) {
                     return;
                 }
-            } else if (InitHandler.FLUID_SELECTION_TYPE.getOptionListValue().equals(SelectionType.LITEMATICA_SELECTION_ABOVE_PLAYER)) {
+            } else if (Configs.FLUID_SELECTION_TYPE.getOptionListValue().equals(SelectionType.LITEMATICA_SELECTION_ABOVE_PLAYER)) {
                 if (pos.getY() < player.getOnPos().getY()) {
                     return;
                 }
@@ -92,16 +92,16 @@ public class FunctionFluidMode extends FunctionModeBase {
             // 跳过冷却中的位置
             if (Printer.getInstance().placeCooldownList.containsKey(pos))
                 continue;
-            Printer.getInstance().placeCooldownList.put(pos, InitHandler.PLACE_COOLDOWN.getIntegerValue());
+            Printer.getInstance().placeCooldownList.put(pos, Configs.PLACE_COOLDOWN.getIntegerValue());
             FluidState fluidState = level.getBlockState(pos).getFluidState();
             if (fluis.contains(fluidState.getType())) {
-                if (!InitHandler.FILL_FLOWING_FLUID.getBooleanValue() && !fluidState.isSource())
+                if (!Configs.FILL_FLOWING_FLUID.getBooleanValue() && !fluidState.isSource())
                     continue;
                 if (printer.switchToItems(player, fillItems.toArray(new Item[0]))) {
                     new PlacementGuide.Action().queueAction(printer.queue, pos, Direction.UP, false);
                     if (printer.tickRate == 0) {
                         printer.queue.sendQueue(player);
-                        if (InitHandler.BLOCKS_PER_TICK.getIntegerValue() != 0) {
+                        if (Configs.BLOCKS_PER_TICK.getIntegerValue() != 0) {
                             printer.printerWorkingCountPerTick--;
                         }
                         continue;

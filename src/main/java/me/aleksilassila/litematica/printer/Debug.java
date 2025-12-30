@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer;
 
-import static me.aleksilassila.litematica.printer.InitHandler.DEBUG_OUTPUT;
+import static me.aleksilassila.litematica.printer.config.Configs.DEBUG_OUTPUT;
 
 /**
  * 调试日志输出类

@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.function;
 
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
-import me.aleksilassila.litematica.printer.InitHandler;
+import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.enums.ModeType;
 import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.printer.Printer;
@@ -18,11 +18,11 @@ public abstract class FunctionModeBase extends PrinterUtils implements FunctionE
     public abstract ConfigBoolean getCurrentConfig();
 
     public boolean canTick() {
-        if (InitHandler.MODE_SWITCH.getOptionListValue() instanceof ModeType modeType) {    // 当前模式
+        if (Configs.MODE_SWITCH.getOptionListValue() instanceof ModeType modeType) {    // 当前模式
             // 如果是单模情况
             if (modeType.equals(ModeType.SINGLE)) {
                 // 检查当前单模模式不等于本类的模式, 那么就不执行TICK
-                if (InitHandler.PRINTER_MODE.getOptionListValue() instanceof PrintModeType printModeType && !printModeType.equals(getPrintModeType())) {
+                if (Configs.PRINTER_MODE.getOptionListValue() instanceof PrintModeType printModeType && !printModeType.equals(getPrintModeType())) {
                     return false;
                 }
             }

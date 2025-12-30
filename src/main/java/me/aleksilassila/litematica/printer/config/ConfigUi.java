@@ -12,10 +12,10 @@ import me.aleksilassila.litematica.printer.printer.UpdateChecker;
 
 import java.util.List;
 
-public class ConfigUI extends GuiConfigsBase {
+public class ConfigUi extends GuiConfigsBase {
     private static Tab tab = Tab.ALL;
 
-    public ConfigUI() {
+    public ConfigUi() {
         super(10, 50, LitematicaPrinterMod.MOD_ID, null, "投影打印机 " + UpdateChecker.version);
     }
 
@@ -32,20 +32,20 @@ public class ConfigUI extends GuiConfigsBase {
 
     private int createButton(int x, int y, int width, Tab tab) {
         ButtonGeneric button = new ButtonGeneric(x, y, width, 20, tab.getName(), tab.getComment());
-        button.setEnabled(ConfigUI.tab != tab);
+        button.setEnabled(ConfigUi.tab != tab);
         this.addButton(button, new ButtonListener(tab, this));
         return button.getWidth() + 2;
     }
 
     @Override
     public List<ConfigOptionWrapper> getConfigs() {
-        return ConfigOptionWrapper.createFor(ConfigUI.tab.getConfigs());
+        return ConfigOptionWrapper.createFor(ConfigUi.tab.getConfigs());
     }
 
-    private record ButtonListener(Tab tab, ConfigUI parent) implements IButtonActionListener {
+    private record ButtonListener(Tab tab, ConfigUi parent) implements IButtonActionListener {
         @Override
         public void actionPerformedWithButton(ButtonBase button, int mouseButton) {
-            ConfigUI.tab = this.tab;
+            ConfigUi.tab = this.tab;
             this.parent.reCreateListWidget();
             this.parent.getListWidget().resetScrollbarPosition();
             this.parent.initGui();

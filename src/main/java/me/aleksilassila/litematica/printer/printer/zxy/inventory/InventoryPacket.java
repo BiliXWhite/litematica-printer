@@ -12,13 +12,16 @@ public class InventoryPacket extends FriendlyByteBuf {
      * @param parent the parent, or delegate, buf
      */
     private BlockState blockState = null;
+
     public InventoryPacket(ByteBuf parent) {
         super(parent);
     }
-    public BlockState readBlockState(){
+
+    public BlockState readBlockState() {
         return blockState;
     }
-    public void writeBlockState(BlockState state){
+
+    public void writeBlockState(BlockState state) {
         blockState = state;
     }
 }

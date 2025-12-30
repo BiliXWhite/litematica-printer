@@ -46,14 +46,14 @@ public abstract class MixinMultiPlayerGameMode implements IMultiPlayerGameMode {
     public abstract InteractionResult useItemOn(
             LocalPlayer clientPlayerEntity_1,
             //#if MC < 11904
-            //$$ClientLevel world,
+            //$$ClientLevel level,
             //#endif
             InteractionHand hand_1, BlockHitResult blockHitResult_1);
 
     @Shadow
     public abstract InteractionResult useItem(Player playerEntity_1,
                                               //#if MC < 11904
-                                              //$$ Level world,
+                                              //$$ Level level,
                                               //#endif
                                               InteractionHand hand_1);
 }
