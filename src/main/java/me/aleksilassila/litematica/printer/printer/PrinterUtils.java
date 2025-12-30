@@ -3,39 +3,31 @@ package me.aleksilassila.litematica.printer.printer;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
 import fi.dy.masa.malilib.config.options.ConfigOptionList;
-import me.aleksilassila.litematica.printer.InitHandler;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
+import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.enums.ModeType;
 import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.config.enums.SelectionType;
-import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.utils.DirectionUtils;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Half;
 import net.minecraft.world.level.block.state.properties.SlabType;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static me.aleksilassila.litematica.printer.InitHandler.MODE_SWITCH;
-import static me.aleksilassila.litematica.printer.InitHandler.PRINTER_MODE;
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList;
+import static me.aleksilassila.litematica.printer.config.Configs.MODE_SWITCH;
+import static me.aleksilassila.litematica.printer.config.Configs.PRINTER_MODE;
 
 //#if MC < 11900
 //$$ import fi.dy.masa.malilib.util.SubChunkPos;
@@ -44,28 +36,6 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.Inventor
 public class PrinterUtils {
 
     public static Direction[] horizontalDirections = new Direction[]{Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
-
-    public static boolean playerHasAccessToItem(LocalPlayer playerEntity, Item item) {
-        return playerHasAccessToItems(playerEntity, new Item[]{item});
-    }
-
-    public static boolean playerHasAccessToItems(LocalPlayer playerEntity, Item[] items) {
-        if (items == null || items.length == 0) return true;
-        if (Implementation.getAbilities(playerEntity).mayBuild) return true;
-        else {
-            if (!playerEntity.containerMenu.equals(playerEntity.inventoryMenu)) return false;
-            Inventory inv = playerEntity.getInventory();
-            for (Item item : items) {
-                for (int i = 0; i < inv.getContainerSize(); i++) {
-                    if (inv.getItem(i).getItem() == item) {
-                        return true;
-                    }
-                }
-                lastNeedItemList.add(item);
-            }
-        }
-        return false;
-    }
 
     public static Direction getHalf(Half half) {
         return half == Half.TOP ? Direction.UP : Direction.DOWN;
@@ -99,31 +69,25 @@ public class PrinterUtils {
     public static Map<Direction, Vec3> getSlabSides(Level world, BlockPos pos, SlabType requiredHalf) {
         if (requiredHalf == SlabType.DOUBLE) requiredHalf = SlabType.BOTTOM;
         Direction requiredDir = requiredHalf == SlabType.TOP ? Direction.UP : Direction.DOWN;
-
         Map<Direction, Vec3> sides = new HashMap<>();
         sides.put(requiredDir, new Vec3(0, 0, 0));
-
         if (world.getBlockState(pos).hasProperty(SlabBlock.TYPE)) {
             sides.put(requiredDir.getOpposite(), Vec3.atLowerCornerOf(DirectionUtils.getVector(requiredDir)).scale(0.5));
         }
-
         for (Direction side : horizontalDirections) {
             BlockState neighborCurrentState = world.getBlockState(pos.relative(side));
-
             if (neighborCurrentState.hasProperty(SlabBlock.TYPE) && neighborCurrentState.getValue(SlabBlock.TYPE) != SlabType.DOUBLE) {
                 if (neighborCurrentState.getValue(SlabBlock.TYPE) != requiredHalf) {
                     continue;
                 }
             }
-
             sides.put(side, Vec3.atLowerCornerOf(DirectionUtils.getVector(requiredDir)).scale(0.25));
         }
-
         return sides;
     }
 
 //    public static boolean isLimitedByTheNumberOfLayers(BlockPos pos) {
-//        if (InitHandler.RENDER_LAYER_LIMIT.getBooleanValue()) {
+//        if (Configs.RENDER_LAYER_LIMIT.getBooleanValue()) {
 //            return !DataManager.getRenderLayerRange().isPositionWithinRange(pos);
 //        }
 //        return false;
@@ -177,22 +141,22 @@ public class PrinterUtils {
     }
 
     public static boolean isMineMode() {
-        return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && InitHandler.MINE.getBooleanValue())
+        return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && Configs.MINE.getBooleanValue())
                 || PRINTER_MODE.getOptionListValue() == PrintModeType.MINE;
     }
 
     public static boolean isFillMode() {
-        return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && InitHandler.FILL.getBooleanValue())
+        return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && Configs.FILL.getBooleanValue())
                 || PRINTER_MODE.getOptionListValue() == PrintModeType.FILL;
     }
 
     public static boolean isFluidMode() {
-        return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && InitHandler.FLUID.getBooleanValue())
+        return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && Configs.FLUID.getBooleanValue())
                 || PRINTER_MODE.getOptionListValue() == PrintModeType.FLUID;
     }
 
     public static boolean isBedrockMode() {
-        return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && InitHandler.BEDROCK.getBooleanValue())
+        return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && Configs.BEDROCK.getBooleanValue())
                 || PRINTER_MODE.getOptionListValue() == PrintModeType.BEDROCK;
     }
 }

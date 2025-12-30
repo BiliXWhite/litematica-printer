@@ -25,8 +25,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.InitHandler.CLOUD_INVENTORY;
-import static me.aleksilassila.litematica.printer.InitHandler.QUICK_SHULKER;
+import static me.aleksilassila.litematica.printer.config.Configs.CLOUD_INVENTORY;
+import static me.aleksilassila.litematica.printer.config.Configs.QUICK_SHULKER;
 import static me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus.closeScreen;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList;
 
@@ -71,7 +71,7 @@ public abstract class MixinMinecraftClient {
         original.call(instance, pos, b);
     }
     //#else
-    //$$ @WrapOperation(method = "pickBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;findSlotMatchingItem(Lnet/minecraft/world/item/ItemStack;)I" ))
+    //$$ @WrapOperation(method = "pickBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/level/entity/player/Inventory;findSlotMatchingItem(Lnet/minecraft/level/item/ItemStack;)I" ))
     //$$ private int doItemPick(Inventory instance, ItemStack stack, Operation<Integer> original) {
     //$$     int slotWithStack = original.call(instance, stack);
     //$$     if(!player.getAbilities().instabuild && (CLOUD_INVENTORY.getBooleanValue() || QUICK_SHULKER.getBooleanValue()) && slotWithStack == -1){

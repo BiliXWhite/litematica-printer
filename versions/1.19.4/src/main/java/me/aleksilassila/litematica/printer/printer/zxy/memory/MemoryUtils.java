@@ -1,8 +1,7 @@
 package me.aleksilassila.litematica.printer.printer.zxy.memory;
 
-import me.aleksilassila.litematica.printer.InitHandler;
+import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
@@ -11,6 +10,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
@@ -104,8 +104,8 @@ public abstract class MemoryUtils {
                 Block block = state.getBlock();
 //                System.out.println(state);
                 boolean k = true;
-                for (String string : InitHandler.INVENTORY_LIST.getStrings()) {
-                    if (PreprocessUtils.getRegistries().BLOCK.getKey(block).toString().contains(string)) {
+                for (String string : Configs.INVENTORY_LIST.getStrings()) {
+                    if (BuiltInRegistries.BLOCK.getKey(block).toString().contains(string)) {
                         k = false;
                         break;
                     }

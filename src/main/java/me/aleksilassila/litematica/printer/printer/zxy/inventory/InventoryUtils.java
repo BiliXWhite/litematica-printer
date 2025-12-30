@@ -1,9 +1,8 @@
 package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
-import fi.dy.masa.litematica.config.Configs;
-import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.ShulkerUtils;
+import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.mixin.masa.InventoryUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
@@ -88,14 +87,14 @@ public class InventoryUtils {
             AbstractContainerMenu sc = player.containerMenu;
             if (!player.containerMenu.equals(player.inventoryMenu)) return false;
             //排除合成栏 装备栏 副手
-            if (InitHandler.STORE_ORDERLY.getBooleanValue() && sc.slots.stream().skip(9).limit(sc.slots.size() - 10).noneMatch(slot -> slot.getItem().isEmpty())
-                    && (InitHandler.QUICK_SHULKER.getBooleanValue() || InitHandler.CLOUD_INVENTORY.getBooleanValue())) {
+            if (Configs.STORE_ORDERLY.getBooleanValue() && sc.slots.stream().skip(9).limit(sc.slots.size() - 10).noneMatch(slot -> slot.getItem().isEmpty())
+                    && (Configs.QUICK_SHULKER.getBooleanValue() || Configs.CLOUD_INVENTORY.getBooleanValue())) {
                 SwitchItem.checkItems();
                 return true;
             }
-            if (InitHandler.QUICK_SHULKER.getBooleanValue() && openShulker(lastNeedItemList)) {
+            if (Configs.QUICK_SHULKER.getBooleanValue() && openShulker(lastNeedItemList)) {
                 return true;
-            } else if (InitHandler.CLOUD_INVENTORY.getBooleanValue()) {
+            } else if (Configs.CLOUD_INVENTORY.getBooleanValue()) {
                 for (Item item : lastNeedItemList) {
                     //#if MC >= 12001 && MC <= 12104
                     //$$ MemoryUtils.currentMemoryKey = client.level.dimension().location();
@@ -149,14 +148,14 @@ public class InventoryUtils {
             for (int y = 0; y < slots.get(0).container.getContainerSize(); y++) {
                 if (slots.get(y).getItem().getItem().equals(item)) {
 
-                    String[] str = Configs.Generic.PICK_BLOCKABLE_SLOTS.getStringValue().split(",");
+                    String[] str = fi.dy.masa.litematica.config.Configs.Generic.PICK_BLOCKABLE_SLOTS.getStringValue().split(",");
                     if (str.length == 0) return;
                     for (String s : str) {
                         if (s == null) break;
                         try {
                             int c = Integer.parseInt(s) - 1;
                             if (BuiltInRegistries.ITEM.getKey(player.getInventory().getItem(c).getItem()).toString().contains("shulker_box") &&
-                                    InitHandler.QUICK_SHULKER.getBooleanValue()) {
+                                    Configs.QUICK_SHULKER.getBooleanValue()) {
                                 Minecraft.getInstance().gui.setOverlayMessage(Component.nullToEmpty("濳影盒占用了预选栏"), false);
                                 continue;
                             }
@@ -170,7 +169,7 @@ public class InventoryUtils {
                             c = a == -1 ? c : a;
                             ZxyUtils.switchPlayerInvToHotbarAir(c);
                             fi.dy.masa.malilib.util.InventoryUtils.swapSlots(sc, y, c);
-                            PreprocessUtils.setSelectedSlot(player.getInventory(), c);
+                            me.aleksilassila.litematica.printer.utils.InventoryUtils.setSelectedSlot(player.getInventory(), c);
                             player.closeContainer();
                             //刷新濳影盒
                             if (shulkerBoxSlot != -1) {
@@ -218,7 +217,7 @@ public class InventoryUtils {
                             ShulkerUtils.openShulker(stack, shulkerBoxSlot);
                             closeScreen++;
                             isOpenHandler = true;
-                            Printer.getInstance().shulkerCooldown = InitHandler.QUICK_SHULKER_COOLDOWN.getIntegerValue();
+                            Printer.getInstance().shulkerCooldown = Configs.QUICK_SHULKER_COOLDOWN.getIntegerValue();
                             return true;
                         } catch (Exception e) {
                         }

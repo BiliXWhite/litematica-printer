@@ -25,7 +25,6 @@ import net.minecraft.client.Minecraft;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //#endif
 
-import static me.aleksilassila.litematica.printer.InitHandler.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.startAddPrinterInventory;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.startOrOffSyncInventory;
 
@@ -39,20 +38,20 @@ public class HotkeysCallback implements IHotkeyCallback {
         if (this.client.player == null || this.client.level == null) {
             return false;
         }
-        if (key == OPEN_SCREEN.getKeybind()) {
-            client.setScreen(new ConfigUI());
+        if (key == Configs.OPEN_SCREEN.getKeybind()) {
+            client.setScreen(new ConfigUi());
             return true;
-        } else if (key == SYNC_INVENTORY.getKeybind()) {
+        } else if (key == Configs.SYNC_INVENTORY.getKeybind()) {
             startOrOffSyncInventory();
             return true;
-        } else if (MODE_SWITCH.getOptionListValue().equals(ModeType.SINGLE) && key == SWITCH_PRINTER_MODE.getKeybind()) {
-            IConfigOptionListEntry cycle = PRINTER_MODE.getOptionListValue().cycle(true);
-            PRINTER_MODE.setOptionListValue(cycle);
-            ZxyUtils.actionBar(PRINTER_MODE.getOptionListValue().getDisplayName());
-        } else if (key == PRINTER_INVENTORY.getKeybind()) {
+        } else if (Configs.MODE_SWITCH.getOptionListValue().equals(ModeType.SINGLE) && key == Configs.SWITCH_PRINTER_MODE.getKeybind()) {
+            IConfigOptionListEntry cycle = Configs.PRINTER_MODE.getOptionListValue().cycle(true);
+            Configs.PRINTER_MODE.setOptionListValue(cycle);
+            ZxyUtils.actionBar(Configs.PRINTER_MODE.getOptionListValue().getDisplayName());
+        } else if (key == Configs.PRINTER_INVENTORY.getKeybind()) {
             startAddPrinterInventory();
             return true;
-        } else if (key == REMOVE_PRINT_INVENTORY.getKeybind()) {
+        } else if (key == Configs.REMOVE_PRINT_INVENTORY.getKeybind()) {
             //#if MC >= 12001 && MC <= 12104
             //$$ MemoryUtils.deletePrinterMemory();
             //#elseif MC < 12001
@@ -69,15 +68,15 @@ public class HotkeysCallback implements IHotkeyCallback {
         //#if MC >= 12001 && MC <= 12104
         //$$     else if (GuiUtils.getCurrentScreen() instanceof AbstractContainerScreen<?> &&
         //$$            !(GuiUtils.getCurrentScreen() instanceof CreativeModeInventoryScreen)) {
-        //$$     if(key == LAST.getKeybind()){
+        //$$     if(key == Configs.LAST.getKeybind()){
         //$$         SearchItem.page = --SearchItem.page <= -1 ? SearchItem.maxPage-1 : SearchItem.page;
         //$$         SearchItem.openInventory(SearchItem.page);
         //$$     }
-        //$$     else if(key == NEXT.getKeybind()){
+        //$$     else if(key == Configs.NEXT.getKeybind()){
         //$$         SearchItem.page = ++SearchItem.page >= SearchItem.maxPage ? 0 : SearchItem.page;
         //$$         SearchItem.openInventory(SearchItem.page);
         //$$     }
-        //$$     else if(key == DELETE.getKeybind()){
+        //$$     else if(key == Configs.DELETE.getKeybind()){
         //$$         MemoryBankImpl memoryBank = MemoryBankAccessImpl.INSTANCE.getLoadedInternal().orElse(null);
         //$$         if (memoryBank!= null && OpenInventoryPacket.key != null && client.player != null) {
         //$$             memoryBank.removeMemory(OpenInventoryPacket.key.location(),OpenInventoryPacket.pos);

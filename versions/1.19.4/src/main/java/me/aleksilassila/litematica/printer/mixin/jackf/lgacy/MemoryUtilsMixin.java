@@ -1,12 +1,10 @@
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 
-
-import me.aleksilassila.litematica.printer.InitHandler;
-import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
+import me.aleksilassila.litematica.printer.config.Configs;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
@@ -103,8 +101,8 @@ public abstract class MemoryUtilsMixin {
                 Block block = state.getBlock();
                 //                System.out.println(state);
                 boolean k = true;
-                for (String string : InitHandler.INVENTORY_LIST.getStrings()) {
-                    if (PreprocessUtils.getRegistries().BLOCK.getKey(block).toString().contains(string)) {
+                for (String string : Configs.INVENTORY_LIST.getStrings()) {
+                    if (BuiltInRegistries.BLOCK.getKey(block).toString().contains(string)) {
                         k = false;
                         break;
                     }
