@@ -1,5 +1,5 @@
 
-package me.aleksilassila.litematica.printer.mixin.masa;
+package me.aleksilassila.litematica.printer.mixin.printer.litematica;
 
 import fi.dy.masa.litematica.util.InventoryUtils;
 import net.minecraft.world.entity.player.Inventory;

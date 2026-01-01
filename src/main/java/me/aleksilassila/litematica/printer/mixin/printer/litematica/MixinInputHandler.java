@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.mixin.masa.litematicaSetConfig;
+package me.aleksilassila.litematica.printer.mixin.printer.litematica;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.util.List;
 
 @Mixin(value = InputHandler.class, remap = false)
-public class InputHandlerMixin {
+public class MixinInputHandler {
 
     // TODO(Ravel)：没有目标类
     @WrapOperation(method = "addHotkeys", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Hotkeys;HOTKEY_LIST:Ljava/util/List;", opcode = Opcodes.GETSTATIC))

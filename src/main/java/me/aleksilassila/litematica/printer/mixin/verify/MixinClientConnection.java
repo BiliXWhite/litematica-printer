@@ -17,15 +17,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.exitGameReSet;
 
 @Environment(EnvType.CLIENT)
-@Mixin({Connection.class})
+@Mixin(Connection.class)
 public abstract class MixinClientConnection {
     public MixinClientConnection() {
     }
 
-    @Inject(
-            method = {"disconnect*"},
-            at = {@At("HEAD")}
-    )
+    @Inject(method = "disconnect*", at = {@At("HEAD")})
     public void disconnect(Component ignored, CallbackInfo ci) {
         exitGameReSet();
     }

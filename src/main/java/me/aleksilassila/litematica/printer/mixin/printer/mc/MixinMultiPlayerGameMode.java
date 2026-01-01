@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.mixin;
+package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
 import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
 import net.minecraft.client.Minecraft;
@@ -14,6 +14,7 @@ import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+
 //#if MC < 11904
 //$$ import net.minecraft.world.level.Level;
 //$$ import net.minecraft.client.multiplayer.ClientLevel;
