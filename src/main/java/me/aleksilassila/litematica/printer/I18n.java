@@ -75,7 +75,6 @@ public class I18n {
     public static final I18n RENDER_LAYER_LIMIT                  = config("renderLayerLimit");
     public static final I18n PRINT_IN_AIR                        = config("printInAir");
     public static final I18n PRINT_SWITCH                        = config("printSwitch");
-    public static final I18n USE_EASYPLACE                       = config("useEasyplace");
     public static final I18n FORCED_SNEAK                        = config("forcedSneak");
     public static final I18n REPLACE                             = config("replace");
     public static final I18n SWITCH_PRINTER_MODE                 = config("switchPrinterMode");

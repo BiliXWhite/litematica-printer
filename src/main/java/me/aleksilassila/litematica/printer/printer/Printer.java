@@ -70,7 +70,6 @@ public class Printer extends PrinterUtils {
     public final PlacementGuide guide;
     public final Queue queue;
     public boolean printerMemorySync = false;
-    public BlockPos easyPos = null;
     public Map<BlockPos, Integer> placeCooldownList = new HashMap<>();
     public ItemStack orderlyStoreItem; //有序存放临时存储
     public int shulkerCooldown = 0;

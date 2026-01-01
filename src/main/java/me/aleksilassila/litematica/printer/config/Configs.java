@@ -117,7 +117,6 @@ public class Configs implements IConfigHandler {
     public static final ConfigInteger ITERATOR_USE_TIME         = integer(I18n.PRINTER_ITERATOR_USE_TIME        , 8, 0, 128);
 
     public static final ConfigBooleanHotkeyed PRINT_WATER           = booleanHotkey(I18n.PRINT_WATER              ,false);
-    public static final ConfigBooleanHotkeyed USE_EASYPLACE         = booleanHotkey(I18n.USE_EASYPLACE            ,false);
     public static final ConfigBooleanHotkeyed MINE                  = booleanHotkey(I18n.MINE                     ,false);
     public static final ConfigBooleanHotkeyed FLUID                 = booleanHotkey(I18n.FLUID                    ,false);
     public static final ConfigBooleanHotkeyed FILL                  = booleanHotkey(I18n.FILL                     ,false);
@@ -214,7 +213,6 @@ public class Configs implements IConfigHandler {
         list.add(PUT_SKIP_LIST);            // 跳过放置名单
         list.add(STORE_ORDERLY);            // 有序存放
         list.add(EASYPLACE_PROTOCOL);       // 打印 - 使用轻松放置协议
-        list.add(USE_EASYPLACE);            // 轻松放置模式
         list.add(FORCED_SNEAK);             // 打印时潜行
         list.add(PRINT_IN_AIR);             // 凭空放置
         list.add(SKIP_WATERLOGGED_BLOCK);   // 跳过打印含水方块
@@ -335,7 +333,6 @@ public class Configs implements IConfigHandler {
 //        list.add(REPLACE_BLOCK);    // 替换
         list.add(BEDROCK);          // 破基岩
         list.add(PRINT_WATER);      // 打印 - 破冰放水
-        list.add(USE_EASYPLACE);    // 轻松放置模式
         return ImmutableList.copyOf(list);
     }
 

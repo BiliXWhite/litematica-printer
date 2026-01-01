@@ -14,7 +14,6 @@
   "litematica_printer.config.comment.cloudInventory": "Remote container access if server allows or in single-player.\nReplaces at schematic's preset positions.",
   "litematica_printer.config.comment.debugOutput": "When enabled, printer working information is output in the console.",
   "litematica_printer.config.comment.delete": "Delete current container",
-  "litematica_printer.config.comment.easePlaceProtocol": "Print using the precise placement protocol within Litematica.",
   "litematica_printer.config.comment.easyPlaceProtocol": "Send Litematica's easy place protocol fixes when printing.",
   "litematica_printer.config.comment.excavateBlacklist": "Skips mining blocks in this list (applies to mining mode).\nYou can enter a block ID or its translated name, e.g.: §bminecraft:stone§r. \nIf preceded by §b#§r, tag matching is used (matches blocks by tag), e.g.: §l#logs§r. \nIf entering text with a filter (separated by a comma), e.g.: §lstone,c§r. \nWhere “c” means using contains matching (tries direct match first).",
   "litematica_printer.config.comment.excavateLimit": "Excavation filter type: None, Whitelist, Blacklist.\n§dNone§r: No restrictions.\n§dWhitelist§r: Only mine blocks in whitelist.\n§dBlacklist§r: Avoid mining blocks in blacklist.\n§lIgnored if using Tweakeroo presets.§r",
