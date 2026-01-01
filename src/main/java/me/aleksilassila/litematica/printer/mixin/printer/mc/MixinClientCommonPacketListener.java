@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.mixin;
+package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import net.minecraft.client.Minecraft;

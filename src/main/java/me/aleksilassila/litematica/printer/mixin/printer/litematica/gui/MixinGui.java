@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.mixin.bilixwhite.visuals;
+package me.aleksilassila.litematica.printer.mixin.printer.litematica.gui;
 
 import me.aleksilassila.litematica.printer.bilixwhite.utils.RenderUtils;
 import me.aleksilassila.litematica.printer.config.Configs;

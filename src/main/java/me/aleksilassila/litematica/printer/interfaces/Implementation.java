@@ -1,11 +1,10 @@
 package me.aleksilassila.litematica.printer.interfaces;
 
-import me.aleksilassila.litematica.printer.mixin.ServerboundMovePlayerPacketAccessor;
+import me.aleksilassila.litematica.printer.mixin.printer.mc.ServerboundMovePlayerPacketAccessor;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
-import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.*;

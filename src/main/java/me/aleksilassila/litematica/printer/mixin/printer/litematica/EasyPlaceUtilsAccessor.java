@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.mixin.bilixwhite.accessors;
+package me.aleksilassila.litematica.printer.mixin.printer.litematica;
 
 import org.spongepowered.asm.mixin.Mixin;
 
@@ -15,6 +15,7 @@ public interface EasyPlaceUtilsAccessor {
 }
 //#else
 //$$ import me.aleksilassila.litematica.printer.config.Pointless;
+//$$
 //$$ @Mixin(Pointless.class)
 //$$ public interface EasyPlaceUtilsAccessor {}
 //#endif

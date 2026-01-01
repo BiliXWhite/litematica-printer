@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.mixin.malilib;
+package me.aleksilassila.litematica.printer.mixin.printer.malilib;
 
 import fi.dy.masa.malilib.config.IConfigStringList;
 import fi.dy.masa.malilib.gui.GuiListBase;

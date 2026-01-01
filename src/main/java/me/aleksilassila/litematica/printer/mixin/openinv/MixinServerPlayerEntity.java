@@ -27,18 +27,6 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInve
 
 @Mixin(ServerPlayer.class)
 public abstract class MixinServerPlayerEntity {
-
-    //    public MixinServerPlayerEntity(World level, BlockPos pos, float yaw, GameProfile profile
-    //    //#if MC == 11902
-    //    //$$ , @Nullable PlayerPublicKey publicKey) { super(level, pos, yaw, profile, publicKey);
-    //    //#elseif MC > 12105
-    //    ) {super(level,  profile);
-    //    //#else
-    //    //$$ ) {super(level, pos, yaw, profile);
-    //    //#endif
-    //    }
-    //
-    //
     //#if MC < 11904
     //$$ @Inject(at = @At("HEAD"), method = "doCloseContainer")
     //#else
@@ -70,7 +58,7 @@ public abstract class MixinServerPlayerEntity {
     }
 
     // TODO(Ravel): no target class
-// TODO(Ravel): no target class
+    // TODO(Ravel): no target class
     @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;stillValid(Lnet/minecraft/world/entity/player/Player;)Z"), method = "tick")
     public boolean onTick(AbstractContainerMenu instance, Player playerEntity, Operation<Boolean> original) {
         if (playerEntity instanceof ServerPlayer) {

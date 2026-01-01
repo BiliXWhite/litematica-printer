@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.mixin;
+package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
 import com.mojang.authlib.GameProfile;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
@@ -45,7 +45,7 @@ import java.net.URI;
 //#endif
 
 @Mixin(LocalPlayer.class)
-public class MixinClientPlayerEntity extends AbstractClientPlayer {
+public class MixinLocalPlayer extends AbstractClientPlayer {
     @Final
     @Shadow
     public ClientPacketListener connection;
@@ -55,11 +55,11 @@ public class MixinClientPlayerEntity extends AbstractClientPlayer {
     protected Minecraft minecraft;
 
     //#if MC == 11902
-    //$$ public MixinClientPlayerEntity(ClientLevel world, GameProfile profile, @Nullable PlayerPublicKey publicKey) {
+    //$$ public MixinLocalPlayer(ClientLevel world, GameProfile profile, @Nullable PlayerPublicKey publicKey) {
     //$$    super(world, profile, publicKey);
     //$$ }
     //#else
-    public MixinClientPlayerEntity(ClientLevel world, GameProfile profile) {
+    public MixinLocalPlayer(ClientLevel world, GameProfile profile) {
         super(world, profile);
     }
     //#endif

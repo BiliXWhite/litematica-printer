@@ -1,14 +1,10 @@
 package me.aleksilassila.litematica.printer.mixin;
 
-import me.aleksilassila.litematica.printer.I18n;
-import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.game.ClientboundContainerSetContentPacket;
-import net.minecraft.network.protocol.game.ClientboundSetHealthPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,7 +15,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.Inventor
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem.reSwitchItem;
 
 @Mixin(ClientPacketListener.class)
-public abstract class MixinClientPlayNetworkHandler {
+public abstract class MixinClientPacketListener {
 
     @Inject(at = @At("TAIL"), method = "handleContainerContent")
     public void onInventory(ClientboundContainerSetContentPacket packet, CallbackInfo ci) {
@@ -34,18 +30,6 @@ public abstract class MixinClientPlayNetworkHandler {
         }
         if (ZxyUtils.num == 1 || ZxyUtils.num == 3) {
             ZxyUtils.syncInv();
-        }
-    }
-
-    @Inject(method = "handleSetHealth", at = @At("RETURN"))
-    private void injectHealthUpdate(ClientboundSetHealthPacket packet, CallbackInfo ci) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null) {
-            return;
-        }
-        if (packet.getHealth() == 0 && Configs.AUTO_DISABLE_PRINTER.getBooleanValue()) {
-            ZxyUtils.actionBar(I18n.AUTO_DISABLE_NOTICE.getComponent().getString());
-            Configs.PRINT_SWITCH.setBooleanValue(false);
         }
     }
 }
