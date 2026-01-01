@@ -1,6 +1,6 @@
 // TODO(Ravel): Failed to fully remap file: null
 // TODO(Ravel): Failed to fully remap file: null
-package me.aleksilassila.litematica.printer.mixin.masa;
+package me.aleksilassila.litematica.printer.mixin.printer.litematica;
 
 
 import fi.dy.masa.litematica.util.InventoryUtils;

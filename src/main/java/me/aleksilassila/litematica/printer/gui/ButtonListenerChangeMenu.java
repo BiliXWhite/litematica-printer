@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.bilixwhite.gui;
+package me.aleksilassila.litematica.printer.gui;
 
 import me.aleksilassila.litematica.printer.config.ConfigUi;
 import net.minecraft.client.gui.screens.Screen;

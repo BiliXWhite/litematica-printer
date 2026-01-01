@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.mixin.bilixwhite.others;
+package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.Printer;
@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Connection.class)
-public class MixinClientConnection {
+public class MixinConnection {
     /**
      * @author BiliXWhite
      * @reason 用于延迟检测

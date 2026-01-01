@@ -27,23 +27,10 @@ public class MixinServerWorld {
                 //$$ list.world.shouldTickBlocksAt(ChunkPos.asLong(list.pos));
                 //#endif
             }
-//            BlockState state =  list.state;
             BlockState state2 = list.world.getBlockState(list.pos);
             if(state2.isAir()){
                 OpenInventoryPacket.openReturn(s,state2,false);
             }
         }
-
-//        for (ServerPlayerEntity s : playerlist) {
-//            TickList list = OpenInventoryPacket.tickMap.get(s);
-//            list.block.scheduledTick(list.state,list.level,list.pos,list.level.random);
-//            BlockState state =  list.state;
-//            BlockState state2 = list.level.getBlockState(list.pos);
-//            if(!state.equals(state2)){
-//                OpenInventoryPacket.openFail(s);
-//            }
-////            if(list.level.getBlockState(list.pos).equals(list.state)) s.closeHandledScreen();
-//        }
     }
-
 }
