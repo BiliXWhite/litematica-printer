@@ -54,7 +54,6 @@ public class PrinterUtils {
                 return state.getValue(prop);
             }
         }
-
         return null;
     }
 
@@ -85,14 +84,6 @@ public class PrinterUtils {
         }
         return sides;
     }
-
-//    public static boolean isLimitedByTheNumberOfLayers(BlockPos pos) {
-//        if (Configs.RENDER_LAYER_LIMIT.getBooleanValue()) {
-//            return !DataManager.getRenderLayerRange().isPositionWithinRange(pos);
-//        }
-//        return false;
-//    }
-
 
     public static boolean isPositionInSelectionRange(Player player, BlockPos pos, ConfigOptionList selectionTypeConfig) {
         if (player == null || pos == null || selectionTypeConfig == null) {
