@@ -40,7 +40,7 @@ public class Configs implements IConfigHandler {
 
 //    public static final ConfigBooleanHotkeyed REPLACE_BLOCK = new ConfigBooleanHotkeyed("替换", false,"", "替换方块，通过\"替换方块名单\"配置");
 
-    public static final ConfigOptionList PRINT_SELECTION_TYPE     = optionList(I18n.PRINT_SELECTION_TYPE            , SelectionType.LITEMATICA_SELECTION);
+    public static final ConfigOptionList PRINT_SELECTION_TYPE     = optionList(I18n.PRINT_SELECTION_TYPE            , SelectionType.LITEMATICA_RENDER_LAYER);
     public static final ConfigOptionList FILL_SELECTION_TYPE      = optionList(I18n.FILL_SELECTION_TYPE            , SelectionType.LITEMATICA_SELECTION);
     public static final ConfigOptionList FLUID_SELECTION_TYPE     = optionList(I18n.FLUID_SELECTION_TYPE            , SelectionType.LITEMATICA_SELECTION);
     public static final ConfigOptionList MINE_SELECTION_TYPE      = optionList(I18n.MINE_SELECTION_TYPE            , SelectionType.LITEMATICA_SELECTION_ABOVE_PLAYER);
