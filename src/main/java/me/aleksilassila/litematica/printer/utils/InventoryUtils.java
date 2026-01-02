@@ -123,13 +123,7 @@ public class InventoryUtils {
                     client.gameMode.handleCreativeModeItemAdd(client.player.getMainHandItem(), 36 + hotbarSlot);
                     return true;
                 }
-
-                //#if MC >= 12109
                 EasyPlaceUtilsAccessor.callSetEasyPlaceLastPickBlockTime();
-                //#else
-                //$$ fi.dy.masa.litematica.util.WorldUtils.setEasyPlaceLastPickBlockTime();
-                //#endif
-
                 return swapItemToMainHand(stack.copy(), mc);
             } else {
                 InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");

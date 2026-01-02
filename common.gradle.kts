@@ -128,9 +128,16 @@ dependencies {
 
     // Masa 系列模组（根据 MC 版本选择）
     if (mcVersion > 12006) {
-        modImplementation("com.github.sakura-ryoko:malilib:${props["malilib"]}")
-        modImplementation("com.github.sakura-ryoko:litematica:${props["litematica"]}")
-        modImplementation("com.github.sakura-ryoko:tweakeroo:${props["tweakeroo"]}")
+        if (mcVersion == 12101) {   // 临时性, 因为 sakuraryoko jitpack源暂时没有
+            modImplementation("maven.modrinth:malilib:0.21.10")
+            modImplementation("maven.modrinth:litematica:0.19.60")
+            modImplementation("maven.modrinth:tweakeroo:0.21.61")
+        } else {
+            modImplementation("com.github.sakura-ryoko:malilib:${props["malilib"]}")
+            modImplementation("com.github.sakura-ryoko:litematica:${props["litematica"]}")
+            modImplementation("com.github.sakura-ryoko:tweakeroo:${props["tweakeroo"]}")
+        }
+
     } else {
 //        modImplementation("fi.dy.masa.malilib:${props["malilib"]}")
 //        modImplementation("curse.maven:litematica-308892:${props["litematica"]}")
