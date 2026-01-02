@@ -71,13 +71,13 @@ public class PlacementGuide extends PrinterUtils {
         // 破冰放水
         if (Configs.PRINT_WATER.getBooleanValue() && PlaceUtils.isWaterRequired(ctx.requiredState)) {
             if (ctx.currentState.getBlock() instanceof IceBlock) {  // 冰块
-                BreakManager.addBlockToBreak(ctx.blockPos);
+                BreakManager.addBlockToBreak(ctx);
                 return null;
             }
             if (!PlaceUtils.isCorrectWaterLevel(ctx.requiredState, ctx.currentState)) {
                 if (!ctx.currentState.isAir() && !(ctx.currentState.getBlock() instanceof LiquidBlock)) {
                     if (Configs.BREAK_WRONG_BLOCK.getBooleanValue()) {
-                        BreakManager.addBlockToBreak(ctx.blockPos);
+                        BreakManager.addBlockToBreak(ctx);
                     }
                     return null;
                 }
@@ -606,7 +606,7 @@ public class PlacementGuide extends PrinterUtils {
                         Direction requiredHalf = ctx.currentState.getValue(SlabBlock.TYPE) == SlabType.BOTTOM ? Direction.DOWN : Direction.UP;
 
                         return new Action().setSides(requiredHalf);
-                    } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx.blockPos);
+                    } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
                 }
                 case SNOW -> {
                     int layers = ctx.currentState.getValue(SnowLayerBlock.LAYERS);
@@ -615,7 +615,7 @@ public class PlacementGuide extends PrinterUtils {
                             put(Direction.UP, new Vec3(0, (layers / 8d) - 1, 0));
                         }};
                         return new ClickAction().setItem(Items.SNOW).setSides(sides);
-                    } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx.blockPos);
+                    } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
 
                 }
                 case DOOR, TRAPDOOR -> {
@@ -624,7 +624,7 @@ public class PlacementGuide extends PrinterUtils {
                     if (ctx.requiredState.getValue(BlockStateProperties.OPEN) != ctx.currentState.getValue(BlockStateProperties.OPEN)) {
                         return new ClickAction();
                     } else if (printerBreakWrongStateBlock && ctx.requiredState.getValue(DoorBlock.FACING) != ctx.currentState.getValue(DoorBlock.FACING))
-                        BreakManager.addBlockToBreak(ctx.blockPos);
+                        BreakManager.addBlockToBreak(ctx);
                 }
                 case FENCE_GATE -> {
                     var facing = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING);
@@ -632,12 +632,12 @@ public class PlacementGuide extends PrinterUtils {
                             || ctx.requiredState.getValue(BlockStateProperties.OPEN) != ctx.currentState.getValue(BlockStateProperties.OPEN)
                     ) {
                         return new ClickAction().setSides(facing.getOpposite()).setLookDirection(facing);
-                    } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx.blockPos);
+                    } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
                 }
                 case LEVER -> {
                     if (ctx.requiredState.getValue(LeverBlock.POWERED) != ctx.currentState.getValue(LeverBlock.POWERED))
                         return new ClickAction();
-                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx.blockPos);
+                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
                 }
                 case CANDLES -> {
                     if (ctx.currentState.getValue(BlockStateProperties.CANDLES) < ctx.requiredState.getValue(BlockStateProperties.CANDLES))
@@ -646,12 +646,12 @@ public class PlacementGuide extends PrinterUtils {
                         return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
                     else if (ctx.currentState.getValue(CandleBlock.LIT) && !ctx.requiredState.getValue(CandleBlock.LIT))
                         return new ClickAction();
-                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx.blockPos);
+                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
                 }
                 case PICKLES -> {
                     if (ctx.currentState.getValue(SeaPickleBlock.PICKLES) < ctx.requiredState.getValue(SeaPickleBlock.PICKLES))
                         return new ClickAction().setItem(Items.SEA_PICKLE);
-                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx.blockPos);
+                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
                 }
                 case REPEATER -> {
                     if (!ctx.requiredState.getValue(RepeaterBlock.DELAY).equals(ctx.currentState.getValue(RepeaterBlock.DELAY)))
@@ -660,12 +660,12 @@ public class PlacementGuide extends PrinterUtils {
                             printerBreakWrongStateBlock &&
                                     ctx.requiredState.getValue(RepeaterBlock.POWERED) == ctx.currentState.getValue(RepeaterBlock.POWERED) &&
                                     ctx.requiredState.getValue(RepeaterBlock.LOCKED) == ctx.currentState.getValue(RepeaterBlock.LOCKED)
-                    ) BreakManager.addBlockToBreak(ctx.blockPos);
+                    ) BreakManager.addBlockToBreak(ctx);
                 }
                 case COMPARATOR -> {
                     if (ctx.requiredState.getValue(ComparatorBlock.MODE) != ctx.currentState.getValue(ComparatorBlock.MODE))
                         return new ClickAction();
-                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx.blockPos);
+                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
                 }
                 case NOTE_BLOCK -> {
                     if (Configs.NOTE_BLOCK_TUNING.getBooleanValue() && !Objects.equals(ctx.requiredState.getValue(NoteBlock.NOTE), ctx.currentState.getValue(NoteBlock.NOTE)))
@@ -677,18 +677,18 @@ public class PlacementGuide extends PrinterUtils {
                     else if (ctx.requiredState.getValue(CampfireBlock.LIT) && !ctx.currentState.getValue(CampfireBlock.LIT))
                         return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
                     else if (printerBreakWrongStateBlock && ctx.requiredState.getValue(CampfireBlock.FACING) != ctx.currentState.getValue(CampfireBlock.FACING))
-                        BreakManager.addBlockToBreak(ctx.blockPos);
+                        BreakManager.addBlockToBreak(ctx);
                 }
                 case END_PORTAL_FRAME -> {
                     if (ctx.requiredState.getValue(EndPortalFrameBlock.HAS_EYE) && !ctx.currentState.getValue(EndPortalFrameBlock.HAS_EYE))
                         return new ClickAction().setItem(Items.ENDER_EYE);
-                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx.blockPos);
+                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
                 }
                 //#if MC >= 11904
                 case FLOWERBED -> {
                     if (ctx.currentState.getValue(BlockStateProperties.FLOWER_AMOUNT) <= ctx.requiredState.getValue(BlockStateProperties.FLOWER_AMOUNT)) {
                         return new ClickAction().setItem(ctx.requiredState.getBlock().asItem());
-                    } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx.blockPos);
+                    } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
                 }
                 //#endif
                 case REDSTONE -> {
@@ -714,7 +714,7 @@ public class PlacementGuide extends PrinterUtils {
                             return new Action().setSides(direction).setLookDirection(direction);
                         }
                     }
-                    BreakManager.addBlockToBreak(ctx.blockPos);
+                    BreakManager.addBlockToBreak(ctx);
                 }
                 case CAULDRON -> {
                     if (ctx.currentState.getValue(LayeredCauldronBlock.LEVEL) > ctx.requiredState.getValue(LayeredCauldronBlock.LEVEL)) {
@@ -755,7 +755,7 @@ public class PlacementGuide extends PrinterUtils {
                     if (printerBreakWrongStateBlock &&
                             (ctx.requiredState.getValue(StairBlock.FACING) != ctx.currentState.getValue(StairBlock.FACING) ||
                                     ctx.requiredState.getValue(StairBlock.HALF) != ctx.currentState.getValue(StairBlock.HALF))) {
-                        BreakManager.addBlockToBreak(ctx.blockPos);
+                        BreakManager.addBlockToBreak(ctx);
                     }
                 }
                 case DEFAULT -> {
@@ -766,7 +766,7 @@ public class PlacementGuide extends PrinterUtils {
                                     PressurePlateBlock.class,
                             };
                     if (printerBreakWrongStateBlock && !Arrays.asList(ignored).contains(ctx.requiredState.getBlock().getClass()))
-                        BreakManager.addBlockToBreak(ctx.blockPos);
+                        BreakManager.addBlockToBreak(ctx);
                 }
             }
         } else if (state == State.WRONG_BLOCK) switch (requiredType) {
@@ -801,7 +801,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (Arrays.asList(requiredType.classes).contains(ctx.currentState.getBlock().getClass()))
                     return null;
                 else if (Configs.BREAK_WRONG_BLOCK.getBooleanValue() && BreakManager.canBreakBlock(ctx.blockPos))
-                    BreakManager.addBlockToBreak(ctx.blockPos);
+                    BreakManager.addBlockToBreak(ctx);
             }
             case STRIP_LOG -> {
                 Block stripped = STRIPPED_LOGS.get(ctx.currentState.getBlock());
@@ -820,9 +820,9 @@ public class PlacementGuide extends PrinterUtils {
                             ;
 
                     if (!isLegitimateSign) {
-                        BreakManager.addBlockToBreak(ctx.blockPos);
+                        BreakManager.addBlockToBreak(ctx);
                     }
-                    BreakManager.addBlockToBreak(ctx.blockPos);
+                    BreakManager.addBlockToBreak(ctx);
                 }
             }
             default -> {
@@ -836,9 +836,9 @@ public class PlacementGuide extends PrinterUtils {
                 if (printBreakWrongBlock || printerBreakExtraBlock) {
                     if (BreakManager.canBreakBlock(ctx.blockPos)) {
                         if (printBreakWrongBlock && !ctx.requiredState.is(Blocks.AIR)) {
-                            BreakManager.addBlockToBreak(ctx.blockPos);
+                            BreakManager.addBlockToBreak(ctx);
                         } else if (printerBreakExtraBlock && ctx.requiredState.is(Blocks.AIR)) {
-                            BreakManager.addBlockToBreak(ctx.blockPos);
+                            BreakManager.addBlockToBreak(ctx);
                         }
                     }
                 }
