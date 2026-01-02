@@ -5,21 +5,22 @@ import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.TweakerooUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.enums.ExcavateListMode;
+import me.aleksilassila.litematica.printer.printer.BlockContext;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
@@ -27,7 +28,7 @@ import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTR
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
 
 public class BreakManager {
-    private static final Set<BlockPos> breakTargets = new HashSet<>();
+    private static final HashMap<ResourceLocation, BlockPos> breakTargets = new HashMap<>();
     private static final Minecraft client = Minecraft.getInstance();
     private static BreakManager INSTANCE = null;
     private BlockPos breakPos;
@@ -45,17 +46,16 @@ public class BreakManager {
     }
 
     // 添加需要挖掘的方块
-    public static void addBlockToBreak(BlockPos pos) {
-        breakTargets.add(pos);
+    public static void addBlockToBreak(Level level, BlockPos pos) {
+        breakTargets.put(level.dimension().location(), pos);
+    }
+
+    public static void addBlockToBreak(BlockContext context) {
+        addBlockToBreak(context.level, context.blockPos);
     }
 
     public static boolean hasTargets() {
         return !breakTargets.isEmpty();
-    }
-
-    // 是否在破坏列表内
-    public static boolean inBreakTargets(BlockPos pos) {
-        return breakTargets.contains(pos);
     }
 
     public static boolean canBreakBlock(BlockPos pos) {
@@ -124,16 +124,16 @@ public class BreakManager {
 
         // 初始化 breakPos 和 state
         if (breakPos == null) {
-            updateTarget();
+            updateTarget(client.level);
         }
 
-        while ((breakPos = (!breakTargets.isEmpty() && breakPos != null) ? updateTarget() : null) != null) {
+        while ((breakPos = (!breakTargets.isEmpty() && breakPos != null) ? updateTarget(client.level) : null) != null) {
             // 检查方块是否已消失或变为流体
             if (!PlayerUtils.canInteracted(breakPos) ||
                     !canBreakBlock(breakPos) ||
                     !breakRestriction(state)
             ) {
-                resetBreakTarget();
+                resetBreakTarget(client.level);
                 continue;
             }
 
@@ -146,13 +146,12 @@ public class BreakManager {
                     }
                 }
                 success = client.gameMode.continueDestroyBlock(breakPos, Direction.DOWN);
-                client.gameMode.stopDestroyBlock();
             } catch (Exception e) {
                 // 防止外部方法异常导致 tick 中断
                 success = false;
             }
             if (!success) {
-                resetBreakTarget();
+                resetBreakTarget(client.level);
             }
 
             if (!client.player.isCreative() && client.level.getBlockState(breakPos).is(state.getBlock())) {
@@ -163,33 +162,39 @@ public class BreakManager {
     }
 
     // 提取重复逻辑为私有方法
-    private void resetBreakTarget() {
+    private void resetBreakTarget(ClientLevel level) {
         // 性能优化：避免不必要的remove操作
         if (breakPos != null) {
             Printer.getInstance().placeCooldownList.put(breakPos, 4);
-            breakTargets.remove(breakPos);
+            ResourceLocation currentDimension = level.dimension().location();
+            breakTargets.entrySet().removeIf(entry ->
+                    entry.getKey().equals(currentDimension) && entry.getValue().equals(breakPos));
         }
-        updateTarget();
+        updateTarget(level);
         if (breakPos != null) {
-            state = client.level.getBlockState(breakPos);
+            state = level.getBlockState(breakPos);
         } else {
             state = null; // 确保state也被重置
         }
     }
 
-    private BlockPos updateTarget() {
+    private BlockPos updateTarget(ClientLevel level) {
         if (breakTargets.isEmpty()) {
             breakPos = null;
             state = null;
             return null;
         }
-        // 性能优化：使用迭代器直接获取第一个元素，避免创建新的集合
-        Iterator<BlockPos> iterator = breakTargets.iterator();
-        if (iterator.hasNext()) {
-            breakPos = iterator.next();
-            state = client.level.getBlockState(breakPos);
-        } else {
-            breakPos = null;
+        ResourceLocation currentDimension = level.dimension().location();
+        Iterator<Map.Entry<ResourceLocation, BlockPos>> iterator = breakTargets.entrySet().iterator();
+        while (breakPos == null && iterator.hasNext()) {
+            Map.Entry<ResourceLocation, BlockPos> entry = iterator.next();
+            // 检查当前世界(维度)与待破坏的方块世界不符, 则删除进行删除
+            if (!currentDimension.equals(entry.getKey())) {
+                iterator.remove();
+                continue;
+            }
+            state = level.getBlockState(breakPos);
+            breakPos = entry.getValue();
         }
         return breakPos;
     }
