@@ -13,7 +13,7 @@ public record ButtonListenerChangeMenu(ButtonType type, Screen parent) implement
     @Override
     public void actionPerformedWithButton(final ButtonBase arg0, final int arg1) {
         if (Objects.requireNonNull(type) == ButtonType.PRINTER_SETTINGS) {
-            GuiBase.openGui(new ConfigUi().setParent(parent));
+            GuiBase.openGui(new ConfigUi());
         }
     }
 }
