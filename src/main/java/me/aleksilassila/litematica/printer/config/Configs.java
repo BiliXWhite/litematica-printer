@@ -409,7 +409,7 @@ public class Configs implements IConfigHandler {
                 Printer.getInstance().basePos = null;
                 Printer.getInstance().clearQueue();
                 Printer.getInstance().pistonNeedFix = false;
-                Printer.getInstance().requiredState = null;
+                Printer.getInstance().blockContext = null;
                 if (ModLoadStatus.isBedrockMinerLoaded()) {
                     if (BedrockUtils.isWorking()) {
                         BedrockUtils.setWorking(false);
