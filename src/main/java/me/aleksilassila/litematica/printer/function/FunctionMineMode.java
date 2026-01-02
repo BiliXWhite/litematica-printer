@@ -32,7 +32,6 @@ public class FunctionMineMode extends FunctionModeBase {
         while ((pos = breakPos == null ? printer.getBlockPos() : breakPos) != null) {
             if (PrinterUtils.isPositionInSelectionRange(player,pos, Configs.MINE_SELECTION_TYPE)) {
                 if (BreakManager.breakRestriction(level.getBlockState(pos)) && breakManager.breakBlock(pos)) {
-                    Printer.getInstance().requiredState = level.getBlockState(pos);
                     breakPos = pos;
                     return;
                 }

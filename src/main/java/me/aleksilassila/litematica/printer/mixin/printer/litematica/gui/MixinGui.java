@@ -73,8 +73,8 @@ public abstract class MixinGui {
                     }
                     RenderUtils.drawString(Configs.PRINTER_MODE.getOptionListValue().getDisplayName(), (int) (width / 2), (int) (height / 2 + 52), new Color(255, 255, 255, 255).getRGB(), true, true);
 
-                    if (Printer.getInstance().requiredState != null)
-                        RenderUtils.drawString(Printer.getInstance().requiredState.getBlock().getName().getString(), (int) (width / 2), (int) (height / 2 + 64), new Color(255, 255, 255, 255).getRGB(), true, true);
+                    if (Printer.getInstance().blockContext != null)
+                        RenderUtils.drawString(Printer.getInstance().blockContext.requiredState.getBlock().getName().getString(), (int) (width / 2), (int) (height / 2 + 64), new Color(255, 255, 255, 255).getRGB(), true, true);
                 }
             }
         }

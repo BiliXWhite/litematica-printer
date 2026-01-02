@@ -14,8 +14,8 @@ public class MixinPistonBaseBlock {
         if (Printer.getInstance().pistonNeedFix) {
             Printer.getInstance().pistonNeedFix = false;
             //TODO: 检查这是否正确
-            if (Printer.getInstance().requiredState.getBlock() instanceof PistonBaseBlock) {
-                blockState = Printer.getInstance().requiredState.setValue(PistonBaseBlock.EXTENDED, false);
+            if (Printer.getInstance().blockContext.requiredState.getBlock() instanceof PistonBaseBlock) {
+                blockState = Printer.getInstance().blockContext.requiredState.setValue(PistonBaseBlock.EXTENDED, false);
             }
         }
         return blockState;

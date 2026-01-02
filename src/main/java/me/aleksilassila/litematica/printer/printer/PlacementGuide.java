@@ -1177,17 +1177,17 @@ public class PlacementGuide extends PrinterUtils {
             return this;
         }
 
-        public void queueAction(Printer.Queue queue, BlockPos center, Direction side, boolean useShift) {
+        public void queueAction(Printer.Queue queue, BlockPos blockPos, Direction side, boolean useShift) {
             if (Configs.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport) {
                 queue.queueClick(
-                        center,
+                        blockPos,
                         side.getOpposite(),
                         getSides().get(side),
                         useShift
                 );
             } else {
                 queue.queueClick(
-                        center.relative(side),
+                        blockPos.relative(side),
                         side.getOpposite(),
                         getSides().get(side),
                         useShift
@@ -1198,8 +1198,8 @@ public class PlacementGuide extends PrinterUtils {
 
     public static class ClickAction extends Action {
         @Override
-        public void queueAction(Printer.Queue queue, BlockPos center, Direction side, boolean useShift) {
-            queue.queueClick(center, side, getSides().get(side), false);
+        public void queueAction(Printer.Queue queue, BlockPos blockPos, Direction side, boolean useShift) {
+            queue.queueClick(blockPos, side, getSides().get(side), false);
         }
 
         @Override

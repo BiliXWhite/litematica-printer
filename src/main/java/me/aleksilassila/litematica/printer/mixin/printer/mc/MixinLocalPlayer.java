@@ -85,7 +85,9 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
         ZxyUtils.tick();
         BreakManager.instance().onTick();
         Printer printer = Printer.getInstance();
-        printer.onGameTick();
+
+
+        printer.onGameTick(minecraft, minecraft.level, (LocalPlayer) (Object) this);
     }
 
     @Unique

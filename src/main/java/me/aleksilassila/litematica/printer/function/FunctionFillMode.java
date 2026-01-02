@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.function;
 
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
+import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.enums.FileBlockModeType;
@@ -23,6 +24,8 @@ import java.util.List;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsItemName;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.switchItem;
 
 public class FunctionFillMode extends FunctionModeBase {
     private List<Item> fillModeItemList = new ArrayList<>();
@@ -40,7 +43,10 @@ public class FunctionFillMode extends FunctionModeBase {
 
     @Override
     public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
-        Printer.getInstance().requiredState = null;
+        if (isOpenHandler || switchItem() || BreakManager.hasTargets()) {
+            return;
+        }
+        Printer.getInstance().blockContext = null;
         boolean handheld = false;
         // 手持物品
         if (Configs.FILL_BLOCK_MODE.getOptionListValue() == FileBlockModeType.HANDHELD) {

@@ -44,7 +44,7 @@ public class FunctionFluidMode extends FunctionModeBase {
 
     @Override
     public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
-        Printer.getInstance().requiredState = null;
+        Printer.getInstance().blockContext = null;
         // 填充方块
         List<String> fileBlocks = Configs.FLUID_BLOCK_LIST.getStrings();
         if (!fileBlocks.equals(fillBlocks)) {
