@@ -76,7 +76,6 @@ public class Implementation {
     };
 
 
-
     public static void sendLookPacket(LocalPlayer playerEntity, float lookYaw, float lookPitch) {
         playerEntity.connection.send(new ServerboundMovePlayerPacket.Rot(
                 lookYaw,
@@ -100,24 +99,27 @@ public class Implementation {
         @Nullable Float lookYaw = Printer.getInstance().queue.lookYaw;
         @Nullable Float lookPitch = Printer.getInstance().queue.lookPitch;
 
-        if (!isMovePlayerPacket(packet) || lookYaw == null || lookPitch == null) return packet;
+        if (!isMovePlayerPacket(packet) || lookYaw == null || lookPitch == null) {
+            return packet;
+        }
 
         boolean onGround = ((ServerboundMovePlayerPacketAccessor) packet).getOnGround();
+
         //#if MC > 12101
         boolean horizontalCollision = ((ServerboundMovePlayerPacketAccessor) packet).getHorizontalCollision();
         //#endif
 
-        if (isRotPacket(packet))
+        if (isRotPacket(packet)) {
             return new ServerboundMovePlayerPacket.Rot(lookYaw, lookPitch, onGround
                     //#if MC > 12101
                     , horizontalCollision
                     //#endif
             );
+        }
 
         double x = ((ServerboundMovePlayerPacketAccessor) packet).getX();
         double y = ((ServerboundMovePlayerPacketAccessor) packet).getY();
         double z = ((ServerboundMovePlayerPacketAccessor) packet).getZ();
-
 
         return new ServerboundMovePlayerPacket.PosRot(x, y, z, lookYaw, lookPitch, onGround
                 //#if MC > 12101

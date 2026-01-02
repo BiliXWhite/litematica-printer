@@ -8,7 +8,6 @@ import fi.dy.masa.litematica.util.PlacementHandler;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.Debug;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.enums.IterationOrderType;
 import me.aleksilassila.litematica.printer.config.enums.ModeType;
@@ -128,7 +127,8 @@ public class Printer extends PrinterUtils {
             myBox.zIncrement = !Configs.Z_REVERSE.getBooleanValue();
             Iterator<BlockPos> iterator = myBox.iterator;
             while (iterator.hasNext()) {
-                if (Configs.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) return null;
+                if (Configs.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime)
+                    return null;
                 BlockPos pos = iterator.next();
                 // 只有在形状为球体的时候才判断在不在距离内
                 if (
@@ -201,10 +201,13 @@ public class Printer extends PrinterUtils {
             return;
         }
 
-        queue.sendQueue(player);
-
         if (waitTicks > 0) {
             waitTicks--;
+            return;
+        }
+
+        queue.sendQueue(player);
+        if (queue.needWait) {
             return;
         }
 
@@ -234,7 +237,7 @@ public class Printer extends PrinterUtils {
                 return;
             }
             // 是否在渲染层内
-            if (!PrinterUtils.isPositionInSelectionRange(player,pos, Configs.PRINT_SELECTION_TYPE))
+            if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.PRINT_SELECTION_TYPE))
                 continue;
 
             if (!isSchematicBlock(pos)) {
@@ -259,7 +262,7 @@ public class Printer extends PrinterUtils {
             placeCooldownList.put(pos, Configs.PLACE_COOLDOWN.getIntegerValue());
 
             // 检查放置条件
-            PlacementGuide.Action action = guide.getAction(world, schematic, pos);
+            PlacementGuide.Action action = guide.getAction(new BlockContext(client, world, schematic, pos));
             if (action == null) {
                 continue;
             }
@@ -277,6 +280,7 @@ public class Printer extends PrinterUtils {
             if (side == null) {
                 continue;
             }
+            waitTicks = action.getWaitTick();
 
             // 调试输出
             if (Configs.DEBUG_OUTPUT.getBooleanValue()) {
@@ -306,15 +310,16 @@ public class Printer extends PrinterUtils {
                 }
 
                 if (action.getLookYaw() != null && action.getLookPitch() != null) {
-                    sendLook(action.getLookYaw(), action.getLookPitch());
+                    sendLook(player, action.getLookYaw(), action.getLookPitch());
                 }
 
                 var block = requiredState.getBlock();
                 if (block instanceof PistonBaseBlock) {
                     pistonNeedFix = true;
                 }
-                waitTicks = action.getWaitTick();
+
                 if (tickRate == 0) {
+                    queue.sendQueue(player);
                     if (block instanceof PistonBaseBlock ||
                             block instanceof ObserverBlock ||
                             block instanceof DispenserBlock ||
@@ -329,7 +334,9 @@ public class Printer extends PrinterUtils {
                     ) {
                         return;
                     }
-                    queue.sendQueue(player);
+                    if (waitTicks > 0) {
+                        return;
+                    }
                     if (queue.needWait) {
                         return;
                     }
@@ -425,12 +432,10 @@ public class Printer extends PrinterUtils {
         return false;
     }
 
-    public void sendLook(float directionYaw, float directionPitch) {
+    public void sendLook(LocalPlayer player, float directionYaw, float directionPitch) {
         queue.lookYaw = directionYaw;
         queue.lookPitch = directionPitch;
-        if (client.player != null) {
-            Implementation.sendLookPacket(client.player, directionYaw, directionPitch);
-        }
+        Implementation.sendLookPacket(player, directionYaw, directionPitch);
     }
 
     //region 单例
@@ -502,7 +507,14 @@ public class Printer extends PrinterUtils {
                 clearQueue();
                 return;
             }
-
+            if (!useProtocol && !needWait) {
+                if (lookYaw != null && lookPitch != null) {
+                    if (DirectionUtils.orderedByNearest(lookYaw, lookPitch)[0].getAxis().isHorizontal()) {
+                        needWait = true;
+                        return;
+                    }
+                }
+            }
             Direction direction;
             if (lookYaw == null) {
                 direction = side;
@@ -582,6 +594,7 @@ public class Printer extends PrinterUtils {
             this.side = null;
             this.hitModifier = null;
             this.useShift = false;
+            this.useProtocol = false;
             this.needWait = false;
             this.lookYaw = null;
             this.lookPitch = null;
