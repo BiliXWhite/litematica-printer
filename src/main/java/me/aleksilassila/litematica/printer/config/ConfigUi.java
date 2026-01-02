@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.config;
 
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.config.IConfigBase;
+import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
@@ -9,14 +10,21 @@ import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class ConfigUi extends GuiConfigsBase {
     private static Tab tab = Tab.ALL;
 
+    public ConfigUi(@Nullable Screen parent) {
+        super(10, 50, LitematicaPrinterMod.MOD_ID, parent, "投影打印机 " + UpdateChecker.version);
+    }
+
     public ConfigUi() {
-        super(10, 50, LitematicaPrinterMod.MOD_ID, null, "投影打印机 " + UpdateChecker.version);
+        this(Minecraft.getInstance().screen);
     }
 
     @Override
@@ -58,7 +66,7 @@ public class ConfigUi extends GuiConfigsBase {
         PUT(I18n.TAB_PUT),
         EXCAVATE(I18n.TAB_EXCAVATE),
         FILL(I18n.FILL),
-//        BEDROCK(I18n.TAB_BEDROCK, false),
+        //        BEDROCK(I18n.TAB_BEDROCK, false),
         HOTKEYS(I18n.TAB_HOTKEYS),
         COLOR(I18n.TAB_COLOR);
 
