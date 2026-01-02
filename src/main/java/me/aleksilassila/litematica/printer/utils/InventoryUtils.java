@@ -124,7 +124,7 @@ public class InventoryUtils {
                     return true;
                 }
 
-                //#if MC >= 12109 && MC == 12101
+                //#if MC >= 12109 || MC == 12101
                 EasyPlaceUtilsAccessor.callSetEasyPlaceLastPickBlockTime();
                 //#else
                 //$$ fi.dy.masa.litematica.util.WorldUtils.setEasyPlaceLastPickBlockTime();
