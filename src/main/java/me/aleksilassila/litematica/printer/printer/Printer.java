@@ -73,7 +73,7 @@ public class Printer extends PrinterUtils {
     public int shulkerCooldown = 0;
     public long tickStartTime, tickEndTime;
     //强制循环半径
-    public BlockPos basePos = null;
+    public @Nullable BlockPos basePos = null;
     public MyBox myBox;
     public int printRange = Configs.PRINTER_RANGE.getIntegerValue();
     public boolean printerYAxisReverse = false;
@@ -101,34 +101,35 @@ public class Printer extends PrinterUtils {
     }
 
     public BlockPos getBlockPos() {
-        if (Configs.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime)
+        if (Configs.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
             return null;
+        }
         LocalPlayer player = client.player;
-        if (player == null)
+        if (player == null) {
             return null;
-        BlockPos playerPos = player.getOnPos();
+        }
         // 如果 basePos 为空，则初始化为玩家当前位置，并扩展 myBox 范围
+        BlockPos playerOnPos = player.getOnPos();
         if (basePos == null) {
-            basePos = playerPos;
-            myBox = new MyBox(basePos).inflate(printRange);
+            basePos = playerOnPos;
+            myBox = new MyBox(playerOnPos).resize(printRange);
         }
         double threshold = printRange * 0.7;
-        if (!basePos.closerThan(playerPos, threshold)) {
+        if (!basePos.closerThan(playerOnPos, threshold)) {
             basePos = null;
             return null;
         }
         if (Configs.ITERATION_ORDER.getOptionListValue() instanceof IterationOrderType iterationOrderType) {
-            myBox.initIterator();
             myBox.setIterationMode(iterationOrderType);
             myBox.xIncrement = !Configs.X_REVERSE.getBooleanValue();
             myBox.yIncrement = Configs.Y_REVERSE.getBooleanValue() == printerYAxisReverse;
             myBox.zIncrement = !Configs.Z_REVERSE.getBooleanValue();
             Iterator<BlockPos> iterator = myBox.iterator;
             while (iterator.hasNext()) {
-                if (Configs.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime)
+                if (Configs.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
                     return null;
+                }
                 BlockPos pos = iterator.next();
-                // 只有在形状为球体的时候才判断在不在距离内
                 if (
                         ((isPrinterMode() && isSchematicBlock(pos)) ||
                                 TempData.xuanQuFanWeiNei_p(pos)) &&
@@ -138,7 +139,6 @@ public class Printer extends PrinterUtils {
                 }
             }
         }
-        // 如果没有找到符合条件的位置，重置 basePos 并返回 null
         basePos = null;
         return null;
     }
@@ -439,10 +439,8 @@ public class Printer extends PrinterUtils {
 
         static boolean comparePos(Box box, BlockPos pos) {
             if (box == null || box.getPos1() == null || box.getPos2() == null || pos == null) return false;
-            MyBox myBox = new MyBox(box);
-            //因为麻将的Box.contains方法内部用的 x >= this.minX && x < this.maxX ... 使得最小边界能被覆盖，但是最大边界不行
-            //因此 我重写了该方法
-            return myBox.contains(Vec3.atLowerCornerOf(pos));
+            MyBox myBox = new MyBox(box.getPos1(), box.getPos2());
+            return myBox.contains(pos);
         }
     }
 
