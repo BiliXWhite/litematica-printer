@@ -406,10 +406,11 @@ public class Configs implements IConfigHandler {
         // 打印状态值被修改
         PRINT_SWITCH.setValueChangeCallback(b -> {
             if (!b.getBooleanValue()) {
-                Printer.getInstance().basePos = null;
-                Printer.getInstance().clearQueue();
-                Printer.getInstance().pistonNeedFix = false;
-                Printer.getInstance().blockContext = null;
+                Printer printer = Printer.getInstance();
+                printer.clearQueue();
+                printer.basePos = null;
+                printer.pistonNeedFix = false;
+                printer.blockContext = null;
                 if (ModLoadStatus.isBedrockMinerLoaded()) {
                     if (BedrockUtils.isWorking()) {
                         BedrockUtils.setWorking(false);
