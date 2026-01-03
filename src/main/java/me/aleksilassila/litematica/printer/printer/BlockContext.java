@@ -43,4 +43,16 @@ public class BlockContext {
     public <T extends Comparable<T>> Optional<T> getCurrentStateProperty(Property<T> property) {
         return getProperty(currentState, property);
     }
+
+    @Override
+    public String toString() {
+        return "BlockContext{" +
+                "client=" + client +
+                ", level=" + level +
+                ", schematic=" + schematic +
+                ", blockPos=" + blockPos +
+                ", currentState=" + currentState +
+                ", requiredState=" + requiredState +
+                '}';
+    }
 }
