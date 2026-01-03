@@ -2,22 +2,15 @@ package me.aleksilassila.litematica.printer.function;
 
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.config.enums.IterationOrderType;
 import me.aleksilassila.litematica.printer.config.enums.ModeType;
 import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.printer.Printer;
 
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
-import me.aleksilassila.litematica.printer.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Iterator;
 
 public abstract class FunctionModeBase extends PrinterUtils implements FunctionExtension {
     public abstract PrintModeType getPrintModeType();

@@ -3,8 +3,6 @@ package me.aleksilassila.litematica.printer.printer.zxy.Utils;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
@@ -372,7 +370,8 @@ public class ZxyUtils {
         if (i == null) return blocks;
         boxes = i.getAllSubRegionBoxes();
         for (Box box : boxes) {
-            MyBox myBox = new MyBox(box);
+            if (box.getPos1()==null||box.getPos2()==null) continue;
+            MyBox myBox = new MyBox(box.getPos1(), box.getPos2());
             for (BlockPos pos : myBox) {
                 BlockState state = null;
                 if (Printer.client.level != null) {

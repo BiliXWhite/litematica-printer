@@ -73,25 +73,13 @@ public class FunctionFluidMode extends FunctionModeBase {
 
         BlockPos pos;
         while ((pos = printer.getBlockPos()) != null) {
-            if (Configs.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0)
+            if (Configs.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0) {
                 return;
-            if (!PrinterUtils.isPositionInSelectionRange(player,pos, Configs.FLUID_SELECTION_TYPE))
-                continue;
-            if (Configs.FLUID_SELECTION_TYPE.getOptionListValue().equals(SelectionType.LITEMATICA_RENDER_LAYER)) {
-                if (!DataManager.getRenderLayerRange().isPositionWithinRange(pos)) {
-                    return;
-                }
-            } else if (Configs.FLUID_SELECTION_TYPE.getOptionListValue().equals(SelectionType.LITEMATICA_SELECTION_ABOVE_PLAYER)) {
-                if (pos.getY() < player.getOnPos().getY()) {
-                    return;
-                }
             }
-            if (!Printer.TempData.xuanQuFanWeiNei_p(pos))
+            if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.FLUID_SELECTION_TYPE)) {
                 continue;
-            // 跳过冷却中的位置
-            if (Printer.getInstance().placeCooldownList.containsKey(pos))
-                continue;
-            Printer.getInstance().placeCooldownList.put(pos, Configs.PLACE_COOLDOWN.getIntegerValue());
+            }
+            printer.placeCooldownList.put(pos, Configs.PLACE_COOLDOWN.getIntegerValue());
             FluidState fluidState = level.getBlockState(pos).getFluidState();
             if (fluis.contains(fluidState.getType())) {
                 if (!Configs.FILL_FLOWING_FLUID.getBooleanValue() && !fluidState.isSource())

@@ -46,11 +46,7 @@ public class FunctionBedrockMode extends FunctionModeBase {
         }
         BlockPos pos;
         while ((pos = printer.getBlockPos()) != null) {
-            if (!PlayerUtils.canInteracted(pos) || !Printer.TempData.xuanQuFanWeiNei_p(pos)) {
-                continue;
-            }
             BedrockUtils.addToBreakList(pos, client.level);
-            // 原谅我使用硬编码plz 我真的不想写太多的优化了555
             Printer.getInstance().placeCooldownList.put(pos, 100);
         }
     }
