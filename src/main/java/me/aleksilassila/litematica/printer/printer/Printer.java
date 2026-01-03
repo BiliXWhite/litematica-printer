@@ -210,8 +210,8 @@ public class Printer extends PrinterUtils {
             return;
         }
         // 单模, 非打印模式,
-        if (Configs.MODE_SWITCH.getOptionListValue().equals(ModeType.SINGLE)) {
-            if (Configs.PRINTER_MODE.getOptionListValue().equals(PrintModeType.PRINTER)) {
+        if (Configs.MODE_SWITCH.getOptionListValue() instanceof ModeType modeType && modeType == ModeType.SINGLE) {
+            if (Configs.PRINTER_MODE.getOptionListValue() instanceof PrintModeType printModeType && printModeType != PrintModeType.PRINTER) {
                 return;
             }
         }
@@ -489,6 +489,9 @@ public class Printer extends PrinterUtils {
                         return;
                     }
                 }
+            }
+            if (needWait) {
+                needWait = false;
             }
             Direction direction;
             if (lookYaw == null) {
