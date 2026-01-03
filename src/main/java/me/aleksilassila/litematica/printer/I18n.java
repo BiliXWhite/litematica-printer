@@ -10,6 +10,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class I18n {
     // @formatter:off
+    public static final I18n CHECK_PLAYER_INTERACTION_RANGE = config("checkPlayerInteractionRange");
+
     public static final I18n PRINT_SELECTION_TYPE = config("printSelectionType");
     public static final I18n FILL_SELECTION_TYPE    = config("fillSelectionType");
     public static final I18n FLUID_SELECTION_TYPE   = config("fluidSelectionType");

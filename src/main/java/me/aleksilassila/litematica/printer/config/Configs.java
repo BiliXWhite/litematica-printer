@@ -40,6 +40,8 @@ public class Configs implements IConfigHandler {
 
 //    public static final ConfigBooleanHotkeyed REPLACE_BLOCK = new ConfigBooleanHotkeyed("替换", false,"", "替换方块，通过\"替换方块名单\"配置");
 
+    public static final ConfigBoolean CHECK_PLAYER_INTERACTION_RANGE = bool(I18n.CHECK_PLAYER_INTERACTION_RANGE, true);
+
     public static final ConfigOptionList PRINT_SELECTION_TYPE     = optionList(I18n.PRINT_SELECTION_TYPE            , SelectionType.LITEMATICA_RENDER_LAYER);
     public static final ConfigOptionList FILL_SELECTION_TYPE      = optionList(I18n.FILL_SELECTION_TYPE            , SelectionType.LITEMATICA_SELECTION);
     public static final ConfigOptionList FLUID_SELECTION_TYPE     = optionList(I18n.FLUID_SELECTION_TYPE            , SelectionType.LITEMATICA_SELECTION);
@@ -155,35 +157,33 @@ public class Configs implements IConfigHandler {
     }
 
 
-
     //===========通用设置===========
     public static ImmutableList<IConfigBase> getGeneral() {
         List<IConfigBase> list = new ArrayList<>();
         // 箱子追踪
         if (ModLoadStatus.isLoadChestTrackerLoaded()) {
-            list.add(CLOUD_INVENTORY);              // 远程交互容器
-            list.add(AUTO_INVENTORY);               // 自动设置远程交互
+            list.add(CLOUD_INVENTORY);                          // 远程交互容器
+            list.add(AUTO_INVENTORY);                           // 自动设置远程交互
         }
-        list.add(PRINT_SWITCH);                     // 打印状态
-        list.add(PRINTER_SPEED);                    // 核心 - 工作间隔
-        if (PRINTER_SPEED.getIntegerValue() == 0) {  // 核心 - 工作间隔
-            list.add(BLOCKS_PER_TICK);              // 核心 - 每刻放置方块数
-        }
-        list.add(PRINTER_RANGE);                    // 核心 - 工作半径长度
-        list.add(PLACE_COOLDOWN);                   // 核心 - 放置冷却
-        list.add(ITERATOR_USE_TIME);                // 核心 - 迭代占用时长
-        list.add(ITERATOR_SHAPE);                   // 核心 - 迭代区域形状
-        list.add(LAG_CHECK);                        // 核心 - 延迟检测
-        list.add(PLACE_USE_PACKET);                 // 打印 - 数据包打印
-        list.add(RENDER_HUD);                       // 显示打印机HUD
-        list.add(QUICK_SHULKER);                    // 快捷潜影盒
-        list.add(QUICK_SHULKER_MODE);               // 快捷潜影盒 - 工作模式
-        list.add(QUICK_SHULKER_COOLDOWN);           // 快捷潜影盒 - 冷却时间
-        list.add(ITERATION_ORDER);                  // 迭代 - 遍历顺序
-        list.add(X_REVERSE);                        // 迭代-X轴反向
-        list.add(Y_REVERSE);                        // 迭代-Y轴反向
-        list.add(Z_REVERSE);                        // 迭代-Z轴反向
-        list.add(MODE_SWITCH);                      // 模式切换
+        list.add(PRINT_SWITCH);                                 // 打印状态
+        list.add(CHECK_PLAYER_INTERACTION_RANGE); // 核心 - 检查玩家方块交互距离
+        list.add(PRINTER_SPEED);                                // 核心 - 工作间隔
+        list.add(BLOCKS_PER_TICK);                              // 核心 - 每刻放置方块数(没必要隐藏)
+        list.add(PRINTER_RANGE);                                // 核心 - 工作半径长度
+        list.add(PLACE_COOLDOWN);                               // 核心 - 放置冷却
+        list.add(ITERATOR_USE_TIME);                            // 核心 - 迭代占用时长
+        list.add(ITERATOR_SHAPE);                               // 核心 - 迭代区域形状
+        list.add(LAG_CHECK);                                    // 核心 - 延迟检测
+        list.add(PLACE_USE_PACKET);                             // 打印 - 数据包打印
+        list.add(RENDER_HUD);                                   // 显示打印机 HUD
+        list.add(QUICK_SHULKER);                                // 快捷潜影盒
+        list.add(QUICK_SHULKER_MODE);                           // 快捷潜影盒 - 工作模式
+        list.add(QUICK_SHULKER_COOLDOWN);                       // 快捷潜影盒 - 冷却时间
+        list.add(ITERATION_ORDER);                              // 迭代 - 遍历顺序
+        list.add(X_REVERSE);                                    // 迭代-X轴反向
+        list.add(Y_REVERSE);                                    // 迭代-Y轴反向
+        list.add(Z_REVERSE);                                    // 迭代-Z轴反向
+        list.add(MODE_SWITCH);                                  // 模式切换
         // 模式切换
         if (MODE_SWITCH.getOptionListValue().equals(ModeType.SINGLE)) {
             list.add(PRINTER_MODE);                 // 打印机模式
@@ -392,7 +392,7 @@ public class Configs implements IConfigHandler {
         //#endif
 
         CLOSE_ALL_MODE.getKeybind().setCallback((action, keybind) -> {
-            if (keybind.isPressed()){
+            if (keybind.isPressed()) {
                 Configs.MINE.setBooleanValue(false);
                 Configs.FLUID.setBooleanValue(false);
                 Configs.PRINT_SWITCH.setBooleanValue(false);

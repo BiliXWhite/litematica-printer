@@ -218,6 +218,7 @@
   "litematica_printer.config.comment.printerSelectionType": "设置打印模式下打印机的工作选区范围规则：\n§d投影选区§r：使用投影当前选中的完整选区作为工作范围\n§d投影渲染层§r：仅在投影当前渲染层范围内工作\n§d投影选区 玩家之下§r：仅处理选区中玩家所在高度以下的区域\n§d投影选区 玩家之上§r：仅处理选区中玩家所在高度以上的区域",
   "litematica_printer.config.comment.fillSelectionType": "设置填充模式下打印机的工作选区范围规则：\n§d投影选区§r：使用投影当前选中的完整选区作为工作范围\n§d投影渲染层§r：仅在投影当前渲染层范围内工作\n§d投影选区 玩家之下§r：仅处理选区中玩家所在高度以下的区域\n§d投影选区 玩家之上§r：仅处理选区中玩家所在高度以上的区域",
   "litematica_printer.config.comment.fluidSelectionType": "设置排流体模式下打印机的工作选区范围规则：\n§d投影选区§r：使用投影当前选中的完整选区作为工作范围\n§d投影渲染层§r：仅在投影当前渲染层范围内工作\n§d投影选区 玩家之下§r：仅处理选区中玩家所在高度以下的区域\n§d投影选区 玩家之上§r：仅处理选区中玩家所在高度以上的区域",
-  "litematica_printer.config.comment.mineSelectionType": "设置挖掘模式下打印机的工作选区范围规则：\n§d投影选区§r：使用投影当前选中的完整选区作为工作范围\n§d投影渲染层§r：仅在投影当前渲染层范围内工作\n§d投影选区 玩家之下§r：仅处理选区中玩家所在高度以下的区域\n§d投影选区 玩家之上§r：仅处理选区中玩家所在高度以上的区域（默认）"
-
+  "litematica_printer.config.comment.mineSelectionType": "设置挖掘模式下打印机的工作选区范围规则：\n§d投影选区§r：使用投影当前选中的完整选区作为工作范围\n§d投影渲染层§r：仅在投影当前渲染层范围内工作\n§d投影选区 玩家之下§r：仅处理选区中玩家所在高度以下的区域\n§d投影选区 玩家之上§r：仅处理选区中玩家所在高度以上的区域（默认）",
+  "litematica_printer.config.name.checkPlayerInteractionRange": "核心 - 检查玩家方块交互距离",
+  "litematica_printer.config.comment.checkPlayerInteractionRange": "启用后打印机仅处理玩家方块交互距离（PlayerBlockInteractionRange）范围内的方块，超出交互距离的位置将不会执行打印/挖掘/填充等操作，避免跨距离操作被服务器检测。"
 }
