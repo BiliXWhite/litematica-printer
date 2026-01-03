@@ -83,7 +83,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     @Inject(at = @At("TAIL"), method = "tick")
     public void tick(CallbackInfo ci) {
         ZxyUtils.tick();
-        BreakManager.instance().onTick();
+        BreakManager.instance().tick();
         Printer printer = Printer.getInstance();
 
 
