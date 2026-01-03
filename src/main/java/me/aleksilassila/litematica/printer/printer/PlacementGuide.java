@@ -862,30 +862,30 @@ public class PlacementGuide extends PrinterUtils {
                 //#else
                 //$$ TorchBlock.class
                 //#endif
-        ), // 火把
-        SLAB(SlabBlock.class), // 台阶
-        STAIR(StairBlock.class), // 楼梯
-        TRAPDOOR(TrapDoorBlock.class), // 活板门
-        STRIP_LOG(RotatedPillarBlock.class), // 去皮原木
-        ANVIL(AnvilBlock.class), // 铁砧
-        HOPPER(HopperBlock.class), // 漏斗
-        CAMPFIRE(CampfireBlock.class), // 营火
-        BED(BedBlock.class), // 床
-        BELL(BellBlock.class), // 钟
-        AMETHYST(AmethystClusterBlock.class), // 紫水晶
-        DOOR(DoorBlock.class), // 门
-        COCOA(CocoaBlock.class), // 可可豆
+        ),                                      // 火把
+        SLAB(SlabBlock.class),                  // 台阶
+        STAIR(StairBlock.class),                // 楼梯
+        TRAPDOOR(TrapDoorBlock.class),          // 活板门
+        STRIP_LOG(RotatedPillarBlock.class),    // 去皮原木
+        ANVIL(AnvilBlock.class),                // 铁砧
+        HOPPER(HopperBlock.class),              // 漏斗
+        CAMPFIRE(CampfireBlock.class),          // 营火
+        BED(BedBlock.class),                    // 床
+        BELL(BellBlock.class),                  // 钟
+        AMETHYST(AmethystClusterBlock.class),   // 紫水晶
+        DOOR(DoorBlock.class),                  // 门
+        COCOA(CocoaBlock.class),                // 可可豆
         //#if MC >= 12003
-        CRAFTER(CrafterBlock.class), // 合成器
+        CRAFTER(CrafterBlock.class),            // 合成器
         //#endif
-        CHEST(ChestBlock.class), // 箱子
-        OBSERVER(ObserverBlock.class), // 侦测器
-        LADDER(LadderBlock.class), // 梯子
-        LANTERN(LanternBlock.class), // 灯笼
-        ROD(RodBlock.class), // 末地烛 避雷针
+        CHEST(ChestBlock.class),                // 箱子
+        OBSERVER(ObserverBlock.class),          // 侦测器
+        LADDER(LadderBlock.class),              // 梯子
+        LANTERN(LanternBlock.class),            // 灯笼
+        ROD(RodBlock.class),                    // 末地烛 避雷针
         TRIPWIRE_HOOK(TripWireHookBlock.class), // 绊线钩
-        RAIL(BaseRailBlock.class), // 铁轨
-        PISTON(PistonBaseBlock.class), // 活塞 （为了避免被破坏错误状态破坏）
+        RAIL(BaseRailBlock.class),              // 铁轨
+        PISTON(PistonBaseBlock.class),          // 活塞 （为了避免被破坏错误状态破坏）
         SIGN(
                 StandingSignBlock.class,
                 WallSignBlock.class
@@ -895,43 +895,43 @@ public class PlacementGuide extends PrinterUtils {
                 //#endif
         ),
         // 点击
-        FLOWER_POT(FlowerPotBlock.class), // 花盆
-        BIG_DRIPLEAF_STEM(BigDripleafStemBlock.class), // 大垂叶茎
-        CAVE_VINES(CaveVinesBlock.class, CaveVinesPlantBlock.class), // 洞穴藤蔓
-        WEEPING_VINES(WeepingVinesBlock.class, WeepingVinesPlantBlock.class), // 垂泪藤
-        TWISTING_VINES(TwistingVinesBlock.class, TwistingVinesPlantBlock.class), // 缠怨藤
-        SNOW(SnowLayerBlock.class), // 雪
-        CANDLES(CandleBlock.class), // 蜡烛
-        REPEATER(RepeaterBlock.class), // 中继器
-        COMPARATOR(ComparatorBlock.class), // 比较器
-        PICKLES(SeaPickleBlock.class), // 海泡菜
-        NOTE_BLOCK(NoteBlock.class), // 音符盒
-        END_PORTAL_FRAME(EndPortalFrameBlock.class), // 末地传送门框架
+        FLOWER_POT(FlowerPotBlock.class),               // 花盆
+        BIG_DRIPLEAF_STEM(BigDripleafStemBlock.class),  // 大垂叶茎
+        CAVE_VINES(CaveVinesBlock.class, CaveVinesPlantBlock.class),                // 洞穴藤蔓
+        WEEPING_VINES(WeepingVinesBlock.class, WeepingVinesPlantBlock.class),       // 垂泪藤
+        TWISTING_VINES(TwistingVinesBlock.class, TwistingVinesPlantBlock.class),    // 缠怨藤
+        SNOW(SnowLayerBlock.class),                     // 雪
+        CANDLES(CandleBlock.class),                     // 蜡烛
+        REPEATER(RepeaterBlock.class),                  // 中继器
+        COMPARATOR(ComparatorBlock.class),              // 比较器
+        PICKLES(SeaPickleBlock.class),                  // 海泡菜
+        NOTE_BLOCK(NoteBlock.class),                    // 音符盒
+        END_PORTAL_FRAME(EndPortalFrameBlock.class),    // 末地传送门框架
         //#if MC >= 11904
         FLOWERBED(
                 //#if MC >= 12105
-                FlowerBedBlock
-                        //#else
-                        //$$ PinkPetalsBlock
-                        //#endif
-                        .class), // 花簇（ojng你看看你这是什么抽象命名）
+                FlowerBedBlock.class
+                //#else
+                //$$ PinkPetalsBlock.class
+                //#endif
+        ), // 花簇（ojng你看看你这是什么抽象命名）
         //#endif
-        VINES(VineBlock.class), // 藤蔓
-        GLOW_LICHEN(GlowLichenBlock.class), // 发光地衣
-        FIRE(FireBlock.class, SoulFireBlock.class), // 火，灵魂火
-        REDSTONE(RedStoneWireBlock.class), //红石粉
-        FENCE_GATE(FenceGateBlock.class), // 栅栏门
-        LEVER(LeverBlock.class), // 拉杆
+        VINES(VineBlock.class),                         // 藤蔓
+        GLOW_LICHEN(GlowLichenBlock.class),             // 发光地衣
+        FIRE(FireBlock.class, SoulFireBlock.class),     // 火，灵魂火
+        REDSTONE(RedStoneWireBlock.class),              // 红石粉
+        FENCE_GATE(FenceGateBlock.class),               // 栅栏门
+        LEVER(LeverBlock.class),                        // 拉杆
         CAULDRON(CauldronBlock.class, LavaCauldronBlock.class, LayeredCauldronBlock.class), // 炼药锅
         DAYLIGHT_DETECTOR(DaylightDetectorBlock.class), // 阳光探测器
-        COMPOSTER(ComposterBlock.class), // 堆肥桶
+        COMPOSTER(ComposterBlock.class),                // 堆肥桶
 
         // 其他
-        FARMLAND(FarmBlock.class), // 耕地
-        DIRT_PATH(DirtPathBlock.class), // 土径
-        DEAD_CORAL(Block.class), // 死珊瑚
+        FARMLAND(FarmBlock.class),              // 耕地
+        DIRT_PATH(DirtPathBlock.class),         // 土径
+        DEAD_CORAL(Block.class),                // 死珊瑚
         NETHER_PORTAL(NetherPortalBlock.class), // 下界传送门
-        SKIP(SkullBlock.class, LiquidBlock.class, BubbleColumnBlock.class, WaterlilyBlock.class), // 跳过：移除SignBlock
+        SKIP(SkullBlock.class, LiquidBlock.class, BubbleColumnBlock.class, WaterlilyBlock.class), // 跳过
         DEFAULT; // 默认
 
         private final Class<?>[] classes;
