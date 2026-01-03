@@ -46,7 +46,6 @@ public class FunctionFillMode extends FunctionModeBase {
         if (isOpenHandler || switchItem() || BreakManager.hasTargets()) {
             return;
         }
-        Printer.getInstance().blockContext = null;
         boolean handheld = false;
         // 手持物品
         if (Configs.FILL_BLOCK_MODE.getOptionListValue() == FileBlockModeType.HANDHELD) {
