@@ -6,79 +6,87 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Iterator;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
-import static me.aleksilassila.litematica.printer.config.enums.IterationOrderType.*;
-
-public class MyBox implements Iterable<BlockPos> {
+public class MyBox extends AABB implements Iterable<BlockPos> {
     public boolean yIncrement = true;
     public boolean xIncrement = true;
     public boolean zIncrement = true;
-    public Iterator<BlockPos> iterator;
-    private IterationOrderType iterationMode = XZY;
+    private IterationOrderType iterationMode = IterationOrderType.XZY;
+    private @Nullable BlockPos lastIteratedPos;
 
     public void setIterationMode(IterationOrderType mode) {
-        this.initIterator();
         this.iterationMode = mode;
     }
 
-    public final int minX;
-    public final int minY;
-    public final int minZ;
-    public final int maxX;
-    public final int maxY;
-    public final int maxZ;
-
-    public MyBox(int x1, int y1, int z1, int x2, int y2, int z2) {
-        this.minX = Math.min(x1, x2);
-        this.minY = Math.min(y1, y2);
-        this.minZ = Math.min(z1, z2);
-        this.maxX = Math.max(x1, x2);
-        this.maxY = Math.max(y1, y2);
-        this.maxZ = Math.max(z1, z2);
-    }
-
-
-    public MyBox(BlockPos pos1, BlockPos pos2) {
-        this(pos1.getX(), pos1.getY(), pos1.getZ(), pos2.getX(), pos2.getY(), pos2.getZ());
+    public MyBox(double x1, double y1, double z1, double x2, double y2, double z2) {
+        super(x1, y1, z1, x2, y2, z2);
     }
 
     public MyBox(BlockPos pos) {
         this(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
     }
 
-    public boolean contains(int x, int y, int z) {
-        return x >= this.minX && x <= this.maxX + 1
-                && y >= this.minY && y <= this.maxY + 1
-                && z >= this.minZ && z <= this.maxZ + 1;
+    public MyBox(Vec3 pos1, Vec3 pos2) {
+        this(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z);
+    }
+
+    public MyBox(BlockPos pos1, BlockPos pos2) {
+        this(pos1.getX(), pos1.getY(), pos1.getZ(), pos2.getX(), pos2.getY(), pos2.getZ());
+    }
+
+    /**
+     * 设置迭代器的起始位置（用于从上次终止的位置继续遍历）
+     *
+     * @param startPos 起始位置（传入null/结尾位置/无效位置则从头开始）
+     */
+    public void setStartPos(@Nullable BlockPos startPos) {
+        if (startPos != null && contains(startPos) && !isEndPos(startPos)) {
+            lastIteratedPos = startPos;
+        }
+    }
+
+    private boolean isEndPos(BlockPos pos) {
+        double targetX = xIncrement ? maxX : minX;
+        double targetY = yIncrement ? maxY : minY;
+        double targetZ = zIncrement ? maxZ : minZ;
+        return pos.getX() == targetX && pos.getY() == targetY && pos.getZ() == targetZ;
+    }
+
+
+    //因原方法最大值比较时使用的是 < 而不是 <= 因此 最小边界能被覆盖 而最大边界不能
+    @Override
+    public boolean contains(double x, double y, double z) {
+        return x >= this.minX && x <= this.maxX && y >= this.minY && y <= this.maxY && z >= this.minZ && z <= this.maxZ;
     }
 
     public boolean contains(BlockPos pos) {
         return contains(pos.getX(), pos.getY(), pos.getZ());
     }
 
-    public MyBox resize(int x, int y, int z) {
-        int minX = this.minX - x;
-        int minY = this.minY - y;
-        int minZ = this.minZ - z;
-        int maxX = this.maxX + x;
-        int maxY = this.maxY + y;
-        int maxZ = this.maxZ + z;
-        return new MyBox(minX, minY, minZ, maxX, maxY, maxZ);
+    @Override
+    public @NotNull MyBox inflate(double x, double y, double z) {
+        double d = this.minX - x;
+        double e = this.minY - y;
+        double f = this.minZ - z;
+        double g = this.maxX + x;
+        double h = this.maxY + y;
+        double i = this.maxZ + z;
+        return new MyBox(d, e, f, g, h, i);
     }
 
-    public MyBox resize(int value) {
-        return this.resize(value, value, value);
+    @Override
+    public @NotNull MyBox inflate(double value) {
+        return this.inflate(value, value, value);
     }
 
-    private void initIterator() {
-        if (this.iterator == null) this.iterator = iterator();
-
-    }
 
     @Override
     public @NotNull Iterator<BlockPos> iterator() {
         return new Iterator<>() {
-            public BlockPos currPos;
+            public BlockPos currPos = lastIteratedPos;
 
             @Override
             public boolean hasNext() {
@@ -87,9 +95,9 @@ public class MyBox implements Iterable<BlockPos> {
                 int y = currPos.getY();
                 int z = currPos.getZ();
 
-                int targetX = xIncrement ? maxX : minX;
-                int targetY = yIncrement ? maxY : minY;
-                int targetZ = zIncrement ? maxZ : minZ;
+                int targetX = xIncrement ? (int) maxX : (int) minX;
+                int targetY = yIncrement ? (int) maxY : (int) minY;
+                int targetZ = zIncrement ? (int) maxZ : (int) minZ;
 
                 return !(x == targetX && y == targetY && z == targetZ);
             }
@@ -98,9 +106,9 @@ public class MyBox implements Iterable<BlockPos> {
             public BlockPos next() {
                 if (currPos == null) {
                     currPos = new BlockPos(
-                            xIncrement ? minX : maxX,
-                            yIncrement ? minY : maxY,
-                            zIncrement ? minZ : maxZ
+                            (int) (xIncrement ? minX : maxX),
+                            (int) (yIncrement ? minY : maxY),
+                            (int) (zIncrement ? minZ : maxZ)
                     );
                     return currPos;
                 }
@@ -109,63 +117,63 @@ public class MyBox implements Iterable<BlockPos> {
                 int y = currPos.getY();
                 int z = currPos.getZ();
 
-                if (iterationMode.equals(XZY)) {
+                if (iterationMode.equals(IterationOrderType.XZY)) {
                     x += xIncrement ? 1 : -1;
                     if (xIncrement ? x > maxX : x < minX) {
-                        x = (xIncrement ? minX : maxX);
+                        x = (int) (xIncrement ? minX : maxX);
                         z += zIncrement ? 1 : -1;
                         if (zIncrement ? z > maxZ : z < minZ) {
-                            z = (zIncrement ? minZ : maxZ);
+                            z = (int) (zIncrement ? minZ : maxZ);
                             y += yIncrement ? 1 : -1;
                         }
                     }
-                } else if (iterationMode.equals(XYZ)) {
+                } else if (iterationMode.equals(IterationOrderType.XYZ)) {
                     x += xIncrement ? 1 : -1;
                     if (xIncrement ? x > maxX : x < minX) {
-                        x = (xIncrement ? minX : maxX);
+                        x = (int) (xIncrement ? minX : maxX);
                         y += yIncrement ? 1 : -1;
                         if (yIncrement ? y > maxY : y < minY) {
-                            y = (yIncrement ? minY : maxY);
+                            y = (int) (yIncrement ? minY : maxY);
                             z += zIncrement ? 1 : -1;
                         }
                     }
-                } else if (iterationMode.equals(YXZ)) {
+                } else if (iterationMode.equals(IterationOrderType.YXZ)) {
                     y += yIncrement ? 1 : -1;
                     if (yIncrement ? y > maxY : y < minY) {
-                        y = (yIncrement ? minY : maxY);
+                        y = (int) (yIncrement ? minY : maxY);
                         x += xIncrement ? 1 : -1;
                         if (xIncrement ? x > maxX : x < minX) {
-                            x = (xIncrement ? minX : maxX);
+                            x = (int) (xIncrement ? minX : maxX);
                             z += zIncrement ? 1 : -1;
                         }
                     }
-                } else if (iterationMode.equals(YZX)) {
+                } else if (iterationMode.equals(IterationOrderType.YZX)) {
                     y += yIncrement ? 1 : -1;
                     if (yIncrement ? y > maxY : y < minY) {
-                        y = (yIncrement ? minY : maxY);
+                        y = (int) (yIncrement ? minY : maxY);
                         z += zIncrement ? 1 : -1;
                         if (zIncrement ? z > maxZ : z < minZ) {
-                            z = (zIncrement ? minZ : maxZ);
+                            z = (int) (zIncrement ? minZ : maxZ);
                             x += xIncrement ? 1 : -1;
                         }
                     }
-                } else if (iterationMode.equals(ZXY)) {
+                } else if (iterationMode.equals(IterationOrderType.ZXY)) {
                     z += zIncrement ? 1 : -1;
                     if (zIncrement ? z > maxZ : z < minZ) {
-                        z = (zIncrement ? minZ : maxZ);
+                        z = (int) (zIncrement ? minZ : maxZ);
                         x += xIncrement ? 1 : -1;
                         if (xIncrement ? x > maxX : x < minX) {
-                            x = (xIncrement ? minX : maxX);
+                            x = (int) (xIncrement ? minX : maxX);
                             y += yIncrement ? 1 : -1;
                         }
                     }
-                } else if (iterationMode.equals(ZYX)) {
+                } else if (iterationMode.equals(IterationOrderType.ZYX)) {
                     z += zIncrement ? 1 : -1;
                     if (zIncrement ? z > maxZ : z < minZ) {
-                        z = (zIncrement ? minZ : maxZ);
+                        z = (int) (zIncrement ? minZ : maxZ);
                         y += yIncrement ? 1 : -1;
                         if (yIncrement ? y > maxY : y < minY) {
-                            y = (yIncrement ? minY : maxY);
+                            y = (int) (yIncrement ? minY : maxY);
                             x += xIncrement ? 1 : -1;
                         }
                     }
