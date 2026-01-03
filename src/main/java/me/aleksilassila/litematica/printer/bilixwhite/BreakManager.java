@@ -47,10 +47,12 @@ public class BreakManager {
 
     // 添加需要挖掘的方块
     public static void addBlockToBreak(Level level, BlockPos pos) {
+        if (level == null || pos == null) return;
         breakTargets.put(level.dimension().location(), pos);
     }
 
     public static void addBlockToBreak(BlockContext context) {
+        if (context == null) return;
         addBlockToBreak(context.level, context.blockPos);
     }
 
@@ -59,6 +61,9 @@ public class BreakManager {
     }
 
     public static boolean canBreakBlock(BlockPos pos) {
+        if (client == null || client.level == null || client.player == null || client.gameMode == null || pos == null) {
+            return false;
+        }
         ClientLevel world = client.level;
         BlockState currentState = world.getBlockState(pos);
         return !currentState.isAir() &&
@@ -179,7 +184,7 @@ public class BreakManager {
     }
 
     private BlockPos updateTarget(ClientLevel level) {
-        if (breakTargets.isEmpty()) {
+        if (level == null || breakTargets.isEmpty()) {
             breakPos = null;
             state = null;
             return null;
@@ -188,13 +193,19 @@ public class BreakManager {
         Iterator<Map.Entry<ResourceLocation, BlockPos>> iterator = breakTargets.entrySet().iterator();
         while (breakPos == null && iterator.hasNext()) {
             Map.Entry<ResourceLocation, BlockPos> entry = iterator.next();
+            if (entry == null || entry.getKey() == null || entry.getValue() == null) {
+                iterator.remove();
+                continue;
+            }
             // 检查当前世界(维度)与待破坏的方块世界不符, 则删除进行删除
             if (!currentDimension.equals(entry.getKey())) {
                 iterator.remove();
                 continue;
             }
-            state = level.getBlockState(breakPos);
             breakPos = entry.getValue();
+            if (breakPos != null) {
+                state = level.getBlockState(breakPos);
+            }
         }
         return breakPos;
     }
@@ -215,8 +226,10 @@ public class BreakManager {
      */
     public boolean breakBlock(BlockPos pos) {
         // 获取客户端世界对象和方块状态
-        ClientLevel world = client.level;
-        BlockState currentState = world.getBlockState(pos);
+        if (client == null || client.level == null || client.gameMode == null || client.player == null || pos == null) {
+            return false;
+        }
+        BlockState currentState = client.level.getBlockState(pos);
         Block block = currentState.getBlock();
         // 检查方块是否可以破坏，如果可以则执行挖掘操作
         if (canBreakBlock(pos)) {
@@ -226,7 +239,7 @@ public class BreakManager {
                 }
             }
             client.gameMode.continueDestroyBlock(pos, Direction.DOWN);
-            return (world.getBlockState(pos).is(block) && !client.player.isCreative());
+            return (client.level.getBlockState(pos).is(block) && !client.player.isCreative());
         }
         return false;
     }
