@@ -147,7 +147,7 @@ public class Printer extends PrinterUtils {
 
     public void onGameTick(Minecraft client, ClientLevel level, LocalPlayer player) {
         cooldownTick(); // 冷却TICK放在前面, 不受开关与延迟影响
-        if (!(Configs.PRINT_SWITCH.getBooleanValue() || Configs.PRINT.getKeybind().isPressed())) {
+        if (!Configs.PRINT_SWITCH.getBooleanValue()) {
             return;
         }
         // 变量初始化, 通用部分(function调用了,getBlockPos, 也需要tickEndTime)
