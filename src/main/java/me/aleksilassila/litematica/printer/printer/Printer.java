@@ -82,7 +82,7 @@ public class Printer extends PrinterUtils {
     public int waitTicks = 0;
     public int packetTick;
     public boolean updateChecked = false;
-    public BlockContext blockContext;
+    public @Nullable BlockContext blockContext;
     // 活塞修复
     public boolean pistonNeedFix = false;
     public float workProgress = 0;

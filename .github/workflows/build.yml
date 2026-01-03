@@ -34,18 +34,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-common
 
-      - name: 清理缓存中超过指定天数的旧文件
-        run: |
-          # 统一设置清理天数（修改时只改这里）
-          CLEAN_DAYS=15
-          
-          # 清理 ~/.gradle/caches（目录不存在时忽略错误）
-          find ~/.gradle/caches -type f -mtime +$CLEAN_DAYS -delete || true
-          # 清理 ~/.gradle/wrapper（目录不存在时忽略错误）
-          find ~/.gradle/wrapper -type f -mtime +$CLEAN_DAYS -delete || true
-          # 清理项目内 .gradle 目录（目录不存在时忽略错误）
-          find ./.gradle -type f -mtime +$CLEAN_DAYS -delete || true
-
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
 
