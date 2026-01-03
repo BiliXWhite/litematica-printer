@@ -408,6 +408,7 @@ public class Configs implements IConfigHandler {
             if (!b.getBooleanValue()) {
                 Printer printer = Printer.getInstance();
                 printer.clearQueue();
+                printer.lastPos = null;
                 printer.basePos = null;
                 printer.pistonNeedFix = false;
                 printer.blockContext = null;

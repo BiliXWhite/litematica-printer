@@ -86,6 +86,7 @@ public class Printer extends PrinterUtils {
     // 活塞修复
     public boolean pistonNeedFix = false;
     public float workProgress = 0;
+    public @Nullable BlockPos lastPos;
 
     private Printer(@NotNull Minecraft client) {
         this.guide = new PlacementGuide(client);
@@ -112,7 +113,7 @@ public class Printer extends PrinterUtils {
         BlockPos playerOnPos = player.getOnPos();
         if (basePos == null) {
             basePos = playerOnPos;
-            myBox = new MyBox(playerOnPos).resize(printRange);
+            myBox = new MyBox(playerOnPos).inflate(printRange);
         }
         double threshold = printRange * 0.7;
         if (!basePos.closerThan(playerOnPos, threshold)) {
@@ -124,21 +125,22 @@ public class Printer extends PrinterUtils {
             myBox.xIncrement = !Configs.X_REVERSE.getBooleanValue();
             myBox.yIncrement = Configs.Y_REVERSE.getBooleanValue() == printerYAxisReverse;
             myBox.zIncrement = !Configs.Z_REVERSE.getBooleanValue();
-            Iterator<BlockPos> iterator = myBox.iterator;
-            while (iterator.hasNext()) {
+            myBox.setStartPos(lastPos);
+            for (BlockPos pos : myBox) {
                 if (Configs.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
                     return null;
                 }
-                BlockPos pos = iterator.next();
                 if (
                         ((isPrinterMode() && isSchematicBlock(pos)) ||
                                 TempData.xuanQuFanWeiNei_p(pos)) &&
                                 PlayerUtils.canInteracted(pos)
                 ) {
+                    lastPos = pos;
                     return pos;
                 }
             }
         }
+        lastPos = null;
         basePos = null;
         return null;
     }
