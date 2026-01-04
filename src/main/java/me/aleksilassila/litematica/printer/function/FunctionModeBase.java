@@ -18,11 +18,11 @@ public abstract class FunctionModeBase extends PrinterUtils implements FunctionE
     public abstract ConfigBoolean getCurrentConfig();
 
     public boolean canTick() {
-        if (Configs.MODE_SWITCH.getOptionListValue() instanceof ModeType modeType) {    // 当前模式
+        if (Configs.General.MODE_SWITCH.getOptionListValue() instanceof ModeType modeType) {    // 当前模式
             // 如果是单模情况
             if (modeType.equals(ModeType.SINGLE)) {
                 // 检查当前单模模式不等于本类的模式, 那么就不执行TICK
-                if (Configs.PRINTER_MODE.getOptionListValue() instanceof PrintModeType printModeType && !printModeType.equals(getPrintModeType())) {
+                if (Configs.General.PRINTER_MODE.getOptionListValue() instanceof PrintModeType printModeType && !printModeType.equals(getPrintModeType())) {
                     return false;
                 }
             }

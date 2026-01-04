@@ -64,19 +64,19 @@ public class PlacementGuide extends PrinterUtils {
 
     private @Nullable Action buildAction(BlockContext ctx, ClassHook requiredType, State state, AtomicReference<Boolean> skip) {
         // 跳过打印含水方块
-        if (Configs.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && PlaceUtils.isWaterRequired(ctx.requiredState)) {
+        if (Configs.Put.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && PlaceUtils.isWaterRequired(ctx.requiredState)) {
             return null;
         }
 
         // 破冰放水
-        if (Configs.PRINT_WATER.getBooleanValue() && PlaceUtils.isWaterRequired(ctx.requiredState)) {
+        if (Configs.Put.PRINT_WATER.getBooleanValue() && PlaceUtils.isWaterRequired(ctx.requiredState)) {
             if (ctx.currentState.getBlock() instanceof IceBlock) {  // 冰块
                 BreakManager.addBlockToBreak(ctx);
                 return null;
             }
             if (!PlaceUtils.isCorrectWaterLevel(ctx.requiredState, ctx.currentState)) {
                 if (!ctx.currentState.isAir() && !(ctx.currentState.getBlock() instanceof LiquidBlock)) {
-                    if (Configs.BREAK_WRONG_BLOCK.getBooleanValue()) {
+                    if (Configs.Put.BREAK_WRONG_BLOCK.getBooleanValue()) {
                         BreakManager.addBlockToBreak(ctx);
                     }
                     return null;
@@ -134,7 +134,7 @@ public class PlacementGuide extends PrinterUtils {
                 Action action = new Action().setSides(ctx.requiredState.getValue(RotatedPillarBlock.AXIS));
                 Item[] items = {ctx.requiredState.getBlock().asItem()};
 
-                if (Configs.STRIP_LOGS.getBooleanValue()) {
+                if (Configs.Put.STRIP_LOGS.getBooleanValue()) {
                     for (Map.Entry<Block, Block> entry : STRIPPED_LOGS.entrySet()) {
                         if (ctx.requiredState.getBlock() == entry.getValue()) {
                             items = new Item[]{entry.getValue().asItem(), entry.getKey().asItem()};
@@ -306,7 +306,7 @@ public class PlacementGuide extends PrinterUtils {
                 boolean isBlock = blockId1.toString().contains("block");
                 List<Item> items = new ArrayList<>();
                 items.add(block.asItem());
-                if (Configs.REPLACE_CORAL.getBooleanValue()) {
+                if (Configs.Put.REPLACE_CORAL.getBooleanValue()) {
                     if (!blockId1.equals(blockId2)) {
                         items.add(BlockUtils.getBlock(blockId2).asItem());
                     }
@@ -339,7 +339,7 @@ public class PlacementGuide extends PrinterUtils {
                     return null;
                 }
                 // 安全放置
-                if (Configs.SAFELY_OBSERVER.getBooleanValue()) {
+                if (Configs.Put.SAFELY_OBSERVER.getBooleanValue()) {
                     BlockContext input = ctx.offset(facing);                    // 输入端(侦测面)
                     BlockContext output = ctx.offset(facing.getOpposite());     // 输出端(红点面)
                     List<Property<?>> propertiesToIgnore = new ArrayList<>();
@@ -582,7 +582,7 @@ public class PlacementGuide extends PrinterUtils {
                 }
 
                 //方块型珊瑚的替换
-                if (Configs.REPLACE_CORAL.getBooleanValue() && block.getDescriptionId().endsWith("_coral_block")) {
+                if (Configs.Put.REPLACE_CORAL.getBooleanValue() && block.getDescriptionId().endsWith("_coral_block")) {
                     //例子：block.minecraft.dead_tube_coral
                     String type = block.getDescriptionId().replace("block.minecraft.dead_", "").replace("_coral_block", "");
                     switch (type) {
@@ -599,7 +599,7 @@ public class PlacementGuide extends PrinterUtils {
             }
         }
         else if (state == State.WRONG_STATE) {
-            boolean printerBreakWrongStateBlock = Configs.BREAK_WRONG_STATE_BLOCK.getBooleanValue();
+            boolean printerBreakWrongStateBlock = Configs.Put.BREAK_WRONG_STATE_BLOCK.getBooleanValue();
             switch (requiredType) {
                 case SLAB -> {
                     if (ctx.requiredState.getValue(SlabBlock.TYPE) == SlabType.DOUBLE) {
@@ -668,7 +668,7 @@ public class PlacementGuide extends PrinterUtils {
                     else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
                 }
                 case NOTE_BLOCK -> {
-                    if (Configs.NOTE_BLOCK_TUNING.getBooleanValue() && !Objects.equals(ctx.requiredState.getValue(NoteBlock.NOTE), ctx.currentState.getValue(NoteBlock.NOTE)))
+                    if (Configs.Put.NOTE_BLOCK_TUNING.getBooleanValue() && !Objects.equals(ctx.requiredState.getValue(NoteBlock.NOTE), ctx.currentState.getValue(NoteBlock.NOTE)))
                         return new ClickAction();
                 }
                 case CAMPFIRE -> {
@@ -746,7 +746,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setSides(Direction.DOWN).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
                 }
                 case COMPOSTER -> {
-                    if (!Configs.FILL_COMPOSTER.getBooleanValue()) return null;
+                    if (!Configs.Put.FILL_COMPOSTER.getBooleanValue()) return null;
                     if (ctx.currentState.getValue(ComposterBlock.LEVEL) < ctx.requiredState.getValue(ComposterBlock.LEVEL)) {
                         return new ClickAction().setItems(compostableItems);
                     }
@@ -800,7 +800,7 @@ public class PlacementGuide extends PrinterUtils {
             case CAULDRON -> {
                 if (Arrays.asList(requiredType.classes).contains(ctx.currentState.getBlock().getClass()))
                     return null;
-                else if (Configs.BREAK_WRONG_BLOCK.getBooleanValue() && BreakManager.canBreakBlock(ctx.blockPos))
+                else if (Configs.Put.BREAK_WRONG_BLOCK.getBooleanValue() && BreakManager.canBreakBlock(ctx.blockPos))
                     BreakManager.addBlockToBreak(ctx);
             }
             case STRIP_LOG -> {
@@ -810,7 +810,7 @@ public class PlacementGuide extends PrinterUtils {
             }
             // 新增：告示牌WrongBlock逻辑
             case SIGN -> {
-                if (Configs.BREAK_WRONG_BLOCK.getBooleanValue() && BreakManager.canBreakBlock(ctx.blockPos)) {
+                if (Configs.Put.BREAK_WRONG_BLOCK.getBooleanValue() && BreakManager.canBreakBlock(ctx.blockPos)) {
                     boolean isLegitimateSign = ctx.currentState.getBlock() instanceof StandingSignBlock
                             || ctx.currentState.getBlock() instanceof WallSignBlock
                             //#if MC >= 12002
@@ -826,12 +826,12 @@ public class PlacementGuide extends PrinterUtils {
                 }
             }
             default -> {
-                if (Configs.REPLACE_CORAL.getBooleanValue() && ctx.requiredState.getBlock().getDescriptionId().contains("coral")) {
+                if (Configs.Put.REPLACE_CORAL.getBooleanValue() && ctx.requiredState.getBlock().getDescriptionId().contains("coral")) {
                     return null;
                 }
 
-                boolean printBreakWrongBlock = Configs.BREAK_WRONG_BLOCK.getBooleanValue();
-                boolean printerBreakExtraBlock = Configs.BREAK_EXTRA_BLOCK.getBooleanValue();
+                boolean printBreakWrongBlock = Configs.Put.BREAK_WRONG_BLOCK.getBooleanValue();
+                boolean printerBreakExtraBlock = Configs.Put.BREAK_EXTRA_BLOCK.getBooleanValue();
 
                 if (printBreakWrongBlock || printerBreakExtraBlock) {
                     if (BreakManager.canBreakBlock(ctx.blockPos)) {
@@ -1086,7 +1086,7 @@ public class PlacementGuide extends PrinterUtils {
             for (Direction side : sides.keySet()) {
                 BlockPos neighborPos = pos.relative(side);
                 BlockState neighborState = world.getBlockState(neighborPos);
-                if (Configs.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport && !Implementation.isInteractive(neighborState.getBlock())) {
+                if (Configs.Put.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport && !Implementation.isInteractive(neighborState.getBlock())) {
                     return side;
                 }
                 // 检查该侧面是否可以被点击且不可替换
@@ -1178,7 +1178,7 @@ public class PlacementGuide extends PrinterUtils {
         }
 
         public void queueAction(Printer.Queue queue, BlockPos blockPos, Direction side, boolean useShift) {
-            if (Configs.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport) {
+            if (Configs.Put.PRINT_IN_AIR.getBooleanValue() && !this.requiresSupport) {
                 queue.queueClick(
                         blockPos,
                         side.getOpposite(),

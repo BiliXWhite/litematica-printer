@@ -1,13 +1,20 @@
 package me.aleksilassila.litematica.printer.config;
 
+import fi.dy.masa.malilib.config.IConfigBoolean;
+import fi.dy.masa.malilib.config.IConfigOptionList;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
-import fi.dy.masa.malilib.config.options.ConfigHotkey;
-import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
+import fi.dy.masa.malilib.gui.GuiBase;
+import fi.dy.masa.malilib.hotkeys.IHotkey;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
+import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
+import fi.dy.masa.malilib.util.StringUtils;
+import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.enums.ModeType;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.MutableComponent;
 
 //#if MC >= 12001 && MC <= 12104
 //$$ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -29,29 +36,29 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.sta
 import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.startOrOffSyncInventory;
 
 //监听按键
-public class HotkeysCallback implements IHotkeyCallback {
-    Minecraft client = Minecraft.getInstance();
+public class HotkeysCallback {
+    private static final Minecraft client = Minecraft.getInstance();
 
-    //激活的热键会被key记录
-    @Override
-    public boolean onKeyAction(KeyAction action, IKeybind key) {
-        if (this.client.player == null || this.client.level == null) {
+    public static boolean onKeyAction(KeyAction action, IKeybind key) {
+        if (client.player == null || client.level == null) {
             return false;
         }
-        if (key == Configs.OPEN_SCREEN.getKeybind()) {
+        if (key == Configs.Hotkeys.OPEN_SCREEN.getKeybind()) {
             client.setScreen(new ConfigUi());
             return true;
-        } else if (key == Configs.SYNC_INVENTORY.getKeybind()) {
+        }
+
+        if (key == Configs.Hotkeys.SYNC_INVENTORY.getKeybind()) {
             startOrOffSyncInventory();
             return true;
-        } else if (Configs.MODE_SWITCH.getOptionListValue().equals(ModeType.SINGLE) && key == Configs.SWITCH_PRINTER_MODE.getKeybind()) {
-            IConfigOptionListEntry cycle = Configs.PRINTER_MODE.getOptionListValue().cycle(true);
-            Configs.PRINTER_MODE.setOptionListValue(cycle);
-            ZxyUtils.actionBar(Configs.PRINTER_MODE.getOptionListValue().getDisplayName());
-        } else if (key == Configs.PRINTER_INVENTORY.getKeybind()) {
+        }
+
+        if (key == Configs.Hotkeys.PRINTER_INVENTORY.getKeybind()) {
             startAddPrinterInventory();
             return true;
-        } else if (key == Configs.REMOVE_PRINT_INVENTORY.getKeybind()) {
+        }
+
+        if (key == Configs.Hotkeys.REMOVE_PRINT_INVENTORY.getKeybind()) {
             //#if MC >= 12001 && MC <= 12104
             //$$ MemoryUtils.deletePrinterMemory();
             //#elseif MC < 12001
@@ -65,35 +72,26 @@ public class HotkeysCallback implements IHotkeyCallback {
             //#endif
             return true;
         }
+
         //#if MC >= 12001 && MC <= 12104
-        //$$     else if (GuiUtils.getCurrentScreen() instanceof AbstractContainerScreen<?> &&
-        //$$            !(GuiUtils.getCurrentScreen() instanceof CreativeModeInventoryScreen)) {
-        //$$     if(key == Configs.LAST.getKeybind()){
-        //$$         SearchItem.page = --SearchItem.page <= -1 ? SearchItem.maxPage-1 : SearchItem.page;
+        //$$ if (GuiUtils.getCurrentScreen() instanceof AbstractContainerScreen<?> && !(GuiUtils.getCurrentScreen() instanceof CreativeModeInventoryScreen)) {
+        //$$     if (key == Configs.Hotkeys.LAST.getKeybind()) {
+        //$$         SearchItem.page = --SearchItem.page <= -1 ? SearchItem.maxPage - 1 : SearchItem.page;
         //$$         SearchItem.openInventory(SearchItem.page);
-        //$$     }
-        //$$     else if(key == Configs.NEXT.getKeybind()){
+        //$$     } else if (key == Configs.Hotkeys.NEXT.getKeybind()) {
         //$$         SearchItem.page = ++SearchItem.page >= SearchItem.maxPage ? 0 : SearchItem.page;
         //$$         SearchItem.openInventory(SearchItem.page);
-        //$$     }
-        //$$     else if(key == Configs.DELETE.getKeybind()){
+        //$$     } else if (key == Configs.Hotkeys.DELETE.getKeybind()) {
         //$$         MemoryBankImpl memoryBank = MemoryBankAccessImpl.INSTANCE.getLoadedInternal().orElse(null);
-        //$$         if (memoryBank!= null && OpenInventoryPacket.key != null && client.player != null) {
-        //$$             memoryBank.removeMemory(OpenInventoryPacket.key.location(),OpenInventoryPacket.pos);
+        //$$         if (memoryBank != null && OpenInventoryPacket.key != null && client.player != null) {
+        //$$             memoryBank.removeMemory(OpenInventoryPacket.key.location(), OpenInventoryPacket.pos);
         //$$             OpenInventoryPacket.key = null;
         //$$             client.player.closeContainer();
         //$$         }
         //$$     }
         //$$ }
         //#endif
-        return false;
-    }
 
-    //设置反馈到onKeyAction()方法的快捷键
-    public static void init() {
-        HotkeysCallback hotkeysCallback = new HotkeysCallback();
-        for (ConfigHotkey configHotkey : Configs.getKeyList()) {
-            configHotkey.getKeybind().setCallback(hotkeysCallback);
-        }
+        return false;
     }
 }

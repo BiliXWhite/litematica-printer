@@ -42,7 +42,6 @@
     "jackf.lgacy.MixinWCardPanel",
     "jackf.lgacy.WItemListPanelMixin",
     "openinv.MixinMinecraftClient",
-    "printer.litematica.MixinInputHandler",
     "printer.litematica.gui.MixinGui",
     "printer.litematica.gui.MixinLitematicaGuiMainMenu",
     "printer.malilib.MixinGuiStringListEdit",
