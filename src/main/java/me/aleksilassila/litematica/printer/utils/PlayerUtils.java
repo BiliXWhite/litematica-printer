@@ -68,8 +68,7 @@ public class PlayerUtils {
     public static boolean canInteracted(BlockPos blockPos) {
         double workRange = Configs.General.PRINTER_RANGE.getIntegerValue();
         if (Configs.General.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()) {
-            workRange = Math.min(workRange, Math.floor(getPlayerBlockInteractionRange()));
-            if (Configs.General.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue() && client.player != null && !canInteractWithBlockAt(client.player, blockPos, 1F)) {
+            if (client.player != null && !canInteractWithBlockAt(client.player, blockPos, 1F)) {
                 return false;
             }
         }
