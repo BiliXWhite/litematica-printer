@@ -23,14 +23,14 @@ public class FunctionMineMode extends FunctionModeBase {
 
     @Override
     public ConfigBoolean getCurrentConfig() {
-        return Configs.MINE;
+        return Configs.Excavate.MINE;
     }
 
     @Override
     public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
         BlockPos pos;
         while ((pos = breakPos == null ? printer.getBlockPos() : breakPos) != null) {
-            if (PrinterUtils.isPositionInSelectionRange(player,pos, Configs.MINE_SELECTION_TYPE)) {
+            if (PrinterUtils.isPositionInSelectionRange(player,pos, Configs.Excavate.MINE_SELECTION_TYPE)) {
                 if (BreakManager.breakRestriction(level.getBlockState(pos)) && breakManager.breakBlock(pos)) {
                     breakPos = pos;
                     return;

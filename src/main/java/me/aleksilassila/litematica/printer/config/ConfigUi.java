@@ -2,7 +2,6 @@ package me.aleksilassila.litematica.printer.config;
 
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.config.IConfigBase;
-import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
@@ -66,7 +65,6 @@ public class ConfigUi extends GuiConfigsBase {
         PUT(I18n.TAB_PUT),
         EXCAVATE(I18n.TAB_EXCAVATE),
         FILL(I18n.FILL),
-        //        BEDROCK(I18n.TAB_BEDROCK, false),
         HOTKEYS(I18n.TAB_HOTKEYS),
         COLOR(I18n.TAB_COLOR);
 
@@ -86,14 +84,13 @@ public class ConfigUi extends GuiConfigsBase {
 
         public ImmutableList<IConfigBase> getConfigs() {
             return switch (this) {
-                case ALL -> Configs.getAllConfigs();
-                case GENERAL -> Configs.getGeneral();
-                case PUT -> Configs.getPut();
-                case EXCAVATE -> Configs.getExcavate();
-                case FILL -> Configs.getFills();
-//                case BEDROCK -> Configs.getBedrock();
-                case HOTKEYS -> Configs.getHotkeys();
-                case COLOR -> Configs.getColor();
+                case ALL -> Configs.getConfigs(true);
+                case GENERAL -> Configs.getGlobalConfigs(true);
+                case PUT -> Configs.getPutConfigs(true);
+                case EXCAVATE -> Configs.getExcavateConfigs(true);
+                case FILL -> Configs.getFillConfigs(true);
+                case HOTKEYS -> Configs.getHotkeysConfigs(true);
+                case COLOR -> Configs.getColorConfigs(true);
             };
         }
     }

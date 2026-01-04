@@ -26,9 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static me.aleksilassila.litematica.printer.config.Configs.MODE_SWITCH;
-import static me.aleksilassila.litematica.printer.config.Configs.PRINTER_MODE;
-
 //#if MC < 11900
 //$$ import fi.dy.masa.malilib.util.SubChunkPos;
 //#endif
@@ -126,28 +123,32 @@ public class PrinterUtils {
         return false;
     }
 
+    public static boolean isEnable() {
+        return Configs.General.PRINT_SWITCH.getBooleanValue();
+    }
+
     public static boolean isPrinterMode() {
-        return MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI)
-                || PRINTER_MODE.getOptionListValue() == PrintModeType.PRINTER;
+        return Configs.General.MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI)
+                || Configs.General.PRINTER_MODE.getOptionListValue() == PrintModeType.PRINTER;
     }
 
     public static boolean isMineMode() {
-        return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && Configs.MINE.getBooleanValue())
-                || PRINTER_MODE.getOptionListValue() == PrintModeType.MINE;
+        return (Configs.General.MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && Configs.Excavate.MINE.getBooleanValue())
+                || Configs.General.PRINTER_MODE.getOptionListValue() == PrintModeType.MINE;
     }
 
     public static boolean isFillMode() {
-        return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && Configs.FILL.getBooleanValue())
-                || PRINTER_MODE.getOptionListValue() == PrintModeType.FILL;
+        return (Configs.General.MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && Configs.Fill.FILL.getBooleanValue())
+                || Configs.General.PRINTER_MODE.getOptionListValue() == PrintModeType.FILL;
     }
 
     public static boolean isFluidMode() {
-        return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && Configs.FLUID.getBooleanValue())
-                || PRINTER_MODE.getOptionListValue() == PrintModeType.FLUID;
+        return (Configs.General.MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && Configs.Hotkeys.FLUID.getBooleanValue())
+                || Configs.General.PRINTER_MODE.getOptionListValue() == PrintModeType.FLUID;
     }
 
     public static boolean isBedrockMode() {
-        return (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && Configs.BEDROCK.getBooleanValue())
-                || PRINTER_MODE.getOptionListValue() == PrintModeType.BEDROCK;
+        return (Configs.General.MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && Configs.Hotkeys.BEDROCK.getBooleanValue())
+                || Configs.General.PRINTER_MODE.getOptionListValue() == PrintModeType.BEDROCK;
     }
 }

@@ -24,7 +24,7 @@ public class FunctionBedrockMode extends FunctionModeBase {
 
     @Override
     public ConfigBoolean getCurrentConfig() {
-        return Configs.BEDROCK;
+        return Configs.Hotkeys.BEDROCK;
     }
 
     @Override

@@ -87,7 +87,7 @@ public class InventoryUtils {
     }
 
     public static void setHotbarSlot(int slot, Inventory inventory) {
-        boolean usePacket = Configs.PLACE_USE_PACKET.getBooleanValue();
+        boolean usePacket = Configs.General.PLACE_USE_PACKET.getBooleanValue();
         if (usePacket) {
             client.getConnection().send(new ServerboundSetCarriedItemPacket(slot));
         }
@@ -152,7 +152,7 @@ public class InventoryUtils {
                 return false;
             }
             int currentHotbarSlot = getSelectedSlot(player.getInventory());
-            if (Configs.PLACE_USE_PACKET.getBooleanValue()) {
+            if (Configs.General.PLACE_USE_PACKET.getBooleanValue()) {
                 NonNullList<Slot> slots = player.inventoryMenu.slots;
                 int totalSlots = slots.size();
                 List<ItemStack> copies = Lists.newArrayListWithCapacity(totalSlots);

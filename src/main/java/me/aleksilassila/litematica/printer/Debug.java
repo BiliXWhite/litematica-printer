@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer;
 
-import static me.aleksilassila.litematica.printer.config.Configs.DEBUG_OUTPUT;
+import me.aleksilassila.litematica.printer.config.Configs;
 
 /**
  * 调试日志输出类
@@ -15,13 +15,13 @@ public class Debug {
     }
 
     public static void write(String var1, Object... var2) {
-        if (DEBUG_OUTPUT.getBooleanValue()) {
+        if (Configs.General.DEBUG_OUTPUT.getBooleanValue()) {
             LitematicaPrinterMod.LOGGER.info(var1, var2);
         }
     }
 
     public static void write(Object obj) {
-        if (DEBUG_OUTPUT.getBooleanValue()) {
+        if (Configs.General.DEBUG_OUTPUT.getBooleanValue()) {
             LitematicaPrinterMod.LOGGER.info(obj.toString());
         }
     }

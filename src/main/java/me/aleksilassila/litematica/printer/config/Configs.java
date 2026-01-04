@@ -3,348 +3,637 @@ package me.aleksilassila.litematica.printer.config;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import fi.dy.masa.litematica.config.Hotkeys;
 import fi.dy.masa.malilib.config.*;
 import fi.dy.masa.malilib.config.options.*;
 import fi.dy.masa.malilib.event.InputEventHandler;
+import fi.dy.masa.malilib.hotkeys.IHotkey;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.JsonUtils;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
+import fi.dy.masa.malilib.config.ConfigManager;
 import me.aleksilassila.litematica.printer.config.enums.*;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
-import me.aleksilassila.litematica.printer.printer.Printer;
-import me.aleksilassila.litematica.printer.utils.MessageUtils;
-import me.aleksilassila.litematica.printer.utils.StringUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
-import static me.aleksilassila.litematica.printer.config.ConfigFactory.*;
-import static me.aleksilassila.litematica.printer.config.ConfigFactory.bool;
-import static me.aleksilassila.litematica.printer.config.ConfigFactory.booleanHotkey;
-import static me.aleksilassila.litematica.printer.config.ConfigFactory.hotkey;
-import static me.aleksilassila.litematica.printer.config.ConfigFactory.integer;
 
-public class Configs implements IConfigHandler {
-    public static Configs INSTANCE = new Configs();
+public class Configs extends ConfigBuilders implements IConfigHandler {
+    private static final Configs INSTANCE = new Configs();
+
     private static final String FILE_PATH = "./config/" + LitematicaPrinterMod.MOD_ID + ".json";
     private static final File CONFIG_DIR = new File("./config");
 
+    private static final KeybindSettings BOTH_ALLOW_EXTRA_EMPTY = KeybindSettings.create(KeybindSettings.Context.INGAME, KeyAction.BOTH, true, true, false, true, true);
+    private static final KeybindSettings GUI_NO_ORDER = KeybindSettings.create(KeybindSettings.Context.GUI, KeyAction.PRESS, false, false, false, true);
 
-    // @formatter:off
+    // 配置页面是否可视(函数式, 动态获取, 全局统一使用)
+    private static final BooleanSupplier isLoadChestTrackerLoaded = ModLoadStatus::isLoadChestTrackerLoaded;
+    private static final BooleanSupplier isSingle = () -> General.MODE_SWITCH.getOptionListValue().equals(ModeType.SINGLE);
+    private static final BooleanSupplier isMulti = () -> General.MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI);
+    private static final BooleanSupplier isCustom = () -> Excavate.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.CUSTOM);
 
-//    public static final ConfigBooleanHotkeyed REPLACE_BLOCK = new ConfigBooleanHotkeyed("替换", false,"", "替换方块，通过\"替换方块名单\"配置");
-
-    public static final ConfigBoolean CHECK_PLAYER_INTERACTION_RANGE = bool(I18n.CHECK_PLAYER_INTERACTION_RANGE, true);
-
-    public static final ConfigOptionList PRINT_SELECTION_TYPE     = optionList(I18n.PRINT_SELECTION_TYPE            , SelectionType.LITEMATICA_RENDER_LAYER);
-    public static final ConfigOptionList FILL_SELECTION_TYPE      = optionList(I18n.FILL_SELECTION_TYPE            , SelectionType.LITEMATICA_SELECTION);
-    public static final ConfigOptionList FLUID_SELECTION_TYPE     = optionList(I18n.FLUID_SELECTION_TYPE            , SelectionType.LITEMATICA_SELECTION);
-    public static final ConfigOptionList MINE_SELECTION_TYPE      = optionList(I18n.MINE_SELECTION_TYPE            , SelectionType.LITEMATICA_SELECTION_ABOVE_PLAYER);
-
-    public static final ConfigStringList FLUID_BLOCK_LIST = stringList(I18n.FLUID_BLOCK_LIST, ImmutableList.of("minecraft:sand"));
-    public static final ConfigStringList FLUID_LIST = stringList(I18n.FLUID_LIST, ImmutableList.of("minecraft:water", "minecraft:lava"));
-
-    public static final ConfigOptionList FILL_BLOCK_MODE = optionList(I18n.FILL_BLOCK_MODE, FileBlockModeType.WHITELIST);
-    public static final ConfigStringList FILL_BLOCK_LIST = stringList(I18n.FILL_BLOCK_LIST, ImmutableList.of("minecraft:cobblestone"));
-    public static final ConfigStringList INVENTORY_LIST = stringList(
-            I18n.INVENTORY_LIST,
-            ImmutableList.of("minecraft:chest")
-    );
-    public static final ConfigStringList EXCAVATE_WHITELIST = stringList(I18n.EXCAVATE_WHITELIST, ImmutableList.of(""));
-    public static final ConfigStringList EXCAVATE_BLACKLIST = stringList(I18n.EXCAVATE_BLACKLIST, ImmutableList.of(""));
-    public static final ConfigStringList PUT_SKIP_LIST = stringList(I18n.PUT_SKIP_LIST, ImmutableList.of(""));
-    public static final ConfigStringList REPLACEABLE_LIST = stringList(
-            I18n.REPLACEABLE_LIST,
-            ImmutableList.of(
-                    "minecraft:snow", "minecraft:lava", "minecraft:water",
-                    "minecraft:bubble_column", "minecraft:short_grass"
-            )
+    // 总配置项列表（按分类组织）
+    public static final ImmutableList<ImmutableList<IConfigBase>> OPTIONS = ImmutableList.of(
+            General.OPTIONS,        // 通用配置
+            Put.OPTIONS,            // 放置配置
+            Excavate.OPTIONS,       // 挖掘配置
+            Fill.OPTIONS,           // 填充配置
+            Color.OPTIONS,          // 颜色配置
+            Hotkeys.OPTIONS         // 热键配置
     );
 
-    public static final ConfigOptionList ITERATOR_SHAPE     = optionList(I18n.PRINTER_ITERATOR_SHAPE    , RadiusShapeType.SPHERE);
-    public static final ConfigOptionList QUICK_SHULKER_MODE = optionList(I18n.PRINTER_QUICK_SHULKER_MODE, QuickShulkerModeType.INVOKE);
-    public static final ConfigOptionList ITERATION_ORDER    = optionList(I18n.PRINTER_ITERATOR_MODE     , IterationOrderType.XZY);
-    public static final ConfigOptionList FILL_BLOCK_FACING  = optionList(I18n.FILL_MODE_FACING          , FillModeFacingType.DOWN);
+    public static class General {
+        // 远程交互
+        public static final ConfigBoolean CLOUD_INVENTORY = bool(I18n.CLOUD_INVENTORY)
+                .defaultValue(false)
+                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪Mod加载时显示
+                .build();
 
-    public static final ConfigOptionList MODE_SWITCH        = optionList(I18n.MODE_SWITCH               , ModeType.SINGLE);
-    public static final ConfigOptionList PRINTER_MODE       = optionList(I18n.PRINTER_MODE              , PrintModeType.PRINTER);
-    public static final ConfigOptionList EXCAVATE_LIMITER   = optionList(I18n.EXCAVATE_LIMITER          , ExcavateListMode.CUSTOM);
-    public static final ConfigOptionList EXCAVATE_LIMIT     = optionList(I18n.EXCAVATE_LIMIT            , UsageRestriction.ListType.NONE);
-    public static final ConfigColor SYNC_INVENTORY_COLOR    = color(I18n.SYNC_INVENTORY_COLOR           , "#4CFF4CE6");
+        // 打印状态
+        public static final ConfigBooleanHotkeyed PRINT_SWITCH = booleanHotkey(I18n.PRINT_SWITCH)
+                .defaultValue(false)
+                .defaultHotkey("CAPS_LOCK")
+                .keybindSettings(KeybindSettings.PRESS_ALLOWEXTRA_EMPTY)
+                .build();
 
+        // 远程交互 - 自动设置远程交互
+        public static final ConfigBoolean AUTO_INVENTORY = bool(I18n.AUTO_INVENTORY)
+                .defaultValue(false)
+                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪Mod加载时显示
+                .build();
 
-    public static final ConfigBoolean PLACE_USE_PACKET          = bool(I18n.PRINTER_USE_PACKET              , false);
-    public static final ConfigBoolean STRIP_LOGS                = bool(I18n.PRINTER_AUTO_STRIP_LOGS         , false);
-    public static final ConfigBoolean QUICK_SHULKER             = bool(I18n.PRINTER_QUICK_SHULKER           , false);
-    public static final ConfigBoolean LAG_CHECK                 = bool(I18n.PRINTER_LAG_CHECK               , true );
-    public static final ConfigBoolean X_REVERSE                 = bool(I18n.PRINTER_X_AXIS_REVERSE          , false);
-    public static final ConfigBoolean Y_REVERSE                 = bool(I18n.PRINTER_Y_AXIS_REVERSE          , false);
-    public static final ConfigBoolean Z_REVERSE                 = bool(I18n.PRINTER_Z_AXIS_REVERSE          , false);
-    public static final ConfigBoolean FALLING_CHECK             = bool(I18n.PRINTER_FALLING_BLOCK_CHECK     , true );
-    public static final ConfigBoolean BREAK_WRONG_BLOCK         = bool(I18n.PRINT_BREAK_WRONG_BLOCK         , false);
-    public static final ConfigBoolean DEBUG_OUTPUT              = bool(I18n.DEBUG_OUTPUT                    , false);
-    public static final ConfigBoolean NOTE_BLOCK_TUNING         = bool(I18n.PRINTER_AUTO_TUNING             , true );
-    public static final ConfigBoolean SAFELY_OBSERVER           = bool(I18n.PRINTER_SAFELY_OBSERVER         , true );
-    public static final ConfigBoolean BREAK_EXTRA_BLOCK         = bool(I18n.PRINTER_BREAK_EXTRA_BLOCK       , false);
-    public static final ConfigBoolean BREAK_WRONG_STATE_BLOCK   = bool(I18n.PRINTER_BREAK_WRONG_STATE_BLOCK , false);
-    public static final ConfigBoolean SKIP_WATERLOGGED_BLOCK    = bool(I18n.PRINTER_SKIP_WATERLOGGED        , false);
-    public static final ConfigBoolean UPDATE_CHECK              = bool(I18n.UPDATE_CHECK                    , true );
-    public static final ConfigBoolean FILL_COMPOSTER            = bool(I18n.PRINTER_AUTO_FILL_COMPOSTER     , false);
-    public static final ConfigBoolean FILL_FLOWING_FLUID        = bool(I18n.FLUID_MODE_FILL_FLOWING         , true );
-    public static final ConfigBoolean AUTO_DISABLE_PRINTER      = bool(I18n.PRINTER_AUTO_DISABLE            , true );
-    public static final ConfigBoolean EASYPLACE_PROTOCOL        = bool(I18n.EASY_PLACE_PROTOCOL             , true );
-    public static final ConfigBoolean MULTI_BREAK               = bool(I18n.MULTI_BREAK                     , true );
-    //    public static final ConfigBoolean RENDER_LAYER_LIMIT        = bool(I18n.RENDER_LAYER_LIMIT              , false);
-    public static final ConfigBoolean PRINT_IN_AIR              = bool(I18n.PRINT_IN_AIR                    , true );
-    public static final ConfigBoolean FORCED_SNEAK              = bool(I18n.FORCED_SNEAK                    , false);
-    public static final ConfigBoolean REPLACE                   = bool(I18n.REPLACE                         , true );
-    public static final ConfigBoolean PUT_SKIP                  = bool(I18n.PUT_SKIP                        , false);
-    public static final ConfigBoolean CLOUD_INVENTORY           = bool(I18n.CLOUD_INVENTORY                 , false);
-    public static final ConfigBoolean AUTO_INVENTORY            = bool(I18n.AUTO_INVENTORY                  , false);
-    public static final ConfigBoolean STORE_ORDERLY             = bool(I18n.STORE_ORDERLY                   , false);
-    public static final ConfigBoolean REPLACE_CORAL             = bool(I18n.REPLACE_CORAL                   , false);
-    public static final ConfigBoolean RENDER_HUD                = bool(I18n.RENDER_HUD                      , false);
+        // 核心 - 工作间隔
+        public static final ConfigInteger PRINTER_SPEED = integer(I18n.PRINTER_SPEED)
+                .defaultValue(1)
+                .range(0, 20)
+                .build();
 
-    public static final ConfigInteger PRINTER_SPEED             = integer(I18n.PRINTER_SPEED                    , 1, 0, 20);
-    public static final ConfigInteger BLOCKS_PER_TICK           = integer(I18n.PRINTER_BLOCKS_PER_TICK          , 4, 0, 24);
-    public static final ConfigInteger PLACE_COOLDOWN            = integer(I18n.PRINTER_PLACE_COOLDOWN           , 3, 0, 64);
-    public static final ConfigInteger PRINTER_RANGE             = integer(I18n.PRINTER_RANGE                    , 6, 1, 256);
-    public static final ConfigInteger QUICK_SHULKER_COOLDOWN    = integer(I18n.PRINTER_QUICK_SHULKER_COOLDOWN   , 10, 0, 20);
-    public static final ConfigInteger ITERATOR_USE_TIME         = integer(I18n.PRINTER_ITERATOR_USE_TIME        , 8, 0, 128);
+        // 核心 - 每刻放置方块数
+        public static final ConfigInteger BLOCKS_PER_TICK = integer(I18n.PRINTER_BLOCKS_PER_TICK)
+                .defaultValue(4)
+                .range(0, 24)
+                .build();
 
-    public static final ConfigBooleanHotkeyed PRINT_WATER           = booleanHotkey(I18n.PRINT_WATER              ,false);
-    public static final ConfigBooleanHotkeyed MINE                  = booleanHotkey(I18n.MINE                     ,false);
-    public static final ConfigBooleanHotkeyed FLUID                 = booleanHotkey(I18n.FLUID                    ,false);
-    public static final ConfigBooleanHotkeyed FILL                  = booleanHotkey(I18n.FILL                     ,false);
-    public static final ConfigBooleanHotkeyed BEDROCK               = booleanHotkey(I18n.BEDROCK                  ,false);
-    public static final ConfigBooleanHotkeyed SYNC_INVENTORY_CHECK  = booleanHotkey(I18n.SYNC_INVENTORY_CHECK     ,false);
-    public static final ConfigBooleanHotkeyed PRINT_SWITCH          = booleanHotkey(I18n.PRINT_SWITCH     ,false, "CAPS_LOCK", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY);
+        // 核心 - 工作半径长度
+        public static final ConfigInteger PRINTER_RANGE = integer(I18n.PRINTER_RANGE)
+                .defaultValue(6)
+                .range(1, 256)
+                .build();
 
-    public static final ConfigHotkey OPEN_SCREEN            = hotkey(I18n.OPEN_SCREEN, "Z,Y");
-    public static final ConfigHotkey PRINT                  = hotkey(I18n.PRINT, KeybindSettings.PRESS_ALLOWEXTRA_EMPTY);
-    public static final ConfigHotkey CLOSE_ALL_MODE         = hotkey(I18n.CLOSE_ALL_MODE,       "LEFT_CONTROL,G");
-    public static final ConfigHotkey SWITCH_PRINTER_MODE    = hotkey(I18n.SWITCH_PRINTER_MODE       );
-    public static final ConfigHotkey SYNC_INVENTORY         = hotkey(I18n.SYNC_INVENTORY            );
-    public static final ConfigHotkey PRINTER_INVENTORY      = hotkey(I18n.PRINTER_INVENTORY         );
-    public static final ConfigHotkey REMOVE_PRINT_INVENTORY = hotkey(I18n.REMOVE_PRINT_INVENTORY    );
-    //#if MC >= 12001
-    private static final KeybindSettings GUI_NO_ORDER = KeybindSettings.create(
-            KeybindSettings.Context.GUI, KeyAction.PRESS, false, false, false, true
-    );
-    public static final ConfigHotkey LAST   = hotkey(I18n.LAST      , GUI_NO_ORDER);
-    public static final ConfigHotkey NEXT   = hotkey(I18n.NEXT      , GUI_NO_ORDER);
-    public static final ConfigHotkey DELETE = hotkey(I18n.DELETE    , GUI_NO_ORDER);
-    //#endif
+        // 核心 - 放置冷却
+        public static final ConfigInteger PLACE_COOLDOWN = integer(I18n.PRINTER_PLACE_COOLDOWN)
+                .defaultValue(3)
+                .range(0, 64)
+                .build();
 
-    // @formatter:on
+        // 核心 - 迭代占用时长
+        public static final ConfigInteger ITERATOR_USE_TIME = integer(I18n.PRINTER_ITERATOR_USE_TIME)
+                .defaultValue(8)
+                .range(0, 128)
+                .build();
 
+        // 核心 - 迭代区域形状
+        public static final ConfigOptionList ITERATOR_SHAPE = optionList(I18n.PRINTER_ITERATOR_SHAPE)
+                .defaultValue(RadiusShapeType.SPHERE)
+                .build();
 
-    public static List<IConfigBase> getHotkeyList() {
-        List<IConfigBase> list = new ArrayList<>(Hotkeys.HOTKEY_LIST);
-        list.add(PRINT);
-        list.add(PRINT_SWITCH);
-        list.add(CLOSE_ALL_MODE);
-        if (MODE_SWITCH.getOptionListValue() == ModeType.SINGLE) {
-            list.add(SWITCH_PRINTER_MODE);
-        }
-        return ImmutableList.copyOf(list);
+        // 核心 - 延迟检测
+        public static final ConfigBoolean LAG_CHECK = bool(I18n.PRINTER_LAG_CHECK)
+                .defaultValue(true)
+                .build();
+
+        // 打印 - 数据包打印
+        public static final ConfigBoolean PLACE_USE_PACKET = bool(I18n.PRINTER_USE_PACKET)
+                .defaultValue(false)
+                .build();
+
+        // 显示打印机HUD
+        public static final ConfigBoolean RENDER_HUD = bool(I18n.RENDER_HUD)
+                .defaultValue(false)
+                .build();
+
+        // 快捷潜影盒
+        public static final ConfigBoolean QUICK_SHULKER = bool(I18n.PRINTER_QUICK_SHULKER)
+                .defaultValue(false)
+                .build();
+
+        // 快捷潜影盒 - 工作模式
+        public static final ConfigOptionList QUICK_SHULKER_MODE = optionList(I18n.PRINTER_QUICK_SHULKER_MODE)
+                .defaultValue(QuickShulkerModeType.INVOKE)
+                .build();
+
+        // 快捷潜影盒 - 冷却时间
+        public static final ConfigInteger QUICK_SHULKER_COOLDOWN = integer(I18n.PRINTER_QUICK_SHULKER_COOLDOWN)
+                .defaultValue(10)
+                .range(0, 20)
+                .build();
+
+        // 迭代 - 遍历顺序
+        public static final ConfigOptionList ITERATION_ORDER = optionList(I18n.PRINTER_ITERATOR_MODE)
+                .defaultValue(IterationOrderType.XZY)
+                .build();
+
+        // 迭代 - X轴反向
+        public static final ConfigBoolean X_REVERSE = bool(I18n.PRINTER_X_AXIS_REVERSE)
+                .defaultValue(false)
+                .build();
+
+        // 迭代 - Y轴反向
+        public static final ConfigBoolean Y_REVERSE = bool(I18n.PRINTER_Y_AXIS_REVERSE)
+                .defaultValue(false)
+                .build();
+
+        // 迭代 - Z轴反向
+        public static final ConfigBoolean Z_REVERSE = bool(I18n.PRINTER_Z_AXIS_REVERSE)
+                .defaultValue(false)
+                .build();
+
+        // 核心 - 模式切换
+        public static final ConfigOptionList MODE_SWITCH = optionList(I18n.MODE_SWITCH)
+                .defaultValue(ModeType.SINGLE)
+                .build();
+
+        // 打印机模式
+        public static final ConfigOptionList PRINTER_MODE = optionList(I18n.PRINTER_MODE)
+                .defaultValue(PrintModeType.PRINTER)
+                .setVisible(isSingle) // 仅单模式时显示
+                .build();
+
+        // 核心 - 多模阻断
+        public static final ConfigBoolean MULTI_BREAK = bool(I18n.MULTI_BREAK)
+                .defaultValue(true)
+                .setVisible(isMulti) // 仅多模式时显示
+                .build();
+
+        // 排流体 - 方块名单
+        public static final ConfigStringList FLUID_BLOCK_LIST = stringList(I18n.FLUID_BLOCK_LIST)
+                .defaultValue(ImmutableList.of("minecraft:sand"))
+                .build();
+
+        // 排流体 - 液体名单
+        public static final ConfigStringList FLUID_LIST = stringList(I18n.FLUID_LIST)
+                .defaultValue(ImmutableList.of("minecraft:water", "minecraft:lava"))
+                .build();
+
+        // 远程交互 - 库存白名单
+        public static final ConfigStringList INVENTORY_LIST = stringList(I18n.INVENTORY_LIST)
+                .defaultValue(ImmutableList.of("minecraft:chest"))
+                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪Mod加载时显示
+                .build();
+
+        // 核心 - 调试输出
+        public static final ConfigBoolean DEBUG_OUTPUT = bool(I18n.DEBUG_OUTPUT)
+                .defaultValue(false)
+                .build();
+
+        // 检查更新
+        public static final ConfigBoolean UPDATE_CHECK = bool(I18n.UPDATE_CHECK)
+                .defaultValue(true)
+                .build();
+
+        // 核心 - 自动禁用打印机
+        public static final ConfigBoolean AUTO_DISABLE_PRINTER = bool(I18n.PRINTER_AUTO_DISABLE)
+                .defaultValue(true)
+                .build();
+
+        // 核心 - 检查玩家方块交互距离
+        public static final ConfigBoolean CHECK_PLAYER_INTERACTION_RANGE = bool(I18n.CHECK_PLAYER_INTERACTION_RANGE)
+                .defaultValue(true)
+                .build();
+
+        // 通用配置项列表
+        public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
+                CLOUD_INVENTORY,               // 远程交互
+                AUTO_INVENTORY,                // 远程交互 - 自动设置远程交互
+                PRINT_SWITCH,                  // 打印状态
+                CHECK_PLAYER_INTERACTION_RANGE,// 核心 - 检查玩家方块交互距离
+                PRINTER_SPEED,                 // 核心 - 工作间隔
+                BLOCKS_PER_TICK,               // 核心 - 每刻放置方块数
+                PRINTER_RANGE,                 // 核心 - 工作半径长度
+                PLACE_COOLDOWN,                // 核心 - 放置冷却
+                ITERATOR_USE_TIME,             // 核心 - 迭代占用时长
+                ITERATOR_SHAPE,                // 核心 - 迭代区域形状
+                LAG_CHECK,                     // 核心 - 延迟检测
+                PLACE_USE_PACKET,              // 打印 - 数据包打印
+                RENDER_HUD,                    // 显示打印机HUD
+                QUICK_SHULKER,                 // 快捷潜影盒
+                QUICK_SHULKER_MODE,            // 快捷潜影盒 - 工作模式
+                QUICK_SHULKER_COOLDOWN,        // 快捷潜影盒 - 冷却时间
+                ITERATION_ORDER,               // 迭代 - 遍历顺序
+                X_REVERSE,                     // 迭代 - X轴反向
+                Y_REVERSE,                     // 迭代 - Y轴反向
+                Z_REVERSE,                     // 迭代 - Z轴反向
+                MODE_SWITCH,                   // 核心 - 模式切换
+                PRINTER_MODE,                  // 打印机模式
+                MULTI_BREAK,                   // 核心 - 多模阻断
+                FLUID_BLOCK_LIST,              // 排流体 - 方块名单
+                FLUID_LIST,                    // 排流体 - 液体名单
+                INVENTORY_LIST,                // 远程交互 - 库存白名单
+                DEBUG_OUTPUT,                  // 核心 - 调试输出
+                UPDATE_CHECK,                  // 检查更新
+                AUTO_DISABLE_PRINTER           // 核心 - 自动禁用打印机
+        );
     }
 
+    public static class Put {
+        // 跳过放置
+        public static final ConfigBoolean PUT_SKIP = bool(I18n.PUT_SKIP)
+                .defaultValue(false)
+                .build();
 
-    //===========通用设置===========
-    public static ImmutableList<IConfigBase> getGeneral() {
+        // 跳过放置名单
+        public static final ConfigStringList PUT_SKIP_LIST = stringList(I18n.PUT_SKIP_LIST)
+                .defaultValue(ImmutableList.of(""))
+                .build();
+
+        // 有序存放
+        public static final ConfigBoolean STORE_ORDERLY = bool(I18n.STORE_ORDERLY)
+                .defaultValue(false)
+                .build();
+
+        // 打印 - 使用轻松放置协议
+        public static final ConfigBoolean EASYPLACE_PROTOCOL = bool(I18n.EASY_PLACE_PROTOCOL)
+                .defaultValue(true)
+                .build();
+
+        // 打印 - 始终潜行
+        public static final ConfigBoolean FORCED_SNEAK = bool(I18n.FORCED_SNEAK)
+                .defaultValue(false)
+                .build();
+
+        // 凭空放置
+        public static final ConfigBoolean PRINT_IN_AIR = bool(I18n.PRINT_IN_AIR)
+                .defaultValue(true)
+                .build();
+
+        // 跳过打印含水方块
+        public static final ConfigBoolean SKIP_WATERLOGGED_BLOCK = bool(I18n.PRINTER_SKIP_WATERLOGGED)
+                .defaultValue(false)
+                .build();
+
+        // 覆盖打印
+        public static final ConfigBoolean REPLACE = bool(I18n.REPLACE)
+                .defaultValue(true)
+                .build();
+
+        // 覆盖方块列表
+        public static final ConfigStringList REPLACEABLE_LIST = stringList(I18n.REPLACEABLE_LIST)
+                .defaultValue(ImmutableList.of("minecraft:snow", "minecraft:lava", "minecraft:water", "minecraft:bubble_column", "minecraft:short_grass"))
+                .build();
+
+        // 替换珊瑚
+        public static final ConfigBoolean REPLACE_CORAL = bool(I18n.REPLACE_CORAL)
+                .defaultValue(false)
+                .build();
+
+        // 打印 - 选区类型
+        public static final ConfigOptionList PRINT_SELECTION_TYPE = optionList(I18n.PRINT_SELECTION_TYPE)
+                .defaultValue(SelectionType.LITEMATICA_RENDER_LAYER)
+                .build();
+
+        // 打印 - 破冰放水
+        public static final ConfigBooleanHotkeyed PRINT_WATER = booleanHotkey(I18n.PRINT_WATER)
+                .defaultValue(false)
+                .build();
+
+        // 打印 - 自动去皮
+        public static final ConfigBoolean STRIP_LOGS = bool(I18n.PRINTER_AUTO_STRIP_LOGS)
+                .defaultValue(false)
+                .build();
+
+        // 打印 - 音符盒自动调音
+        public static final ConfigBoolean NOTE_BLOCK_TUNING = bool(I18n.PRINTER_AUTO_TUNING)
+                .defaultValue(true)
+                .build();
+
+        // 打印 - 侦测器安全放置
+        public static final ConfigBoolean SAFELY_OBSERVER = bool(I18n.PRINTER_SAFELY_OBSERVER)
+                .defaultValue(true)
+                .build();
+
+        // 打印 - 堆肥桶自动填充
+        public static final ConfigBoolean FILL_COMPOSTER = bool(I18n.PRINTER_AUTO_FILL_COMPOSTER)
+                .defaultValue(false)
+                .build();
+
+        // 打印 - 下落方块检查
+        public static final ConfigBoolean FALLING_CHECK = bool(I18n.PRINTER_FALLING_BLOCK_CHECK)
+                .defaultValue(true)
+                .build();
+
+        // 打印 - 破坏错误方块
+        public static final ConfigBoolean BREAK_WRONG_BLOCK = bool(I18n.PRINT_BREAK_WRONG_BLOCK)
+                .defaultValue(false)
+                .build();
+
+        // 打印 - 破坏多余方块
+        public static final ConfigBoolean BREAK_EXTRA_BLOCK = bool(I18n.PRINTER_BREAK_EXTRA_BLOCK)
+                .defaultValue(false)
+                .build();
+
+        // 打印 - 破坏错误状态方块（实验性）
+        public static final ConfigBoolean BREAK_WRONG_STATE_BLOCK = bool(I18n.PRINTER_BREAK_WRONG_STATE_BLOCK)
+                .defaultValue(false)
+                .build();
+
+        // 排流体 - 选区类型
+        public static final ConfigOptionList FLUID_SELECTION_TYPE = optionList(I18n.FLUID_SELECTION_TYPE)
+                .defaultValue(SelectionType.LITEMATICA_SELECTION)
+                .build();
+
+        // 排流体 - 填充流动液体
+        public static final ConfigBoolean FILL_FLOWING_FLUID = bool(I18n.FLUID_MODE_FILL_FLOWING)
+                .defaultValue(true)
+                .build();
+
+        // 放置配置项列表
+        public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
+                PUT_SKIP,                     // 跳过放置
+                PUT_SKIP_LIST,                // 跳过放置名单
+                STORE_ORDERLY,                // 有序存放
+                EASYPLACE_PROTOCOL,           // 打印 - 使用轻松放置协议
+                FORCED_SNEAK,                 // 打印 - 始终潜行
+                PRINT_IN_AIR,                 // 凭空放置
+                SKIP_WATERLOGGED_BLOCK,       // 跳过打印含水方块
+                REPLACE,                      // 覆盖打印
+                REPLACEABLE_LIST,             // 覆盖方块列表
+                REPLACE_CORAL,                // 替换珊瑚
+                PRINT_SELECTION_TYPE,         // 打印 - 选区类型
+                PRINT_WATER,                  // 打印 - 破冰放水
+                STRIP_LOGS,                   // 打印 - 自动去皮
+                NOTE_BLOCK_TUNING,            // 打印 - 音符盒自动调音
+                SAFELY_OBSERVER,              // 打印 - 侦测器安全放置
+                FILL_COMPOSTER,               // 打印 - 堆肥桶自动填充
+                FALLING_CHECK,                // 打印 - 下落方块检查
+                BREAK_WRONG_BLOCK,            // 打印 - 破坏错误方块
+                BREAK_EXTRA_BLOCK,            // 打印 - 破坏多余方块
+                BREAK_WRONG_STATE_BLOCK,      // 打印 - 破坏错误状态方块（实验性）
+                FLUID_SELECTION_TYPE,         // 排流体 - 选区类型
+                FILL_FLOWING_FLUID            // 排流体 - 填充流动液体
+        );
+    }
+
+    public static class Excavate {
+        // 挖掘
+        public static final ConfigBooleanHotkeyed MINE = booleanHotkey(I18n.MINE)
+                .defaultValue(false)
+                .setVisible(isMulti) // 仅多模式时显示
+                .build();
+
+        // 挖掘 - 挖掘模式限制器
+        public static final ConfigOptionList EXCAVATE_LIMITER = optionList(I18n.EXCAVATE_LIMITER)
+                .defaultValue(ExcavateListMode.CUSTOM)
+                .build();
+
+        // 挖掘 - 选区类型
+        public static final ConfigOptionList MINE_SELECTION_TYPE = optionList(I18n.MINE_SELECTION_TYPE)
+                .defaultValue(SelectionType.LITEMATICA_SELECTION_ABOVE_PLAYER)
+                .setVisible(isCustom) // 仅自定义挖掘限制时显示
+                .build();
+
+        // 挖掘 - 挖掘模式限制
+        public static final ConfigOptionList EXCAVATE_LIMIT = optionList(I18n.EXCAVATE_LIMIT)
+                .defaultValue(UsageRestriction.ListType.NONE)
+                .setVisible(isCustom) // 仅自定义挖掘限制时显示
+                .build();
+
+        // 挖掘 - 挖掘白名单
+        public static final ConfigStringList EXCAVATE_WHITELIST = stringList(I18n.EXCAVATE_WHITELIST)
+                .defaultValue(ImmutableList.of(""))
+                .setVisible(isCustom) // 仅自定义挖掘限制时显示
+                .build();
+
+        // 挖掘 - 挖掘黑名单
+        public static final ConfigStringList EXCAVATE_BLACKLIST = stringList(I18n.EXCAVATE_BLACKLIST)
+                .defaultValue(ImmutableList.of(""))
+                .setVisible(isCustom) // 仅自定义挖掘限制时显示
+                .build();
+
+        // 挖掘配置项列表
+        public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
+                MINE,                         // 挖掘
+                EXCAVATE_LIMITER,             // 挖掘 - 挖掘模式限制器
+                MINE_SELECTION_TYPE,          // 挖掘 - 选区类型
+                EXCAVATE_LIMIT,               // 挖掘 - 挖掘模式限制
+                EXCAVATE_WHITELIST,           // 挖掘 - 挖掘白名单
+                EXCAVATE_BLACKLIST            // 挖掘 - 挖掘黑名单
+        );
+    }
+
+    public static class Fill {
+        // 填充
+        public static final ConfigBooleanHotkeyed FILL = booleanHotkey(I18n.FILL)
+                .defaultValue(false)
+                .setVisible(isMulti) // 仅多模式时显示
+                .build();
+
+        // 填充 - 选区类型
+        public static final ConfigOptionList FILL_SELECTION_TYPE = optionList(I18n.FILL_SELECTION_TYPE)
+                .defaultValue(SelectionType.LITEMATICA_SELECTION)
+                .build();
+
+        // 填充 - 填充方块模式
+        public static final ConfigOptionList FILL_BLOCK_MODE = optionList(I18n.FILL_BLOCK_MODE)
+                .defaultValue(FileBlockModeType.WHITELIST)
+                .build();
+
+        // 填充 - 填充方块名单
+        public static final ConfigStringList FILL_BLOCK_LIST = stringList(I18n.FILL_BLOCK_LIST)
+                .defaultValue(ImmutableList.of("minecraft:cobblestone"))
+                .build();
+
+        // 填充 - 模式朝向
+        public static final ConfigOptionList FILL_BLOCK_FACING = optionList(I18n.FILL_MODE_FACING)
+                .defaultValue(FillModeFacingType.DOWN)
+                .build();
+
+        // 填充配置项列表
+        public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
+                FILL,                         // 填充
+                FILL_SELECTION_TYPE,          // 填充 - 选区类型
+                FILL_BLOCK_MODE,              // 填充 - 填充方块模式
+                FILL_BLOCK_LIST,              // 填充 - 填充方块名单
+                FILL_BLOCK_FACING             // 填充 - 模式朝向
+        );
+    }
+
+    public static class Hotkeys {
+        // 打开设置菜单
+        public static final ConfigHotkey OPEN_SCREEN = hotkey(I18n.OPEN_SCREEN)
+                .defaultStorageString("Z,Y")
+                .build();
+
+        // 打印状态
+        public static final ConfigBooleanHotkeyed PRINT_SWITCH = General.PRINT_SWITCH;
+
+        // 打印热键
+        public static final ConfigHotkey PRINT = hotkey(I18n.PRINT)
+                .keybindSettings(BOTH_ALLOW_EXTRA_EMPTY)
+                .build();
+
+        // 关闭全部模式
+        public static final ConfigHotkey CLOSE_ALL_MODE = hotkey(I18n.CLOSE_ALL_MODE)
+                .defaultStorageString("LEFT_CONTROL,G")
+                .build();
+
+        // 切换模式
+        public static final ConfigHotkey SWITCH_PRINTER_MODE = hotkey(I18n.SWITCH_PRINTER_MODE)
+                .bindConfig(General.PRINTER_MODE)
+                .setVisible(isSingle) // 仅单模式时显示
+                .build();
+
+        // 同步容器热键
+        public static final ConfigHotkey SYNC_INVENTORY = hotkey(I18n.SYNC_INVENTORY)
+                .build();
+
+        // 挖掘
+        public static final ConfigBooleanHotkeyed MINE = Excavate.MINE;
+
+        // 填充
+        public static final ConfigBooleanHotkeyed FILL = Fill.FILL;
+
+        // 排流体
+        public static final ConfigBooleanHotkeyed FLUID = booleanHotkey(I18n.FLUID)
+                .defaultValue(false)
+                .setVisible(isMulti) // 仅多模式时显示
+                .build();
+
+        // 破基岩
+        public static final ConfigBooleanHotkeyed BEDROCK = booleanHotkey(I18n.BEDROCK)
+                .defaultValue(false)
+                .setVisible(isMulti) // 仅多模式时显示
+                .build();
+
+        // 设置打印机库存热键
+        public static final ConfigHotkey PRINTER_INVENTORY = hotkey(I18n.PRINTER_INVENTORY)
+                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪Mod加载时显示
+                .build();
+
+        // 清空打印机库存热键
+        public static final ConfigHotkey REMOVE_PRINT_INVENTORY = hotkey(I18n.REMOVE_PRINT_INVENTORY)
+                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪Mod加载时显示
+                .build();
+
+        // 上一个箱子
+        public static final ConfigHotkey LAST = hotkey(I18n.LAST)
+                .keybindSettings(GUI_NO_ORDER)
+                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪Mod加载时显示
+                .build();
+
+        // 下一个箱子
+        public static final ConfigHotkey NEXT = hotkey(I18n.NEXT)
+                .keybindSettings(GUI_NO_ORDER)
+                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪Mod加载时显示
+                .build();
+
+        // 删除当前容器
+        public static final ConfigHotkey DELETE = hotkey(I18n.DELETE)
+                .keybindSettings(GUI_NO_ORDER)
+                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪Mod加载时显示
+                .build();
+
+        // 同步容器开关热键
+        public static final ConfigBooleanHotkeyed SYNC_INVENTORY_CHECK = booleanHotkey(I18n.SYNC_INVENTORY_CHECK)
+                .defaultValue(false)
+                .build();
+
+        // 热键配置项列表
+        public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
+                OPEN_SCREEN,                  // 打开设置菜单
+                PRINT_SWITCH,                 // 打印状态
+                PRINT,                        // 打印热键
+                CLOSE_ALL_MODE,               // 关闭全部模式
+                SYNC_INVENTORY,               // 同步容器热键
+                SYNC_INVENTORY_CHECK,         // 同步容器开关热键
+                SWITCH_PRINTER_MODE,          // 切换模式
+                MINE,                         // 挖掘
+                FLUID,                        // 排流体
+                FILL,                         // 填充
+                BEDROCK,                      // 破基岩
+                PRINTER_INVENTORY,            // 设置打印机库存热键
+                REMOVE_PRINT_INVENTORY,       // 清空打印机库存热键
+                LAST,                         // 上一个箱子
+                NEXT,                         // 下一个箱子
+                DELETE                        // 删除当前容器
+        );
+    }
+
+    public static class Color {
+        // 容器同步与打印机添加库存高亮颜色
+        public static final ConfigColor SYNC_INVENTORY_COLOR = color(I18n.SYNC_INVENTORY_COLOR)
+                .defaultValue("#4CFF4CE6")
+                .build();
+
+        // 颜色配置项列表
+        public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
+                SYNC_INVENTORY_COLOR          // 容器同步与打印机添加库存高亮颜色
+        );
+    }
+
+    public static ImmutableList<IConfigBase> getConfigs(boolean gui, @Nullable ImmutableList<IConfigBase> configs) {
         List<IConfigBase> list = new ArrayList<>();
-        // 箱子追踪
-        if (ModLoadStatus.isLoadChestTrackerLoaded()) {
-            list.add(CLOUD_INVENTORY);                          // 远程交互容器
-            list.add(AUTO_INVENTORY);                           // 自动设置远程交互
-        }
-        list.add(PRINT_SWITCH);                                 // 打印状态
-        list.add(CHECK_PLAYER_INTERACTION_RANGE); // 核心 - 检查玩家方块交互距离
-        list.add(PRINTER_SPEED);                                // 核心 - 工作间隔
-        list.add(BLOCKS_PER_TICK);                              // 核心 - 每刻放置方块数(没必要隐藏)
-        list.add(PRINTER_RANGE);                                // 核心 - 工作半径长度
-        list.add(PLACE_COOLDOWN);                               // 核心 - 放置冷却
-        list.add(ITERATOR_USE_TIME);                            // 核心 - 迭代占用时长
-        list.add(ITERATOR_SHAPE);                               // 核心 - 迭代区域形状
-        list.add(LAG_CHECK);                                    // 核心 - 延迟检测
-        list.add(PLACE_USE_PACKET);                             // 打印 - 数据包打印
-        list.add(RENDER_HUD);                                   // 显示打印机 HUD
-        list.add(QUICK_SHULKER);                                // 快捷潜影盒
-        list.add(QUICK_SHULKER_MODE);                           // 快捷潜影盒 - 工作模式
-        list.add(QUICK_SHULKER_COOLDOWN);                       // 快捷潜影盒 - 冷却时间
-        list.add(ITERATION_ORDER);                              // 迭代 - 遍历顺序
-        list.add(X_REVERSE);                                    // 迭代-X轴反向
-        list.add(Y_REVERSE);                                    // 迭代-Y轴反向
-        list.add(Z_REVERSE);                                    // 迭代-Z轴反向
-        list.add(MODE_SWITCH);                                  // 模式切换
-        // 模式切换
-        if (MODE_SWITCH.getOptionListValue().equals(ModeType.SINGLE)) {
-            list.add(PRINTER_MODE);                 // 打印机模式
-        } else {
-            list.add(MULTI_BREAK);                  // 多模阻断
-        }
-        list.add(FLUID_BLOCK_LIST);                 // 排流体-方块名单
-        list.add(FLUID_LIST);                       // 排流体-液体名单
-        list.add(FILL_BLOCK_MODE);                  // 填充方块模式
-        list.add(FILL_BLOCK_LIST);                  // 填充方块名单
-        list.add(FILL_BLOCK_FACING);                // 填充 - 模式朝向
-
-        // 箱子追踪
-        if (ModLoadStatus.isLoadChestTrackerLoaded()) {
-            list.add(INVENTORY_LIST);               // 库存白名单
-        }
-        list.add(DEBUG_OUTPUT);                     // 调试输出
-        list.add(UPDATE_CHECK);                     // 检查更新
-        list.add(AUTO_DISABLE_PRINTER);             // 核心 - 自动禁用打印机
-        return ImmutableList.copyOf(list);
-    }
-
-    //===========放置设置===========
-    public static ImmutableList<IConfigBase> getPut() {
-        List<IConfigBase> list = new ArrayList<>();
-        list.add(PUT_SKIP);                 // 跳过放置
-        list.add(PUT_SKIP_LIST);            // 跳过放置名单
-        list.add(STORE_ORDERLY);            // 有序存放
-        list.add(EASYPLACE_PROTOCOL);       // 打印 - 使用轻松放置协议
-        list.add(FORCED_SNEAK);             // 打印时潜行
-        list.add(PRINT_IN_AIR);             // 凭空放置
-        list.add(SKIP_WATERLOGGED_BLOCK);   // 跳过打印含水方块
-        list.add(REPLACE);                  // 覆盖打印
-        list.add(REPLACEABLE_LIST);         // 覆盖方块列表
-        list.add(REPLACE_CORAL);            // 替换珊瑚
-        list.add(PRINT_SELECTION_TYPE);     // 打印 - 选区类型
-        list.add(PRINT_WATER);              // 打印 - 破冰放水
-        list.add(STRIP_LOGS);               // 打印 - 自动去皮
-        list.add(NOTE_BLOCK_TUNING);        // 打印 - 音符盒自动调音
-        list.add(SAFELY_OBSERVER);          // 打印 - 侦测器安全放置
-        list.add(FILL_COMPOSTER);           // 打印 - 堆肥桶自动填充
-        list.add(FALLING_CHECK);            // 打印 - 下落方块检查
-        list.add(BREAK_WRONG_BLOCK);        // 打印 - 破坏错误方块
-        list.add(BREAK_EXTRA_BLOCK);        // 打印 - 破坏多余方块
-        list.add(BREAK_WRONG_STATE_BLOCK);  // 打印 - 破坏错误状态方块（实验性）
-        list.add(FILL_FLOWING_FLUID);       // 排流体 - 填充流动状态液体
-        return ImmutableList.copyOf(list);
-    }
-
-    //===========挖掘设置===========
-    public static ImmutableList<IConfigBase> getExcavate() {
-        List<IConfigBase> list = new ArrayList<>();
-        list.add(EXCAVATE_LIMITER);         // 挖掘模式限制器
-        if (EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.CUSTOM)) {
-            list.add(MINE_SELECTION_TYPE);  // 挖掘 - 选区类型
-            list.add(EXCAVATE_LIMIT);       // 挖掘模式限制
-            list.add(EXCAVATE_WHITELIST);   // 挖掘白名单
-            list.add(EXCAVATE_BLACKLIST);   // 挖掘黑名单
+        for (ImmutableList<IConfigBase> options : OPTIONS) {
+            if (configs != null && !options.equals(configs)) {
+                continue;
+            }
+            for (IConfigBase option : options) {
+                if (gui) {
+                    if (option instanceof ConfigExtension configExtension) {
+                        @Nullable BooleanSupplier supplier = ConfigExtension.litematica_printer$getVisible(configExtension);
+                        if (supplier != null && supplier.getAsBoolean()) {
+                            list.add(option);
+                        }
+                    }
+                    continue;
+                }
+                list.add(option);
+            }
         }
         return ImmutableList.copyOf(list);
     }
 
-    //===========填充设置===========
-    public static ImmutableList<IConfigBase> getFills() {
-        List<IConfigBase> list = new ArrayList<>();
-        if (MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI)) {
-            list.add(FILL);                         // 填充
+    public static ImmutableList<IConfigBase> getConfigs(boolean gui) {
+        return getConfigs(gui, null);
+    }
+
+    public static ImmutableList<IConfigBase> getGlobalConfigs(boolean gui) {
+        return getConfigs(gui, General.OPTIONS);
+    }
+
+    public static ImmutableList<IConfigBase> getPutConfigs(boolean gui) {
+        return getConfigs(gui, Put.OPTIONS);
+    }
+
+    public static ImmutableList<IConfigBase> getExcavateConfigs(boolean gui) {
+        return getConfigs(gui, Excavate.OPTIONS);
+    }
+
+    public static ImmutableList<IConfigBase> getFillConfigs(boolean gui) {
+        return getConfigs(gui, Fill.OPTIONS);
+    }
+
+    public static ImmutableList<IConfigBase> getHotkeysConfigs(boolean gui) {
+        return getConfigs(gui, Hotkeys.OPTIONS);
+    }
+
+    public static ImmutableList<IConfigBase> getColorConfigs(boolean gui) {
+        return getConfigs(gui, Color.OPTIONS);
+    }
+
+    public static ImmutableList<IHotkey> getHotkeys() {
+        List<IHotkey> list = new ArrayList<>();
+        for (IConfigBase options : getConfigs(false)) {
+            if (options instanceof IHotkey hokey) {
+                list.add(hokey);
+            }
         }
-        list.add(FILL_SELECTION_TYPE);              // 填充 - 选区类型
-        list.add(FILL_BLOCK_MODE);                  // 填充方块模式
-        list.add(FILL_BLOCK_LIST);                  // 填充方块名单
-        list.add(FILL_BLOCK_FACING);                // 填充 - 模式朝向
-        return ImmutableList.copyOf(list);
-    }
-
-    //===========破基岩设置===========
-    public static ImmutableList<IConfigBase> getBedrock() {
-        List<IConfigBase> list = new ArrayList<>();
-        return ImmutableList.copyOf(list);
-    }
-
-    //===========热键设置===========
-    public static ImmutableList<IConfigBase> getHotkeys() {
-        List<IConfigBase> list = new ArrayList<>();
-        list.add(OPEN_SCREEN);                  // 打开设置菜单
-        list.add(PRINT);                        // 打印热键
-        list.add(PRINT_SWITCH);         // 切换打印状态
-        // 切换打印状态热键
-        if (MODE_SWITCH.getOptionListValue().equals(ModeType.SINGLE)) {
-            list.add(SWITCH_PRINTER_MODE);      // 切换模式
-        } else {
-            list.add(MINE);                     // 挖掘
-            list.add(FLUID);                    // 排流体
-            list.add(FILL);                     // 填充
-//            list.add(REPLACE_BLOCK);            // 替换
-            list.add(BEDROCK);                  // 破基岩
-        }
-        list.add(CLOSE_ALL_MODE);               // 关闭全部模式
-        list.add(SYNC_INVENTORY);               // 同步容器热键
-        // 箱子追踪
-        if (ModLoadStatus.isLoadChestTrackerLoaded()) {
-            list.add(PRINTER_INVENTORY);        // 设置打印机库存热键
-            list.add(REMOVE_PRINT_INVENTORY);   // 清空打印机库存热键
-            //#if MC >= 12001
-            list.add(LAST);                     // 切换到上一个箱子热键
-            list.add(NEXT);                     // 切换到下一个箱子热键
-            list.add(DELETE);                   // 删除当前容器热键
-            //#endif
-        }
-        return ImmutableList.copyOf(list);
-    }
-
-    //===========颜色设置===========
-    public static ImmutableList<IConfigBase> getColor() {
-        List<IConfigBase> list = new ArrayList<>();
-        list.add(SYNC_INVENTORY_COLOR); // 容器同步与打印机添加库存高亮颜色
-
-        return ImmutableList.copyOf(list);
-    }
-
-    //按下时激活
-    public static ImmutableList<ConfigHotkey> getKeyList() {
-        ArrayList<ConfigHotkey> list = new ArrayList<>();
-        list.add(OPEN_SCREEN);                  // 打开设置菜单
-        list.add(SYNC_INVENTORY);               // 同步容器热键
-        list.add(SWITCH_PRINTER_MODE);          // 切换模式
-
-        // 箱子追踪
-        if (ModLoadStatus.isLoadChestTrackerLoaded()) {
-            list.add(PRINTER_INVENTORY);        // 设置打印机库存热键
-            list.add(REMOVE_PRINT_INVENTORY);   // 清空打印机库存热键
-            //#if MC >= 12001
-            list.add(LAST);                     // 切换到上一个箱子热键
-            list.add(NEXT);                     // 切换到下一个箱子热键
-            list.add(DELETE);                   // 删除当前容器热键
-            //#endif
-        }
-        return ImmutableList.copyOf(list);
-    }
-
-    //切换型开关
-    public static ImmutableList<IHotkeyTogglable> getSwitchKey() {
-        ArrayList<IHotkeyTogglable> list = new ArrayList<>();
-        list.add(MINE);             // 挖掘
-        list.add(FLUID);            // 排流体
-        list.add(FILL);             // 填充
-//        list.add(REPLACE_BLOCK);    // 替换
-        list.add(BEDROCK);          // 破基岩
-        list.add(PRINT_WATER);      // 打印 - 破冰放水
-        return ImmutableList.copyOf(list);
-    }
-
-    public static ImmutableList<IConfigBase> getAllConfigs() {
-        List<IConfigBase> list = new ArrayList<>();
-        list.addAll(getGeneral());  // 通用
-        list.addAll(getPut());      // 放置
-        list.addAll(getExcavate()); // 挖掘
-        list.addAll(getBedrock());  // 破基岩
-        list.addAll(getHotkeys());  // 热键
-        list.addAll(getColor());    // 颜色
-        list = list.stream().distinct().toList();   // 去重
         return ImmutableList.copyOf(list);
     }
 
@@ -355,7 +644,7 @@ public class Configs implements IConfigHandler {
             JsonElement jsonElement = JsonUtils.parseJsonFile(settingFile);
             if (jsonElement != null && jsonElement.isJsonObject()) {
                 JsonObject obj = jsonElement.getAsJsonObject();
-                ConfigUtils.readConfigBase(obj, LitematicaPrinterMod.MOD_ID, getAllConfigs());
+                ConfigUtils.readConfigBase(obj, LitematicaPrinterMod.MOD_ID, getConfigs(false));
             }
         }
     }
@@ -364,7 +653,7 @@ public class Configs implements IConfigHandler {
     public void save() {
         if ((CONFIG_DIR.exists() && CONFIG_DIR.isDirectory()) || CONFIG_DIR.mkdirs()) {
             JsonObject configRoot = new JsonObject();
-            ConfigUtils.writeConfigBase(configRoot, LitematicaPrinterMod.MOD_ID, getAllConfigs());
+            ConfigUtils.writeConfigBase(configRoot, LitematicaPrinterMod.MOD_ID, getConfigs(false));
             JsonUtils.writeJsonToFile(configRoot, new File(FILE_PATH));
         }
     }
@@ -374,64 +663,5 @@ public class Configs implements IConfigHandler {
         ConfigManager.getInstance().registerConfigHandler(LitematicaPrinterMod.MOD_ID, Configs.INSTANCE);
         InputEventHandler.getKeybindManager().registerKeybindProvider(InputHandler.getInstance());
         InputEventHandler.getInputManager().registerKeyboardInputHandler(InputHandler.getInstance());
-        HotkeysCallback.init();
-
-        // 箱子追踪
-        if (!ModLoadStatus.isLoadChestTrackerLoaded()) {
-            AUTO_INVENTORY.setBooleanValue(false);  // 自动设置远程交互
-            CLOUD_INVENTORY.setBooleanValue(false); // 远程交互容器
-        }
-
-        InputEventHandler.getKeybindManager().registerKeybindProvider(InputHandler.getInstance());
-        InputEventHandler.getInputManager().registerKeyboardInputHandler(InputHandler.getInstance());
-
-        //#if MC >= 12001 && MC <= 12104
-        //$$ if (ModLoadStatus.isLoadChestTrackerLoaded()) {
-        //$$     me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.setup();
-        //$$ }
-        //#endif
-
-        CLOSE_ALL_MODE.getKeybind().setCallback((action, keybind) -> {
-            if (keybind.isPressed()) {
-                Configs.MINE.setBooleanValue(false);
-                Configs.FLUID.setBooleanValue(false);
-                Configs.PRINT_SWITCH.setBooleanValue(false);
-//            Configs.REPLACE_BLOCK.setBooleanValue(false);
-                Configs.PRINTER_MODE.setOptionListValue(PrintModeType.PRINTER);
-                MessageUtils.setOverlayMessage(StringUtils.nullToEmpty("已关闭全部模式"));
-            }
-            return true;
-        });
-
-        // 打印状态值被修改
-        PRINT_SWITCH.setValueChangeCallback(b -> {
-            if (!b.getBooleanValue()) {
-                Printer printer = Printer.getInstance();
-                printer.clearQueue();
-                printer.lastPos = null;
-                printer.basePos = null;
-                printer.pistonNeedFix = false;
-                printer.blockContext = null;
-                if (ModLoadStatus.isBedrockMinerLoaded()) {
-                    if (BedrockUtils.isWorking()) {
-                        BedrockUtils.setWorking(false);
-                        BedrockUtils.setBedrockMinerFeatureEnable(true);
-                    }
-                }
-            }
-        });
-
-        // 切换模式时, 关闭破基岩
-        PRINTER_MODE.setValueChangeCallback(b -> {
-            if (!b.getOptionListValue().equals(PrintModeType.BEDROCK)) {
-                if (ModLoadStatus.isBedrockMinerLoaded()) {
-                    if (BedrockUtils.isWorking()) {
-                        BedrockUtils.setWorking(false);
-                        BedrockUtils.setBedrockMinerFeatureEnable(true);
-                    }
-                }
-            }
-        });
-
     }
 }

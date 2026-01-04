@@ -75,10 +75,10 @@ public class Printer extends PrinterUtils {
     //强制循环半径
     public @Nullable BlockPos basePos = null;
     public MyBox myBox;
-    public int printRange = Configs.PRINTER_RANGE.getIntegerValue();
+    public int printRange = Configs.General.PRINTER_RANGE.getIntegerValue();
     public boolean printerYAxisReverse = false;
-    public int tickRate = Configs.PRINTER_SPEED.getIntegerValue();
-    public int printerWorkingCountPerTick = Configs.BLOCKS_PER_TICK.getIntegerValue();
+    public int tickRate = Configs.General.PRINTER_SPEED.getIntegerValue();
+    public int printerWorkingCountPerTick = Configs.General.BLOCKS_PER_TICK.getIntegerValue();
     public int waitTicks = 0;
     public int packetTick;
     public boolean updateChecked = false;
@@ -102,7 +102,7 @@ public class Printer extends PrinterUtils {
     }
 
     public BlockPos getBlockPos() {
-        if (Configs.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
+        if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
             return null;
         }
         LocalPlayer player = client.player;
@@ -120,14 +120,14 @@ public class Printer extends PrinterUtils {
             basePos = null;
             return null;
         }
-        if (Configs.ITERATION_ORDER.getOptionListValue() instanceof IterationOrderType iterationOrderType) {
+        if (Configs.General.ITERATION_ORDER.getOptionListValue() instanceof IterationOrderType iterationOrderType) {
             myBox.setIterationMode(iterationOrderType);
-            myBox.xIncrement = !Configs.X_REVERSE.getBooleanValue();
-            myBox.yIncrement = Configs.Y_REVERSE.getBooleanValue() == printerYAxisReverse;
-            myBox.zIncrement = !Configs.Z_REVERSE.getBooleanValue();
+            myBox.xIncrement = !Configs.General.X_REVERSE.getBooleanValue();
+            myBox.yIncrement = Configs.General.Y_REVERSE.getBooleanValue() == printerYAxisReverse;
+            myBox.zIncrement = !Configs.General.Z_REVERSE.getBooleanValue();
             myBox.setStartPos(lastPos);
             for (BlockPos pos : myBox) {
-                if (Configs.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
+                if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
                     return null;
                 }
                 if (
@@ -147,20 +147,20 @@ public class Printer extends PrinterUtils {
 
     public void onGameTick(Minecraft client, ClientLevel level, LocalPlayer player) {
         cooldownTick(); // 冷却TICK放在前面, 不受开关与延迟影响
-        if (!(Configs.PRINT_SWITCH.getBooleanValue() || Configs.PRINT.getKeybind().isPressed())) {
+        if (!isEnable()) {
             return;
         }
         // 变量初始化, 通用部分(function调用了,getBlockPos, 也需要tickEndTime)
         printerYAxisReverse = false;
-        printRange = Configs.PRINTER_RANGE.getIntegerValue();
-        tickRate = Configs.PRINTER_SPEED.getIntegerValue();
-        printerWorkingCountPerTick = Configs.BLOCKS_PER_TICK.getIntegerValue();
+        printRange = Configs.General.PRINTER_RANGE.getIntegerValue();
+        tickRate = Configs.General.PRINTER_SPEED.getIntegerValue();
+        printerWorkingCountPerTick = Configs.General.BLOCKS_PER_TICK.getIntegerValue();
         tickStartTime = System.currentTimeMillis();
-        tickEndTime = tickStartTime + Configs.ITERATOR_USE_TIME.getIntegerValue();
+        tickEndTime = tickStartTime + Configs.General.ITERATOR_USE_TIME.getIntegerValue();
         if (tickRate != 0 && (tickStartTime / 50) % tickRate != 0) {
             return;
         }
-        if (Configs.LAG_CHECK.getBooleanValue()) {
+        if (Configs.General.LAG_CHECK.getBooleanValue()) {
             if (packetTick > 20) {
                 packetTick++;
                 return;
@@ -212,8 +212,8 @@ public class Printer extends PrinterUtils {
             return;
         }
         // 单模, 非打印模式,
-        if (Configs.MODE_SWITCH.getOptionListValue() instanceof ModeType modeType && modeType == ModeType.SINGLE) {
-            if (Configs.PRINTER_MODE.getOptionListValue() instanceof PrintModeType printModeType && printModeType != PrintModeType.PRINTER) {
+        if (Configs.General.MODE_SWITCH.getOptionListValue() instanceof ModeType modeType && modeType == ModeType.SINGLE) {
+            if (Configs.General.PRINTER_MODE.getOptionListValue() instanceof PrintModeType printModeType && printModeType != PrintModeType.PRINTER) {
                 return;
             }
         }
@@ -226,11 +226,11 @@ public class Printer extends PrinterUtils {
                 continue;
             }
             // 检查每刻放置方块是否超出限制
-            if (Configs.BLOCKS_PER_TICK.getIntegerValue() != 0 && printerWorkingCountPerTick == 0) {
+            if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0 && printerWorkingCountPerTick == 0) {
                 return;
             }
             // 是否在渲染层内
-            if (!PrinterUtils.isPositionInSelectionRange(player, targetPos, Configs.PRINT_SELECTION_TYPE)) {
+            if (!PrinterUtils.isPositionInSelectionRange(player, targetPos, Configs.Put.PRINT_SELECTION_TYPE)) {
                 continue;
             }
             // 是否是投影方块
@@ -243,19 +243,19 @@ public class Printer extends PrinterUtils {
             }
             BlockContext blockContext = new BlockContext(client, level, schematic, targetPos);
             // 检查放置跳过列表
-            if (Configs.PUT_SKIP.getBooleanValue()) {
-                Set<String> skipSet = new HashSet<>(Configs.PUT_SKIP_LIST.getStrings()); // 转换为 HashSet
+            if (Configs.Put.PUT_SKIP.getBooleanValue()) {
+                Set<String> skipSet = new HashSet<>(Configs.Put.PUT_SKIP_LIST.getStrings()); // 转换为 HashSet
                 if (skipSet.stream().anyMatch(s -> equalsName(s, blockContext.requiredState))) {
                     continue;
                 }
             }
             // 放置冷却
-            placeCooldownList.put(targetPos, Configs.PLACE_COOLDOWN.getIntegerValue());
+            placeCooldownList.put(targetPos, Configs.General.PLACE_COOLDOWN.getIntegerValue());
             PlacementGuide.Action action = guide.getAction(blockContext);
             if (action == null) {
                 continue;
             }
-            if (Configs.FALLING_CHECK.getBooleanValue() && blockContext.requiredState.getBlock() instanceof FallingBlock) {
+            if (Configs.Put.FALLING_CHECK.getBooleanValue() && blockContext.requiredState.getBlock() instanceof FallingBlock) {
                 //检查方块下面方块是否正确，否则跳过放置
                 BlockPos downPos = targetPos.below();
                 if (level.getBlockState(downPos) != schematic.getBlockState(downPos)) {
@@ -269,7 +269,7 @@ public class Printer extends PrinterUtils {
             }
             waitTicks = action.getWaitTick();
             // 调试输出
-            if (Configs.DEBUG_OUTPUT.getBooleanValue()) {
+            if (Configs.General.DEBUG_OUTPUT.getBooleanValue()) {
                 Debug.write("方块名: {}", blockContext.requiredState.getBlock().getName().getString());
                 Debug.write("方块位置: {}", targetPos.toShortString());
                 Debug.write("方块类名: {}", blockContext.requiredState.getBlock().getClass().getName());
@@ -278,7 +278,7 @@ public class Printer extends PrinterUtils {
             Item[] reqItems = action.getRequiredItems(blockContext.requiredState.getBlock());
             if (switchToItems(player, reqItems)) {
                 boolean useShift = (Implementation.isInteractive(level.getBlockState(targetPos.relative(side)).getBlock()) && !(action instanceof PlacementGuide.ClickAction))
-                        || Configs.FORCED_SNEAK.getBooleanValue()
+                        || Configs.Put.FORCED_SNEAK.getBooleanValue()
                         || action.useShift;
 
                 action.queueAction(queue, targetPos, side, useShift);
@@ -320,7 +320,7 @@ public class Printer extends PrinterUtils {
                     if (queue.needWait) {
                         return;
                     }
-                    if (Configs.BLOCKS_PER_TICK.getIntegerValue() != 0) {
+                    if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0) {
                         printerWorkingCountPerTick--;
                     }
                     continue;
@@ -368,7 +368,7 @@ public class Printer extends PrinterUtils {
     }
 
     public Vec3 usePrecisionPlacement(BlockPos pos, BlockState stateSchematic) {
-        if (Configs.EASYPLACE_PROTOCOL.getBooleanValue()) {
+        if (Configs.Put.EASYPLACE_PROTOCOL.getBooleanValue()) {
             EasyPlaceProtocol protocol = PlacementHandler.getEffectiveProtocolVersion();
             Vec3 hitPos = Vec3.atLowerCornerOf(pos);
             if (protocol == EasyPlaceProtocol.V3) {
@@ -462,7 +462,7 @@ public class Printer extends PrinterUtils {
         }
 
         public void queueClick(@NotNull BlockPos target, @NotNull Direction side, @NotNull Vec3 hitModifier, boolean useShift) {
-            if (Configs.PRINTER_SPEED.getIntegerValue() != 0) {
+            if (Configs.General.PRINTER_SPEED.getIntegerValue() != 0) {
                 if (this.target != null) {
                     System.out.println("Was not ready yet.");
                     return;
@@ -527,7 +527,7 @@ public class Printer extends PrinterUtils {
             }
 
 
-            if (Configs.PLACE_USE_PACKET.getBooleanValue()) {
+            if (Configs.General.PLACE_USE_PACKET.getBooleanValue()) {
                 //#if MC >= 11904
                 player.connection.send(new ServerboundUseItemOnPacket(
                         InteractionHand.MAIN_HAND,

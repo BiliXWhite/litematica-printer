@@ -66,7 +66,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
 
     @Inject(at = @At("HEAD"), method = "resetPos")
     public void init(CallbackInfo ci) {
-        if (Configs.UPDATE_CHECK.getBooleanValue() && !Printer.getInstance().updateChecked) {
+        if (Configs.General.UPDATE_CHECK.getBooleanValue() && !Printer.getInstance().updateChecked) {
             CompletableFuture.runAsync(this::checkForUpdates);
         }
         Printer.getInstance().updateChecked = true;

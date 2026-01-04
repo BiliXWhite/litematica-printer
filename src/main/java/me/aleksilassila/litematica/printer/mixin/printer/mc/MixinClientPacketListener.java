@@ -22,9 +22,9 @@ public abstract class MixinClientPacketListener {
         if (player == null) {
             return;
         }
-        if (packet.getHealth() == 0 && Configs.AUTO_DISABLE_PRINTER.getBooleanValue()) {
+        if (packet.getHealth() == 0 && Configs.General.AUTO_DISABLE_PRINTER.getBooleanValue()) {
             ZxyUtils.actionBar(I18n.AUTO_DISABLE_NOTICE.getComponent().getString());
-            Configs.PRINT_SWITCH.setBooleanValue(false);
+            Configs.General.PRINT_SWITCH.setBooleanValue(false);
         }
     }
 }

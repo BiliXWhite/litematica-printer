@@ -22,8 +22,8 @@ public class MixinInventoryUtils {
     private static void schematicWorldPickBlock(ItemStack stack, BlockPos pos, Level schematicWorld, Minecraft mc, CallbackInfo ci) {
         if (mc.player != null
                 && !ItemStack.isSameItemSameComponents(mc.player.getMainHandItem(), stack)
-                && (Configs.CLOUD_INVENTORY.getBooleanValue()
-                || Configs.QUICK_SHULKER.getBooleanValue())
+                && (Configs.General.CLOUD_INVENTORY.getBooleanValue()
+                || Configs.General.QUICK_SHULKER.getBooleanValue())
         ) {
             me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList.add(stack.getItem());
             me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.switchItem();

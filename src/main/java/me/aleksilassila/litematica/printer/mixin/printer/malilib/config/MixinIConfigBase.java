@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.mixin.printer.malilib.config;
 
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.options.ConfigBase;
-import me.aleksilassila.litematica.printer.config.ConfigBaseExtension;
+import me.aleksilassila.litematica.printer.config.ConfigExtension;
 import org.spongepowered.asm.mixin.Mixin;
 
 import org.spongepowered.asm.mixin.injection.At;
@@ -15,7 +15,7 @@ public interface MixinIConfigBase {
     @Inject(method = "getConfigGuiDisplayName", at = @At("HEAD"), cancellable = true, remap = false)
     default void litematica_printer$getConfigGuiDisplayName(CallbackInfoReturnable<String> cir) {
         if (this instanceof ConfigBase<?> configBase) {
-            if (configBase instanceof ConfigBaseExtension extension) {
+            if (configBase instanceof ConfigExtension extension) {
                 if (extension.litematica_printer$getTranslateNameKey() != null) {
                     cir.setReturnValue(configBase.getPrettyName());
                 }

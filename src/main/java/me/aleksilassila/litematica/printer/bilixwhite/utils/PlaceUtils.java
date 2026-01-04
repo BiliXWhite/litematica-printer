@@ -51,7 +51,7 @@ public class PlaceUtils {
     }
 
     public static Direction getFillModeFacing() {
-        if (Configs.FILL_BLOCK_FACING.getOptionListValue() instanceof FillModeFacingType fillModeFacingType) {
+        if (Configs.Fill.FILL_BLOCK_FACING.getOptionListValue() instanceof FillModeFacingType fillModeFacingType) {
             return switch (fillModeFacingType) {
                 case DOWN -> Direction.DOWN;
                 case UP -> Direction.UP;

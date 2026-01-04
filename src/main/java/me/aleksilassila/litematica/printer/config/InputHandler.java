@@ -6,25 +6,19 @@ import fi.dy.masa.malilib.hotkeys.IKeybindProvider;
 import fi.dy.masa.malilib.hotkeys.IKeyboardInputHandler;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 
-//注册按键
 public class InputHandler implements IKeybindProvider, IKeyboardInputHandler {
     private static final InputHandler INSTANCE = new InputHandler();
 
     @Override
     public void addKeysToMap(IKeybindManager manager) {
-        //没被添加到的,按下按键时不会被识别
-        for (IHotkey hotkey : Configs.getKeyList()) {
-            manager.addKeybindToMap(hotkey.getKeybind());
-        }
-        for (IHotkey hotkey : Configs.getSwitchKey()) {
+        for (IHotkey hotkey : Configs.getHotkeys()) {
             manager.addKeybindToMap(hotkey.getKeybind());
         }
     }
 
     @Override
     public void addHotkeys(IKeybindManager manager) {
-        manager.addHotkeysForCategory(LitematicaPrinterMod.MOD_ID, "按下式", Configs.getKeyList());
-        manager.addHotkeysForCategory(LitematicaPrinterMod.MOD_ID, "切换式", Configs.getSwitchKey());
+        manager.addHotkeysForCategory(LitematicaPrinterMod.MOD_ID, "热键", Configs.getHotkeys());
     }
 
     public static InputHandler getInstance() {
