@@ -179,9 +179,9 @@ public class OpenInventoryPacket {
         ClientPlayNetworking.registerGlobalReceiver(HELLO_REMOTE_INTERACTIONS_ID,(openInventoryPacket,context) -> {
             isRemote = true;
             client.execute(() -> {
-                if (Configs.AUTO_INVENTORY.getBooleanValue()) {
+                if (Configs.General.AUTO_INVENTORY.getBooleanValue()) {
                     ZxyUtils.actionBar("已自动启用远程交互容器!!!");
-                    Configs.CLOUD_INVENTORY.setBooleanValue(true);
+                    Configs.General.CLOUD_INVENTORY.setBooleanValue(true);
                 }
             });
         });
@@ -199,9 +199,9 @@ public class OpenInventoryPacket {
         //$$ ClientPlayNetworking.registerGlobalReceiver(HELLO_REMOTE_INTERACTIONS, (client, playNetworkHandler, packetByteBuf, packetSender) -> {
         //$$     isRemote = true;
         //$$     client.execute(() -> {
-        //$$         if (Configs.AUTO_INVENTORY.getBooleanValue()) {
+        //$$         if (Configs.General.AUTO_INVENTORY.getBooleanValue()) {
         //$$             ZxyUtils.actionBar("已自动启用远程交互容器!!!");
-        //$$             Configs.CLOUD_INVENTORY.setBooleanValue(true);
+        //$$             Configs.General.CLOUD_INVENTORY.setBooleanValue(true);
         //$$         }
         //$$     });
         //$$ });
@@ -339,7 +339,7 @@ public class OpenInventoryPacket {
     public static void openReturn(boolean open, BlockState state) {
         if(clientTry){
             ZxyUtils.actionBar("已自动启用远程交互容器!!!");
-            Configs.CLOUD_INVENTORY.setBooleanValue(true);
+            Configs.General.CLOUD_INVENTORY.setBooleanValue(true);
             key = null;
             pos = null;
             remoteTime = 0;
@@ -403,7 +403,7 @@ public class OpenInventoryPacket {
     }
 
     public static void tick(){
-        if (!Configs.AUTO_INVENTORY.getBooleanValue()) return;
+        if (!Configs.General.AUTO_INVENTORY.getBooleanValue()) return;
         if(remoteTime != 0 && !isRemote && remoteTime + 3000L < System.currentTimeMillis()){
             if(!clientTry) {
                 clientTryTime = System.currentTimeMillis();
@@ -412,7 +412,7 @@ public class OpenInventoryPacket {
             clientTry = true;
             if(clientTryTime + 3000L < System.currentTimeMillis() && clientTry){
                 ZxyUtils.actionBar("已自动关闭远程交互容器");
-                Configs.CLOUD_INVENTORY.setBooleanValue(false);
+                Configs.General.CLOUD_INVENTORY.setBooleanValue(false);
                 remoteTime = 0;
                 clientTry = false;
             }

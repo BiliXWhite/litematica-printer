@@ -53,7 +53,7 @@ public enum State {
     //#endif
 
     public static State get(BlockState requiredState, BlockState currentState, Property<?>... propertiesToIgnore) {
-        Set<String> replaceSet = new HashSet<>(Configs.REPLACEABLE_LIST.getStrings());
+        Set<String> replaceSet = new HashSet<>(Configs.Put.REPLACEABLE_LIST.getStrings());
 
         // 如果两个方块状态完全相同，则返回正确状态
         if (requiredState == currentState) {
@@ -74,7 +74,7 @@ public enum State {
         }
 
         // 如果启用了替换功能，且当前方块在可替换列表中，则返回缺失方块状态（实际上这会和破坏额外方块打架）
-        if (Configs.REPLACE.getBooleanValue() &&
+        if (Configs.Put.REPLACE.getBooleanValue() &&
                 replaceSet.stream().anyMatch(string -> !Filters.equalsName(string, requiredState) &&
                         Filters.equalsName(string, currentState)) && !requiredState.isAir()
         ) {

@@ -1,7 +1,5 @@
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 
-import me.aleksilassila.litematica.printer.InitHandler;
-import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 import net.fabricmc.api.EnvType;
@@ -27,7 +25,7 @@ public abstract class MixinBlock {
             at = {@At("TAIL")}
     )
     private void chestTracker$handleBlockBreak(Level world, BlockPos pos, BlockState state, Player player, CallbackInfo ci) {
-        if(!Configs.CLOUD_INVENTORY.getBooleanValue()) return;
+        if(!Configs.General.CLOUD_INVENTORY.getBooleanValue()) return;
         MemoryDatabase database = MemoryDatabase.getCurrent();
         if (database != null) {
             database.removePos(world.dimension().location(), pos);

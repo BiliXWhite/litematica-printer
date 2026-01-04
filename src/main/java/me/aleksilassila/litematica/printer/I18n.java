@@ -22,7 +22,6 @@ public class I18n {
     public static final I18n SELECTION_TYPE_LITEMATICA_SELECTION_BELOW_PLAYER = config("selectionType.litematica.selection.belowPlayer");
     public static final I18n SELECTION_TYPE_LITEMATICA_SELECTION_ABOVE_PLAYER = config("selectionType.litematica.selection.abovePlayer");
 
-    // 这个是之前做回调开关时候添加的开关提示语, 现在应该是用不到了
     public static final I18n MESSAGE_TOGGLED        = of("message.toggled");
     public static final I18n MESSAGE_VALUE_OFF      = of("message.value.off");
     public static final I18n MESSAGE_VALUE_ON       = of("message.value.on");

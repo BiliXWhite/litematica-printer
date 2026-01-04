@@ -7,6 +7,7 @@ package me.aleksilassila.litematica.printer.mixin.openinv;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -25,8 +26,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.config.Configs.CLOUD_INVENTORY;
-import static me.aleksilassila.litematica.printer.config.Configs.QUICK_SHULKER;
 import static me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus.closeScreen;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList;
 
@@ -63,7 +62,7 @@ public abstract class MixinMinecraftClient {
         }
         Item item = level.getBlockState(pos).getBlock().asItem();
         if (player.inventoryMenu.slots.stream().noneMatch(slot -> slot.getItem().getItem().equals(item)) &&
-                !player.getAbilities().instabuild && (CLOUD_INVENTORY.getBooleanValue() || QUICK_SHULKER.getBooleanValue())) {
+                !player.getAbilities().instabuild && (Configs.General.CLOUD_INVENTORY.getBooleanValue() || Configs.General.QUICK_SHULKER.getBooleanValue())) {
             lastNeedItemList.add(item);
             InventoryUtils.switchItem();
             return;
@@ -75,7 +74,7 @@ public abstract class MixinMinecraftClient {
     ////$$ @WrapOperation(method = "pickBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/level/entity/player/Inventory;findSlotMatchingItem(Lnet/minecraft/level/item/ItemStack;)I" ))
     ////$$ private int doItemPick(Inventory instance, ItemStack stack, Operation<Integer> original) {
     ////$$     int slotWithStack = original.call(instance, stack);
-    ////$$     if(!player.getAbilities().instabuild && (CLOUD_INVENTORY.getBooleanValue() || QUICK_SHULKER.getBooleanValue()) && slotWithStack == -1){
+    ////$$     if(!player.getAbilities().instabuild && (Configs.General.CLOUD_INVENTORY.getBooleanValue() || Configs.General.QUICK_SHULKER.getBooleanValue()) && slotWithStack == -1){
     ////$$         Item item = stack.getItem();
     ////$$         lastNeedItemList.add(item);
     ////$$         InventoryUtils.switchItem();

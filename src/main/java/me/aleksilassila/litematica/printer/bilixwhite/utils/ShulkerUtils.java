@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 
 public class ShulkerUtils {
     static final Minecraft client = Minecraft.getInstance();
-    static IConfigOptionListEntry openMode = Configs.QUICK_SHULKER_MODE.getOptionListValue();
+    static IConfigOptionListEntry openMode = Configs.General.QUICK_SHULKER_MODE.getOptionListValue();
 
     public static void openShulker(ItemStack stack, int shulkerBoxSlot) {
         if (openMode == QuickShulkerModeType.CLICK_SLOT) {

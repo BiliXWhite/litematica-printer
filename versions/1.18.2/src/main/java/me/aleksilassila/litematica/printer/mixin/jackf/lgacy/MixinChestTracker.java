@@ -20,7 +20,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInve
 public class MixinChestTracker {
     @Inject(at = @At("TAIL"),method = "searchForItem")
     private static void searchForItem(ItemStack stack, CallbackInfo ci) {
-        if(!Configs.CLOUD_INVENTORY.getBooleanValue() || key != null) return;
+        if(!Configs.General.CLOUD_INVENTORY.getBooleanValue() || key != null) return;
         MemoryDatabase database = MemoryDatabase.getCurrent();
         if (database != null) {
             int num = 0;

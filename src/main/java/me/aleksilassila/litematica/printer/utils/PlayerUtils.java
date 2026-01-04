@@ -66,14 +66,14 @@ public class PlayerUtils {
 
     // 判断是否可交互
     public static boolean canInteracted(BlockPos blockPos) {
-        double workRange = Configs.PRINTER_RANGE.getIntegerValue();
-        if (Configs.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()) {
+        double workRange = Configs.General.PRINTER_RANGE.getIntegerValue();
+        if (Configs.General.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()) {
             workRange = Math.min(workRange, Math.floor(getPlayerBlockInteractionRange()));
-            if (Configs.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue() && client.player != null && !canInteractWithBlockAt(client.player, blockPos, 1F)) {
+            if (Configs.General.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue() && client.player != null && !canInteractWithBlockAt(client.player, blockPos, 1F)) {
                 return false;
             }
         }
-        if (Configs.ITERATOR_SHAPE.getOptionListValue() instanceof RadiusShapeType radiusShapeType) {
+        if (Configs.General.ITERATOR_SHAPE.getOptionListValue() instanceof RadiusShapeType radiusShapeType) {
             return switch (radiusShapeType) {
                 case SPHERE -> canInteractedEuclidean(blockPos, workRange);
                 case OCTAHEDRON -> canInteractedManhattan(blockPos, workRange);
