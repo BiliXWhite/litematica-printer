@@ -127,6 +127,7 @@ public class Configs implements IConfigHandler {
     public static final ConfigBooleanHotkeyed PRINT_SWITCH          = booleanHotkey(I18n.PRINT_SWITCH     ,false, "CAPS_LOCK", KeybindSettings.PRESS_ALLOWEXTRA_EMPTY);
 
     public static final ConfigHotkey OPEN_SCREEN            = hotkey(I18n.OPEN_SCREEN, "Z,Y");
+    public static final ConfigHotkey PRINT                  = hotkey(I18n.PRINT, KeybindSettings.PRESS_ALLOWEXTRA_EMPTY);
     public static final ConfigHotkey CLOSE_ALL_MODE         = hotkey(I18n.CLOSE_ALL_MODE,       "LEFT_CONTROL,G");
     public static final ConfigHotkey SWITCH_PRINTER_MODE    = hotkey(I18n.SWITCH_PRINTER_MODE       );
     public static final ConfigHotkey SYNC_INVENTORY         = hotkey(I18n.SYNC_INVENTORY            );
@@ -146,6 +147,7 @@ public class Configs implements IConfigHandler {
 
     public static List<IConfigBase> getHotkeyList() {
         List<IConfigBase> list = new ArrayList<>(Hotkeys.HOTKEY_LIST);
+        list.add(PRINT);
         list.add(PRINT_SWITCH);
         list.add(CLOSE_ALL_MODE);
         if (MODE_SWITCH.getOptionListValue() == ModeType.SINGLE) {
@@ -267,6 +269,7 @@ public class Configs implements IConfigHandler {
     public static ImmutableList<IConfigBase> getHotkeys() {
         List<IConfigBase> list = new ArrayList<>();
         list.add(OPEN_SCREEN);                  // 打开设置菜单
+        list.add(PRINT);                        // 打印热键
         list.add(PRINT_SWITCH);         // 切换打印状态
         // 切换打印状态热键
         if (MODE_SWITCH.getOptionListValue().equals(ModeType.SINGLE)) {

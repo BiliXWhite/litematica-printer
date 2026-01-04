@@ -112,8 +112,8 @@ public class BreakManager {
     }
 
     // 每tick调用一次的方法
-    public void tick() {
-        if (!Configs.PRINT_SWITCH.getBooleanValue()) {
+    public void onTick() {
+        if (!(Configs.PRINT_SWITCH.getBooleanValue() || Configs.PRINT.getKeybind().isPressed())) {
             return;
         }
         if (client.player == null || client.level == null || client.gameMode == null) return;
