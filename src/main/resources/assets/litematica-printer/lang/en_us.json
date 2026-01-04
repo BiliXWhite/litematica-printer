@@ -143,6 +143,7 @@
   "litematica_printer.config.name.multiBreak": "Multi-mode Block",
   "litematica_printer.config.name.next": "Switch to Next Chest Hotkey",
   "litematica_printer.config.name.openScreen": "Open Settings Menu",
+  "litematica_printer.config.name.print": "Print Hotkey",
   "litematica_printer.config.name.printBreakWrongBlock": "printBreakWrongBlock",
   "litematica_printer.config.name.printInAir": "Place in Air",
   "litematica_printer.config.name.printSwitch": "Print State",

@@ -19,7 +19,7 @@ public class MixinConnection {
     @Inject(method = "genericsFtw", at = @At("HEAD"), require = 1)
     private static void hookGenericsFtw(Packet<?> packet, PacketListener listener, CallbackInfo ci) {
         // 减少性能开销
-        if (!Configs.PRINT_SWITCH.getBooleanValue() || !Configs.LAG_CHECK.getBooleanValue())
+        if ((!Configs.PRINT_SWITCH.getBooleanValue() && !Configs.PRINT.getKeybind().isPressed()) || !Configs.LAG_CHECK.getBooleanValue())
             return;
         Printer.getInstance().packetTick = 0;
     }
