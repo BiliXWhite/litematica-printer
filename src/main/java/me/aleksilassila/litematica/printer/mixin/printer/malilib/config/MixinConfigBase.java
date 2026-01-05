@@ -50,10 +50,12 @@ public abstract class MixinConfigBase<T extends IConfigBase> implements IConfigB
         if (comment == null && litematica_printer$translateNameKey != null && !litematica_printer$translateNameKey.isEmpty()) {
             comment = StringUtils.getTranslatedOrFallback(litematica_printer$translateNameKey, null);
         }
-        if (comment != null) {
+        if (comment == null) {
             comment = this.comment;
         }
-        cir.setReturnValue(comment);
+        if (comment != null) {
+            cir.setReturnValue(comment);
+        }
     }
 
     @Override
