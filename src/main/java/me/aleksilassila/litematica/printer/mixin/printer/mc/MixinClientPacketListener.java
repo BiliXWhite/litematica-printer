@@ -23,7 +23,7 @@ public abstract class MixinClientPacketListener {
             return;
         }
         if (packet.getHealth() == 0 && Configs.General.AUTO_DISABLE_PRINTER.getBooleanValue()) {
-            MessageUtils.setOverlayMessage(I18n.AUTO_DISABLE_NOTICE.getComponent().getString());
+            MessageUtils.setOverlayMessage(I18n.AUTO_DISABLE_NOTICE.getComponent());
             Configs.General.PRINT_SWITCH.setBooleanValue(false);
         }
     }
