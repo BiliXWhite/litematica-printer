@@ -20,10 +20,7 @@ import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
-import me.aleksilassila.litematica.printer.utils.DirectionUtils;
-import me.aleksilassila.litematica.printer.utils.FilterUtils;
-import me.aleksilassila.litematica.printer.utils.InventoryUtils;
-import me.aleksilassila.litematica.printer.utils.PlayerUtils;
+import me.aleksilassila.litematica.printer.utils.*;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.block.*;
@@ -527,18 +524,13 @@ public class Printer extends PrinterUtils {
 
 
             if (Configs.General.PLACE_USE_PACKET.getBooleanValue()) {
-                //#if MC >= 11904
-                player.connection.send(new ServerboundUseItemOnPacket(
+                NetworkUtils.sendSequencedPacket(sequence -> new ServerboundUseItemOnPacket(
                         InteractionHand.MAIN_HAND,
-                        new BlockHitResult(hitVec, side, target, false),
-                        ZxyUtils.getSequence()
+                        new BlockHitResult(hitVec, side, target, false)
+                        //#if MC > 11802
+                        , sequence
+                        //#endif
                 ));
-                //#else
-                //$$ player.connection.send(new ServerboundUseItemOnPacket(
-                //$$         InteractionHand.MAIN_HAND,
-                //$$         new BlockHitResult(hitVec, side, target, false)
-                //$$ ));
-                //#endif
             } else {
                 if (client.gameMode != null) {
                     ((IMultiPlayerGameMode) client.gameMode).litematica_printer$rightClickBlock(target, side, hitVec);
@@ -563,7 +555,7 @@ public class Printer extends PrinterUtils {
             //#endif
 
             player.setShiftKeyDown(shift);
-            player.connection.send(packet);
+            NetworkUtils.sendPacket(packet);
         }
 
         public void clearQueue() {
