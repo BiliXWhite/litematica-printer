@@ -372,23 +372,23 @@ public class ZxyUtils {
         return blocks;
     }
 
-    //右键单击
-//              client.interactionManager.clickSlot(sc.syncId, i, 1, SlotActionType.PICKUP, client.player);
-    //左键单击
-//              client.interactionManager.clickSlot(sc.syncId, i, 0, SlotActionType.PICKUP, client.player);
-    //点击背包外
-//              client.interactionManager.clickSlot(sc.syncId, -999, 0, SlotActionType.PICKUP, client.player);
-    //丢弃一个
-//              client.interactionManager.clickSlot(sc.syncId, i, 0, SlotActionType.THROW, client.player);
-    //丢弃全部
-//              client.interactionManager.clickSlot(sc.syncId, i, 1, SlotActionType.THROW, client.player);
-    //开始拖动
-//              client.interactionManager.clickSlot(sc.syncId, -999, 0, SlotActionType.QUICK_CRAFT, client.player);
-    //拖动经过的槽
-//              client.interactionManager.clickSlot(sc.syncId, i1, 1, SlotActionType.QUICK_CRAFT, client.player);
-    //结束拖动
-//              client.interactionManager.clickSlot(sc.syncId, -999, 2, SlotActionType.QUICK_CRAFT, client.player);
-    //副手交换
-//              client.interactionManager.clickSlot(sc.syncId, i, 40, SlotActionType.SWAP, client.player);
+// //右键单击
+// client.interactionManager.clickSlot(sc.syncId, i, 1, SlotActionType.PICKUP, client.player);
+// //左键单击
+// client.interactionManager.clickSlot(sc.syncId, i, 0, SlotActionType.PICKUP, client.player);
+// //点击背包外
+// client.interactionManager.clickSlot(sc.syncId, -999, 0, SlotActionType.PICKUP, client.player);
+// //丢弃一个
+// client.interactionManager.clickSlot(sc.syncId, i, 0, SlotActionType.THROW, client.player);
+// //丢弃全部
+// client.interactionManager.clickSlot(sc.syncId, i, 1, SlotActionType.THROW, client.player);
+// //开始拖动
+// client.interactionManager.clickSlot(sc.syncId, -999, 0, SlotActionType.QUICK_CRAFT, client.player);
+// //拖动经过的槽
+// client.interactionManager.clickSlot(sc.syncId, i1, 1, SlotActionType.QUICK_CRAFT, client.player);
+// //结束拖动
+// client.interactionManager.clickSlot(sc.syncId, -999, 2, SlotActionType.QUICK_CRAFT, client.player);
+// //副手交换
+// client.interactionManager.clickSlot(sc.syncId, i, 40, SlotActionType.SWAP, client.player);
 
 }
