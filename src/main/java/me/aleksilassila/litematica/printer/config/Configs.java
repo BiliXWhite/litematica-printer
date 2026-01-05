@@ -16,10 +16,16 @@ import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import fi.dy.masa.malilib.config.ConfigManager;
 import me.aleksilassila.litematica.printer.config.enums.*;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ComposterBlock;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 
@@ -174,17 +180,17 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 排流体 - 方块名单
         public static final ConfigStringList FLUID_BLOCK_LIST = stringList(I18n.FLUID_BLOCK_LIST)
-                .defaultValue(ImmutableList.of("minecraft:sand"))
+                .defaultValue(Blocks.SAND)
                 .build();
 
         // 排流体 - 液体名单
         public static final ConfigStringList FLUID_LIST = stringList(I18n.FLUID_LIST)
-                .defaultValue(ImmutableList.of("minecraft:water", "minecraft:lava"))
+                .defaultValue(Blocks.WATER, Blocks.LAVA)
                 .build();
 
         // 远程交互 - 库存白名单
         public static final ConfigStringList INVENTORY_LIST = stringList(I18n.INVENTORY_LIST)
-                .defaultValue(ImmutableList.of("minecraft:chest"))
+                .defaultValue(Blocks.CHEST)
                 .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪Mod加载时显示
                 .build();
 
@@ -250,7 +256,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 跳过放置名单
         public static final ConfigStringList PUT_SKIP_LIST = stringList(I18n.PUT_SKIP_LIST)
-                .defaultValue(ImmutableList.of(""))
                 .build();
 
         // 有序存放
@@ -285,7 +290,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 覆盖方块列表
         public static final ConfigStringList REPLACEABLE_LIST = stringList(I18n.REPLACEABLE_LIST)
-                .defaultValue(ImmutableList.of("minecraft:snow", "minecraft:lava", "minecraft:water", "minecraft:bubble_column", "minecraft:short_grass"))
+                .defaultValue(Blocks.SNOW, Blocks.LAVA, Blocks.WATER, Blocks.BUBBLE_COLUMN, Blocks.SHORT_GRASS)
                 .build();
 
         // 替换珊瑚
@@ -321,6 +326,11 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         // 打印 - 堆肥桶自动填充
         public static final ConfigBoolean FILL_COMPOSTER = bool(I18n.PRINTER_AUTO_FILL_COMPOSTER)
                 .defaultValue(false)
+                .build();
+
+
+        // 打印 - 堆肥桶白名单
+        public static final ConfigStringList FILL_COMPOSTER_WHITELIST = stringList(I18n.PRINTER_AUTO_FILL_COMPOSTER_WHITELIST)
                 .build();
 
         // 打印 - 下落方块检查
@@ -371,6 +381,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 NOTE_BLOCK_TUNING,            // 打印 - 音符盒自动调音
                 SAFELY_OBSERVER,              // 打印 - 侦测器安全放置
                 FILL_COMPOSTER,               // 打印 - 堆肥桶自动填充
+                FILL_COMPOSTER_WHITELIST,     // 打印 - 堆肥桶填充白名单
                 FALLING_CHECK,                // 打印 - 下落方块检查
                 BREAK_WRONG_BLOCK,            // 打印 - 破坏错误方块
                 BREAK_EXTRA_BLOCK,            // 打印 - 破坏多余方块
@@ -406,13 +417,11 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 挖掘 - 挖掘白名单
         public static final ConfigStringList EXCAVATE_WHITELIST = stringList(I18n.EXCAVATE_WHITELIST)
-                .defaultValue(ImmutableList.of(""))
                 .setVisible(isCustom) // 仅自定义挖掘限制时显示
                 .build();
 
         // 挖掘 - 挖掘黑名单
         public static final ConfigStringList EXCAVATE_BLACKLIST = stringList(I18n.EXCAVATE_BLACKLIST)
-                .defaultValue(ImmutableList.of(""))
                 .setVisible(isCustom) // 仅自定义挖掘限制时显示
                 .build();
 
@@ -446,7 +455,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 填充 - 填充方块名单
         public static final ConfigStringList FILL_BLOCK_LIST = stringList(I18n.FILL_BLOCK_LIST)
-                .defaultValue(ImmutableList.of("minecraft:cobblestone"))
+                .defaultValue(Blocks.COBBLESTONE)
                 .build();
 
         // 填充 - 模式朝向
@@ -596,7 +605,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 list.add(option);
             }
         }
-        return ImmutableList.copyOf(list);
+        return ImmutableList.copyOf(list.stream().distinct().toList());
     }
 
     public static ImmutableList<IConfigBase> getConfigs(boolean gui) {

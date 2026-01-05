@@ -7,6 +7,7 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.enums.ExcavateListMode;
 import me.aleksilassila.litematica.printer.printer.BlockContext;
 import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.utils.FilterUtils;
 import me.aleksilassila.litematica.printer.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -25,7 +26,6 @@ import java.util.*;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
 import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
 
 public class BreakManager {
     private static final HashMap<ResourceLocation, BlockPos> breakTargets = new HashMap<>();
@@ -84,12 +84,12 @@ public class BreakManager {
                 return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST
                         .getStrings()
                         .stream()
-                        .noneMatch(string -> equalsBlockName(string, blockState));
+                        .noneMatch(string -> FilterUtils.matchName(string, blockState));
             } else if (listType == UsageRestriction.ListType.WHITELIST) {
                 return BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST
                         .getStrings()
                         .stream()
-                        .anyMatch(string -> equalsBlockName(string, blockState));
+                        .anyMatch(string -> FilterUtils.matchName(string, blockState));
             } else {
                 return true;
             }
@@ -99,12 +99,12 @@ public class BreakManager {
                 return Configs.Excavate.EXCAVATE_BLACKLIST
                         .getStrings()
                         .stream()
-                        .noneMatch(string -> equalsBlockName(string, blockState));
+                        .noneMatch(string -> FilterUtils.matchName(string, blockState));
             } else if (optionListValue == UsageRestriction.ListType.WHITELIST) {
                 return Configs.Excavate.EXCAVATE_WHITELIST
                         .getStrings()
                         .stream()
-                        .anyMatch(string -> equalsBlockName(string, blockState));
+                        .anyMatch(string -> FilterUtils.matchName(string, blockState));
             } else {
                 return true;
             }

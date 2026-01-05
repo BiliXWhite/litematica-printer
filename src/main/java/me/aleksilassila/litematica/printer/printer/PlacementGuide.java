@@ -14,6 +14,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.*;
@@ -37,6 +38,9 @@ public class PlacementGuide extends PrinterUtils {
 
     protected final @NotNull Minecraft mc;
     protected final AtomicReference<Boolean> skip = new AtomicReference<>(false);
+    protected static List<String> compostWhitelistCache = new ArrayList<>();      // 缓存堆肥桶白名单的字符串列表（用于判断是否修改）
+    protected static List<Item> filteredCompostItemsCache = new ArrayList<>();    // 缓存过滤后的可堆肥物品列表（避免重复计算）
+
 
     public PlacementGuide(@NotNull Minecraft client) {
         this.mc = client;
@@ -297,7 +301,7 @@ public class PlacementGuide extends PrinterUtils {
             }
             case DEAD_CORAL -> {
                 Block block = ctx.requiredState.getBlock();
-                ResourceLocation blockId1 = BlockUtils.getIdentifier(block);
+                ResourceLocation blockId1 = BlockUtils.getKey(block);
                 if (!blockId1.toString().contains("coral")) {
                     skip.set(true); // 使用了Block, 但不是该指南的方块, 让下一个指南进行处理
                     return null;
@@ -748,7 +752,25 @@ public class PlacementGuide extends PrinterUtils {
                 case COMPOSTER -> {
                     if (!Configs.Put.FILL_COMPOSTER.getBooleanValue()) return null;
                     if (ctx.currentState.getValue(ComposterBlock.LEVEL) < ctx.requiredState.getValue(ComposterBlock.LEVEL)) {
-                        return new ClickAction().setItems(compostableItems);
+                        List<String> whitelist = Configs.Put.FILL_COMPOSTER_WHITELIST.getStrings();
+                        if (!whitelist.equals(compostWhitelistCache)) {
+                            compostWhitelistCache = new ArrayList<>(whitelist);
+                            filteredCompostItemsCache.clear();
+                            if (whitelist.isEmpty()) {
+                                filteredCompostItemsCache = Arrays.asList(compostableItems);
+                            } else {
+                                for (Item item : compostableItems) {
+                                    for (String rule : whitelist) {
+                                        if (FilterUtils.matchName(rule, new ItemStack(item))) {
+                                            filteredCompostItemsCache.add(item);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Item[] finalItems = filteredCompostItemsCache.toArray(Item[]::new);
+                        return new ClickAction().setItems(finalItems);
                     }
                 }
                 case STAIR -> {

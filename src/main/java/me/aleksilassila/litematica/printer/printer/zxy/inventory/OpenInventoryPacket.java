@@ -5,7 +5,7 @@ import io.netty.buffer.Unpooled;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import me.aleksilassila.litematica.printer.utils.ResourceLocationUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -173,14 +173,14 @@ public class OpenInventoryPacket {
                     client.execute(() -> openReturn(isOpen,state));
                 }
             } catch (Exception ignored) {
-                ZxyUtils.actionBar("服务端回复异常，箱子追踪库存无法更新");
+                MessageUtils.setOverlayMessage("服务端回复异常，箱子追踪库存无法更新");
             }
         });
         ClientPlayNetworking.registerGlobalReceiver(HELLO_REMOTE_INTERACTIONS_ID,(openInventoryPacket,context) -> {
             isRemote = true;
             client.execute(() -> {
                 if (Configs.General.AUTO_INVENTORY.getBooleanValue()) {
-                    ZxyUtils.actionBar("已自动启用远程交互容器!!!");
+                    MessageUtils.setOverlayMessage("已自动启用远程交互容器!!!");
                     Configs.General.CLOUD_INVENTORY.setBooleanValue(true);
                 }
             });
@@ -193,14 +193,14 @@ public class OpenInventoryPacket {
         //$$             client.execute(() -> openReturn(packet.isOpen(), packet.blockState()));
         //$$         });
         //$$     } catch (Exception ignored) {
-        //$$         ZxyUtils.actionBar("服务端回复异常，箱子追踪库存无法更新");
+        //$$         MessageUtils.setOverlayMessage("服务端回复异常，箱子追踪库存无法更新");
         //$$     }
         //$$ });
         //$$ ClientPlayNetworking.registerGlobalReceiver(HELLO_REMOTE_INTERACTIONS, (client, playNetworkHandler, packetByteBuf, packetSender) -> {
         //$$     isRemote = true;
         //$$     client.execute(() -> {
         //$$         if (Configs.General.AUTO_INVENTORY.getBooleanValue()) {
-        //$$             ZxyUtils.actionBar("已自动启用远程交互容器!!!");
+        //$$             MessageUtils.setOverlayMessage("已自动启用远程交互容器!!!");
         //$$             Configs.General.CLOUD_INVENTORY.setBooleanValue(true);
         //$$         }
         //$$     });
@@ -338,7 +338,7 @@ public class OpenInventoryPacket {
 
     public static void openReturn(boolean open, BlockState state) {
         if(clientTry){
-            ZxyUtils.actionBar("已自动启用远程交互容器!!!");
+            MessageUtils.setOverlayMessage("已自动启用远程交互容器!!!");
             Configs.General.CLOUD_INVENTORY.setBooleanValue(true);
             key = null;
             pos = null;
@@ -411,7 +411,7 @@ public class OpenInventoryPacket {
             }
             clientTry = true;
             if(clientTryTime + 3000L < System.currentTimeMillis() && clientTry){
-                ZxyUtils.actionBar("已自动关闭远程交互容器");
+                MessageUtils.setOverlayMessage("已自动关闭远程交互容器");
                 Configs.General.CLOUD_INVENTORY.setBooleanValue(false);
                 remoteTime = 0;
                 clientTry = false;
