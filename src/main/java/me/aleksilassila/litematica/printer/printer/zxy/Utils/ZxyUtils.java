@@ -5,11 +5,12 @@ import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.Printer;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
+import me.aleksilassila.litematica.printer.printer.MyBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.utils.PlayerUtils;
+import me.aleksilassila.litematica.printer.utils.FilterUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -17,7 +18,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.monster.Shulker;
 import net.minecraft.world.entity.player.Inventory;
@@ -344,17 +344,6 @@ public class ZxyUtils {
         return sequence++;
     }
 
-    private static void selectHotbarSlot(int slot, Inventory inventory, boolean usePacket) {
-        if (usePacket) {
-            client.getConnection().send(new ServerboundSetCarriedItemPacket(slot));
-        }
-        me.aleksilassila.litematica.printer.utils.InventoryUtils.setSelectedSlot(inventory, slot);
-    }
-
-    public static void actionBar(String message) {
-        client.gui.setOverlayMessage(Component.nullToEmpty(message), false);
-    }
-
     /**
      * 从当前选中的区域中筛选出指定名称的方块，并返回这些方块的位置列表。
      *
@@ -375,7 +364,7 @@ public class ZxyUtils {
                 if (Printer.client.level != null) {
                     state = Printer.client.level.getBlockState(pos);
                 }
-                if (Filters.equalsName(blockName, state)) {
+                if (FilterUtils.matchName(blockName, state)) {
                     blocks.add(pos);
                 }
             }

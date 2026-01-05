@@ -6,6 +6,7 @@ import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
+import me.aleksilassila.litematica.printer.utils.FilterUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -19,9 +20,6 @@ import net.minecraft.world.level.material.FluidState;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsItemName;
 
 public class FunctionFluidMode extends FunctionModeBase {
     private List<String> fillBlocks = new ArrayList<>();
@@ -51,7 +49,7 @@ public class FunctionFluidMode extends FunctionModeBase {
             }
             fillItems = new ArrayList<>();
             for (String itemName : fillBlocks) {
-                List<Item> list = BuiltInRegistries.ITEM.stream().filter(item -> equalsItemName(itemName, new ItemStack(item))).toList();
+                List<Item> list = BuiltInRegistries.ITEM.stream().filter(item -> FilterUtils.matchName(itemName, new ItemStack(item))).toList();
                 fillItems.addAll(list);
             }
         }
@@ -64,7 +62,7 @@ public class FunctionFluidMode extends FunctionModeBase {
             }
             fluis = new ArrayList<>();
             for (String itemName : this.fluidBlocks) {
-                List<Fluid> list = BuiltInRegistries.FLUID.stream().filter(item -> equalsBlockName(itemName, item.defaultFluidState().createLegacyBlock())).toList();
+                List<Fluid> list = BuiltInRegistries.FLUID.stream().filter(item -> FilterUtils.matchName(itemName, item.defaultFluidState().createLegacyBlock())).toList();
                 fluis.addAll(list);
             }
         }

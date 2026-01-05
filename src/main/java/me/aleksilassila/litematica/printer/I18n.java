@@ -46,6 +46,7 @@ public class I18n {
     public static final I18n PRINT_WATER                         = config("printWater");
     public static final I18n PRINTER_AUTO_DISABLE                = config("printerAutoDisable");
     public static final I18n PRINTER_AUTO_FILL_COMPOSTER         = config("printerAutoFillComposter");
+    public static final I18n PRINTER_AUTO_FILL_COMPOSTER_WHITELIST = config("printerAutoFillComposterWhitelist");
     public static final I18n PRINTER_AUTO_STRIP_LOGS             = config("printerAutoStripLogs");
     public static final I18n PRINTER_AUTO_TUNING                 = config("printerAutoTuning");
     public static final I18n PRINTER_BLOCKS_PER_TICK             = config("printerBlocksPerTick");
@@ -93,7 +94,6 @@ public class I18n {
     public static final I18n SYNC_INVENTORY_COLOR                = config("syncInventoryColor");
     public static final I18n REPLACE_CORAL                       = config("replaceCoral");
     public static final I18n RENDER_HUD                          = config("renderHud");
-    public static final I18n STRIP_LOGS                          = config("stripLogs");
     // 配置列表值（仅生成list id）
     public static final I18n FILL_MODE_FACING_DOWN               = config("fillModeFacing.down");
     public static final I18n FILL_MODE_FACING_EAST               = config("fillModeFacing.east");

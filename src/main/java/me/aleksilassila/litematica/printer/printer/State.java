@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.printer;
 
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters;
+import me.aleksilassila.litematica.printer.utils.FilterUtils;
 import me.aleksilassila.litematica.printer.utils.BlockStateUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -75,8 +75,8 @@ public enum State {
 
         // 如果启用了替换功能，且当前方块在可替换列表中，则返回缺失方块状态（实际上这会和破坏额外方块打架）
         if (Configs.Put.REPLACE.getBooleanValue() &&
-                replaceSet.stream().anyMatch(string -> !Filters.equalsName(string, requiredState) &&
-                        Filters.equalsName(string, currentState)) && !requiredState.isAir()
+                replaceSet.stream().anyMatch(string -> !FilterUtils.matchName(string, requiredState) &&
+                        FilterUtils.matchName(string, currentState)) && !requiredState.isAir()
         ) {
             return MISSING_BLOCK;
         }

@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -85,7 +86,7 @@ public class BedrockUtils {
 
     public static void setWorking(boolean running, boolean showMessage) {
         if (client.player != null && client.player.isCreative() && running) {
-            ZxyUtils.actionBar("创造模式下不支持破基岩！");
+            MessageUtils.setOverlayMessage("创造模式下不支持破基岩！");
             return;
         }
         if (taskManagerInstance == null) return; // 提前检查实例

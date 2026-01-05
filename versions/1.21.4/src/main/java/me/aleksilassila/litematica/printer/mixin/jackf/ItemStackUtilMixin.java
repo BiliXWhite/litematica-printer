@@ -6,7 +6,7 @@ package me.aleksilassila.litematica.printer.mixin.jackf;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import fi.dy.masa.malilib.util.StringUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.PinYinSearch;
+import me.aleksilassila.litematica.printer.utils.PinYinSearchUtils;
 import net.minecraft.locale.Language;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
@@ -40,11 +40,11 @@ public class ItemStackUtilMixin {
                     String translationKey = enchantmentRegistryKey.location().toLanguageKey();
                     if (testLang(translationKey, filter)) return true;
                     String translate = StringUtils.translate(translationKey);
-                    return translate != null && (translate.contains(filter) || PinYinSearch.hasPinYin(translate, filter));
+                    return translate != null && (translate.contains(filter) || PinYinSearchUtils.hasPinYin(translate, filter));
                     //#else
                     //$$ if (testLang(ench.value().getDescriptionId(), filter)) return true;
                     //$$ var resloc = BuiltInRegistries.ENCHANTMENT.getKey(ench.value());
-                    //$$ return resloc != null && (resloc.toString().contains(filter) || PinYinSearch.hasPinYin(resloc.toString(), filter));
+                    //$$ return resloc != null && (resloc.toString().contains(filter) || PinYinSearchUtils.hasPinYin(resloc.toString(), filter));
                     //#endif
                 })) cir.setReturnValue(true);
         //#else
@@ -54,7 +54,7 @@ public class ItemStackUtilMixin {
         //$$         .anyMatch(ench -> {
         //$$             if (testLang(ench.getDescriptionId(), filter)) return true;
         //$$              var resloc = BuiltInRegistries.ENCHANTMENT.getKey(ench);
-        //$$             return resloc != null && PinYinSearch.hasPinYin(resloc.getNamespace(), filter);
+        //$$             return resloc != null && PinYinSearchUtils.hasPinYin(resloc.getNamespace(), filter);
         //$$         })
         //$$ ) cir.setReturnValue(true);
         //#endif
@@ -67,31 +67,31 @@ public class ItemStackUtilMixin {
 
     @WrapOperation(at = @At(value = "INVOKE", target = "Ljava/lang/String;contains(Ljava/lang/CharSequence;)Z"),method = "potionOrEffectPredicate")
     private static boolean potionOrEffectPredicate(String instance, CharSequence s, Operation<Boolean> original){
-        return instance.contains(s) || PinYinSearch.hasPinYin(instance,s.toString());
+        return instance.contains(s) || PinYinSearchUtils.hasPinYin(instance,s.toString());
     }
 
     @Inject(at = @At("HEAD"), method = "tagPredicate", cancellable = true)
     private static void stackTagFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir) {
         if (stack.getItemHolder().tags().anyMatch(tag ->
-                PinYinSearch.hasPinYin(tag.location().getPath(), filter)))
+                PinYinSearchUtils.hasPinYin(tag.location().getPath(), filter)))
             cir.setReturnValue(true);
     }
 
     @WrapOperation(at = @At(value = "INVOKE", target = "Ljava/lang/String;contains(Ljava/lang/CharSequence;)Z"),method = "tooltipPredicate")
     private static boolean tooltipPredicate(String instance, CharSequence s, Operation<Boolean> original){
-        return instance.contains(s) || PinYinSearch.hasPinYin(instance,s.toString());
+        return instance.contains(s) || PinYinSearchUtils.hasPinYin(instance,s.toString());
     }
 
     @Inject(at = @At("HEAD"), method = "testLang", cancellable = true, remap = false)
     private static void testLang(String key, String filter, CallbackInfoReturnable<Boolean> cir) {
         if (Language.getInstance().has(key) &&
-                PinYinSearch.hasPinYin(Language.getInstance().getOrDefault(key).toLowerCase(), filter))
+                PinYinSearchUtils.hasPinYin(Language.getInstance().getOrDefault(key).toLowerCase(), filter))
             cir.setReturnValue(true);
     }
 
     @Inject(at = @At("HEAD"), method = "namePredicate", cancellable = true)
     private static void stackNameFilter(ItemStack stack, String filter, CallbackInfoReturnable<Boolean> cir) {
-        boolean b = PinYinSearch.hasPinYin(stack.getHoverName().getString(), filter);
+        boolean b = PinYinSearchUtils.hasPinYin(stack.getHoverName().getString(), filter);
         if (b) cir.setReturnValue(true);
     }
 //    @Inject(at = @At("HEAD"),method = "anyTextFilter", cancellable = true)

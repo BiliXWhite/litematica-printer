@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
@@ -23,7 +23,7 @@ public abstract class MixinClientPacketListener {
             return;
         }
         if (packet.getHealth() == 0 && Configs.General.AUTO_DISABLE_PRINTER.getBooleanValue()) {
-            ZxyUtils.actionBar(I18n.AUTO_DISABLE_NOTICE.getComponent().getString());
+            MessageUtils.setOverlayMessage(I18n.AUTO_DISABLE_NOTICE.getComponent().getString());
             Configs.General.PRINT_SWITCH.setBooleanValue(false);
         }
     }

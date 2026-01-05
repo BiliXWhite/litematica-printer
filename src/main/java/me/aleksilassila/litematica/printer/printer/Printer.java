@@ -19,9 +19,9 @@ import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.utils.DirectionUtils;
+import me.aleksilassila.litematica.printer.utils.FilterUtils;
 import me.aleksilassila.litematica.printer.utils.InventoryUtils;
 import me.aleksilassila.litematica.printer.utils.PlayerUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -49,7 +49,6 @@ import java.util.*;
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static fi.dy.masa.litematica.util.WorldUtils.applyCarpetProtocolHitVec;
 import static fi.dy.masa.litematica.util.WorldUtils.applyPlacementProtocolV3;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.*;
 
 import org.jetbrains.annotations.Nullable;
@@ -245,7 +244,7 @@ public class Printer extends PrinterUtils {
             // 检查放置跳过列表
             if (Configs.Put.PUT_SKIP.getBooleanValue()) {
                 Set<String> skipSet = new HashSet<>(Configs.Put.PUT_SKIP_LIST.getStrings()); // 转换为 HashSet
-                if (skipSet.stream().anyMatch(s -> equalsName(s, blockContext.requiredState))) {
+                if (skipSet.stream().anyMatch(s -> FilterUtils.matchName(s, blockContext.requiredState))) {
                     continue;
                 }
             }
