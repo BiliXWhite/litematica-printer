@@ -61,8 +61,6 @@ public class ZxyUtils {
     public static boolean syncPrinterInventory = false;
     public static String syncInventoryId = "syncInventory";
 
-    private static int sequence = 0;
-
     public static void startAddPrinterInventory() {
         getReadyColor();
         if (Configs.General.CLOUD_INVENTORY.getBooleanValue() && !printerMemoryAdding) {
@@ -338,10 +336,6 @@ public class ZxyUtils {
         isRemote = false;
         clientTry = false;
         remoteTime = 0;
-    }
-
-    public static int getSequence() {
-        return sequence++;
     }
 
     /**
