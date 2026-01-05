@@ -11,13 +11,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 
 public class PinYinSearch {
-    public static void main(String[] args){
+    public static void main(String[] args) {
         System.out.println(getPinYin("曾长"));
     }
 
     //[cengzhang, zengzhang, cengchang, zengchang, cz, zz, cc, zc]
     static ArrayList<String[]> pinyin = new ArrayList<>();//存储拼音，String[]数组的方式存储包含了各个读音 {String[zeng,ceng],String[chang,zhang]}
-    public static synchronized ArrayList<String> getPinYin(String str){
+
+    public static synchronized ArrayList<String> getPinYin(String str) {
 
         char[] ch = str.toCharArray();
         HanyuPinyinOutputFormat gs = new HanyuPinyinOutputFormat();
@@ -28,8 +29,8 @@ public class PinYinSearch {
         try {
             pinyin = new ArrayList<>();
             for (char c : ch) {
-                
-                if(c<128)pinyin.add(new String[]{""+c});
+
+                if (c < 128) pinyin.add(new String[]{"" + c});
                 else pinyin.add(PinyinHelper.toHanyuPinyinStringArray(c, gs));
             }
         } catch (BadHanyuPinyinOutputFormatCombination e) {
@@ -37,8 +38,9 @@ public class PinYinSearch {
         }
         return getStrings();
     }
-    public static boolean hasPinYin(String zh,String py){
-        return getPinYin(zh).stream().anyMatch(s->s.contains(py));
+
+    public static boolean hasPinYin(String zh, String py) {
+        return getPinYin(zh).stream().anyMatch(s -> s.contains(py));
     }
 
     @NotNull
@@ -58,28 +60,28 @@ public class PinYinSearch {
             //逻辑类似于小学题目中的握手
             //循环String[]中的各读音
             /*
-            * list          list
-            * ceng     ->   cengzhang
-            * zeng          zengzhang
-            *
-            *               cengchang
-            *               cengchang
-            * */
+             * list          list
+             * ceng     ->   cengzhang
+             * zeng          zengzhang
+             *
+             *               cengchang
+             *               cengchang
+             * */
             for (int stringS = 0; stringS < pinyin.get(pyss).length && pinyin.get(pyss).length > 0; stringS++) {
                 //记录第一个字的各种读音
                 //pys1 = ceng -> ceng+zhang
-                if(pyss==0) {
+                if (pyss == 0) {
                     //ceng / zeng
                     pys1.add(pinyin.get(pyss)[stringS]);
-                    pys3.add(""+ pinyin.get(pyss)[stringS].charAt(0));
-                }else {
+                    pys3.add("" + pinyin.get(pyss)[stringS].charAt(0));
+                } else {
                     for (int currentString = 0; currentString < pys1.size(); currentString++) {
                         pys2.add(pys1.get(currentString) + pinyin.get(pyss)[stringS]);
                         pys4.add(pys3.get(currentString) + pinyin.get(pyss)[stringS].charAt(0));
                     }
                 }
             }
-            if(pyss!=0) {
+            if (pyss != 0) {
                 pys1 = pys2;
                 pys3 = pys4;
             }
