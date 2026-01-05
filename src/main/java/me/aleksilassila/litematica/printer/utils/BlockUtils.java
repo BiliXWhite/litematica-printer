@@ -30,12 +30,12 @@ public class BlockUtils {
         return block.getName().getString();
     }
 
-    public static ResourceLocation getIdentifier(Block block) {
+    public static ResourceLocation getKey(Block block) {
         return BuiltInRegistries.BLOCK.getKey(block);
     }
 
-    public static String getIdentifierString(Block block) {
-        return getIdentifier(block).toString();
+    public static String getKeyString(Block block) {
+        return getKey(block).toString();
     }
 
     public static boolean sideCoversSmallSquare(LevelReader levelReader, BlockPos blockPos, Direction direction) {

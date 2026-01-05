@@ -9,6 +9,7 @@ import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
+import me.aleksilassila.litematica.printer.utils.FilterUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -22,8 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsBlockName;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.Filters.equalsItemName;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.switchItem;
 
@@ -66,7 +65,7 @@ public class FunctionFillMode extends FunctionModeBase {
                     return;
                 }
                 for (String itemName : fillcaCheBlocklist) {
-                    fillModeItemList = BuiltInRegistries.ITEM.stream().filter(item -> equalsItemName(itemName, new ItemStack(item))).toList();
+                    fillModeItemList = BuiltInRegistries.ITEM.stream().filter(item -> FilterUtils.matchName(itemName, new ItemStack(item))).toList();
                 }
             }
         }
@@ -83,7 +82,7 @@ public class FunctionFillMode extends FunctionModeBase {
                 continue;
             Printer.getInstance().placeCooldownList.put(pos, Configs.General.PLACE_COOLDOWN.getIntegerValue());
             var currentState = level.getBlockState(pos);
-            if (currentState.isAir() || (currentState.getBlock() instanceof LiquidBlock) || Configs.Put.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> equalsBlockName(s, currentState))) {
+            if (currentState.isAir() || (currentState.getBlock() instanceof LiquidBlock) || Configs.Put.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> FilterUtils.matchName(s, currentState))) {
                 if (handheld || printer.switchToItems(player, getFillItemsArray())) {
                     if (handheld) {
                         ItemStack heldStack = player.getMainHandItem(); // 获取主手物品

@@ -22,6 +22,9 @@ public abstract class MixinConfigBase<T extends IConfigBase> implements IConfigB
     @Shadow
     protected String prettyName;
 
+    @Shadow
+    protected String comment;
+
     @Unique
     private String litematica_printer$translateNameKey;
 
@@ -40,11 +43,17 @@ public abstract class MixinConfigBase<T extends IConfigBase> implements IConfigB
 
     @Inject(method = "getComment", at = @At("HEAD"), cancellable = true)
     public void litematica_printer$getComment(CallbackInfoReturnable<String> cir) {
+        @Nullable String comment = null;
         if (litematica_printer$translateCommentKey != null && !litematica_printer$translateCommentKey.isEmpty()) {
-            cir.setReturnValue(StringUtils.getTranslatedOrFallback(litematica_printer$translateCommentKey, litematica_printer$translateCommentKey));
-        } else if (litematica_printer$translateNameKey != null && !litematica_printer$translateNameKey.isEmpty()) {
-            cir.setReturnValue(StringUtils.getTranslatedOrFallback(litematica_printer$translateNameKey, litematica_printer$translateCommentKey));
+            comment = StringUtils.getTranslatedOrFallback(litematica_printer$translateCommentKey, null);
         }
+        if (comment == null && litematica_printer$translateNameKey != null && !litematica_printer$translateNameKey.isEmpty()) {
+            comment = StringUtils.getTranslatedOrFallback(litematica_printer$translateNameKey, null);
+        }
+        if (comment != null) {
+            comment = this.comment;
+        }
+        cir.setReturnValue(comment);
     }
 
     @Override
