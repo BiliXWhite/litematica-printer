@@ -59,7 +59,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         // 远程交互
         public static final ConfigBoolean CLOUD_INVENTORY = bool(I18n.CLOUD_INVENTORY)
                 .defaultValue(false)
-                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪Mod加载时显示
+                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪 Mod 加载时显示
                 .build();
 
         // 打印状态
@@ -72,7 +72,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         // 远程交互 - 自动设置远程交互
         public static final ConfigBoolean AUTO_INVENTORY = bool(I18n.AUTO_INVENTORY)
                 .defaultValue(false)
-                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪Mod加载时显示
+                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪 Mod 加载时显示
                 .build();
 
         // 核心 - 工作间隔
@@ -191,7 +191,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         // 远程交互 - 库存白名单
         public static final ConfigStringList INVENTORY_LIST = stringList(I18n.INVENTORY_LIST)
                 .defaultValue(Blocks.CHEST)
-                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪Mod加载时显示
+                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪 Mod 加载时显示
                 .build();
 
         // 核心 - 调试输出
@@ -237,13 +237,13 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 Y_REVERSE,                     // 迭代 - Y轴反向
                 Z_REVERSE,                     // 迭代 - Z轴反向
                 MODE_SWITCH,                   // 核心 - 模式切换
-                PRINTER_MODE,                  // 打印机模式
+                PRINTER_MODE,                  // 核心 - 打印机模式
                 MULTI_BREAK,                   // 核心 - 多模阻断
                 FLUID_BLOCK_LIST,              // 排流体 - 方块名单
                 FLUID_LIST,                    // 排流体 - 液体名单
                 INVENTORY_LIST,                // 远程交互 - 库存白名单
                 DEBUG_OUTPUT,                  // 核心 - 调试输出
-                UPDATE_CHECK,                  // 检查更新
+                UPDATE_CHECK,                  // 核心 - 检查更新
                 AUTO_DISABLE_PRINTER           // 核心 - 自动禁用打印机
         );
     }
@@ -522,30 +522,30 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 设置打印机库存热键
         public static final ConfigHotkey PRINTER_INVENTORY = hotkey(I18n.PRINTER_INVENTORY)
-                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪Mod加载时显示
+                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪 Mod 加载时显示
                 .build();
 
         // 清空打印机库存热键
         public static final ConfigHotkey REMOVE_PRINT_INVENTORY = hotkey(I18n.REMOVE_PRINT_INVENTORY)
-                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪Mod加载时显示
+                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪 Mod 加载时显示
                 .build();
 
         // 上一个箱子
         public static final ConfigHotkey LAST = hotkey(I18n.LAST)
                 .keybindSettings(GUI_NO_ORDER)
-                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪Mod加载时显示
+                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪 Mod 加载时显示
                 .build();
 
         // 下一个箱子
         public static final ConfigHotkey NEXT = hotkey(I18n.NEXT)
                 .keybindSettings(GUI_NO_ORDER)
-                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪Mod加载时显示
+                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪 Mod 加载时显示
                 .build();
 
         // 删除当前容器
         public static final ConfigHotkey DELETE = hotkey(I18n.DELETE)
                 .keybindSettings(GUI_NO_ORDER)
-                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪Mod加载时显示
+                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪 Mod 加载时显示
                 .build();
 
         // 同步容器开关热键
