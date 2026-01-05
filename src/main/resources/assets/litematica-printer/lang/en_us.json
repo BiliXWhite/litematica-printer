@@ -1,5 +1,5 @@
 {
-  "litematica_printer.config.name.printerAutoFillComposterWhitelist": "Fill - Composter Whitelist",
+  "litematica_printer.config.name.printerAutoFillComposterWhitelist": "Print - Composter Whitelist",
   "litematica_printer.config.comment.printerAutoFillComposterWhitelist": "Whitelist of compostable items used for automatic composter filling.\nYou can enter an item ID or its translated name in the current language, e.g.: §bminecraft:wheat§r §bWheat§r.\nIf preceded by §b#§r, tag matching will be used (the list matches corresponding items by tag), e.g.: §l#compostable§r.\nIf entering text with filter conditions (separated by English commas), e.g.: §lWheat,c§r.\nWhere “c” means using contains matching method (tries pinyin or direct match first).",
   "litematica_printer.auto_disable_notice": "Printer has been automatically disabled",
   "litematica_printer.config.comment.autoInventory": "Automatically enable remote container interaction if allowed by the server, otherwise disable it automatically",
