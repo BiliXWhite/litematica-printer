@@ -23,6 +23,6 @@ public abstract class MixinGuiStringListEdit extends GuiListBase<String, WidgetS
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void litematica_printer$init(IConfigStringList config, IConfigGui configGui, IDialogHandler dialogHandler, Screen parent, CallbackInfo ci) {
-        this.title = StringUtils.translate("malilib.gui.title.string_list_edit", config.getPrettyName());
+        this.title = StringUtils.translate("malilib.gui.title.string_list_edit", config.getConfigGuiDisplayName());
     }
 }
