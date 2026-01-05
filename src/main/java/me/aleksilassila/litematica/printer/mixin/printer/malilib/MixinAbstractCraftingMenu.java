@@ -39,7 +39,6 @@ public abstract class MixinAbstractCraftingMenu<TYPE, WIDGET extends WidgetListE
                     if (s2.contains(filterText)) {
                         cir.setReturnValue(true);
                     }
-                    Debug.alwaysWrite("{}, {}, {}", filterText, s2, s2.contains(filterText));
                 }
             }
         }
