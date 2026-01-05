@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.ArrayList;
 import java.util.List;
 
-
+// MASA 全家桶搜素增强
 @Mixin(WidgetListBase.class)
 public abstract class MixinAbstractCraftingMenu<TYPE, WIDGET extends WidgetListEntryBase<TYPE>> extends GuiBase {
     @Inject(method = "entryMatchesFilter", at = @At("HEAD"), cancellable = true)
