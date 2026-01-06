@@ -126,7 +126,7 @@ public class PlacementGuide extends PrinterUtils {
 
                 return new Action()
                         .setSides(sides)
-                        .setLookDirection(facing.getOpposite());
+                        .setLookDirection(facing);
             }
             case TRAPDOOR -> {
 
@@ -342,44 +342,38 @@ public class PlacementGuide extends PrinterUtils {
                 if (facing == null) {
                     return null;
                 }
-                // 安全放置
-                if (Configs.Put.SAFELY_OBSERVER.getBooleanValue()) {
-                    BlockContext input = ctx.offset(facing);                    // 输入端(侦测面)
-                    BlockContext output = ctx.offset(facing.getOpposite());     // 输出端(红点面)
-                    List<Property<?>> propertiesToIgnore = new ArrayList<>();
-                    // 如果是墙, 忽略比较侦测面墙方向属性
+                BlockContext input = ctx.offset(facing);                    // 输入端(侦测面)
+                BlockContext output = ctx.offset(facing.getOpposite());     // 输出端(红点面)
+                if (Configs.Put.SAFELY_OBSERVER.getBooleanValue()) {        // 安全放置
+                    // 获取输入端方块属性
+                    List<Property<?>> inputPropertiesToIgnore = new ArrayList<>();
+                    // 如果是侦测面是墙, 忽略侦测面墙方向属性
                     if (input.requiredState.getBlock() instanceof WallBlock) {
                         State.getWallFacingProperty(facing.getOpposite())
-                                .ifPresent(propertiesToIgnore::add);
+                                .ifPresent(inputPropertiesToIgnore::add);
                     }
+                    // 如果是侦测面是墙, 忽略侦测面墙方向属性
                     if (output.requiredState.getBlock() instanceof CrossCollisionBlock) {
                         State.getCrossCollisionBlock(facing.getOpposite())
-                                .ifPresent(propertiesToIgnore::add);
+                                .ifPresent(inputPropertiesToIgnore::add);
                     }
-                    State inputState = State.get(input, propertiesToIgnore.toArray(new Property<?>[0]));
-                    if (inputState == State.CORRECT) {
-                        // 侦测器链, 查找源头状态
+                    // 输入端放置状态
+                    State inputState = State.get(input, inputPropertiesToIgnore.toArray(new Property<?>[0]));
+                    // 输入端已放置成功，并状态一致
+                    if (inputState == State.CORRECT) {// 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
                         BlockContext temp = input;
                         while (temp.requiredState.getBlock() instanceof ObserverBlock) {
                             @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
+                            // 查找下一个侦测器并检查并检查状态是否正确
                             BlockContext offset = temp.offset(tempObserverFacing);
                             if (tempObserverFacing != null && State.get(offset) != State.CORRECT) {
                                 return null;
                             }
+                            // 传递检查
                             temp = offset;
                         }
-                        if (State.get(output) != State.CORRECT) {
-                            return null;
-                        }
-                    } else {
-                        // 活塞检查
-                        if (output.requiredState.getBlock() instanceof PistonBaseBlock) {
-                            if (!output.currentState.isAir()) {
-                                return null;
-                            }
-                        }
-                        // 侦测器隔空激活活塞
-                        for (Direction direction : Direction.values()) {
+                    } else if (inputState == State.WRONG_STATE) {  // 方块类型相同，但方块状态不一致
+                        for (Direction direction : Direction.values()) {    // 侦测器隔空激活活塞
                             BlockContext offset = output.offset(direction);
                             if (offset.blockPos.equals(output.blockPos)) {
                                 continue;
@@ -396,14 +390,14 @@ public class PlacementGuide extends PrinterUtils {
                                 }
                             }
                         }
+                    } else {
                         if (!output.requiredState.isAir()) {
                             return null;
                         }
                     }
+
                 }
-                return new Action()
-                        .setWaitTick(6)
-                        .setLookDirection(facing);
+                return new Action().setLookDirection(facing);
             }
             case LADDER -> {
                 var facing = ctx.requiredState.getValue(LadderBlock.FACING);
