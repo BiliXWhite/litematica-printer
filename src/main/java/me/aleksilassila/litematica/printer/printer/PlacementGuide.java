@@ -1102,6 +1102,7 @@ public class PlacementGuide extends PrinterUtils {
          * @param pos   方块的位置
          * @return 第一个有效侧面，如果不存在则返回 null
          */
+        @SuppressWarnings("all")
         public @Nullable Direction getValidSide(ClientLevel world, BlockPos pos) {
             Map<Direction, Vec3> sides = getSides();
             List<Direction> validSides = new ArrayList<>();
@@ -1127,7 +1128,7 @@ public class PlacementGuide extends PrinterUtils {
                     return validSide;
                 }
             }
-            return validSides.getFirst();
+            return validSides.get(0);
         }
 
         /**
