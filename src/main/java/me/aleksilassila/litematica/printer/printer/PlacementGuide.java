@@ -360,8 +360,17 @@ public class PlacementGuide extends PrinterUtils {
                     // 输入端放置状态
                     State inputState = State.get(input, inputPropertiesToIgnore.toArray(new Property<?>[0]));
                     // 输入端已放置成功，并状态一致
-                    if (inputState == State.CORRECT) {// 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
+                    if (inputState == State.CORRECT) {
                         BlockContext temp = input;
+                        while (temp.requiredState.getBlock() instanceof FallingBlock) {
+                            BlockContext offset = temp.offset(Direction.DOWN);
+                            if (State.get(offset) != State.CORRECT) {
+                                return null;
+                            }
+                            temp = offset;
+                        }
+                        // 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
+                        temp = input;
                         while (temp.requiredState.getBlock() instanceof ObserverBlock) {
                             @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
                             // 查找下一个侦测器并检查并检查状态是否正确
@@ -458,15 +467,23 @@ public class PlacementGuide extends PrinterUtils {
             }
             case PISTON -> {
                 Direction facing = ctx.requiredState.getValue(BlockStateProperties.FACING);
-                // 侦测器链, 查找源头状态
-                BlockContext temp = ctx.offset(facing.getOpposite());
-                while (temp.requiredState.getBlock() instanceof ObserverBlock) {
-                    @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
-                    BlockContext offset = temp.offset(tempObserverFacing);
-                    if (tempObserverFacing != null && State.get(offset) != State.CORRECT) {
-                        return null;
+                // 侦测器安全放置
+                if (Configs.Put.SAFELY_OBSERVER.getBooleanValue()) {
+                    // 活塞四周
+                    for (Direction direction : Direction.values()) {
+                        BlockContext temp = ctx.offset(direction);
+                        while (temp.requiredState.getBlock() instanceof ObserverBlock) {
+                            @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
+                            if (tempObserverFacing != null && tempObserverFacing == direction) {
+                                BlockContext offset = temp.offset(tempObserverFacing);
+                                if (State.get(offset) != State.CORRECT) {
+                                    return null;
+                                }
+                                temp = offset;
+                            }
+                        }
                     }
-                    temp = offset;
+
                 }
                 return new Action().setLookDirection(facing.getOpposite());
             }
