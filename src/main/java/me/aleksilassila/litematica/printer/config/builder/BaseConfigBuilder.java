@@ -1,17 +1,21 @@
 package me.aleksilassila.litematica.printer.config.builder;
 
+import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.options.ConfigBase;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.ConfigExtension;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 
 public abstract class BaseConfigBuilder<T extends ConfigBase<?>, B extends BaseConfigBuilder<T, B>> {
     protected final I18n i18n;
     protected String nameKey;
     protected String commentKey;
     protected @Nullable BooleanSupplier visible;
+    protected final CopyOnWriteArrayList<Consumer<IConfigBase>> valueChangeCallbacks = new CopyOnWriteArrayList<>();
 
     public BaseConfigBuilder(I18n i18n) {
         this.i18n = i18n;
@@ -44,9 +48,18 @@ public abstract class BaseConfigBuilder<T extends ConfigBase<?>, B extends BaseC
         return (B) this;
     }
 
+    @SuppressWarnings("unchecked")
+    public B addValueChangeListener(Consumer<IConfigBase> callback) {
+        if (callback != null) {
+            this.valueChangeCallbacks.add(callback);
+        }
+        return (B) this;
+    }
+
     protected T buildExtension(T config) {
         buildI18n(config);
         buildVisible(config);
+        buildValueChangeCallbacks(config);
         return config;
     }
 
@@ -60,6 +73,14 @@ public abstract class BaseConfigBuilder<T extends ConfigBase<?>, B extends BaseC
         if (visible != null) {
             ConfigExtension extension = (ConfigExtension) config;
             extension.litematica_printer$setVisible(this.visible);
+        }
+    }
+
+    protected void buildValueChangeCallbacks(T config) {
+        if (config instanceof ConfigExtension extension && !this.valueChangeCallbacks.isEmpty()) {
+            for (Consumer<IConfigBase> callback : this.valueChangeCallbacks) {
+                extension.litematica_printer$addValueChangeListener(callback);
+            }
         }
     }
 

@@ -12,9 +12,12 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 
 // 对masa配置基类进行扩展, 进行I18n实现
 @Mixin(value = ConfigBase.class)
@@ -86,5 +89,20 @@ public abstract class MixinConfigBase<T extends IConfigBase> implements IConfigB
     @Override
     public void litematica_printer$setVisible(BooleanSupplier visible) {
         this.litematica_printer$visible = visible;
+    }
+
+    @Unique
+    private final CopyOnWriteArrayList<Consumer<IConfigBase>> litematica_printer$valueChangeCallbacks = new CopyOnWriteArrayList<>();
+
+    @Override
+    public CopyOnWriteArrayList<Consumer<IConfigBase>> litematica_printer$getValueChangeCallbacks() {
+        return litematica_printer$valueChangeCallbacks;
+    }
+
+    @Inject(method = "onValueChanged", at = @At("HEAD"))
+    public void litematica_printer$onValueChanged(CallbackInfo ci) {
+        if (!litematica_printer$valueChangeCallbacks.isEmpty()) {
+            litematica_printer$triggerValueChangeCallbacks(this);
+        }
     }
 }

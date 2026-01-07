@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.config;
+package me.aleksilassila.litematica.printer.gui;
 
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.config.IConfigBase;
@@ -8,12 +8,17 @@ import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.config.ConfigExtension;
+import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.BooleanSupplier;
 
 public class ConfigUi extends GuiConfigsBase {
     private static Tab tab = Tab.ALL;
@@ -37,6 +42,12 @@ public class ConfigUi extends GuiConfigsBase {
         }
     }
 
+    public void reset() {
+        reCreateListWidget();
+        Objects.requireNonNull(getListWidget()).resetScrollbarPosition();
+        initGui();
+    }
+
     private int createButton(int x, int y, int width, Tab tab) {
         ButtonGeneric button = new ButtonGeneric(x, y, width, 20, tab.getName(), tab.getComment());
         button.setEnabled(ConfigUi.tab != tab);
@@ -46,16 +57,23 @@ public class ConfigUi extends GuiConfigsBase {
 
     @Override
     public List<ConfigOptionWrapper> getConfigs() {
-        return ConfigOptionWrapper.createFor(ConfigUi.tab.getConfigs());
+        List<ConfigOptionWrapper> builder = new ArrayList<>();
+        for (IConfigBase config : ConfigUi.tab.getConfigs()) {
+            if (config instanceof ConfigExtension extension) {
+                @Nullable BooleanSupplier visible = extension.litematica_printer$getVisible();
+                if (visible != null && visible.getAsBoolean()) {
+                    builder.add(new ConfigOptionWrapper(config));
+                }
+            }
+        }
+        return builder;
     }
 
-    private record ButtonListener(Tab tab, ConfigUi parent) implements IButtonActionListener {
+    public record ButtonListener(Tab tab, ConfigUi parent) implements IButtonActionListener {
         @Override
         public void actionPerformedWithButton(ButtonBase button, int mouseButton) {
             ConfigUi.tab = this.tab;
-            this.parent.reCreateListWidget();
-            this.parent.getListWidget().resetScrollbarPosition();
-            this.parent.initGui();
+            this.parent.reset();
         }
     }
 
@@ -63,8 +81,9 @@ public class ConfigUi extends GuiConfigsBase {
         ALL(I18n.TAB_ALL),
         GENERAL(I18n.TAB_GENERAL),
         PUT(I18n.TAB_PUT),
+        FLUID(I18n.TAB_FLUID),
         EXCAVATE(I18n.TAB_EXCAVATE),
-        FILL(I18n.FILL),
+        FILL(I18n.TAB_FILL),
         HOTKEYS(I18n.TAB_HOTKEYS),
         COLOR(I18n.TAB_COLOR);
 
@@ -84,13 +103,14 @@ public class ConfigUi extends GuiConfigsBase {
 
         public ImmutableList<IConfigBase> getConfigs() {
             return switch (this) {
-                case ALL -> Configs.getConfigs(true);
-                case GENERAL -> Configs.getGlobalConfigs(true);
-                case PUT -> Configs.getPutConfigs(true);
-                case EXCAVATE -> Configs.getExcavateConfigs(true);
-                case FILL -> Configs.getFillConfigs(true);
-                case HOTKEYS -> Configs.getHotkeysConfigs(true);
-                case COLOR -> Configs.getColorConfigs(true);
+                case ALL -> Configs.OPTIONS;
+                case GENERAL -> Configs.General.OPTIONS;
+                case PUT -> Configs.Put.OPTIONS;
+                case FLUID -> Configs.FLUID.OPTIONS;
+                case EXCAVATE -> Configs.Excavate.OPTIONS;
+                case FILL -> Configs.Fill.OPTIONS;
+                case HOTKEYS -> Configs.Hotkeys.OPTIONS;
+                case COLOR -> Configs.Color.OPTIONS;
             };
         }
     }
