@@ -1,20 +1,9 @@
 package me.aleksilassila.litematica.printer.config;
 
-import fi.dy.masa.malilib.config.IConfigBoolean;
-import fi.dy.masa.malilib.config.IConfigOptionList;
-import fi.dy.masa.malilib.config.IConfigOptionListEntry;
-import fi.dy.masa.malilib.gui.GuiBase;
-import fi.dy.masa.malilib.hotkeys.IHotkey;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
-import fi.dy.masa.malilib.util.StringUtils;
-import me.aleksilassila.litematica.printer.I18n;
-import me.aleksilassila.litematica.printer.config.enums.ModeType;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
-import me.aleksilassila.litematica.printer.utils.MessageUtils;
+import me.aleksilassila.litematica.printer.gui.ConfigUi;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.MutableComponent;
 
 //#if MC >= 12001 && MC <= 12104
 //$$ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;

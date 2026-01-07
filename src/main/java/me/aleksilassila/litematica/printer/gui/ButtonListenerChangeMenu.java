@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.gui;
 
-import me.aleksilassila.litematica.printer.config.ConfigUi;
 import net.minecraft.client.gui.screens.Screen;
 import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.gui.button.ButtonBase;

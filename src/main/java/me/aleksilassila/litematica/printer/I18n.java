@@ -30,7 +30,9 @@ public class I18n {
     public static final I18n TAB_ALL     = config("category.all");
     public static final I18n TAB_GENERAL = config("category.general");
     public static final I18n TAB_PUT     = config("category.put");
+    public static final I18n TAB_FLUID     = config("category.fluid");
     public static final I18n TAB_EXCAVATE = config("category.excavate");
+    public static final I18n TAB_FILL = config("category.fill");
     public static final I18n TAB_BEDROCK = config("category.bedrock");
     public static final I18n TAB_HOTKEYS = config("category.hotkeys");
     public static final I18n TAB_COLOR   = config("category.color");

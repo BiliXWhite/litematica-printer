@@ -26,7 +26,7 @@ import java.util.List;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.switchItem;
 
-public class FunctionFillMode extends FunctionModeBase {
+public class FunctionFill extends Function {
     private List<Item> fillModeItemList = new ArrayList<>();
     private List<String> fillcaCheBlocklist = new ArrayList<>();
 

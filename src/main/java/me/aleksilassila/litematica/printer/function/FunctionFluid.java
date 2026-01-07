@@ -21,12 +21,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class FunctionFluidMode extends FunctionModeBase {
+public class FunctionFluid extends Function {
     private List<String> fillBlocks = new ArrayList<>();
     private List<Item> fillItems = new ArrayList<>();
 
     private List<String> fluidBlocks = new ArrayList<>();
-    private List<Fluid> fluis = List.of(new Fluid[0]);
+    private List<Fluid> fluids = List.of(new Fluid[0]);
 
     @Override
     public PrintModeType getPrintModeType() {
@@ -41,7 +41,7 @@ public class FunctionFluidMode extends FunctionModeBase {
     @Override
     public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
         // 填充方块
-        List<String> fileBlocks = Configs.General.FLUID_BLOCK_LIST.getStrings();
+        List<String> fileBlocks = Configs.FLUID.FLUID_BLOCK_LIST.getStrings();
         if (!fileBlocks.equals(fillBlocks)) {
             fillBlocks = new ArrayList<>(fileBlocks);
             if (fileBlocks.isEmpty()) {
@@ -54,16 +54,16 @@ public class FunctionFluidMode extends FunctionModeBase {
             }
         }
         // 流体方块
-        List<String> fluidBlocks = Configs.General.FLUID_LIST.getStrings();
+        List<String> fluidBlocks = Configs.FLUID.FLUID_LIST.getStrings();
         if (!fluidBlocks.equals(this.fluidBlocks)) {
             this.fluidBlocks = new ArrayList<>(fluidBlocks);
             if (fluidBlocks.isEmpty()) {
                 return;
             }
-            fluis = new ArrayList<>();
+            fluids = new ArrayList<>();
             for (String itemName : this.fluidBlocks) {
                 List<Fluid> list = BuiltInRegistries.FLUID.stream().filter(item -> FilterUtils.matchName(itemName, item.defaultFluidState().createLegacyBlock())).toList();
-                fluis.addAll(list);
+                fluids.addAll(list);
             }
         }
 
@@ -72,13 +72,13 @@ public class FunctionFluidMode extends FunctionModeBase {
             if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0) {
                 return;
             }
-            if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.Put.FLUID_SELECTION_TYPE)) {
+            if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.FLUID.FLUID_SELECTION_TYPE)) {
                 continue;
             }
             printer.placeCooldownList.put(pos, Configs.General.PLACE_COOLDOWN.getIntegerValue());
             FluidState fluidState = level.getBlockState(pos).getFluidState();
-            if (fluis.contains(fluidState.getType())) {
-                if (!Configs.Put.FILL_FLOWING_FLUID.getBooleanValue() && !fluidState.isSource())
+            if (fluids.contains(fluidState.getType())) {
+                if (!Configs.FLUID.FILL_FLOWING_FLUID.getBooleanValue() && !fluidState.isSource())
                     continue;
                 if (printer.switchToItems(player, fillItems.toArray(new Item[0]))) {
                     new PlacementGuide.Action().queueAction(printer.queue, pos, Direction.UP, false);
