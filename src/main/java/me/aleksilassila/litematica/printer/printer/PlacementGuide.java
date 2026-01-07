@@ -338,6 +338,7 @@ public class PlacementGuide extends PrinterUtils {
                 return new Action().setSides(Direction.DOWN).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
             }
             case OBSERVER -> {
+                boolean needWait = false;
                 @Nullable Direction facing = ctx.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
                 if (facing == null) {
                     return null;
@@ -369,20 +370,23 @@ public class PlacementGuide extends PrinterUtils {
                             }
                             temp = offset;
                         }
-                        // 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
-                        temp = input;
-                        while (temp.requiredState.getBlock() instanceof ObserverBlock) {
-                            @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
-                            // 查找下一个侦测器并检查并检查状态是否正确
-                            BlockContext offset = temp.offset(tempObserverFacing);
-                            if (tempObserverFacing != null && State.get(offset) != State.CORRECT) {
-                                return null;
+                        if  (!output.requiredState.isAir()){
+                            // 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
+                            temp = input;
+                            while (temp.requiredState.getBlock() instanceof ObserverBlock) {
+                                @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
+                                // 查找下一个侦测器并检查并检查状态是否正确
+                                BlockContext offset = temp.offset(tempObserverFacing);
+                                if (tempObserverFacing != null && State.get(offset) != State.CORRECT) {
+                                    return null;
+                                }
+                                // 传递检查
+                                temp = offset;
                             }
-                            // 传递检查
-                            temp = offset;
                         }
-                    } else if (inputState == State.WRONG_STATE) {  // 方块类型相同，但方块状态不一致
-                        for (Direction direction : Direction.values()) {    // 侦测器隔空激活活塞
+
+                        // 侦测器隔空激活活塞
+                        for (Direction direction : Direction.values()) {
                             BlockContext offset = output.offset(direction);
                             if (offset.blockPos.equals(output.blockPos)) {
                                 continue;
@@ -399,12 +403,19 @@ public class PlacementGuide extends PrinterUtils {
                                 }
                             }
                         }
+
+                    } else if (inputState == State.WRONG_STATE) {  // 方块类型相同，但方块状态不一致
+                        return null;
                     } else {
                         if (!output.requiredState.isAir()) {
                             return null;
                         }
+                        needWait = true;
                     }
-
+                }
+                Action action = new Action().setLookDirection(facing);
+                if (needWait) {
+                    action.setWaitTick(2);
                 }
                 return new Action().setLookDirection(facing);
             }
