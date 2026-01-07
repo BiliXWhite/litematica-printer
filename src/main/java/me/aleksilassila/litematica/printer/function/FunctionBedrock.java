@@ -13,7 +13,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.NotNull;
 
-public class FunctionBedrockMode extends FunctionModeBase {
+public class FunctionBedrock extends Function {
 
     @Override
     public PrintModeType getPrintModeType() {

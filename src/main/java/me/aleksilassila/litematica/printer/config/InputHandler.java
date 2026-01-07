@@ -11,14 +11,14 @@ public class InputHandler implements IKeybindProvider, IKeyboardInputHandler {
 
     @Override
     public void addKeysToMap(IKeybindManager manager) {
-        for (IHotkey hotkey : Configs.getHotkeys()) {
+        for (IHotkey hotkey : Configs.HOTKEYS) {
             manager.addKeybindToMap(hotkey.getKeybind());
         }
     }
 
     @Override
     public void addHotkeys(IKeybindManager manager) {
-        manager.addHotkeysForCategory(LitematicaPrinterMod.MOD_ID, "热键", Configs.getHotkeys());
+        manager.addHotkeysForCategory(LitematicaPrinterMod.MOD_ID, "热键", Configs.HOTKEYS);
     }
 
     public static InputHandler getInstance() {

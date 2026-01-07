@@ -69,7 +69,6 @@ public class BooleanHotkeyConfigBuilder extends BaseConfigBuilder<ConfigBooleanH
         MutableComponent message = I18n.MESSAGE_TOGGLED.getComponent(
                 config.getPrettyName(),
                 pre + statusI18n.getComponent().getString() + GuiBase.TXT_RST
-
         );
         MessageUtils.setOverlayMessage(message);
         return true;

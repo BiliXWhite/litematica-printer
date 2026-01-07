@@ -12,13 +12,11 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.enums.IterationOrderType;
 import me.aleksilassila.litematica.printer.config.enums.ModeType;
 import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
-import me.aleksilassila.litematica.printer.function.FunctionExtension;
-import me.aleksilassila.litematica.printer.function.FunctionModeBase;
+import me.aleksilassila.litematica.printer.function.Function;
 import me.aleksilassila.litematica.printer.function.Functions;
 import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.utils.*;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -184,12 +182,10 @@ public class Printer extends PrinterUtils {
     }
 
     private void functionTick(Minecraft client, ClientLevel level, LocalPlayer player) {
-        for (FunctionExtension function : Functions.LIST) {
-            if (function instanceof FunctionModeBase functionModeBase) {
-                if (!functionModeBase.canTick()) {
+        for (Function function : Functions.VALUES) {
+                if (!function.canTick()) {
                     continue;
                 }
-            }
             function.tick(this, client, level, player);
         }
     }
@@ -352,7 +348,7 @@ public class Printer extends PrinterUtils {
             if (isFluidMode() && !(currentState.getBlock() instanceof LiquidBlock)) {
                 finishedCount++;
             }
-            if (isFillMode() && Arrays.asList(Functions.FUNCTION_FILL.getFillItemsArray()).contains(currentState.getBlock().asItem())) {
+            if (isFillMode() && Arrays.asList(Functions.FILL.getFillItemsArray()).contains(currentState.getBlock().asItem())) {
                 finishedCount++;
             }
             if (isMineMode() && currentState.isAir()) {
@@ -364,7 +360,7 @@ public class Printer extends PrinterUtils {
     }
 
     public Vec3 usePrecisionPlacement(BlockPos pos, BlockState stateSchematic) {
-        if (Configs.Put.EASYPLACE_PROTOCOL.getBooleanValue()) {
+        if (Configs.General.EASY_PLACE_PROTOCOL.getBooleanValue()) {
             EasyPlaceProtocol protocol = PlacementHandler.getEffectiveProtocolVersion();
             Vec3 hitPos = Vec3.atLowerCornerOf(pos);
             if (protocol == EasyPlaceProtocol.V3) {
@@ -523,7 +519,7 @@ public class Printer extends PrinterUtils {
             }
 
 
-            if (Configs.General.PLACE_USE_PACKET.getBooleanValue()) {
+            if (Configs.Put.PLACE_USE_PACKET.getBooleanValue()) {
                 NetworkUtils.sendSequencedPacket(sequence -> new ServerboundUseItemOnPacket(
                         InteractionHand.MAIN_HAND,
                         new BlockHitResult(hitVec, side, target, false)
