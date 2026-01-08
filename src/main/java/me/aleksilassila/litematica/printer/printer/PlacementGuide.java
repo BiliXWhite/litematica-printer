@@ -338,7 +338,6 @@ public class PlacementGuide extends PrinterUtils {
                 return new Action().setSides(Direction.DOWN).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
             }
             case OBSERVER -> {
-                boolean needWait = false;
                 @Nullable Direction facing = ctx.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
                 if (facing == null) {
                     return null;
@@ -370,7 +369,7 @@ public class PlacementGuide extends PrinterUtils {
                             }
                             temp = offset;
                         }
-                        if  (!output.requiredState.isAir()){
+                        if (!output.requiredState.isAir()) {
                             // 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
                             temp = input;
                             while (temp.requiredState.getBlock() instanceof ObserverBlock) {
@@ -410,12 +409,7 @@ public class PlacementGuide extends PrinterUtils {
                         if (!output.requiredState.isAir()) {
                             return null;
                         }
-                        needWait = true;
                     }
-                }
-                Action action = new Action().setLookDirection(facing);
-                if (needWait) {
-                    action.setWaitTick(2);
                 }
                 return new Action().setLookDirection(facing);
             }
@@ -485,10 +479,12 @@ public class PlacementGuide extends PrinterUtils {
                         BlockContext temp = ctx.offset(direction);
                         while (temp.requiredState.getBlock() instanceof ObserverBlock) {
                             @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
-                            if (tempObserverFacing != null && tempObserverFacing == direction) {
+                            if (tempObserverFacing != null) {
                                 BlockContext offset = temp.offset(tempObserverFacing);
-                                if (State.get(offset) != State.CORRECT) {
-                                    return null;
+                                if (tempObserverFacing == direction) {
+                                    if (State.get(offset) != State.CORRECT) {
+                                        return null;
+                                    }
                                 }
                                 temp = offset;
                             }
@@ -993,7 +989,7 @@ public class PlacementGuide extends PrinterUtils {
         protected Item[] clickItems; // null == 空手
         protected boolean requiresSupport = false;
         protected boolean useShift = false;
-        protected int waitTick = 0;
+        protected int waitTick = 0;     // 会占用其他任务
 
         public Action() {
             this.sides = new HashMap<>();
