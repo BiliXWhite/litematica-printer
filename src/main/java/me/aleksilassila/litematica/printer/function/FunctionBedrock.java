@@ -43,7 +43,7 @@ public class FunctionBedrock extends Function {
             BedrockUtils.setBedrockMinerFeatureEnable(false);
         }
         BlockPos pos;
-        while ((pos = printer.getBlockPos()) != null) {
+        while ((pos = printer.getWorkerBlockPos()) != null) {
             BedrockUtils.addToBreakList(pos, client.level);
             Printer.getInstance().placeCooldownList.put(pos, 100);
         }

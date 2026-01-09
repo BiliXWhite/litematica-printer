@@ -9,6 +9,7 @@ import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.Debug;
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.config.enums.IterationModeType;
 import me.aleksilassila.litematica.printer.config.enums.IterationOrderType;
 import me.aleksilassila.litematica.printer.config.enums.ModeType;
 import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
@@ -56,8 +57,6 @@ import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
 //#endif
 
 public class Printer extends PrinterUtils {
-    @NotNull
-    public static final Minecraft client = Minecraft.getInstance();
     private static Printer INSTANCE = null;
     public final PlacementGuide guide;
     public final Queue queue;
@@ -68,7 +67,8 @@ public class Printer extends PrinterUtils {
     public long tickStartTime, tickEndTime;
     //强制循环半径
     public @Nullable BlockPos basePos = null;
-    public MyBox myBox;
+    public MyBox workBox;
+    public MyBox guiBox;
     public int printRange = Configs.General.PRINTER_RANGE.getIntegerValue();
     public boolean printerYAxisReverse = false;
     public int tickRate = Configs.General.PRINTER_SPEED.getIntegerValue();
@@ -80,7 +80,6 @@ public class Printer extends PrinterUtils {
     // 活塞修复
     public boolean pistonNeedFix = false;
     public float workProgress = 0;
-    public @Nullable BlockPos lastPos;
 
     private Printer(@NotNull Minecraft client) {
         this.guide = new PlacementGuide(client);
@@ -95,7 +94,21 @@ public class Printer extends PrinterUtils {
         return INSTANCE;
     }
 
-    public BlockPos getBlockPos() {
+    public MyBox getBox(boolean isNewBox, LocalPlayer player, boolean gui) {
+        MyBox box = gui ? guiBox : workBox;
+        if (box == null || isNewBox) {
+            MyBox newBox = new MyBox(player.getOnPos()).expand(printRange);
+            if (gui) {
+                guiBox = newBox;
+            } else {
+                workBox = newBox;
+            }
+            box = gui ? guiBox : workBox;
+        }
+        return box;
+    }
+
+    public BlockPos getBlockPos(boolean gui) {
         if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
             return null;
         }
@@ -103,40 +116,47 @@ public class Printer extends PrinterUtils {
         if (player == null) {
             return null;
         }
-        // 如果 basePos 为空，则初始化为玩家当前位置，并扩展 myBox 范围
+        MyBox box = getBox(false, player, gui);
         BlockPos playerOnPos = player.getOnPos();
-        if (basePos == null) {
+        if (basePos == null || !basePos.equals(playerOnPos)) {
             basePos = playerOnPos;
-            myBox = new MyBox(playerOnPos).inflate(printRange);
+            box = getBox(true, player, gui);
         }
         double threshold = printRange * 0.7;
         if (!basePos.closerThan(playerOnPos, threshold)) {
             basePos = null;
             return null;
         }
-        if (Configs.General.ITERATION_ORDER.getOptionListValue() instanceof IterationOrderType iterationOrderType) {
-            myBox.setIterationMode(iterationOrderType);
-            myBox.xIncrement = !Configs.General.X_REVERSE.getBooleanValue();
-            myBox.yIncrement = Configs.General.Y_REVERSE.getBooleanValue() == printerYAxisReverse;
-            myBox.zIncrement = !Configs.General.Z_REVERSE.getBooleanValue();
-            myBox.setStartPos(lastPos);
-            for (BlockPos pos : myBox) {
-                if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
-                    return null;
-                }
-                if (
-                        ((isPrinterMode() && isSchematicBlock(pos)) ||
-                                TempData.xuanQuFanWeiNei_p(pos)) &&
-                                PlayerUtils.canInteracted(pos)
-                ) {
-                    lastPos = pos;
-                    return pos;
-                }
+        box.setIterationOrderType((IterationOrderType) Configs.General.ITERATION_ORDER.getOptionListValue());
+        box.setIterationModeType((IterationModeType) Configs.General.ITERATION_MODE.getOptionListValue());
+        box.setXIncrement(!Configs.General.X_REVERSE.getBooleanValue());
+        box.setYIncrement(!Configs.General.Y_REVERSE.getBooleanValue());
+        box.setZIncrement(!Configs.General.Z_REVERSE.getBooleanValue());
+        box.setCircleDirection(Configs.General.CIRCLE_DIRECTION.getBooleanValue());
+
+        int blocksPerTick = Configs.General.BLOCKS_PER_TICK.getIntegerValue();
+        for (BlockPos pos : box) {
+            if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
+                return null;
+            }
+            if (blocksPerTick != 0 && blocksPerTick-- <= 0) {
+                return null;
+            }
+            if (canInteracted(pos)) {
+                return pos;
             }
         }
-        lastPos = null;
+        box.resetIterations();
         basePos = null;
         return null;
+    }
+
+    public @Nullable BlockPos getGuiBlockPos() {
+        return getBlockPos(true);
+    }
+
+    public @Nullable BlockPos getWorkerBlockPos() {
+        return getBlockPos(false);
     }
 
     public void onGameTick(Minecraft client, ClientLevel level, LocalPlayer player) {
@@ -183,9 +203,9 @@ public class Printer extends PrinterUtils {
 
     private void functionTick(Minecraft client, ClientLevel level, LocalPlayer player) {
         for (Function function : Functions.VALUES) {
-                if (!function.canTick()) {
-                    continue;
-                }
+            if (!function.canTick()) {
+                continue;
+            }
             function.tick(this, client, level, player);
         }
     }
@@ -213,7 +233,7 @@ public class Printer extends PrinterUtils {
         WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
         if (schematic == null) return;
         BlockPos targetPos;
-        while ((targetPos = getBlockPos()) != null) {
+        while ((targetPos = getWorkerBlockPos()) != null) {
             if (queue.needWait) {
                 continue;
             }
@@ -332,7 +352,7 @@ public class Printer extends PrinterUtils {
         int totalCount = 0;
         int finishedCount = 0;
         BlockPos pos;
-        while ((pos = getBlockPos()) != null && client.level != null) {
+        while ((pos = getGuiBlockPos()) != null && client.level != null) {
             BlockState currentState = client.level.getBlockState(pos);
             totalCount++;
             if (isPrinterMode()) {

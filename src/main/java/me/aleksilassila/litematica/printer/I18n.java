@@ -148,13 +148,38 @@ public class I18n {
     public static final I18n MODE_TYPE_MULTI        = config("modeType.multi");
     public static final I18n MODE_TYPE_SINGLE       = config("modeType.single");
     // 配置列表选项 - 迭代顺序
+// 配置列表选项 - 迭代顺序
     public static final I18n ITERATION_ORDER_XYZ    = config("iterationOrder.xyz");
     public static final I18n ITERATION_ORDER_XZY    = config("iterationOrder.xzy");
     public static final I18n ITERATION_ORDER_YXZ    = config("iterationOrder.yxz");
     public static final I18n ITERATION_ORDER_YZX    = config("iterationOrder.yzx");
     public static final I18n ITERATION_ORDER_ZXY    = config("iterationOrder.zxy");
-    // @formatter:on
-    public static final I18n ITERATION_ORDER_ZYX = config("iterationOrder.zyx");
+    public static final I18n ITERATION_ORDER_ZYX    = config("iterationOrder.zyx");
+
+    // 新增反向遍历翻译键
+    public static final I18n ITERATION_ORDER_XYZ_REVERSE    = config("iterationOrder.xyz_reverse");
+    public static final I18n ITERATION_ORDER_XZY_REVERSE    = config("iterationOrder.xzy_reverse");
+    public static final I18n ITERATION_ORDER_YXZ_REVERSE    = config("iterationOrder.yxz_reverse");
+    public static final I18n ITERATION_ORDER_YZX_REVERSE    = config("iterationOrder.yzx_reverse");
+    public static final I18n ITERATION_ORDER_ZXY_REVERSE    = config("iterationOrder.zxy_reverse");
+    public static final I18n ITERATION_ORDER_ZYX_REVERSE    = config("iterationOrder.zyx_reverse");
+
+    // 新增外向内遍历翻译键
+    public static final I18n ITERATION_ORDER_XYZ_OUT_IN    = config("iterationOrder.xyz_out_in");
+    public static final I18n ITERATION_ORDER_XZY_OUT_IN    = config("iterationOrder.xzy_out_in");
+    public static final I18n ITERATION_ORDER_YXZ_OUT_IN    = config("iterationOrder.yxz_out_in");
+    public static final I18n ITERATION_ORDER_YZX_OUT_IN    = config("iterationOrder.yzx_out_in");
+    public static final I18n ITERATION_ORDER_ZXY_OUT_IN    = config("iterationOrder.zxy_out_in");
+    public static final I18n ITERATION_ORDER_ZYX_OUT_IN    = config("iterationOrder.zyx_out_in");
+
+    // 新增中心向外遍历翻译键
+    public static final I18n ITERATION_ORDER_XYZ_IN_OUT    = config("iterationOrder.xyz_in_out");
+    public static final I18n ITERATION_ORDER_XZY_IN_OUT    = config("iterationOrder.xzy_in_out");
+    public static final I18n ITERATION_ORDER_YXZ_IN_OUT    = config("iterationOrder.yxz_in_out");
+    public static final I18n ITERATION_ORDER_YZX_IN_OUT    = config("iterationOrder.yzx_in_out");
+    public static final I18n ITERATION_ORDER_ZXY_IN_OUT    = config("iterationOrder.zxy_in_out");
+    public static final I18n ITERATION_ORDER_ZYX_IN_OUT    = config("iterationOrder.zyx_in_out");
+
     // 原有静态前缀常量保留
     private static final String PREFIX_CONFIG = "config";
     private static final String PREFIX_NAME = "name";
