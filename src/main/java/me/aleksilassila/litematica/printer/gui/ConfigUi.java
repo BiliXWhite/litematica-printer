@@ -6,6 +6,7 @@ import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
+import fi.dy.masa.malilib.hotkeys.IHotkey;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import me.aleksilassila.litematica.printer.config.ConfigExtension;
@@ -57,7 +58,7 @@ public class ConfigUi extends GuiConfigsBase {
 
     @Override
     public List<ConfigOptionWrapper> getConfigs() {
-        List<ConfigOptionWrapper> builder = new ArrayList<>();
+        ImmutableList.Builder<ConfigOptionWrapper> builder = ImmutableList.builder();
         for (IConfigBase config : ConfigUi.tab.getConfigs()) {
             if (config instanceof ConfigExtension extension) {
                 @Nullable BooleanSupplier visible = extension.litematica_printer$getVisible();
@@ -66,7 +67,7 @@ public class ConfigUi extends GuiConfigsBase {
                 }
             }
         }
-        return builder;
+        return builder.build();
     }
 
     public record ButtonListener(Tab tab, ConfigUi parent) implements IButtonActionListener {

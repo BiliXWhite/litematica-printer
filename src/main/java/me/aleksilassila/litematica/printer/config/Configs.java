@@ -17,7 +17,6 @@ import fi.dy.masa.malilib.config.ConfigManager;
 import me.aleksilassila.litematica.printer.config.enums.*;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import net.minecraft.world.level.block.Blocks;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -111,7 +110,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         public static final ConfigInteger BLOCKS_PER_TICK = integer(I18n.PRINTER_BLOCKS_PER_TICK)
                 .defaultValue(4)
                 .range(0, 24)
-                .setVisible(() -> PRINTER_SPEED.getIntegerValue() <= 0)
                 .build();
 
         // 核心 - 迭代占用时长
@@ -146,8 +144,18 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(IterationOrderType.XZY)
                 .build();
 
+        // 核心 - 迭代模式
+        public static final ConfigOptionList ITERATION_MODE = optionList(I18n.of("ITERATION_MODE"))
+                .defaultValue(IterationModeType.LINEAR)
+                .build();
+
         // 核心 - 迭代X轴反向
         public static final ConfigBoolean X_REVERSE = bool(I18n.PRINTER_X_AXIS_REVERSE)
+                .defaultValue(false)
+                .build();
+
+        // 核心 - 迭代X轴反向
+        public static final ConfigBoolean CIRCLE_DIRECTION = bool(I18n.of("CIRCLE_DIRECTION"))
                 .defaultValue(false)
                 .build();
 
@@ -240,6 +248,8 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 CHECK_PLAYER_INTERACTION_RANGE,// 核心 - 检查玩家方块交互距离
                 ITERATOR_SHAPE,                // 核心 - 迭代区域形状
                 ITERATION_ORDER,               // 核心 - 迭代遍历顺序
+                ITERATION_MODE ,
+                CIRCLE_DIRECTION,
                 X_REVERSE,                     // 核心 - 迭代X轴反向
                 Y_REVERSE,                     // 核心 - 迭代Y轴反向
                 Z_REVERSE,                     // 核心 - 迭代Z轴反向
