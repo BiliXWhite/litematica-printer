@@ -61,7 +61,6 @@ public class InitHandler implements IInitializationHandler {
             if (!b.getBooleanValue()) {
                 Printer printer = Printer.getInstance();
                 printer.clearQueue();
-                printer.basePos = null;
                 printer.pistonNeedFix = false;
                 printer.blockContext = null;
                 if (ModLoadStatus.isBedrockMinerLoaded()) {

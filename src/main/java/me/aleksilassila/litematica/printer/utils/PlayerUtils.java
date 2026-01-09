@@ -64,24 +64,6 @@ public class PlayerUtils {
         //#endif
     }
 
-    // 判断是否可交互
-    public static boolean canInteracted(BlockPos blockPos) {
-        double workRange = Configs.General.PRINTER_RANGE.getIntegerValue();
-        if (Configs.General.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()) {
-            if (client.player != null && !canInteractWithBlockAt(client.player, blockPos, 1F)) {
-                return false;
-            }
-        }
-        if (Configs.General.ITERATOR_SHAPE.getOptionListValue() instanceof RadiusShapeType radiusShapeType) {
-            return switch (radiusShapeType) {
-                case SPHERE -> canInteractedEuclidean(blockPos, workRange);
-                case OCTAHEDRON -> canInteractedManhattan(blockPos, workRange);
-                case CUBE -> canInteractedCube(blockPos, workRange);
-            };
-        }
-        return true;
-    }
-
     // 球面（欧几里得距离）
     public static boolean canInteractedEuclidean(BlockPos blockPos, double range) {
         LocalPlayer player = client.player;

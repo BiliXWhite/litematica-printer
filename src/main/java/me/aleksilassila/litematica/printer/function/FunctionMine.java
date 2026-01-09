@@ -29,7 +29,7 @@ public class FunctionMine extends Function {
     @Override
     public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
         BlockPos pos;
-        while ((pos = breakPos == null ? printer.getBlockPos() : breakPos) != null) {
+        while ((pos = breakPos == null ? printer.getWorkerBlockPos() : breakPos) != null) {
             if (PrinterUtils.isPositionInSelectionRange(player,pos, Configs.Excavate.MINE_SELECTION_TYPE)) {
                 if (BreakManager.breakRestriction(level.getBlockState(pos)) && breakManager.breakBlock(pos)) {
                     breakPos = pos;

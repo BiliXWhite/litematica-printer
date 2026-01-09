@@ -7,8 +7,8 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.enums.ExcavateListMode;
 import me.aleksilassila.litematica.printer.printer.BlockContext;
 import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.printer.PrinterUtils;
 import me.aleksilassila.litematica.printer.utils.FilterUtils;
-import me.aleksilassila.litematica.printer.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -135,7 +135,7 @@ public class BreakManager {
 
         while ((breakPos = (!breakTargets.isEmpty() && breakPos != null) ? updateTarget(client.level) : null) != null) {
             // 检查方块是否已消失或变为流体
-            if (!PlayerUtils.canInteracted(breakPos) ||
+            if (!PrinterUtils.canInteracted(breakPos) ||
                     !canBreakBlock(breakPos) ||
                     !breakRestriction(state)
             ) {

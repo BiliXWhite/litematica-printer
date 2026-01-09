@@ -6,8 +6,11 @@ import fi.dy.masa.malilib.config.options.ConfigOptionList;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.enums.ModeType;
 import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
+import me.aleksilassila.litematica.printer.config.enums.RadiusShapeType;
 import me.aleksilassila.litematica.printer.config.enums.SelectionType;
 import me.aleksilassila.litematica.printer.utils.DirectionUtils;
+import me.aleksilassila.litematica.printer.utils.PlayerUtils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -21,6 +24,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +35,8 @@ import java.util.Map;
 //#endif
 
 public class PrinterUtils {
+    @NotNull
+    public static final Minecraft client = Minecraft.getInstance();
 
     public static Direction[] horizontalDirections = new Direction[]{Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
 
@@ -121,6 +127,24 @@ public class PrinterUtils {
             }
         }
         return false;
+    }
+
+    // 判断是否可交互
+    public static boolean canInteracted(BlockPos blockPos) {
+        double workRange = Configs.General.PRINTER_RANGE.getIntegerValue();
+        if (Configs.General.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()) {
+            if (client.player != null && !PlayerUtils.canInteractWithBlockAt(client.player, blockPos, 1F)) {
+                return false;
+            }
+        }
+        if (Configs.General.ITERATOR_SHAPE.getOptionListValue() instanceof RadiusShapeType radiusShapeType) {
+            return switch (radiusShapeType) {
+                case SPHERE -> PlayerUtils.canInteractedEuclidean(blockPos, workRange);
+                case OCTAHEDRON -> PlayerUtils.canInteractedManhattan(blockPos, workRange);
+                case CUBE -> PlayerUtils.canInteractedCube(blockPos, workRange);
+            };
+        }
+        return true;
     }
 
     public static boolean isEnable() {
