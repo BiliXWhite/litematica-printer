@@ -35,6 +35,8 @@ import static fi.dy.masa.malilib.util.InventoryUtils.*;
 
 public class InventoryUtils {
     private static final Minecraft client = Minecraft.getInstance();
+    // 副手固定槽位索引（全版本通用，核心常量）
+    private static final int OFFHAND_SLOT_INDEX = 40;
 
     public static int getSelectedSlot(Inventory inventory) {
         //#if MC > 12104
@@ -210,5 +212,122 @@ public class InventoryUtils {
             return true;
         }
         return false;
+    }
+
+
+    // ========== 新增：副手核心方法（无选中格子逻辑） ==========
+
+    /**
+     * 获取玩家副手的物品栈（全版本通用，极简实现）
+     * @param player 玩家实例
+     * @return 副手物品栈
+     */
+    public static ItemStack getOffhandStack(Player player) {
+        // 直接通过固定槽位40获取，无版本专属字段依赖
+        return player.getInventory().getItem(OFFHAND_SLOT_INDEX);
+    }
+
+    /**
+     * 将指定物品切换/设置到副手（核心方法，无选中格子逻辑）
+     * @param stack 要放到副手的物品栈
+     * @param mc Minecraft实例
+     * @return 是否切换成功
+     */
+    public static boolean setItemToOffhand(ItemStack stack, Minecraft mc) {
+        if (mc.player == null) return false;
+        Player player = mc.player;
+
+        // 1. 检查副手已有该物品，直接返回成功（避免重复操作）
+        boolean isAlreadyInOffhand = areStacksEqual(stack, getOffhandStack(player));
+        if (isAlreadyInOffhand) {
+            return true;
+        }
+
+        // 2. 创造模式：直接设置副手物品（无需交换）
+        if (EntityUtils.isCreativeMode(player)) {
+            player.getInventory().setItem(OFFHAND_SLOT_INDEX, stack.copy());
+            client.gameMode.handleCreativeModeItemAdd(getOffhandStack(player), OFFHAND_SLOT_INDEX);
+            return true;
+        }
+
+        // 3. 生存模式：找到物品所在槽位，交换到副手
+        int sourceSlot = findSlotWithItem(player.inventoryMenu, stack, true);
+        if (sourceSlot == -1) {
+            InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");
+            return false;
+        }
+
+        ClientPacketListener connection = client.getConnection();
+        if (connection == null) return false;
+
+        // 4. 发送交换数据包（复用原有配置，目标槽位固定为40）
+        if (Configs.Put.PLACE_USE_PACKET.getBooleanValue()) {
+            NonNullList<Slot> slots = player.inventoryMenu.slots;
+            int totalSlots = slots.size();
+            List<ItemStack> copies = Lists.newArrayListWithCapacity(totalSlots);
+            for (Slot slotItem : slots) {
+                copies.add(slotItem.getItem().copy());
+            }
+
+            // 版本兼容的快照对象
+            //#if MC >= 12105
+            Int2ObjectMap<HashedStack> snapshot = new Int2ObjectOpenHashMap<>();
+            //#else
+            //$$ Int2ObjectMap<ItemStack> snapshot = new Int2ObjectOpenHashMap<>();
+            //#endif
+
+            // 构建库存快照
+            for (int j = 0; j < totalSlots; j++) {
+                ItemStack original = copies.get(j);
+                ItemStack current = slots.get(j).getItem();
+                if (!ItemStack.isSameItem(original, current)) {
+                    //#if MC >=12105
+                    snapshot.put(j, HashedStack.create(current, connection.decoratedHashOpsGenenerator()));
+                    //#else
+                    //$$ snapshot.put(j, current.copy());
+                    //#endif
+                }
+            }
+
+            // 发送SWAP数据包到副手槽位40
+            //#if MC >= 12105
+            HashedStack hashedStack = HashedStack.create(player.inventoryMenu.getCarried(), connection.decoratedHashOpsGenenerator());
+            connection.send(new ServerboundContainerClickPacket(
+                    player.inventoryMenu.containerId,
+                    player.inventoryMenu.getStateId(),
+                    Shorts.checkedCast(sourceSlot),
+                    SignedBytes.checkedCast(OFFHAND_SLOT_INDEX), // 目标：副手槽位40
+                    ClickType.SWAP,
+                    snapshot,
+                    hashedStack
+            ));
+            //#else
+            //$$ connection.send(new ServerboundContainerClickPacket(
+            //$$         player.inventoryMenu.containerId,
+            //$$         player.inventoryMenu.getStateId(),
+            //$$         sourceSlot,
+            //$$         OFFHAND_SLOT_INDEX, // 目标：副手槽位40
+            //$$         ClickType.SWAP,
+            //$$         player.inventoryMenu.getCarried().copy(),
+            //$$         snapshot
+            //$$ ));
+            //#endif
+
+            // 本地同步交换操作
+            player.inventoryMenu.clicked(sourceSlot, OFFHAND_SLOT_INDEX, ClickType.SWAP, player);
+        } else {
+            // 不使用数据包：本地直接交换到副手
+            if (client.gameMode != null) {
+                client.gameMode.handleInventoryMouseClick(
+                        player.inventoryMenu.containerId,
+                        sourceSlot,
+                        OFFHAND_SLOT_INDEX, // 目标：副手槽位40
+                        ClickType.SWAP,
+                        player
+                );
+            }
+        }
+
+        return true;
     }
 }
