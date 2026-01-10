@@ -134,17 +134,14 @@ public class Printer extends PrinterUtils {
         box.setZIncrement(!Configs.General.Z_REVERSE.getBooleanValue());
         box.setCircleDirection(Configs.General.CIRCLE_DIRECTION.getBooleanValue());
 
-        int blocksPerTick = Configs.General.BLOCKS_PER_TICK.getIntegerValue();
         for (BlockPos pos : box) {
             if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
                 return null;
             }
-            if (blocksPerTick != 0 && blocksPerTick-- <= 0) {
-                return null;
+            if (!canInteracted(pos) || !TempData.xuanQuFanWeiNei_p(pos)) {
+                continue;
             }
-            if (canInteracted(pos)) {
-                return pos;
-            }
+            return pos;
         }
         box.resetIterations();
         basePos = null;
