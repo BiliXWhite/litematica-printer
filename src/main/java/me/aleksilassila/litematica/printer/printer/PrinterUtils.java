@@ -129,9 +129,17 @@ public class PrinterUtils {
         return false;
     }
 
+    public static double getWorkRange() {
+        double workRange = Configs.General.PRINTER_RANGE.getIntegerValue();
+        if (Configs.General.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()) {
+            return Math.min(workRange, PlayerUtils.getPlayerBlockInteractionRange());
+        }
+        return workRange;
+    }
+
     // 判断是否可交互
     public static boolean canInteracted(BlockPos blockPos) {
-        double workRange = Configs.General.PRINTER_RANGE.getIntegerValue();
+        double workRange = getWorkRange();
         if (Configs.General.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()) {
             if (client.player != null && !PlayerUtils.canInteractWithBlockAt(client.player, blockPos, 1F)) {
                 return false;
