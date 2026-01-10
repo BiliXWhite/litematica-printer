@@ -138,10 +138,13 @@ public class Printer extends PrinterUtils {
             if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
                 return pos; // 已经超时, 但已经迭代了, 把这个位置也返回出去, 不然这个位置就空了或者漏处理, 只能等待下一次重新迭代
             }
-            if (!canInteracted(pos) || !TempData.xuanQuFanWeiNei_p(pos)) {
-                continue;
+            if (
+                    ((isPrinterMode() && isSchematicBlock(pos)) ||
+                            TempData.xuanQuFanWeiNei_p(pos)) &&
+                            canInteracted(pos)
+            ) {
+                return pos;
             }
-            return pos;
         }
         MyBox.resetIterations();
         basePos = null;
