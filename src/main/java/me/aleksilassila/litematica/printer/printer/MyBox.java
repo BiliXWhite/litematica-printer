@@ -129,19 +129,19 @@ public class MyBox implements Iterable<BlockPos> {
         }
     }
 
-    public void resetCircleIterator() {
+    public static void resetCircleIterator() {
         if (circleIterator != null) {
             circleIterator = null;
         }
     }
 
-    public void resetLinearIterator() {
+    public static void resetLinearIterator() {
         if (linearIterator != null) {
             linearIterator = null;
         }
     }
 
-    public void resetIterations() {
+    public static void resetIterations() {
         resetCircleIterator();
         resetLinearIterator();
     }
@@ -203,11 +203,9 @@ public class MyBox implements Iterable<BlockPos> {
             private boolean incrementAxis(Axis axis) {
                 int current = axis.getCoord(currPos);
                 int next = axis.nextCoord(MyBox.this, current);
-
                 if (axis.isOutOfBound(MyBox.this, next)) {
                     return false;
                 }
-
                 axis.setCoord(currPos, next);
                 return true;
             }
@@ -223,105 +221,33 @@ public class MyBox implements Iterable<BlockPos> {
 
     private Iterator<BlockPos> createCircleIterator() {
         return new Iterator<>() {
-            private final Queue<BlockPos> circleQueue = new LinkedList<>();
-            private final BlockPos.MutableBlockPos tempPos = new BlockPos.MutableBlockPos();
 
-            // 初始化：生成所有圆环层的坐标（全整数）
+            private final Queue<BlockPos> buffer = new LinkedList<>();
+
+            private final Axis layerAxis = iterationMode.axis[0];
+            private final Axis ringA = iterationMode.axis[1];
+            private final Axis ringB = iterationMode.axis[2];
+
+            private int layerValue;
+            private int radius;
+
             {
-                if (centerPos == null) {
-                    // 默认中心为包围盒整数中心点
-                    centerPos = new BlockPos(
-                            (minX + maxX) / 2,
-                            (minY + maxY) / 2,
-                            (minZ + maxZ) / 2
-                    );
-                }
-
-                // 计算最大半径（整数，包围盒到中心的最远距离）
-                int maxRadius = Math.max(
-                        Math.max(Math.abs(maxX - centerPos.getX()), Math.abs(maxY - centerPos.getY())),
-                        Math.abs(maxZ - centerPos.getZ())
-                );
-
-                // 按迭代方向生成半径列表（外向内/内向外）
-                int[] radii = new int[maxRadius + 1];
-                if (circleFromOutside) {
-                    for (int i = 0; i <= maxRadius; i++) {
-                        radii[i] = maxRadius - i;
-                    }
-                } else {
-                    for (int i = 0; i <= maxRadius; i++) {
-                        radii[i] = i;
-                    }
-                }
-
-                // 遍历每个半径层
-                for (int radius : radii) {
-                    if (radius < 0) continue;
-
-                    // 1. 按Axis.X规则生成X轴遍历范围（整数）
-                    int xStart = centerPos.getX() - radius;
-                    int xEnd = centerPos.getX() + radius;
-                    int[] xRange = getAxisRange(Axis.X, xStart, xEnd);
-
-                    // 2. 按Axis.Z规则生成Z轴遍历范围（整数）
-                    int zStart = centerPos.getZ() - radius;
-                    int zEnd = centerPos.getZ() + radius;
-                    int[] zRange = getAxisRange(Axis.Z, zStart, zEnd);
-
-                    // 遍历X/Z平面的圆环范围（适配Axis规则）
-                    for (int dx : xRange) {
-                        for (int dz : zRange) {
-                            // 过滤圆环（曼哈顿距离，整数计算）
-                            int dist = Math.abs(dx - centerPos.getX()) + Math.abs(dz - centerPos.getZ());
-                            if (dist != radius) continue;
-
-                            // 3. Y轴按Axis规则遍历（整数）
-                            int yStart = Axis.Y.getStart(MyBox.this);
-                            int yTarget = Axis.Y.getTarget(MyBox.this);
-                            int yStep = Axis.Y.isIncrement(MyBox.this) ? 1 : -1;
-
-                            for (int y = yStart; ; y += yStep) {
-                                tempPos.set(dx, y, dz);
-
-                                // 校验坐标是否在包围盒内（整数）
-                                if (contains(tempPos)) {
-                                    circleQueue.add(tempPos.immutable());
-                                }
-
-                                if (y == yTarget) break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            /**
-             * 按Axis规则生成轴的遍历范围（整数）
-             */
-            private int[] getAxisRange(Axis axis, int start, int end) {
-                int length = Math.abs(end - start) + 1;
-                int[] range = new int[length];
-
-                if (axis.isIncrement(MyBox.this)) {
-                    // 递增：从start到end
-                    for (int i = 0; i < length; i++) {
-                        range[i] = start + i;
-                    }
-                } else {
-                    // 递减：从end到start
-                    for (int i = 0; i < length; i++) {
-                        range[i] = end - i;
-                    }
-                }
-
-                return range;
+                layerValue = layerAxis.getStart(MyBox.this);
+                radius = circleFromOutside ? 0 : getMaxRadius();
+                fillRing();
             }
 
             @Override
             public boolean hasNext() {
-                if (circleQueue.isEmpty()) {
+                if (!buffer.isEmpty()) return true;
+                advance();
+                if (layerValue == Integer.MIN_VALUE) {
                     resetCircleIterator();
+                    return false;
+                }
+                fillRing();
+                if (buffer.isEmpty()){
+                    MyBox.resetCircleIterator();
                     return false;
                 }
                 return true;
@@ -329,7 +255,90 @@ public class MyBox implements Iterable<BlockPos> {
 
             @Override
             public BlockPos next() {
-                return circleQueue.poll();
+                return buffer.poll();
+            }
+
+            private void advance() {
+                if (circleFromOutside) {
+                    radius++;
+                    if (radius > getMaxRadius()) {
+                        radius = 0;
+                        layerValue = nextLayerValue();
+                    }
+                } else {
+                    radius--;
+                    if (radius < 0) {
+                        radius = getMaxRadius();
+                        layerValue = nextLayerValue();
+                    }
+                }
+
+                if (layerValue == Integer.MIN_VALUE) {
+                    buffer.clear();
+                }
+            }
+
+            private int nextLayerValue() {
+                int next = layerValue + (layerAxis.isIncrement(MyBox.this) ? 1 : -1);
+                return layerAxis.isOutOfBound(MyBox.this, next) ? Integer.MIN_VALUE : next;
+            }
+
+            private int getMaxRadius() {
+                int a = (ringA.getMax(MyBox.this) - ringA.getMin(MyBox.this)) / 2;
+                int b = (ringB.getMax(MyBox.this) - ringB.getMin(MyBox.this)) / 2;
+                return Math.min(a, b);
+            }
+
+            private void fillRing() {
+                buffer.clear();
+
+                int minA = ringA.getMin(MyBox.this) + radius;
+                int maxA = ringA.getMax(MyBox.this) - radius;
+                int minB = ringB.getMin(MyBox.this) + radius;
+                int maxB = ringB.getMax(MyBox.this) - radius;
+
+                if (minA > maxA || minB > maxB) return;
+
+                BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+
+                // 固定层轴
+                layerAxis.setCoord(pos, layerValue);
+
+                boolean aInc = ringA.isIncrement(MyBox.this);
+                boolean bInc = ringB.isIncrement(MyBox.this);
+
+                int aStart = aInc ? minA : maxA;
+                int aEnd   = aInc ? maxA : minA;
+                int bStart = bInc ? minB : maxB;
+                int bEnd   = bInc ? maxB : minB;
+
+                // 上边
+                for (int a = aStart; aInc ? a <= aEnd : a >= aEnd; a += aInc ? 1 : -1) {
+                    ringA.setCoord(pos, a);
+                    ringB.setCoord(pos, bStart);
+                    buffer.add(pos.immutable());
+                }
+
+                // 右边
+                for (int b = bStart + (bInc ? 1 : -1); bInc ? b <= bEnd : b >= bEnd; b += bInc ? 1 : -1) {
+                    ringA.setCoord(pos, aEnd);
+                    ringB.setCoord(pos, b);
+                    buffer.add(pos.immutable());
+                }
+
+                // 下边
+                for (int a = aEnd - (aInc ? 1 : -1); aInc ? a >= aStart : a <= aStart; a -= aInc ? 1 : -1) {
+                    ringA.setCoord(pos, a);
+                    ringB.setCoord(pos, bEnd);
+                    buffer.add(pos.immutable());
+                }
+
+                // 左边
+                for (int b = bEnd - (bInc ? 1 : -1); bInc ? b > bStart : b < bStart; b -= bInc ? 1 : -1) {
+                    ringA.setCoord(pos, aStart);
+                    ringB.setCoord(pos, b);
+                    buffer.add(pos.immutable());
+                }
             }
         };
     }
