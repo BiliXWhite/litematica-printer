@@ -11,6 +11,7 @@ public class LitematicaPrinterMod implements ModInitializer, ClientModInitialize
     public static final String MOD_ID = "litematica_printer";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
+public class LitematicaPrinterMod extends Reference implements ModInitializer, ClientModInitializer {
     // 👉 服务端+客户端通用逻辑（仅放无客户端依赖的代码）
     // 例如：注册网络包、通用配置加载（无GUI）、数据生成等
     @Override
