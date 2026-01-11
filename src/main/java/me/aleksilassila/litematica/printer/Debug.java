@@ -11,7 +11,7 @@ public class Debug {
     }
 
     public static void alwaysWrite(Object obj) {
-        Reference.LOGGER.info(obj.toString());
+        alwaysWrite("{}", obj.toString());
     }
 
     public static void write(String var1, Object... var2) {
@@ -21,9 +21,7 @@ public class Debug {
     }
 
     public static void write(Object obj) {
-        if (Configs.General.DEBUG_OUTPUT.getBooleanValue()) {
-            Reference.LOGGER.info(obj.toString());
-        }
+        write("{}", obj.toString());
     }
 
     public static void write() {
