@@ -137,6 +137,10 @@ public class PrinterUtils {
         return workRange;
     }
 
+    public static int getWorkRangeInt() {
+        return (int) Math.ceil(getWorkRange());
+    }
+
     // 判断是否可交互
     public static boolean canInteracted(BlockPos blockPos) {
         double workRange = getWorkRange();
