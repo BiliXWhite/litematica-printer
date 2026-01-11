@@ -26,4 +26,13 @@ public class LitematicaPrinterMod implements ModInitializer, ClientModInitialize
         OpenInventoryPacket.registerClientReceivePacket();
         InitializationHandler.getInstance().registerInitializationHandler(new InitHandler());
     }
+
+    public static void callViaSPI() {
+        if (FabricLoader.getInstance().isModLoaded("tweakeroo")) {
+            ServiceLoader.load(fi.dy.masa.tweakeroo.config.FeatureToggle.class).forEach(api -> {
+                System.out.println(api.TWEAK_TOOL_SWITCH.getBooleanValue());
+            });
+        }
+    }
+
 }

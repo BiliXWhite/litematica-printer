@@ -41,6 +41,12 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static fi.dy.masa.litematica.util.WorldUtils.applyCarpetProtocolHitVec;
@@ -81,6 +87,9 @@ public class Printer extends PrinterUtils {
     public boolean pistonNeedFix = false;
     public float workProgress = 0;
 
+    private final AsyncBlockIterator workIterator = new AsyncBlockIterator("Printer-Work-Iterator");
+    private final AsyncBlockIterator guiIterator = new AsyncBlockIterator("Printer-Gui-Iterator");
+
     private Printer(@NotNull Minecraft client) {
         this.guide = new PlacementGuide(client);
         this.queue = new Queue(this);
@@ -108,25 +117,29 @@ public class Printer extends PrinterUtils {
         return box;
     }
 
-    public BlockPos getBlockPos(boolean gui) {
-        if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
+    private @Nullable BlockPos getBlockPosInternal(boolean gui, AsyncBlockIterator iterator) {
+        if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0
+                && System.currentTimeMillis() > tickEndTime) {
             return null;
         }
+
         LocalPlayer player = client.player;
-        if (player == null) {
-            return null;
-        }
+        if (player == null) return null;
+
         MyBox box = getBox(false, player, gui);
-        BlockPos playerOnPos = player.getOnPos();
-        if (basePos == null || !basePos.equals(playerOnPos)) {
-            basePos = playerOnPos;
+        BlockPos onPos = player.getOnPos();
+        if (basePos == null || !basePos.equals(onPos)) {
+            basePos = onPos;
             box = getBox(true, player, gui);
         }
+
         double threshold = printRange * 0.7;
-        if (!basePos.closerThan(playerOnPos, threshold)) {
+        if (!basePos.closerThan(onPos, threshold)) {
             basePos = null;
+            iterator.reset();
             return null;
         }
+
         box.setIterationOrderType((IterationOrderType) Configs.General.ITERATION_ORDER.getOptionListValue());
         box.setIterationModeType((IterationModeType) Configs.General.ITERATION_MODE.getOptionListValue());
         box.setXIncrement(!Configs.General.X_REVERSE.getBooleanValue());
@@ -134,29 +147,25 @@ public class Printer extends PrinterUtils {
         box.setZIncrement(!Configs.General.Z_REVERSE.getBooleanValue());
         box.setCircleDirection(Configs.General.CIRCLE_DIRECTION.getBooleanValue());
 
-        for (BlockPos pos : box) {
-            if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
-                return pos; // 已经超时, 但已经迭代了, 把这个位置也返回出去, 不然这个位置就空了或者漏处理, 只能等待下一次重新迭代
-            }
-            if (
-                    ((isPrinterMode() && isSchematicBlock(pos)) ||
-                            TempData.xuanQuFanWeiNei_p(pos)) &&
-                            canInteracted(pos)
-            ) {
-                return pos;
-            }
+        iterator.request(box, pos -> ((isPrinterMode() && isSchematicBlock(pos))
+                || TempData.xuanQuFanWeiNei_p(pos))
+                && canInteracted(pos));
+
+        BlockPos pos = iterator.poll();
+        if (pos != null) {
+            return pos;
         }
-        MyBox.resetIterations();
-        basePos = null;
+        iterator.reset();
         return null;
     }
 
-    public @Nullable BlockPos getGuiBlockPos() {
-        return getBlockPos(true);
-    }
 
     public @Nullable BlockPos getWorkerBlockPos() {
-        return getBlockPos(false);
+        return getBlockPosInternal(false, workIterator);
+    }
+
+    public @Nullable BlockPos getGuiBlockPos() {
+        return getBlockPosInternal(true, guiIterator);
     }
 
     public void onGameTick(Minecraft client, ClientLevel level, LocalPlayer player) {
@@ -343,39 +352,52 @@ public class Printer extends PrinterUtils {
         }
     }
 
+
+    int finishedCount = 0;
+    int valid = 0;
+
     public float getProgress() {
-        // 重置 basePos 以确保重新初始化迭代器
-        basePos = null;
         WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
         if (schematic == null) return 0.0f;
         // 打印进度相关
         int totalCount = 0;
-        int finishedCount = 0;
         BlockPos pos;
         while ((pos = getGuiBlockPos()) != null && client.level != null) {
             BlockState currentState = client.level.getBlockState(pos);
-            totalCount++;
             if (isPrinterMode()) {
                 BlockState requiredState = schematic.getBlockState(pos);
                 if (requiredState.isAir()) {
-                    totalCount--;
-                    continue;
-                }
-                if (currentState.getBlock().defaultBlockState().equals(requiredState.getBlock().defaultBlockState())) {
+                    totalCount++;
+                } else if (currentState.getBlock().equals(requiredState.getBlock())) {
                     finishedCount++;
                 }
-            }
-            if (isFluidMode() && !(currentState.getBlock() instanceof LiquidBlock)) {
+            } else if (isFluidMode() && !(currentState.getBlock() instanceof LiquidBlock)) {
                 finishedCount++;
-            }
-            if (isFillMode() && Arrays.asList(Functions.FILL.getFillItemsArray()).contains(currentState.getBlock().asItem())) {
+            } else if (isFillMode() && Arrays.asList(Functions.FILL.getFillItemsArray()).contains(currentState.getBlock().asItem())) {
                 finishedCount++;
-            }
-            if (isMineMode() && currentState.isAir()) {
+            } else if (isMineMode() && currentState.isAir()) {
                 finishedCount++;
             }
         }
-        workProgress = totalCount < 1 ? workProgress : (float) finishedCount / totalCount;
+        if (valid != guiIterator.getValid()) {
+            valid = guiIterator.getValid();
+            finishedCount = 0;
+        }
+        totalCount = valid - totalCount;
+        if (finishedCount > 0 && totalCount > 0) {
+            workProgress = Math.min(finishedCount / totalCount, 1);
+            if (workProgress == 0) {
+                finishedCount = 0;
+            }
+        } else {
+            if (totalCount - finishedCount <= 0) {
+                workProgress = 1;
+                finishedCount = 0;
+            } else {
+                workProgress = 0;
+                finishedCount = 0;
+            }
+        }
         return workProgress;
     }
 
