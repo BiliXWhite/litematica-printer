@@ -671,5 +671,10 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         ConfigManager.getInstance().registerConfigHandler(Reference.MOD_ID, Configs.INSTANCE);
         InputEventHandler.getKeybindManager().registerKeybindProvider(InputHandler.getInstance());
         InputEventHandler.getInputManager().registerKeyboardInputHandler(InputHandler.getInstance());
+        //#if MC > 12006
+        fi.dy.masa.malilib.registry.Registry.CONFIG_SCREEN.registerConfigScreenFactory(
+                new fi.dy.masa.malilib.util.data.ModInfo(Reference.MOD_ID, Reference.MOD_NAME, ConfigUi::new)
+        );
+        //#endif
     }
 }
