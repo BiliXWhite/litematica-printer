@@ -70,7 +70,7 @@ public class FunctionFill extends Function {
             }
         }
         BlockPos pos;
-        while ((pos = printer.getWorkerBlockPos()) != null) {
+        while ((pos = printer.getBlockPos()) != null) {
             if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0)
                 return;
             if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.Fill.FILL_SELECTION_TYPE))
@@ -91,15 +91,14 @@ public class FunctionFill extends Function {
                     new PlacementGuide.Action()
                             .setLookDirection(PlaceUtils.getFillModeFacing().getOpposite())
                             .queueAction(printer.queue, pos, PlaceUtils.getFillModeFacing(), false);
+                    printer.queue.sendQueue(player);
 
                     if (printer.tickRate == 0) {
-                        printer.queue.sendQueue(client.player);
                         if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0) {
                             printer.printerWorkingCountPerTick--;
                         }
                         continue;
                     }
-                    printer.queue.sendQueue(player);
                     return;
                 }
             }
