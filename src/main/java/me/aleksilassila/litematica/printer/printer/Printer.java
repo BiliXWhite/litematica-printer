@@ -93,15 +93,9 @@ public class Printer extends PrinterUtils {
     }
 
     public @Nullable BlockPos getBlockPos() {
-        if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0
-                && System.currentTimeMillis() > tickEndTime) {
-            return null;
-        }
         LocalPlayer player = client.player;
         if (player == null) return null;
-
         workIterable.update();
-
         BlockPos currentPlayerOnPos = player.getOnPos();
         if (lastPlayerOnPos == null) {
             lastPlayerOnPos = currentPlayerOnPos;
@@ -117,10 +111,13 @@ public class Printer extends PrinterUtils {
         workIterable.requestAsync(pos -> ((isPrinterMode() && isSchematicBlock(pos))
                 || TempData.xuanQuFanWeiNei_p(pos))
                 && canInteracted(pos));
-
-        int blockPerTick = 2000;
+        int blockPerTick = 10000;    // 兜底
         BlockPos pos;
-        while ((pos = workIterable.asyncResultQueue.poll()) != null && blockPerTick-- > 0) {
+        while (blockPerTick-- > 0) {
+            pos = workIterable.asyncResultQueue.poll();
+            if (pos == null) {
+                continue;
+            }
             if (((isPrinterMode() && isSchematicBlock(pos))
                     || TempData.xuanQuFanWeiNei_p(pos))
                     && canInteracted(pos)) {
@@ -204,14 +201,16 @@ public class Printer extends PrinterUtils {
         // 遍历当前区域内所有符合条件的位置
         WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
         if (schematic == null) return;
+        boolean running = true;
         BlockPos targetPos;
-        while ((targetPos = getBlockPos()) != null) {
+        while (running && (targetPos = getBlockPos()) != null) {
             if (queue.needWait) {
                 continue;
             }
             // 检查每刻放置方块是否超出限制
             if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0 && printerWorkingCountPerTick == 0) {
-                return;
+                running = false;
+                continue;
             }
             // 是否在渲染层内
             if (!PrinterUtils.isPositionInSelectionRange(player, targetPos, Configs.Put.PRINT_SELECTION_TYPE)) {
@@ -326,9 +325,9 @@ public class Printer extends PrinterUtils {
     private boolean isHistoryInit = false; // 滑动窗口是否初始化完成
 
     // 配置参数（可根据需求调整）
-    private static final long MAX_CACHE_DURATION = 2000; // max缓存时长（ms），延长至2秒
+    private static final long MAX_CACHE_DURATION = 1000; // max缓存时长（ms），延长至2秒
     private static final long PROGRESS_UPDATE_INTERVAL = 50; // 显示进度最小更新间隔（ms），限流
-    private static final float SMOOTH_FACTOR = 0.1f; // 平滑因子（越小越平滑，0.05~0.2为宜）
+    private static final float SMOOTH_FACTOR = 1f; // 平滑因子（越小越平滑，0.05~0.2为宜）
     private static final float MIN_PROGRESS_CHANGE = 0.001f; // 最小进度变化（忽略微小波动）
 
     public float getProgress() {
@@ -342,15 +341,15 @@ public class Printer extends PrinterUtils {
         int max = cachedMax;
 
         // 2. 滑动窗口平均待处理数（核心：抵消玩家移动时的瞬时波动）
-        int currentRemaining = Math.max(0, workIterable.asyncResultQueue.size());
+        int currentRemaining = workIterable.asyncResultQueue.size();
         updateRemainingHistory(currentRemaining);
         int avgRemaining = getAverageRemaining(); // 取平均值，抗波动
 
         // 3. 边界条件修正（杜绝异常值）
         if (max <= 0) {
-            targetProgress = 0.0f;
-            currentProgress = 0.0f;
-            return 0.0f;
+            targetProgress = 1f;
+            currentProgress = 1f;
+            return 1f;
         }
 
         // 4. 计算真实目标进度（钳制在0~1）
