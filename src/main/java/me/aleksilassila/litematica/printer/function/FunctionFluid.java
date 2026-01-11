@@ -68,7 +68,7 @@ public class FunctionFluid extends Function {
         }
 
         BlockPos pos;
-        while ((pos = printer.getWorkerBlockPos()) != null) {
+        while ((pos = printer.getBlockPos()) != null) {
             if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0) {
                 return;
             }

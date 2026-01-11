@@ -80,13 +80,11 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
         //#endif
     }
 
-    @Inject(at = @At("TAIL"), method = "tick")
+    @Inject(at = @At("HEAD"), method = "tick")
     public void tick(CallbackInfo ci) {
         ZxyUtils.tick();
         BreakManager.instance().onTick();
         Printer printer = Printer.getInstance();
-
-
         printer.onGameTick(minecraft, minecraft.level, (LocalPlayer) (Object) this);
     }
 

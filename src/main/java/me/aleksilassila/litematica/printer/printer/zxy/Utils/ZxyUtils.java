@@ -4,9 +4,10 @@ import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.printer.MyBox;
+import me.aleksilassila.litematica.printer.printer.PrinterBox;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
@@ -352,8 +353,8 @@ public class ZxyUtils {
         boxes = i.getAllSubRegionBoxes();
         for (Box box : boxes) {
             if (box.getPos1()==null||box.getPos2()==null) continue;
-            MyBox myBox = new MyBox(box.getPos1(), box.getPos2());
-            for (BlockPos pos : myBox) {
+            MyBox printerBox = new MyBox(box.getPos1(), box.getPos2());
+            for (BlockPos pos : printerBox) {
                 BlockState state = null;
                 if (Printer.client.level != null) {
                     state = Printer.client.level.getBlockState(pos);

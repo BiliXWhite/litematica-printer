@@ -9,8 +9,6 @@ import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.Debug;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.config.enums.IterationModeType;
-import me.aleksilassila.litematica.printer.config.enums.IterationOrderType;
 import me.aleksilassila.litematica.printer.config.enums.ModeType;
 import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.function.Function;
@@ -18,6 +16,7 @@ import me.aleksilassila.litematica.printer.function.Functions;
 import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
+import me.aleksilassila.litematica.printer.iterator.BoxIterable;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.utils.*;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -41,12 +40,6 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static fi.dy.masa.litematica.util.WorldUtils.applyCarpetProtocolHitVec;
@@ -72,9 +65,7 @@ public class Printer extends PrinterUtils {
     public int shulkerCooldown = 0;
     public long tickStartTime, tickEndTime;
     //强制循环半径
-    public @Nullable BlockPos basePos = null;
-    public MyBox workBox;
-    public MyBox guiBox;
+    public @Nullable BlockPos lastPlayerOnPos = null;
     public int printRange = Configs.General.PRINTER_RANGE.getIntegerValue();
     public boolean printerYAxisReverse = false;
     public int tickRate = Configs.General.PRINTER_SPEED.getIntegerValue();
@@ -85,10 +76,8 @@ public class Printer extends PrinterUtils {
     public @Nullable BlockContext blockContext;
     // 活塞修复
     public boolean pistonNeedFix = false;
-    public float workProgress = 0;
 
-    private final AsyncBlockIterator workIterator = new AsyncBlockIterator("Printer-Work-Iterator");
-    private final AsyncBlockIterator guiIterator = new AsyncBlockIterator("Printer-Gui-Iterator");
+    public final BoxIterable workIterable = new BoxIterable();
 
     private Printer(@NotNull Minecraft client) {
         this.guide = new PlacementGuide(client);
@@ -103,70 +92,44 @@ public class Printer extends PrinterUtils {
         return INSTANCE;
     }
 
-    public MyBox getBox(boolean isNewBox, LocalPlayer player, boolean gui) {
-        MyBox box = gui ? guiBox : workBox;
-        if (box == null || isNewBox) {
-            MyBox newBox = new MyBox(player.getOnPos()).expand(printRange);
-            if (gui) {
-                guiBox = newBox;
-            } else {
-                workBox = newBox;
-            }
-            box = gui ? guiBox : workBox;
-        }
-        return box;
-    }
-
-    private @Nullable BlockPos getBlockPosInternal(boolean gui, AsyncBlockIterator iterator) {
+    public @Nullable BlockPos getBlockPos() {
         if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0
                 && System.currentTimeMillis() > tickEndTime) {
             return null;
         }
-
         LocalPlayer player = client.player;
         if (player == null) return null;
 
-        MyBox box = getBox(false, player, gui);
-        BlockPos onPos = player.getOnPos();
-        if (basePos == null || !basePos.equals(onPos)) {
-            basePos = onPos;
-            box = getBox(true, player, gui);
-        }
+        workIterable.update();
 
+        BlockPos currentPlayerOnPos = player.getOnPos();
+        if (lastPlayerOnPos == null) {
+            lastPlayerOnPos = currentPlayerOnPos;
+            workIterable.reset();
+        }
+        // 检查玩家移动量
         double threshold = printRange * 0.7;
-        if (!basePos.closerThan(onPos, threshold)) {
-            basePos = null;
-            iterator.reset();
+        if (!currentPlayerOnPos.closerThan(lastPlayerOnPos, threshold)) {
+            lastPlayerOnPos = null;
+            workIterable.reset();
             return null;
         }
-
-        box.setIterationOrderType((IterationOrderType) Configs.General.ITERATION_ORDER.getOptionListValue());
-        box.setIterationModeType((IterationModeType) Configs.General.ITERATION_MODE.getOptionListValue());
-        box.setXIncrement(!Configs.General.X_REVERSE.getBooleanValue());
-        box.setYIncrement(!Configs.General.Y_REVERSE.getBooleanValue());
-        box.setZIncrement(!Configs.General.Z_REVERSE.getBooleanValue());
-        box.setCircleDirection(Configs.General.CIRCLE_DIRECTION.getBooleanValue());
-
-        iterator.request(box, pos -> ((isPrinterMode() && isSchematicBlock(pos))
+        workIterable.requestAsync(pos -> ((isPrinterMode() && isSchematicBlock(pos))
                 || TempData.xuanQuFanWeiNei_p(pos))
                 && canInteracted(pos));
 
-        BlockPos pos = iterator.poll();
-        if (pos != null) {
-            return pos;
+        int blockPerTick = 2000;
+        BlockPos pos;
+        while ((pos = workIterable.asyncResultQueue.poll()) != null && blockPerTick-- > 0) {
+            if (((isPrinterMode() && isSchematicBlock(pos))
+                    || TempData.xuanQuFanWeiNei_p(pos))
+                    && canInteracted(pos)) {
+                return pos;
+            }
         }
-        iterator.reset();
         return null;
     }
 
-
-    public @Nullable BlockPos getWorkerBlockPos() {
-        return getBlockPosInternal(false, workIterator);
-    }
-
-    public @Nullable BlockPos getGuiBlockPos() {
-        return getBlockPosInternal(true, guiIterator);
-    }
 
     public void onGameTick(Minecraft client, ClientLevel level, LocalPlayer player) {
         cooldownTick(); // 冷却TICK放在前面, 不受开关与延迟影响
@@ -242,7 +205,7 @@ public class Printer extends PrinterUtils {
         WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
         if (schematic == null) return;
         BlockPos targetPos;
-        while ((targetPos = getWorkerBlockPos()) != null) {
+        while ((targetPos = getBlockPos()) != null) {
             if (queue.needWait) {
                 continue;
             }
@@ -352,53 +315,101 @@ public class Printer extends PrinterUtils {
         }
     }
 
+    // 新增成员变量：强化平滑、抗波动、限流
+    private float targetProgress = 0.0f; // 目标进度（真实进度）
+    private float currentProgress = 0.0f; // 当前显示进度（平滑后）
+    private long lastMaxUpdateTime = 0; // 上一次更新max的时间
+    private long lastProgressUpdateTime = 0; // 上一次更新显示进度的时间
+    private int cachedMax = 0; // 缓存的总任务数
+    private final int[] remainingHistory = new int[5]; // 待处理数滑动窗口（抗波动）
+    private int historyIndex = 0; // 滑动窗口索引
+    private boolean isHistoryInit = false; // 滑动窗口是否初始化完成
 
-    int finishedCount = 0;
-    int valid = 0;
+    // 配置参数（可根据需求调整）
+    private static final long MAX_CACHE_DURATION = 2000; // max缓存时长（ms），延长至2秒
+    private static final long PROGRESS_UPDATE_INTERVAL = 50; // 显示进度最小更新间隔（ms），限流
+    private static final float SMOOTH_FACTOR = 0.1f; // 平滑因子（越小越平滑，0.05~0.2为宜）
+    private static final float MIN_PROGRESS_CHANGE = 0.001f; // 最小进度变化（忽略微小波动）
 
     public float getProgress() {
-        WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
-        if (schematic == null) return 0.0f;
-        // 打印进度相关
-        int totalCount = 0;
-        BlockPos pos;
-        while ((pos = getGuiBlockPos()) != null && client.level != null) {
-            BlockState currentState = client.level.getBlockState(pos);
-            if (isPrinterMode()) {
-                BlockState requiredState = schematic.getBlockState(pos);
-                if (requiredState.isAir()) {
-                    totalCount++;
-                } else if (currentState.getBlock().equals(requiredState.getBlock())) {
-                    finishedCount++;
-                }
-            } else if (isFluidMode() && !(currentState.getBlock() instanceof LiquidBlock)) {
-                finishedCount++;
-            } else if (isFillMode() && Arrays.asList(Functions.FILL.getFillItemsArray()).contains(currentState.getBlock().asItem())) {
-                finishedCount++;
-            } else if (isMineMode() && currentState.isAir()) {
-                finishedCount++;
-            }
+        long currentTime = System.currentTimeMillis();
+
+        // 1. 缓存max值，延长缓存时长，减少波动
+        if (currentTime - lastMaxUpdateTime > MAX_CACHE_DURATION) {
+            cachedMax = Math.max(0, workIterable.getAsyncResultCount());
+            lastMaxUpdateTime = currentTime;
         }
-        if (valid != guiIterator.getValid()) {
-            valid = guiIterator.getValid();
-            finishedCount = 0;
+        int max = cachedMax;
+
+        // 2. 滑动窗口平均待处理数（核心：抵消玩家移动时的瞬时波动）
+        int currentRemaining = Math.max(0, workIterable.asyncResultQueue.size());
+        updateRemainingHistory(currentRemaining);
+        int avgRemaining = getAverageRemaining(); // 取平均值，抗波动
+
+        // 3. 边界条件修正（杜绝异常值）
+        if (max <= 0) {
+            targetProgress = 0.0f;
+            currentProgress = 0.0f;
+            return 0.0f;
         }
-        totalCount = valid - totalCount;
-        if (finishedCount > 0 && totalCount > 0) {
-            workProgress = Math.min(finishedCount / totalCount, 1);
-            if (workProgress == 0) {
-                finishedCount = 0;
+
+        // 4. 计算真实目标进度（钳制在0~1）
+        int completed = Math.max(0, Math.min(max, max - avgRemaining)); // 防止completed为负或超过max
+        targetProgress = (float) completed / max;
+        targetProgress = Math.max(0.0f, Math.min(targetProgress, 1.0f));
+
+        // 5. 限流+渐进式平滑（核心：解决闪烁）
+        if (currentTime - lastProgressUpdateTime > PROGRESS_UPDATE_INTERVAL) {
+            float progressDiff = Math.abs(targetProgress - currentProgress);
+            // 忽略微小波动，仅当变化超过阈值时更新
+            if (progressDiff > MIN_PROGRESS_CHANGE) {
+                // 线性插值（Lerp）平滑：当前进度向目标进度靠近
+                currentProgress = currentProgress + (targetProgress - currentProgress) * SMOOTH_FACTOR;
+                // 最终钳制，避免超界
+                currentProgress = Math.max(0.0f, Math.min(currentProgress, 1.0f));
             }
-        } else {
-            if (totalCount - finishedCount <= 0) {
-                workProgress = 1;
-                finishedCount = 0;
-            } else {
-                workProgress = 0;
-                finishedCount = 0;
-            }
+            lastProgressUpdateTime = currentTime;
         }
-        return workProgress;
+
+        return currentProgress;
+    }
+
+    /**
+     * 更新待处理数滑动窗口（抗瞬时波动）
+     */
+    private void updateRemainingHistory(int value) {
+        remainingHistory[historyIndex] = value;
+        historyIndex = (historyIndex + 1) % remainingHistory.length;
+        if (!isHistoryInit && historyIndex == 0) {
+            isHistoryInit = true;
+        }
+    }
+
+    /**
+     * 获取待处理数的滑动窗口平均值（核心：抵消玩家移动的瞬时波动）
+     */
+    private int getAverageRemaining() {
+        int sum = 0;
+        int count = isHistoryInit ? remainingHistory.length : historyIndex;
+        if (count == 0) {
+            return remainingHistory[0]; // 初始状态返回当前值
+        }
+        for (int i = 0; i < count; i++) {
+            sum += remainingHistory[i];
+        }
+        return sum / count;
+    }
+
+    // 可选：重置进度状态（比如任务重启时调用）
+    public void resetProgress() {
+        targetProgress = 0.0f;
+        currentProgress = 0.0f;
+        cachedMax = 0;
+        lastMaxUpdateTime = 0;
+        lastProgressUpdateTime = 0;
+        historyIndex = 0;
+        isHistoryInit = false;
+        Arrays.fill(remainingHistory, 0);
     }
 
     public Vec3 usePrecisionPlacement(BlockPos pos, BlockState stateSchematic) {
@@ -475,8 +486,8 @@ public class Printer extends PrinterUtils {
 
         static boolean comparePos(Box box, BlockPos pos) {
             if (box == null || box.getPos1() == null || box.getPos2() == null || pos == null) return false;
-            MyBox myBox = new MyBox(box.getPos1(), box.getPos2());
-            return myBox.contains(pos);
+            PrinterBox printerBox = new PrinterBox(box.getPos1(), box.getPos2());
+            return printerBox.contains(pos);
         }
     }
 

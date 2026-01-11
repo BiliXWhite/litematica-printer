@@ -110,7 +110,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         // 核心 - 每刻放置方块数
         public static final ConfigInteger BLOCKS_PER_TICK = integer(I18n.PRINTER_BLOCKS_PER_TICK)
                 .defaultValue(4)
-                .range(0, 24)
+                .range(0, 256)
                 .build();
 
         // 核心 - 迭代占用时长
