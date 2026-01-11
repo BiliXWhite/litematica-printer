@@ -6,9 +6,8 @@ import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
-import fi.dy.masa.malilib.hotkeys.IHotkey;
 import me.aleksilassila.litematica.printer.I18n;
-import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
+import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.config.ConfigExtension;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.UpdateChecker;
@@ -25,7 +24,7 @@ public class ConfigUi extends GuiConfigsBase {
     private static Tab tab = Tab.ALL;
 
     public ConfigUi(@Nullable Screen parent) {
-        super(10, 50, LitematicaPrinterMod.MOD_ID, parent, "投影打印机 " + UpdateChecker.version);
+        super(10, 50, Reference.MOD_ID, parent, "投影打印机 " + UpdateChecker.version);
     }
 
     public ConfigUi() {

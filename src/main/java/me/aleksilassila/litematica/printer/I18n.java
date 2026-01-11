@@ -212,11 +212,11 @@ public class I18n {
     }
 
     public static I18n of(String key) {
-        return new I18n(LitematicaPrinterMod.MOD_ID, key);
+        return new I18n(Reference.MOD_ID, key);
     }
 
     public static I18n config(String key) {
-        return new I18n(LitematicaPrinterMod.MOD_ID, key);
+        return new I18n(Reference.MOD_ID, key);
     }
 
     // 原始传入的键名
