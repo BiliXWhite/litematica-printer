@@ -30,7 +30,6 @@ public class MyBox implements Iterable<BlockPos> {
     private static Iterator<BlockPos> linearIterator;
     private IterationOrderType iterationMode = IterationOrderType.XZY;
     private IterationModeType iterationType = IterationModeType.LINEAR;
-    private BlockPos centerPos; // 玩家中心坐标（整数）
     private boolean circleFromOutside = true; // 圆环迭代方向：true=外向内，false=内向外
 
     public MyBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
@@ -52,6 +51,15 @@ public class MyBox implements Iterable<BlockPos> {
 
     public MyBox(BlockPos pos) {
         this(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    public long getCount() {
+        // 计算各轴的方块数量（闭区间：max - min + 1）
+        long xCount = (long) maxX - minX + 1;
+        long yCount = (long) maxY - minY + 1;
+        long zCount = (long) maxZ - minZ + 1;
+        // 总数量 = 各轴数量乘积
+        return xCount * yCount * zCount;
     }
 
     public boolean contains(int x, int y, int z) {
@@ -111,7 +119,10 @@ public class MyBox implements Iterable<BlockPos> {
     }
 
     public void setIterationOrderType(IterationOrderType mode) {
-        this.iterationMode = mode;
+        if (mode != this.iterationMode) {
+            resetIterations();
+            this.iterationMode = mode;
+        }
     }
 
     @Override
@@ -144,6 +155,7 @@ public class MyBox implements Iterable<BlockPos> {
     public static void resetIterations() {
         resetCircleIterator();
         resetLinearIterator();
+
     }
 
     private Iterator<BlockPos> createLinearIterator() {
