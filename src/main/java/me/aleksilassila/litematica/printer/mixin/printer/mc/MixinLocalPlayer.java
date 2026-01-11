@@ -6,7 +6,7 @@ import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.Printer;
-import me.aleksilassila.litematica.printer.printer.UpdateChecker;
+import me.aleksilassila.litematica.printer.utils.UpdateCheckerUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import me.aleksilassila.litematica.printer.utils.StringUtils;
@@ -93,8 +93,8 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     @Unique
     public void checkForUpdates() {
         CompletableFuture.runAsync(() -> {
-            String version = UpdateChecker.version;
-            String newVersion = UpdateChecker.getPrinterVersion();
+            String version = UpdateCheckerUtils.version;
+            String newVersion = UpdateCheckerUtils.getPrinterVersion();
 
             if (newVersion == null)
                 return;

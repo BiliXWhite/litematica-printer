@@ -1,9 +1,8 @@
-package me.aleksilassila.litematica.printer.printer;
+package me.aleksilassila.litematica.printer.utils;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import me.aleksilassila.litematica.printer.I18n;
-import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import java.io.InputStream;
@@ -16,7 +15,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.Scanner;
 
-public class UpdateChecker {
+public class UpdateCheckerUtils {
     public static final String version = getVersionFromModJson();
 
     public static String getPrinterVersion() {
