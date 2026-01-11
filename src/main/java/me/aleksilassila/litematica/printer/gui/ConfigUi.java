@@ -10,12 +10,11 @@ import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.config.ConfigExtension;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.printer.UpdateChecker;
+import me.aleksilassila.litematica.printer.utils.UpdateCheckerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
@@ -24,7 +23,7 @@ public class ConfigUi extends GuiConfigsBase {
     private static Tab tab = Tab.ALL;
 
     public ConfigUi(@Nullable Screen parent) {
-        super(10, 50, Reference.MOD_ID, parent, "投影打印机 " + UpdateChecker.version);
+        super(10, 50, Reference.MOD_ID, parent, "投影打印机 " + UpdateCheckerUtils.version);
     }
 
     public ConfigUi() {
