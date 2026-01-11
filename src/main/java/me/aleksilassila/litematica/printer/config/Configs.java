@@ -12,10 +12,11 @@ import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.JsonUtils;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.I18n;
-import me.aleksilassila.litematica.printer.LitematicaPrinterMod;
 import fi.dy.masa.malilib.config.ConfigManager;
+import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.config.enums.*;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
+import me.aleksilassila.litematica.printer.gui.ConfigUi;
 import net.minecraft.world.level.block.Blocks;
 
 import java.io.File;
@@ -26,7 +27,7 @@ import java.util.function.BooleanSupplier;
 public class Configs extends ConfigBuilders implements IConfigHandler {
     private static final Configs INSTANCE = new Configs();
 
-    private static final String FILE_PATH = "./config/" + LitematicaPrinterMod.MOD_ID + ".json";
+    private static final String FILE_PATH = "./config/" + Reference.MOD_ID + ".json";
     private static final File CONFIG_DIR = new File("./config");
 
     private static final KeybindSettings BOTH_ALLOW_EXTRA_EMPTY = KeybindSettings.create(KeybindSettings.Context.INGAME, KeyAction.BOTH, true, true, false, true, true);
@@ -651,7 +652,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
             JsonElement jsonElement = JsonUtils.parseJsonFile(settingFile);
             if (jsonElement != null && jsonElement.isJsonObject()) {
                 JsonObject obj = jsonElement.getAsJsonObject();
-                ConfigUtils.readConfigBase(obj, LitematicaPrinterMod.MOD_ID, OPTIONS);
+                ConfigUtils.readConfigBase(obj, Reference.MOD_ID, OPTIONS);
             }
         }
     }
@@ -660,14 +661,14 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
     public void save() {
         if ((CONFIG_DIR.exists() && CONFIG_DIR.isDirectory()) || CONFIG_DIR.mkdirs()) {
             JsonObject configRoot = new JsonObject();
-            ConfigUtils.writeConfigBase(configRoot, LitematicaPrinterMod.MOD_ID, OPTIONS);
+            ConfigUtils.writeConfigBase(configRoot, Reference.MOD_ID, OPTIONS);
             JsonUtils.writeJsonToFile(configRoot, new File(FILE_PATH));
         }
     }
 
     public static void init() {
         Configs.INSTANCE.load();
-        ConfigManager.getInstance().registerConfigHandler(LitematicaPrinterMod.MOD_ID, Configs.INSTANCE);
+        ConfigManager.getInstance().registerConfigHandler(Reference.MOD_ID, Configs.INSTANCE);
         InputEventHandler.getKeybindManager().registerKeybindProvider(InputHandler.getInstance());
         InputEventHandler.getInputManager().registerKeyboardInputHandler(InputHandler.getInstance());
     }
