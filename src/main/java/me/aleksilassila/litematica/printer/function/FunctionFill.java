@@ -69,10 +69,13 @@ public class FunctionFill extends Function {
                 }
             }
         }
+        boolean running = true;
         BlockPos pos;
-        while ((pos = printer.getBlockPos()) != null) {
-            if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0)
-                return;
+        while (running && (pos = printer.getBlockPos()) != null) {
+            if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0) {
+                running = false;
+                continue;
+            }
             if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.Fill.FILL_SELECTION_TYPE))
                 continue;
             if (!Printer.TempData.xuanQuFanWeiNei_p(pos))

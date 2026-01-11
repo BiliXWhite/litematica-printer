@@ -86,6 +86,7 @@ public class BoxIterable implements Iterable<BlockPos> {
                 asyncResultQueue.clear(); // 清空旧结果
                 // 遍历同步迭代器，异步处理
                 for (BlockPos pos : this) {
+                    if (pos == null) continue;
                     if (filter.test(pos)) {
                         asyncResultQueue.offer(pos);
                     }
