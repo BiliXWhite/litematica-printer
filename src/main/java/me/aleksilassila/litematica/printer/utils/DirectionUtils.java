@@ -43,9 +43,13 @@ public class DirectionUtils {
     }
 
     public static Direction[] orderedByNearest(float yaw, float pitch) {
-        // 将角度转换为弧度
+        //#if MC >= 12111
+        //$$ double pitchRad = pitch * (Math.PI / 180.0);
+        //$$ double yawRad = -yaw * (Math.PI / 180.0);
+        //#else
         float pitchRad = pitch * (float) (Math.PI / 180.0);
         float yawRad = -yaw * (float) (Math.PI / 180.0);
+        //#endif
 
         // 计算三角函数
         float sinPitch = Mth.sin(pitchRad);
