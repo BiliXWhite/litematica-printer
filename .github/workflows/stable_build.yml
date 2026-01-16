@@ -1,4 +1,4 @@
-name: Build
+name: Stable Build
 on:
   workflow_call:
     inputs:
@@ -94,3 +94,9 @@ jobs:
         with:
           name: quickshulker-mod-${{ env.COMMIT_HASH }}
           path: mod-jars/*.jar
+
+      - name: release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: fabricWrapper/build/libs/*
+          token: ${{ secrets.GITHUB_TOKEN }}

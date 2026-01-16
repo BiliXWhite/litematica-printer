@@ -1,0 +1,47 @@
+name: Deprecated Build
+on:
+#  push:
+#    paths-ignore: ['*.md']
+#  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+
+      - name: validate gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: setup jdk
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'microsoft'
+
+      - name: Cache Gradle dependencies (公共缓存)
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ./.gradle
+          # 固定缓存键（公共缓存），不依赖文件哈希
+          key: ${{ runner.os }}-gradle-common
+          # 恢复键与主键一致，确保优先使用公共缓存
+          restore-keys: |
+            ${{ runner.os }}-gradle-common
+
+      - name: make gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: build fabricWrapper subproject
+        run: ./gradlew :fabricWrapper:build --stacktrace
+
+      - name: capture build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Artifacts
+          path: fabricWrapper/build/libs/
