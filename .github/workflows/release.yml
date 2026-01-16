@@ -1,0 +1,101 @@
+name: Release
+
+# release: <default> (release title)
+# dispatch (all): Manual release for $target_release_tag
+# dispatch (specified): Manual release for $target_release_tag (subproject: $target_subproject)
+run-name: |-
+  ${{ github.event_name == 'workflow_dispatch' && format('Manual release for {0}{1}', inputs.target_release_tag, inputs.target_subproject && format(' (subproject: {0})', inputs.target_subproject) || '') || '' }}
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    inputs:
+      target_subproject:
+        description: |-
+          The subproject name(s) of the specified Minecraft version to be released, seperated with ",".
+          By default all subprojects will be released
+        type: string
+        required: false
+        default: ''
+      target_release_tag:
+        description: The tag of the release you want to append the artifact to
+        type: string
+        required: true
+
+
+jobs:
+  show_action_parameters:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show action parameters
+        run: |
+          cat <<EOF > $GITHUB_STEP_SUMMARY
+          ## Action Parameters
+          - target_subproject: \`${{ github.event.inputs.target_subproject }}\`
+          - target_release_tag: \`${{ github.event.inputs.target_release_tag }}\`
+          EOF
+
+  matrix_prep:
+    uses: ./.github/workflows/matrix_prep.yml
+    with:
+      target_subproject: ${{ github.event.inputs.target_subproject }}
+
+  changelog:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout all
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate publish related information
+        id: release_info_for_changelog
+        run: |
+          if [ $GITHUB_EVENT_NAME == 'release' ]
+          then
+              # Leave an empty value here, so Kir-Antipov/mc-publish will infer the tag from the action context
+              echo "tag_name=" >> $GITHUB_OUTPUT
+          elif [ $GITHUB_EVENT_NAME == 'workflow_dispatch' ]
+          then
+              echo "tag_name=${{ github.event.inputs.target_release_tag }}" >> $GITHUB_OUTPUT
+          else
+              echo Unknown github event name $GITHUB_EVENT_NAME
+              exit 1
+          fi
+
+      - name: Install git-cliff
+        uses: taiki-e/install-action@git-cliff
+
+      - name: Generate changelog
+        run: git-cliff --latest -o CHANGELOG.md
+
+      - name: Upload changelog to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_info_for_changelog.outputs.tag_name }}
+          body_path: CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ensure the input release tag is valid
+  validate_release:
+    runs-on: ubuntu-latest
+    needs: changelog
+    steps:
+      - name: Get github release information
+        uses: cardinalby/git-get-release-action@1.2.5
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tag: ${{ github.event.inputs.target_release_tag }}
+
+  build:
+    uses: ./.github/workflows/stable_build.yml
+    needs:
+      - validate_release
+    with:
+      target_subproject: ${{ github.event.inputs.target_subproject }}
+      release: true
