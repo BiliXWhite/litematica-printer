@@ -145,18 +145,8 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(IterationOrderType.XZY)
                 .build();
 
-        // 核心 - 迭代模式
-        public static final ConfigOptionList ITERATION_MODE = optionList(I18n.of("ITERATION_MODE"))
-                .defaultValue(IterationModeType.LINEAR)
-                .build();
-
         // 核心 - 迭代X轴反向
         public static final ConfigBoolean X_REVERSE = bool(I18n.PRINTER_X_AXIS_REVERSE)
-                .defaultValue(false)
-                .build();
-
-        // 核心 - 迭代X轴反向
-        public static final ConfigBoolean CIRCLE_DIRECTION = bool(I18n.of("CIRCLE_DIRECTION"))
                 .defaultValue(false)
                 .build();
 
@@ -249,8 +239,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 CHECK_PLAYER_INTERACTION_RANGE,// 核心 - 检查玩家方块交互距离
                 ITERATOR_SHAPE,                // 核心 - 迭代区域形状
                 ITERATION_ORDER,               // 核心 - 迭代遍历顺序
-                ITERATION_MODE ,
-                CIRCLE_DIRECTION,
                 X_REVERSE,                     // 核心 - 迭代X轴反向
                 Y_REVERSE,                     // 核心 - 迭代Y轴反向
                 Z_REVERSE,                     // 核心 - 迭代Z轴反向
@@ -401,6 +389,15 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .setVisible(isMulti) // 仅多模式时显示
                 .build();
 
+        public static final ConfigBoolean BREAK_PLACE_USE_PACKET = bool(I18n.of("PRINTER_USE_PACKET"))
+                .defaultValue(false)
+                .build();
+
+        public static final ConfigInteger BREAK_PROGRESS_THRESHOLD = integer(I18n.of("PRINTER_BREAK_PROGRESS_THRESHOLD"))
+                .defaultValue(70)
+                .range(70, 100)
+                .build();
+
         // 挖掘 - 挖掘模式限制器
         public static final ConfigOptionList EXCAVATE_LIMITER = optionList(I18n.EXCAVATE_LIMITER)
                 .defaultValue(ExcavateListMode.CUSTOM)
@@ -434,6 +431,9 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 // 核心开关 & 限制器
                 MINE,                         // 挖掘 - 多模开关
                 EXCAVATE_LIMITER,             // 挖掘 - 挖掘模式限制器
+
+                BREAK_PLACE_USE_PACKET,
+                BREAK_PROGRESS_THRESHOLD,
 
                 // 自定义限制配置
                 MINE_SELECTION_TYPE,          // 挖掘 - 选区类型

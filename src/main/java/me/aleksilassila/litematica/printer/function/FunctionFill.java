@@ -18,6 +18,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -69,22 +70,21 @@ public class FunctionFill extends Function {
                 }
             }
         }
-        boolean running = true;
+        boolean loop = true;
         BlockPos pos;
-        while (running && (pos = printer.getBlockPos()) != null) {
+        while (loop && (pos = printer.getBlockPos()) != null) {
             if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0) {
-                running = false;
+                loop = false;
+            }
+            if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.Fill.FILL_SELECTION_TYPE)) {
                 continue;
             }
-            if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.Fill.FILL_SELECTION_TYPE))
-                continue;
-            if (!Printer.TempData.xuanQuFanWeiNei_p(pos))
-                continue;
             // 跳过冷却中的位置
-            if (Printer.getInstance().placeCooldownList.containsKey(pos))
+            if (Printer.getInstance().placeCooldownList.containsKey(pos)) {
                 continue;
+            }
             Printer.getInstance().placeCooldownList.put(pos, Configs.General.PLACE_COOLDOWN.getIntegerValue());
-            var currentState = level.getBlockState(pos);
+            BlockState currentState = level.getBlockState(pos);
             if (currentState.isAir() || (currentState.getBlock() instanceof LiquidBlock) || Configs.Put.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> FilterUtils.matchName(s, currentState))) {
                 if (handheld || printer.switchToItems(player, getFillItemsArray())) {
                     if (handheld) {

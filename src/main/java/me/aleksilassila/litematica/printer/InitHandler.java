@@ -61,9 +61,8 @@ public class InitHandler implements IInitializationHandler {
             if (!b.getBooleanValue()) {
                 Printer printer = Printer.getInstance();
                 printer.clearQueue();
-                printer.workIterable.reset();
+                printer.basePos=null;
                 printer.pistonNeedFix = false;
-                printer.blockContext = null;
                 if (ModLoadStatus.isBedrockMinerLoaded()) {
                     if (BedrockUtils.isWorking()) {
                         BedrockUtils.setWorking(false);
