@@ -78,7 +78,9 @@ public class BreakManager {
     public static boolean breakRestriction(BlockState blockState) {
         if (blockState.isAir()) return false;
         if (Configs.Excavate.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
-            if (!ModLoadStatus.isTweakerooLoaded()) return true;
+            if (!ModLoadStatus.isTweakerooLoaded()) {
+                return true;
+            }
             UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
                 return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST
