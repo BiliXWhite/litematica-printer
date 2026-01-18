@@ -12,10 +12,13 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class Function extends PrinterUtils  {
+public abstract class Function extends PrinterUtils {
     public abstract PrintModeType getPrintModeType();
 
     public abstract ConfigBoolean getCurrentConfig();
+
+    public void cooldownTick() {
+    }
 
     public boolean canTick() {
         if (Configs.General.MODE_SWITCH.getOptionListValue() instanceof ModeType modeType) {    // 当前模式
