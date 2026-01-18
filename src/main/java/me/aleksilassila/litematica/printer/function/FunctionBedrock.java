@@ -27,7 +27,6 @@ public class FunctionBedrock extends Function {
 
     @Override
     public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
-        printer.printerYAxisReverse = true;
         if (player.isCreative()) {
             MessageUtils.setOverlayMessage("创造模式无法使用破基岩模式！");
             return;
