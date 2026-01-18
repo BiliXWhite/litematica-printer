@@ -121,16 +121,12 @@ public class InteractionUtils {
                 return BlockBreakResult.IN_PROGRESS;
             }
         } else {
-            // 切换破坏方块：中止原破坏
             if (breakingBlock && !pos.equals(currentBreakingPos)) {
                 NetworkUtils.sendPacket(getServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, currentBreakingPos, direction, 0));
                 setBreakingBlock(false);
-                // 先返回中止状态，再处理新方块
             }
             currentBreakingProgress += PlayerUtils.calcBlockBreakingDelta(player, blockState);
-
-            // 进度直接达标（罕见情况）：完成破坏
-            if (currentBreakingProgress >= 1.0F) {  ///
+            if (currentBreakingProgress >= 1.0F) {  // 服务端刚开始的瞬间破坏是>=1.0F的, 所以这个值是不应该降低
                 setBreakingBlock(true);
                 NetworkUtils.sendSequencedPacket((sequence) -> {
                     if (!blockState.isAir() && localPrediction) {
@@ -142,7 +138,6 @@ public class InteractionUtils {
                 setBreakingBlock(false);
                 return BlockBreakResult.COMPLETED;
             } else {
-                // 开始新方块的破坏：返回“进行中”
                 NetworkUtils.sendSequencedPacket((sequence) -> {
                     if (!blockState.isAir() && currentBreakingProgress == 0.0F) {
                         blockState.attack(world, pos, player);
