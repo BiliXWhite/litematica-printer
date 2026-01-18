@@ -92,7 +92,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 核心 - 使用投影轻松放置协议
         public static final ConfigBoolean EASY_PLACE_PROTOCOL = bool(I18n.EASY_PLACE_PROTOCOL)
-                .defaultValue(true)
+                .defaultValue(false)
                 .build();
 
         // 核心 - 工作半径
