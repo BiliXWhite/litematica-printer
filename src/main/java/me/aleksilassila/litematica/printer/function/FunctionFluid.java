@@ -18,6 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -28,6 +29,8 @@ public class FunctionFluid extends Function {
     private List<String> fluidBlocks = new ArrayList<>();
     private List<Fluid> fluids = List.of(new Fluid[0]);
 
+    private @Nullable BlockPos blockPos;
+
     @Override
     public PrintModeType getPrintModeType() {
         return PrintModeType.FLUID;
@@ -36,6 +39,10 @@ public class FunctionFluid extends Function {
     @Override
     public ConfigBoolean getCurrentConfig() {
         return Configs.Hotkeys.FLUID;
+    }
+
+    public @Nullable BlockPos getBlockPos() {
+        return blockPos;
     }
 
     @Override
@@ -66,22 +73,21 @@ public class FunctionFluid extends Function {
                 fluids.addAll(list);
             }
         }
-
-        BlockPos pos;
-        while ((pos = printer.getBlockPos()) != null) {
+        boolean loop = true;
+        while (loop && (blockPos = printer.getBlockPos()) != null) {
             if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0) {
-                return;
+                loop = false;
             }
-            if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.FLUID.FLUID_SELECTION_TYPE)) {
+            if (!PrinterUtils.isPositionInSelectionRange(player, blockPos, Configs.FLUID.FLUID_SELECTION_TYPE)) {
                 continue;
             }
-            printer.placeCooldownList.put(pos, Configs.General.PLACE_COOLDOWN.getIntegerValue());
-            FluidState fluidState = level.getBlockState(pos).getFluidState();
+            printer.placeCooldownList.put(blockPos, Configs.General.PLACE_COOLDOWN.getIntegerValue());
+            FluidState fluidState = level.getBlockState(blockPos).getFluidState();
             if (fluids.contains(fluidState.getType())) {
                 if (!Configs.FLUID.FILL_FLOWING_FLUID.getBooleanValue() && !fluidState.isSource())
                     continue;
                 if (printer.switchToItems(player, fillItems.toArray(new Item[0]))) {
-                    new PlacementGuide.Action().queueAction(printer.queue, pos, Direction.UP, false);
+                    new PlacementGuide.Action().queueAction(printer.queue, blockPos, Direction.UP, false);
                     if (printer.tickRate == 0) {
                         printer.queue.sendQueue(player);
                         if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0) {

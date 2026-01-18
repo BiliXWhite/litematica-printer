@@ -47,4 +47,23 @@ public class StringUtils {
         }
         return joiner.toString();
     }
+
+    @Nullable
+    public static String getTranslatedOrFallback(String key, @Nullable String fallback) {
+        String translated = translatable(key).getString();
+        if (!key.equals(translated)) {
+            return translated;
+        }
+        return fallback;
+    }
+
+    @Nullable
+    public static String getTranslatedOrFallback(String key, @Nullable String fallback, Object... objects) {
+        String translated = translatable(key, objects).getString();
+        if (!key.equals(translated)) {
+            return translated;
+        }
+        return fallback;
+    }
+
 }

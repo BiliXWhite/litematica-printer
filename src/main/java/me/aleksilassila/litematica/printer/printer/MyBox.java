@@ -1,50 +1,58 @@
-package me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite;
+package me.aleksilassila.litematica.printer.printer;
 
-import fi.dy.masa.litematica.selection.Box;
 import me.aleksilassila.litematica.printer.config.enums.IterationOrderType;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.Vec3i;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 
-public class MyBox extends AABB implements Iterable<BlockPos> {
+public class MyBox implements Iterable<BlockPos> {
+    public static final Minecraft client = Minecraft.getInstance();
+    public final int minX;
+    public final int minY;
+    public final int minZ;
+    public final int maxX;
+    public final int maxY;
+    public final int maxZ;
     public boolean yIncrement = true;
     public boolean xIncrement = true;
     public boolean zIncrement = true;
-    private Iterator<BlockPos> iterator;
     private IterationOrderType iterationMode = IterationOrderType.XZY;
+    private Iterator<BlockPos> iterator;
+    private Iterator<BlockPos> iteratorGui;
 
     public void setIterationMode(IterationOrderType mode) {
         this.iterationMode = mode;
     }
 
-    public MyBox(double x1, double y1, double z1, double x2, double y2, double z2) {
-        super(x1, y1, z1, x2, y2, z2);
-    }
-
-    public MyBox(fi.dy.masa.litematica.selection.Box box) {
-        this(Vec3.atLowerCornerOf(box.getPos1()), Vec3.atLowerCornerOf(box.getPos2()));
+    public MyBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        this.minX = Math.min(minX, maxX);
+        this.minZ = Math.min(minZ, maxZ);
+        this.maxX = Math.max(minX, maxX);
+        this.maxZ = Math.max(minZ, maxZ);
+        int rawMinY = Math.min(minY, maxY);
+        int rawMaxY = Math.max(minY, maxY);
+        if (client.level != null) {
+            this.minY = Math.max(client.level.getMinY(), rawMinY);
+            this.maxY = Math.min(client.level.getMaxY(), rawMaxY);
+        } else {
+            this.minY = rawMinY;
+            this.maxY = rawMaxY;
+        }
     }
 
     public MyBox(BlockPos pos) {
         this(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
     }
 
-    public MyBox(Vec3 pos1, Vec3 pos2) {
-        this(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z);
-    }
-
-    public MyBox(BlockPos pos1, BlockPos pos2) {
+    public MyBox(Vec3i pos1, Vec3i pos2) {
         this(pos1.getX(), pos1.getY(), pos1.getZ(), pos2.getX(), pos2.getY(), pos2.getZ());
     }
 
-    //因原方法最大值比较时使用的是 < 而不是 <= 因此 最小边界能被覆盖 而最大边界不能
-    @Override
-    public boolean contains(double x, double y, double z) {
+    public boolean contains(int x, int y, int z) {
         return x >= this.minX && x <= this.maxX && y >= this.minY && y <= this.maxY && z >= this.minZ && z <= this.maxZ;
     }
 
@@ -52,26 +60,20 @@ public class MyBox extends AABB implements Iterable<BlockPos> {
         return vec3i.getX() >= this.minX && vec3i.getX() <= this.maxX && vec3i.getY() >= this.minY && vec3i.getY() <= this.maxY && vec3i.getZ() >= this.minZ && vec3i.getZ() <= this.maxZ;
     }
 
-    @Override
-    public MyBox inflate(double x, double y, double z) {
-        double d = this.minX - x;
-        double e = this.minY - y;
-        double f = this.minZ - z;
-        double g = this.maxX + x;
-        double h = this.maxY + y;
-        double i = this.maxZ + z;
-        return new MyBox(d, e, f, g, h, i);
+    public MyBox expand(int x, int y, int z) {
+        int minX = this.minX - x;
+        int minY = this.minY - y;
+        int minZ = this.minZ - z;
+        int maxX = this.maxX + x;
+        int maxY = this.maxY + y;
+        int maxZ = this.maxZ + z;
+        return new MyBox(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
-    @Override
-    public MyBox inflate(double value) {
-        return this.inflate(value, value, value);
+    public MyBox expand(int value) {
+        return this.expand(value, value, value);
     }
 
-    public void initIterator() {
-
-
-    }
 
     @Override
     public @NotNull Iterator<BlockPos> iterator() {
@@ -79,6 +81,13 @@ public class MyBox extends AABB implements Iterable<BlockPos> {
             this.iterator = new BoxIterator();
         }
         return this.iterator;
+    }
+
+    public @NotNull Iterator<BlockPos> iteratorGui() {
+        if (this.iteratorGui == null) {
+            this.iteratorGui = new BoxIterator();
+        }
+        return this.iteratorGui;
     }
 
     private class BoxIterator implements Iterator<BlockPos> {
