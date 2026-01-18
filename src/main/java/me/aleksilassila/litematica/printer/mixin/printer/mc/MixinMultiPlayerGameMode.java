@@ -28,8 +28,7 @@ public abstract class MixinMultiPlayerGameMode implements IMultiPlayerGameMode {
     private Minecraft minecraft;
 
     @Override
-    public void litematica_printer$rightClickBlock(BlockPos pos, Direction side, Vec3 hitVec)
-    {
+    public void litematica_printer$rightClickBlock(BlockPos pos, Direction side, Vec3 hitVec) {
         useItemOn(minecraft.player,
                 //#if MC < 11904
                 //$$ minecraft.level,
@@ -41,6 +40,11 @@ public abstract class MixinMultiPlayerGameMode implements IMultiPlayerGameMode {
                 //$$ minecraft.level,
                 //#endif
                 InteractionHand.MAIN_HAND);
+    }
+
+    @Override
+    public void litematica_printer$ensureHasSentCarriedItem() {
+        ensureHasSentCarriedItem();
     }
 
     @Shadow
@@ -57,4 +61,7 @@ public abstract class MixinMultiPlayerGameMode implements IMultiPlayerGameMode {
                                               //$$ Level level,
                                               //#endif
                                               InteractionHand hand_1);
+
+    @Shadow
+    protected abstract void ensureHasSentCarriedItem();
 }
