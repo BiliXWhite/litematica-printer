@@ -363,9 +363,19 @@ public class PlacementGuide extends PrinterUtils {
                     State inputState = State.get(input, inputPropertiesToIgnore.toArray(new Property<?>[0]));
                     State outputState = State.get(output);
                     if (inputState == State.CORRECT && outputState == State.CORRECT) {
-                        if (!(input.requiredState.getBlock() instanceof ObserverBlock)) {
-                            return new Action().setLookDirection(facing);
+                        // 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
+                        BlockContext temp = input;
+                        while (temp.requiredState.getBlock() instanceof ObserverBlock) {
+                            @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
+                            // 查找下一个侦测器并检查并检查状态是否正确
+                            BlockContext offset = temp.offset(tempObserverFacing);
+                            if (tempObserverFacing != null && State.get(offset) != State.CORRECT) {
+                                return null;
+                            }
+                            // 传递检查
+                            temp = offset;
                         }
+                        return new Action().setLookDirection(facing);
                     }
                     // 输入端已放置成功，并状态一致
                     if (inputState == State.CORRECT) {
