@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluids;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -77,6 +78,7 @@ public class BreakManager {
 
     public static boolean breakRestriction(BlockState blockState) {
         if (blockState.isAir()) return false;
+        if (!blockState.getFluidState().isEmpty()) return false;
         if (Configs.Excavate.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
             if (!ModLoadStatus.isTweakerooLoaded()) {
                 return true;

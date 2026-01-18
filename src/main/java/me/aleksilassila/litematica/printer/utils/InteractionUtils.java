@@ -75,6 +75,7 @@ public class InteractionUtils {
         if (player.blockActionRestricted(world, pos, gameMode.getPlayerMode())) return BlockBreakResult.FAILED;
         if (!PlayerUtils.canInteractWithBlockAt(player, pos, 0F)) return BlockBreakResult.FAILED;
         BlockState blockState = world.getBlockState(pos);
+        if (!blockState.getFluidState().isEmpty()) return BlockBreakResult.FAILED;
         if (gameMode.getPlayerMode().isCreative()) {
             setBreakingBlock(true);
             NetworkUtils.sendSequencedPacket((sequence) -> {
