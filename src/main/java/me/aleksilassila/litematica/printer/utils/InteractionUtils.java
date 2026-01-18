@@ -1,5 +1,7 @@
 package me.aleksilassila.litematica.printer.utils;
 
+import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.TweakerooUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -76,6 +78,12 @@ public class InteractionUtils {
         if (!PlayerUtils.canInteractWithBlockAt(player, pos, 0F)) return BlockBreakResult.FAILED;
         BlockState blockState = world.getBlockState(pos);
         if (!blockState.getFluidState().isEmpty()) return BlockBreakResult.FAILED;
+        if (blockState.isAir()) return BlockBreakResult.FAILED;
+        if (ModLoadStatus.isTweakerooLoaded()) {
+            if (TweakerooUtils.isToolSwitchEnabled()) {
+                TweakerooUtils.trySwitchToEffectiveTool(pos);
+            }
+        }
         if (gameMode.getPlayerMode().isCreative()) {
             setBreakingBlock(true);
             NetworkUtils.sendSequencedPacket((sequence) -> {
