@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.Inventor
 public class FunctionFill extends Function {
     private List<Item> fillModeItemList = new ArrayList<>();
     private List<String> fillcaCheBlocklist = new ArrayList<>();
+    private @Nullable BlockPos blockPos;
 
     @Override
     public PrintModeType getPrintModeType() {
@@ -39,6 +41,10 @@ public class FunctionFill extends Function {
     @Override
     public ConfigBoolean getCurrentConfig() {
         return Configs.Fill.FILL;
+    }
+
+    public @Nullable BlockPos getBlockPos() {
+        return blockPos;
     }
 
     @Override
@@ -71,20 +77,19 @@ public class FunctionFill extends Function {
             }
         }
         boolean loop = true;
-        BlockPos pos;
-        while (loop && (pos = printer.getBlockPos()) != null) {
+        while (loop && (blockPos = printer.getBlockPos()) != null) {
             if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0) {
                 loop = false;
             }
-            if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.Fill.FILL_SELECTION_TYPE)) {
+            if (!PrinterUtils.isPositionInSelectionRange(player, blockPos, Configs.Fill.FILL_SELECTION_TYPE)) {
                 continue;
             }
             // 跳过冷却中的位置
-            if (Printer.getInstance().placeCooldownList.containsKey(pos)) {
+            if (Printer.getInstance().placeCooldownList.containsKey(blockPos)) {
                 continue;
             }
-            Printer.getInstance().placeCooldownList.put(pos, Configs.General.PLACE_COOLDOWN.getIntegerValue());
-            BlockState currentState = level.getBlockState(pos);
+            Printer.getInstance().placeCooldownList.put(blockPos, Configs.General.PLACE_COOLDOWN.getIntegerValue());
+            BlockState currentState = level.getBlockState(blockPos);
             if (currentState.isAir() || (currentState.getBlock() instanceof LiquidBlock) || Configs.Put.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> FilterUtils.matchName(s, currentState))) {
                 if (handheld || printer.switchToItems(player, getFillItemsArray())) {
                     if (handheld) {
@@ -93,7 +98,7 @@ public class FunctionFill extends Function {
                     }
                     new PlacementGuide.Action()
                             .setLookDirection(PlaceUtils.getFillModeFacing().getOpposite())
-                            .queueAction(printer.queue, pos, PlaceUtils.getFillModeFacing(), false);
+                            .queueAction(printer.queue, blockPos, PlaceUtils.getFillModeFacing(), false);
                     printer.queue.sendQueue(player);
 
                     if (printer.tickRate == 0) {

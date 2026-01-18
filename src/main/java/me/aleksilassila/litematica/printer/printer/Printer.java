@@ -17,7 +17,6 @@ import me.aleksilassila.litematica.printer.function.Functions;
 import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.utils.*;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -85,6 +84,8 @@ public class Printer extends PrinterUtils {
     public boolean pistonNeedFix = false;
     public float workProgress = 0;
 
+    public long workProgressTotalCount = 0, workProgressFinishedCount = 0;
+
     private Printer(@NotNull Minecraft client) {
         this.guide = new PlacementGuide(client);
         this.queue = new Queue(this);
@@ -98,78 +99,115 @@ public class Printer extends PrinterUtils {
         return INSTANCE;
     }
 
-    public BlockPos getBlockPos() {
-        if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime)
+    public BlockPos getBlockPos(boolean gui) {
+        long tickEndTime = gui ? this.tickEndTime + 5 : this.tickEndTime;
+        if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
             return null;
+        }
         LocalPlayer player = client.player;
-        if (player == null)
+        ClientLevel level = client.level;
+        if (player == null || level == null) {
             return null;
+        }
         BlockPos playerPos = player.getOnPos();
         double threshold = printRange * 0.7;
         if (basePos == null || !basePos.closerThan(playerPos, threshold)) {
             basePos = playerPos;
-            myBox = new MyBox(basePos).inflate(printRange);
+            myBox = new MyBox(basePos).expand(printRange);
+            workProgressTotalCount = 0;
+            workProgressFinishedCount = 0;
         }
         if (Configs.General.ITERATION_ORDER.getOptionListValue() instanceof IterationOrderType iterationOrderType) {
-            myBox.initIterator();
             myBox.setIterationMode(iterationOrderType);
             myBox.xIncrement = !Configs.General.X_REVERSE.getBooleanValue();
             myBox.yIncrement = !Configs.General.Y_REVERSE.getBooleanValue();
             myBox.zIncrement = !Configs.General.Z_REVERSE.getBooleanValue();
-            Iterator<BlockPos> iterator = myBox.iterator();
-            boolean canRun = true;
-            while (canRun && iterator.hasNext()) {
+            Iterator<BlockPos> iterator = gui ? myBox.iteratorGui() : myBox.iterator();
+            boolean loop = true;
+            while (loop && iterator.hasNext()) {
                 BlockPos pos = iterator.next();
                 if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
-                    canRun = false;
+                    loop = false;   // 退出循环, 但是不浪费本次获取的位置
                 }
-                if (
-                        ((isPrinterMode() && isSchematicBlock(pos)) ||
-                                TempData.xuanQuFanWeiNei_p(pos)) &&
-                                PrinterUtils.canInteracted(pos)
-                ) {
+                if (!PrinterUtils.canInteracted(pos)) {
+                    continue;
+                }
+                if (!gui) { // 仅非 GUI 进行预筛选, 因为需要计算进度
+                    if (isMineMode() && level.getBlockState(pos).isAir()) {
+                        continue;
+                    }
+                    if (isFluidMode() && level.getBlockState(pos).getFluidState().isEmpty()) {
+                        continue;
+                    }
+                    if (isFillMode() && !BlockUtils.isReplaceable(level.getBlockState(pos))) {
+                        continue;
+                    }
+                }
+                if (isPrinterMode() && isSchematicBlock(pos) || TempData.xuanQuFanWeiNei_p(pos)) {
                     return pos;
                 }
+            }
+            // 是强制被退出, 不重置位置
+            if (!loop) {
+                return null;
             }
         }
         basePos = null;
         return null;
     }
 
-    public float getProgress() {
-        // 重置 basePos 以确保重新初始化迭代器
-        basePos = null;
-        WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
-        if (schematic == null) return 0.0f;
-        // 打印进度相关
-        int totalCount = 0;
-        int finishedCount = 0;
-        BlockPos pos;
-        while ((pos = getBlockPos()) != null) {
-            BlockState currentState = client.level.getBlockState(pos);
-            totalCount++;
+    public @Nullable BlockPos getBlockPos() {
+        return getBlockPos(false);
+    }
 
+    public float getProgress() {
+        if (client.level == null) return 0.0f;
+        BlockPos pos;
+        while ((pos = getBlockPos(true)) != null) {
             if (isPrinterMode()) {
-                BlockState requiredState = schematic.getBlockState(pos);
-                if (requiredState.isAir()) {
-                    totalCount--;
+                if (!PrinterUtils.isPositionInSelectionRange(client.player, pos, Configs.Put.PRINT_SELECTION_TYPE)) {
                     continue;
                 }
-                if (currentState.getBlock().defaultBlockState().equals(requiredState.getBlock().defaultBlockState())) {
-                    finishedCount++;
+                WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
+                if (schematic == null) return 0.0f;
+                BlockContext context = new BlockContext(client, client.level, schematic, pos);
+                if (context.requiredState.isAir()) {
+                    continue;
+                }
+                if (State.get(context) == State.CORRECT) {
+                    workProgressFinishedCount++;
                 }
             }
-            if (isFluidMode() && !(currentState.getBlock() instanceof LiquidBlock)) {
-                finishedCount++;
+
+            if (isFluidMode()) {
+                if (!PrinterUtils.isPositionInSelectionRange(client.player, pos, Configs.FLUID.FLUID_SELECTION_TYPE)) {
+                    continue;
+                }
+                if (!(client.level.getBlockState(pos).getBlock() instanceof LiquidBlock)) {
+                    workProgressFinishedCount++;
+                }
             }
-            if (isFillMode() && Arrays.asList(Functions.FILL.getFillItemsArray()).contains(currentState.getBlock().asItem())) {
-                finishedCount++;
+
+            if (isFillMode()) {
+                if (!PrinterUtils.isPositionInSelectionRange(client.player, pos, Configs.Fill.FILL_SELECTION_TYPE)) {
+                    continue;
+                }
+                if (Arrays.asList(Functions.FILL.getFillItemsArray()).contains(client.level.getBlockState(pos).getBlock().asItem())) {
+                    workProgressFinishedCount++;
+                }
             }
-            if (isMineMode() && currentState.isAir()) {
-                finishedCount++;
+
+            if (isMineMode()) {
+                if (!PrinterUtils.isPositionInSelectionRange(client.player, pos, Configs.Excavate.MINE_SELECTION_TYPE)) {
+                    continue;
+                }
+                if (client.level.getBlockState(pos).isAir()) {
+                    workProgressFinishedCount++;
+                }
             }
+            workProgressTotalCount++;
         }
-        workProgress = totalCount < 1 ? workProgress : (float) finishedCount / totalCount;
+        workProgress = workProgressTotalCount < 1 ? workProgress : (float) workProgressFinishedCount / workProgressTotalCount;
         return workProgress;
     }
 
@@ -216,6 +254,7 @@ public class Printer extends PrinterUtils {
 
     private void functionTick(Minecraft client, ClientLevel level, LocalPlayer player) {
         for (Function function : Functions.VALUES) {
+            function.cooldownTick();
             if (!function.canTick()) {
                 continue;
             }
@@ -245,16 +284,15 @@ public class Printer extends PrinterUtils {
         // 遍历当前区域内所有符合条件的位置
         WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
         if (schematic == null) return;
-        boolean running = true;
+        boolean loop = true;
         BlockPos targetPos;
-        while (running && (targetPos = getBlockPos()) != null) {
+        while (loop && (targetPos = getBlockPos()) != null) {
             if (queue.needWait) {
                 continue;
             }
             // 检查每刻放置方块是否超出限制
             if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0 && printerWorkingCountPerTick == 0) {
-                running = false;
-                continue;
+                loop = false;
             }
             // 是否在渲染层内
             if (!PrinterUtils.isPositionInSelectionRange(player, targetPos, Configs.Put.PRINT_SELECTION_TYPE)) {
@@ -268,7 +306,8 @@ public class Printer extends PrinterUtils {
             if (placeCooldownList.containsKey(targetPos)) {
                 continue;
             }
-            BlockContext blockContext = new BlockContext(client, level, schematic, targetPos);
+            blockContext = new BlockContext(client, level, schematic, targetPos);
+
             // 检查放置跳过列表
             if (Configs.Put.PUT_SKIP.getBooleanValue()) {
                 Set<String> skipSet = new HashSet<>(Configs.Put.PUT_SKIP_LIST.getStrings()); // 转换为 HashSet
