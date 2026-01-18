@@ -359,55 +359,57 @@ public class PlacementGuide extends PrinterUtils {
                     }
                     // 输入端放置状态
                     State inputState = State.get(input, inputPropertiesToIgnore.toArray(new Property<?>[0]));
-                    // 输入端已放置成功，并状态一致
-                    if (inputState == State.CORRECT) {
-                        BlockContext temp = input;
-                        while (temp.requiredState.getBlock() instanceof FallingBlock) {
-                            BlockContext offset = temp.offset(Direction.DOWN);
-                            if (State.get(offset) != State.CORRECT) {
-                                return null;
-                            }
-                            temp = offset;
-                        }
-                        if (!output.requiredState.isAir()) {
-                            // 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
-                            temp = input;
-                            while (temp.requiredState.getBlock() instanceof ObserverBlock) {
-                                @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
-                                // 查找下一个侦测器并检查并检查状态是否正确
-                                BlockContext offset = temp.offset(tempObserverFacing);
-                                if (tempObserverFacing != null && State.get(offset) != State.CORRECT) {
+                    if (!input.requiredState.isAir()){
+                        // 输入端已放置成功，并状态一致
+                        if (inputState == State.CORRECT) {
+                            BlockContext temp = input;
+                            while (temp.requiredState.getBlock() instanceof FallingBlock) {
+                                BlockContext offset = temp.offset(Direction.DOWN);
+                                if (State.get(offset) != State.CORRECT) {
                                     return null;
                                 }
-                                // 传递检查
                                 temp = offset;
                             }
-                        }
-
-                        // 侦测器隔空激活活塞
-                        for (Direction direction : Direction.values()) {
-                            BlockContext offset = output.offset(direction);
-                            if (offset.blockPos.equals(output.blockPos)) {
-                                continue;
-                            }
-                            if (offset.blockPos.equals(input.blockPos)) {
-                                continue;
-                            }
-                            if (offset.blockPos.equals(ctx.blockPos)) {
-                                continue;
-                            }
-                            if (offset.requiredState.getBlock() instanceof PistonBaseBlock) {
-                                if (!offset.currentState.isAir()) {
-                                    return null;
+                            if (!output.requiredState.isAir()) {
+                                // 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
+                                temp = input;
+                                while (temp.requiredState.getBlock() instanceof ObserverBlock) {
+                                    @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
+                                    // 查找下一个侦测器并检查并检查状态是否正确
+                                    BlockContext offset = temp.offset(tempObserverFacing);
+                                    if (tempObserverFacing != null && State.get(offset) != State.CORRECT) {
+                                        return null;
+                                    }
+                                    // 传递检查
+                                    temp = offset;
                                 }
                             }
-                        }
 
-                    } else if (inputState == State.WRONG_STATE) {  // 方块类型相同，但方块状态不一致
-                        return null;
-                    } else {
-                        if (!output.requiredState.isAir()) {
+                            // 侦测器隔空激活活塞
+                            for (Direction direction : Direction.values()) {
+                                BlockContext offset = output.offset(direction);
+                                if (offset.blockPos.equals(output.blockPos)) {
+                                    continue;
+                                }
+                                if (offset.blockPos.equals(input.blockPos)) {
+                                    continue;
+                                }
+                                if (offset.blockPos.equals(ctx.blockPos)) {
+                                    continue;
+                                }
+                                if (offset.requiredState.getBlock() instanceof PistonBaseBlock) {
+                                    if (!offset.currentState.isAir()) {
+                                        return null;
+                                    }
+                                }
+                            }
+
+                        } else if (inputState == State.WRONG_STATE) {  // 方块类型相同，但方块状态不一致
                             return null;
+                        } else {
+                            if (!output.requiredState.isAir()) {
+                                return null;
+                            }
                         }
                     }
                 }
