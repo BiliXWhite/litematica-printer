@@ -92,10 +92,15 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     public void checkForUpdates() {
         CompletableFuture.runAsync(() -> {
             String version = UpdateCheckerUtils.version;
+            if (version.contains("dev")) {
+                return;
+            }
+
             String newVersion = UpdateCheckerUtils.getPrinterVersion();
 
-            if (newVersion == null)
+            if (newVersion == null) {
                 return;
+            }
 
             if (!version.equals(newVersion)) {
                 minecraft.execute(() -> {
