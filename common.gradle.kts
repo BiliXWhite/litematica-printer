@@ -85,6 +85,7 @@ repositories {
     addMavenRepo("Nucleoid", "https://maven.nucleoid.xyz/")   // ModMenu依赖 Text Placeholder API
 
     addMavenRepo("Masa", "https://masa.dy.fi/maven")
+    addMavenRepo("SakuraRyoko", "https://masa.dy.fi/maven/sakura-ryoko/")
     addMavenRepo("Shedaniel", "https://maven.shedaniel.me/") // Cloth API/Config 官方源
     addMavenRepo("XanderReleases", "https://maven.isxander.dev/releases")
     addMavenRepo("Jackfred", "https://maven.jackf.red/releases") // JackFredLib 依赖
@@ -145,7 +146,6 @@ dependencies {
         modImplementation("maven.modrinth:malilib:${props["malilib"]}")
         modImplementation("maven.modrinth:litematica:${props["litematica"]}")
         modImplementation("maven.modrinth:tweakeroo:${props["tweakeroo"]}")
-
     }
 
     // 箱子追踪相关（1.21.5 以下）
