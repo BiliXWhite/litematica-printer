@@ -4,13 +4,13 @@ import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.ConfigOptionListEntry;
 
 public enum ExcavateListMode implements ConfigOptionListEntry<ExcavateListMode> {
-    TWEAKEROO(I18n.EXCAVATE_LIST_MODE_TWEAKEROO),
-    CUSTOM(I18n.EXCAVATE_LIST_MODE_CUSTOM);
+    TWEAKEROO("excavateListMode.tweakeroo"),
+    CUSTOM("excavateListMode.custom");
 
     private final I18n i18n;
 
-    ExcavateListMode(I18n i18n) {
-        this.i18n = i18n;
+    ExcavateListMode(String translateKey) {
+        this.i18n = I18n.config(translateKey);
     }
 
     @Override

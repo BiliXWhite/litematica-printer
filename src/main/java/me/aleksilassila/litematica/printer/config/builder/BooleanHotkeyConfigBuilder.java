@@ -24,6 +24,10 @@ public class BooleanHotkeyConfigBuilder extends BaseConfigBuilder<ConfigBooleanH
         super(i18n);
     }
 
+    public BooleanHotkeyConfigBuilder(String translateKey) {
+        this(I18n.of(translateKey));
+    }
+
     public BooleanHotkeyConfigBuilder defaultValue(boolean value) {
         this.defaultValue = value;
         return this;

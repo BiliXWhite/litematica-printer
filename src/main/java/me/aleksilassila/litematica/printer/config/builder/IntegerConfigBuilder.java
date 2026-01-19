@@ -13,6 +13,10 @@ public class IntegerConfigBuilder extends BaseConfigBuilder<ConfigInteger, Integ
         super(i18n);
     }
 
+    public IntegerConfigBuilder(String translateKey) {
+        this(I18n.of(translateKey));
+    }
+
     public IntegerConfigBuilder defaultValue(int value) {
         this.defaultValue = value;
         return this;
