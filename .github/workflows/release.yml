@@ -37,11 +37,6 @@ jobs:
           - target_release_tag: \`${{ github.event.inputs.target_release_tag }}\`
           EOF
 
-  matrix_prep:
-    uses: ./.github/workflows/matrix_prep.yml
-    with:
-      target_subproject: ${{ github.event.inputs.target_subproject }}
-
   changelog:
     runs-on: ubuntu-latest
     continue-on-error: true
