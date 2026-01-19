@@ -10,6 +10,10 @@ import org.jetbrains.annotations.Nullable;
  */
 public class I18n {
     // @formatter:off
+
+    public static final I18n BREAK_PLACE_USE_PACKET = config("breakPlaceUsePacket");
+    public static final I18n BREAK_PROGRESS_THRESHOLD = config("breakProgressThreshold");
+
     public static final I18n CHECK_PLAYER_INTERACTION_RANGE = config("checkPlayerInteractionRange");
 
     public static final I18n PRINT_SELECTION_TYPE = config("printSelectionType");
@@ -36,9 +40,9 @@ public class I18n {
     public static final I18n TAB_BEDROCK = config("category.bedrock");
     public static final I18n TAB_HOTKEYS = config("category.hotkeys");
     public static final I18n TAB_COLOR   = config("category.color");
-    // 基础提示
+
     public static final I18n AUTO_DISABLE_NOTICE                 = of("auto_disable_notice");
-    // 配置项
+
     public static final I18n BLOCKLIST                           = config("blocklist");
     public static final I18n DEBUG_OUTPUT                        = config("debugOutput");
     public static final I18n EASY_PLACE_PROTOCOL                 = config("easyPlaceProtocol");
@@ -96,7 +100,7 @@ public class I18n {
     public static final I18n SYNC_INVENTORY_COLOR                = config("syncInventoryColor");
     public static final I18n REPLACE_CORAL                       = config("replaceCoral");
     public static final I18n RENDER_HUD                          = config("renderHud");
-    // 配置列表值（仅生成list id）
+
     public static final I18n FILL_MODE_FACING_DOWN               = config("fillModeFacing.down");
     public static final I18n FILL_MODE_FACING_EAST               = config("fillModeFacing.east");
     public static final I18n FILL_MODE_FACING_NORTH              = config("fillModeFacing.north");
@@ -134,21 +138,20 @@ public class I18n {
     public static final I18n LAST                   = config("last");
     public static final I18n NEXT                   = config("next");
     public static final I18n DELETE                 = config("delete");
-    // 配置列表选项 - 打印模式
+
     public static final I18n PRINT_MODE_PRINTER     = config("printMode.printer");
     public static final I18n PRINT_MODE_MINE        = config("printMode.mine");
     public static final I18n PRINT_MODE_FLUID       = config("printMode.fluid");
     public static final I18n PRINT_MODE_FILL        = config("printMode.fill");
     public static final I18n PRINT_MODE_REPLACE     = config("printMode.replace");
     public static final I18n PRINT_MODE_BEDROCK     = config("printMode.bedrock");
-    // 配置列表选项 - 挖掘列表模式
+
     public static final I18n EXCAVATE_LIST_MODE_TWEAKEROO  = config("excavateListMode.tweakeroo");
     public static final I18n EXCAVATE_LIST_MODE_CUSTOM     = config("excavateListMode.custom");
-    // 配置列表选项 - 运行模式（多模/单模）
+
     public static final I18n MODE_TYPE_MULTI        = config("modeType.multi");
     public static final I18n MODE_TYPE_SINGLE       = config("modeType.single");
-    // 配置列表选项 - 迭代顺序
-// 配置列表选项 - 迭代顺序
+
     public static final I18n ITERATION_ORDER_XYZ    = config("iterationOrder.xyz");
     public static final I18n ITERATION_ORDER_XZY    = config("iterationOrder.xzy");
     public static final I18n ITERATION_ORDER_YXZ    = config("iterationOrder.yxz");
@@ -156,31 +159,6 @@ public class I18n {
     public static final I18n ITERATION_ORDER_ZXY    = config("iterationOrder.zxy");
     public static final I18n ITERATION_ORDER_ZYX    = config("iterationOrder.zyx");
 
-    // 新增反向遍历翻译键
-    public static final I18n ITERATION_ORDER_XYZ_REVERSE    = config("iterationOrder.xyz_reverse");
-    public static final I18n ITERATION_ORDER_XZY_REVERSE    = config("iterationOrder.xzy_reverse");
-    public static final I18n ITERATION_ORDER_YXZ_REVERSE    = config("iterationOrder.yxz_reverse");
-    public static final I18n ITERATION_ORDER_YZX_REVERSE    = config("iterationOrder.yzx_reverse");
-    public static final I18n ITERATION_ORDER_ZXY_REVERSE    = config("iterationOrder.zxy_reverse");
-    public static final I18n ITERATION_ORDER_ZYX_REVERSE    = config("iterationOrder.zyx_reverse");
-
-    // 新增外向内遍历翻译键
-    public static final I18n ITERATION_ORDER_XYZ_OUT_IN    = config("iterationOrder.xyz_out_in");
-    public static final I18n ITERATION_ORDER_XZY_OUT_IN    = config("iterationOrder.xzy_out_in");
-    public static final I18n ITERATION_ORDER_YXZ_OUT_IN    = config("iterationOrder.yxz_out_in");
-    public static final I18n ITERATION_ORDER_YZX_OUT_IN    = config("iterationOrder.yzx_out_in");
-    public static final I18n ITERATION_ORDER_ZXY_OUT_IN    = config("iterationOrder.zxy_out_in");
-    public static final I18n ITERATION_ORDER_ZYX_OUT_IN    = config("iterationOrder.zyx_out_in");
-
-    // 新增中心向外遍历翻译键
-    public static final I18n ITERATION_ORDER_XYZ_IN_OUT    = config("iterationOrder.xyz_in_out");
-    public static final I18n ITERATION_ORDER_XZY_IN_OUT    = config("iterationOrder.xzy_in_out");
-    public static final I18n ITERATION_ORDER_YXZ_IN_OUT    = config("iterationOrder.yxz_in_out");
-    public static final I18n ITERATION_ORDER_YZX_IN_OUT    = config("iterationOrder.yzx_in_out");
-    public static final I18n ITERATION_ORDER_ZXY_IN_OUT    = config("iterationOrder.zxy_in_out");
-    public static final I18n ITERATION_ORDER_ZYX_IN_OUT    = config("iterationOrder.zyx_in_out");
-
-    // 原有静态前缀常量保留
     private static final String PREFIX_CONFIG = "config";
     private static final String PREFIX_NAME = "name";
     private static final String PREFIX_COMMENT = "comment";
