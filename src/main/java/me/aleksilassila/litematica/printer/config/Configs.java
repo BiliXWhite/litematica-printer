@@ -92,7 +92,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 核心 - 使用投影轻松放置协议
         public static final ConfigBoolean EASY_PLACE_PROTOCOL = bool(I18n.EASY_PLACE_PROTOCOL)
-                .defaultValue(true)
+                .defaultValue(false)
                 .build();
 
         // 核心 - 工作半径
@@ -163,6 +163,15 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         // 核心 - 显示打印机HUD
         public static final ConfigBoolean RENDER_HUD = bool(I18n.RENDER_HUD)
                 .defaultValue(false)
+                .build();
+
+        public static final ConfigBoolean BREAK_PLACE_USE_PACKET = bool(I18n.BREAK_PLACE_USE_PACKET)
+                .defaultValue(false)
+                .build();
+
+        public static final ConfigInteger BREAK_PROGRESS_THRESHOLD = integer(I18n.BREAK_PROGRESS_THRESHOLD)
+                .defaultValue(70)
+                .range(70, 100)
                 .build();
 
         // 核心 - 自动禁用打印机
@@ -242,6 +251,8 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 X_REVERSE,                     // 核心 - 迭代X轴反向
                 Y_REVERSE,                     // 核心 - 迭代Y轴反向
                 Z_REVERSE,                     // 核心 - 迭代Z轴反向
+                BREAK_PLACE_USE_PACKET,
+                BREAK_PROGRESS_THRESHOLD,
                 AUTO_DISABLE_PRINTER,          // 核心 - 自动禁用打印机
                 UPDATE_CHECK,                  // 核心 - 检查更新
                 DEBUG_OUTPUT,                  // 核心 - 调试输出
@@ -389,15 +400,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .setVisible(isMulti) // 仅多模式时显示
                 .build();
 
-        public static final ConfigBoolean BREAK_PLACE_USE_PACKET = bool(I18n.of("PRINTER_USE_PACKET"))
-                .defaultValue(false)
-                .build();
-
-        public static final ConfigInteger BREAK_PROGRESS_THRESHOLD = integer(I18n.of("PRINTER_BREAK_PROGRESS_THRESHOLD"))
-                .defaultValue(70)
-                .range(70, 100)
-                .build();
-
         // 挖掘 - 挖掘模式限制器
         public static final ConfigOptionList EXCAVATE_LIMITER = optionList(I18n.EXCAVATE_LIMITER)
                 .defaultValue(ExcavateListMode.CUSTOM)
@@ -426,14 +428,12 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .setVisible(isExcavateCustom) // 仅自定义挖掘限制时显示
                 .build();
 
-        // 挖掘配置项列表（按功能分类排序）
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
-                // 核心开关 & 限制器
                 MINE,                         // 挖掘 - 多模开关
                 EXCAVATE_LIMITER,             // 挖掘 - 挖掘模式限制器
 
-                BREAK_PLACE_USE_PACKET,
-                BREAK_PROGRESS_THRESHOLD,
+                General.BREAK_PLACE_USE_PACKET,
+                General.BREAK_PROGRESS_THRESHOLD,
 
                 // 自定义限制配置
                 MINE_SELECTION_TYPE,          // 挖掘 - 选区类型
