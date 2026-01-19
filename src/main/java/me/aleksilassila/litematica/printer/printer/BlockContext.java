@@ -6,6 +6,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 
@@ -42,6 +44,22 @@ public class BlockContext {
 
     public <T extends Comparable<T>> Optional<T> getCurrentStateProperty(Property<T> property) {
         return getProperty(currentState, property);
+    }
+
+    public MutableComponent getRequiredBlockName() {
+        return requiredState.getBlock().getName();
+    }
+
+    public String getRequiredBlockNameString() {
+        return getRequiredBlockName().getString();
+    }
+
+    public MutableComponent getCurrentBlockName() {
+        return currentState.getBlock().getName();
+    }
+
+    public String getCurrentBlockNameString() {
+        return getRequiredBlockName().getString();
     }
 
     @Override

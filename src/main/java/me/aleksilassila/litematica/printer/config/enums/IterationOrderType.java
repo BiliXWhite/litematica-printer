@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.config.enums;
 
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.ConfigOptionListEntry;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.overwrite.MyBox;
+import me.aleksilassila.litematica.printer.printer.MyBox;
 
 public enum IterationOrderType implements ConfigOptionListEntry<IterationOrderType> {
     XYZ(I18n.ITERATION_ORDER_XYZ, Axis.X, Axis.Y, Axis.Z),
