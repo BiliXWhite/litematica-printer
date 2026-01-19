@@ -8,19 +8,17 @@ import org.jetbrains.annotations.Nullable;
 
 public class OptionListConfigBuilder extends BaseConfigBuilder<ConfigOptionList, OptionListConfigBuilder> {
     private IConfigOptionListEntry defaultValue;
-    private @Nullable IHotkeyCallback keybindCallback;
 
     public OptionListConfigBuilder(I18n i18n) {
         super(i18n);
     }
 
-    public OptionListConfigBuilder defaultValue(IConfigOptionListEntry value) {
-        this.defaultValue = value;
-        return this;
+    public OptionListConfigBuilder(String translateKey) {
+        this(I18n.of(translateKey));
     }
 
-    public OptionListConfigBuilder keybindCallback(@Nullable IHotkeyCallback keybindCallback) {
-        this.keybindCallback = keybindCallback;
+    public OptionListConfigBuilder defaultValue(IConfigOptionListEntry value) {
+        this.defaultValue = value;
         return this;
     }
 

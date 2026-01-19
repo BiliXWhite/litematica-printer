@@ -24,6 +24,10 @@ public abstract class BaseConfigBuilder<T extends ConfigBase<?>, B extends BaseC
         this.visible = null;
     }
 
+    public BaseConfigBuilder(String translateKey) {
+        this(I18n.of(translateKey));
+    }
+
     @SuppressWarnings("unchecked")
     public B setNameKey(String name) {
         this.nameKey = name;

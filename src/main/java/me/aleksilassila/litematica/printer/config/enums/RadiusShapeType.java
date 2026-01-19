@@ -4,14 +4,14 @@ import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.ConfigOptionListEntry;
 
 public enum RadiusShapeType implements ConfigOptionListEntry<RadiusShapeType> {
-    SPHERE(I18n.ITERATOR_SHAPE_TYPE_SPHERE),
-    OCTAHEDRON(I18n.ITERATOR_SHAPE_TYPE_OCTAHEDRON),
-    CUBE(I18n.ITERATOR_SHAPE_TYPE_CUBE);
+    SPHERE("iteratorShapeType.sphere"),
+    OCTAHEDRON("iteratorShapeType.octahedron"),
+    CUBE("iteratorShapeType.cube");
 
     private final I18n i18n;
 
-    RadiusShapeType(I18n i18n) {
-        this.i18n = i18n;
+    RadiusShapeType(String translateKey) {
+        this.i18n = I18n.config(translateKey);
     }
 
     @Override

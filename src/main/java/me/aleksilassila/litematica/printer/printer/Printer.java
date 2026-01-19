@@ -40,6 +40,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static fi.dy.masa.litematica.selection.SelectionMode.NORMAL;
 import static fi.dy.masa.litematica.util.WorldUtils.applyCarpetProtocolHitVec;
@@ -72,10 +73,11 @@ public class Printer extends PrinterUtils {
 
     //强制循环半径
     public BlockPos basePos = null;
-    public MyBox myBox;
-    public int printRange = Configs.General.PRINTER_RANGE.getIntegerValue();
-    public int tickRate = Configs.General.PRINTER_SPEED.getIntegerValue();
-    public int printerWorkingCountPerTick = Configs.General.BLOCKS_PER_TICK.getIntegerValue();
+    public AtomicReference<MyBox> commonBox = new AtomicReference<>();
+    public AtomicReference<MyBox> guiBox = new AtomicReference<>();
+    public AtomicReference<MyBox> placeBox = new AtomicReference<>();
+    public int printRange = Configs.General.WORK__RANGE.getIntegerValue();
+    public int placeSpeed = Configs.Placement.PLACE_SPEED.getIntegerValue();
     public int waitTicks = 0;
 
     public boolean updateChecked = false;
@@ -99,7 +101,7 @@ public class Printer extends PrinterUtils {
         return INSTANCE;
     }
 
-    public BlockPos getBlockPos(boolean gui) {
+    private BlockPos getBlockPos(boolean gui, AtomicReference<MyBox> box, @Nullable Function function) {
         long tickEndTime = gui ? this.tickEndTime + 5 : this.tickEndTime;
         if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
             return null;
@@ -111,61 +113,61 @@ public class Printer extends PrinterUtils {
         }
         BlockPos playerPos = player.getOnPos();
         double threshold = printRange * 0.7;
-        if (basePos == null || !basePos.closerThan(playerPos, threshold)) {
+        if (box.get() == null || basePos == null || !basePos.closerThan(playerPos, threshold)) {
             basePos = playerPos;
-            myBox = new MyBox(basePos).expand(printRange);
+            box.set(new MyBox(basePos).expand(printRange));
             workProgressTotalCount = 0;
             workProgressFinishedCount = 0;
         }
-        if (Configs.General.ITERATION_ORDER.getOptionListValue() instanceof IterationOrderType iterationOrderType) {
-            myBox.setIterationMode(iterationOrderType);
-            myBox.xIncrement = !Configs.General.X_REVERSE.getBooleanValue();
-            myBox.yIncrement = !Configs.General.Y_REVERSE.getBooleanValue();
-            myBox.zIncrement = !Configs.General.Z_REVERSE.getBooleanValue();
-            Iterator<BlockPos> iterator = gui ? myBox.iteratorGui() : myBox.iterator();
-            boolean loop = true;
-            while (loop && iterator.hasNext()) {
-                BlockPos pos = iterator.next();
-                if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
-                    loop = false;   // 退出循环, 但是不浪费本次获取的位置
-                }
-                if (!PrinterUtils.canInteracted(pos)) {
+        IterationOrderType iterationOrderType = (IterationOrderType) Configs.General.ITERATION_ORDER.getOptionListValue();
+        box.get().setIterationMode(iterationOrderType);
+        box.get().xIncrement = !Configs.General.X_REVERSE.getBooleanValue();
+        box.get().yIncrement = !Configs.General.Y_REVERSE.getBooleanValue();
+        box.get().zIncrement = !Configs.General.Z_REVERSE.getBooleanValue();
+        Iterator<BlockPos> iterator = box.get().iterator();
+        boolean loop = true;
+        while (loop && iterator.hasNext()) {
+            BlockPos pos = iterator.next();
+            if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
+                loop = false;   // 退出循环, 但是不浪费本次获取的位置
+            }
+            if (!PrinterUtils.canInteracted(pos)) {
+                continue;
+            }
+            if (!gui && function != null) { // 仅非 GUI 进行预筛选, 因为需要计算进度
+                if (!function.isConfigAllowExecute(this) || !function.canIterationTest(this, level, player, pos)) {
                     continue;
                 }
-                if (!gui) { // 仅非 GUI 进行预筛选, 因为需要计算进度
-                    if (isMineMode() && level.getBlockState(pos).isAir()) {
-                        continue;
-                    }
-                    if (isFluidMode() && level.getBlockState(pos).getFluidState().isEmpty()) {
-                        continue;
-                    }
-                    if (isFillMode() && !BlockUtils.isReplaceable(level.getBlockState(pos))) {
-                        continue;
-                    }
-                }
-                if (isPrinterMode() && isSchematicBlock(pos) || TempData.xuanQuFanWeiNei_p(pos)) {
-                    return pos;
-                }
             }
-            // 是强制被退出, 不重置位置
-            if (!loop) {
-                return null;
+            if (function == null) {
+                return pos;
             }
+            if (TempData.xuanQuFanWeiNei_p(pos)) {
+                return pos;
+            }
+        }
+        // 是强制被退出, 不重置位置
+        if (!loop) {
+            return null;
         }
         basePos = null;
         return null;
     }
 
+    public @Nullable BlockPos getBlockPos(AtomicReference<MyBox> box, @Nullable Function function) {
+        return getBlockPos(false, box, function);
+    }
+
     public @Nullable BlockPos getBlockPos() {
-        return getBlockPos(false);
+        return getBlockPos(false, commonBox, null);
     }
 
     public float getProgress() {
         if (client.level == null) return 0.0f;
         BlockPos pos;
-        while ((pos = getBlockPos(true)) != null) {
+        while ((pos = getBlockPos(true, guiBox, null)) != null) {
             if (isPrinterMode()) {
-                if (!PrinterUtils.isPositionInSelectionRange(client.player, pos, Configs.Put.PRINT_SELECTION_TYPE)) {
+                if (!PrinterUtils.isPositionInSelectionRange(client.player, pos, Configs.Print.PRINT_SELECTION_TYPE)) {
                     continue;
                 }
                 WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
@@ -211,20 +213,15 @@ public class Printer extends PrinterUtils {
         return workProgress;
     }
 
-
     public void onGameTick(Minecraft client, ClientLevel level, LocalPlayer player) {
         cooldownTick(); // 冷却TICK放在前面, 不受开关与延迟影响
         if (!isEnable()) {
             return;
         }
-        printRange = Configs.General.PRINTER_RANGE.getIntegerValue();
-        tickRate = Configs.General.PRINTER_SPEED.getIntegerValue();
-        printerWorkingCountPerTick = Configs.General.BLOCKS_PER_TICK.getIntegerValue();
+        printRange = Configs.General.WORK__RANGE.getIntegerValue();
+        placeSpeed = Configs.Placement.PLACE_SPEED.getIntegerValue();
         tickStartTime = System.currentTimeMillis();
         tickEndTime = tickStartTime + Configs.General.ITERATOR_USE_TIME.getIntegerValue();
-        if (tickRate != 0 && (tickStartTime / 50) % tickRate != 0) {
-            return;
-        }
         if (Configs.General.LAG_CHECK.getBooleanValue()) {
             if (packetTick > 20) {
                 packetTick++;
@@ -232,7 +229,12 @@ public class Printer extends PrinterUtils {
             }
             packetTick++;
         }
-        functionTick(client, level, player);    // 提取出来, 不受库存影响
+        // 清理上一次队列（正常情况下, 在打印等功能内已经被调用, 此时应该是空的, 避免特殊情况, 所以这边进行先处理）
+        queue.sendQueue(player);
+        if (queue.needWait) {
+            return;
+        }
+        functionTick(client, level, player);
         printerTick(client, level, player);
     }
 
@@ -255,7 +257,7 @@ public class Printer extends PrinterUtils {
     private void functionTick(Minecraft client, ClientLevel level, LocalPlayer player) {
         for (Function function : Functions.VALUES) {
             function.cooldownTick();
-            if (!function.canTick()) {
+            if (!function.isConfigAllowExecute(this)) {
                 continue;
             }
             function.tick(this, client, level, player);
@@ -263,6 +265,9 @@ public class Printer extends PrinterUtils {
     }
 
     private void printerTick(Minecraft client, ClientLevel level, LocalPlayer player) {
+        if (placeSpeed != 0 && (tickStartTime / 50) % placeSpeed != 0) {
+            return;
+        }
         // 如果正在处理打开的容器/处理远程交互和快捷潜影盒/破坏方块列表有东西，则直接返回
         if (isOpenHandler || switchItem() || BreakManager.hasTargets()) {
             return;
@@ -271,31 +276,23 @@ public class Printer extends PrinterUtils {
             waitTicks--;
             return;
         }
-        queue.sendQueue(player);
-        if (queue.needWait) {
-            return;
-        }
         // 单模, 非打印模式,
-        if (Configs.General.MODE_SWITCH.getOptionListValue() instanceof ModeType modeType && modeType == ModeType.SINGLE) {
-            if (Configs.General.PRINTER_MODE.getOptionListValue() instanceof PrintModeType printModeType && printModeType != PrintModeType.PRINTER) {
-                return;
-            }
+        if (!isPrinterMode()) {
+            return;
         }
         // 遍历当前区域内所有符合条件的位置
         WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
         if (schematic == null) return;
+        int printerWorkingCountPerTick = Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue();
         boolean loop = true;
         BlockPos targetPos;
-        while (loop && (targetPos = getBlockPos()) != null) {
-            if (queue.needWait) {
-                continue;
-            }
+        while (loop && (targetPos = getBlockPos(placeBox, null)) != null) {
             // 检查每刻放置方块是否超出限制
-            if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0 && printerWorkingCountPerTick == 0) {
+            if (Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue() != 0 && printerWorkingCountPerTick == 0) {
                 loop = false;
             }
             // 是否在渲染层内
-            if (!PrinterUtils.isPositionInSelectionRange(player, targetPos, Configs.Put.PRINT_SELECTION_TYPE)) {
+            if (!PrinterUtils.isPositionInSelectionRange(player, targetPos, Configs.Print.PRINT_SELECTION_TYPE)) {
                 continue;
             }
             // 是否是投影方块
@@ -308,21 +305,18 @@ public class Printer extends PrinterUtils {
             }
             blockContext = new BlockContext(client, level, schematic, targetPos);
 
-            // 检查放置跳过列表
-            if (Configs.Put.PUT_SKIP.getBooleanValue()) {
-                Set<String> skipSet = new HashSet<>(Configs.Put.PUT_SKIP_LIST.getStrings()); // 转换为 HashSet
+            if (Configs.Print.PUT_SKIP.getBooleanValue()) {
+                Set<String> skipSet = new HashSet<>(Configs.Print.PUT_SKIP_LIST.getStrings()); // 转换为 HashSet
                 if (skipSet.stream().anyMatch(s -> FilterUtils.matchName(s, blockContext.requiredState))) {
                     continue;
                 }
             }
-            // 放置冷却
-            placeCooldownList.put(targetPos, Configs.General.PLACE_COOLDOWN.getIntegerValue());
+
             PlacementGuide.Action action = guide.getAction(blockContext);
             if (action == null) {
                 continue;
             }
-            if (Configs.Put.FALLING_CHECK.getBooleanValue() && blockContext.requiredState.getBlock() instanceof FallingBlock) {
-                //检查方块下面方块是否正确，否则跳过放置
+            if (Configs.Print.FALLING_CHECK.getBooleanValue() && blockContext.requiredState.getBlock() instanceof FallingBlock) {
                 BlockPos downPos = targetPos.below();
                 if (level.getBlockState(downPos) != schematic.getBlockState(downPos)) {
                     client.gui.setOverlayMessage(Component.nullToEmpty("方块 " + blockContext.requiredState.getBlock().getName().getString() + " 下方方块不相符，跳过放置"), false);
@@ -334,17 +328,16 @@ public class Printer extends PrinterUtils {
                 continue;
             }
             waitTicks = action.getWaitTick();
-            // 调试输出
-            if (Configs.General.DEBUG_OUTPUT.getBooleanValue()) {
-                Debug.write("方块名: {}", blockContext.requiredState.getBlock().getName().getString());
-                Debug.write("方块位置: {}", targetPos.toShortString());
-                Debug.write("方块类名: {}", blockContext.requiredState.getBlock().getClass().getName());
-                Debug.write("方块ID: {}", BuiltInRegistries.BLOCK.getKey(blockContext.requiredState.getBlock()));
-            }
+
+            Debug.write("方块名: {}", blockContext.requiredState.getBlock().getName().getString());
+            Debug.write("方块位置: {}", targetPos.toShortString());
+            Debug.write("方块类名: {}", blockContext.requiredState.getBlock().getClass().getName());
+            Debug.write("方块ID: {}", BuiltInRegistries.BLOCK.getKey(blockContext.requiredState.getBlock()));
+
             Item[] reqItems = action.getRequiredItems(blockContext.requiredState.getBlock());
             if (switchToItems(player, reqItems)) {
                 boolean useShift = (Implementation.isInteractive(level.getBlockState(targetPos.relative(side)).getBlock()) && !(action instanceof PlacementGuide.ClickAction))
-                        || Configs.Put.FORCED_SNEAK.getBooleanValue()
+                        || Configs.Print.FORCED_SNEAK.getBooleanValue()
                         || action.useShift;
 
                 action.queueAction(queue, targetPos, side, useShift);
@@ -358,53 +351,48 @@ public class Printer extends PrinterUtils {
                 if (action.getLookYaw() != null && action.getLookPitch() != null) {
                     sendLook(player, action.getLookYaw(), action.getLookPitch());
                 }
-
                 var block = blockContext.requiredState.getBlock();
                 if (block instanceof PistonBaseBlock) {
                     pistonNeedFix = true;
                 }
-
-                if (tickRate == 0) {
-                    queue.sendQueue(player);
-                    if (block instanceof PistonBaseBlock ||
-                            block instanceof ObserverBlock ||
-                            block instanceof DispenserBlock ||
-                            block instanceof BarrelBlock ||
-                            block instanceof WallBannerBlock
-                            //#if MC >= 12101
-                            || block instanceof CrafterBlock
-                            //#endif
-                            || block instanceof WallSignBlock
-                            || block instanceof GrindstoneBlock
-                            || block instanceof LadderBlock
-                    ) {
-                        return;
-                    }
-                    if (waitTicks > 0) {
-                        return;
-                    }
-                    if (queue.needWait) {
-                        return;
-                    }
-                    if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0) {
-                        printerWorkingCountPerTick--;
-                    }
-                    continue;
-                }
                 queue.sendQueue(player);
-                return;
+                placeCooldownList.put(blockContext.blockPos, Configs.Placement.PLACE_COOLDOWN.getIntegerValue());
+
+                if (block instanceof PistonBaseBlock ||
+                        block instanceof ObserverBlock ||
+                        block instanceof DispenserBlock ||
+                        block instanceof BarrelBlock ||
+                        block instanceof WallBannerBlock
+                        //#if MC >= 12101
+                        || block instanceof CrafterBlock
+                        //#endif
+                        || block instanceof WallSignBlock
+                        || block instanceof GrindstoneBlock
+                        || block instanceof LadderBlock
+                ) {
+                    return;
+                }
+                if (waitTicks > 0) {
+                    return;
+                }
+                if (queue.needWait) {
+                    return;
+                }
+                if (Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue() != 0) {
+                    printerWorkingCountPerTick--;
+                }
             }
         }
     }
 
     public Vec3 usePrecisionPlacement(BlockPos pos, BlockState stateSchematic) {
-        if (Configs.General.EASY_PLACE_PROTOCOL.getBooleanValue()) {
+        if (Configs.Placement.EASY_PLACE_PROTOCOL.getBooleanValue()) {
             EasyPlaceProtocol protocol = PlacementHandler.getEffectiveProtocolVersion();
             Vec3 hitPos = Vec3.atLowerCornerOf(pos);
             if (protocol == EasyPlaceProtocol.V3) {
                 return applyPlacementProtocolV3(pos, stateSchematic, hitPos);
             } else if (protocol == EasyPlaceProtocol.V2) {
-                // Carpet Accurate Block Placement protocol support, plus slab support
+                // Carpet Accurate Block placements protocol support, plus slab support
                 return applyCarpetProtocolHitVec(pos, stateSchematic, hitPos);
             }
         }
@@ -492,7 +480,7 @@ public class Printer extends PrinterUtils {
         }
 
         public void queueClick(@NotNull BlockPos target, @NotNull Direction side, @NotNull Vec3 hitModifier, boolean useShift) {
-            if (Configs.General.PRINTER_SPEED.getIntegerValue() != 0) {
+            if (Configs.Placement.PLACE_SPEED.getIntegerValue() != 0) {
                 if (this.target != null) {
                     System.out.println("Was not ready yet.");
                     return;
@@ -557,7 +545,7 @@ public class Printer extends PrinterUtils {
             }
 
 
-            if (Configs.Put.PLACE_USE_PACKET.getBooleanValue()) {
+            if (Configs.Placement.PLACE_USE_PACKET.getBooleanValue()) {
                 NetworkUtils.sendSequencedPacket(sequence -> new ServerboundUseItemOnPacket(
                         InteractionHand.MAIN_HAND,
                         new BlockHitResult(hitVec, side, target, false)

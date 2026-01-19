@@ -20,9 +20,8 @@ public class MyBox implements Iterable<BlockPos> {
     public boolean yIncrement = true;
     public boolean xIncrement = true;
     public boolean zIncrement = true;
-    private IterationOrderType iterationMode = IterationOrderType.XZY;
+    public IterationOrderType iterationMode = IterationOrderType.XZY;
     private Iterator<BlockPos> iterator;
-    private Iterator<BlockPos> iteratorGui;
 
     public void setIterationMode(IterationOrderType mode) {
         this.iterationMode = mode;
@@ -81,13 +80,6 @@ public class MyBox implements Iterable<BlockPos> {
             this.iterator = new BoxIterator();
         }
         return this.iterator;
-    }
-
-    public @NotNull Iterator<BlockPos> iteratorGui() {
-        if (this.iteratorGui == null) {
-            this.iteratorGui = new BoxIterator();
-        }
-        return this.iteratorGui;
     }
 
     private class BoxIterator implements Iterator<BlockPos> {

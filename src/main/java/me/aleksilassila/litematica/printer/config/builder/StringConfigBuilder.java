@@ -10,6 +10,10 @@ public class StringConfigBuilder extends BaseConfigBuilder<ConfigString, StringC
         super(i18n);
     }
 
+    public StringConfigBuilder(String translateKey) {
+        this(I18n.of(translateKey));
+    }
+
     public StringConfigBuilder defaultValue(String value) {
         this.defaultValue = value;
         return this;

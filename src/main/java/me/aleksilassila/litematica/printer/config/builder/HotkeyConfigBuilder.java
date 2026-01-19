@@ -20,6 +20,10 @@ public class HotkeyConfigBuilder extends BaseConfigBuilder<ConfigHotkey, HotkeyC
         super(i18n);
     }
 
+    public HotkeyConfigBuilder(String translateKey) {
+        this(I18n.of(translateKey));
+    }
+
     public HotkeyConfigBuilder defaultStorageString(String storageString) {
         this.defaultStorageString = storageString;
         return this;
