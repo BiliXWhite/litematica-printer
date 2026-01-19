@@ -130,7 +130,7 @@ public class PrinterUtils {
     }
 
     public static double getWorkRange() {
-        double workRange = Configs.General.PRINTER_RANGE.getIntegerValue();
+        double workRange = Configs.General.WORK__RANGE.getIntegerValue();
         if (Configs.General.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()) {
             return Math.min(workRange, PlayerUtils.getPlayerBlockInteractionRange());
         }
@@ -160,31 +160,31 @@ public class PrinterUtils {
     }
 
     public static boolean isEnable() {
-        return Configs.General.PRINT_SWITCH.getBooleanValue();
+        return Configs.General.WORK_TOGGLE.getBooleanValue();
     }
 
     public static boolean isPrinterMode() {
-        return Configs.General.MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI)
-                || Configs.General.PRINTER_MODE.getOptionListValue() == PrintModeType.PRINTER;
+        return (Configs.General.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Print.PRINT.getBooleanValue())
+                || Configs.General.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.PRINTER;
     }
 
     public static boolean isMineMode() {
-        return (Configs.General.MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && Configs.Excavate.MINE.getBooleanValue())
-                || Configs.General.PRINTER_MODE.getOptionListValue() == PrintModeType.MINE;
+        return (Configs.General.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Excavate.MINE.getBooleanValue())
+                || Configs.General.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.MINE;
     }
 
     public static boolean isFillMode() {
-        return (Configs.General.MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && Configs.Fill.FILL.getBooleanValue())
-                || Configs.General.PRINTER_MODE.getOptionListValue() == PrintModeType.FILL;
+        return (Configs.General.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Fill.FILL.getBooleanValue())
+                || Configs.General.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.FILL;
     }
 
     public static boolean isFluidMode() {
-        return (Configs.General.MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && Configs.Hotkeys.FLUID.getBooleanValue())
-                || Configs.General.PRINTER_MODE.getOptionListValue() == PrintModeType.FLUID;
+        return (Configs.General.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.FLUID.FLUID.getBooleanValue())
+                || Configs.General.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.FLUID;
     }
 
     public static boolean isBedrockMode() {
-        return (Configs.General.MODE_SWITCH.getOptionListValue().equals(ModeType.MULTI) && Configs.Hotkeys.BEDROCK.getBooleanValue())
-                || Configs.General.PRINTER_MODE.getOptionListValue() == PrintModeType.BEDROCK;
+        return (Configs.General.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Hotkeys.BEDROCK.getBooleanValue())
+                || Configs.General.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.BEDROCK;
     }
 }

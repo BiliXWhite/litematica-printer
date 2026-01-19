@@ -1,8 +1,11 @@
 package me.aleksilassila.litematica.printer.utils;
 
+import fi.dy.masa.malilib.config.IConfigOptionListEntry;
+import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.TweakerooUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.config.enums.ExcavateListMode;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -12,29 +15,38 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
-
-import java.util.ArrayDeque;
-import java.util.Queue;
 
 @Environment(EnvType.CLIENT)
 public class InteractionUtils {
-    // 单例实例
     public static InteractionUtils INSTANCE = new InteractionUtils();
 
     private InteractionUtils() {
     }
 
-    // 客户端实例（不变）
     private final Minecraft client = Minecraft.getInstance();
 
-    // 实例化成员变量（原静态变量改为单例成员变量）
     private BlockPos currentBreakingPos = new BlockPos(-1, -1, -1);
     private float currentBreakingProgress;
     private boolean breakingBlock;
     private int breakingTicks;
 
-    private final Queue<BlockPos> blockQueue = new ArrayDeque<>();
+    public boolean canBreakBlock(BlockPos pos) {
+        if (client.level == null || client.player == null || client.gameMode == null || pos == null) {
+            return false;
+        }
+        ClientLevel world = client.level;
+        BlockState currentState = world.getBlockState(pos);
+        return !currentState.isAir() &&
+                !(currentState.getBlock().defaultDestroyTime() < 0) &&
+                !(currentState.getBlock() instanceof LiquidBlock) &&
+                !currentState.is(Blocks.AIR) &&
+                !currentState.is(Blocks.CAVE_AIR) &&
+                !currentState.is(Blocks.VOID_AIR) &&
+                !client.player.blockActionRestricted(client.level, pos, client.gameMode.getPlayerMode());
+    }
 
     // 方块破坏结果枚举（核心新增）
     public enum BlockBreakResult {
@@ -45,7 +57,7 @@ public class InteractionUtils {
     }
 
     public float getBreakingProgressMax() {
-        int value = Configs.General.BREAK_PROGRESS_THRESHOLD.getIntegerValue();
+        int value = Configs.Break.BREAK_PROGRESS_THRESHOLD.getIntegerValue();
         if (value < 70) {
             value = 70;
         } else if (value > 100) {
@@ -72,13 +84,19 @@ public class InteractionUtils {
         ClientLevel world = client.level;
         LocalPlayer player = client.player;
         MultiPlayerGameMode gameMode = client.gameMode;
-        if (world == null || player == null || gameMode == null) return BlockBreakResult.FAILED;
-        if (!world.getWorldBorder().isWithinBounds(pos)) return BlockBreakResult.FAILED;
-        if (player.blockActionRestricted(world, pos, gameMode.getPlayerMode())) return BlockBreakResult.FAILED;
-        if (!PlayerUtils.canInteractWithBlockAt(player, pos, 0F)) return BlockBreakResult.FAILED;
+        if (world == null || player == null || gameMode == null) {
+            return BlockBreakResult.FAILED;
+        }
+        if (!world.getWorldBorder().isWithinBounds(pos)) {
+            return BlockBreakResult.FAILED;
+        }
+        if (!PlayerUtils.canInteractWithBlockAt(player, pos, 1F)) {
+            return BlockBreakResult.FAILED;
+        }
+        if (!canBreakBlock(pos)) {
+            return BlockBreakResult.FAILED;
+        }
         BlockState blockState = world.getBlockState(pos);
-        if (!blockState.getFluidState().isEmpty()) return BlockBreakResult.FAILED;
-        if (blockState.isAir()) return BlockBreakResult.FAILED;
         if (ModLoadStatus.isTweakerooLoaded()) {
             if (TweakerooUtils.isToolSwitchEnabled()) {
                 TweakerooUtils.trySwitchToEffectiveTool(pos);
@@ -155,12 +173,10 @@ public class InteractionUtils {
         }
     }
 
-    // 重载方法：默认localPrediction=true
     public BlockBreakResult updateBlockBreakingProgress(BlockPos pos, Direction direction) {
         return updateBlockBreakingProgress(pos, direction, true);
     }
 
-    // 重载方法：默认方向DOWN
     public BlockBreakResult updateBlockBreakingProgress(BlockPos pos) {
         return updateBlockBreakingProgress(pos, Direction.DOWN);
     }
@@ -187,7 +203,6 @@ public class InteractionUtils {
         this.breakingBlock = breakingBlock;
     }
 
-    // 可选：暴露当前破坏位置和进度（便于外部监控）
     public BlockPos getCurrentBreakingPos() {
         return currentBreakingPos;
     }

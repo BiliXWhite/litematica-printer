@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.function;
+package me.aleksilassila.litematica.printer.function.placements;
 
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
@@ -6,6 +6,7 @@ import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.enums.FileBlockModeType;
 import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
+import me.aleksilassila.litematica.printer.function.FunctionPlacement;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
@@ -22,13 +23,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.switchItem;
 
-public class FunctionFill extends Function {
+public class FunctionFill extends FunctionPlacement {
     private List<Item> fillModeItemList = new ArrayList<>();
     private List<String> fillcaCheBlocklist = new ArrayList<>();
     private @Nullable BlockPos blockPos;
@@ -48,17 +48,20 @@ public class FunctionFill extends Function {
     }
 
     @Override
-    public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
-        if (isOpenHandler || switchItem() || BreakManager.hasTargets()) {
-            return;
+    public boolean canIterationTest(Printer printer, ClientLevel level, LocalPlayer player, BlockPos pos) {
+        if (pos != null) {
+            if (!PrinterUtils.isPositionInSelectionRange(player, blockPos, Configs.Fill.FILL_SELECTION_TYPE)) {
+                return false;
+            }
+            if (isPlaceCooldown(pos)) {
+                return false;
+            }
         }
-        boolean handheld = false;
         // 手持物品
         if (Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FileBlockModeType.HANDHELD) {
-            handheld = true;
             ItemStack heldStack = player.getMainHandItem(); // 获取主手物品
             if (heldStack.isEmpty() || heldStack.getCount() <= 0) {
-                return; // 主手无物品时跳过填充
+                return false; // 主手无物品时跳过填充
             }
             fillModeItemList = List.of(heldStack.getItem());
         }
@@ -69,28 +72,40 @@ public class FunctionFill extends Function {
             if (!strings.equals(fillcaCheBlocklist)) {
                 fillcaCheBlocklist = new ArrayList<>(strings);
                 if (strings.isEmpty()) {
-                    return;
+                    return false;
                 }
                 for (String itemName : fillcaCheBlocklist) {
                     fillModeItemList = BuiltInRegistries.ITEM.stream().filter(item -> FilterUtils.matchName(itemName, new ItemStack(item))).toList();
                 }
             }
         }
+        return true;
+    }
+
+    @Override
+    public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
+        if (isOpenHandler || switchItem() || BreakManager.hasTargets()) {
+            return;
+        }
+        boolean handheld = Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FileBlockModeType.HANDHELD;
+        if (!canIterationTest(printer, level, player, blockPos)) {
+            return;
+        }
+        int placeBlocksPerTick = Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue();
         boolean loop = true;
-        while (loop && (blockPos = printer.getBlockPos()) != null) {
-            if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0 && printer.printerWorkingCountPerTick == 0) {
+        while (loop && (blockPos = getBoxBlockPos()) != null) {
+            if (isPlaceCooldown(blockPos)) {
+                loop = false;
+            }
+            if (Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue() != 0 && placeBlocksPerTick == 0) {
                 loop = false;
             }
             if (!PrinterUtils.isPositionInSelectionRange(player, blockPos, Configs.Fill.FILL_SELECTION_TYPE)) {
                 continue;
             }
-            // 跳过冷却中的位置
-            if (Printer.getInstance().placeCooldownList.containsKey(blockPos)) {
-                continue;
-            }
-            Printer.getInstance().placeCooldownList.put(blockPos, Configs.General.PLACE_COOLDOWN.getIntegerValue());
+            Printer.getInstance().placeCooldownList.put(blockPos, Configs.Placement.PLACE_COOLDOWN.getIntegerValue());
             BlockState currentState = level.getBlockState(blockPos);
-            if (currentState.isAir() || (currentState.getBlock() instanceof LiquidBlock) || Configs.Put.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> FilterUtils.matchName(s, currentState))) {
+            if (currentState.isAir() || (currentState.getBlock() instanceof LiquidBlock) || Configs.Print.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> FilterUtils.matchName(s, currentState))) {
                 if (handheld || printer.switchToItems(player, getFillItemsArray())) {
                     if (handheld) {
                         ItemStack heldStack = player.getMainHandItem(); // 获取主手物品
@@ -100,15 +115,11 @@ public class FunctionFill extends Function {
                             .setLookDirection(PlaceUtils.getFillModeFacing().getOpposite())
                             .queueAction(printer.queue, blockPos, PlaceUtils.getFillModeFacing(), false);
                     printer.queue.sendQueue(player);
-
-                    if (printer.tickRate == 0) {
-                        if (Configs.General.BLOCKS_PER_TICK.getIntegerValue() != 0) {
-                            printer.printerWorkingCountPerTick--;
-                        }
-                        continue;
+                    if (Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue() != 0) {
+                        placeBlocksPerTick--;
                     }
-                    return;
                 }
+                setPlaceCooldown(blockPos);
             }
         }
     }
