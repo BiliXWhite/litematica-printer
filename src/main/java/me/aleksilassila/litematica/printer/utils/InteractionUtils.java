@@ -105,7 +105,7 @@ public class InteractionUtils {
             setBreakingBlock(false);
             return BlockBreakResult.COMPLETED;
         }
-        // 创造就直接破坏, 所以创造逻辑下面
+        // 创造就直接破坏, 所以放在创造逻辑下面, 如果放在上面, 创造模式下会进行调用（体验不好）
         if (ModLoadStatus.isTweakerooLoaded()) {
             if (TweakerooUtils.isToolSwitchEnabled()) {
                 TweakerooUtils.trySwitchToEffectiveTool(pos);
