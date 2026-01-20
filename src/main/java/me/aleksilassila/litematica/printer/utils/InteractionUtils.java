@@ -1,11 +1,8 @@
 package me.aleksilassila.litematica.printer.utils;
 
-import fi.dy.masa.malilib.config.IConfigOptionListEntry;
-import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.TweakerooUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.config.enums.ExcavateListMode;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -97,11 +94,6 @@ public class InteractionUtils {
             return BlockBreakResult.FAILED;
         }
         BlockState blockState = world.getBlockState(pos);
-        if (ModLoadStatus.isTweakerooLoaded()) {
-            if (TweakerooUtils.isToolSwitchEnabled()) {
-                TweakerooUtils.trySwitchToEffectiveTool(pos);
-            }
-        }
         if (gameMode.getPlayerMode().isCreative()) {
             setBreakingBlock(true);
             NetworkUtils.sendSequencedPacket((sequence) -> {
@@ -112,6 +104,12 @@ public class InteractionUtils {
             });
             setBreakingBlock(false);
             return BlockBreakResult.COMPLETED;
+        }
+        // 创造就直接破坏, 所以创造逻辑下面
+        if (ModLoadStatus.isTweakerooLoaded()) {
+            if (TweakerooUtils.isToolSwitchEnabled()) {
+                TweakerooUtils.trySwitchToEffectiveTool(pos);
+            }
         }
         if (breakingBlock && pos.equals(currentBreakingPos)) {
             if (blockState.isAir()) {
