@@ -139,10 +139,8 @@ public class Printer extends PrinterUtils {
                     continue;
                 }
             }
-            if (function == null) {
-                return pos;
-            }
-            if (TempData.xuanQuFanWeiNei_p(pos)) {
+            boolean isPrinterRange = function == null && isPrinterMode() && isSchematicBlock(pos);
+            if (isPrinterRange || TempData.xuanQuFanWeiNei_p(pos)) {
                 return pos;
             }
         }
