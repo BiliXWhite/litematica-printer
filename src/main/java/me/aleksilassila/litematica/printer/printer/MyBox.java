@@ -59,13 +59,17 @@ public class MyBox implements Iterable<BlockPos> {
         return vec3i.getX() >= this.minX && vec3i.getX() <= this.maxX && vec3i.getY() >= this.minY && vec3i.getY() <= this.maxY && vec3i.getZ() >= this.minZ && vec3i.getZ() <= this.maxZ;
     }
 
-    public MyBox expand(int x, int y, int z) {
-        int minX = this.minX - x;
-        int minY = this.minY - y;
-        int minZ = this.minZ - z;
-        int maxX = this.maxX + x;
-        int maxY = this.maxY + y;
-        int maxZ = this.maxZ + z;
+    public MyBox expand(int expandX, int expandY, int expandZ) {
+        int minX = this.minX - expandX;
+        int minZ = this.minZ - expandZ;
+        int maxX = this.maxX + expandX;
+        int maxZ = this.maxZ + expandZ;
+        int minY = this.minY - expandY;
+        int maxY = this.maxY + expandY;
+        if (client.level != null) {
+            minY = Math.max(client.level.getMinY(), minY);
+            maxY = Math.min(client.level.getMaxY(), maxY);
+        }
         return new MyBox(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
