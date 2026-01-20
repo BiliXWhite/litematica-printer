@@ -50,7 +50,7 @@ public class FunctionFluid extends FunctionPlacement {
     @Override
     public boolean canIterationTest(Printer printer, ClientLevel level, LocalPlayer player, BlockPos pos) {
         if (pos != null) {
-            if (!PrinterUtils.isPositionInSelectionRange(player, blockPos, Configs.FLUID.FLUID_SELECTION_TYPE)) {
+            if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.FLUID.FLUID_SELECTION_TYPE)) {
                 return false;
             }
             if (isPlaceCooldown(pos)) {

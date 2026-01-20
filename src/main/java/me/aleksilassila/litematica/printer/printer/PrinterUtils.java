@@ -88,8 +88,8 @@ public class PrinterUtils {
         return sides;
     }
 
-    public static boolean isPositionInSelectionRange(Player player, BlockPos pos, ConfigOptionList selectionTypeConfig) {
-        if (player == null || pos == null || selectionTypeConfig == null) {
+    public static boolean isPositionInSelectionRange(Player player, @NotNull BlockPos pos, ConfigOptionList selectionTypeConfig) {
+        if (player == null || selectionTypeConfig == null) {
             return false;
         }
         if (!(selectionTypeConfig.getOptionListValue() instanceof SelectionType selectionType)) {
