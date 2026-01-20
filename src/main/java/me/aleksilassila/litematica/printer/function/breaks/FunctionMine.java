@@ -101,14 +101,14 @@ public class FunctionMine extends FunctionBreak {
             }
             boolean localPrediction = !Configs.Break.BREAK_PLACE_USE_PACKET.getBooleanValue();
             InteractionUtils.BlockBreakResult result = InteractionUtils.INSTANCE.updateBlockBreakingProgress(blockPos, Direction.DOWN, localPrediction);
-
-            if (result != InteractionUtils.BlockBreakResult.IN_PROGRESS) {
-                lastMinedBlock = blockPos;  // 缓存最近处理的方块，设置缓存时间（10个Tick，确保HUD能渲染到）
-                lastBlockCacheTick = 10;    // 累加单 Tick 处理数量
-                tickMinedCount++;
-                setBreakCooldown(blockPos);
-                this.blockPos = null;
+            lastMinedBlock = blockPos;  // 缓存最近处理的方块，设置缓存时间（10个Tick，确保HUD能渲染到）
+            lastBlockCacheTick = 10;    // 累加单 Tick 处理数量
+            tickMinedCount++;
+            if (result == InteractionUtils.BlockBreakResult.IN_PROGRESS) {
+                return;
             }
+            setBreakCooldown(blockPos);
+            this.blockPos = null;
             if (Configs.Break.BREAK_BLOCKS_PER_TICK.getIntegerValue() != 0) {
                 breakBlocksPerTick--;
             }
