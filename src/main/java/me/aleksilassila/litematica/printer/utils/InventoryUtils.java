@@ -89,7 +89,7 @@ public class InventoryUtils {
     }
 
     public static void setHotbarSlot(int slot, Inventory inventory) {
-        boolean usePacket = Configs.Put.PLACE_USE_PACKET.getBooleanValue();
+        boolean usePacket = Configs.Placement.PLACE_USE_PACKET.getBooleanValue();
         if (usePacket) {
             client.getConnection().send(new ServerboundSetCarriedItemPacket(slot));
         }
@@ -154,7 +154,7 @@ public class InventoryUtils {
                 return false;
             }
             int currentHotbarSlot = getSelectedSlot(player.getInventory());
-            if (Configs.Put.PLACE_USE_PACKET.getBooleanValue()) {
+            if (Configs.Placement.PLACE_USE_PACKET.getBooleanValue()) {
                 NonNullList<Slot> slots = player.inventoryMenu.slots;
                 int totalSlots = slots.size();
                 List<ItemStack> copies = Lists.newArrayListWithCapacity(totalSlots);
@@ -261,7 +261,7 @@ public class InventoryUtils {
         if (connection == null) return false;
 
         // 4. 发送交换数据包（复用原有配置，目标槽位固定为40）
-        if (Configs.Put.PLACE_USE_PACKET.getBooleanValue()) {
+        if (Configs.Placement.PLACE_USE_PACKET.getBooleanValue()) {
             NonNullList<Slot> slots = player.inventoryMenu.slots;
             int totalSlots = slots.size();
             List<ItemStack> copies = Lists.newArrayListWithCapacity(totalSlots);

@@ -1,6 +1,9 @@
 package me.aleksilassila.litematica.printer.function;
 
 import com.google.common.collect.ImmutableList;
+import me.aleksilassila.litematica.printer.function.breaks.FunctionMine;
+import me.aleksilassila.litematica.printer.function.placements.FunctionFill;
+import me.aleksilassila.litematica.printer.function.placements.FunctionFluid;
 
 public class Functions {
     public static final FunctionBedrock BEDROCK = new FunctionBedrock();

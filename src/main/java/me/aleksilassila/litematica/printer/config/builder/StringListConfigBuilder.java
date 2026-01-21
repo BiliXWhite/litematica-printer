@@ -21,6 +21,10 @@ public class StringListConfigBuilder extends BaseConfigBuilder<ConfigStringList,
         super(i18n);
     }
 
+    public StringListConfigBuilder(String translateKey) {
+        this(I18n.of(translateKey));
+    }
+
     public StringListConfigBuilder defaultValue(ImmutableList<String> value) {
         this.defaultValue = value;
         return this;

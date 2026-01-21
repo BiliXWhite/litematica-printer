@@ -78,7 +78,6 @@ public class BreakManager {
 
     public static boolean breakRestriction(BlockState blockState) {
         if (blockState.isAir()) return false;
-        if (!blockState.getFluidState().isEmpty()) return false;
         if (Configs.Excavate.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
             if (!ModLoadStatus.isTweakerooLoaded()) {
                 return true;
