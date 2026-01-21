@@ -38,9 +38,9 @@ public class InitHandler implements IInitializationHandler {
         Hotkeys.CLOSE_ALL_MODE.getKeybind().setCallback((action, keybind) -> {
             if (keybind.isKeybindHeld()) {
                 Configs.Excavate.MINE.setBooleanValue(false);
-                Configs.Hotkeys.FLUID.setBooleanValue(false);
-                Configs.General.PRINT_SWITCH.setBooleanValue(false);
-                Configs.General.PRINTER_MODE.setOptionListValue(PrintModeType.PRINTER);
+                Configs.FLUID.FLUID.setBooleanValue(false);
+                Configs.General.WORK_TOGGLE.setBooleanValue(false);
+                Configs.General.WORK_MODE_TYPE.setOptionListValue(PrintModeType.PRINTER);
                 MessageUtils.setOverlayMessage(StringUtils.nullToEmpty("已关闭全部模式"));
             }
             return true;
@@ -48,20 +48,19 @@ public class InitHandler implements IInitializationHandler {
 
         Hotkeys.PRINT.getKeybind().setCallback((action, key) -> {
             if (key.isKeybindHeld()) {
-                if (!General.PRINT_SWITCH.getBooleanValue()) {
-                    General.PRINT_SWITCH.setBooleanValue(true);
+                if (!General.WORK_TOGGLE.getBooleanValue()) {
+                    General.WORK_TOGGLE.setBooleanValue(true);
                 }
             } else {
-                General.PRINT_SWITCH.setBooleanValue(false);
+                General.WORK_TOGGLE.setBooleanValue(false);
             }
             return true;
         });
 
-        General.PRINT_SWITCH.setValueChangeCallback(b -> {
+        General.WORK_TOGGLE.setValueChangeCallback(b -> {
             if (!b.getBooleanValue()) {
                 Printer printer = Printer.getInstance();
                 printer.clearQueue();
-                printer.basePos=null;
                 printer.pistonNeedFix = false;
                 if (ModLoadStatus.isBedrockMinerLoaded()) {
                     if (BedrockUtils.isWorking()) {
@@ -73,7 +72,7 @@ public class InitHandler implements IInitializationHandler {
         });
 
         // 切换模式时, 关闭破基岩
-        General.PRINTER_MODE.setValueChangeCallback(b -> {
+        General.WORK_MODE_TYPE.setValueChangeCallback(b -> {
             if (!b.getOptionListValue().equals(PrintModeType.BEDROCK)) {
                 if (ModLoadStatus.isBedrockMinerLoaded()) {
                     if (BedrockUtils.isWorking()) {

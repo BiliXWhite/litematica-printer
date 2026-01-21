@@ -122,7 +122,7 @@ public abstract class MixinGui {
         if (Configs.General.LAG_CHECK.getBooleanValue()) {
             RenderUtils.drawString(Printer.getInstance().packetTick + "Tick", (int) (width / 2), (int) (height / 2 - 22), new Color(255, 255, 255, 255).getRGB(), true, true);
         }
-        if (Configs.General.MODE_SWITCH.getOptionListValue().equals(ModeType.SINGLE)) {
+        if (Configs.General.WORK_MODE.getOptionListValue().equals(ModeType.SINGLE)) {
             RenderUtils.drawString((int) (Printer.getInstance().getProgress() * 100) + "%", (int) (width / 2), (int) (height / 2 + 22), new Color(255, 255, 255, 255).getRGB(), true, true);
             //#if MC > 11904
             guiGraphics.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
@@ -132,8 +132,7 @@ public abstract class MixinGui {
             //$$ GuiComponent.fill(poseStack, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getInstance().getProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
             //#endif
         }
-        RenderUtils.drawString(Configs.General.PRINTER_MODE.getOptionListValue().getDisplayName(), (int) (width / 2), (int) (height / 2 + 52), new Color(255, 255, 255, 255).getRGB(), true, true);
-
+        RenderUtils.drawString(Configs.General.WORK_MODE_TYPE.getOptionListValue().getDisplayName(), (int) (width / 2), (int) (height / 2 + 52), new Color(255, 255, 255, 255).getRGB(), true, true);
         if (context != null) {
             RenderUtils.drawString(context.requiredState.getBlock().getName().getString(), (int) (width / 2), (int) (height / 2 + 64), new Color(255, 255, 255, 255).getRGB(), true, true);
         }
