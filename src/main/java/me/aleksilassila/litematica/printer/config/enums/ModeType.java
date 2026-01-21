@@ -4,13 +4,13 @@ import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.ConfigOptionListEntry;
 
 public enum ModeType implements ConfigOptionListEntry<ModeType> {
-    MULTI(I18n.MODE_TYPE_MULTI),
-    SINGLE(I18n.MODE_TYPE_SINGLE);
+    MULTI("modeType.multi"),
+    SINGLE("modeType.single");
 
     private final I18n i18n;
 
-    ModeType(I18n i18n) {
-        this.i18n = i18n;
+    ModeType(String translateKey) {
+        this.i18n = I18n.config(translateKey);
     }
 
     @Override

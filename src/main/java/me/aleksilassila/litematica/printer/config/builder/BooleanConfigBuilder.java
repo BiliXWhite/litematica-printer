@@ -10,6 +10,10 @@ public class BooleanConfigBuilder extends BaseConfigBuilder<ConfigBoolean, Boole
         super(i18n);
     }
 
+    public BooleanConfigBuilder(String translateKey) {
+        this(I18n.of(translateKey));
+    }
+
     public BooleanConfigBuilder defaultValue(boolean value) {
         this.defaultValue = value;
         return this;

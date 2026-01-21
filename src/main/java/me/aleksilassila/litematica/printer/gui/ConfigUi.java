@@ -77,14 +77,16 @@ public class ConfigUi extends GuiConfigsBase {
     }
 
     public enum Tab {
-        ALL(I18n.TAB_ALL),
-        GENERAL(I18n.TAB_GENERAL),
-        PUT(I18n.TAB_PUT),
-        FLUID(I18n.TAB_FLUID),
-        EXCAVATE(I18n.TAB_EXCAVATE),
-        FILL(I18n.TAB_FILL),
-        HOTKEYS(I18n.TAB_HOTKEYS),
-        COLOR(I18n.TAB_COLOR);
+        ALL(I18n.config("category.all")),
+        GENERAL(I18n.config("category.general")),
+        PLACEMENT(I18n.config("category.placement")),
+        BREAK(I18n.config("category.break")),
+        PRINT(I18n.config("category.print")),
+        FLUID(I18n.config("category.fluid")),
+        EXCAVATE(I18n.config("category.excavate")),
+        FILL(I18n.config("category.fill")),
+        HOTKEYS(I18n.config("category.hotkeys")),
+        COLOR(I18n.config("category.color"));
 
         private final I18n i18n;
 
@@ -104,7 +106,9 @@ public class ConfigUi extends GuiConfigsBase {
             return switch (this) {
                 case ALL -> Configs.OPTIONS;
                 case GENERAL -> Configs.General.OPTIONS;
-                case PUT -> Configs.Put.OPTIONS;
+                case PLACEMENT -> Configs.Placement.OPTIONS;
+                case BREAK -> Configs.Break.OPTIONS;
+                case PRINT -> Configs.Print.OPTIONS;
                 case FLUID -> Configs.FLUID.OPTIONS;
                 case EXCAVATE -> Configs.Excavate.OPTIONS;
                 case FILL -> Configs.Fill.OPTIONS;

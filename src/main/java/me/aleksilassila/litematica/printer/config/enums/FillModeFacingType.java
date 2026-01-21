@@ -4,17 +4,17 @@ import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.ConfigOptionListEntry;
 
 public enum FillModeFacingType implements ConfigOptionListEntry<FillModeFacingType> {
-    DOWN(I18n.FILL_MODE_FACING_DOWN),
-    UP(I18n.FILL_MODE_FACING_UP),
-    WEST(I18n.FILL_MODE_FACING_WEST),
-    EAST(I18n.FILL_MODE_FACING_EAST),
-    NORTH(I18n.FILL_MODE_FACING_NORTH),
-    SOUTH(I18n.FILL_MODE_FACING_SOUTH);
+    DOWN("fillModeFacing.down"),
+    UP("fillModeFacing.up"),
+    WEST("fillModeFacing.west"),
+    EAST("fillModeFacing.east"),
+    NORTH("fillModeFacing.north"),
+    SOUTH("fillModeFacing.south");
 
     private final I18n i18n;
 
-    FillModeFacingType(I18n i18n) {
-        this.i18n = i18n;
+    FillModeFacingType(String translateKey) {
+        this.i18n = I18n.config(translateKey);
     }
 
     @Override
