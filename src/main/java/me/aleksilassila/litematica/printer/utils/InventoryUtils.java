@@ -106,7 +106,7 @@ public class InventoryUtils {
             return true;
         } else {
             if (InventoryUtilsAccessor.getPICK_BLOCKABLE_SLOTS().isEmpty()) {
-                InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_valid_slots_configured");
+                // InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_valid_slots_configured");
                 return false;
             }
             int hotbarSlot = sourceSlot;
@@ -128,7 +128,7 @@ public class InventoryUtils {
                 EasyPlaceUtilsAccessor.callSetEasyPlaceLastPickBlockTime();
                 return swapItemToMainHand(stack.copy(), mc);
             } else {
-                InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");
+                // InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");
                 return false;
             }
         }
