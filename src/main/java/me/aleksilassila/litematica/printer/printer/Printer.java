@@ -135,7 +135,7 @@ public class Printer extends PrinterUtils {
                 continue;
             }
             if (!gui && function != null) { // 仅非 GUI 进行预筛选, 因为需要计算进度
-                if (!function.isConfigAllowExecute(this) || !function.canIterationTest(this, level, player, pos)) {
+                if (function.isConfigAllowExecute(this) && !function.canIterationTest(this, level, player, pos)) {
                     continue;
                 }
             }
