@@ -15,6 +15,7 @@ pluginManagement {
             }
         }
     }
+    includeBuild("build-logic")
 }
 
 val versions = listOf(
