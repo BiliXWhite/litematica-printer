@@ -8,6 +8,7 @@ logs/
 .project
 build.number
 .idea/
+
 .DS_Store
 run/
 /run/
