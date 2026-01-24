@@ -10,6 +10,8 @@ plugins {
 }
 
 preprocess {
+    strictExtraMappings.set(false)
+
     val mc11802 = createNode("1.18.2", 1_18_02, "mojang")
     val mc11904 = createNode("1.19.4", 1_19_04, "mojang")
     val mc12001 = createNode("1.20.1", 1_20_01, "mojang")
@@ -38,23 +40,10 @@ preprocess {
     mc12106.link(mc12109, null)
     mc12109.link(mc12111, null)
 
-    strictExtraMappings.set(false)
-
     // See https://github.com/Fallen-Breath/fabric-mod-template/blob/1d72d77a1c5ce0bf060c2501270298a12adab679/build.gradle#L55-L63
     for (node in getNodes()) {
         findProject(node.project)
             ?.ext
             ?.set("mcVersion", node.mcVersion)
-    }
-}
-
-tasks.register("cleanPreprocessSources") {
-    group = "${project.property("mod_id")}"
-
-    doFirst {
-        subprojects {
-            val path = project.projectDir.toPath().resolve("build/preprocessed")
-            path.toFile().deleteRecursively()
-        }
     }
 }
