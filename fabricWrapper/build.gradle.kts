@@ -6,20 +6,8 @@ import java.util.*
 plugins {
     id("java-library")
     id("maven-publish")
+    id("mod-plugin")
 }
-
-// --- 项目属性定义 ---
-val modId = project.property("mod_id") as String
-val modWrapperId = project.property("mod_wrapper_id") as String
-val modName = project.property("mod_name") as String
-val modMavenGroup = project.property("mod_maven_group") as String
-val modVersion = project.property("mod_version") as String
-val modArchivesBaseName = project.property("mod_archives_base_name") as String
-val modDescription = project.property("mod_description") as String
-val modHomepage = project.property("mod_homepage") as String
-val modLicense = project.property("mod_license") as String
-val modSources = project.property("mod_sources") as String
-val loaderVersion = project.property("loader_version") as String
 
 // 生成时间戳
 val time = SimpleDateFormat("yyMMdd")
@@ -28,11 +16,11 @@ val time = SimpleDateFormat("yyMMdd")
     .toString()
 
 var fullProjectVersion: String;
-val buildNumber = System.getenv("GITHUB_RUN_NUMBER")
-if (buildNumber != null) {
-    fullProjectVersion = "$modVersion+$time+build.$buildNumber"
+val buildNumber: String? = System.getenv("GITHUB_RUN_NUMBER")
+fullProjectVersion = if (buildNumber != null) {
+    "$modVersion+$time+build.$buildNumber"
 } else {
-    fullProjectVersion = "$modVersion+$time"
+    "$modVersion+$time"
 }
 
 group = modMavenGroup
@@ -90,8 +78,8 @@ tasks {
         dependsOn("collectSubModules")
 
         val rootIcon = rootProject.file("src/main/resources/assets/$modId/icon.png")
-        val resourcesFile = layout.projectDirectory.file("src/main/resources/assets/$modWrapperId/icon.png").asFile
-        val buildIconFile = layout.buildDirectory.file("resources/main/assets/$modWrapperId/icon.png").get().asFile
+        val resourcesFile = layout.projectDirectory.file("src/main/resources/assets/$wrapperModId/icon.png").asFile
+        val buildIconFile = layout.buildDirectory.file("resources/main/assets/$wrapperModId/icon.png").get().asFile
 
         doLast {
             if (rootIcon.exists()) {
@@ -104,21 +92,6 @@ tasks {
             } else {
                 println("⚠ 根项目中未找到图标文件，跳过图标复制")
             }
-        }
-
-        val propertyMap = mapOf(
-            "mod_wrapper_id" to modWrapperId,
-            "mod_name" to modName,
-            "mod_version" to modVersion,
-            "mod_description" to modDescription,
-            "mod_homepage" to modHomepage,
-            "mod_license" to modLicense,
-            "mod_sources" to modSources,
-            "loader_version" to loaderVersion,
-        )
-        inputs.properties(propertyMap)
-        filesMatching(listOf("*.mixins.json", "*.mod.json", "META-INF/*mods.toml")) {
-            expand(propertyMap)
         }
 
         doLast {
@@ -181,32 +154,6 @@ tasks {
             } else {
                 println("警告: 找不到生成的 fabric.mod.json 文件: ${jsonFile.absolutePath}")
             }
-        }
-    }
-}
-
-// Java 配置
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
-
-// 发布配置
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            groupId = modMavenGroup
-            artifactId = modId
-            version = "versionpack-${project.version}"
-            from(components["java"])
-        }
-    }
-
-    repositories {
-        mavenLocal()
-        maven {
-            url = uri("${rootProject.projectDir}/publish")
         }
     }
 }
