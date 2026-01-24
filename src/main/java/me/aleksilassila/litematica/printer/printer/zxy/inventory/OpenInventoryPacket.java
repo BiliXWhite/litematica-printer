@@ -15,7 +15,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -71,9 +71,9 @@ import net.minecraft.core.registries.Registries;
 public class OpenInventoryPacket {
 
     private static final @NotNull Minecraft client = Minecraft.getInstance();
-    private static final ResourceLocation OPEN_INVENTORY = ResourceLocationUtils.of("remoteinventory", "open_inventory");
-    private static final ResourceLocation OPEN_RETURN = ResourceLocationUtils.of("openreturn", "open_return");
-    private static final ResourceLocation HELLO_REMOTE_INTERACTIONS = ResourceLocationUtils.of("hello", "hello_remote_interactions");
+    private static final Identifier OPEN_INVENTORY = ResourceLocationUtils.of("remoteinventory", "open_inventory");
+    private static final Identifier OPEN_RETURN = ResourceLocationUtils.of("openreturn", "open_return");
+    private static final Identifier HELLO_REMOTE_INTERACTIONS = ResourceLocationUtils.of("hello", "hello_remote_interactions");
 
 
     //#if MC > 12104
@@ -313,7 +313,7 @@ public class OpenInventoryPacket {
         OpenInventoryPacket.key = null;
         //避免箱子追踪重复保存，
         //#if MC >= 12001 && MC <= 12104
-        //避免箱子追踪胡乱记录，若不清空，则会吧打开容器前右键的方块视为目标容器
+        //$$ //避免箱子追踪胡乱记录，若不清空，则会吧打开容器前右键的方块视为目标容器
         //$$ InteractionTracker.INSTANCE.clear();
         //#endif
         if (client.player != null && !client.player.containerMenu.equals(client.player.inventoryMenu))
@@ -324,7 +324,7 @@ public class OpenInventoryPacket {
 //        System.out.println(pos+"   key: "+key);
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         buf.writeBlockPos(pos);
-        buf.writeResourceLocation(key.location());
+        buf.writeIdentifier(key.identifier());
         //#if MC > 12004
         OpenPackage openPackage = new OpenPackage();
         openPackage.world = key;
@@ -359,7 +359,7 @@ public class OpenInventoryPacket {
                 //$$ String translate = StringUtils.translate(translationKey);
                 //$$ if (client.player != null) me.aleksilassila.litematica.printer.utils.MessageUtils.addMessage("打开容器失败 \n位于"+ translate+"  "+pos.toString());
                 //#else
-                String translationKey = key.location().toLanguageKey();
+                String translationKey = key.identifier().toLanguageKey();
                 String translate = StringUtils.translate(translationKey);
                 if (client.player != null) client.player.displayClientMessage(Component.nullToEmpty("打开容器失败 \n位于"+ translate+"  "+pos.getCenter().toString()),false);
                 //#endif
