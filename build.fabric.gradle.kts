@@ -163,7 +163,6 @@ java {
 }
 
 tasks.apply {
-    // 资源处理
     withType<ProcessResources> {
         val resourceProps = mapOf(
             "mod_id" to modId,
