@@ -293,12 +293,12 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         public static final ConfigInteger BREAK_BLOCKS_PER_TICK = integer("breakBlocksPerTick")
-                .defaultValue(8)
+                .defaultValue(15)
                 .range(0, 256)
                 .build();
 
         public static final ConfigInteger BREAK_COOLDOWN = integer("breakCooldown")
-                .defaultValue(3)
+                .defaultValue(1)
                 .range(0, 64)
                 .build();
 
