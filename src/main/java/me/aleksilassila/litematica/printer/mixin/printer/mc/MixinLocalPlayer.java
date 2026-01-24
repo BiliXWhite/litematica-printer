@@ -38,7 +38,7 @@ import java.util.concurrent.CompletableFuture;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 //$$ import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 //#else
-//$$ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
+import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 //#endif
 //#if MC >= 12105
 import java.net.URI;

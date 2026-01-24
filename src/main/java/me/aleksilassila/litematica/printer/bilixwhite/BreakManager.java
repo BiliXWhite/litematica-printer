@@ -13,7 +13,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -29,7 +29,7 @@ import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRIC
 import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
 
 public class BreakManager {
-    private static final HashMap<ResourceLocation, BlockPos> breakTargets = new HashMap<>();
+    private static final HashMap<Identifier, BlockPos> breakTargets = new HashMap<>();
     private static final Minecraft client = Minecraft.getInstance();
     private static BreakManager INSTANCE = null;
     private BlockPos breakPos;
@@ -49,7 +49,7 @@ public class BreakManager {
     // 添加需要挖掘的方块
     public static void addBlockToBreak(Level level, BlockPos pos) {
         if (level == null || pos == null) return;
-        breakTargets.put(level.dimension().location(), pos);
+        breakTargets.put(level.dimension().identifier(), pos);
     }
 
     public static void addBlockToBreak(BlockContext context) {
@@ -175,7 +175,7 @@ public class BreakManager {
         // 性能优化：避免不必要的remove操作
         if (breakPos != null) {
             Printer.getInstance().placeCooldownList.put(breakPos, 4);
-            ResourceLocation currentDimension = level.dimension().location();
+            Identifier currentDimension = level.dimension().identifier();
             breakTargets.entrySet().removeIf(entry ->
                     entry.getKey().equals(currentDimension) && entry.getValue().equals(breakPos));
         }
@@ -193,10 +193,10 @@ public class BreakManager {
             state = null;
             return null;
         }
-        ResourceLocation currentDimension = level.dimension().location();
-        Iterator<Map.Entry<ResourceLocation, BlockPos>> iterator = breakTargets.entrySet().iterator();
+        Identifier currentDimension = level.dimension().identifier();
+        Iterator<Map.Entry<Identifier, BlockPos>> iterator = breakTargets.entrySet().iterator();
         while (breakPos == null && iterator.hasNext()) {
-            Map.Entry<ResourceLocation, BlockPos> entry = iterator.next();
+            Map.Entry<Identifier, BlockPos> entry = iterator.next();
             if (entry == null || entry.getKey() == null || entry.getValue() == null) {
                 iterator.remove();
                 continue;

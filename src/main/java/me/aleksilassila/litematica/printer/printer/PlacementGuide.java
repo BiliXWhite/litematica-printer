@@ -12,7 +12,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -302,12 +302,12 @@ public class PlacementGuide extends PrinterUtils {
                 }
                 case DEAD_CORAL -> {
                     Block block = ctx.requiredState.getBlock();
-                    ResourceLocation blockId1 = BlockUtils.getKey(block);
+                    Identifier blockId1 = BlockUtils.getKey(block);
                     if (!blockId1.toString().contains("coral")) {
                         skip.set(true); // 使用了Block, 但不是该指南的方块, 让下一个指南进行处理
                         return null;
                     }
-                    ResourceLocation blockId2 = ResourceLocationUtils.of(blockId1.toString().replace("dead_", ""));
+                    Identifier blockId2 = ResourceLocationUtils.of(blockId1.toString().replace("dead_", ""));
                     boolean isBlock = blockId1.toString().contains("block");
                     List<Item> items = new ArrayList<>();
                     items.add(block.asItem());
