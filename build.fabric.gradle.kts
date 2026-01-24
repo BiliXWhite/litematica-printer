@@ -10,13 +10,11 @@ import java.util.*
 
 plugins {
     id("maven-publish")
-    id("fabric-loom")
+    id("net.fabricmc.fabric-loom-remap")
     id("com.replaymod.preprocess")
-    id("me.fallenbreath.yamlang")
 }
 
-// ========================== 基础属性配置 ==========================
-val props = project.properties
+val props: Map<String, Any?> = project.properties
 val mcVersion = props["mcVersion"] as Int
 val modId = props["mod_id"] as String
 val modWrapperId = props["mod_wrapper_id"] as String
@@ -34,16 +32,15 @@ val minecraftDependency = props["minecraft_dependency"] as String
 val minecraftVersion = props["minecraft_version"] as String
 val fabricApiVersion = props["fabric_version"] as String
 
-// Java 兼容性配置
-val javaCompatibility = when {
-    mcVersion >= 12005 -> JavaVersion.VERSION_21    // 1.20.5+      需要 Java 21
-    mcVersion >= 11800 -> JavaVersion.VERSION_17    // 1.18-1.20.4  需要 Java 17
-    mcVersion >= 11700 -> JavaVersion.VERSION_16    // 1.17.x       需要 Java 16
-    else -> JavaVersion.VERSION_1_8                 // 1.16.x 及以下使用 Java 8
+val javaVersion = when {
+    mcVersion >= 260000 -> JavaVersion.VERSION_25
+    mcVersion >= 12005 -> JavaVersion.VERSION_21
+    mcVersion >= 11800 -> JavaVersion.VERSION_17
+    mcVersion >= 11700 -> JavaVersion.VERSION_16
+    else -> JavaVersion.VERSION_1_8
 }
-val mixinCompatibilityLevel = javaCompatibility
+val mixinCompatibilityLevel = "JAVA_${javaVersion}"
 
-// 版本号（添加构建时间戳）
 val buildTimestamp = SimpleDateFormat("yyMMdd").apply {
     timeZone = TimeZone.getTimeZone("GMT+08:00")
 }.format(Date())
@@ -51,52 +48,30 @@ val buildTimestamp = SimpleDateFormat("yyMMdd").apply {
 version = "$modVersion+$buildTimestamp"
 group = modMavenGroup
 
-// ========================== 仓库配置 ==========================
-fun RepositoryHandler.addMavenRepo(name: String, url: String, vararg groups: String) {
-    maven {
-        this.name = name
-        this.url = uri(url)
+repositories {
+    maven("https://maven.fabricmc.net") { name = "FabricMC" }
+    maven("https://maven.fallenbreath.me/releases") { name = "FallenBreath" }
+    maven("https://api.modrinth.com/maven") { name = "Modrinth" }
+    maven("https://www.cursemaven.com") { name = "CurseMaven" }
+    maven("https://maven.terraformersmc.com/releases") { name = "TerraformersMC" } // ModMenu 源
+    maven("https://maven.nucleoid.xyz") { name = "Nucleoid" }  // ModMenu依赖 Text Placeholder API
+    maven("https://masa.dy.fi/maven") { name = "Masa" }
+    maven("https://maven.shedaniel.me") { name = "Shedaniel" }  // Cloth API/Config 官方源
+    maven("https://maven.isxander.dev/releases") { name = "XanderReleases" }
+    maven("https://masa.dy.fi/maven") { name = "Masa" }
+    maven("https://maven.jackf.red/releases") { name = "XanderReleases" }   // JackFredLib 依赖
+    maven("https://maven.blamejared.com") { name = "BlameJared" }   // Searchables 配置库
+    maven("https://maven.kyrptonaught.dev") { name = "Kyrptonaught" }   // KyrptConfig 依赖
+    maven("https://server.bbkr.space/artifactory/libs-release") { name = "CottonMC" }   // LibGui 依赖
+    maven("https://jitpack.io") { name = "Jitpack" }
+    maven("https://mvnrepository.com/artifact/com.belerweb/pinyin4j") { // 拼音库
+        name = "Pinyin4j"
         content {
-            groups.forEach { group ->
-                if (group.contains('*')) {
-                    includeGroup(group)
-                } else {
-                    includeGroupAndSubgroups(group)
-                }
-            }
+            includeGroupAndSubgroups("com.belerweb")
         }
     }
 }
 
-repositories {
-    // 官方核心仓库
-    mavenCentral()
-
-    // 基础仓库
-    addMavenRepo("FabricMC", "https://maven.fabricmc.net")
-    addMavenRepo("Fallen-Breath", "https://maven.fallenbreath.me/releases")
-
-    // 主流模组仓库
-    addMavenRepo("Modrinth", "https://api.modrinth.com/maven", "maven.modrinth")
-    addMavenRepo("CurseMaven", "https://www.cursemaven.com", "curse.maven")
-
-    // ModMenu 官方源
-    addMavenRepo("TerraformersMC", "https://maven.terraformersmc.com/releases")
-    addMavenRepo("Nucleoid", "https://maven.nucleoid.xyz/")   // ModMenu依赖 Text Placeholder API
-
-    addMavenRepo("Masa", "https://masa.dy.fi/maven")
-    addMavenRepo("Shedaniel", "https://maven.shedaniel.me/") // Cloth API/Config 官方源
-    addMavenRepo("XanderReleases", "https://maven.isxander.dev/releases")
-    addMavenRepo("Jackfred", "https://maven.jackf.red/releases") // JackFredLib 依赖
-    addMavenRepo("BlameJared", "https://maven.blamejared.com") // Searchables 配置库
-    addMavenRepo("Kyrptonaught", "https://maven.kyrptonaught.dev") // KyrptConfig 依赖
-    addMavenRepo("CottonMC", "https://server.bbkr.space/artifactory/libs-release") // LibGui 依赖
-
-    addMavenRepo("Jitpack", "https://jitpack.io")
-    addMavenRepo("Pinyin4j", "https://mvnrepository.com/artifact/com.belerweb/pinyin4j", "com.belerweb")// 拼音库
-}
-
-// ========================== Gradle 扩展函数（方便调用） ==========================
 fun downloadExternalMod(downloadUrl: String, fileName: String? = null): File? {
     return rootProject.downloadFile(
         downloadUrl = downloadUrl,
@@ -105,48 +80,20 @@ fun downloadExternalMod(downloadUrl: String, fileName: String? = null): File? {
     )
 }
 
-// ========================== 依赖配置 ==========================
 dependencies {
-    // 核心依赖
     minecraft("com.mojang:minecraft:$minecraftVersion")
     mappings(loom.officialMojangMappings())
     modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
     modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
-
-    // 拼音库（内嵌）
     modImplementation("com.belerweb:pinyin4j:${props["pinyin_version"]}")?.let { include(it) }
-
-    // ModMenu
     modImplementation("com.terraformersmc:modmenu:${props["modmenu"]}")
 
-
-//    // bunnyi116/fabric-bedrock-miner 测试时去掉注释可以不用自己下载模组
-//    // 模组版本号是写死了, 因为现在是用的预处理器, 所以使用mc变量就行(其实是我懒得在版本配置中去添加)
-//    if (mcVersion >= 11900) {
-//        modImplementation("maven.modrinth:next-fabric-bedrock-miner:v1.4.8-mc$minecraftVersion")
-//    }
-
-    // Masa 系列模组（根据 MC 版本选择）
-    if (mcVersion > 12006) {
-        if (mcVersion == 12101) {   // 临时性, 因为 sakuraryoko jitpack源暂时没有
-            modImplementation("maven.modrinth:malilib:0.21.10")
-            modImplementation("maven.modrinth:litematica:0.19.60")
-            modImplementation("maven.modrinth:tweakeroo:0.21.61")
-        } else {
-            modImplementation("com.github.sakura-ryoko:malilib:${props["malilib"]}")
-            modImplementation("com.github.sakura-ryoko:litematica:${props["litematica"]}")
-            modImplementation("com.github.sakura-ryoko:tweakeroo:${props["tweakeroo"]}")
-        }
-
-    } else {
-//        modImplementation("fi.dy.masa.malilib:${props["malilib"]}")
-//        modImplementation("curse.maven:litematica-308892:${props["litematica"]}")
-//        modImplementation("curse.maven:tweakeroo-297344:${props["tweakeroo"]}")
-        modImplementation("maven.modrinth:malilib:${props["malilib"]}")
-        modImplementation("maven.modrinth:litematica:${props["litematica"]}")
-        modImplementation("maven.modrinth:tweakeroo:${props["tweakeroo"]}")
-
-    }
+    // modImplementation("com.github.sakura-ryoko:malilib:${props["malilib"]}")
+    // modImplementation("com.github.sakura-ryoko:litematica:${props["litematica"]}")
+    // modImplementation("com.github.sakura-ryoko:tweakeroo:${props["tweakeroo"]}")
+    modImplementation("maven.modrinth:malilib:${props["malilib"]}")
+    modImplementation("maven.modrinth:litematica:${props["litematica"]}")
+    modImplementation("maven.modrinth:tweakeroo:${props["tweakeroo"]}")
 
     // 箱子追踪相关（1.21.5 以下）
     if (mcVersion < 12105) {
@@ -196,27 +143,9 @@ dependencies {
     runtimeOnly(project(":fabricWrapper"))
 }
 
-// ========================== Loom 配置 ==========================
 loom {
-    mixin {
-    }
-    val commonVmArgs = listOf(
-        "-Dmixin.debug.export=true",
-        "-Dmixin.debug.verbose=true",
-        "-Dmixin.env.remapRefMap=true",
-//        "-Dfabric.debug.accessWidener=true",
-//        "-Dlog4j2.formatMsgNoLookups=true",
-//        "-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager",
-//        "-XX:+ShowCodeDetailsInExceptionMessages",
-//        "-Dfabric.debug=true",
-//        "-Dfabric.log.level=debug"
-        // "-Dmixin.debug.ignore=net.kyrptonaught.quickshulker.json:ScreenMixin"
-    )
-    val programArgs = listOf(
-        "--width", "1280",
-        "--height", "720",
-        "--username", "PrinterTest"
-    )
+    val commonVmArgs = listOf("-Dmixin.debug.export=true", "-Dmixin.debug.verbose=true", "-Dmixin.env.remapRefMap=true")
+    val programArgs = listOf("--width", "1280", "--height", "720", "--username", "PrinterTest")
     runs {
         named("client") {
             ideConfigGenerated(true)
@@ -224,21 +153,15 @@ loom {
             programArgs(programArgs)
             runDir = "../../run/client"
         }
-
-        named("server") {
-            runDir = "../../run/server"
-        }
     }
 }
 
-// ========================== Java 配置 ==========================
 java {
-    sourceCompatibility = javaCompatibility
-    targetCompatibility = javaCompatibility
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
     withSourcesJar()
 }
 
-// ========================== 任务配置 ==========================
 tasks.apply {
     // 资源处理
     withType<ProcessResources> {
@@ -253,7 +176,7 @@ tasks.apply {
             "mod_sources" to modSources,
             "loader_version" to loaderVersion,
             "minecraft_dependency" to minecraftDependency,
-            "compatibility_level" to "JAVA_${mixinCompatibilityLevel.majorVersion}"
+            "compatibility_level" to mixinCompatibilityLevel
         )
         inputs.properties(resourceProps)
         filesMatching(listOf("fabric.mod.json", "*.mixins.json")) {
@@ -261,16 +184,14 @@ tasks.apply {
         }
     }
 
-    // Java 编译配置
     withType<JavaCompile> {
         options.encoding = "UTF-8"
         options.compilerArgs.addAll(listOf("-Xlint:deprecation", "-Xlint:unchecked"))
-        if (javaCompatibility <= JavaVersion.VERSION_1_8) {
+        if (javaVersion <= JavaVersion.VERSION_1_8) {
             options.compilerArgs.add("-Xlint:-options")
         }
     }
 
-    // JAR 打包配置
     withType<Jar> {
         from(rootProject.file("LICENSE")) {
             rename { "${it}_${modArchivesBaseName}" }
@@ -278,13 +199,6 @@ tasks.apply {
     }
 }
 
-// ========================== Yamlang 配置 ==========================
-yamlang {
-    targetSourceSets.set(setOf(sourceSets.main.get()))
-    inputDir.set("assets/${modId}/lang")
-}
-
-// ========================== Maven 发布配置 ==========================
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
