@@ -1,13 +1,12 @@
 @file:Suppress("UnstableApiUsage")
 
-import org.gradle.kotlin.dsl.project
 import java.text.SimpleDateFormat
 import java.util.*
 
 plugins {
     id("mod-plugin")
     id("maven-publish")
-    id("net.fabricmc.fabric-loom")
+    id("net.fabricmc.fabric-loom-remap")
     id("com.replaymod.preprocess")
 }
 
@@ -95,8 +94,12 @@ dependencies {
 
         // TODO: 暂时不知道是什么模组的依赖, 不过在1.21.11中会报错, 因为这个库没有最新版本, 移除后正在运行, 不知道有什么BUG
         // java.lang.NoSuchMethodError: 'long net.minecraft.server.level.ServerLevel.method_8510()'
+        // TODO: 暂时禁用jackfred maven
+//        if (mcVersionInt < 12111) {
+//            implementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
+//        }
         if (mcVersionInt < 12111) {
-            implementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
+            implementation("com.github.JackFred2:JackFredLib:${prop("jackfredlib")}")
         }
         implementation("com.blamejared.searchables:${prop("searchables")}")
     } else {
