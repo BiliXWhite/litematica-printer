@@ -11,6 +11,7 @@ on:
         type: string
         required: false
         default: ''
+  workflow_dispatch:
 
 env:
   IS_THIS_RELEASE: false
