@@ -9,6 +9,7 @@ public class Test {
         if (FabricLoader.getInstance().isModLoaded("tweakeroo")) {
             ServiceLoader.load(fi.dy.masa.tweakeroo.config.FeatureToggle.class).forEach(api -> {
                 System.out.println(api.TWEAK_TOOL_SWITCH.getBooleanValue());
+                System.out.println(fi.dy.masa.tweakeroo.config.FeatureToggle.TWEAK_TOOL_SWITCH.getBooleanValue());
             });
         }
     }
