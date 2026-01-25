@@ -47,12 +47,6 @@ jobs:
       - name: Get latest hash
         run: echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
-      - name: Build (subproject)
-        run: ./gradlew build --stacktrace
-        env:
-          BUILD_ID: ${{ github.run_number }}
-          BUILD_RELEASE: ${{ inputs.release }}
-
       - name: Build (versionpack)
         run: ./gradlew :fabricWrapper:build --stacktrace
 
@@ -67,33 +61,3 @@ jobs:
         with:
           name: Artifacts
           path: fabricWrapper/build/libs/
-
-      - name: Collect all jars
-        run: |
-          shopt -s extglob
-          mkdir all-jars
-          for jar in versions/*/build/libs/*.jar; do
-              cp -p "$jar" all-jars/
-          done
-          ls -l all-jars
-
-      - name: Upload all jars
-        uses: actions/upload-artifact@v4
-        with:
-          name: quickshulker-all-${{ env.COMMIT_HASH }}
-          path: all-jars/*.jar
-
-      - name: Collect mod jars
-        run: |
-          shopt -s extglob
-          mkdir mod-jars
-          for jar in versions/*/build/libs/!(*-@(dev|sources|shadow)).jar; do
-              cp -p "$jar" mod-jars/
-          done
-          ls -l mod-jars
-
-      - name: Upload mod jars
-        uses: actions/upload-artifact@v4
-        with:
-          name: quickshulker-mod-${{ env.COMMIT_HASH }}
-          path: mod-jars/*.jar
