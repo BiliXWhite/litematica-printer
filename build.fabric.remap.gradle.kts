@@ -95,8 +95,12 @@ dependencies {
 
         // TODO: 暂时不知道是什么模组的依赖, 不过在1.21.11中会报错, 因为这个库没有最新版本, 移除后正在运行, 不知道有什么BUG
         // java.lang.NoSuchMethodError: 'long net.minecraft.server.level.ServerLevel.method_8510()'
+        // TODO: 暂时禁用jackfred maven，转用jitpack：https://jitpack.io/#JackFred2/JackFredLib/
+//        if (mcVersionInt < 12111) {
+//            implementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
+//        }
         if (mcVersionInt < 12111) {
-            modImplementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
+            implementation("com.github.JackFred2:JackFredLib:${prop("jackfredlib")}")
         }
         modImplementation("com.blamejared.searchables:${prop("searchables")}")
     } else {
