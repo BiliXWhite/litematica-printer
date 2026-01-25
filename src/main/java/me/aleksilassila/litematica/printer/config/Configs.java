@@ -314,6 +314,11 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
     }
 
     public static class Print {
+        // 打印热键
+        public static final ConfigHotkey PRINT_HOTKEY = hotkey("printHotkey")
+                .keybindSettings(BOTH_ALLOW_EXTRA_EMPTY)
+                .build();
+
         // 多模开关
         public static final ConfigBooleanHotkeyed PRINT = booleanHotkey("print")
                 .defaultValue(false)
@@ -411,6 +416,8 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
+                PRINT_HOTKEY,
+                PRINT,
                 PRINT_SELECTION_TYPE,         // 打印 - 选区类型
                 SKIP_WATERLOGGED_BLOCK,       // 打印 - 跳过打印含水方块
                 PUT_SKIP,                     // 打印 - 跳过放置
@@ -563,11 +570,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultStorageString("Z,Y")
                 .build();
 
-        // 打印热键
-        public static final ConfigHotkey PRINT = hotkey("print")
-                .keybindSettings(BOTH_ALLOW_EXTRA_EMPTY)
-                .build();
-
         // 关闭全部模式
         public static final ConfigHotkey CLOSE_ALL_MODE = hotkey("closeAllMode")
                 .defaultStorageString("LEFT_CONTROL,G")
@@ -626,13 +628,13 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 // 核心操作热键
                 OPEN_SCREEN,                  // 打开设置菜单
-                PRINT,                        // 打印热键
+                General.WORK_TOGGLE,
                 CLOSE_ALL_MODE,               // 关闭全部模式
                 SWITCH_PRINTER_MODE,          // 切换模式
 
                 // 多模功能热键
-                General.WORK_TOGGLE,
                 Print.PRINT,
+                Print.PRINT_HOTKEY,           // 打印热键
                 Excavate.MINE,                // 挖掘
                 Fill.FILL,                    // 填充
                 FLUID.FLUID,                  // 排流体
