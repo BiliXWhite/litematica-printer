@@ -9,6 +9,7 @@ on:
       - "versions/**"
       - ".github/**"
   pull_request:
+  workflow_dispatch:
 
 env:
   IS_THIS_RELEASE: false
