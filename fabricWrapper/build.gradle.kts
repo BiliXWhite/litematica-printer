@@ -15,12 +15,14 @@ val time = SimpleDateFormat("yyMMdd")
     .format(Date())
     .toString()
 
-var fullProjectVersion: String;
-val buildNumber: String? = System.getenv("GITHUB_RUN_NUMBER")
-fullProjectVersion = if (buildNumber != null) {
-    "$modVersion+$time+build.$buildNumber"
+var fullProjectVersion: String by extra
+if (System.getenv("IS_THIS_RELEASE") == "true") {
+    fullProjectVersion = "$modVersion+$time"
 } else {
-    "$modVersion+$time"
+    val buildNumber: String? = System.getenv("GITHUB_RUN_NUMBER")
+    val intBuildNumber = buildNumber?.toInt()?.plus(175)
+    val finalBuildNumber = intBuildNumber?.toString()
+    fullProjectVersion = "$modVersion+$time+build.$finalBuildNumber"
 }
 
 group = modMavenGroup
