@@ -1,12 +1,13 @@
 @file:Suppress("UnstableApiUsage")
 
+import org.gradle.kotlin.dsl.project
 import java.text.SimpleDateFormat
 import java.util.*
 
 plugins {
     id("mod-plugin")
     id("maven-publish")
-    id("net.fabricmc.fabric-loom-remap")
+    id("net.fabricmc.fabric-loom")
     id("com.replaymod.preprocess")
 }
 
