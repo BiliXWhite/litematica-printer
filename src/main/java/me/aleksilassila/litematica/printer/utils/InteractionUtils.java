@@ -9,12 +9,16 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayDeque;
@@ -29,10 +33,10 @@ public class InteractionUtils {
 
     private final Minecraft client = Minecraft.getInstance();
 
-    private BlockPos currentBreakingPos = new BlockPos(-1, -1, -1);
-    private float currentBreakingProgress;
-    private boolean breakingBlock;
-    private int breakingTicks;
+    private BlockPos destroyBlockPos = new BlockPos(-1, -1, -1);
+    private float destroyProgress;
+    private boolean isDestroying;
+    private float destroyTicks;
 
     private final Deque<BlockPos> breakQueue = new ArrayDeque<>();
     private BlockPos activePos = null;
@@ -52,7 +56,7 @@ public class InteractionUtils {
 
     public void onTick() {
         if (breakQueue.isEmpty()) {
-            if (breakingBlock) {
+            if (isDestroying) {
                 resetBreaking();
                 activePos = null;
             }
@@ -72,7 +76,7 @@ public class InteractionUtils {
                 resetBreaking();
             }
             BlockBreakResult result = updateBlockBreakingProgress(activePos, Direction.DOWN);
-            breakingTicks++;
+            destroyTicks++;
             switch (result) {
                 case COMPLETED, ABORTED, FAILED -> {
                     activePos = null;
@@ -91,7 +95,7 @@ public class InteractionUtils {
         ClientLevel world = client.level;
         BlockState currentState = world.getBlockState(pos);
         // 非创造无法破坏无硬度的方块
-        if (!gameType.isCreative() && currentState.getBlock().defaultDestroyTime() < 0){
+        if (!gameType.isCreative() && currentState.getBlock().defaultDestroyTime() < 0) {
             return false;
         }
         return !currentState.isAir() &&
@@ -120,8 +124,8 @@ public class InteractionUtils {
         return (float) value / 100;
     }
 
-    private int getBlockBreakingProgress() {
-        float breakingProgress = currentBreakingProgress >= getBreakingProgressMax() ? 1.0F : currentBreakingProgress;
+    private int getDestroyStage() {
+        float breakingProgress = destroyProgress >= getBreakingProgressMax() ? 1.0F : destroyProgress;
         return breakingProgress > 0.0F ? (int) (breakingProgress * 10.0F) : -1;
     }
 
@@ -133,98 +137,129 @@ public class InteractionUtils {
         //#endif
     }
 
-    // 核心修改：返回具体的破坏结果枚举
-    public BlockBreakResult updateBlockBreakingProgress(BlockPos pos, Direction direction, boolean localPrediction) {
-        ClientLevel world = client.level;
+    private boolean sameDestroyTarget(BlockPos blockPos) {
+        return blockPos.equals(this.destroyBlockPos);
+    }
+
+    private BlockBreakResult startDestroyBlock(BlockPos blockPos, Direction direction, LocalPlayer player, ClientLevel level, MultiPlayerGameMode gameMode, boolean localPrediction) {
+        if (player.getAbilities().instabuild) {
+            NetworkUtils.sendSequencedPacket(sequence -> {
+                if (localPrediction) {
+                    gameMode.destroyBlock(blockPos);
+                }
+                return getServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, sequence);
+            });
+            return BlockBreakResult.COMPLETED;
+        } else if (!this.isDestroying || !this.sameDestroyTarget(blockPos)) {
+            if (this.isDestroying) {
+                NetworkUtils.sendPacket(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, this.destroyBlockPos, direction));
+            }
+            BlockState blockState = level.getBlockState(blockPos);
+            boolean bl = !blockState.isAir();
+            if (bl && this.destroyProgress == 0.0F) {
+                if (localPrediction) {
+                    blockState.attack(level, blockPos, player);
+                }
+            }
+            boolean instant = PlayerUtils.calcBlockBreakingDelta(player, blockState) >= 1.0F;
+            if (bl && instant) {
+                if (localPrediction) {
+                    gameMode.destroyBlock(blockPos);
+                }
+            } else {
+                isDestroying = true;
+                destroyBlockPos = blockPos;
+                destroyProgress = 0.0F;
+                if (localPrediction) {
+                    level.destroyBlockProgress(player.getId(), this.destroyBlockPos, getDestroyStage());
+                }
+            }
+            NetworkUtils.sendSequencedPacket(sequence -> getServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
+            if (instant) {
+                return BlockBreakResult.COMPLETED;
+            }
+        }
+        return BlockBreakResult.IN_PROGRESS;
+    }
+
+
+    public BlockBreakResult updateBlockBreakingProgress(BlockPos blockPos, Direction direction, boolean localPrediction) {
+        ClientLevel level = client.level;
         LocalPlayer player = client.player;
         MultiPlayerGameMode gameMode = client.gameMode;
-        if (world == null || player == null || gameMode == null) {
+        if (level == null || player == null || gameMode == null) {
             return BlockBreakResult.FAILED;
         }
-        if (!world.getWorldBorder().isWithinBounds(pos)) {
+        if (!level.getWorldBorder().isWithinBounds(blockPos)) {
             return BlockBreakResult.FAILED;
         }
-        if (!PlayerUtils.canInteractWithBlockAt(player, pos, 1F)) {
+        if (!PlayerUtils.canInteractWithBlockAt(player, blockPos, 1F)) {
             return BlockBreakResult.FAILED;
         }
-        if (!canBreakBlock(pos)) {
+        if (!canBreakBlock(blockPos)) {
             return BlockBreakResult.FAILED;
         }
-        BlockState blockState = world.getBlockState(pos);
-        if (gameMode.getPlayerMode().isCreative()) {
-            setBreakingBlock(true);
-            NetworkUtils.sendSequencedPacket((sequence) -> {
-                if (!blockState.isAir() && localPrediction) {
-                    gameMode.destroyBlock(pos);
+        if (player.getAbilities().instabuild && level.getWorldBorder().isWithinBounds(blockPos)) {
+            NetworkUtils.sendSequencedPacket(sequence -> {
+                if (localPrediction) {
+                    gameMode.destroyBlock(blockPos);
                 }
-                return getServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, pos, direction, sequence);
+                return getServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, sequence);
             });
-            setBreakingBlock(false);
             return BlockBreakResult.COMPLETED;
         }
-        // 创造就直接破坏, 所以放在创造逻辑下面, 如果放在上面, 创造模式下会进行调用（体验不好）
         if (ModLoadStatus.isTweakerooLoaded()) {
             if (TweakerooUtils.isToolSwitchEnabled()) {
-                TweakerooUtils.trySwitchToEffectiveTool(pos);
+                TweakerooUtils.trySwitchToEffectiveTool(blockPos);
             }
         }
-        if (breakingBlock && pos.equals(currentBreakingPos)) {
+        if (this.sameDestroyTarget(blockPos)) {
+            BlockState blockState = level.getBlockState(blockPos);
             if (blockState.isAir()) {
-                setBreakingBlock(false);
-                return BlockBreakResult.COMPLETED;
-            }
-            currentBreakingProgress += PlayerUtils.calcBlockBreakingDelta(player, blockState);
-            if (currentBreakingProgress >= getBreakingProgressMax()) {
-                NetworkUtils.sendSequencedPacket((sequence) -> {
-                    if (!blockState.isAir() && localPrediction) {
-                        gameMode.destroyBlock(pos);
-                    }
-                    return getServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, pos, direction, sequence);
-                });
-                currentBreakingProgress = 0.0F;
-                if (localPrediction) {
-                    world.destroyBlockProgress(player.getId(), currentBreakingPos, -1);
-                }
-                setBreakingBlock(false);
+                this.isDestroying = false;
                 return BlockBreakResult.COMPLETED;
             } else {
+                this.destroyProgress = this.destroyProgress + PlayerUtils.calcBlockBreakingDelta(player, blockState);
+                if (localPrediction){
+                    if (this.destroyTicks % 4.0F == 0.0F) {
+                        SoundType soundType = blockState.getSoundType();
+                        client
+                                .getSoundManager()
+                                .play(
+                                        new SimpleSoundInstance(
+                                                soundType.getHitSound(),
+                                                SoundSource.BLOCKS,
+                                                (soundType.getVolume() + 1.0F) / 8.0F,
+                                                soundType.getPitch() * 0.5F,
+                                                //#if MC>11802
+                                                SoundInstance.createUnseededRandom(),
+                                                //#endif
+                                                blockPos
+                                        )
+                                );
+
+                    }
+                    this.destroyTicks++;
+                }
+                if (this.destroyProgress >= getBreakingProgressMax()) {
+                    this.isDestroying = false;
+                    NetworkUtils.sendSequencedPacket(sequence -> {
+                        if (localPrediction) {
+                            gameMode.destroyBlock(blockPos);
+                        }
+                        return getServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence);
+                    });
+                    this.destroyProgress = 0.0F;
+                    this.destroyTicks = 0.0F;
+                    return BlockBreakResult.COMPLETED;
+                }
                 if (localPrediction) {
-                    world.destroyBlockProgress(player.getId(), currentBreakingPos, getBlockBreakingProgress());
+                    level.destroyBlockProgress(player.getId(), this.destroyBlockPos, this.getDestroyStage());
                 }
                 return BlockBreakResult.IN_PROGRESS;
             }
         } else {
-            if (breakingBlock && !pos.equals(currentBreakingPos)) {
-                NetworkUtils.sendPacket(getServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, currentBreakingPos, direction, 0));
-                setBreakingBlock(false);
-            }
-            currentBreakingProgress += PlayerUtils.calcBlockBreakingDelta(player, blockState);
-            if (currentBreakingProgress >= 1.0F) {  // 服务端刚开始的瞬间破坏是>=1.0F的, 所以这个值是不应该降低
-                setBreakingBlock(true);
-                NetworkUtils.sendSequencedPacket((sequence) -> {
-                    if (!blockState.isAir() && localPrediction) {
-                        gameMode.destroyBlock(pos);
-                    }
-                    return getServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, pos, direction, sequence);
-                });
-                currentBreakingProgress = 0.0F;
-                setBreakingBlock(false);
-                return BlockBreakResult.COMPLETED;
-            } else {
-                NetworkUtils.sendSequencedPacket((sequence) -> {
-                    if (!blockState.isAir() && currentBreakingProgress == 0.0F) {
-                        blockState.attack(world, pos, player);
-                    }
-                    setBreakingBlock(true);
-                    currentBreakingPos = pos;
-                    currentBreakingProgress = 0.0F;
-                    if (localPrediction) {
-                        world.destroyBlockProgress(player.getId(), currentBreakingPos, getBlockBreakingProgress());
-                    }
-                    return getServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, pos, direction, sequence);
-                });
-                return BlockBreakResult.IN_PROGRESS;
-            }
+            return this.startDestroyBlock(blockPos, direction, player, level, gameMode, localPrediction);
         }
     }
 
@@ -237,23 +272,23 @@ public class InteractionUtils {
     }
 
     public void resetBreaking() {
-        breakingTicks = 0;
-        setBreakingBlock(false);
+        destroyTicks = 0;
+        setDestroying(false);
     }
 
-    public boolean isBreakingBlock() {
-        return breakingBlock;
+    public boolean isDestroying() {
+        return isDestroying;
     }
 
-    public void setBreakingBlock(boolean breakingBlock) {
-        this.breakingBlock = breakingBlock;
+    public void setDestroying(boolean destroying) {
+        this.isDestroying = destroying;
     }
 
-    public BlockPos getCurrentBreakingPos() {
-        return currentBreakingPos;
+    public BlockPos getDestroyBlockPos() {
+        return destroyBlockPos;
     }
 
-    public float getCurrentBreakingProgress() {
-        return currentBreakingProgress;
+    public float getDestroyProgress() {
+        return destroyProgress;
     }
 }
