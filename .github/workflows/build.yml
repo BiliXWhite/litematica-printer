@@ -12,6 +12,9 @@ on:
         required: false
         default: ''
 
+env:
+  IS_THIS_RELEASE: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
