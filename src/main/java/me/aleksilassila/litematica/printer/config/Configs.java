@@ -315,7 +315,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
     public static class Print {
         // 打印热键
-        public static final ConfigHotkey PRINT_HOTKEY = hotkey("printHotkey")
+        public static final ConfigHotkey WORK_TOGGLE_HOTKEY = hotkey("printHotkey")
                 .keybindSettings(BOTH_ALLOW_EXTRA_EMPTY)
                 .build();
 
@@ -416,7 +416,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
-                PRINT_HOTKEY,
+                WORK_TOGGLE_HOTKEY,
                 PRINT,
                 PRINT_SELECTION_TYPE,         // 打印 - 选区类型
                 SKIP_WATERLOGGED_BLOCK,       // 打印 - 跳过打印含水方块
@@ -629,12 +629,12 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 // 核心操作热键
                 OPEN_SCREEN,                  // 打开设置菜单
                 General.WORK_TOGGLE,
+                Print.WORK_TOGGLE_HOTKEY,           // 打印热键
                 CLOSE_ALL_MODE,               // 关闭全部模式
                 SWITCH_PRINTER_MODE,          // 切换模式
 
                 // 多模功能热键
                 Print.PRINT,
-                Print.PRINT_HOTKEY,           // 打印热键
                 Excavate.MINE,                // 挖掘
                 Fill.FILL,                    // 填充
                 FLUID.FLUID,                  // 排流体
