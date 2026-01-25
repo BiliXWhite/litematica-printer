@@ -6,6 +6,7 @@ import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import me.aleksilassila.litematica.printer.utils.UpdateCheckerUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
@@ -38,7 +39,6 @@ import java.util.concurrent.CompletableFuture;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 //$$ import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 //#else
-//$$ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
 //#endif
 //#if MC >= 12105
 import java.net.URI;
@@ -84,6 +84,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     public void tick(CallbackInfo ci) {
         ZxyUtils.tick();
         BreakManager.instance().onTick();
+        InteractionUtils.INSTANCE.onTick();
         Printer printer = Printer.getInstance();
         printer.onGameTick(minecraft, minecraft.level, (LocalPlayer) (Object) this);
     }
