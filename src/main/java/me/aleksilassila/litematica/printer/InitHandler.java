@@ -46,7 +46,7 @@ public class InitHandler implements IInitializationHandler {
             return true;
         });
 
-        Print.PRINT_HOTKEY.getKeybind().setCallback((action, key) -> {
+        Print.WORK_TOGGLE_HOTKEY.getKeybind().setCallback((action, key) -> {
             if (key.isKeybindHeld()) {
                 if (!General.WORK_TOGGLE.getBooleanValue()) {
                     General.WORK_TOGGLE.setBooleanValue(true);
