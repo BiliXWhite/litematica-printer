@@ -24,6 +24,8 @@ on:
         type: string
         required: true
 
+env:
+  IS_THIS_RELEASE: true
 
 jobs:
   show_action_parameters:

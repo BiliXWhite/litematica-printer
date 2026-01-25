@@ -13,6 +13,9 @@ on:
         default: ''
   workflow_dispatch: 
 
+env:
+  IS_THIS_RELEASE: true
+
 jobs:
   build:
     runs-on: ubuntu-latest

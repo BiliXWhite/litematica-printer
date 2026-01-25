@@ -5,6 +5,9 @@ on:
 #  pull_request:
   workflow_dispatch:
 
+env:
+  IS_THIS_RELEASE: false
+
 jobs:
   build:
     runs-on: ubuntu-24.04
