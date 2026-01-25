@@ -12,6 +12,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -86,15 +87,19 @@ public class InteractionUtils {
         if (client.level == null || client.player == null || client.gameMode == null || pos == null) {
             return false;
         }
+        GameType gameType = client.gameMode.getPlayerMode();
         ClientLevel world = client.level;
         BlockState currentState = world.getBlockState(pos);
+        // 非创造无法破坏无硬度的方块
+        if (!gameType.isCreative() && currentState.getBlock().defaultDestroyTime() < 0){
+            return false;
+        }
         return !currentState.isAir() &&
-                !(currentState.getBlock().defaultDestroyTime() < 0) &&
                 !(currentState.getBlock() instanceof LiquidBlock) &&
                 !currentState.is(Blocks.AIR) &&
                 !currentState.is(Blocks.CAVE_AIR) &&
                 !currentState.is(Blocks.VOID_AIR) &&
-                !client.player.blockActionRestricted(client.level, pos, client.gameMode.getPlayerMode());
+                !client.player.blockActionRestricted(client.level, pos, gameType);
     }
 
     // 方块破坏结果枚举（核心新增）
