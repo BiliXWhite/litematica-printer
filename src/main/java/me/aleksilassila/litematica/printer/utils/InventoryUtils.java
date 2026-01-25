@@ -23,7 +23,7 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-
+import net.minecraft.world.item.Items;
 
 //#if MC >= 12105
 import net.minecraft.network.HashedStack;
@@ -94,6 +94,97 @@ public class InventoryUtils {
             client.getConnection().send(new ServerboundSetCarriedItemPacket(slot));
         }
         setSelectedSlot(inventory, slot);
+    }
+
+    public enum PickResult {
+        SUCCESS,
+        FAIL,
+        FAIL_NO_PICK_SLOTS_CONFIGURED,
+        FAIL_NO_SUITABLE_SLOT_FOUND;
+
+        // 快捷判断：是否是「未配置可拾取槽位」
+        public boolean isNoPickSlotsConfigured() {
+            return this == FAIL_NO_PICK_SLOTS_CONFIGURED;
+        }
+
+        // 快捷判断：是否是「无可用槽位」
+        public boolean isNoSuitableSlotFound() {
+            return this == FAIL_NO_SUITABLE_SLOT_FOUND;
+        }
+
+        // 核心快捷方法：是否「无可用槽位」（包含两种精准失败类型）
+        public boolean isNoAvailableSlot() {
+            return isNoPickSlotsConfigured() || isNoSuitableSlotFound();
+        }
+
+        // 核心快捷方法：是否「有可用槽位」（仅SUCCESS表示有）
+        public boolean isAvailable() {
+            return this == SUCCESS;
+        }
+    }
+    /**
+     * 检查是否有可用的 Pick 槽位
+     *
+     * @param sourceSlot 源槽位（-1表示自动寻找）
+     * @param mc         Minecraft实例
+     * @return PickResult 枚举结果
+     */
+    public static PickResult checkPickSlotAvailable(int sourceSlot, Minecraft mc) {
+        // 基础校验失败 → 返回通用FAIL
+        if (mc.player == null) return PickResult.FAIL;
+
+        Player player = mc.player;
+        Inventory inventory = player.getInventory();
+
+        // 源槽位是快捷栏 → 成功
+        if (Inventory.isHotbarSlot(sourceSlot)) return PickResult.SUCCESS;
+
+        // 无配置可拾取槽位 → 精准失败类型
+        if (InventoryUtilsAccessor.getPICK_BLOCKABLE_SLOTS().isEmpty()) {
+            return PickResult.FAIL_NO_PICK_SLOTS_CONFIGURED;
+        }
+
+        // 寻找可用槽位
+        int hotbarSlot = sourceSlot;
+        if (sourceSlot == -1 || !Inventory.isHotbarSlot(sourceSlot)) {
+            hotbarSlot = InventoryUtilsAccessor.getEmptyPickBlockableHotbarSlot(inventory);
+        }
+        if (hotbarSlot == -1) {
+            hotbarSlot = InventoryUtilsAccessor.getPickBlockTargetSlot(player);
+        }
+
+        // 无可用槽位 → 精准失败类型；否则成功
+        return hotbarSlot != -1 ? PickResult.SUCCESS : PickResult.FAIL_NO_SUITABLE_SLOT_FOUND;
+    }
+
+    /**
+     * 检查是否能切换到目标物品（配合槽位检查，仅判断不执行切换）
+     * @param player 本地玩家实例
+     * @param items 目标物品数组（null/空则视为AIR）
+     * @return PickResult 检查结果
+     */
+    public PickResult checkCanSwitchToItems(LocalPlayer player, Item[] items) {
+        if (player == null) {
+            return PickResult.FAIL;
+        }
+        Item[] targetItems = items;
+        if (targetItems == null || targetItems.length == 0) {
+            targetItems = new Item[]{Items.AIR};
+        }
+        Inventory inv = player.getInventory();
+        boolean isCreativeMode = PlayerUtils.getAbilities(player).instabuild;
+        if (isCreativeMode) {
+            return InventoryUtils.checkPickSlotAvailable(-1, client);
+        }
+        for (Item item : targetItems) {
+            for (int i = 0; i < inv.getContainerSize(); i++) {
+                ItemStack itemStack = inv.getItem(i);
+                if (itemStack.getItem().equals(item)) {
+                    return InventoryUtils.checkPickSlotAvailable(i, client);
+                }
+            }
+        }
+        return PickResult.FAIL;
     }
 
     public static boolean setPickedItemToHand(int sourceSlot, ItemStack stack, Minecraft mc) {
@@ -219,6 +310,7 @@ public class InventoryUtils {
 
     /**
      * 获取玩家副手的物品栈（全版本通用，极简实现）
+     *
      * @param player 玩家实例
      * @return 副手物品栈
      */
@@ -229,8 +321,9 @@ public class InventoryUtils {
 
     /**
      * 将指定物品切换/设置到副手（核心方法，无选中格子逻辑）
+     *
      * @param stack 要放到副手的物品栈
-     * @param mc Minecraft实例
+     * @param mc    Minecraft实例
      * @return 是否切换成功
      */
     public static boolean setItemToOffhand(ItemStack stack, Minecraft mc) {

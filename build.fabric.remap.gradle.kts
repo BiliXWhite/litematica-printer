@@ -1,13 +1,12 @@
 @file:Suppress("UnstableApiUsage")
 
-import org.gradle.kotlin.dsl.project
 import java.text.SimpleDateFormat
 import java.util.*
 
 plugins {
     id("mod-plugin")
     id("maven-publish")
-    id("net.fabricmc.fabric-loom")
+    id("net.fabricmc.fabric-loom-remap")
     id("com.replaymod.preprocess")
 }
 
@@ -51,22 +50,23 @@ configurations.all {
 
 dependencies {
     minecraft("com.mojang:minecraft:$mcVersion")
-    implementation("net.fabricmc:fabric-loader:$fabricLoaderVersion")
-    implementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
-    implementation("com.belerweb:pinyin4j:${prop("pinyin_version")}")?.let { include(it) }
-    implementation("com.terraformersmc:modmenu:${prop("modmenu")}")
+    mappings(loom.officialMojangMappings())
+    modImplementation("net.fabricmc:fabric-loader:$fabricLoaderVersion")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
+    modImplementation("com.belerweb:pinyin4j:${prop("pinyin_version")}")?.let { include(it) }
+    modImplementation("com.terraformersmc:modmenu:${prop("modmenu")}")
 
-    // implementation("com.github.sakura-ryoko:malilib:${props["malilib"]}")
-    // implementation("com.github.sakura-ryoko:litematica:${props["litematica"]}")
-    // implementation("com.github.sakura-ryoko:tweakeroo:${props["tweakeroo"]}")
-    implementation("maven.modrinth:malilib:${prop("malilib")}")
-    implementation("maven.modrinth:litematica:${prop("litematica")}")
-    implementation("maven.modrinth:tweakeroo:${prop("tweakeroo")}")
+    // modImplementation("com.github.sakura-ryoko:malilib:${props["malilib"]}")
+    // modImplementation("com.github.sakura-ryoko:litematica:${props["litematica"]}")
+    // modImplementation("com.github.sakura-ryoko:tweakeroo:${props["tweakeroo"]}")
+    modImplementation("maven.modrinth:malilib:${prop("malilib")}")
+    modImplementation("maven.modrinth:litematica:${prop("litematica")}")
+    modImplementation("maven.modrinth:tweakeroo:${prop("tweakeroo")}")
 
     // 箱子追踪相关（1.21.5 以下）
     if (mcVersionInt < 12105) {
-        implementation("maven.modrinth:chest-tracker:${prop("chesttracker")}")
-        implementation("maven.modrinth:where-is-it:${prop("whereisit")}")
+        modImplementation("maven.modrinth:chest-tracker:${prop("chesttracker")}")
+        modImplementation("maven.modrinth:where-is-it:${prop("whereisit")}")
     }
 
     // 快捷潜影盒
@@ -75,36 +75,36 @@ dependencies {
         if (quickshulkerUrl.isNotEmpty()) {
             val quickshulkerFile = downloadDependencyMod(quickshulkerUrl)
             if (quickshulkerFile != null && quickshulkerFile.exists()) {
-                implementation(files(quickshulkerFile))
+                modImplementation(files(quickshulkerFile))
             }
         }
         // 快捷潜影盒依赖(运行时)
         if (mcVersionInt == 12006) {  // 1.20.6 是 Haocen2004/quickshulker 分支, 所以还是使用之前老版本的依赖
-            implementation("net.kyrptonaught:kyrptconfig:${prop("kyrptconfig")}") // 快捷潜影盒依赖(运行时)
+            modImplementation("net.kyrptonaught:kyrptconfig:${prop("kyrptconfig")}") // 快捷潜影盒依赖(运行时)
         } else {
-            implementation("me.fallenbreath:conditional-mixin-fabric:0.6.4")
+            modImplementation("me.fallenbreath:conditional-mixin-fabric:0.6.4")
         }
     } else {
-        implementation("curse.maven:quick-shulker-362669:${prop("quick_shulker")}")
-        implementation("net.kyrptonaught:kyrptconfig:${prop("kyrptconfig")}") // 快捷潜影盒依赖(运行时)
+        modImplementation("curse.maven:quick-shulker-362669:${prop("quick_shulker")}")
+        modImplementation("net.kyrptonaught:kyrptconfig:${prop("kyrptconfig")}") // 快捷潜影盒依赖(运行时)
     }
 
     // 暂时不知是什么依赖
     if (mcVersionInt >= 12001) {
-        implementation("dev.isxander:yet-another-config-lib:${prop("yacl")}")
+        modImplementation("dev.isxander:yet-another-config-lib:${prop("yacl")}")
 
         // TODO: 暂时不知道是什么模组的依赖, 不过在1.21.11中会报错, 因为这个库没有最新版本, 移除后正在运行, 不知道有什么BUG
         // java.lang.NoSuchMethodError: 'long net.minecraft.server.level.ServerLevel.method_8510()'
         if (mcVersionInt < 12111) {
-            implementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
+            modImplementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
         }
-        implementation("com.blamejared.searchables:${prop("searchables")}")
+        modImplementation("com.blamejared.searchables:${prop("searchables")}")
     } else {
-        implementation("maven.modrinth:cloth-config:${prop("cloth_config")}")
-        implementation("io.github.cottonmc:LibGui:${prop("LibGui")}")
+        modImplementation("maven.modrinth:cloth-config:${prop("cloth_config")}")
+        modImplementation("io.github.cottonmc:LibGui:${prop("LibGui")}")
     }
     if (mcVersionInt < 11904) {
-        implementation("me.shedaniel.cloth.api:cloth-api:${prop("cloth_api")}")
+        modImplementation("me.shedaniel.cloth.api:cloth-api:${prop("cloth_api")}")
     }
 
     // Fabric 包装器（运行时, 正常情况下可以不用, 这里模拟用户环境, 一起加载到游戏）
