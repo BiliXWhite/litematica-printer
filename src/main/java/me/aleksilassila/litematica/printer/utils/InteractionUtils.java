@@ -16,6 +16,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 @Environment(EnvType.CLIENT)
 public class InteractionUtils {
     public static InteractionUtils INSTANCE = new InteractionUtils();
@@ -29,6 +32,55 @@ public class InteractionUtils {
     private float currentBreakingProgress;
     private boolean breakingBlock;
     private int breakingTicks;
+
+    private final Deque<BlockPos> breakQueue = new ArrayDeque<>();
+    private BlockPos activePos = null;
+
+    public void addQueue(BlockPos pos) {
+        if (pos == null) return;
+        if (!breakQueue.contains(pos)) {
+            breakQueue.addLast(pos);
+        }
+    }
+
+    public void clearQueue() {
+        breakQueue.clear();
+        resetBreaking();
+        activePos = null;
+    }
+
+    public void onTick() {
+        if (breakQueue.isEmpty()) {
+            if (breakingBlock) {
+                resetBreaking();
+                activePos = null;
+            }
+            return;
+        }
+        if (client.level == null || client.player == null || client.gameMode == null) {
+            clearQueue();
+            return;
+        }
+
+        while (!breakQueue.isEmpty()) {
+            if (activePos == null) {
+                activePos = breakQueue.pollFirst();
+                if (activePos == null) {
+                    return; // 队列空
+                }
+                resetBreaking();
+            }
+            BlockBreakResult result = updateBlockBreakingProgress(activePos, Direction.DOWN);
+            breakingTicks++;
+            switch (result) {
+                case COMPLETED, ABORTED, FAILED -> {
+                    activePos = null;
+                    resetBreaking();
+                }
+            }
+        }
+    }
+
 
     public boolean canBreakBlock(BlockPos pos) {
         if (client.level == null || client.player == null || client.gameMode == null || pos == null) {
@@ -182,15 +234,6 @@ public class InteractionUtils {
     public void resetBreaking() {
         breakingTicks = 0;
         setBreakingBlock(false);
-    }
-
-    public void autoResetBreaking() {
-        if (!breakingBlock && breakingTicks > 0) {
-            resetBreaking();
-        }
-        if (breakingBlock) {
-            resetBreaking();
-        }
     }
 
     public boolean isBreakingBlock() {
