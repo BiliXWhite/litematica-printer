@@ -1,20 +1,20 @@
 package me.aleksilassila.litematica.printer.utils;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class ResourceLocationUtils {
 
-    public static ResourceLocation of(String string) {
+    public static Identifier of(String string) {
         //#if MC > 12006
-        return ResourceLocation.parse(string);
+        return Identifier.parse(string);
         //#else
         //$$ return new ResourceLocation(string);
         //#endif
     }
 
-    public static ResourceLocation of(String namespace, String path) {
+    public static Identifier of(String namespace, String path) {
         //#if MC > 12006
-        return ResourceLocation.fromNamespaceAndPath(namespace, path);
+        return Identifier.fromNamespaceAndPath(namespace, path);
         //#else
         //$$ return new ResourceLocation(namespace, path);
         //#endif

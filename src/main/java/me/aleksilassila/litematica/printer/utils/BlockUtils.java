@@ -3,7 +3,7 @@ package me.aleksilassila.litematica.printer.utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -18,7 +18,7 @@ public class BlockUtils {
         //#endif
     }
 
-    public static @NotNull Block getBlock(ResourceLocation blockId) {
+    public static @NotNull Block getBlock(Identifier blockId) {
         //#if MC > 12101
         return BuiltInRegistries.BLOCK.getValue(blockId);
         //#else
@@ -30,7 +30,7 @@ public class BlockUtils {
         return block.getName().getString();
     }
 
-    public static ResourceLocation getKey(Block block) {
+    public static Identifier getKey(Block block) {
         return BuiltInRegistries.BLOCK.getKey(block);
     }
 

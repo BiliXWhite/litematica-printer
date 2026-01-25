@@ -1,17 +1,17 @@
 plugins {
     id("maven-publish")
-    id("com.github.hierynomus.license") version "0.16.1" apply false
-    id("fabric-loom") version "1.14-SNAPSHOT" apply false
+    id("net.fabricmc.fabric-loom") version "1.15-SNAPSHOT" apply false
+    id("net.fabricmc.fabric-loom-remap") version "1.15-SNAPSHOT" apply false
 
     // https://github.com/ReplayMod/preprocessor
     // https://github.com/Fallen-Breath/preprocessor
+    // https://jitpack.io/#Fallen-Breath/preprocessor
     id("com.replaymod.preprocess") version "c5abb4fb12"
-
-    // https://github.com/Fallen-Breath/yamlang
-    id("me.fallenbreath.yamlang") version "1.5.0" apply false
 }
 
 preprocess {
+    strictExtraMappings.set(false)
+
     val mc11802 = createNode("1.18.2", 1_18_02, "mojang")
     val mc11904 = createNode("1.19.4", 1_19_04, "mojang")
     val mc12001 = createNode("1.20.1", 1_20_01, "mojang")
@@ -40,16 +40,11 @@ preprocess {
     mc12106.link(mc12109, null)
     mc12109.link(mc12111, null)
 
-    strictExtraMappings.set(false)
-}
-
-tasks.register("cleanPreprocessSources") {
-    group = "${project.property("mod_id")}"
-
-    doFirst {
-        subprojects {
-            val path = project.projectDir.toPath().resolve("build/preprocessed")
-            path.toFile().deleteRecursively()
-        }
+    // See https://github.com/Fallen-Breath/fabric-mod-template/blob/1d72d77a1c5ce0bf060c2501270298a12adab679/build.gradle#L55-L63
+    for (node in getNodes()) {
+        println("${node.project}: ${node.mcVersion}")
+        findProject(node.project)
+            ?.ext
+            ?.set("mcVersion", node.mcVersion)
     }
 }
