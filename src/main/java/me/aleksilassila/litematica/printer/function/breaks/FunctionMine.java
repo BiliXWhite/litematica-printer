@@ -95,7 +95,6 @@ public class FunctionMine extends FunctionBreak {
                 loop = false;
             }
             if (!canIterationTest(printer, level, client.player, blockPos)) {
-                setBreakCooldown(blockPos);
                 this.blockPos = null;
                 continue;
             }
@@ -107,7 +106,7 @@ public class FunctionMine extends FunctionBreak {
             if (result == InteractionUtils.BlockBreakResult.IN_PROGRESS) {
                 return;
             }
-            setBreakCooldown(blockPos);
+            setBreakCooldown(blockPos); // 仅在瞬间破坏成功中设置冷却, 避免持续破坏位置被冷却
             this.blockPos = null;
             if (Configs.Break.BREAK_BLOCKS_PER_TICK.getIntegerValue() != 0) {
                 breakBlocksPerTick--;
