@@ -20,7 +20,7 @@ if (System.getenv("IS_THIS_RELEASE") == "true") {
     fullProjectVersion = "$modVersion+$time"
 } else {
     val buildNumber: String? = System.getenv("GITHUB_RUN_NUMBER")
-    val intBuildNumber = buildNumber?.toInt()?.plus(175)
+    val intBuildNumber = buildNumber?.toInt()?.plus(174)
     val finalBuildNumber = intBuildNumber?.toString()
     fullProjectVersion = "$modVersion+$time+build.$finalBuildNumber"
 }
