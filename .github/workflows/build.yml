@@ -44,9 +44,6 @@ jobs:
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
 
-      - name: Get latest hash
-        run: echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-
       - name: Build (versionpack)
         run: ./gradlew :fabricWrapper:build --stacktrace
 
