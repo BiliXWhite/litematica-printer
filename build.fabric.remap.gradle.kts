@@ -25,10 +25,10 @@ repositories {
     maven("https://maven.terraformersmc.com/releases") { name = "TerraformersMC" } // ModMenu 源
     maven("https://maven.nucleoid.xyz") { name = "Nucleoid" }  // ModMenu依赖 Text Placeholder API
     maven("https://masa.dy.fi/maven") { name = "Masa" }
+    maven("https://masa.dy.fi/maven/sakura-ryoko") { name = "SakuraRyoko" }
     maven("https://maven.shedaniel.me") { name = "Shedaniel" }  // Cloth API/Config 官方源
     maven("https://maven.isxander.dev/releases") { name = "XanderReleases" }
-    maven("https://masa.dy.fi/maven") { name = "Masa" }
-    maven("https://maven.jackf.red/releases") { name = "XanderReleases" }   // JackFredLib 依赖
+    maven("https://maven.jackf.red/releases") { name = "Jackfred" }   // JackFredLib 依赖
     maven("https://maven.blamejared.com") { name = "BlameJared" }   // Searchables 配置库
     maven("https://maven.kyrptonaught.dev") { name = "Kyrptonaught" }   // KyrptConfig 依赖
     maven("https://server.bbkr.space/artifactory/libs-release") { name = "CottonMC" }   // LibGui 依赖
@@ -95,8 +95,9 @@ dependencies {
 
         // TODO: 暂时不知道是什么模组的依赖, 不过在1.21.11中会报错, 因为这个库没有最新版本, 移除后正在运行, 不知道有什么BUG
         // java.lang.NoSuchMethodError: 'long net.minecraft.server.level.ServerLevel.method_8510()'
+        // Jackfred maven复活
         if (mcVersionInt < 12111) {
-            modImplementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
+            implementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
         }
         modImplementation("com.blamejared.searchables:${prop("searchables")}")
     } else {
