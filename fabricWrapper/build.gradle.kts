@@ -15,12 +15,19 @@ val time = SimpleDateFormat("yyMMdd")
     .format(Date())
     .toString()
 
-var fullProjectVersion: String;
-val buildNumber: String? = System.getenv("GITHUB_RUN_NUMBER")
-fullProjectVersion = if (buildNumber != null) {
-    "$modVersion+$time+build.$buildNumber"
+var fullProjectVersion: String by extra
+if (System.getenv("IS_THIS_RELEASE") == "true") {
+    // 发布release不带构建号
+    fullProjectVersion = "$modVersion+$time"
+} else if (System.getenv("IS_THIS_RELEASE") == "false") {
+    //字符串转整数值再转字符串 🤔
+    val buildNumber: String? = System.getenv("GITHUB_RUN_NUMBER")
+    val intBuildNumber = buildNumber?.toInt()?.plus(175) //延续构建号
+    val finalBuildNumber = intBuildNumber?.toString()
+    fullProjectVersion = "$modVersion+$time+build.$finalBuildNumber"
 } else {
-    "$modVersion+$time"
+    // 本地构建添加local后缀
+    fullProjectVersion = "$modVersion+$time+local"
 }
 
 group = modMavenGroup
