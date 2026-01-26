@@ -107,9 +107,6 @@ dependencies {
     if (mcVersionInt < 11904) {
         modImplementation("me.shedaniel.cloth.api:cloth-api:${prop("cloth_api")}")
     }
-
-    // Fabric 包装器（运行时, 正常情况下可以不用, 这里模拟用户环境, 一起加载到游戏）
-    runtimeOnly(project(":fabricWrapper"))
 }
 
 loom {
