@@ -1,4 +1,4 @@
-name: Stable Build
+name: _step.release_build
 on:
   workflow_call:
     inputs:
@@ -29,7 +29,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Cache Gradle dependencies (public caches)
+      - name: Cache Gradle dependencies (公共缓存)
         uses: actions/cache@v3
         with:
           path: |
@@ -48,14 +48,12 @@ jobs:
       - name: Get latest hash
         run: echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
-      - name: Build (versionpack)
+      - name: Build (多版本模组包)
         run: ./gradlew :fabricWrapper:build --stacktrace
 
-      - name: Upload artifacts (with file structures)
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: versions/*/build/libs/
+      - name: Delete versionpack-sources.jar
+        run: |
+          find fabricWrapper/build/libs/ -name "*-sources.jar" -exec rm {} \;
 
       - name: Upload versionpack jar
         uses: actions/upload-artifact@v4

@@ -4,7 +4,7 @@ name: Release
 # dispatch (all): Manual release for $target_release_tag
 # dispatch (specified): Manual release for $target_release_tag (subproject: $target_subproject)
 run-name: |-
-  ${{ github.event_name == 'workflow_dispatch' && format('Manual release for {0}{1}', inputs.target_release_tag, inputs.target_subproject && format(' (subproject: {0})', inputs.target_subproject) || '') || '' }}
+  ${{ github.event_name == 'workflow_dispatch' && format('Manual release for {0}' || '') || '' }}
 
 on:
   release:
@@ -12,13 +12,6 @@ on:
       - published
   workflow_dispatch:
     inputs:
-      target_subproject:
-        description: |-
-          The subproject name(s) of the specified Minecraft version to be released, seperated with ",".
-          By default all subprojects will be released
-        type: string
-        required: false
-        default: ''
       target_release_tag:
         description: The tag of the release you want to append the artifact to
         type: string
@@ -35,7 +28,6 @@ jobs:
         run: |
           cat <<EOF > $GITHUB_STEP_SUMMARY
           ## Action Parameters
-          - target_subproject: \`${{ github.event.inputs.target_subproject }}\`
           - target_release_tag: \`${{ github.event.inputs.target_release_tag }}\`
           EOF
 
@@ -94,5 +86,4 @@ jobs:
     needs:
       - validate_release
     with:
-      target_subproject: ${{ github.event.inputs.target_subproject }}
       release: true
