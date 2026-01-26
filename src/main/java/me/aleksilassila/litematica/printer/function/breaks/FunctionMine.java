@@ -72,10 +72,7 @@ public class FunctionMine extends FunctionBreak {
             if (!InteractionUtils.INSTANCE.canBreakBlock(pos)) {
                 return false;
             }
-            if (!BreakManager.breakRestriction(level.getBlockState(pos))) {
-                return false;
-            }
-            return InteractionUtils.INSTANCE.canBreakBlock(pos);
+            return BreakManager.breakRestriction(level.getBlockState(pos));
         }
         return true;
     }
