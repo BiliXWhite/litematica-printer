@@ -1,4 +1,4 @@
-name: build
+name: _step.build
 on:
   workflow_call:
     inputs:
@@ -11,15 +11,6 @@ on:
         type: string
         required: false
         default: ''
-  push:
-    paths:
-      - "*.gradle"
-      - "gradle.properties"
-      - "src/**"
-      - "versions/**"
-      - ".github/**"
-  pull_request:
-  workflow_dispatch:
 
 env:
   IS_THIS_RELEASE: false
