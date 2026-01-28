@@ -720,9 +720,31 @@ public class PlacementGuide extends PrinterUtils {
                 ) BreakManager.addBlockToBreak(ctx);
             }
             case COMPARATOR -> {
-                if (ctx.requiredState.getValue(ComparatorBlock.MODE) != ctx.currentState.getValue(ComparatorBlock.MODE))
+                if (ctx.requiredState.getValue(ComparatorBlock.MODE) != ctx.currentState.getValue(ComparatorBlock.MODE)) {
                     return new ClickAction();
-                else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
+                }
+                if (printerBreakWrongStateBlock) {
+                    Direction facing = ctx.requiredState.getValue(ComparatorBlock.FACING);
+                    //检验朝向
+                    if (facing != ctx.currentState.getValue(ComparatorBlock.FACING)) {
+                        BreakManager.addBlockToBreak(ctx);
+                    }
+                    BlockContext input = ctx.offset(facing);
+                    //检验输出信号
+                    if (ctx.level.getSignal(ctx.blockPos, facing) != ctx.schematic.getSignal(ctx.blockPos, facing)) {
+                        if (input.requiredState.hasAnalogOutputSignal()) {
+                            return null;
+                        }
+                        //检验输入端非透明方块
+                        if (input.requiredState.isRedstoneConductor(input.level, input.blockPos)) {
+                            BlockContext behind_input = input.offset(facing);
+                            if (behind_input.requiredState.hasAnalogOutputSignal()) {
+                                return null;
+                            }
+                        }
+                    }
+                    BreakManager.addBlockToBreak(ctx);
+                }
             }
             case NOTE_BLOCK -> {
                 if (Configs.Print.NOTE_BLOCK_TUNING.getBooleanValue() && !Objects.equals(ctx.requiredState.getValue(NoteBlock.NOTE), ctx.currentState.getValue(NoteBlock.NOTE)))
