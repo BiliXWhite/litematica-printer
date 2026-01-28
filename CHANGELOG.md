@@ -4,6 +4,11 @@
 
 ### v1.2.3-dev
 
+#### 2026-1-29
+- 添加[issues#78](https://github.com/BiliXWhite/litematica-printer/issues/78)
+- 跳过放置列表常驻
+- 添加破坏检查方块硬度选项
+
 #### 2026-1-25
 - 构建脚本调整, 为 Minecraft 26.1 提前准备
 - 将破坏成功冷却调整为1TICK冷却, 避免小白认为挖掘不流畅
