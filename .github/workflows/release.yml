@@ -1,4 +1,4 @@
-name: Release
+name: release
 
 # release: <default> (release title)
 # dispatch (all): Manual release for $target_release_tag
@@ -89,7 +89,7 @@ jobs:
           tag: ${{ github.event.inputs.target_release_tag }}
 
   build:
-    uses: ./.github/workflows/stable_build.yml
+    uses: ./.github/workflows/_step.release_build.yml
     needs:
       - validate_release
     with:

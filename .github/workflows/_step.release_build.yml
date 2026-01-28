@@ -1,4 +1,4 @@
-name: _step.build
+name: release_build
 on:
   workflow_call:
     inputs:
@@ -11,9 +11,10 @@ on:
         type: string
         required: false
         default: ''
+  workflow_dispatch: 
 
 env:
-  IS_THIS_RELEASE: false
+  IS_THIS_RELEASE: true
 
 jobs:
   build:
@@ -28,7 +29,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Cache Gradle dependencies (public caches)
+      - name: Cache Gradle dependencies (公共缓存)
         uses: actions/cache@v3
         with:
           path: |
@@ -44,7 +45,7 @@ jobs:
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
 
-      - name: Build (versionpack)
+      - name: Build (多版本模组包)
         run: ./gradlew :fabricWrapper:build --stacktrace
 
       - name: Delete versionpack-sources.jar
@@ -56,3 +57,9 @@ jobs:
         with:
           name: Artifacts
           path: fabricWrapper/build/libs/
+
+      - name: release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: fabricWrapper/build/libs/*
+          token: ${{ secrets.GITHUB_TOKEN }}
