@@ -302,6 +302,10 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .range(0, 64)
                 .build();
 
+        public static final ConfigBoolean BREAK_CHECK_BLOCK_HARDNESS = bool("breakCheckBlockHardness")
+                .defaultValue(true)
+                .build();
+
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 BREAK_PLACE_USE_PACKET,
                 BREAK_PROGRESS_THRESHOLD,
@@ -309,7 +313,8 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 General.ITERATOR_USE_TIME,
                 BREAK_SPEED,
                 BREAK_BLOCKS_PER_TICK,
-                BREAK_COOLDOWN
+                BREAK_COOLDOWN,
+                BREAK_CHECK_BLOCK_HARDNESS
         );
     }
 

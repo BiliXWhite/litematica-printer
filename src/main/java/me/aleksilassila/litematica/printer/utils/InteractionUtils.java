@@ -94,9 +94,12 @@ public class InteractionUtils {
         GameType gameType = client.gameMode.getPlayerMode();
         ClientLevel world = client.level;
         BlockState currentState = world.getBlockState(pos);
-        // 非创造无法破坏无硬度的方块
-        if (!gameType.isCreative() && currentState.getBlock().defaultDestroyTime() < 0) {
-            return false;
+        // 部分人特殊需求
+        if (Configs.Break.BREAK_CHECK_BLOCK_HARDNESS.getBooleanValue()){
+            // 非创造无法破坏无硬度的方块
+            if (!gameType.isCreative() && currentState.getBlock().defaultDestroyTime() < 0) {
+                return false;
+            }
         }
         return !currentState.isAir() &&
                 !(currentState.getBlock() instanceof LiquidBlock) &&
