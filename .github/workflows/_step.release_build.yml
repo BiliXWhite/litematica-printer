@@ -1,4 +1,4 @@
-name: release_build
+name: _step.release_build
 on:
   workflow_call:
     inputs:
