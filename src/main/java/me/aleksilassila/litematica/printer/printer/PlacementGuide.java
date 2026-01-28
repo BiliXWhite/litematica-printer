@@ -66,12 +66,12 @@ public class PlacementGuide extends PrinterUtils {
         return buildAction(ctx, ClassHook.DEFAULT, state, skip);    // 兜底处理
     }
 
+    @SuppressWarnings("EnhancedSwitchMigration")
     private @Nullable Action buildAction(BlockContext ctx, ClassHook requiredType, State state, AtomicReference<Boolean> skip) {
         // 跳过打印含水方块
         if (Configs.Print.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && PlaceUtils.isWaterRequired(ctx.requiredState)) {
             return null;
         }
-
         // 破冰放水
         if (Configs.Print.PRINT_WATER.getBooleanValue() && PlaceUtils.isWaterRequired(ctx.requiredState)) {
             if (ctx.currentState.getBlock() instanceof IceBlock) {  // 冰块
@@ -88,284 +88,320 @@ public class PlacementGuide extends PrinterUtils {
                 return new Action().setItem(Items.ICE);
             }
         }
+        Action action;
+        switch (state) {
+            case MISSING_BLOCK:
+                action = buildActionMissingBlock(ctx, requiredType, skip);
+                break;
+            case WRONG_STATE:
+                action = buildActionWrongState(ctx, requiredType, skip);
+                break;
+            case WRONG_BLOCK:
+                action = buildActionWrongBlock(ctx, requiredType, skip);
+                break;
+            default:
+                action = null;
+                break;
+        }
+        return action;
+    }
 
-        if (state == State.MISSING_BLOCK)
-            switch (requiredType) {
-                case TORCH -> {
-                    Direction lookDirection = ctx.getRequiredStateProperty(WallTorchBlock.FACING)
-                            .orElse(Direction.UP)
-                            .getOpposite();
-                    return new Action()
-                            .setSides(lookDirection)
-                            .setLookDirection(lookDirection)
-                            .setRequiresSupport();
+    /*** 缺失方块：实际位置为空，或当前方块在可替换列表中且启用了替换功能 ***/
+    private @Nullable Action buildActionMissingBlock(BlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
+        switch (requiredType) {
+            case TORCH -> {
+                Direction lookDirection = ctx.getRequiredStateProperty(WallTorchBlock.FACING)
+                        .orElse(Direction.UP)
+                        .getOpposite();
+                return new Action()
+                        .setSides(lookDirection)
+                        .setLookDirection(lookDirection)
+                        .setRequiresSupport();
+            }
+            case AMETHYST -> {
+                Direction lookDirection = ctx.getRequiredStateProperty(AmethystClusterBlock.FACING)
+                        .orElse(Direction.UP)
+                        .getOpposite();
+                return new Action()
+                        .setSides(lookDirection)
+                        .setRequiresSupport();
+            }
+            case SLAB -> {
+                Map<Direction, Vec3> slabSides = getSlabSides(ctx.level, ctx.blockPos, ctx.requiredState.getValue(SlabBlock.TYPE));
+                return new Action().setSides(slabSides);
+            }
+            case STAIR -> {
+                Direction facing = ctx.requiredState.getValue(StairBlock.FACING);
+                Half half = ctx.requiredState.getValue(StairBlock.HALF);
+                Map<Direction, Vec3> sides = new HashMap<>();
+                if (half == Half.BOTTOM) {
+                    sides.put(Direction.DOWN, new Vec3(0, 0, 0));
+                    sides.put(facing, new Vec3(0, 0, 0));
+                } else {
+                    sides.put(Direction.UP, new Vec3(0, 0.75, 0));
+                    sides.put(facing.getOpposite(), new Vec3(0, 0.75, 0));
                 }
-                case AMETHYST -> {
-                    Direction lookDirection = ctx.getRequiredStateProperty(AmethystClusterBlock.FACING)
-                            .orElse(Direction.UP)
-                            .getOpposite();
-                    return new Action()
-                            .setSides(lookDirection)
-                            .setRequiresSupport();
+                return new Action()
+                        .setSides(sides)
+                        .setLookDirection(facing);
+            }
+            case TRAPDOOR -> {
+                return new Action()
+                        .setSides(getHalf(ctx.requiredState.getValue(TrapDoorBlock.HALF)))
+                        .setLookDirection(ctx.requiredState.getValue(TrapDoorBlock.FACING).getOpposite());
+            }
+            case STRIP_LOG -> {
+                Action action = new Action().setSides(ctx.requiredState.getValue(RotatedPillarBlock.AXIS));
+                Item[] items = {ctx.requiredState.getBlock().asItem()};
+                if (Configs.Print.STRIP_LOGS.getBooleanValue()) {
+                    for (Map.Entry<Block, Block> entry : STRIPPED_LOGS.entrySet()) {
+                        if (ctx.requiredState.getBlock() == entry.getValue()) {
+                            items = new Item[]{entry.getValue().asItem(), entry.getKey().asItem()};
+                            break;
+                        }
+                    }
                 }
-                case SLAB -> {
-                    Map<Direction, Vec3> slabSides = getSlabSides(ctx.level, ctx.blockPos, ctx.requiredState.getValue(SlabBlock.TYPE));
-                    return new Action().setSides(slabSides);
+                action.setItems(items);
+                return action;
+            }
+            case ANVIL -> {
+                return new Action().setLookDirection(ctx.requiredState.getValue(AnvilBlock.FACING).getCounterClockWise());
+            }
+            case HOPPER -> {
+                Direction facing = ctx.requiredState.getValue(HopperBlock.FACING);
+                return new Action().setSides(facing);
+            }
+            case NETHER_PORTAL -> {
+                boolean canCreatePortal = PortalShape.findEmptyPortalShape(ctx.level, ctx.blockPos, Direction.Axis.X).isPresent();
+                if (canCreatePortal) {
+                    return new Action().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
                 }
-                case STAIR -> {
-                    Direction facing = ctx.requiredState.getValue(StairBlock.FACING);
-                    Half half = ctx.requiredState.getValue(StairBlock.HALF);
+            }
+            case COCOA -> {
+                return new Action().setSides(ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING));
+            }
+            //#if MC >= 12003
+            case CRAFTER -> {
+                var frontAndTop = ctx.requiredState.getValue(BlockStateProperties.ORIENTATION);
+                Direction facing = frontAndTop.front().getOpposite();
+                Direction rotation = frontAndTop.top().getOpposite();
+                if (facing == Direction.UP) {
+                    return new Action().setLookDirection(rotation, Direction.UP);
+                } else if (facing == Direction.DOWN) {
+                    return new Action().setLookDirection(rotation.getOpposite(), Direction.DOWN);
+                } else {
+                    return new Action().setLookDirection(facing, facing);
+                }
+            }
+            //#endif
+            case CHEST -> {
+                Direction facing = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
+                ChestType type = ctx.requiredState.getValue(BlockStateProperties.CHEST_TYPE);
+                Map<Direction, Vec3> noChestSides = new HashMap<>();
 
-                    Map<Direction, Vec3> sides = new HashMap<>();
-                    if (half == Half.BOTTOM) {
-                        sides.put(Direction.DOWN, new Vec3(0, 0, 0));
-                        sides.put(facing, new Vec3(0, 0, 0));
+                for (Direction side : Direction.values()) {
+                    if (ctx.level.getBlockState(ctx.blockPos.relative(side)).getBlock() instanceof ChestBlock) {
+                        continue;
+                    }
+                    noChestSides.put(side, Vec3.ZERO);
+                }
+
+                if (type == ChestType.SINGLE) {
+                    for (Direction side : BlockStateProperties.HORIZONTAL_FACING.getPossibleValues()) {
+                        if (!noChestSides.containsKey(side)) {
+                            return new Action().setLookDirection(facing).setUseShift();
+                        }
+                        return new Action().setSides(noChestSides).setLookDirection(facing);
+                    }
+                } else {
+                    Direction chestFacing = facing;
+                    if (type == ChestType.LEFT) {
+                        chestFacing = facing.getCounterClockWise();
+                    } else if (type == ChestType.RIGHT) {
+                        chestFacing = facing.getClockWise();
+                    }
+                    if (ctx.level.getBlockState(ctx.blockPos.relative(chestFacing)).getBlock() instanceof ChestBlock) {
+                        return new Action().setSides(Map.of(chestFacing, Vec3.ZERO)).setLookDirection(facing).setUseShift(false);
                     } else {
-                        sides.put(Direction.UP, new Vec3(0, 0.75, 0));
-                        sides.put(facing.getOpposite(), new Vec3(0, 0.75, 0));
+                        return new Action().setSides(noChestSides).setLookDirection(facing).setUseShift();
+                    }
+                }
+            }
+            case BED -> {
+                if (ctx.requiredState.getValue(BedBlock.PART) == BedPart.FOOT)
+                    return new Action().setLookDirection(ctx.requiredState.getValue(BedBlock.FACING));
+            }
+            case BELL -> {
+                Direction side;
+                switch (ctx.requiredState.getValue(BellBlock.ATTACHMENT)) {
+                    case FLOOR -> side = Direction.DOWN;
+                    case CEILING -> side = Direction.UP;
+                    default -> side = ctx.requiredState.getValue(BellBlock.FACING);
+                }
+
+                Direction look = ctx.requiredState.getValue(BellBlock.ATTACHMENT) != BellAttachType.SINGLE_WALL &&
+                        ctx.requiredState.getValue(BellBlock.ATTACHMENT) != BellAttachType.DOUBLE_WALL ?
+                        ctx.requiredState.getValue(BellBlock.FACING) : null;
+
+                return new Action().setSides(side).setLookDirection(look);
+            }
+            case DOOR -> {
+                Direction facing = ctx.requiredState.getValue(DoorBlock.FACING);
+                DoorHingeSide hinge = ctx.requiredState.getValue(DoorBlock.HINGE);
+                BlockPos upperPos = ctx.blockPos.above();
+
+                // 获取门铰链方向
+                Direction hingeSide = facing.getCounterClockWise();
+
+                double offset = hinge == DoorHingeSide.RIGHT ? 0.25 : -0.25;
+                Vec3 hingeVec = facing.getAxis() == Direction.Axis.X ? new Vec3(0, 0, offset) : new Vec3(offset, 0, 0);
+
+                Map<Direction, Vec3> sides = new HashMap<>();
+                sides.put(hingeSide, Vec3.ZERO); // 靠墙方向需要支撑
+                sides.put(Direction.DOWN, hingeVec); // 底部点击偏移
+                sides.put(facing, hingeVec); // 正面点击偏移
+
+                // 获取左右方块状态
+                Direction left = facing.getCounterClockWise();
+                Direction right = facing.getCounterClockWise();
+                BlockState leftState = ctx.level.getBlockState(ctx.blockPos.relative(left));
+                BlockState leftUpperState = ctx.level.getBlockState(upperPos.relative(left));
+                BlockState rightState = ctx.level.getBlockState(ctx.blockPos.relative(right));
+                BlockState rightUpperState = ctx.level.getBlockState(upperPos.relative(right));
+
+                int occupancy = (leftState.isCollisionShapeFullBlock(ctx.level, ctx.blockPos.relative(left)) ? -1 : 0)
+                        + (leftUpperState.isCollisionShapeFullBlock(ctx.level, upperPos.relative(left)) ? -1 : 0)
+                        + (rightState.isCollisionShapeFullBlock(ctx.level, ctx.blockPos.relative(right)) ? 1 : 0)
+                        + (rightUpperState.isCollisionShapeFullBlock(ctx.level, upperPos.relative(right)) ? 1 : 0);
+
+                boolean isLeftDoor = leftState.getBlock() instanceof DoorBlock &&
+                        leftState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER;
+                boolean isRightDoor = rightState.getBlock() instanceof DoorBlock &&
+                        rightState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER;
+
+                boolean condition = (hinge == DoorHingeSide.RIGHT && ((isLeftDoor && !isRightDoor) || occupancy > 0))
+                        || (hinge == DoorHingeSide.LEFT && ((isRightDoor && !isLeftDoor) || occupancy < 0))
+                        || (occupancy == 0 && (isLeftDoor == isRightDoor));
+                if (condition)
+                    return new Action().setSides(sides).setLookDirection(facing).setRequiresSupport();
+            }
+            case DIRT_PATH, FARMLAND -> {
+                return new Action().setItems(Items.DIRT, Items.GRASS_BLOCK, Items.COARSE_DIRT, Items.ROOTED_DIRT, Items.MYCELIUM, Items.PODZOL);
+            }
+            case BIG_DRIPLEAF_STEM -> {
+                return new Action().setItem(Items.BIG_DRIPLEAF);
+            }
+            case CAVE_VINES -> {
+                return new Action().setItem(Items.GLOW_BERRIES).setRequiresSupport();
+            }
+            case WEEPING_VINES -> {
+                return new Action().setItem(Items.WEEPING_VINES).setRequiresSupport();
+            }
+            case TWISTING_VINES -> {
+                return new Action().setItem(Items.TWISTING_VINES).setRequiresSupport();
+            }
+            case FLOWER_POT -> {
+                return new Action().setItem(Items.FLOWER_POT);
+            }
+            case VINES, GLOW_LICHEN -> {
+                for (Direction direction : Direction.values()) {
+                    if (direction == Direction.DOWN && ctx.requiredState.getBlock() == Blocks.VINE) continue;
+                    if ((Boolean) getPropertyByName(ctx.requiredState, direction.name())) {
+                        return new Action().setSides(direction);
+                    }
+                }
+            }
+            case DEAD_CORAL -> {
+                Block block = ctx.requiredState.getBlock();
+                Identifier blockId1 = BlockUtils.getKey(block);
+                if (!blockId1.toString().contains("coral")) {
+                    skip.set(true); // 使用了Block, 但不是该指南的方块, 让下一个指南进行处理
+                    return null;
+                }
+                Identifier blockId2 = ResourceLocationUtils.of(blockId1.toString().replace("dead_", ""));
+                boolean isBlock = blockId1.toString().contains("block");
+                List<Item> items = new ArrayList<>();
+                items.add(block.asItem());
+                if (Configs.Print.REPLACE_CORAL.getBooleanValue()) {
+                    if (!blockId1.equals(blockId2)) {
+                        items.add(BlockUtils.getBlock(blockId2).asItem());
+                    }
+                }
+                Item[] itemsArray = items.toArray(new Item[0]);
+
+                Action action = new Action().setItems(itemsArray);
+                if (!isBlock) {
+                    boolean isWallFan = block instanceof BaseCoralWallFanBlock;
+                    Direction facing = isWallFan ? ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite()
+                            : Direction.DOWN;
+                    action.setSides(facing).setRequiresSupport();
+                }
+                return action;
+            }
+            case FIRE -> {
+                if (ctx.requiredState.getBlock() instanceof SoulFireBlock)
+                    return new Action().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
+                for (Direction direction : Direction.values()) {
+                    if (direction == Direction.DOWN) continue;
+                    if ((Boolean) getPropertyByName(ctx.requiredState, direction.name())) {
+                        return new Action().setSides(direction).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
+                    }
+                }
+                return new Action().setSides(Direction.DOWN).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
+            }
+            case OBSERVER -> {
+                @Nullable Direction facing = ctx.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
+                if (facing == null) {
+                    return null;
+                }
+                BlockContext input = ctx.offset(facing);                    // 输入端(侦测面)
+                BlockContext output = ctx.offset(facing.getOpposite());     // 输出端(红点面)
+                if (Configs.Print.SAFELY_OBSERVER.getBooleanValue()) {        // 安全放置
+
+                    // 获取输入端方块属性
+                    List<Property<?>> inputPropertiesToIgnore = new ArrayList<>();
+                    // 如果是侦测面是墙, 忽略侦测面墙方向属性
+                    if (input.requiredState.getBlock() instanceof WallBlock) {
+                        State.getWallFacingProperty(facing.getOpposite())
+                                .ifPresent(inputPropertiesToIgnore::add);
+                    }
+                    // 如果是侦测面是墙, 忽略侦测面墙方向属性
+                    if (output.requiredState.getBlock() instanceof CrossCollisionBlock) {
+                        State.getCrossCollisionBlock(facing.getOpposite())
+                                .ifPresent(inputPropertiesToIgnore::add);
                     }
 
-                    return new Action()
-                            .setSides(sides)
-                            .setLookDirection(facing);
-                }
-                case TRAPDOOR -> {
-
-                    return new Action()
-                            .setSides(getHalf(ctx.requiredState.getValue(TrapDoorBlock.HALF)))
-                            .setLookDirection(ctx.requiredState.getValue(TrapDoorBlock.FACING).getOpposite());
-                }
-                case STRIP_LOG -> {
-                    Action action = new Action().setSides(ctx.requiredState.getValue(RotatedPillarBlock.AXIS));
-                    Item[] items = {ctx.requiredState.getBlock().asItem()};
-
-                    if (Configs.Print.STRIP_LOGS.getBooleanValue()) {
-                        for (Map.Entry<Block, Block> entry : STRIPPED_LOGS.entrySet()) {
-                            if (ctx.requiredState.getBlock() == entry.getValue()) {
-                                items = new Item[]{entry.getValue().asItem(), entry.getKey().asItem()};
-                                break;
+                    // 输入端与输出端放置状态一致情况下
+                    State inputState = State.get(input, inputPropertiesToIgnore.toArray(new Property<?>[0]));
+                    State outputState = State.get(output);
+                    if (inputState == State.CORRECT && outputState == State.CORRECT) {
+                        // 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
+                        BlockContext temp = input;
+                        while (temp.requiredState.getBlock() instanceof ObserverBlock) {
+                            @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
+                            // 查找下一个侦测器并检查并检查状态是否正确
+                            BlockContext offset = temp.offset(tempObserverFacing);
+                            if (tempObserverFacing != null && State.get(offset) != State.CORRECT) {
+                                return null;
                             }
+                            // 传递检查
+                            temp = offset;
                         }
+                        return new Action().setLookDirection(facing);
                     }
-
-                    action.setItems(items);
-                    return action;
-                }
-                case ANVIL -> {
-                    return new Action().setLookDirection(ctx.requiredState.getValue(AnvilBlock.FACING).getCounterClockWise());
-                }
-                case HOPPER -> {
-                    Direction facing = ctx.requiredState.getValue(HopperBlock.FACING);
-                    return new Action().setSides(facing);
-                }
-                case NETHER_PORTAL -> {
-
-                    boolean canCreatePortal = PortalShape.findEmptyPortalShape(ctx.level, ctx.blockPos, Direction.Axis.X).isPresent();
-                    if (canCreatePortal) {
-                        return new Action().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
-                    }
-                }
-                case COCOA -> {
-                    return new Action().setSides(ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING));
-                }
-                //#if MC >= 12003
-                case CRAFTER -> {
-                    var frontAndTop = ctx.requiredState.getValue(BlockStateProperties.ORIENTATION);
-                    Direction facing = frontAndTop.front().getOpposite();
-                    Direction rotation = frontAndTop.top().getOpposite();
-                    if (facing == Direction.UP) {
-                        return new Action().setLookDirection(rotation, Direction.UP);
-                    } else if (facing == Direction.DOWN) {
-                        return new Action().setLookDirection(rotation.getOpposite(), Direction.DOWN);
-                    } else {
-                        return new Action().setLookDirection(facing, facing);
-                    }
-                }
-                //#endif
-                case CHEST -> {
-                    Direction facing = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
-                    ChestType type = ctx.requiredState.getValue(BlockStateProperties.CHEST_TYPE);
-                    Map<Direction, Vec3> noChestSides = new HashMap<>();
-
-                    for (Direction side : Direction.values()) {
-                        if (ctx.level.getBlockState(ctx.blockPos.relative(side)).getBlock() instanceof ChestBlock) {
-                            continue;
-                        }
-                        noChestSides.put(side, Vec3.ZERO);
-                    }
-
-
-                    if (type == ChestType.SINGLE) {
-                        for (Direction side : BlockStateProperties.HORIZONTAL_FACING.getPossibleValues()) {
-                            if (!noChestSides.containsKey(side)) {
-                                return new Action().setLookDirection(facing).setUseShift();
+                    // 输入端已放置成功，并状态一致
+                    if (inputState == State.CORRECT) {
+                        BlockContext temp = input;
+                        while (temp.requiredState.getBlock() instanceof FallingBlock) {
+                            BlockContext offset = temp.offset(Direction.DOWN);
+                            if (State.get(offset) != State.CORRECT) {
+                                return null;
                             }
-                            return new Action().setSides(noChestSides).setLookDirection(facing);
+                            temp = offset;
                         }
-                    } else {
-                        Direction chestFacing = facing;
-                        if (type == ChestType.LEFT) {
-                            chestFacing = facing.getCounterClockWise();
-                        } else if (type == ChestType.RIGHT) {
-                            chestFacing = facing.getClockWise();
-                        }
-                        if (ctx.level.getBlockState(ctx.blockPos.relative(chestFacing)).getBlock() instanceof ChestBlock) {
-                            return new Action().setSides(Map.of(chestFacing, Vec3.ZERO)).setLookDirection(facing).setUseShift(false);
-                        } else {
-                            return new Action().setSides(noChestSides).setLookDirection(facing).setUseShift();
-                        }
-                    }
-                }
-                case BED -> {
-                    if (ctx.requiredState.getValue(BedBlock.PART) == BedPart.FOOT)
-                        return new Action().setLookDirection(ctx.requiredState.getValue(BedBlock.FACING));
-                }
-                case BELL -> {
-                    Direction side;
-                    switch (ctx.requiredState.getValue(BellBlock.ATTACHMENT)) {
-                        case FLOOR -> side = Direction.DOWN;
-                        case CEILING -> side = Direction.UP;
-                        default -> side = ctx.requiredState.getValue(BellBlock.FACING);
-                    }
-
-                    Direction look = ctx.requiredState.getValue(BellBlock.ATTACHMENT) != BellAttachType.SINGLE_WALL &&
-                            ctx.requiredState.getValue(BellBlock.ATTACHMENT) != BellAttachType.DOUBLE_WALL ?
-                            ctx.requiredState.getValue(BellBlock.FACING) : null;
-
-                    return new Action().setSides(side).setLookDirection(look);
-                }
-                case DOOR -> {
-                    Direction facing = ctx.requiredState.getValue(DoorBlock.FACING);
-                    DoorHingeSide hinge = ctx.requiredState.getValue(DoorBlock.HINGE);
-                    BlockPos upperPos = ctx.blockPos.above();
-
-                    // 获取门铰链方向
-                    Direction hingeSide = facing.getCounterClockWise();
-
-                    double offset = hinge == DoorHingeSide.RIGHT ? 0.25 : -0.25;
-                    Vec3 hingeVec = facing.getAxis() == Direction.Axis.X ? new Vec3(0, 0, offset) : new Vec3(offset, 0, 0);
-
-                    Map<Direction, Vec3> sides = new HashMap<>();
-                    sides.put(hingeSide, Vec3.ZERO); // 靠墙方向需要支撑
-                    sides.put(Direction.DOWN, hingeVec); // 底部点击偏移
-                    sides.put(facing, hingeVec); // 正面点击偏移
-
-                    // 获取左右方块状态
-                    Direction left = facing.getCounterClockWise();
-                    Direction right = facing.getCounterClockWise();
-                    BlockState leftState = ctx.level.getBlockState(ctx.blockPos.relative(left));
-                    BlockState leftUpperState = ctx.level.getBlockState(upperPos.relative(left));
-                    BlockState rightState = ctx.level.getBlockState(ctx.blockPos.relative(right));
-                    BlockState rightUpperState = ctx.level.getBlockState(upperPos.relative(right));
-
-                    int occupancy = (leftState.isCollisionShapeFullBlock(ctx.level, ctx.blockPos.relative(left)) ? -1 : 0)
-                            + (leftUpperState.isCollisionShapeFullBlock(ctx.level, upperPos.relative(left)) ? -1 : 0)
-                            + (rightState.isCollisionShapeFullBlock(ctx.level, ctx.blockPos.relative(right)) ? 1 : 0)
-                            + (rightUpperState.isCollisionShapeFullBlock(ctx.level, upperPos.relative(right)) ? 1 : 0);
-
-                    boolean isLeftDoor = leftState.getBlock() instanceof DoorBlock &&
-                            leftState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER;
-                    boolean isRightDoor = rightState.getBlock() instanceof DoorBlock &&
-                            rightState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER;
-
-                    boolean condition = (hinge == DoorHingeSide.RIGHT && ((isLeftDoor && !isRightDoor) || occupancy > 0))
-                            || (hinge == DoorHingeSide.LEFT && ((isRightDoor && !isLeftDoor) || occupancy < 0))
-                            || (occupancy == 0 && (isLeftDoor == isRightDoor));
-                    if (condition)
-                        return new Action().setSides(sides).setLookDirection(facing).setRequiresSupport();
-                }
-                case DIRT_PATH, FARMLAND -> {
-                    return new Action().setItems(Items.DIRT, Items.GRASS_BLOCK, Items.COARSE_DIRT, Items.ROOTED_DIRT, Items.MYCELIUM, Items.PODZOL);
-                }
-                case BIG_DRIPLEAF_STEM -> {
-                    return new Action().setItem(Items.BIG_DRIPLEAF);
-                }
-                case CAVE_VINES -> {
-                    return new Action().setItem(Items.GLOW_BERRIES).setRequiresSupport();
-                }
-                case WEEPING_VINES -> {
-                    return new Action().setItem(Items.WEEPING_VINES).setRequiresSupport();
-                }
-                case TWISTING_VINES -> {
-                    return new Action().setItem(Items.TWISTING_VINES).setRequiresSupport();
-                }
-                case FLOWER_POT -> {
-                    return new Action().setItem(Items.FLOWER_POT);
-                }
-                case VINES, GLOW_LICHEN -> {
-                    for (Direction direction : Direction.values()) {
-                        if (direction == Direction.DOWN && ctx.requiredState.getBlock() == Blocks.VINE) continue;
-                        if ((Boolean) getPropertyByName(ctx.requiredState, direction.name())) {
-                            return new Action().setSides(direction);
-                        }
-                    }
-                }
-                case DEAD_CORAL -> {
-                    Block block = ctx.requiredState.getBlock();
-                    Identifier blockId1 = BlockUtils.getKey(block);
-                    if (!blockId1.toString().contains("coral")) {
-                        skip.set(true); // 使用了Block, 但不是该指南的方块, 让下一个指南进行处理
-                        return null;
-                    }
-                    Identifier blockId2 = ResourceLocationUtils.of(blockId1.toString().replace("dead_", ""));
-                    boolean isBlock = blockId1.toString().contains("block");
-                    List<Item> items = new ArrayList<>();
-                    items.add(block.asItem());
-                    if (Configs.Print.REPLACE_CORAL.getBooleanValue()) {
-                        if (!blockId1.equals(blockId2)) {
-                            items.add(BlockUtils.getBlock(blockId2).asItem());
-                        }
-                    }
-                    Item[] itemsArray = items.toArray(new Item[0]);
-
-                    Action action = new Action().setItems(itemsArray);
-                    if (!isBlock) {
-                        boolean isWallFan = block instanceof BaseCoralWallFanBlock;
-                        Direction facing = isWallFan ? ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite()
-                                : Direction.DOWN;
-                        action.setSides(facing).setRequiresSupport();
-                    }
-                    return action;
-                }
-                case FIRE -> {
-                    if (ctx.requiredState.getBlock() instanceof SoulFireBlock)
-                        return new Action().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
-                    for (Direction direction : Direction.values()) {
-                        if (direction == Direction.DOWN) continue;
-                        if ((Boolean) getPropertyByName(ctx.requiredState, direction.name())) {
-                            return new Action().setSides(direction).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
-                        }
-                    }
-                    return new Action().setSides(Direction.DOWN).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
-                }
-                case OBSERVER -> {
-                    @Nullable Direction facing = ctx.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
-                    if (facing == null) {
-                        return null;
-                    }
-                    BlockContext input = ctx.offset(facing);                    // 输入端(侦测面)
-                    BlockContext output = ctx.offset(facing.getOpposite());     // 输出端(红点面)
-                    if (Configs.Print.SAFELY_OBSERVER.getBooleanValue()) {        // 安全放置
-
-                        // 获取输入端方块属性
-                        List<Property<?>> inputPropertiesToIgnore = new ArrayList<>();
-                        // 如果是侦测面是墙, 忽略侦测面墙方向属性
-                        if (input.requiredState.getBlock() instanceof WallBlock) {
-                            State.getWallFacingProperty(facing.getOpposite())
-                                    .ifPresent(inputPropertiesToIgnore::add);
-                        }
-                        // 如果是侦测面是墙, 忽略侦测面墙方向属性
-                        if (output.requiredState.getBlock() instanceof CrossCollisionBlock) {
-                            State.getCrossCollisionBlock(facing.getOpposite())
-                                    .ifPresent(inputPropertiesToIgnore::add);
-                        }
-
-                        // 输入端与输出端放置状态一致情况下
-                        State inputState = State.get(input, inputPropertiesToIgnore.toArray(new Property<?>[0]));
-                        State outputState = State.get(output);
-                        if (inputState == State.CORRECT && outputState == State.CORRECT) {
+                        if (!output.requiredState.isAir()) {
                             // 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
-                            BlockContext temp = input;
+                            temp = input;
                             while (temp.requiredState.getBlock() instanceof ObserverBlock) {
                                 @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
                                 // 查找下一个侦测器并检查并检查状态是否正确
@@ -376,463 +412,446 @@ public class PlacementGuide extends PrinterUtils {
                                 // 传递检查
                                 temp = offset;
                             }
-                            return new Action().setLookDirection(facing);
                         }
-                        // 输入端已放置成功，并状态一致
-                        if (inputState == State.CORRECT) {
-                            BlockContext temp = input;
-                            while (temp.requiredState.getBlock() instanceof FallingBlock) {
-                                BlockContext offset = temp.offset(Direction.DOWN);
-                                if (State.get(offset) != State.CORRECT) {
+
+                        // 侦测器隔空激活活塞
+                        for (Direction direction : Direction.values()) {
+                            BlockContext offset = output.offset(direction);
+                            if (offset.blockPos.equals(output.blockPos)) {
+                                continue;
+                            }
+                            if (offset.blockPos.equals(input.blockPos)) {
+                                continue;
+                            }
+                            if (offset.blockPos.equals(ctx.blockPos)) {
+                                continue;
+                            }
+                            if (offset.requiredState.getBlock() instanceof PistonBaseBlock) {
+                                if (!offset.currentState.isAir()) {
                                     return null;
+                                }
+                            }
+                        }
+
+                    } else if (inputState == State.WRONG_STATE) {  // 方块类型相同，但方块状态不一致
+                        return null;
+                    } else {
+                        if (!output.requiredState.isAir()) {
+                            return null;
+                        }
+                    }
+                }
+                return new Action().setLookDirection(facing);
+            }
+            case LADDER -> {
+                var facing = ctx.requiredState.getValue(LadderBlock.FACING);
+                return new Action().setSides(facing).setLookDirection(facing.getOpposite());
+            }
+            case LANTERN -> {
+                if (ctx.requiredState.getValue(LanternBlock.HANGING))
+                    return new Action().setLookDirection(Direction.UP);
+                return new Action().setLookDirection(Direction.DOWN);
+            }
+            case ROD -> {
+                var requiredBlock = ctx.requiredState.getBlock();
+                var facing = ctx.requiredState.getValue(EndRodBlock.FACING);
+
+                // 如果前面朝向自己的末地烛，而放置方式相反，那么反向放置
+                if (requiredBlock instanceof EndRodBlock) {
+                    var forwardState = ctx.level.getBlockState(ctx.blockPos.relative(facing));
+                    var forwardStateSchematic = ctx.level.getBlockState(ctx.blockPos.relative(facing));
+                    if (forwardState.is(requiredBlock)
+                            && forwardState.getValue(EndRodBlock.FACING) == facing.getOpposite()) {
+                        return new Action().setSides(facing);
+                    }
+                    // 如果投影中后面有相同朝向的末地烛，则先跳过放置
+                    if (forwardStateSchematic.is(requiredBlock)
+                            && forwardStateSchematic.getValue(EndRodBlock.FACING) == facing) {
+                        // 但是这个投影已经被正确填装时可以打印
+                        if (forwardStateSchematic == forwardState)
+                            return new Action().setSides(facing.getOpposite());
+                        return null;
+                    }
+                }
+                return new Action().setSides(facing.getOpposite());
+            }
+            case TRIPWIRE_HOOK -> {
+                var facing = ctx.requiredState.getValue(TripWireHookBlock.FACING);
+                return new Action().setSides(facing);
+            }
+            case RAIL -> {
+                Action action = new Action();
+                RailShape shape;
+                if (ctx.requiredState.getBlock() instanceof RailBlock)
+                    shape = ctx.requiredState.getValue(RailBlock.SHAPE);
+                else
+                    shape = ctx.requiredState.getValue(BlockStateProperties.RAIL_SHAPE_STRAIGHT);
+
+                switch (shape) {
+                    case EAST_WEST, ASCENDING_EAST -> action.setLookDirection(Direction.EAST);
+                    case NORTH_SOUTH, ASCENDING_NORTH -> action.setLookDirection(Direction.NORTH);
+                    case ASCENDING_WEST -> action.setLookDirection(Direction.WEST);
+                    case ASCENDING_SOUTH -> action.setLookDirection(Direction.SOUTH);
+                }
+                if (ctx.requiredState.getBlock() instanceof RailBlock) {
+                    if (shape == RailShape.SOUTH_EAST) {
+                        return action;
+                    }
+                    // TODO)) 完成这非常恶心的铁轨算法
+                }
+                return action;
+            }
+            case PISTON -> {
+                Direction facing = ctx.requiredState.getValue(BlockStateProperties.FACING);
+                // 侦测器安全放置
+                if (Configs.Print.SAFELY_OBSERVER.getBooleanValue()) {
+                    // 活塞四周
+                    for (Direction direction : Direction.values()) {
+                        BlockContext temp = ctx.offset(direction);
+                        while (temp.requiredState.getBlock() instanceof ObserverBlock) {
+                            @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
+                            if (tempObserverFacing != null) {
+                                BlockContext offset = temp.offset(tempObserverFacing);
+                                if (tempObserverFacing == direction) {
+                                    if (State.get(offset) != State.CORRECT) {
+                                        return null;
+                                    }
                                 }
                                 temp = offset;
                             }
-                            if (!output.requiredState.isAir()) {
-                                // 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
-                                temp = input;
-                                while (temp.requiredState.getBlock() instanceof ObserverBlock) {
-                                    @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
-                                    // 查找下一个侦测器并检查并检查状态是否正确
-                                    BlockContext offset = temp.offset(tempObserverFacing);
-                                    if (tempObserverFacing != null && State.get(offset) != State.CORRECT) {
-                                        return null;
-                                    }
-                                    // 传递检查
-                                    temp = offset;
-                                }
-                            }
-
-                            // 侦测器隔空激活活塞
-                            for (Direction direction : Direction.values()) {
-                                BlockContext offset = output.offset(direction);
-                                if (offset.blockPos.equals(output.blockPos)) {
-                                    continue;
-                                }
-                                if (offset.blockPos.equals(input.blockPos)) {
-                                    continue;
-                                }
-                                if (offset.blockPos.equals(ctx.blockPos)) {
-                                    continue;
-                                }
-                                if (offset.requiredState.getBlock() instanceof PistonBaseBlock) {
-                                    if (!offset.currentState.isAir()) {
-                                        return null;
-                                    }
-                                }
-                            }
-
-                        } else if (inputState == State.WRONG_STATE) {  // 方块类型相同，但方块状态不一致
-                            return null;
-                        } else {
-                            if (!output.requiredState.isAir()) {
-                                return null;
-                            }
-                        }
-                    }
-                    return new Action().setLookDirection(facing);
-                }
-                case LADDER -> {
-                    var facing = ctx.requiredState.getValue(LadderBlock.FACING);
-                    return new Action().setSides(facing).setLookDirection(facing.getOpposite());
-                }
-                case LANTERN -> {
-                    if (ctx.requiredState.getValue(LanternBlock.HANGING))
-                        return new Action().setLookDirection(Direction.UP);
-                    return new Action().setLookDirection(Direction.DOWN);
-                }
-                case ROD -> {
-                    var requiredBlock = ctx.requiredState.getBlock();
-                    var facing = ctx.requiredState.getValue(EndRodBlock.FACING);
-
-                    // 如果前面朝向自己的末地烛，而放置方式相反，那么反向放置
-                    if (requiredBlock instanceof EndRodBlock) {
-                        var forwardState = ctx.level.getBlockState(ctx.blockPos.relative(facing));
-                        var forwardStateSchematic = ctx.level.getBlockState(ctx.blockPos.relative(facing));
-                        if (forwardState.is(requiredBlock)
-                                && forwardState.getValue(EndRodBlock.FACING) == facing.getOpposite()) {
-                            return new Action().setSides(facing);
-                        }
-                        // 如果投影中后面有相同朝向的末地烛，则先跳过放置
-                        if (forwardStateSchematic.is(requiredBlock)
-                                && forwardStateSchematic.getValue(EndRodBlock.FACING) == facing) {
-                            // 但是这个投影已经被正确填装时可以打印
-                            if (forwardStateSchematic == forwardState)
-                                return new Action().setSides(facing.getOpposite());
-                            return null;
-                        }
-                    }
-                    return new Action().setSides(facing.getOpposite());
-                }
-                case TRIPWIRE_HOOK -> {
-                    var facing = ctx.requiredState.getValue(TripWireHookBlock.FACING);
-                    return new Action().setSides(facing);
-                }
-                case RAIL -> {
-                    Action action = new Action();
-                    RailShape shape;
-                    if (ctx.requiredState.getBlock() instanceof RailBlock)
-                        shape = ctx.requiredState.getValue(RailBlock.SHAPE);
-                    else
-                        shape = ctx.requiredState.getValue(BlockStateProperties.RAIL_SHAPE_STRAIGHT);
-
-                    switch (shape) {
-                        case EAST_WEST, ASCENDING_EAST -> action.setLookDirection(Direction.EAST);
-                        case NORTH_SOUTH, ASCENDING_NORTH -> action.setLookDirection(Direction.NORTH);
-                        case ASCENDING_WEST -> action.setLookDirection(Direction.WEST);
-                        case ASCENDING_SOUTH -> action.setLookDirection(Direction.SOUTH);
-                    }
-                    if (ctx.requiredState.getBlock() instanceof RailBlock) {
-                        if (shape == RailShape.SOUTH_EAST) {
-                            return action;
-                        }
-                        // TODO)) 完成这非常恶心的铁轨算法
-                    }
-                    return action;
-                }
-                case PISTON -> {
-                    Direction facing = ctx.requiredState.getValue(BlockStateProperties.FACING);
-                    // 侦测器安全放置
-                    if (Configs.Print.SAFELY_OBSERVER.getBooleanValue()) {
-                        // 活塞四周
-                        for (Direction direction : Direction.values()) {
-                            BlockContext temp = ctx.offset(direction);
-                            while (temp.requiredState.getBlock() instanceof ObserverBlock) {
-                                @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
-                                if (tempObserverFacing != null) {
-                                    BlockContext offset = temp.offset(tempObserverFacing);
-                                    if (tempObserverFacing == direction) {
-                                        if (State.get(offset) != State.CORRECT) {
-                                            return null;
-                                        }
-                                    }
-                                    temp = offset;
-                                }
-                            }
-                        }
-
-                    }
-                    return new Action().setLookDirection(facing.getOpposite());
-                }
-                // 新增：告示牌16方向处理
-                case SIGN -> {
-                    Block signBlock = ctx.requiredState.getBlock();
-                    // 站立告示牌：处理0-15的16方向旋转值
-                    if (signBlock instanceof StandingSignBlock) {
-                        int rotation = ctx.requiredState.getValue(StandingSignBlock.ROTATION);
-                        return new Action()
-                                .setSides(Direction.DOWN)
-                                .setLookRotation(rotation)
-                                .setRequiresSupport();
-                    }
-                    // 墙告示牌：保留原有4方向逻辑
-                    if (signBlock instanceof WallSignBlock) {
-                        Direction facing = ctx.requiredState.getValue(WallSignBlock.FACING);
-                        return new Action()
-                                .setSides(facing.getOpposite())
-                                .setLookDirection(facing.getOpposite())
-                                .setRequiresSupport();
-                    }
-                    // 天花板悬挂告示牌处理逻辑
-                    //#if MC >= 12002
-                    if (signBlock instanceof WallHangingSignBlock) {
-                        //TODO: 视乎方向还是有点问题, 待处理
-                        Direction facing = ctx.requiredState.getValue(WallHangingSignBlock.FACING);
-                        List<Direction> sides = new ArrayList<>();
-                        if (facing.getAxis() == Direction.Axis.X) {
-                            sides.add(Direction.NORTH);
-                            sides.add(Direction.SOUTH);
-                        } else if (facing.getAxis() == Direction.Axis.Z) {
-                            sides.add(Direction.EAST);
-                            sides.add(Direction.WEST);
-                        }
-                        return new Action()
-                                .setSides(sides.toArray(new Direction[0]))
-                                .setLookDirection(facing.getOpposite())
-                                .setRequiresSupport();
-                    }
-                    if (signBlock instanceof CeilingHangingSignBlock) {
-                        int rotation = ctx.requiredState.getValue(CeilingHangingSignBlock.ROTATION);
-                        boolean attachFace = ctx.requiredState.getValue(CeilingHangingSignBlock.ATTACHED);
-                        return new Action()
-                                .setUseShift(attachFace)
-                                .setSides(Direction.UP)
-                                .setLookRotation(rotation)
-                                .setRequiresSupport();
-                    }
-                    //#endif
-                    return null;
-                }
-                case SKIP -> {
-                    return null;
-                }
-                default -> {
-                    Action action = new Action();
-                    Block block = ctx.requiredState.getBlock();
-
-                    if (block instanceof FaceAttachedHorizontalDirectionalBlock) {
-                        Direction side = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING);
-                        AttachFace face = ctx.requiredState.getValue(BlockStateProperties.ATTACH_FACE);
-
-                        // 简化方向判断逻辑
-                        Direction sidePitch = face == AttachFace.CEILING ? Direction.UP
-                                : face == AttachFace.FLOOR ? Direction.DOWN
-                                : side;
-
-                        if (face != AttachFace.WALL) {
-                            side = side.getOpposite();
-                        }
-
-                        return new Action().setSides(side).setLookDirection(side.getOpposite(), sidePitch);
-                    }
-
-                    if (block instanceof HorizontalDirectionalBlock ||
-                            block instanceof StonecutterBlock
-                            //#if MC >= 11904
-                            || block instanceof
-                            //#if MC >= 12105
-                            FlowerBedBlock
-                        //#else
-                        //$$ PinkPetalsBlock
-                        //#endif
-                        //#endif
-                    ) {
-                        Direction facing = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING);
-                        if (block instanceof FenceGateBlock) // 栅栏门
-                            facing = facing.getOpposite();
-                        action.setLookDirection(facing.getOpposite());
-                    }
-
-                    if (block instanceof BaseEntityBlock) {
-                        Direction facing;
-                        if (ctx.requiredState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
-                            facing = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING);
-                            //#if MC >= 11904
-                            if (block instanceof DecoratedPotBlock
-                                    || block instanceof CampfireBlock)
-                                facing = facing.getOpposite();
-                            //#endif
-                            action.setSides(facing).setLookDirection(facing.getOpposite());
-                        }
-                        if (ctx.requiredState.hasProperty(BlockStateProperties.FACING)) {
-                            facing = ctx.requiredState.getValue(BlockStateProperties.FACING);
-                            if (ctx.requiredState.getBlock() instanceof ShulkerBoxBlock) {
-                                facing = facing.getOpposite();
-                            }
-                            action.setSides(facing).setLookDirection(facing.getOpposite());
                         }
                     }
 
-                    //方块型珊瑚的替换
-                    if (Configs.Print.REPLACE_CORAL.getBooleanValue() && block.getDescriptionId().endsWith("_coral_block")) {
-                        //例子：block.minecraft.dead_tube_coral
-                        String type = block.getDescriptionId().replace("block.minecraft.dead_", "").replace("_coral_block", "");
-                        switch (type) {
-                            case "tube" -> action.setItem(Items.TUBE_CORAL_BLOCK);
-                            case "brain" -> action.setItem(Items.BRAIN_CORAL_BLOCK);
-                            case "bubble" -> action.setItem(Items.BUBBLE_CORAL_BLOCK);
-                            case "fire" -> action.setItem(Items.FIRE_CORAL_BLOCK);
-                            case "horn" -> action.setItem(Items.HORN_CORAL_BLOCK);
-                        }
-                        action.setRequiresSupport();
-                    }
-
-                    return action;
                 }
+                return new Action().setLookDirection(facing.getOpposite());
             }
-        else if (state == State.WRONG_STATE) {
-            boolean printerBreakWrongStateBlock = Configs.Print.BREAK_WRONG_STATE_BLOCK.getBooleanValue();
-            switch (requiredType) {
-                case SLAB -> {
-                    if (ctx.requiredState.getValue(SlabBlock.TYPE) == SlabType.DOUBLE) {
-                        Direction requiredHalf = ctx.currentState.getValue(SlabBlock.TYPE) == SlabType.BOTTOM ? Direction.DOWN : Direction.UP;
-
-                        return new Action().setSides(requiredHalf);
-                    } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
+            // 新增：告示牌16方向处理
+            case SIGN -> {
+                Block signBlock = ctx.requiredState.getBlock();
+                // 站立告示牌：处理0-15的16方向旋转值
+                if (signBlock instanceof StandingSignBlock) {
+                    int rotation = ctx.requiredState.getValue(StandingSignBlock.ROTATION);
+                    return new Action()
+                            .setSides(Direction.DOWN)
+                            .setLookRotation(rotation)
+                            .setRequiresSupport();
                 }
-                case SNOW -> {
-                    int layers = ctx.currentState.getValue(SnowLayerBlock.LAYERS);
-                    if (layers < ctx.requiredState.getValue(SnowLayerBlock.LAYERS)) {
-                        Map<Direction, Vec3> sides = new HashMap<>() {{
-                            put(Direction.UP, new Vec3(0, (layers / 8d) - 1, 0));
-                        }};
-                        return new ClickAction().setItem(Items.SNOW).setSides(sides);
-                    } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
-
+                // 墙告示牌：保留原有4方向逻辑
+                if (signBlock instanceof WallSignBlock) {
+                    Direction facing = ctx.requiredState.getValue(WallSignBlock.FACING);
+                    return new Action()
+                            .setSides(facing.getOpposite())
+                            .setLookDirection(facing.getOpposite())
+                            .setRequiresSupport();
                 }
-                case DOOR, TRAPDOOR -> {
-                    //判断门是不是铁制的，如果是就直接返回
-                    if (ctx.requiredState.is(Blocks.IRON_DOOR) || ctx.requiredState.is(Blocks.IRON_TRAPDOOR)) break;
-                    if (ctx.requiredState.getValue(BlockStateProperties.OPEN) != ctx.currentState.getValue(BlockStateProperties.OPEN)) {
-                        return new ClickAction();
-                    } else if (printerBreakWrongStateBlock && ctx.requiredState.getValue(DoorBlock.FACING) != ctx.currentState.getValue(DoorBlock.FACING))
-                        BreakManager.addBlockToBreak(ctx);
+                // 天花板悬挂告示牌处理逻辑
+                //#if MC >= 12002
+                if (signBlock instanceof WallHangingSignBlock) {
+                    //TODO: 视乎方向还是有点问题, 待处理
+                    Direction facing = ctx.requiredState.getValue(WallHangingSignBlock.FACING);
+                    List<Direction> sides = new ArrayList<>();
+                    if (facing.getAxis() == Direction.Axis.X) {
+                        sides.add(Direction.NORTH);
+                        sides.add(Direction.SOUTH);
+                    } else if (facing.getAxis() == Direction.Axis.Z) {
+                        sides.add(Direction.EAST);
+                        sides.add(Direction.WEST);
+                    }
+                    return new Action()
+                            .setSides(sides.toArray(new Direction[0]))
+                            .setLookDirection(facing.getOpposite())
+                            .setRequiresSupport();
                 }
-                case FENCE_GATE -> {
-                    var facing = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING);
-                    if (facing.getOpposite() == ctx.currentState.getValue(BlockStateProperties.HORIZONTAL_FACING)
-                            || ctx.requiredState.getValue(BlockStateProperties.OPEN) != ctx.currentState.getValue(BlockStateProperties.OPEN)
-                    ) {
-                        return new ClickAction().setSides(facing.getOpposite()).setLookDirection(facing);
-                    } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
-                }
-                case LEVER -> {
-                    if (ctx.requiredState.getValue(LeverBlock.POWERED) != ctx.currentState.getValue(LeverBlock.POWERED))
-                        return new ClickAction();
-                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
-                }
-                case CANDLES -> {
-                    if (ctx.currentState.getValue(BlockStateProperties.CANDLES) < ctx.requiredState.getValue(BlockStateProperties.CANDLES))
-                        return new ClickAction().setItem(ctx.requiredState.getBlock().asItem());
-                    else if (!ctx.currentState.getValue(CandleBlock.LIT) && ctx.requiredState.getValue(CandleBlock.LIT))
-                        return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
-                    else if (ctx.currentState.getValue(CandleBlock.LIT) && !ctx.requiredState.getValue(CandleBlock.LIT))
-                        return new ClickAction();
-                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
-                }
-                case PICKLES -> {
-                    if (ctx.currentState.getValue(SeaPickleBlock.PICKLES) < ctx.requiredState.getValue(SeaPickleBlock.PICKLES))
-                        return new ClickAction().setItem(Items.SEA_PICKLE);
-                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
-                }
-                case REPEATER -> {
-                    if (!ctx.requiredState.getValue(RepeaterBlock.DELAY).equals(ctx.currentState.getValue(RepeaterBlock.DELAY)))
-                        return new ClickAction();
-                    else if (
-                            printerBreakWrongStateBlock &&
-                                    ctx.requiredState.getValue(RepeaterBlock.POWERED) == ctx.currentState.getValue(RepeaterBlock.POWERED) &&
-                                    ctx.requiredState.getValue(RepeaterBlock.LOCKED) == ctx.currentState.getValue(RepeaterBlock.LOCKED)
-                    ) BreakManager.addBlockToBreak(ctx);
-                }
-                case COMPARATOR -> {
-                    if (ctx.requiredState.getValue(ComparatorBlock.MODE) != ctx.currentState.getValue(ComparatorBlock.MODE))
-                        return new ClickAction();
-                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
-                }
-                case NOTE_BLOCK -> {
-                    if (Configs.Print.NOTE_BLOCK_TUNING.getBooleanValue() && !Objects.equals(ctx.requiredState.getValue(NoteBlock.NOTE), ctx.currentState.getValue(NoteBlock.NOTE)))
-                        return new ClickAction();
-                }
-                case CAMPFIRE -> {
-                    if (!ctx.requiredState.getValue(CampfireBlock.LIT) && ctx.currentState.getValue(CampfireBlock.LIT))
-                        return new ClickAction().setItems(Implementation.SHOVELS).setSides(Direction.UP);
-                    else if (ctx.requiredState.getValue(CampfireBlock.LIT) && !ctx.currentState.getValue(CampfireBlock.LIT))
-                        return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
-                    else if (printerBreakWrongStateBlock && ctx.requiredState.getValue(CampfireBlock.FACING) != ctx.currentState.getValue(CampfireBlock.FACING))
-                        BreakManager.addBlockToBreak(ctx);
-                }
-                case END_PORTAL_FRAME -> {
-                    if (ctx.requiredState.getValue(EndPortalFrameBlock.HAS_EYE) && !ctx.currentState.getValue(EndPortalFrameBlock.HAS_EYE))
-                        return new ClickAction().setItem(Items.ENDER_EYE);
-                    else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
-                }
-                //#if MC >= 11904
-                case FLOWERBED -> {
-                    if (ctx.currentState.getValue(BlockStateProperties.FLOWER_AMOUNT) <= ctx.requiredState.getValue(BlockStateProperties.FLOWER_AMOUNT)) {
-                        return new ClickAction().setItem(ctx.requiredState.getBlock().asItem());
-                    } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
+                if (signBlock instanceof CeilingHangingSignBlock) {
+                    int rotation = ctx.requiredState.getValue(CeilingHangingSignBlock.ROTATION);
+                    boolean attachFace = ctx.requiredState.getValue(CeilingHangingSignBlock.ATTACHED);
+                    return new Action()
+                            .setUseShift(attachFace)
+                            .setSides(Direction.UP)
+                            .setLookRotation(rotation)
+                            .setRequiresSupport();
                 }
                 //#endif
-                case REDSTONE -> {
-                    // 在Java版中，对于没有连接到任何红石元件的十字形的红石线，可以按使用键使其变为点状，从而不与任何方向连接，再按一次可以恢复。
-                    boolean allNoneRequired = ctx.requiredState.getValue(RedStoneWireBlock.NORTH) == RedstoneSide.NONE &&
-                            ctx.requiredState.getValue(RedStoneWireBlock.SOUTH) == RedstoneSide.NONE &&
-                            ctx.requiredState.getValue(RedStoneWireBlock.EAST) == RedstoneSide.NONE &&
-                            ctx.requiredState.getValue(RedStoneWireBlock.WEST) == RedstoneSide.NONE;
+                return null;
+            }
+            case SKIP -> {
+                return null;
+            }
+            default -> {
+                Action action = new Action();
+                Block block = ctx.requiredState.getBlock();
 
-                    boolean allSideCurrent = ctx.currentState.getValue(RedStoneWireBlock.NORTH) == RedstoneSide.SIDE &&
-                            ctx.currentState.getValue(RedStoneWireBlock.SOUTH) == RedstoneSide.SIDE &&
-                            ctx.currentState.getValue(RedStoneWireBlock.EAST) == RedstoneSide.SIDE &&
-                            ctx.currentState.getValue(RedStoneWireBlock.WEST) == RedstoneSide.SIDE;
+                if (block instanceof FaceAttachedHorizontalDirectionalBlock) {
+                    Direction side = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING);
+                    AttachFace face = ctx.requiredState.getValue(BlockStateProperties.ATTACH_FACE);
 
-                    if (allNoneRequired && allSideCurrent) {
-                        return new ClickAction().setItem(Items.AIR);
+                    // 简化方向判断逻辑
+                    Direction sidePitch = face == AttachFace.CEILING ? Direction.UP
+                            : face == AttachFace.FLOOR ? Direction.DOWN
+                            : side;
+
+                    if (face != AttachFace.WALL) {
+                        side = side.getOpposite();
+                    }
+
+                    return new Action().setSides(side).setLookDirection(side.getOpposite(), sidePitch);
+                }
+
+                if (block instanceof HorizontalDirectionalBlock ||
+                        block instanceof StonecutterBlock
+                        //#if MC >= 11904
+                        || block instanceof
+                        //#if MC >= 12105
+                        FlowerBedBlock
+                    //#else
+                    //$$ PinkPetalsBlock
+                    //#endif
+                    //#endif
+                ) {
+                    Direction facing = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING);
+                    if (block instanceof FenceGateBlock) // 栅栏门
+                        facing = facing.getOpposite();
+                    action.setLookDirection(facing.getOpposite());
+                }
+
+                if (block instanceof BaseEntityBlock) {
+                    Direction facing;
+                    if (ctx.requiredState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+                        facing = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING);
+                        //#if MC >= 11904
+                        if (block instanceof DecoratedPotBlock
+                                || block instanceof CampfireBlock)
+                            facing = facing.getOpposite();
+                        //#endif
+                        action.setSides(facing).setLookDirection(facing.getOpposite());
+                    }
+                    if (ctx.requiredState.hasProperty(BlockStateProperties.FACING)) {
+                        facing = ctx.requiredState.getValue(BlockStateProperties.FACING);
+                        if (ctx.requiredState.getBlock() instanceof ShulkerBoxBlock) {
+                            facing = facing.getOpposite();
+                        }
+                        action.setSides(facing).setLookDirection(facing.getOpposite());
                     }
                 }
-                case VINES, GLOW_LICHEN -> {
-                    for (Direction direction : Direction.values()) {
-                        if (direction == Direction.DOWN) continue;
-                        if ((Boolean) getPropertyByName(ctx.requiredState, direction.name())) {
-                            return new Action().setSides(direction).setLookDirection(direction);
-                        }
+
+                //方块型珊瑚的替换
+                if (Configs.Print.REPLACE_CORAL.getBooleanValue() && block.getDescriptionId().endsWith("_coral_block")) {
+                    //例子：block.minecraft.dead_tube_coral
+                    String type = block.getDescriptionId().replace("block.minecraft.dead_", "").replace("_coral_block", "");
+                    switch (type) {
+                        case "tube" -> action.setItem(Items.TUBE_CORAL_BLOCK);
+                        case "brain" -> action.setItem(Items.BRAIN_CORAL_BLOCK);
+                        case "bubble" -> action.setItem(Items.BUBBLE_CORAL_BLOCK);
+                        case "fire" -> action.setItem(Items.FIRE_CORAL_BLOCK);
+                        case "horn" -> action.setItem(Items.HORN_CORAL_BLOCK);
                     }
+                    action.setRequiresSupport();
+                }
+
+                return action;
+            }
+        }
+        return null;
+    }
+
+    /*** 状态错误：方块类型相同，但方块状态（如朝向、亮度等）不一致 ***/
+    private @Nullable Action buildActionWrongState(BlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
+        boolean printerBreakWrongStateBlock = Configs.Print.BREAK_WRONG_STATE_BLOCK.getBooleanValue();
+        switch (requiredType) {
+            case SLAB -> {
+                if (ctx.requiredState.getValue(SlabBlock.TYPE) == SlabType.DOUBLE) {
+                    Direction requiredHalf = ctx.currentState.getValue(SlabBlock.TYPE) == SlabType.BOTTOM ? Direction.DOWN : Direction.UP;
+
+                    return new Action().setSides(requiredHalf);
+                } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
+            }
+            case SNOW -> {
+                int layers = ctx.currentState.getValue(SnowLayerBlock.LAYERS);
+                if (layers < ctx.requiredState.getValue(SnowLayerBlock.LAYERS)) {
+                    Map<Direction, Vec3> sides = new HashMap<>() {{
+                        put(Direction.UP, new Vec3(0, (layers / 8d) - 1, 0));
+                    }};
+                    return new ClickAction().setItem(Items.SNOW).setSides(sides);
+                } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
+
+            }
+            case DOOR, TRAPDOOR -> {
+                //判断门是不是铁制的，如果是就直接返回
+                if (ctx.requiredState.is(Blocks.IRON_DOOR) || ctx.requiredState.is(Blocks.IRON_TRAPDOOR)) break;
+                if (ctx.requiredState.getValue(BlockStateProperties.OPEN) != ctx.currentState.getValue(BlockStateProperties.OPEN)) {
+                    return new ClickAction();
+                } else if (printerBreakWrongStateBlock && ctx.requiredState.getValue(DoorBlock.FACING) != ctx.currentState.getValue(DoorBlock.FACING))
                     BreakManager.addBlockToBreak(ctx);
+            }
+            case FENCE_GATE -> {
+                var facing = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING);
+                if (facing.getOpposite() == ctx.currentState.getValue(BlockStateProperties.HORIZONTAL_FACING)
+                        || ctx.requiredState.getValue(BlockStateProperties.OPEN) != ctx.currentState.getValue(BlockStateProperties.OPEN)
+                ) {
+                    return new ClickAction().setSides(facing.getOpposite()).setLookDirection(facing);
+                } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
+            }
+            case LEVER -> {
+                if (ctx.requiredState.getValue(LeverBlock.POWERED) != ctx.currentState.getValue(LeverBlock.POWERED))
+                    return new ClickAction();
+                else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
+            }
+            case CANDLES -> {
+                if (ctx.currentState.getValue(BlockStateProperties.CANDLES) < ctx.requiredState.getValue(BlockStateProperties.CANDLES))
+                    return new ClickAction().setItem(ctx.requiredState.getBlock().asItem());
+                else if (!ctx.currentState.getValue(CandleBlock.LIT) && ctx.requiredState.getValue(CandleBlock.LIT))
+                    return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
+                else if (ctx.currentState.getValue(CandleBlock.LIT) && !ctx.requiredState.getValue(CandleBlock.LIT))
+                    return new ClickAction();
+                else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
+            }
+            case PICKLES -> {
+                if (ctx.currentState.getValue(SeaPickleBlock.PICKLES) < ctx.requiredState.getValue(SeaPickleBlock.PICKLES))
+                    return new ClickAction().setItem(Items.SEA_PICKLE);
+                else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
+            }
+            case REPEATER -> {
+                if (!ctx.requiredState.getValue(RepeaterBlock.DELAY).equals(ctx.currentState.getValue(RepeaterBlock.DELAY)))
+                    return new ClickAction();
+                else if (
+                        printerBreakWrongStateBlock &&
+                                ctx.requiredState.getValue(RepeaterBlock.POWERED) == ctx.currentState.getValue(RepeaterBlock.POWERED) &&
+                                ctx.requiredState.getValue(RepeaterBlock.LOCKED) == ctx.currentState.getValue(RepeaterBlock.LOCKED)
+                ) BreakManager.addBlockToBreak(ctx);
+            }
+            case COMPARATOR -> {
+                if (ctx.requiredState.getValue(ComparatorBlock.MODE) != ctx.currentState.getValue(ComparatorBlock.MODE))
+                    return new ClickAction();
+                else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
+            }
+            case NOTE_BLOCK -> {
+                if (Configs.Print.NOTE_BLOCK_TUNING.getBooleanValue() && !Objects.equals(ctx.requiredState.getValue(NoteBlock.NOTE), ctx.currentState.getValue(NoteBlock.NOTE)))
+                    return new ClickAction();
+            }
+            case CAMPFIRE -> {
+                if (!ctx.requiredState.getValue(CampfireBlock.LIT) && ctx.currentState.getValue(CampfireBlock.LIT))
+                    return new ClickAction().setItems(Implementation.SHOVELS).setSides(Direction.UP);
+                else if (ctx.requiredState.getValue(CampfireBlock.LIT) && !ctx.currentState.getValue(CampfireBlock.LIT))
+                    return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
+                else if (printerBreakWrongStateBlock && ctx.requiredState.getValue(CampfireBlock.FACING) != ctx.currentState.getValue(CampfireBlock.FACING))
+                    BreakManager.addBlockToBreak(ctx);
+            }
+            case END_PORTAL_FRAME -> {
+                if (ctx.requiredState.getValue(EndPortalFrameBlock.HAS_EYE) && !ctx.currentState.getValue(EndPortalFrameBlock.HAS_EYE))
+                    return new ClickAction().setItem(Items.ENDER_EYE);
+                else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
+            }
+            //#if MC >= 11904
+            case FLOWERBED -> {
+                if (ctx.currentState.getValue(BlockStateProperties.FLOWER_AMOUNT) <= ctx.requiredState.getValue(BlockStateProperties.FLOWER_AMOUNT)) {
+                    return new ClickAction().setItem(ctx.requiredState.getBlock().asItem());
+                } else if (printerBreakWrongStateBlock) BreakManager.addBlockToBreak(ctx);
+            }
+            //#endif
+            case REDSTONE -> {
+                // 在Java版中，对于没有连接到任何红石元件的十字形的红石线，可以按使用键使其变为点状，从而不与任何方向连接，再按一次可以恢复。
+                boolean allNoneRequired = ctx.requiredState.getValue(RedStoneWireBlock.NORTH) == RedstoneSide.NONE &&
+                        ctx.requiredState.getValue(RedStoneWireBlock.SOUTH) == RedstoneSide.NONE &&
+                        ctx.requiredState.getValue(RedStoneWireBlock.EAST) == RedstoneSide.NONE &&
+                        ctx.requiredState.getValue(RedStoneWireBlock.WEST) == RedstoneSide.NONE;
+
+                boolean allSideCurrent = ctx.currentState.getValue(RedStoneWireBlock.NORTH) == RedstoneSide.SIDE &&
+                        ctx.currentState.getValue(RedStoneWireBlock.SOUTH) == RedstoneSide.SIDE &&
+                        ctx.currentState.getValue(RedStoneWireBlock.EAST) == RedstoneSide.SIDE &&
+                        ctx.currentState.getValue(RedStoneWireBlock.WEST) == RedstoneSide.SIDE;
+
+                if (allNoneRequired && allSideCurrent) {
+                    return new ClickAction().setItem(Items.AIR);
                 }
-                case CAULDRON -> {
-                    if (ctx.currentState.getValue(LayeredCauldronBlock.LEVEL) > ctx.requiredState.getValue(LayeredCauldronBlock.LEVEL)) {
-                        if (InventoryUtils.playerHasAccessToItem(mc.player, Items.GLASS_BOTTLE))
-                            return new ClickAction().setItem(Items.GLASS_BOTTLE);
-                        else
-                            mc.gui.setOverlayMessage(Component.nullToEmpty("降低炼药锅内水位需要 §l§6" + PreprocessUtils.getNameFromItem(Items.GLASS_BOTTLE)), false);
+            }
+            case VINES, GLOW_LICHEN -> {
+                for (Direction direction : Direction.values()) {
+                    if (direction == Direction.DOWN) continue;
+                    if ((Boolean) getPropertyByName(ctx.requiredState, direction.name())) {
+                        return new Action().setSides(direction).setLookDirection(direction);
                     }
-                    if (ctx.currentState.getValue(LayeredCauldronBlock.LEVEL) < ctx.requiredState.getValue(LayeredCauldronBlock.LEVEL))
-                        if (InventoryUtils.playerHasAccessToItem(mc.player, Items.POTION))
-                            return new ClickAction().setItem(Items.POTION);
-                        else
-                            mc.gui.setOverlayMessage(Component.nullToEmpty("增加炼药锅内水位需要 §l§6" + PreprocessUtils.getNameFromItem(Items.GLASS_BOTTLE)), false);
                 }
-                case DAYLIGHT_DETECTOR -> {
-                    if (ctx.currentState.getValue(DaylightDetectorBlock.INVERTED) != ctx.requiredState.getValue(DaylightDetectorBlock.INVERTED))
-                        return new ClickAction();
+                BreakManager.addBlockToBreak(ctx);
+            }
+            case CAULDRON -> {
+                if (ctx.currentState.getValue(LayeredCauldronBlock.LEVEL) > ctx.requiredState.getValue(LayeredCauldronBlock.LEVEL)) {
+                    if (InventoryUtils.playerHasAccessToItem(mc.player, Items.GLASS_BOTTLE))
+                        return new ClickAction().setItem(Items.GLASS_BOTTLE);
+                    else
+                        mc.gui.setOverlayMessage(Component.nullToEmpty("降低炼药锅内水位需要 §l§6" + PreprocessUtils.getNameFromItem(Items.GLASS_BOTTLE)), false);
                 }
-                case FIRE -> {
-                    if (!ctx.requiredState.getValue(FireBlock.AGE).equals(ctx.currentState.getValue(FireBlock.AGE)))
-                        return null;
-                    if (ctx.requiredState.getBlock() instanceof SoulFireBlock) return null;
-                    for (Direction direction : Direction.values()) {
-                        if (direction == Direction.DOWN) continue;
-                        if ((Boolean) getPropertyByName(ctx.requiredState, direction.name())) {
-                            return new Action().setSides(direction).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
-                        }
+                if (ctx.currentState.getValue(LayeredCauldronBlock.LEVEL) < ctx.requiredState.getValue(LayeredCauldronBlock.LEVEL))
+                    if (InventoryUtils.playerHasAccessToItem(mc.player, Items.POTION))
+                        return new ClickAction().setItem(Items.POTION);
+                    else
+                        mc.gui.setOverlayMessage(Component.nullToEmpty("增加炼药锅内水位需要 §l§6" + PreprocessUtils.getNameFromItem(Items.GLASS_BOTTLE)), false);
+            }
+            case DAYLIGHT_DETECTOR -> {
+                if (ctx.currentState.getValue(DaylightDetectorBlock.INVERTED) != ctx.requiredState.getValue(DaylightDetectorBlock.INVERTED))
+                    return new ClickAction();
+            }
+            case FIRE -> {
+                if (!ctx.requiredState.getValue(FireBlock.AGE).equals(ctx.currentState.getValue(FireBlock.AGE)))
+                    return null;
+                if (ctx.requiredState.getBlock() instanceof SoulFireBlock) return null;
+                for (Direction direction : Direction.values()) {
+                    if (direction == Direction.DOWN) continue;
+                    if ((Boolean) getPropertyByName(ctx.requiredState, direction.name())) {
+                        return new Action().setSides(direction).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
                     }
-                    return new Action().setSides(Direction.DOWN).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
                 }
-                case COMPOSTER -> {
-                    if (!Configs.Print.FILL_COMPOSTER.getBooleanValue()) return null;
-                    if (ctx.currentState.getValue(ComposterBlock.LEVEL) < ctx.requiredState.getValue(ComposterBlock.LEVEL)) {
-                        List<String> whitelist = Configs.Print.FILL_COMPOSTER_WHITELIST.getStrings();
-                        if (!whitelist.equals(compostWhitelistCache)) {
-                            compostWhitelistCache = new ArrayList<>(whitelist);
-                            filteredCompostItemsCache.clear();
-                            if (whitelist.isEmpty()) {
-                                filteredCompostItemsCache = Arrays.asList(compostableItems);
-                            } else {
-                                for (Item item : compostableItems) {
-                                    for (String rule : whitelist) {
-                                        if (FilterUtils.matchName(rule, new ItemStack(item))) {
-                                            filteredCompostItemsCache.add(item);
-                                            break;
-                                        }
+                return new Action().setSides(Direction.DOWN).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
+            }
+            case COMPOSTER -> {
+                if (!Configs.Print.FILL_COMPOSTER.getBooleanValue()) return null;
+                if (ctx.currentState.getValue(ComposterBlock.LEVEL) < ctx.requiredState.getValue(ComposterBlock.LEVEL)) {
+                    List<String> whitelist = Configs.Print.FILL_COMPOSTER_WHITELIST.getStrings();
+                    if (!whitelist.equals(compostWhitelistCache)) {
+                        compostWhitelistCache = new ArrayList<>(whitelist);
+                        filteredCompostItemsCache.clear();
+                        if (whitelist.isEmpty()) {
+                            filteredCompostItemsCache = Arrays.asList(compostableItems);
+                        } else {
+                            for (Item item : compostableItems) {
+                                for (String rule : whitelist) {
+                                    if (FilterUtils.matchName(rule, new ItemStack(item))) {
+                                        filteredCompostItemsCache.add(item);
+                                        break;
                                     }
                                 }
                             }
                         }
-                        Item[] finalItems = filteredCompostItemsCache.toArray(Item[]::new);
-                        return new ClickAction().setItems(finalItems);
                     }
-                }
-                case STAIR -> {
-                    if (printerBreakWrongStateBlock &&
-                            (ctx.requiredState.getValue(StairBlock.FACING) != ctx.currentState.getValue(StairBlock.FACING) ||
-                                    ctx.requiredState.getValue(StairBlock.HALF) != ctx.currentState.getValue(StairBlock.HALF))) {
-                        BreakManager.addBlockToBreak(ctx);
-                    }
-                }
-                case DEFAULT -> {
-                    Class<?>[] ignored = new Class<?>[]
-                            {FenceBlock.class,
-                                    WallBlock.class,
-                                    IronBarsBlock.class,
-                                    PressurePlateBlock.class,
-                            };
-                    if (printerBreakWrongStateBlock && !Arrays.asList(ignored).contains(ctx.requiredState.getBlock().getClass()))
-                        BreakManager.addBlockToBreak(ctx);
+                    Item[] finalItems = filteredCompostItemsCache.toArray(Item[]::new);
+                    return new ClickAction().setItems(finalItems);
                 }
             }
-        } else if (state == State.WRONG_BLOCK) switch (requiredType) {
+            case STAIR -> {
+                if (printerBreakWrongStateBlock &&
+                        (ctx.requiredState.getValue(StairBlock.FACING) != ctx.currentState.getValue(StairBlock.FACING) ||
+                                ctx.requiredState.getValue(StairBlock.HALF) != ctx.currentState.getValue(StairBlock.HALF))) {
+                    BreakManager.addBlockToBreak(ctx);
+                }
+            }
+            case DEFAULT -> {
+                Class<?>[] ignored = new Class<?>[]
+                        {FenceBlock.class,
+                                WallBlock.class,
+                                IronBarsBlock.class,
+                                PressurePlateBlock.class,
+                        };
+                if (printerBreakWrongStateBlock && !Arrays.asList(ignored).contains(ctx.requiredState.getBlock().getClass()))
+                    BreakManager.addBlockToBreak(ctx);
+            }
+        }
+        return null;
+    }
+
+    /*** 方块错误：方块类型完全不同，且不满足缺失/状态错误的条件 ***/
+    private @Nullable Action buildActionWrongBlock(BlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
+        switch (requiredType) {
             case FARMLAND -> {
                 Block[] soilBlocks = new Block[]{Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.DIRT_PATH, Blocks.COARSE_DIRT};
-
                 for (Block soilBlock : soilBlocks) {
                     if (ctx.currentState.getBlock().equals(soilBlock))
                         return new ClickAction().setItems(Implementation.HOES);
@@ -904,15 +923,8 @@ public class PlacementGuide extends PrinterUtils {
                 }
             }
         }
-
         return null;
     }
-
-    // 水相关逻辑
-    private @Nullable Action handleWaterLogic(BlockContext ctx, ClassHook requiredType, State state, AtomicReference<Boolean> skip) {
-        return null;
-    }
-
 
     enum ClassHook {
         // 放置
@@ -1001,6 +1013,7 @@ public class PlacementGuide extends PrinterUtils {
         }
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public static class Action {
         protected Map<Direction, Vec3> sides;
         protected @Nullable Float lookYaw;
@@ -1076,7 +1089,6 @@ public class PlacementGuide extends PrinterUtils {
          */
         public Action setSides(Direction.Axis... axis) {
             Map<Direction, Vec3> sides = new HashMap<>();
-
             for (Direction.Axis a : axis) {
                 for (Direction d : Direction.values()) {
                     if (d.getAxis() == a) {
@@ -1084,7 +1096,6 @@ public class PlacementGuide extends PrinterUtils {
                     }
                 }
             }
-
             this.sides = sides;
             return this;
         }
@@ -1121,11 +1132,9 @@ public class PlacementGuide extends PrinterUtils {
          */
         public Action setSides(Direction... directions) {
             Map<Direction, Vec3> sides = new HashMap<>();
-
             for (Direction d : directions) {
                 sides.put(d, new Vec3(0, 0, 0));
             }
-
             this.sides = sides;
             return this;
         }
@@ -1140,17 +1149,19 @@ public class PlacementGuide extends PrinterUtils {
          * @param pos   方块的位置
          * @return 第一个有效侧面，如果不存在则返回 null
          */
-        @SuppressWarnings("all")
+        @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
         public @Nullable Direction getValidSide(ClientLevel world, BlockPos pos) {
             Map<Direction, Vec3> sides = getSides();
             List<Direction> validSides = new ArrayList<>();
             for (Direction side : sides.keySet()) {
                 BlockPos neighborPos = pos.relative(side);
                 BlockState neighborState = world.getBlockState(neighborPos);
-                if (Configs.Placement.PLACE_IN_AIR.getBooleanValue() && !this.requiresSupport && !Implementation.isInteractive(neighborState.getBlock())) {
+                if (Configs.Placement.PLACE_IN_AIR.getBooleanValue() && !this.requiresSupport
+                    // TODO: 没理解, 都凭空放置了, 还检查相邻方块类型？所以注释掉了
+                    // && !Implementation.isInteractive(neighborState.getBlock())
+                ) {
                     return side;
                 }
-                // 检查该侧面是否可以被点击且不可替换
                 if (canBeClicked(world, neighborPos) && !BlockUtils.isReplaceable(neighborState)) {
                     validSides.add(side);
                 }
@@ -1286,4 +1297,5 @@ public class PlacementGuide extends PrinterUtils {
             return null;
         }
     }
+
 }

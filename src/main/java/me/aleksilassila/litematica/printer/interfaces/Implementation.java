@@ -135,7 +135,6 @@ public class Implementation {
      * @return 是否可以交互
      */
     public static boolean isInteractive(Block block) {
-
         for (Class<?> clazz : interactiveBlocks) {
             if (clazz.isInstance(block)) {
                 return true;
