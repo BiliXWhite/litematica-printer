@@ -342,7 +342,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 跳过放置名单
         public static final ConfigStringList PUT_SKIP_LIST = stringList("putSkipList")
-                .setVisible(PUT_SKIP::getBooleanValue)
                 .build();
 
         // 始终潜行
