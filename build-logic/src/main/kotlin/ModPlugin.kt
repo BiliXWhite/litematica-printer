@@ -22,7 +22,7 @@ abstract class ModPlugin : Plugin<Project> {
         extensions.configure<JavaPluginExtension> {
             sourceCompatibility = javaVersion
             targetCompatibility = javaVersion
-            withSourcesJar()
+            // withSourcesJar()
         }
     }
 
