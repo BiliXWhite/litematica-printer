@@ -29,9 +29,6 @@ public abstract class FunctionBreak extends Function {
 
     @Override
     public boolean isConfigAllowExecute(Printer printer) {
-        if (InteractionUtils.INSTANCE.isDestroying()){
-            return false;
-        }
         int breakSpeed = Configs.Break.BREAK_SPEED.getIntegerValue();
         if (breakSpeed != 0 && (printer.tickStartTime / 50) % breakSpeed != 0) {
             return false;

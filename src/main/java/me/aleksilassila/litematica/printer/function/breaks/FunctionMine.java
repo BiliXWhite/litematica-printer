@@ -64,11 +64,6 @@ public class FunctionMine extends FunctionBreak {
 
     @Override
     public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
-        if (InteractionUtils.INSTANCE.isDestroying()) {
-            return;
-        } else {
-            blockPos = null;
-        }
         tickMinedCount = 0; // 重置单Tick计数（每个Tick开始时清零）
         int breakBlocksPerTick = Configs.Break.BREAK_BLOCKS_PER_TICK.getIntegerValue();
         boolean loop = true;

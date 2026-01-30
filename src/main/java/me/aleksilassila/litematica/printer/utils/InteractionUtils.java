@@ -65,11 +65,6 @@ public class InteractionUtils {
     }
 
     public void onTick() {
-        if (!Printer.isEnable() || breakQueue.isEmpty() || client.player == null || client.level == null || client.gameMode == null) {
-            resetBreaking(); // 兜底重置破坏状态，避免内存泄漏
-            activePos = null;
-            return;
-        }
         // 周期检查：处于破坏状态且超时未操作，自动释放
         if (isDestroying) {
             long currentTime = System.currentTimeMillis();
@@ -85,7 +80,20 @@ public class InteractionUtils {
                 ));
             }
         }
-
+        if (client.player == null || client.level == null || client.gameMode == null) {
+            resetBreaking(); // 兜底重置破坏状态，避免内存泄漏
+            activePos = null;
+            return;
+        }
+        if (breakQueue.isEmpty()) {
+            activePos = null;
+            return;
+        }
+        // 有任务正在调用本 TICK 不进行处理
+        if (isDestroying && !activePos.equals(destroyBlockPos)) {
+            activePos = null;
+            return;
+        }
         // 无活跃破坏方块时，从队列取队首作为新的活跃目标（FIFO 先进先出）
         if (activePos == null && !isDestroying()) {
             BlockPos nextPos = breakQueue.peekFirst();
