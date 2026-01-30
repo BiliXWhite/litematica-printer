@@ -1,7 +1,6 @@
 package me.aleksilassila.litematica.printer.function.placements;
 
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
-import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.enums.FileBlockModeType;

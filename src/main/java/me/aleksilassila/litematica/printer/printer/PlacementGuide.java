@@ -4,7 +4,6 @@ import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
-import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.utils.*;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.client.Minecraft;
@@ -916,7 +915,7 @@ public class PlacementGuide extends PrinterUtils {
             case CAULDRON -> {
                 if (Arrays.asList(requiredType.classes).contains(ctx.currentState.getBlock().getClass()))
                     return null;
-                else if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && BreakManager.canBreakBlock(ctx.blockPos))
+                else if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && InteractionUtils.canBreakBlock(ctx.blockPos))
                     InteractionUtils.INSTANCE.add(ctx);
             }
             case STRIP_LOG -> {
@@ -926,7 +925,7 @@ public class PlacementGuide extends PrinterUtils {
             }
             // 新增：告示牌WrongBlock逻辑
             case SIGN -> {
-                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && BreakManager.canBreakBlock(ctx.blockPos)) {
+                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && InteractionUtils.canBreakBlock(ctx.blockPos)) {
                     boolean isLegitimateSign = ctx.currentState.getBlock() instanceof StandingSignBlock
                             || ctx.currentState.getBlock() instanceof WallSignBlock
                             //#if MC >= 12002
@@ -950,7 +949,7 @@ public class PlacementGuide extends PrinterUtils {
                 boolean printerBreakExtraBlock = Configs.Print.BREAK_EXTRA_BLOCK.getBooleanValue();
 
                 if (printBreakWrongBlock || printerBreakExtraBlock) {
-                    if (BreakManager.canBreakBlock(ctx.blockPos)) {
+                    if (InteractionUtils.canBreakBlock(ctx.blockPos)) {
                         if (printBreakWrongBlock && !ctx.requiredState.is(Blocks.AIR)) {
                             InteractionUtils.INSTANCE.add(ctx);
                         } else if (printerBreakExtraBlock && ctx.requiredState.is(Blocks.AIR)) {

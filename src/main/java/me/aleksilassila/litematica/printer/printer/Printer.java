@@ -14,7 +14,6 @@ import me.aleksilassila.litematica.printer.function.Function;
 import me.aleksilassila.litematica.printer.function.Functions;
 import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
-import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.utils.*;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -264,7 +263,7 @@ public class Printer extends PrinterUtils {
             return;
         }
         // 如果正在处理打开的容器/处理远程交互和快捷潜影盒/破坏方块列表有东西，则直接返回
-        if (isOpenHandler || switchItem() || BreakManager.hasTargets()) {
+        if (isOpenHandler || switchItem() || InteractionUtils.INSTANCE.isDestroying()) {
             return;
         }
         if (waitTicks > 0) {
