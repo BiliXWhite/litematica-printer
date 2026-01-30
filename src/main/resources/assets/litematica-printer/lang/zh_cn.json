@@ -194,7 +194,7 @@
   "litematica_printer.config.printerXAxisReverse": "迭代 - X轴反向",
   "litematica_printer.config.printerXAxisReverse.comment": "启用后，X轴方向的遍历顺序改为从大到小。",
   "litematica_printer.config.printerYAxisReverse": "迭代 - Y轴反向",
-  "litematica_printer.config.printerYAxisReverse.comment": "启用后，Y轴方向的遍历顺序改为从大到小；挖掘模式默认反向，启用后恢复正向。",
+  "litematica_printer.config.printerYAxisReverse.comment": "启用后，Y轴方向的遍历顺序改为从大到小。",
   "litematica_printer.config.printerZAxisReverse": "迭代 - Z轴反向",
   "litematica_printer.config.printerZAxisReverse.comment": "启用后，Z轴方向的遍历顺序改为从大到小。",
   "litematica_printer.config.putSkip": "打印 - 跳过放置",

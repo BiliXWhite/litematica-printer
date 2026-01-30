@@ -194,7 +194,7 @@
   "litematica_printer.config.printerXAxisReverse": "Iteration - X-axis Reverse",
   "litematica_printer.config.printerXAxisReverse.comment": "When enabled, the iteration order of the X-axis is reversed (from high to low).",
   "litematica_printer.config.printerYAxisReverse": "Iteration - Y-axis Reverse",
-  "litematica_printer.config.printerYAxisReverse.comment": "When enabled, the iteration order of the Y-axis is reversed (from high to low); Excavation mode is reversed by default, and reverts to forward when enabled.",
+  "litematica_printer.config.printerYAxisReverse.comment": "When enabled, the iteration order of the Y-axis is reversed (from high to low).",
   "litematica_printer.config.printerZAxisReverse": "Iteration - Z-axis Reverse",
   "litematica_printer.config.printerZAxisReverse.comment": "When enabled, the iteration order of the Z-axis is reversed (from high to low).",
   "litematica_printer.config.putSkip": "Print - Skip Placement",
