@@ -23,7 +23,7 @@ public class ConfigUi extends GuiConfigsBase {
     private static Tab tab = Tab.ALL;
 
     public ConfigUi(@Nullable Screen parent) {
-        super(10, 50, Reference.MOD_ID, parent, "投影打印机 " + UpdateCheckerUtils.version);
+        super(10, 50, Reference.MOD_ID, parent, "投影打印机 " + UpdateCheckerUtils.LOCAL_VERSION);
     }
 
     public ConfigUi() {
