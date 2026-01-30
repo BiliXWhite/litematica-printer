@@ -30,13 +30,16 @@ import net.minecraft.network.HashedStack;
 //#endif
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static fi.dy.masa.malilib.util.InventoryUtils.*;
 
 public class InventoryUtils {
     private static final Minecraft client = Minecraft.getInstance();
-    // 副手固定槽位索引（全版本通用，核心常量）
     private static final int OFFHAND_SLOT_INDEX = 40;
+    private static final long MESSAGE_COOLDOWN_MS = 5000L;
+    private static final Map<String, Long> LAST_MESSAGE_SEND_TIME = new ConcurrentHashMap<>();
 
     public static int getSelectedSlot(Inventory inventory) {
         //#if MC > 12104
@@ -122,6 +125,7 @@ public class InventoryUtils {
             return this == SUCCESS;
         }
     }
+
     /**
      * 检查是否有可用的 Pick 槽位
      *
@@ -159,8 +163,9 @@ public class InventoryUtils {
 
     /**
      * 检查是否能切换到目标物品（配合槽位检查，仅判断不执行切换）
+     *
      * @param player 本地玩家实例
-     * @param items 目标物品数组（null/空则视为AIR）
+     * @param items  目标物品数组（null/空则视为AIR）
      * @return PickResult 检查结果
      */
     public PickResult checkCanSwitchToItems(LocalPlayer player, Item[] items) {
@@ -197,7 +202,7 @@ public class InventoryUtils {
             return true;
         } else {
             if (InventoryUtilsAccessor.getPICK_BLOCKABLE_SLOTS().isEmpty()) {
-                // InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_valid_slots_configured");
+                showMessageWithCooldown(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_valid_slots_configured");
                 return false;
             }
             int hotbarSlot = sourceSlot;
@@ -219,7 +224,7 @@ public class InventoryUtils {
                 EasyPlaceUtilsAccessor.callSetEasyPlaceLastPickBlockTime();
                 return swapItemToMainHand(stack.copy(), mc);
             } else {
-                // InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");
+                showMessageWithCooldown(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");
                 return false;
             }
         }
@@ -422,5 +427,20 @@ public class InventoryUtils {
         }
 
         return true;
+    }
+
+    private static void showMessageWithCooldown(Message.MessageType type, String messageKey) {
+        long currentTime = System.currentTimeMillis();
+        // 核心修改：通过消息Key获取最后发送时间，而非消息类型
+        long lastSendTime = LAST_MESSAGE_SEND_TIME.getOrDefault(messageKey, 0L);
+
+        // 未超过冷却时间，直接返回不发送
+        if (currentTime - lastSendTime < MESSAGE_COOLDOWN_MS) {
+            return;
+        }
+
+        // 超过冷却时间，发送消息并更新【该Key】的最后发送时间
+        InfoUtils.showGuiOrInGameMessage(type, messageKey);
+        LAST_MESSAGE_SEND_TIME.put(messageKey, currentTime);
     }
 }
