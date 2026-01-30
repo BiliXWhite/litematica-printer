@@ -76,13 +76,13 @@ public class PlacementGuide extends PrinterUtils {
         // 破冰放水
         if (Configs.Print.PRINT_WATER.getBooleanValue() && PlaceUtils.isWaterRequired(ctx.requiredState)) {
             if (ctx.currentState.getBlock() instanceof IceBlock) {  // 冰块
-                BreakManager.addBlockToBreak(ctx);
+                InteractionUtils.INSTANCE.add(ctx);
                 return null;
             }
             if (!PlaceUtils.isCorrectWaterLevel(ctx.requiredState, ctx.currentState)) {
                 if (!ctx.currentState.isAir() && !(ctx.currentState.getBlock() instanceof LiquidBlock)) {
                     if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue()) {
-                        BreakManager.addBlockToBreak(ctx);
+                        InteractionUtils.INSTANCE.add(ctx);
                     }
                     return null;
                 }
@@ -624,7 +624,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setSides(requiredHalf);
                 }
                 if (printerBreakWrongStateBlock) {
-                    BreakManager.addBlockToBreak(ctx);
+                    InteractionUtils.INSTANCE.add(ctx);
                 }
             }
             case SNOW -> {
@@ -636,7 +636,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setItem(Items.SNOW).setSides(sides);
                 }
                 if (printerBreakWrongStateBlock) {
-                    BreakManager.addBlockToBreak(ctx);
+                    InteractionUtils.INSTANCE.add(ctx);
                 }
             }
             case DOOR, TRAPDOOR -> {
@@ -648,7 +648,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction();
                 }
                 if (printerBreakWrongStateBlock && ctx.requiredState.getValue(DoorBlock.FACING) != ctx.currentState.getValue(DoorBlock.FACING)) {
-                    BreakManager.addBlockToBreak(ctx);
+                    InteractionUtils.INSTANCE.add(ctx);
                 }
             }
             case FENCE_GATE -> {
@@ -659,7 +659,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setSides(facing.getOpposite()).setLookDirection(facing);
                 }
                 if (printerBreakWrongStateBlock) {
-                    BreakManager.addBlockToBreak(ctx);
+                    InteractionUtils.INSTANCE.add(ctx);
                 }
             }
             case LEVER -> {
@@ -667,7 +667,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction();
                 }
                 if (printerBreakWrongStateBlock) {
-                    BreakManager.addBlockToBreak(ctx);
+                    InteractionUtils.INSTANCE.add(ctx);
                 }
             }
             case CANDLES -> {
@@ -681,7 +681,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction();
                 }
                 if (printerBreakWrongStateBlock) {
-                    BreakManager.addBlockToBreak(ctx);
+                    InteractionUtils.INSTANCE.add(ctx);
                 }
             }
             case PICKLES -> {
@@ -689,7 +689,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setItem(Items.SEA_PICKLE);
                 }
                 if (printerBreakWrongStateBlock) {
-                    BreakManager.addBlockToBreak(ctx);
+                    InteractionUtils.INSTANCE.add(ctx);
                 }
             }
             case REPEATER -> {
@@ -700,7 +700,7 @@ public class PlacementGuide extends PrinterUtils {
                         ctx.requiredState.getValue(RepeaterBlock.POWERED) == ctx.currentState.getValue(RepeaterBlock.POWERED) &&
                         ctx.requiredState.getValue(RepeaterBlock.LOCKED) == ctx.currentState.getValue(RepeaterBlock.LOCKED)
                 ) {
-                    BreakManager.addBlockToBreak(ctx);
+                    InteractionUtils.INSTANCE.add(ctx);
                 }
             }
             case COMPARATOR -> {
@@ -739,7 +739,7 @@ public class PlacementGuide extends PrinterUtils {
                             }
                         }
                     }
-                    BreakManager.addBlockToBreak(ctx);
+                    InteractionUtils.INSTANCE.add(ctx);
                 }
             }
             case NOTE_BLOCK -> {
@@ -755,7 +755,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
                 }
                 if (printerBreakWrongStateBlock && ctx.requiredState.getValue(CampfireBlock.FACING) != ctx.currentState.getValue(CampfireBlock.FACING)) {
-                    BreakManager.addBlockToBreak(ctx);
+                    InteractionUtils.INSTANCE.add(ctx);
                 }
             }
             case END_PORTAL_FRAME -> {
@@ -763,7 +763,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setItem(Items.ENDER_EYE);
                 }
                 if (printerBreakWrongStateBlock) {
-                    BreakManager.addBlockToBreak(ctx);
+                    InteractionUtils.INSTANCE.add(ctx);
                 }
             }
             //#if MC >= 11904
@@ -772,7 +772,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setItem(ctx.requiredState.getBlock().asItem());
                 }
                 if (printerBreakWrongStateBlock) {
-                    BreakManager.addBlockToBreak(ctx);
+                    InteractionUtils.INSTANCE.add(ctx);
                 }
             }
             //#endif
@@ -800,7 +800,7 @@ public class PlacementGuide extends PrinterUtils {
                     }
                 }
                 if (printerBreakWrongStateBlock) {
-                    BreakManager.addBlockToBreak(ctx);
+                    InteractionUtils.INSTANCE.add(ctx);
                 }
             }
             case CAULDRON -> {
@@ -866,7 +866,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (printerBreakWrongStateBlock &&
                         (ctx.requiredState.getValue(StairBlock.FACING) != ctx.currentState.getValue(StairBlock.FACING) ||
                                 ctx.requiredState.getValue(StairBlock.HALF) != ctx.currentState.getValue(StairBlock.HALF))) {
-                    BreakManager.addBlockToBreak(ctx);
+                    InteractionUtils.INSTANCE.add(ctx);
                 }
             }
             case DEFAULT -> {
@@ -877,7 +877,7 @@ public class PlacementGuide extends PrinterUtils {
                                 PressurePlateBlock.class,
                         };
                 if (printerBreakWrongStateBlock && !Arrays.asList(ignored).contains(ctx.requiredState.getBlock().getClass())) {
-                    BreakManager.addBlockToBreak(ctx);
+                    InteractionUtils.INSTANCE.add(ctx);
                 }
             }
         }
@@ -917,7 +917,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (Arrays.asList(requiredType.classes).contains(ctx.currentState.getBlock().getClass()))
                     return null;
                 else if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && BreakManager.canBreakBlock(ctx.blockPos))
-                    BreakManager.addBlockToBreak(ctx);
+                    InteractionUtils.INSTANCE.add(ctx);
             }
             case STRIP_LOG -> {
                 Block stripped = STRIPPED_LOGS.get(ctx.currentState.getBlock());
@@ -936,9 +936,9 @@ public class PlacementGuide extends PrinterUtils {
                             ;
 
                     if (!isLegitimateSign) {
-                        BreakManager.addBlockToBreak(ctx);
+                        InteractionUtils.INSTANCE.add(ctx);
                     }
-                    BreakManager.addBlockToBreak(ctx);
+                    InteractionUtils.INSTANCE.add(ctx);
                 }
             }
             default -> {
@@ -952,9 +952,9 @@ public class PlacementGuide extends PrinterUtils {
                 if (printBreakWrongBlock || printerBreakExtraBlock) {
                     if (BreakManager.canBreakBlock(ctx.blockPos)) {
                         if (printBreakWrongBlock && !ctx.requiredState.is(Blocks.AIR)) {
-                            BreakManager.addBlockToBreak(ctx);
+                            InteractionUtils.INSTANCE.add(ctx);
                         } else if (printerBreakExtraBlock && ctx.requiredState.is(Blocks.AIR)) {
-                            BreakManager.addBlockToBreak(ctx);
+                            InteractionUtils.INSTANCE.add(ctx);
                         }
                     }
                 }

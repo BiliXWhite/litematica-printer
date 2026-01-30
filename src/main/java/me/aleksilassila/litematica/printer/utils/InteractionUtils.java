@@ -1,8 +1,11 @@
 package me.aleksilassila.litematica.printer.utils;
 
+import lombok.Getter;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.TweakerooUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.printer.BlockContext;
+import me.aleksilassila.litematica.printer.printer.Printer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -26,68 +29,99 @@ import java.util.Deque;
 
 @Environment(EnvType.CLIENT)
 public class InteractionUtils {
+    private static final Minecraft client = Minecraft.getInstance();
     public static InteractionUtils INSTANCE = new InteractionUtils();
 
     private InteractionUtils() {
     }
 
-    private final Minecraft client = Minecraft.getInstance();
-
     private BlockPos destroyBlockPos = new BlockPos(-1, -1, -1);
     private float destroyProgress;
-    private boolean isDestroying;
+    private @Getter boolean isDestroying;
     private float destroyTicks;
 
     private final Deque<BlockPos> breakQueue = new ArrayDeque<>();
     private BlockPos activePos = null;
 
-    public void addQueue(BlockPos pos) {
+    private long lastBreakOperationTime = System.currentTimeMillis();
+    private static final long BREAK_STATE_TIMEOUT_MS = 3000L;
+
+    public void add(BlockPos pos) {
         if (pos == null) return;
         if (!breakQueue.contains(pos)) {
             breakQueue.addLast(pos);
         }
     }
 
-    public void clearQueue() {
+    public void add(BlockContext ctx) {
+        if (ctx == null) return;
+        this.add(ctx.blockPos);
+    }
+
+    public void clear() {
         breakQueue.clear();
         resetBreaking();
         activePos = null;
     }
 
     public void onTick() {
-        if (breakQueue.isEmpty()) {
-            if (isDestroying) {
-                resetBreaking();
-                activePos = null;
-            }
+        if (!Printer.isEnable() || breakQueue.isEmpty() || client.player == null || client.level == null || client.gameMode == null) {
+            resetBreaking(); // 兜底重置破坏状态，避免内存泄漏
+            activePos = null;
             return;
         }
-        if (client.level == null || client.player == null || client.gameMode == null) {
-            clearQueue();
-            return;
+        // 周期检查：处于破坏状态且超时未操作，自动释放
+        if (isDestroying) {
+            long currentTime = System.currentTimeMillis();
+            // 超出阈值，执行强制重置
+            if (currentTime - lastBreakOperationTime > BREAK_STATE_TIMEOUT_MS) {
+                resetBreaking(); // 重置本地破坏状态
+                activePos = null; // 清空活跃目标
+                // 向服务端发送中止包，确保服务端同步状态（避免客户端重置但服务端仍在处理）
+                NetworkUtils.sendPacket(new ServerboundPlayerActionPacket(
+                        ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK,
+                        this.destroyBlockPos,
+                        Direction.DOWN
+                ));
+            }
         }
 
-        while (!breakQueue.isEmpty()) {
-            if (activePos == null) {
-                activePos = breakQueue.pollFirst();
-                if (activePos == null) {
-                    return; // 队列空
-                }
-                resetBreaking();
+        // 无活跃破坏方块时，从队列取队首作为新的活跃目标（FIFO 先进先出）
+        if (activePos == null && !isDestroying()) {
+            BlockPos nextPos = breakQueue.peekFirst();
+            // 校验队列首方块是否仍可破坏（避免方块已被移除/失效），无效则出队并继续取
+            while (nextPos != null && !canBreakBlock(nextPos)) {
+                breakQueue.pollFirst();
+                nextPos = breakQueue.peekFirst();
             }
+            activePos = nextPos; // 赋值有效活跃方块
+        }
+
+        // 有活跃方块时，驱动破坏进度更新
+        if (activePos != null) {
             BlockBreakResult result = updateBlockBreakingProgress(activePos, Direction.DOWN);
-            destroyTicks++;
+            // 根据破坏结果做状态和队列维护
             switch (result) {
-                case COMPLETED, ABORTED, FAILED -> {
+                case COMPLETED:
+                    // 破坏完成：出队、重置活跃状态、清空当前破坏进度
+                    breakQueue.pollFirst();
                     activePos = null;
                     resetBreaking();
-                }
+                    break;
+                case ABORTED, FAILED:
+                    // 破坏中止/失败：出队、重置活跃状态（失败方块不重新入队，避免死循环）
+                    breakQueue.pollFirst();
+                    activePos = null;
+                    resetBreaking();
+                    break;
+                case IN_PROGRESS:
+                    // 正在破坏：无需处理，下一个tick继续推进进度
+                    break;
             }
         }
     }
 
-
-    public boolean canBreakBlock(BlockPos pos) {
+    public static boolean canBreakBlock(BlockPos pos) {
         if (client.level == null || client.player == null || client.gameMode == null || pos == null) {
             return false;
         }
@@ -95,7 +129,7 @@ public class InteractionUtils {
         ClientLevel world = client.level;
         BlockState currentState = world.getBlockState(pos);
         // 部分人特殊需求
-        if (Configs.Break.BREAK_CHECK_BLOCK_HARDNESS.getBooleanValue()){
+        if (Configs.Break.BREAK_CHECK_BLOCK_HARDNESS.getBooleanValue()) {
             // 非创造无法破坏无硬度的方块
             if (!gameType.isCreative() && currentState.getBlock().defaultDestroyTime() < 0) {
                 return false;
@@ -185,8 +219,8 @@ public class InteractionUtils {
         return BlockBreakResult.IN_PROGRESS;
     }
 
-
     public BlockBreakResult updateBlockBreakingProgress(BlockPos blockPos, Direction direction, boolean localPrediction) {
+        this.lastBreakOperationTime = System.currentTimeMillis();
         ClientLevel level = client.level;
         LocalPlayer player = client.player;
         MultiPlayerGameMode gameMode = client.gameMode;
@@ -223,7 +257,7 @@ public class InteractionUtils {
                 return BlockBreakResult.COMPLETED;
             } else {
                 this.destroyProgress = this.destroyProgress + PlayerUtils.calcBlockBreakingDelta(player, blockState);
-                if (localPrediction){
+                if (localPrediction) {
                     if (this.destroyTicks % 4.0F == 0.0F) {
                         SoundType soundType = blockState.getSoundType();
                         client
@@ -266,32 +300,19 @@ public class InteractionUtils {
         }
     }
 
-    public BlockBreakResult updateBlockBreakingProgress(BlockPos pos, Direction direction) {
-        return updateBlockBreakingProgress(pos, direction, true);
+    public BlockBreakResult updateBlockBreakingProgress(BlockPos blockPos, Direction direction) {
+        return this.updateBlockBreakingProgress(blockPos, direction, !Configs.Break.BREAK_PLACE_USE_PACKET.getBooleanValue());
     }
 
-    public BlockBreakResult updateBlockBreakingProgress(BlockPos pos) {
-        return updateBlockBreakingProgress(pos, Direction.DOWN);
+    public BlockBreakResult updateBlockBreakingProgress(BlockPos blockPos) {
+        return this.updateBlockBreakingProgress(blockPos, Direction.DOWN);
     }
 
     public void resetBreaking() {
-        destroyTicks = 0;
-        setDestroying(false);
-    }
-
-    public boolean isDestroying() {
-        return isDestroying;
-    }
-
-    public void setDestroying(boolean destroying) {
-        this.isDestroying = destroying;
-    }
-
-    public BlockPos getDestroyBlockPos() {
-        return destroyBlockPos;
-    }
-
-    public float getDestroyProgress() {
-        return destroyProgress;
+        destroyTicks = 0.0F;
+        destroyProgress = 0.0F; // 新增：重置破坏进度
+        isDestroying = false;
+        destroyBlockPos = new BlockPos(-1, -1, -1); // 新增：重置破坏目标位置
+        lastBreakOperationTime = System.currentTimeMillis(); // 新增：重置计时器
     }
 }

@@ -84,7 +84,7 @@ public class FunctionFill extends FunctionPlacement {
 
     @Override
     public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
-        if (isOpenHandler || switchItem() || BreakManager.hasTargets()) {
+        if (isOpenHandler || switchItem()) {
             return;
         }
         boolean handheld = Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FileBlockModeType.HANDHELD;

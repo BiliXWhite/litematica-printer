@@ -6,6 +6,8 @@
 
 #### 2026-1-30
 - 完善比较器方块状态不一致破坏逻辑 [issues#78](https://github.com/BiliXWhite/litematica-printer/issues/78#issuecomment-3815415357)
+- 添加 InventoryUtils.showMessageWithCooldown 冷却避免刷屏
+- 将破坏统一由 InteractionUtils 类进行管理
 
 #### 2026-1-29
 - 添加[issues#78](https://github.com/BiliXWhite/litematica-printer/issues/78)

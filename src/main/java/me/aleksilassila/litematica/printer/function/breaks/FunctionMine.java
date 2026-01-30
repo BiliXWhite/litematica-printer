@@ -1,25 +1,28 @@
 package me.aleksilassila.litematica.printer.function.breaks;
 
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
+import lombok.Getter;
 import me.aleksilassila.litematica.printer.bilixwhite.BreakManager;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.function.FunctionBreak;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
+import me.aleksilassila.litematica.printer.utils.BlockUtils;
 import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.Blocks;
 import org.jetbrains.annotations.NotNull;
 
 public class FunctionMine extends FunctionBreak {
     private BlockPos blockPos = null;
-    private BlockPos lastMinedBlock = null; // 缓存最近处理的挖矿方块（保留1个Tick，供HUD显示）
-    private int tickMinedCount = 0;         // 记录单个Tick内处理的方块数量
-    private int lastBlockCacheTick = 0;     // 缓存清理计数器（确保数据至少保留1个Tick）
+    private @Getter BlockPos lastMinedBlock = null; // 缓存最近处理的挖矿方块（保留1个Tick，供HUD显示）
+    private @Getter int tickMinedCount = 0;         // 记录单个Tick内处理的方块数量
+    private int lastBlockCacheTick = 0;             // 缓存清理计数器（确保数据至少保留1个Tick）
 
     @Override
     public PrintModeType getPrintModeType() {
@@ -31,18 +34,7 @@ public class FunctionMine extends FunctionBreak {
         return Configs.Excavate.MINE;
     }
 
-    // 获取最近处理的方块（供HUD调用）
-    public BlockPos getLastMinedBlock() {
-        return lastMinedBlock;
-    }
-
-    // 获取单Tick处理数量（供HUD调用）
-    public int getTickMinedCount() {
-        return tickMinedCount;
-    }
-
     public BlockPos getBlockPos() {
-        // 优先返回当前处理的方块，无则返回最近处理的方块
         return blockPos != null ? blockPos : lastMinedBlock;
     }
 
@@ -69,16 +61,18 @@ public class FunctionMine extends FunctionBreak {
             if (isBreakCooldown(pos)) {
                 return false;
             }
-            if (!InteractionUtils.INSTANCE.canBreakBlock(pos)) {
-                return false;
-            }
-            return BreakManager.breakRestriction(level.getBlockState(pos));
+            return InteractionUtils.canBreakBlock(pos);
         }
         return true;
     }
 
     @Override
     public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
+        if (InteractionUtils.INSTANCE.isDestroying()) {
+            return;
+        } else {
+            blockPos = null;
+        }
         tickMinedCount = 0; // 重置单Tick计数（每个Tick开始时清零）
         int breakBlocksPerTick = Configs.Break.BREAK_BLOCKS_PER_TICK.getIntegerValue();
         boolean loop = true;
@@ -95,8 +89,7 @@ public class FunctionMine extends FunctionBreak {
                 this.blockPos = null;
                 continue;
             }
-            boolean localPrediction = !Configs.Break.BREAK_PLACE_USE_PACKET.getBooleanValue();
-            InteractionUtils.BlockBreakResult result = InteractionUtils.INSTANCE.updateBlockBreakingProgress(blockPos, Direction.DOWN, localPrediction);
+            InteractionUtils.BlockBreakResult result = InteractionUtils.INSTANCE.updateBlockBreakingProgress(blockPos);
             lastMinedBlock = blockPos;  // 缓存最近处理的方块，设置缓存时间（10个Tick，确保HUD能渲染到）
             lastBlockCacheTick = 10;    // 累加单 Tick 处理数量
             tickMinedCount++;
