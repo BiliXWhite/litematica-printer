@@ -46,39 +46,31 @@ public class PlayerUtils {
     }
 
     public static double getPlayerBlockInteractionRange() {
-        return getPlayerBlockInteractionRange(4.5F);
+        boolean creative = client.gameMode != null && client.gameMode.getPlayerMode().isCreative();
+        return getPlayerBlockInteractionRange(creative ? 5.0F : 4.5F);
     }
 
     public static boolean canInteractWithBlockAt(LocalPlayer player, BlockPos blockPos, double additionalRange) {
-        double blockPosX = blockPos.getX();
-        double blockPosY = blockPos.getY();
-        double blockPosZ = blockPos.getZ();
-        //#if MC >= 12005
-        double distance = getPlayerBlockInteractionRange() + additionalRange;
-        double eyePosX = player.getX();
-        double eyePosY = player.getEyeY();
-        double eyePosZ = player.getZ();
-        double dx = Math.max(Math.max(blockPosX - eyePosX, eyePosX - (blockPosX + 1)), 0);
-        double dy = Math.max(Math.max(blockPosY - eyePosY, eyePosY - (blockPosY + 1)), 0);
-        double dz = Math.max(Math.max(blockPosZ - eyePosZ, eyePosZ - (blockPosZ + 1)), 0);
-        return (dx * dx + dy * dy + dz * dz) < (distance * distance);
-        //#elseif MC >= 11900
-        //$$ double distance = Math.max(getPlayerBlockInteractionRange(), 5) + additionalRange;
-        //$$ double eyePosX = player.getX();
-        //$$ double eyePosY = player.getEyeY();
-        //$$ double eyePosZ = player.getZ();
-        //$$ double dx = eyePosX - (blockPosX + 0.5);
-        //$$ double dy = eyePosY - (blockPosY + 0.5);
-        //$$ double dz = eyePosZ - (blockPosZ + 0.5);
-        //$$ return (dx * dx + dy * dy + dz * dz) < (distance * distance);
+        double blockCenterX = blockPos.getX() + 0.5;
+        double blockCenterY = blockPos.getY() + 0.5;
+        double blockCenterZ = blockPos.getZ() + 0.5;
+        double distance, eyeY;
+        double eyeX = player.getX();
+        double eyeZ = player.getZ();
+
+        //#if MC >= 11900
+        distance = getPlayerBlockInteractionRange() + additionalRange;
+        eyeY = player.getEyeY();
         //#else
         //$$ // MC <= 11802
-        //$$ double distance = Math.max(getPlayerBlockInteractionRange(), 5) + additionalRange;
-        //$$ double dx = player.getX() - (blockPosX + 0.5);
-        //$$ double dy = player.getY() - (blockPosY + 0.5) + 1.5;
-        //$$ double dz = player.getZ() - (blockPosZ + 0.5);
-        //$$ return (dx * dx + dy * dy + dz * dz) < (distance * distance);
+        //$$ distance = Math.max(getPlayerBlockInteractionRange(), 5) + additionalRange;
+        //$$ eyeY = player.getY() + 1.5;
         //#endif
+
+        double dx = eyeX - blockCenterX;
+        double dy = eyeY - blockCenterY;
+        double dz = eyeZ - blockCenterZ;
+        return dx * dx + dy * dy + dz * dz < distance * distance;
     }
 
     // 球面（欧几里得距离）
