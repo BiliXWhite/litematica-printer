@@ -93,11 +93,11 @@ public class PlacementGuide extends PrinterUtils {
             case MISSING_BLOCK:
                 action = buildActionMissingBlock(ctx, requiredType, skip);
                 break;
-            case WRONG_STATE:
-                action = buildActionWrongState(ctx, requiredType, skip);
+            case ERROR_BLOCK:
+                action = buildActionErrorBlock(ctx, requiredType, skip);
                 break;
-            case WRONG_BLOCK:
-                action = buildActionWrongBlock(ctx, requiredType, skip);
+            case ERROR_BLOCK_STATE:
+                action = buildActionErrorBlockState(ctx, requiredType, skip);
                 break;
             default:
                 action = null;
@@ -433,7 +433,7 @@ public class PlacementGuide extends PrinterUtils {
                             }
                         }
 
-                    } else if (inputState == State.WRONG_STATE) {  // 方块类型相同，但方块状态不一致
+                    } else if (inputState == State.ERROR_BLOCK_STATE) {  // 方块类型相同，但方块状态不一致
                         return null;
                     } else {
                         if (!output.requiredState.isAir()) {
@@ -655,7 +655,7 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     /*** 状态错误：方块类型相同，但方块状态（如朝向、亮度等）不一致 ***/
-    private @Nullable Action buildActionWrongState(BlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
+    private @Nullable Action buildActionErrorBlockState(BlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
         boolean printerBreakWrongStateBlock = Configs.Print.BREAK_WRONG_STATE_BLOCK.getBooleanValue();
         switch (requiredType) {
             case SLAB -> {
@@ -870,7 +870,7 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     /*** 方块错误：方块类型完全不同，且不满足缺失/状态错误的条件 ***/
-    private @Nullable Action buildActionWrongBlock(BlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
+    private @Nullable Action buildActionErrorBlock(BlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
         switch (requiredType) {
             case FARMLAND -> {
                 Block[] soilBlocks = new Block[]{Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.DIRT_PATH, Blocks.COARSE_DIRT};

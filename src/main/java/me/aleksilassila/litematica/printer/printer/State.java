@@ -25,14 +25,14 @@ public enum State {
     MISSING_BLOCK,
 
     /**
-     * 状态错误：方块类型相同，但方块状态（如朝向、亮度等）不一致
-     */
-    WRONG_STATE,
-
-    /**
      * 方块错误：方块类型完全不同，且不满足缺失/状态错误的条件
      */
-    WRONG_BLOCK,
+    ERROR_BLOCK,
+
+    /**
+     * 状态错误：方块类型相同，但方块状态（如朝向、亮度等）不一致
+     */
+    ERROR_BLOCK_STATE,
 
     /**
      * 正确匹配：原理图方块与实际方块的类型和状态完全一致
@@ -64,7 +64,7 @@ public enum State {
         if (requiredState.getBlock().equals(currentState.getBlock())) {
             // 状态不同，则返回错误状态
             if (!BlockStateUtils.statesEqualIgnoreProperties(requiredState, currentState, propertiesToIgnore)) {
-                return WRONG_STATE;
+                return ERROR_BLOCK_STATE;
             }
         }
 
@@ -82,7 +82,7 @@ public enum State {
         }
 
         // 其他情况返回错误方块状态
-        return WRONG_BLOCK;
+        return ERROR_BLOCK;
     }
 
     public static State get(BlockContext context, Property<?>... propertiesToIgnore) {
