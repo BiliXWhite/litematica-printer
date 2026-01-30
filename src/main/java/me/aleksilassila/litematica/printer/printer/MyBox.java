@@ -23,10 +23,6 @@ public class MyBox implements Iterable<BlockPos> {
     public IterationOrderType iterationMode = IterationOrderType.XZY;
     private Iterator<BlockPos> iterator;
 
-    public void setIterationMode(IterationOrderType mode) {
-        this.iterationMode = mode;
-    }
-
     public MyBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         this.minX = Math.min(minX, maxX);
         this.minZ = Math.min(minZ, maxZ);
@@ -96,9 +92,9 @@ public class MyBox implements Iterable<BlockPos> {
             int y = currPos.getY();
             int z = currPos.getZ();
 
-            int targetX = xIncrement ? (int) maxX : (int) minX;
-            int targetY = yIncrement ? (int) maxY : (int) minY;
-            int targetZ = zIncrement ? (int) maxZ : (int) minZ;
+            int targetX = xIncrement ? maxX : minX;
+            int targetY = yIncrement ? maxY : minY;
+            int targetZ = zIncrement ? maxZ : minZ;
 
             return !(x == targetX && y == targetY && z == targetZ);
         }

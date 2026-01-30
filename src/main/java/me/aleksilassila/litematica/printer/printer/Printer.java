@@ -117,8 +117,7 @@ public class Printer extends PrinterUtils {
             workProgressTotalCount = 0;
             workProgressFinishedCount = 0;
         }
-        IterationOrderType iterationOrderType = (IterationOrderType) Configs.General.ITERATION_ORDER.getOptionListValue();
-        box.get().setIterationMode(iterationOrderType);
+        box.get().iterationMode = (IterationOrderType) Configs.General.ITERATION_ORDER.getOptionListValue();
         box.get().xIncrement = !Configs.General.X_REVERSE.getBooleanValue();
         box.get().yIncrement = !Configs.General.Y_REVERSE.getBooleanValue();
         box.get().zIncrement = !Configs.General.Z_REVERSE.getBooleanValue();
