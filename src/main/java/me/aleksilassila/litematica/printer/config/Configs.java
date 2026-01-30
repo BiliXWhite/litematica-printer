@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.Blocks;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 
@@ -44,20 +45,20 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
 
     static {
-        ArrayList<IConfigBase> options = new ArrayList<>();
-        options.addAll(General.OPTIONS);        // 通用
-        options.addAll(Placement.OPTIONS);      // 放置
-        options.addAll(Break.OPTIONS);          // 破坏
-        options.addAll(Color.OPTIONS);          // 颜色
-        options.addAll(Hotkeys.OPTIONS);        // 热键
-        options.addAll(Print.OPTIONS);          // 放置
-        options.addAll(Excavate.OPTIONS);       // 挖掘
-        options.addAll(Fill.OPTIONS);           // 填充
-        options.addAll(FLUID.OPTIONS);          // 排流体
-        OPTIONS = ImmutableList.copyOf(options);
+        LinkedHashSet<IConfigBase> optionSet = new LinkedHashSet<>();
+        optionSet.addAll(General.OPTIONS);        // 通用
+        optionSet.addAll(Placement.OPTIONS);      // 放置
+        optionSet.addAll(Break.OPTIONS);          // 破坏
+        optionSet.addAll(Color.OPTIONS);          // 颜色
+        optionSet.addAll(Hotkeys.OPTIONS);        // 热键
+        optionSet.addAll(Print.OPTIONS);          // 打印（原注释笔误，建议修正）
+        optionSet.addAll(Excavate.OPTIONS);       // 挖掘
+        optionSet.addAll(Fill.OPTIONS);           // 填充
+        optionSet.addAll(FLUID.OPTIONS);          // 排流体
+        OPTIONS = ImmutableList.copyOf(optionSet);
 
         List<IHotkey> hotkeys = new ArrayList<>();
-        for (IConfigBase option : options) {
+        for (IConfigBase option : optionSet) {
             if (option instanceof IHotkey hokey) {
                 hotkeys.add(hokey);
             }
@@ -91,7 +92,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         // 核心 - 工作半径
-        public static final ConfigInteger WORK__RANGE = integer("printerRange")
+        public static final ConfigInteger WORK_RANGE = integer("printerRange")
                 .defaultValue(6)
                 .range(1, 256)
                 .build();
@@ -205,7 +206,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 WORK_MODE,                   // 核心 - 模式切换
                 WORK_MODE_TYPE,                  // 核心 - 打印机模式
                 WORK_MODE_TYPE_MULTI_BREAK,                   // 核心 - 多模阻断
-                WORK__RANGE,                 // 核心 - 工作半径
+                WORK_RANGE,                 // 核心 - 工作半径
                 ITERATOR_USE_TIME,             // 核心 - 迭代占用时长
                 Placement.PLACE_SPEED,
                 Break.BREAK_SPEED,
@@ -269,7 +270,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 EASY_PLACE_PROTOCOL,
                 PLACE_USE_PACKET,
-                General.WORK__RANGE,
+                General.WORK_RANGE,
                 General.ITERATOR_USE_TIME,
                 PLACE_SPEED,
                 PLACE_BLOCKS_PER_TICK,
@@ -309,7 +310,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 BREAK_PLACE_USE_PACKET,
                 BREAK_PROGRESS_THRESHOLD,
-                General.WORK__RANGE,
+                General.WORK_RANGE,
                 General.ITERATOR_USE_TIME,
                 BREAK_SPEED,
                 BREAK_BLOCKS_PER_TICK,

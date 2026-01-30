@@ -130,7 +130,7 @@ public class PrinterUtils {
     }
 
     public static double getWorkRange() {
-        double workRange = Configs.General.WORK__RANGE.getIntegerValue();
+        double workRange = Configs.General.WORK_RANGE.getIntegerValue();
         if (Configs.General.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()) {
             return Math.min(workRange, PlayerUtils.getPlayerBlockInteractionRange());
         }

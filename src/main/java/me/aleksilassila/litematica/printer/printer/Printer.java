@@ -73,7 +73,7 @@ public class Printer extends PrinterUtils {
     public AtomicReference<MyBox> commonBox = new AtomicReference<>();
     public AtomicReference<MyBox> guiBox = new AtomicReference<>();
     public AtomicReference<MyBox> placeBox = new AtomicReference<>();
-    public int printRange = Configs.General.WORK__RANGE.getIntegerValue();
+    public int printRange = Configs.General.WORK_RANGE.getIntegerValue();
     public int placeSpeed = Configs.Placement.PLACE_SPEED.getIntegerValue();
     public int waitTicks = 0;
 
@@ -212,7 +212,7 @@ public class Printer extends PrinterUtils {
         if (!isEnable()) {
             return;
         }
-        printRange = Configs.General.WORK__RANGE.getIntegerValue();
+        printRange = Configs.General.WORK_RANGE.getIntegerValue();
         placeSpeed = Configs.Placement.PLACE_SPEED.getIntegerValue();
         tickStartTime = System.currentTimeMillis();
         tickEndTime = tickStartTime + Configs.General.ITERATOR_USE_TIME.getIntegerValue();
