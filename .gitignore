@@ -1,21 +1,87 @@
-.gradle
+# 构建工具缓存 (Gradle/Kotlin)
+**/.gradle/
 .kotlin
-.settings
+build.number
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+.gradletasknamecache
+
+# 编译输出/打包/二进制文件
+*.class
+*.log
+*.ctxt
+.mtj.tmp/
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
 bin/
-build/
-eclipse/
-logs/
+
+# JVM 相关日志 (崩溃日志+业务日志)
+hs_err_pid*
+replay_pid*
+**/logs/
+
+# Eclipse 专属配置&输出
+.settings/
 .classpath
 .project
-build.number
+eclipse/
+.cproject
+.loadpath
+
+# IntelliJ IDEA 专属配置&输出
 .idea/
-
-.DS_Store
-run/
-/run/
-/build/
-
+.idea_modules/
+*.iws
+*.iml
+*.ipr
 out/
-/libs/
-/versions/*/build/.gradle/
+!**/src/main/**/out/
 .run/
+atlassian-ide-plugin.xml
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+# VS Code 专属配置 (忽略个人配置，保留团队共享项)
+.vscode/
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
+
+# 项目构建/运行/依赖目录 - 推荐**/ 全层级匹配，合并等效项
+**/build/
+**/run/
+**/libs/
+
+# 跨平台系统临时文件
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+# Windows
+ehthumbs.db
+Thumbs.db
+Thumbs.db:encryptable
+$RECYCLE.BIN/
+
+# 通用编辑器/工具临时文件
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+
+# 环境变量文件 (敏感配置忽略，保留示例文件)
+.env
+.env.*
+!.env.example
