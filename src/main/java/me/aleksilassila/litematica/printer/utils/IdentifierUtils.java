@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.utils;
 
 import net.minecraft.resources.Identifier;
 
-public class ResourceLocationUtils {
+public class IdentifierUtils {
 
     public static Identifier of(String string) {
         //#if MC > 12006

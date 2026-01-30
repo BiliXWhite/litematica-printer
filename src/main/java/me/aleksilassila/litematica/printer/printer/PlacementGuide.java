@@ -318,7 +318,7 @@ public class PlacementGuide extends PrinterUtils {
                     skip.set(true); // 使用了Block, 但不是该指南的方块, 让下一个指南进行处理
                     return null;
                 }
-                Identifier blockId2 = ResourceLocationUtils.of(blockId1.toString().replace("dead_", ""));
+                Identifier blockId2 = IdentifierUtils.of(blockId1.toString().replace("dead_", ""));
                 boolean isBlock = blockId1.toString().contains("block");
                 List<Item> items = new ArrayList<>();
                 items.add(block.asItem());

@@ -6,7 +6,7 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
-import me.aleksilassila.litematica.printer.utils.ResourceLocationUtils;
+import me.aleksilassila.litematica.printer.utils.IdentifierUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.Minecraft;
@@ -71,9 +71,9 @@ import net.minecraft.core.registries.Registries;
 public class OpenInventoryPacket {
 
     private static final @NotNull Minecraft client = Minecraft.getInstance();
-    private static final Identifier OPEN_INVENTORY = ResourceLocationUtils.of("remoteinventory", "open_inventory");
-    private static final Identifier OPEN_RETURN = ResourceLocationUtils.of("openreturn", "open_return");
-    private static final Identifier HELLO_REMOTE_INTERACTIONS = ResourceLocationUtils.of("hello", "hello_remote_interactions");
+    private static final Identifier OPEN_INVENTORY = IdentifierUtils.of("remoteinventory", "open_inventory");
+    private static final Identifier OPEN_RETURN = IdentifierUtils.of("openreturn", "open_return");
+    private static final Identifier HELLO_REMOTE_INTERACTIONS = IdentifierUtils.of("hello", "hello_remote_interactions");
 
 
     //#if MC > 12104
