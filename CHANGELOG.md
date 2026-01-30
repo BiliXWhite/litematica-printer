@@ -4,6 +4,9 @@
 
 ### v1.2.3-dev
 
+#### 2026-1-30
+- 完善比较器方块状态不一致破坏逻辑 [issues#78](https://github.com/BiliXWhite/litematica-printer/issues/78#issuecomment-3815415357)
+
 #### 2026-1-29
 - 添加[issues#78](https://github.com/BiliXWhite/litematica-printer/issues/78)
 - 跳过放置列表常驻
