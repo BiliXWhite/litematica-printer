@@ -36,6 +36,8 @@ val Project.mcVersionInt get() = propStrOrNull("mcVersion")?.toIntOrNull() ?: -1
 val Project.fabricLoaderVersion get() = propStrOrNull("loader_version")
 val Project.fabricApiVersion get() = propStrOrNull("fabric_version")
 
+val Project.lombokVersion get() = propStr("lombok_version")
+
 val Project.javaVersion
     get() = when {
         mcVersionInt >= 260000 -> JavaVersion.VERSION_25

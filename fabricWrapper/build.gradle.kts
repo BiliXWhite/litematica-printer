@@ -9,6 +9,12 @@ plugins {
     id("mod-plugin")
 }
 
+repositories {
+    mavenLocal()
+    mavenCentral()
+    gradlePluginPortal()
+}
+
 val localBuildInfoFile = file(".local_build_counter.json")
 val jsonSlurper = JsonSlurper()
 

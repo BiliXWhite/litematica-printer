@@ -7,12 +7,14 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.language.jvm.tasks.ProcessResources
 import org.gradle.kotlin.dsl.*
+import org.gradle.api.plugins.JavaPlugin
 
 abstract class ModPlugin : Plugin<Project> {
     override fun apply(project: Project) = with(project) {
         pluginManager.apply("java")
 
         configureJava()
+        configureLombok()
         configureJavaCompile()
         configureResources()
         configureJar()
@@ -23,6 +25,19 @@ abstract class ModPlugin : Plugin<Project> {
             sourceCompatibility = javaVersion
             targetCompatibility = javaVersion
             // withSourcesJar()
+        }
+    }
+
+    private fun Project.configureLombok() {
+        pluginManager.withPlugin("java") {
+            dependencies.add(
+                JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME,
+                "org.projectlombok:lombok:$lombokVersion"
+            )
+            dependencies.add(
+                JavaPlugin.ANNOTATION_PROCESSOR_CONFIGURATION_NAME,
+                "org.projectlombok:lombok:$lombokVersion"
+            )
         }
     }
 
