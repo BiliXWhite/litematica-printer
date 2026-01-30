@@ -14,7 +14,7 @@ public enum FillModeFacingType implements ConfigOptionListEntry<FillModeFacingTy
     private final I18n i18n;
 
     FillModeFacingType(String translateKey) {
-        this.i18n = I18n.config(translateKey);
+        this.i18n = I18n.of(translateKey);
     }
 
     @Override

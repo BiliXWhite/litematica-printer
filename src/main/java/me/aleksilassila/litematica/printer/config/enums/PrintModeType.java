@@ -14,7 +14,7 @@ public enum PrintModeType implements ConfigOptionListEntry<PrintModeType> {
     private final I18n i18n;
 
     PrintModeType(String translateKey) {
-        this.i18n = I18n.config(translateKey);
+        this.i18n = I18n.of(translateKey);
     }
 
     @Override

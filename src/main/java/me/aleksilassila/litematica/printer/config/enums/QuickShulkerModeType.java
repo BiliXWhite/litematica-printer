@@ -10,7 +10,7 @@ public enum QuickShulkerModeType implements ConfigOptionListEntry<QuickShulkerMo
     private final I18n i18n;
 
     QuickShulkerModeType(String translateKey) {
-        this.i18n = I18n.config(translateKey);
+        this.i18n = I18n.of(translateKey);
     }
 
     @Override

@@ -19,7 +19,7 @@ public abstract class BaseConfigBuilder<T extends ConfigBase<?>, B extends BaseC
 
     public BaseConfigBuilder(I18n i18n) {
         this.i18n = i18n;
-        this.nameKey = i18n.getConfigNameKey();
+        this.nameKey = i18n.getConfigKey();
         this.commentKey = i18n.getConfigCommentKey();
         this.visible = null;
     }

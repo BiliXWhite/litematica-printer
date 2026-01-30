@@ -5,12 +5,12 @@ import me.aleksilassila.litematica.printer.config.ConfigOptionListEntry;
 import me.aleksilassila.litematica.printer.printer.MyBox;
 
 public enum IterationOrderType implements ConfigOptionListEntry<IterationOrderType> {
-    XYZ(I18n.config("iterationOrder.xyz"), Axis.X, Axis.Y, Axis.Z),
-    XZY(I18n.config("iterationOrder.xzy"), Axis.X, Axis.Z, Axis.Y),
-    YXZ(I18n.config("iterationOrder.yxz"), Axis.Y, Axis.X, Axis.Z),
-    YZX(I18n.config("iterationOrder.yzx"), Axis.Y, Axis.Z, Axis.X),
-    ZXY(I18n.config("iterationOrder.zxy"), Axis.Z, Axis.X, Axis.Y),
-    ZYX(I18n.config("iterationOrder.zyx"), Axis.Z, Axis.Y, Axis.X);
+    XYZ(I18n.of("iterationOrder.xyz"), Axis.X, Axis.Y, Axis.Z),
+    XZY(I18n.of("iterationOrder.xzy"), Axis.X, Axis.Z, Axis.Y),
+    YXZ(I18n.of("iterationOrder.yxz"), Axis.Y, Axis.X, Axis.Z),
+    YZX(I18n.of("iterationOrder.yzx"), Axis.Y, Axis.Z, Axis.X),
+    ZXY(I18n.of("iterationOrder.zxy"), Axis.Z, Axis.X, Axis.Y),
+    ZYX(I18n.of("iterationOrder.zyx"), Axis.Z, Axis.Y, Axis.X);
 
     private final I18n i18n;
     public final Axis[] axis;

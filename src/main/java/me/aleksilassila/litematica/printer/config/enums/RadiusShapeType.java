@@ -11,7 +11,7 @@ public enum RadiusShapeType implements ConfigOptionListEntry<RadiusShapeType> {
     private final I18n i18n;
 
     RadiusShapeType(String translateKey) {
-        this.i18n = I18n.config(translateKey);
+        this.i18n = I18n.of(translateKey);
     }
 
     @Override

@@ -10,7 +10,7 @@ public enum ExcavateListMode implements ConfigOptionListEntry<ExcavateListMode> 
     private final I18n i18n;
 
     ExcavateListMode(String translateKey) {
-        this.i18n = I18n.config(translateKey);
+        this.i18n = I18n.of(translateKey);
     }
 
     @Override

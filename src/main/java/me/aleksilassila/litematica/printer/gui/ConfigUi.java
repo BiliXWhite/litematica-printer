@@ -77,16 +77,16 @@ public class ConfigUi extends GuiConfigsBase {
     }
 
     public enum Tab {
-        ALL(I18n.config("category.all")),
-        GENERAL(I18n.config("category.general")),
-        PLACEMENT(I18n.config("category.placement")),
-        BREAK(I18n.config("category.break")),
-        PRINT(I18n.config("category.print")),
-        FLUID(I18n.config("category.fluid")),
-        EXCAVATE(I18n.config("category.excavate")),
-        FILL(I18n.config("category.fill")),
-        HOTKEYS(I18n.config("category.hotkeys")),
-        COLOR(I18n.config("category.color"));
+        ALL(I18n.of("category.all")),
+        GENERAL(I18n.of("category.general")),
+        PLACEMENT(I18n.of("category.placement")),
+        BREAK(I18n.of("category.break")),
+        PRINT(I18n.of("category.print")),
+        FLUID(I18n.of("category.fluid")),
+        EXCAVATE(I18n.of("category.excavate")),
+        FILL(I18n.of("category.fill")),
+        HOTKEYS(I18n.of("category.hotkeys")),
+        COLOR(I18n.of("category.color"));
 
         private final I18n i18n;
 
@@ -95,7 +95,7 @@ public class ConfigUi extends GuiConfigsBase {
         }
 
         public String getName() {
-            return i18n.getConfigNameComponent().getString();
+            return i18n.getConfigComponent().getString();
         }
 
         public String getComment() {

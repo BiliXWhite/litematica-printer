@@ -3,7 +3,7 @@ package me.aleksilassila.litematica.printer.gui;
 import me.aleksilassila.litematica.printer.I18n;
 
 public enum ButtonType {
-    PRINTER_SETTINGS(I18n.config("menu.settings_button"));
+    PRINTER_SETTINGS(I18n.of("menu.settings_button"));
 
     private final I18n i18n;
 

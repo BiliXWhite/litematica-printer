@@ -12,7 +12,7 @@ public enum SelectionType implements ConfigOptionListEntry<SelectionType> {
     private final I18n i18n;
 
     SelectionType(String translateKey) {
-        this.i18n = I18n.config(translateKey);
+        this.i18n = I18n.of(translateKey);
     }
 
     @Override
