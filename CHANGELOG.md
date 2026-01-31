@@ -4,6 +4,11 @@
 
 ### v1.2.3-dev
 
+#### 2026-2-01
+- 修复前几个版本破坏类调整导致的一系列问题(完善破坏, 修复破冰, 修复挖掘黑白名单)
+- 将每刻放置数调整为1(符合原先设定, 之前是工作范围＞0情况下, 都是以1运行)
+- 将每刻破坏数调整为20
+
 #### 2026-1-30
 - 完善比较器方块状态不一致破坏逻辑 [issues#78](https://github.com/BiliXWhite/litematica-printer/issues/78#issuecomment-3815415357)
 - 添加 InventoryUtils.showMessageWithCooldown 冷却避免刷屏
