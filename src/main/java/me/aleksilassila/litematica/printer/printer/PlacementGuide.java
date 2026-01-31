@@ -1,5 +1,7 @@
 package me.aleksilassila.litematica.printer.printer;
 
+import lombok.Getter;
+import me.aleksilassila.litematica.printer.Debug;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
@@ -68,14 +70,20 @@ public class PlacementGuide extends PrinterUtils {
 
     @SuppressWarnings("EnhancedSwitchMigration")
     private @Nullable Action buildAction(BlockContext ctx, ClassHook requiredType, State state, AtomicReference<Boolean> skip) {
-        // 跳过打印含水方块
+        // 跳过含水方块
         if (Configs.Print.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && PlaceUtils.isWaterRequired(ctx.requiredState)) {
             return null;
         }
         // 破冰放水
         if (Configs.Print.PRINT_WATER.getBooleanValue() && PlaceUtils.isWaterRequired(ctx.requiredState)) {
+            if (mc.gameMode == null || mc.gameMode.getPlayerMode().isCreative()) {
+                return null;
+            }
             if (ctx.currentState.getBlock() instanceof IceBlock) {  // 冰块
-                InteractionUtils.INSTANCE.add(ctx);
+                if (!Printer.getInstance().printWaterCooldownList.containsKey(ctx.blockPos)) {
+                    InteractionUtils.INSTANCE.add(ctx);
+                    Printer.getInstance().printWaterCooldownList.put(ctx.blockPos, 20);
+                }
                 return null;
             }
             if (!PlaceUtils.isCorrectWaterLevel(ctx.requiredState, ctx.currentState)) {
@@ -587,6 +595,7 @@ public class PlacementGuide extends PrinterUtils {
                         facing = ctx.requiredState.getValue(BlockStateProperties.FACING);
                         if (ctx.requiredState.getBlock() instanceof ShulkerBoxBlock) {
                             facing = facing.getOpposite();
+                            action.setUseShift();
                         }
                         action.setSides(facing).setLookDirection(facing.getOpposite());
                     }
@@ -1058,6 +1067,13 @@ public class PlacementGuide extends PrinterUtils {
         protected Item[] clickItems; // null == 空手
         protected boolean requiresSupport = false;
         protected boolean useShift = false;
+        /**
+         * -- GETTER --
+         *  获取放置后需要等待的游戏刻
+         *
+         * @return 整数
+         */
+        @Getter
         protected int waitTick = 0;     // 会占用其他任务
 
         public Action() {
@@ -1263,15 +1279,6 @@ public class PlacementGuide extends PrinterUtils {
          */
         public Action setUseShift() {
             return this.setUseShift(true);
-        }
-
-        /**
-         * 获取放置后需要等待的游戏刻
-         *
-         * @return 整数
-         */
-        public int getWaitTick() {
-            return this.waitTick;
         }
 
         /**

@@ -29,7 +29,7 @@ public class NetworkUtils {
         }
     }
 
-    public static void sendSequencedPacket(PredictiveAction packetCreator, @Nullable Runnable beforeSending, @Nullable Runnable afterSending) {
+    public static void sendPacket(PredictiveAction packetCreator, @Nullable Runnable beforeSending, @Nullable Runnable afterSending) {
         if (client.level instanceof SequenceExtension sequenceExtension) {
             int currentSequence = sequenceExtension.litematica_printer3$getSequence();
             Packet<ServerGamePacketListener> packet = packetCreator.predict(currentSequence);
@@ -37,8 +37,8 @@ public class NetworkUtils {
         }
     }
 
-    public static void sendSequencedPacket(PredictiveAction packetCreator) {
-        NetworkUtils.sendSequencedPacket(packetCreator, null, null);
+    public static void sendPacket(PredictiveAction packetCreator) {
+        NetworkUtils.sendPacket(packetCreator, null, null);
     }
 
     @FunctionalInterface

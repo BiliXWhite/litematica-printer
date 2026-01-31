@@ -6,10 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.BubbleColumnBlock;
-import net.minecraft.world.level.block.LiquidBlock;
-import net.minecraft.world.level.block.ObserverBlock;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jetbrains.annotations.NotNull;
@@ -34,13 +31,10 @@ public class PlaceUtils {
      * @return 是否含水（是水）
      */
     public static boolean isWaterRequired(BlockState blockState) {
-        return
-                blockState.is(Blocks.WATER) &&
-                        blockState.getValue(LiquidBlock.LEVEL) == 0 || (
-                        blockState.getProperties().contains(BlockStateProperties.WATERLOGGED) &&
-                                blockState.getValue(BlockStateProperties.WATERLOGGED)
-                ) ||
-                        blockState.getBlock() instanceof BubbleColumnBlock;
+        return blockState.is(Blocks.WATER) && blockState.getValue(LiquidBlock.LEVEL) == 0
+                || (blockState.getProperties().contains(BlockStateProperties.WATERLOGGED) && blockState.getValue(BlockStateProperties.WATERLOGGED))
+                || blockState.getBlock() instanceof BubbleColumnBlock
+                || blockState.getBlock() instanceof SeagrassBlock;
     }
 
     public static boolean isCorrectWaterLevel(BlockState requiredState, BlockState currentState) {
@@ -63,8 +57,6 @@ public class PlaceUtils {
         }
         return Direction.UP;
     }
-
-
 
 
     /**

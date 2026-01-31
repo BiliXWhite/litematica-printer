@@ -57,7 +57,7 @@ public class FunctionMine extends FunctionBreak {
             if (isBreakCooldown(pos)) {
                 return false;
             }
-            return InteractionUtils.canBreakBlock(pos);
+            return InteractionUtils.canBreakBlock(pos) && InteractionUtils.breakRestriction(level.getBlockState(pos));
         }
         return true;
     }
@@ -80,7 +80,7 @@ public class FunctionMine extends FunctionBreak {
                 this.blockPos = null;
                 continue;
             }
-            InteractionUtils.BlockBreakResult result = InteractionUtils.INSTANCE.updateBlockBreakingProgress(blockPos);
+            InteractionUtils.BlockBreakResult result = InteractionUtils.INSTANCE.continueDestroyBlock(blockPos);
             lastMinedBlock = blockPos;  // 缓存最近处理的方块，设置缓存时间（10个Tick，确保HUD能渲染到）
             lastBlockCacheTick = 10;    // 累加单 Tick 处理数量
             tickMinedCount++;

@@ -58,6 +58,7 @@ public class Printer extends PrinterUtils {
 
     public boolean printerMemorySync = false;
     public Map<BlockPos, Integer> placeCooldownList = new HashMap<>();
+    public Map<BlockPos, Integer> printWaterCooldownList = new HashMap<>();
     public ItemStack orderlyStoreItem; //有序存放临时存储
     public int shulkerCooldown = 0;
 
@@ -174,7 +175,6 @@ public class Printer extends PrinterUtils {
                     workProgressFinishedCount++;
                 }
             }
-
             if (isFluidMode()) {
                 if (!PrinterUtils.isPositionInSelectionRange(client.player, pos, Configs.FLUID.FLUID_SELECTION_TYPE)) {
                     continue;
@@ -246,6 +246,16 @@ public class Printer extends PrinterUtils {
                 entry.setValue(newValue);
             }
         }
+        Iterator<Map.Entry<BlockPos, Integer>> iterator2 = printWaterCooldownList.entrySet().iterator();
+        while (iterator2.hasNext()) {
+            Map.Entry<BlockPos, Integer> entry = iterator2.next();
+            int newValue = entry.getValue() - 1;
+            if (newValue <= 0) {
+                iterator2.remove();
+            } else {
+                entry.setValue(newValue);
+            }
+        }
     }
 
     private void functionTick(Minecraft client, ClientLevel level, LocalPlayer player) {
@@ -263,7 +273,7 @@ public class Printer extends PrinterUtils {
             return;
         }
         // 如果正在处理打开的容器/处理远程交互和快捷潜影盒/破坏方块列表有东西，则直接返回
-        if (isOpenHandler || switchItem() || InteractionUtils.INSTANCE.isDestroying()) {
+        if (isOpenHandler || switchItem() || InteractionUtils.INSTANCE.hasTargets()) {
             return;
         }
         if (waitTicks > 0) {
@@ -310,6 +320,7 @@ public class Printer extends PrinterUtils {
             if (action == null) {
                 continue;
             }
+
             if (Configs.Print.FALLING_CHECK.getBooleanValue() && blockContext.requiredState.getBlock() instanceof FallingBlock) {
                 BlockPos downPos = targetPos.below();
                 if (level.getBlockState(downPos) != schematic.getBlockState(downPos)) {
@@ -540,7 +551,7 @@ public class Printer extends PrinterUtils {
 
 
             if (Configs.Placement.PLACE_USE_PACKET.getBooleanValue()) {
-                NetworkUtils.sendSequencedPacket(sequence -> new ServerboundUseItemOnPacket(
+                NetworkUtils.sendPacket(sequence -> new ServerboundUseItemOnPacket(
                         InteractionHand.MAIN_HAND,
                         new BlockHitResult(hitVec, side, target, false)
                         //#if MC > 11802
