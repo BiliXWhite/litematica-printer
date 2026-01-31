@@ -257,7 +257,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 每刻放置方块数
         public static final ConfigInteger PLACE_BLOCKS_PER_TICK = integer("placeBlocksPerTick")
-                .defaultValue(8)
+                .defaultValue(1)
                 .range(0, 256)
                 .build();
 
@@ -294,7 +294,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         public static final ConfigInteger BREAK_BLOCKS_PER_TICK = integer("breakBlocksPerTick")
-                .defaultValue(15)
+                .defaultValue(20)
                 .range(0, 256)
                 .build();
 
