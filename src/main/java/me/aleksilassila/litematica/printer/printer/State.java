@@ -70,7 +70,7 @@ public enum State {
         }
 
         // 如果原理图中方块不为空，且实际方块为空，则返回缺失方块状态
-        if (!requiredState.isAir() && !currentState.is(Blocks.AIR) && !currentState.is(Blocks.CAVE_AIR) && !currentState.is(Blocks.VOID_AIR)) {
+        if (!requiredState.isAir() && !requiredState.is(Blocks.AIR) && !requiredState.is(Blocks.CAVE_AIR) && !currentState.is(Blocks.VOID_AIR)) {
             if (currentState.isAir() || currentState.is(Blocks.AIR) || currentState.is(Blocks.CAVE_AIR) || currentState.is(Blocks.VOID_AIR)) {
                 return MISSING_BLOCK;
             }
