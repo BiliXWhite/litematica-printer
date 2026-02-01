@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.utils;
 
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
-import net.minecraft.util.Mth;
+import net.minecraft.util.Util;
 
 public class DirectionUtils {
 
@@ -42,20 +42,30 @@ public class DirectionUtils {
         return Direction.SOUTH.isFacingAngle(yaw) ? Direction.SOUTH : Direction.NORTH;
     }
 
+    private static final float[] SIN = Util.make(new float[65536], fs -> {
+        for (int ix = 0; ix < fs.length; ix++) {
+            fs[ix] = (float)Math.sin(ix / 10430.378350470453);
+        }
+    });
+
+    public static float sin(double d) {
+        return SIN[(int)((long)(d * 10430.378350470453) & 65535L)];
+    }
+
+    public static float cos(double d) {
+        return SIN[(int)((long)(d * 10430.378350470453 + 16384.0) & 65535L)];
+    }
+
     public static Direction[] orderedByNearest(float yaw, float pitch) {
         //#if MC >= 12111
         double pitchRad = pitch * (Math.PI / 180.0);
         double yawRad = -yaw * (Math.PI / 180.0);
-        //#else
-        //$$ float pitchRad = pitch * (float) (Math.PI / 180.0);
-        //$$ float yawRad = -yaw * (float) (Math.PI / 180.0);
-        //#endif
 
         // 计算三角函数
-        float sinPitch = Mth.sin(pitchRad);
-        float cosPitch = Mth.cos(pitchRad);
-        float sinYaw = Mth.sin(yawRad);
-        float cosYaw = Mth.cos(yawRad);
+        float sinPitch = sin(pitchRad);
+        float cosPitch = cos(pitchRad);
+        float sinYaw = sin(yawRad);
+        float cosYaw = cos(yawRad);
 
         // 判断方向的布尔标志
         boolean isEastFacing = sinYaw > 0.0F;
