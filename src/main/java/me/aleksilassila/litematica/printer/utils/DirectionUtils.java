@@ -57,7 +57,6 @@ public class DirectionUtils {
     }
 
     public static Direction[] orderedByNearest(float yaw, float pitch) {
-        //#if MC >= 12111
         double pitchRad = pitch * (Math.PI / 180.0);
         double yawRad = -yaw * (Math.PI / 180.0);
 
