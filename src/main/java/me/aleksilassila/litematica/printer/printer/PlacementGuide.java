@@ -898,20 +898,18 @@ public class PlacementGuide extends PrinterUtils {
             case FARMLAND -> {
                 Block[] soilBlocks = new Block[]{Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.DIRT_PATH, Blocks.COARSE_DIRT};
                 for (Block soilBlock : soilBlocks) {
-                    if (ctx.currentState.getBlock().equals(soilBlock))
+                    if (ctx.currentState.getBlock().equals(soilBlock)) {
                         return new ClickAction().setItems(Implementation.HOES);
+                    }
                 }
-
             }
             case DIRT_PATH -> {
-                Block[] soilBlocks = new Block[]{Blocks.GRASS_BLOCK, Blocks.DIRT,
-                        Blocks.COARSE_DIRT, Blocks.ROOTED_DIRT, Blocks.MYCELIUM, Blocks.PODZOL};
-
+                Block[] soilBlocks = new Block[]{Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.COARSE_DIRT, Blocks.ROOTED_DIRT, Blocks.MYCELIUM, Blocks.PODZOL};
                 for (Block soilBlock : soilBlocks) {
-                    if (ctx.currentState.getBlock().equals(soilBlock))
+                    if (ctx.currentState.getBlock().equals(soilBlock)) {
                         return new ClickAction().setItems(Implementation.SHOVELS);
+                    }
                 }
-
             }
             case FLOWER_POT -> {
                 if (ctx.requiredState.getBlock() instanceof FlowerPotBlock potBlock) {
@@ -922,17 +920,19 @@ public class PlacementGuide extends PrinterUtils {
                 }
             }
             case CAULDRON -> {
-                if (Arrays.asList(requiredType.classes).contains(ctx.currentState.getBlock().getClass()))
+                if (Arrays.asList(requiredType.classes).contains(ctx.currentState.getBlock().getClass())) {
                     return null;
-                else if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && InteractionUtils.canBreakBlock(ctx.blockPos))
+                }
+                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && InteractionUtils.canBreakBlock(ctx.blockPos)) {
                     InteractionUtils.INSTANCE.add(ctx);
+                }
             }
             case STRIP_LOG -> {
                 Block stripped = STRIPPED_LOGS.get(ctx.currentState.getBlock());
-                if (stripped != null && stripped == ctx.requiredState.getBlock())
+                if (stripped != null && stripped == ctx.requiredState.getBlock()) {
                     return new ClickAction().setItems(Implementation.AXES);
+                }
             }
-            // 新增：告示牌WrongBlock逻辑
             case SIGN -> {
                 if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && InteractionUtils.canBreakBlock(ctx.blockPos)) {
                     boolean isLegitimateSign = ctx.currentState.getBlock() instanceof StandingSignBlock
@@ -942,26 +942,22 @@ public class PlacementGuide extends PrinterUtils {
                             || ctx.currentState.getBlock() instanceof CeilingHangingSignBlock
                             //#endif
                             ;
-
                     if (!isLegitimateSign) {
                         InteractionUtils.INSTANCE.add(ctx);
                     }
-                    InteractionUtils.INSTANCE.add(ctx);
                 }
             }
             default -> {
                 if (Configs.Print.REPLACE_CORAL.getBooleanValue() && ctx.requiredState.getBlock().getDescriptionId().contains("coral")) {
                     return null;
                 }
-
                 boolean printBreakWrongBlock = Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue();
                 boolean printerBreakExtraBlock = Configs.Print.BREAK_EXTRA_BLOCK.getBooleanValue();
-
                 if (printBreakWrongBlock || printerBreakExtraBlock) {
                     if (InteractionUtils.canBreakBlock(ctx.blockPos)) {
-                        if (printBreakWrongBlock && !ctx.requiredState.is(Blocks.AIR)) {
+                        if (printBreakWrongBlock && !ctx.requiredState.isAir()) {
                             InteractionUtils.INSTANCE.add(ctx);
-                        } else if (printerBreakExtraBlock && ctx.requiredState.is(Blocks.AIR)) {
+                        } else if (printerBreakExtraBlock && ctx.requiredState.isAir()) {
                             InteractionUtils.INSTANCE.add(ctx);
                         }
                     }
@@ -1069,7 +1065,7 @@ public class PlacementGuide extends PrinterUtils {
         protected boolean useShift = false;
         /**
          * -- GETTER --
-         *  获取放置后需要等待的游戏刻
+         * 获取放置后需要等待的游戏刻
          *
          * @return 整数
          */
