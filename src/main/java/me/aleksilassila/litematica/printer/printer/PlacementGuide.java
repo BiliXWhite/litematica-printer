@@ -41,7 +41,7 @@ public class PlacementGuide extends PrinterUtils {
     protected final @NotNull Minecraft mc;
     protected final AtomicReference<Boolean> skip = new AtomicReference<>(false);
     protected static List<String> compostWhitelistCache = new ArrayList<>();      // 缓存堆肥桶白名单的字符串列表（用于判断是否修改）
-    protected static List<Item> filteredCompostItemsCache = new ArrayList<>();    // 缓存过滤后的可堆肥物品列表（避免重复计算）
+    protected static Item[] whitelistItemsCache = new Item[0];    // 缓存过滤后的可堆肥物品列表（避免重复计算）
 
 
     public PlacementGuide(@NotNull Minecraft client) {
@@ -847,26 +847,28 @@ public class PlacementGuide extends PrinterUtils {
                 return new Action().setSides(Direction.DOWN).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
             }
             case COMPOSTER -> {
-                if (!Configs.Print.FILL_COMPOSTER.getBooleanValue()) return null;
-                if (ctx.currentState.getValue(ComposterBlock.LEVEL) < ctx.requiredState.getValue(ComposterBlock.LEVEL)) {
-                    List<String> whitelist = Configs.Print.FILL_COMPOSTER_WHITELIST.getStrings();
-                    if (!whitelist.equals(compostWhitelistCache)) {
-                        compostWhitelistCache = new ArrayList<>(whitelist);
-                        filteredCompostItemsCache.clear();
-                        if (whitelist.isEmpty()) {
-                            filteredCompostItemsCache = Arrays.asList(compostableItems);
-                        } else {
-                            for (Item item : compostableItems) {
-                                for (String rule : whitelist) {
-                                    if (FilterUtils.matchName(rule, new ItemStack(item))) {
-                                        filteredCompostItemsCache.add(item);
-                                        break;
-                                    }
-                                }
+                if (!Configs.Print.FILL_COMPOSTER.getBooleanValue()) {
+                    return null;
+                }
+                if (ctx.currentState.getValue(ComposterBlock.LEVEL) >= ctx.requiredState.getValue(ComposterBlock.LEVEL)) {
+                    return null;
+                }
+                List<String> whitelist = Configs.Print.FILL_COMPOSTER_WHITELIST.getStrings();
+                if (!whitelist.equals(compostWhitelistCache)) {
+                    compostWhitelistCache = new ArrayList<>(whitelist);
+                    List<Item> whitelistItems = new ArrayList<>();
+                    for (Item item : compostableItems) {
+                        for (String rule : whitelist) {
+                            if (FilterUtils.matchName(rule, new ItemStack(item))) {
+                                whitelistItems.add(item);
+                                break;
                             }
                         }
                     }
-                    Item[] finalItems = filteredCompostItemsCache.toArray(Item[]::new);
+                    whitelistItemsCache = whitelistItems.toArray(Item[]::new);
+                }
+                Item[] finalItems = whitelistItemsCache.length > 0 ? whitelistItemsCache : compostableItems;
+                if (finalItems.length > 0) {
                     return new ClickAction().setItems(finalItems);
                 }
             }
