@@ -7,6 +7,7 @@ import me.aleksilassila.litematica.printer.utils.BlockStateUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -69,8 +70,10 @@ public enum State {
         }
 
         // 如果原理图中方块不为空，且实际方块为空，则返回缺失方块状态
-        if (!requiredState.isAir() && currentState.isAir()) {
-            return MISSING_BLOCK;
+        if (!requiredState.isAir() && !currentState.is(Blocks.AIR) && !currentState.is(Blocks.CAVE_AIR) && !currentState.is(Blocks.VOID_AIR)) {
+            if (currentState.isAir() || currentState.is(Blocks.AIR) || currentState.is(Blocks.CAVE_AIR) || currentState.is(Blocks.VOID_AIR)) {
+                return MISSING_BLOCK;
+            }
         }
 
         // 如果启用了替换功能，且当前方块在可替换列表中，则返回缺失方块状态（实际上这会和破坏额外方块打架）
@@ -115,6 +118,7 @@ public enum State {
         }
         return Optional.empty();
     }
+
     public static Optional<Property<?>> getCrossCollisionBlock(Direction wallFacing) {
         switch (wallFacing) {
             case NORTH -> {
