@@ -4,8 +4,8 @@ import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.ConfigOptionListEntry;
 
 public enum QuickShulkerModeType implements ConfigOptionListEntry<QuickShulkerModeType> {
-    CLICK_SLOT("printerQuickShulkerMode.click_slot"),
-    INVOKE("printerQuickShulkerMode.invoke");
+    CLICK_SLOT("quickShulkerMode.click_slot"),
+    INVOKE("quickShulkerMode.invoke");
 
     private final I18n i18n;
 

@@ -43,7 +43,7 @@ public class FunctionFill extends FunctionPlacement {
 
     @Override
     public ConfigBoolean getCurrentConfig() {
-        return Configs.Fill.FILL;
+        return Configs.Core.FILL;
     }
 
     public @Nullable BlockPos getBlockPos() {

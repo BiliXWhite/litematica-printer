@@ -63,13 +63,13 @@ public class ZxyUtils {
 
     public static void startAddPrinterInventory() {
         getReadyColor();
-        if (Configs.General.CLOUD_INVENTORY.getBooleanValue() && !printerMemoryAdding) {
+        if (Configs.Core.CLOUD_INVENTORY.getBooleanValue() && !printerMemoryAdding) {
             printerMemoryAdding = true;
             //#if MC >= 12001 && MC <= 12104
             //$$ if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
             //#endif
 
-            for (String string : Configs.General.INVENTORY_LIST.getStrings()) {
+            for (String string : Configs.Core.INVENTORY_LIST.getStrings()) {
                 invBlockList.addAll(filterBlocksByName(string).stream().filter(InventoryUtils::canOpenInv).toList());
             }
             highlightPosList.addAll(invBlockList);
@@ -166,7 +166,7 @@ public class ZxyUtils {
     }
 
     public static boolean openInv(BlockPos pos, boolean ignoreThePrompt) {
-        if (Configs.General.CLOUD_INVENTORY.getBooleanValue() && OpenInventoryPacket.key == null) {
+        if (Configs.Core.CLOUD_INVENTORY.getBooleanValue() && OpenInventoryPacket.key == null) {
             OpenInventoryPacket.sendOpenInventory(pos, client.level.dimension());
             return true;
         } else {
@@ -209,7 +209,7 @@ public class ZxyUtils {
                 //按下热键后记录看向的容器 开始同步容器 只会触发一次
                 targetBlockInv = new ArrayList<>();
                 targetItemsCount = new HashMap<>();
-                if (client.player != null && (!Configs.General.CLOUD_INVENTORY.getBooleanValue() || openIng) && !client.player.containerMenu.equals(client.player.inventoryMenu)) {
+                if (client.player != null && (!Configs.Core.CLOUD_INVENTORY.getBooleanValue() || openIng) && !client.player.containerMenu.equals(client.player.inventoryMenu)) {
                     for (int i = 0; i < client.player.containerMenu.slots.get(0).container.getContainerSize(); i++) {
                         ItemStack copy = client.player.containerMenu.slots.get(i).getItem().copy();
                         itemsCount(targetItemsCount, copy);
@@ -237,7 +237,7 @@ public class ZxyUtils {
                                         ItemStack.isSameItemSameComponents(player.getKey(), target.getKey()) && target.getValue() <= player.getValue())))
                     return;
 
-                if ((!Configs.General.CLOUD_INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
+                if ((!Configs.Core.CLOUD_INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
                     for (BlockPos pos : syncPosList) {
                         if (!openInv(pos, true)) continue;
                         closeScreen++;

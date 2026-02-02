@@ -58,7 +58,7 @@ public class InteractionUtils {
     }
 
     public static boolean breakRestriction(BlockState blockState) {
-        if (Configs.Excavate.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
+        if (Configs.Mine.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
             if (!ModLoadStatus.isTweakerooLoaded()) return true;
             UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
@@ -71,12 +71,12 @@ public class InteractionUtils {
                 return true;
             }
         } else {
-            IConfigOptionListEntry optionListValue = Configs.Excavate.EXCAVATE_LIMIT.getOptionListValue();
+            IConfigOptionListEntry optionListValue = Configs.Mine.EXCAVATE_LIMIT.getOptionListValue();
             if (optionListValue == UsageRestriction.ListType.BLACKLIST) {
-                return Configs.Excavate.EXCAVATE_BLACKLIST.getStrings().stream()
+                return Configs.Mine.EXCAVATE_BLACKLIST.getStrings().stream()
                         .noneMatch(string -> FilterUtils.matchBlockName(string, blockState));
             } else if (optionListValue == UsageRestriction.ListType.WHITELIST) {
-                return Configs.Excavate.EXCAVATE_WHITELIST.getStrings().stream()
+                return Configs.Mine.EXCAVATE_WHITELIST.getStrings().stream()
                         .anyMatch(string -> FilterUtils.matchBlockName(string, blockState));
             } else {
                 return true;
@@ -229,7 +229,7 @@ public class InteractionUtils {
     }
 
     public BlockBreakResult continueDestroyBlock(BlockPos blockPos, Direction direction) {
-        return this.continueDestroyBlock(blockPos, direction, !Configs.Break.BREAK_PLACE_USE_PACKET.getBooleanValue());
+        return this.continueDestroyBlock(blockPos, direction, !Configs.Break.BREAK_USE_PACKET.getBooleanValue());
     }
 
     public BlockBreakResult continueDestroyBlock(BlockPos blockPos) {

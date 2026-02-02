@@ -20,7 +20,7 @@ import java.util.Objects;
 import java.util.function.BooleanSupplier;
 
 public class ConfigUi extends GuiConfigsBase {
-    private static Tab tab = Tab.GENERAL;
+    private static Tab tab = Tab.CORE;
 
     public ConfigUi(@Nullable Screen parent) {
         super(10, 50, Reference.MOD_ID, parent, "Litematica Printer " + UpdateCheckerUtils.LOCAL_VERSION + "   " + I18n.FREE_NOTICE.getName().getString());
@@ -77,7 +77,7 @@ public class ConfigUi extends GuiConfigsBase {
     }
 
     public enum Tab {
-        GENERAL(I18n.of("category.general")),
+        CORE(I18n.of("category.core")),
         PLACEMENT(I18n.of("category.placement")),
         BREAK(I18n.of("category.break")),
         PRINT(I18n.of("category.print")),
@@ -103,12 +103,12 @@ public class ConfigUi extends GuiConfigsBase {
 
         public ImmutableList<IConfigBase> getConfigs() {
             return switch (this) {
-                case GENERAL -> Configs.General.OPTIONS;
+                case CORE -> Configs.Core.OPTIONS;
                 case PLACEMENT -> Configs.Placement.OPTIONS;
                 case BREAK -> Configs.Break.OPTIONS;
                 case PRINT -> Configs.Print.OPTIONS;
-                case FLUID -> Configs.FLUID.OPTIONS;
-                case EXCAVATE -> Configs.Excavate.OPTIONS;
+                case FLUID -> Configs.Fluid.OPTIONS;
+                case EXCAVATE -> Configs.Mine.OPTIONS;
                 case FILL -> Configs.Fill.OPTIONS;
                 case HOTKEYS -> Configs.Hotkeys.OPTIONS;
                 case COLOR -> Configs.Color.OPTIONS;

@@ -6,32 +6,32 @@ import me.aleksilassila.litematica.printer.enums.PrintModeType;
 
 public class ConfigUtils {
     public static boolean isEnable() {
-        return Configs.General.WORK_TOGGLE.getBooleanValue();
+        return Configs.Core.WORK_SWITCH.getBooleanValue();
     }
 
     public static boolean isPrintMode() {
-        return (Configs.General.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Print.PRINT.getBooleanValue())
-                || Configs.General.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.PRINTER;
+        return (Configs.Core.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Core.PRINT.getBooleanValue())
+                || Configs.Core.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.PRINTER;
     }
 
     public static boolean isMineMode() {
-        return (Configs.General.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Excavate.MINE.getBooleanValue())
-                || Configs.General.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.MINE;
+        return (Configs.Core.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Core.MINE.getBooleanValue())
+                || Configs.Core.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.MINE;
     }
 
     public static boolean isFillMode() {
-        return (Configs.General.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Fill.FILL.getBooleanValue())
-                || Configs.General.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.FILL;
+        return (Configs.Core.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Core.FILL.getBooleanValue())
+                || Configs.Core.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.FILL;
     }
 
     public static boolean isFluidMode() {
-        return (Configs.General.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.FLUID.FLUID.getBooleanValue())
-                || Configs.General.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.FLUID;
+        return (Configs.Core.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Core.FLUID.getBooleanValue())
+                || Configs.Core.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.FLUID;
     }
 
     public static boolean isBedrockMode() {
-        return (Configs.General.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Hotkeys.BEDROCK.getBooleanValue())
-                || Configs.General.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.BEDROCK;
+        return (Configs.Core.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Hotkeys.BEDROCK.getBooleanValue())
+                || Configs.Core.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.BEDROCK;
     }
 
     public static int getPlaceCooldown() {

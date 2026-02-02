@@ -15,7 +15,7 @@
     "printer.litematica.EasyPlaceUtilsAccessor",
     "printer.litematica.InventoryUtilsAccessor",
     "printer.litematica.MixinInventoryUtils",
-    "printer.litematica.gui.MixinGui",
+    "printer.mc.MixinGui",
     "printer.malilib.config.MixinConfigBase",
     "printer.malilib.config.MixinIConfigBase",
     "printer.mc.MixinBlockItem",
@@ -42,7 +42,7 @@
     "jackf.lgacy.MixinWCardPanel",
     "jackf.lgacy.WItemListPanelMixin",
     "openinv.MixinMinecraftClient",
-    "printer.litematica.gui.MixinGui",
+    "printer.mc.MixinGui",
     "printer.litematica.gui.MixinLitematicaGuiMainMenu",
     "printer.malilib.MixinAbstractCraftingMenu",
     "printer.malilib.MixinGuiStringListEdit",
@@ -51,7 +51,7 @@
     "printer.mc.MixinClientPacketListener",
     "printer.mc.MixinLocalPlayer",
     "printer.mc.MixinMultiPlayerGameMode",
-    "printer.mc.ServerboundMovePlayerPacketAccessor",
+    "printer.mc.ServerboundMovePlayerPacketAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -35,7 +35,7 @@ import java.util.concurrent.CompletableFuture;
 //#else
 //#endif
 //#if MC >= 12105
-import java.net.URI;
+
 //#endif
 
 @Mixin(LocalPlayer.class)
@@ -60,7 +60,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
 
     @Inject(at = @At("HEAD"), method = "resetPos")
     public void init(CallbackInfo ci) {
-        if (Configs.General.UPDATE_CHECK.getBooleanValue() && !Printer.getInstance().updateChecked) {
+        if (Configs.Core.UPDATE_CHECK.getBooleanValue() && !Printer.getInstance().updateChecked) {
             CompletableFuture.runAsync(UpdateCheckerUtils::checkForUpdates);
         }
         Printer.getInstance().updateChecked = true;

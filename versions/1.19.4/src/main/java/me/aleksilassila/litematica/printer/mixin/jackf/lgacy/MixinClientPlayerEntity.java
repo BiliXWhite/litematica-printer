@@ -27,8 +27,8 @@ public class MixinClientPlayerEntity {
     @Inject(at = @At("HEAD"), method = "clientSideCloseContainer")
     public void closeScreen(CallbackInfo ci) {
         BlockPos pos = MemoryUtils.getLatestPos();
-        if (ModLoadStatus.isLoadChestTrackerLoaded() && Configs.General.CLOUD_INVENTORY.getBooleanValue() &&
-                (Configs.General.WORK_TOGGLE.getBooleanValue() || Configs.Print.WORK_TOGGLE_HOTKEY.getKeybind().isPressed() || printerMemoryAdding || syncPrinterInventory) && (
+        if (ModLoadStatus.isLoadChestTrackerLoaded() && Configs.Core.CLOUD_INVENTORY.getBooleanValue() &&
+                (Configs.Core.WORK_SWITCH.getBooleanValue() || printerMemoryAdding || syncPrinterInventory) && (
                 pos != null || MemoryUtils.getMemoryPos() != null)) {
             if (!minecraft.player.containerMenu.equals(minecraft.player.inventoryMenu)) {
                 MemoryUtils.handleItemsFromScreen(minecraft.player.containerMenu);

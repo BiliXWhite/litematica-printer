@@ -78,7 +78,7 @@ public enum BlockPrintState {
         }
 
         // 如果启用了替换功能，且当前方块在可替换列表中，则返回缺失方块状态（实际上这会和破坏额外方块打架）
-        if (Configs.Print.REPLACE.getBooleanValue() &&
+        if (Configs.Print.PRINT_REPLACE.getBooleanValue() &&
                 replaceSet.stream().anyMatch(string -> !FilterUtils.matchName(string, requiredState) &&
                         FilterUtils.matchName(string, currentState)) && !requiredState.isAir()
         ) {

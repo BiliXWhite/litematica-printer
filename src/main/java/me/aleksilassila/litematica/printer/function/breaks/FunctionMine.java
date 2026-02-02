@@ -30,7 +30,7 @@ public class FunctionMine extends FunctionBreak {
 
     @Override
     public ConfigBoolean getCurrentConfig() {
-        return Configs.Excavate.MINE;
+        return Configs.Core.MINE;
     }
 
     public BlockPos getBlockPos() {
@@ -54,7 +54,7 @@ public class FunctionMine extends FunctionBreak {
     @Override
     public boolean canIterationTest(Printer printer, ClientLevel level, LocalPlayer player, BlockPos pos) {
         if (pos != null) {
-            if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.Excavate.MINE_SELECTION_TYPE)) {
+            if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.Mine.MINE_SELECTION_TYPE)) {
                 return false;
             }
             if (BlockCooldownManager.INSTANCE.isOnCooldown(BlockCooldownType.MINE, blockPos)) {

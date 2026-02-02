@@ -25,7 +25,7 @@ public abstract class MixinBlock {
             at = {@At("TAIL")}
     )
     private void chestTracker$handleBlockBreak(Level world, BlockPos pos, BlockState state, Player player, CallbackInfo ci) {
-        if(!Configs.General.CLOUD_INVENTORY.getBooleanValue()) return;
+        if(!Configs.Core.CLOUD_INVENTORY.getBooleanValue()) return;
         MemoryDatabase database = MemoryDatabase.getCurrent();
         if (database != null) {
             database.removePos(world.dimension().location(), pos);

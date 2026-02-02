@@ -137,7 +137,7 @@ public class MemoryUtils {
     }
 
     public static void save(AbstractContainerMenu screen , MemoryBank memoryBank) {
-        if (memoryBank == null || OpenInventoryPacket.key == null || blockState == null || !Configs.General.CLOUD_INVENTORY.getBooleanValue()) return;
+        if (memoryBank == null || OpenInventoryPacket.key == null || blockState == null || !Configs.Core.CLOUD_INVENTORY.getBooleanValue()) return;
         List<BlockPos> connected;
         if (ZxyUtils.printerMemoryAdding && client.level != null) {
             connected = ConnectedBlocksGrabber.getConnected(client.level, client.level.getBlockState(OpenInventoryPacket.pos), OpenInventoryPacket.pos);

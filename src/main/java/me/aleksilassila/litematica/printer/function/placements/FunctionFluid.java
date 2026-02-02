@@ -42,7 +42,7 @@ public class FunctionFluid extends FunctionPlacement {
 
     @Override
     public ConfigBoolean getCurrentConfig() {
-        return Configs.FLUID.FLUID;
+        return Configs.Core.FLUID;
     }
 
     public @Nullable BlockPos getBlockPos() {
@@ -52,7 +52,7 @@ public class FunctionFluid extends FunctionPlacement {
     @Override
     public boolean canIterationTest(Printer printer, ClientLevel level, LocalPlayer player, BlockPos pos) {
         if (pos != null) {
-            if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.FLUID.FLUID_SELECTION_TYPE)) {
+            if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.Fluid.FLUID_SELECTION_TYPE)) {
                 return false;
             }
             if (BlockCooldownManager.INSTANCE.isOnCooldown(BlockCooldownType.FLUID, blockPos)) {
@@ -60,7 +60,7 @@ public class FunctionFluid extends FunctionPlacement {
             }
         }
         // 填充方块
-        List<String> fileBlocks = Configs.FLUID.FLUID_BLOCK_LIST.getStrings();
+        List<String> fileBlocks = Configs.Fluid.FLUID_BLOCK_LIST.getStrings();
         if (!fileBlocks.equals(fillBlocks)) {
             fillBlocks = new ArrayList<>(fileBlocks);
             if (fileBlocks.isEmpty()) {
@@ -73,7 +73,7 @@ public class FunctionFluid extends FunctionPlacement {
             }
         }
         // 流体方块
-        List<String> fluidBlocks = Configs.FLUID.FLUID_LIST.getStrings();
+        List<String> fluidBlocks = Configs.Fluid.FLUID_LIST.getStrings();
         if (!fluidBlocks.equals(this.fluidBlocks)) {
             this.fluidBlocks = new ArrayList<>(fluidBlocks);
             if (fluidBlocks.isEmpty()) {
@@ -102,13 +102,13 @@ public class FunctionFluid extends FunctionPlacement {
             if (BlockCooldownManager.INSTANCE.isOnCooldown(BlockCooldownType.FLUID, blockPos)) {
                 loop = false;
             }
-            if (!PrinterUtils.isPositionInSelectionRange(player, blockPos, Configs.FLUID.FLUID_SELECTION_TYPE)) {
+            if (!PrinterUtils.isPositionInSelectionRange(player, blockPos, Configs.Fluid.FLUID_SELECTION_TYPE)) {
                 BlockCooldownManager.INSTANCE.setCooldown(BlockCooldownType.FLUID, blockPos, 8);
                 continue;
             }
             FluidState fluidState = level.getBlockState(blockPos).getFluidState();
             if (fluids.contains(fluidState.getType())) {
-                if (!Configs.FLUID.FILL_FLOWING_FLUID.getBooleanValue() && !fluidState.isSource())
+                if (!Configs.Fluid.FILL_FLOWING_FLUID.getBooleanValue() && !fluidState.isSource())
                     continue;
                 if (!printer.switchToItems(player, fillItems.toArray(new Item[0]))) {
                     continue;

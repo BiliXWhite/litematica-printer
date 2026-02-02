@@ -70,7 +70,7 @@ public class Printer extends PrinterUtils {
     public AtomicReference<MyBox> commonBox = new AtomicReference<>();
     public AtomicReference<MyBox> guiBox = new AtomicReference<>();
     public AtomicReference<MyBox> placeBox = new AtomicReference<>();
-    public int printRange = Configs.General.WORK_RANGE.getIntegerValue();
+    public int printRange = Configs.Core.WORK_RANGE.getIntegerValue();
     public int placeSpeed = Configs.Placement.PLACE_SPEED.getIntegerValue();
     public int waitTicks = 0;
 
@@ -97,7 +97,7 @@ public class Printer extends PrinterUtils {
 
     private BlockPos getBlockPos(boolean gui, AtomicReference<MyBox> box, @Nullable Function function) {
         long tickEndTime = gui ? this.tickEndTime + 5 : this.tickEndTime;
-        if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
+        if (Configs.Core.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
             return null;
         }
         LocalPlayer player = client.player;
@@ -113,15 +113,15 @@ public class Printer extends PrinterUtils {
             workProgressTotalCount = 0;
             workProgressFinishedCount = 0;
         }
-        box.get().iterationMode = (IterationOrderType) Configs.General.ITERATION_ORDER.getOptionListValue();
-        box.get().xIncrement = !Configs.General.X_REVERSE.getBooleanValue();
-        box.get().yIncrement = !Configs.General.Y_REVERSE.getBooleanValue();
-        box.get().zIncrement = !Configs.General.Z_REVERSE.getBooleanValue();
+        box.get().iterationMode = (IterationOrderType) Configs.Core.ITERATION_ORDER.getOptionListValue();
+        box.get().xIncrement = !Configs.Core.X_REVERSE.getBooleanValue();
+        box.get().yIncrement = !Configs.Core.Y_REVERSE.getBooleanValue();
+        box.get().zIncrement = !Configs.Core.Z_REVERSE.getBooleanValue();
         Iterator<BlockPos> iterator = box.get().iterator();
         boolean loop = true;
         while (loop && iterator.hasNext()) {
             BlockPos pos = iterator.next();
-            if (Configs.General.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
+            if (Configs.Core.ITERATOR_USE_TIME.getIntegerValue() != 0 && System.currentTimeMillis() > tickEndTime) {
                 loop = false;   // 退出循环, 但是不浪费本次获取的位置
             }
             if (!PrinterUtils.canInteracted(pos)) {
@@ -172,7 +172,7 @@ public class Printer extends PrinterUtils {
                 }
             }
             if (isFluidMode()) {
-                if (!PrinterUtils.isPositionInSelectionRange(client.player, pos, Configs.FLUID.FLUID_SELECTION_TYPE)) {
+                if (!PrinterUtils.isPositionInSelectionRange(client.player, pos, Configs.Fluid.FLUID_SELECTION_TYPE)) {
                     continue;
                 }
                 if (!(client.level.getBlockState(pos).getBlock() instanceof LiquidBlock)) {
@@ -190,7 +190,7 @@ public class Printer extends PrinterUtils {
             }
 
             if (isMineMode()) {
-                if (!PrinterUtils.isPositionInSelectionRange(client.player, pos, Configs.Excavate.MINE_SELECTION_TYPE)) {
+                if (!PrinterUtils.isPositionInSelectionRange(client.player, pos, Configs.Mine.MINE_SELECTION_TYPE)) {
                     continue;
                 }
                 if (client.level.getBlockState(pos).isAir()) {
@@ -207,11 +207,11 @@ public class Printer extends PrinterUtils {
         if (!isEnable()) {
             return;
         }
-        printRange = Configs.General.WORK_RANGE.getIntegerValue();
+        printRange = Configs.Core.WORK_RANGE.getIntegerValue();
         placeSpeed = Configs.Placement.PLACE_SPEED.getIntegerValue();
         tickStartTime = System.currentTimeMillis();
-        tickEndTime = tickStartTime + Configs.General.ITERATOR_USE_TIME.getIntegerValue();
-        if (Configs.General.LAG_CHECK.getBooleanValue()) {
+        tickEndTime = tickStartTime + Configs.Core.ITERATOR_USE_TIME.getIntegerValue();
+        if (Configs.Core.LAG_CHECK.getBooleanValue()) {
             if (packetTick > 20) {
                 packetTick++;
                 return;
@@ -279,8 +279,8 @@ public class Printer extends PrinterUtils {
             }
             blockContext = new BlockContext(client, level, schematic, targetPos);
 
-            if (Configs.Print.PUT_SKIP.getBooleanValue()) {
-                Set<String> skipSet = new HashSet<>(Configs.Print.PUT_SKIP_LIST.getStrings()); // 转换为 HashSet
+            if (Configs.Print.PRINT_SKIP.getBooleanValue()) {
+                Set<String> skipSet = new HashSet<>(Configs.Print.PRINT_SKIP_LIST.getStrings()); // 转换为 HashSet
                 if (skipSet.stream().anyMatch(s -> FilterUtils.matchName(s, blockContext.requiredState))) {
                     continue;
                 }
@@ -312,7 +312,7 @@ public class Printer extends PrinterUtils {
             Item[] reqItems = action.getRequiredItems(blockContext.requiredState.getBlock());
             if (switchToItems(player, reqItems)) {
                 boolean useShift = (Implementation.isInteractive(level.getBlockState(targetPos.relative(side)).getBlock()) && !(action instanceof PlacementGuide.ClickAction))
-                        || Configs.Print.FORCED_SNEAK.getBooleanValue()
+                        || Configs.Print.PRINT_FORCED_SNEAK.getBooleanValue()
                         || action.useShift;
 
                 action.queueAction(queue, targetPos, side, useShift);
@@ -521,7 +521,7 @@ public class Printer extends PrinterUtils {
             }
 
 
-            if (Configs.Placement.PLACE_USE_PACKET.getBooleanValue()) {
+            if (Configs.Print.PRINT_USE_PACKET.getBooleanValue()) {
                 NetworkUtils.sendPacket(sequence -> new ServerboundUseItemOnPacket(
                         InteractionHand.MAIN_HAND,
                         new BlockHitResult(hitVec, side, target, false)

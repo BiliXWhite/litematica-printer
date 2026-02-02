@@ -86,14 +86,14 @@ public class InventoryUtils {
             AbstractContainerMenu sc = player.containerMenu;
             if (!player.containerMenu.equals(player.inventoryMenu)) return false;
             //排除合成栏 装备栏 副手
-            if (Configs.General.STORE_ORDERLY.getBooleanValue() && sc.slots.stream().skip(9).limit(sc.slots.size() - 10).noneMatch(slot -> slot.getItem().isEmpty())
-                    && (Configs.General.QUICK_SHULKER.getBooleanValue() || Configs.General.CLOUD_INVENTORY.getBooleanValue())) {
+            if (Configs.Placement.STORE_ORDERLY.getBooleanValue() && sc.slots.stream().skip(9).limit(sc.slots.size() - 10).noneMatch(slot -> slot.getItem().isEmpty())
+                    && (Configs.Placement.QUICK_SHULKER.getBooleanValue() || Configs.Core.CLOUD_INVENTORY.getBooleanValue())) {
                 SwitchItem.checkItems();
                 return true;
             }
-            if (Configs.General.QUICK_SHULKER.getBooleanValue() && openShulker(lastNeedItemList)) {
+            if (Configs.Placement.QUICK_SHULKER.getBooleanValue() && openShulker(lastNeedItemList)) {
                 return true;
-            } else if (Configs.General.CLOUD_INVENTORY.getBooleanValue()) {
+            } else if (Configs.Core.CLOUD_INVENTORY.getBooleanValue()) {
                 for (Item item : lastNeedItemList) {
                     //#if MC >= 12001 && MC <= 12104
                     //$$ MemoryUtils.currentMemoryKey = client.level.dimension().location();
@@ -154,7 +154,7 @@ public class InventoryUtils {
                         try {
                             int c = Integer.parseInt(s) - 1;
                             if (BuiltInRegistries.ITEM.getKey(player.getInventory().getItem(c).getItem()).toString().contains("shulker_box") &&
-                                    Configs.General.QUICK_SHULKER.getBooleanValue()) {
+                                    Configs.Placement.QUICK_SHULKER.getBooleanValue()) {
                                 Minecraft.getInstance().gui.setOverlayMessage(Component.nullToEmpty("濳影盒占用了预选栏"), false);
                                 continue;
                             }
@@ -216,7 +216,7 @@ public class InventoryUtils {
                             ShulkerUtils.openShulker(stack, shulkerBoxSlot);
                             closeScreen++;
                             isOpenHandler = true;
-                            Printer.getInstance().shulkerCooldown = Configs.General.QUICK_SHULKER_COOLDOWN.getIntegerValue();
+                            Printer.getInstance().shulkerCooldown = Configs.Placement.QUICK_SHULKER_COOLDOWN.getIntegerValue();
                             return true;
                         } catch (Exception e) {
                         }
