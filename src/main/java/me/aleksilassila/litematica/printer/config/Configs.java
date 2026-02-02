@@ -284,7 +284,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         public static final ConfigInteger BREAK_PROGRESS_THRESHOLD = integer("breakProgressThreshold")
-                .defaultValue(70)
+                .defaultValue(100)
                 .range(70, 100)
                 .build();
 
