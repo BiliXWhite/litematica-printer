@@ -103,7 +103,7 @@ public class PlayerUtils {
     }
 
 
-    public static float calcBlockBreakingDelta(LocalPlayer player, BlockState state, ItemStack itemStack) {
+    public static float getDestroyProgress(LocalPlayer player, BlockState state, ItemStack itemStack) {
         float hardness = state.getBlock().defaultDestroyTime();
         if (hardness == -1.0F) {
             return 0.0F;
@@ -113,12 +113,12 @@ public class PlayerUtils {
         }
     }
 
-    public static float calcBlockBreakingDelta(LocalPlayer player, BlockState state, boolean mainHand) {
-        return calcBlockBreakingDelta(player, state, mainHand ? player.getMainHandItem() : player.getOffhandItem());
+    public static float getDestroyProgress(LocalPlayer player, BlockState state, boolean mainHand) {
+        return getDestroyProgress(player, state, mainHand ? player.getMainHandItem() : player.getOffhandItem());
     }
 
-    public static float calcBlockBreakingDelta(LocalPlayer player, BlockState state) {
-        return calcBlockBreakingDelta(player, state, true);
+    public static float getDestroyProgress(LocalPlayer player, BlockState state) {
+        return getDestroyProgress(player, state, true);
     }
 
     /**

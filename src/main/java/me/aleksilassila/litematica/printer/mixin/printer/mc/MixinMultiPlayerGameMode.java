@@ -6,6 +6,7 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
 import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import me.aleksilassila.litematica.printer.utils.NetworkUtils;
+import me.aleksilassila.litematica.printer.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
@@ -138,8 +139,8 @@ public abstract class MixinMultiPlayerGameMode implements IMultiPlayerGameMode {
                     blockState.attack(level, blockPos, player);
                 }
             }
-            float destroyProgress = blockState.getDestroyProgress(player, player.level(), blockPos);
-            if (bl && blockState.getDestroyProgress(player, player.level(), blockPos) >= 1.0F) {
+            float destroyProgress = PlayerUtils.getDestroyProgress(player, blockState);
+            if (bl && destroyProgress >= 1.0F) {
                 if (localPrediction) {
                     gameMode.destroyBlock(blockPos);
                 }
@@ -183,15 +184,16 @@ public abstract class MixinMultiPlayerGameMode implements IMultiPlayerGameMode {
             if (TweakerooUtils.isToolSwitchEnabled()) {
                 TweakerooUtils.trySwitchToEffectiveTool(blockPos);
             }
+        } else {
+            ensureHasSentCarriedItem();
         }
-        ensureHasSentCarriedItem();
         if (this.sameDestroyTarget(blockPos)) {
             BlockState blockState = level.getBlockState(blockPos);
             if (blockState.isAir()) {
                 this.isDestroying = false;
                 return InteractionUtils.BlockBreakResult.COMPLETED;
             } else {
-                this.destroyProgress = this.destroyProgress + blockState.getDestroyProgress(player, player.level(), blockPos);
+                this.destroyProgress = this.destroyProgress + PlayerUtils.getDestroyProgress(player, blockState);
                 boolean b = this.destroyProgress >= litematica_printer$GetBreakingProgressMax();
                 if (b) {
                     this.isDestroying = false;
