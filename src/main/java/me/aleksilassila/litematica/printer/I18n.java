@@ -22,7 +22,7 @@ public class I18n {
     public static final I18n UPDATE_REPOSITORY = of("update.repository");
 
     private static final String PREFIX_CONFIG = "config";
-    private static final String PREFIX_COMMENT = "comment";
+    private static final String PREFIX_COMMENT = "desc";
 
     private final @Nullable String prefix;
     private final String nameKey;
