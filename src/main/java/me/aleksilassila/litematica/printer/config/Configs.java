@@ -130,7 +130,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 核心 - 迭代Y轴反向
         public static final ConfigBoolean Y_REVERSE = bool("printerYAxisReverse")
-                .defaultValue(true)
+                .defaultValue(false)
                 .build();
 
         // 核心 - 迭代Z轴反向
