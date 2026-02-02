@@ -1,14 +1,18 @@
 package me.aleksilassila.litematica.printer.function.placements;
 
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
+import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.enums.BlockCooldownType;
 import me.aleksilassila.litematica.printer.enums.FileBlockModeType;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.function.FunctionPlacement;
+import me.aleksilassila.litematica.printer.printer.BlockCooldownManager;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
+import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.FilterUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -52,7 +56,7 @@ public class FunctionFill extends FunctionPlacement {
             if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.Fill.FILL_SELECTION_TYPE)) {
                 return false;
             }
-            if (isPlaceCooldown(pos)) {
+            if (BlockCooldownManager.INSTANCE.isOnCooldown(BlockCooldownType.FILL, pos)) {
                 return false;
             }
         }
@@ -93,16 +97,16 @@ public class FunctionFill extends FunctionPlacement {
         int placeBlocksPerTick = Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue();
         boolean loop = true;
         while (loop && (blockPos = getBoxBlockPos()) != null) {
-            if (isPlaceCooldown(blockPos)) {
-                loop = false;
-            }
             if (Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue() != 0 && placeBlocksPerTick == 0) {
                 loop = false;
             }
+            if (BlockCooldownManager.INSTANCE.isOnCooldown(BlockCooldownType.FILL, blockPos)) {
+                loop = false;
+            }
             if (!PrinterUtils.isPositionInSelectionRange(player, blockPos, Configs.Fill.FILL_SELECTION_TYPE)) {
+                BlockCooldownManager.INSTANCE.setCooldown(BlockCooldownType.FILL, blockPos, 8);
                 continue;
             }
-            Printer.getInstance().placeCooldownList.put(blockPos, Configs.Placement.PLACE_COOLDOWN.getIntegerValue());
             BlockState currentState = level.getBlockState(blockPos);
             if (currentState.isAir() || (currentState.getBlock() instanceof LiquidBlock) || Configs.Print.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> FilterUtils.matchName(s, currentState))) {
                 if (handheld || printer.switchToItems(player, getFillItemsArray())) {
@@ -118,8 +122,8 @@ public class FunctionFill extends FunctionPlacement {
                         placeBlocksPerTick--;
                     }
                 }
-                setPlaceCooldown(blockPos);
             }
+            BlockCooldownManager.INSTANCE.setCooldown(BlockCooldownType.FILL, blockPos, ConfigUtils.getPlaceCooldown());
         }
     }
 

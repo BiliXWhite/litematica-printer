@@ -3,10 +3,13 @@ package me.aleksilassila.litematica.printer.function.breaks;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import lombok.Getter;
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.enums.BlockCooldownType;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.function.FunctionBreak;
+import me.aleksilassila.litematica.printer.printer.BlockCooldownManager;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
+import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -54,7 +57,7 @@ public class FunctionMine extends FunctionBreak {
             if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.Excavate.MINE_SELECTION_TYPE)) {
                 return false;
             }
-            if (isBreakCooldown(pos)) {
+            if (BlockCooldownManager.INSTANCE.isOnCooldown(BlockCooldownType.MINE, blockPos)) {
                 return false;
             }
             return InteractionUtils.canBreakBlock(pos) && InteractionUtils.breakRestriction(level.getBlockState(pos));
@@ -68,7 +71,7 @@ public class FunctionMine extends FunctionBreak {
         int breakBlocksPerTick = Configs.Break.BREAK_BLOCKS_PER_TICK.getIntegerValue();
         boolean loop = true;
         while (loop && (blockPos = blockPos == null ? getBoxBlockPos() : blockPos) != null) {
-            if (isBreakCooldown(blockPos)) {
+            if (BlockCooldownManager.INSTANCE.isOnCooldown(BlockCooldownType.MINE, blockPos)) {
                 loop = false;
                 this.blockPos = null;
                 continue;
@@ -87,7 +90,7 @@ public class FunctionMine extends FunctionBreak {
             if (result == InteractionUtils.BlockBreakResult.IN_PROGRESS) {
                 return;
             }
-            setBreakCooldown(blockPos); // 仅在瞬间破坏成功中设置冷却, 避免持续破坏位置被冷却
+            BlockCooldownManager.INSTANCE.setCooldown(BlockCooldownType.MINE, blockPos, ConfigUtils.getBreakCooldown());
             this.blockPos = null;
             if (Configs.Break.BREAK_BLOCKS_PER_TICK.getIntegerValue() != 0) {
                 breakBlocksPerTick--;

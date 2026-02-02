@@ -33,4 +33,12 @@ public class ConfigUtils {
         return (Configs.General.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Hotkeys.BEDROCK.getBooleanValue())
                 || Configs.General.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.BEDROCK;
     }
+
+    public static int getPlaceCooldown() {
+        return Configs.Placement.PLACE_COOLDOWN.getIntegerValue();
+    }
+
+    public static int getBreakCooldown() {
+        return Configs.Break.BREAK_COOLDOWN.getIntegerValue();
+    }
 }

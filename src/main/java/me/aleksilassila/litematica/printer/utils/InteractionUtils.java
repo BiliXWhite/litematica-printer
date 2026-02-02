@@ -5,9 +5,11 @@ import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.TweakerooUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.enums.BlockCooldownType;
 import me.aleksilassila.litematica.printer.enums.ExcavateListMode;
 import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
 import me.aleksilassila.litematica.printer.printer.BlockContext;
+import me.aleksilassila.litematica.printer.printer.BlockCooldownManager;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
 import net.fabricmc.api.EnvType;
@@ -41,6 +43,45 @@ public class InteractionUtils {
     private BlockState state;
 
     private InteractionUtils() {
+    }
+
+    public static boolean canBreakBlock(BlockPos pos) {
+        ClientLevel world = client.level;
+        BlockState currentState = world.getBlockState(pos);
+        return !currentState.isAir() &&
+                !(currentState.getBlock() instanceof LiquidBlock) &&
+                !currentState.is(Blocks.AIR) &&
+                !currentState.is(Blocks.CAVE_AIR) &&
+                !currentState.is(Blocks.VOID_AIR) &&
+                !(currentState.getBlock().defaultDestroyTime() == -1) &&
+                !client.player.blockActionRestricted(client.level, pos, client.gameMode.getPlayerMode());
+    }
+
+    public static boolean breakRestriction(BlockState blockState) {
+        if (Configs.Excavate.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
+            if (!ModLoadStatus.isTweakerooLoaded()) return true;
+            UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
+            if (listType == UsageRestriction.ListType.BLACKLIST) {
+                return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
+                        .noneMatch(string -> FilterUtils.matchBlockName(string, blockState));
+            } else if (listType == UsageRestriction.ListType.WHITELIST) {
+                return BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
+                        .anyMatch(string -> FilterUtils.matchBlockName(string, blockState));
+            } else {
+                return true;
+            }
+        } else {
+            IConfigOptionListEntry optionListValue = Configs.Excavate.EXCAVATE_LIMIT.getOptionListValue();
+            if (optionListValue == UsageRestriction.ListType.BLACKLIST) {
+                return Configs.Excavate.EXCAVATE_BLACKLIST.getStrings().stream()
+                        .noneMatch(string -> FilterUtils.matchBlockName(string, blockState));
+            } else if (optionListValue == UsageRestriction.ListType.WHITELIST) {
+                return Configs.Excavate.EXCAVATE_WHITELIST.getStrings().stream()
+                        .anyMatch(string -> FilterUtils.matchBlockName(string, blockState));
+            } else {
+                return true;
+            }
+        }
     }
 
     public void add(BlockPos pos) {
@@ -117,7 +158,7 @@ public class InteractionUtils {
     private void resetBreakTarget() {
         // 性能优化：避免不必要的remove操作
         if (breakPos != null) {
-            Printer.getInstance().placeCooldownList.put(breakPos, 4);
+            BlockCooldownManager.INSTANCE.setCooldown(BlockCooldownType.MINE, breakPos, 4);
             breakTargets.remove(breakPos);
         }
         updateTarget();
@@ -152,45 +193,6 @@ public class InteractionUtils {
         state = null;
     }
 
-    public static boolean canBreakBlock(BlockPos pos) {
-        ClientLevel world = client.level;
-        BlockState currentState = world.getBlockState(pos);
-        return !currentState.isAir() &&
-                !(currentState.getBlock() instanceof LiquidBlock) &&
-                !currentState.is(Blocks.AIR) &&
-                !currentState.is(Blocks.CAVE_AIR) &&
-                !currentState.is(Blocks.VOID_AIR) &&
-                !(currentState.getBlock().defaultDestroyTime() == -1) &&
-                !client.player.blockActionRestricted(client.level, pos, client.gameMode.getPlayerMode());
-    }
-
-    public static boolean breakRestriction(BlockState blockState) {
-        if (Configs.Excavate.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
-            if (!ModLoadStatus.isTweakerooLoaded()) return true;
-            UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
-            if (listType == UsageRestriction.ListType.BLACKLIST) {
-                return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> FilterUtils.matchBlockName(string, blockState));
-            } else if (listType == UsageRestriction.ListType.WHITELIST) {
-                return BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> FilterUtils.matchBlockName(string, blockState));
-            } else {
-                return true;
-            }
-        } else {
-            IConfigOptionListEntry optionListValue = Configs.Excavate. EXCAVATE_LIMIT.getOptionListValue();
-            if (optionListValue == UsageRestriction.ListType.BLACKLIST) {
-                return Configs.Excavate.EXCAVATE_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> FilterUtils.matchBlockName(string, blockState));
-            } else if (optionListValue == UsageRestriction.ListType.WHITELIST) {
-                return Configs.Excavate.EXCAVATE_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> FilterUtils.matchBlockName(string, blockState));
-            } else {
-                return true;
-            }
-        }
-    }
-
     /**
      * 挖掘指定位置的方块
      * 需要每tick都执行一次
@@ -216,14 +218,6 @@ public class InteractionUtils {
         return false;
     }
 
-    // 方块破坏结果枚举（核心新增）
-    public enum BlockBreakResult {
-        COMPLETED,    // 破坏完成
-        IN_PROGRESS,  // 正在破坏，需要继续tick
-        ABORTED,      // 破坏被中止（切换方块等）
-        FAILED        // 破坏失败（无权限/超出边界/无法交互等）
-    }
-
     public BlockBreakResult continueDestroyBlock(final BlockPos blockPos, Direction direction, boolean localPrediction) {
         LocalPlayer player = client.player;
         ClientLevel level = client.level;
@@ -240,5 +234,13 @@ public class InteractionUtils {
 
     public BlockBreakResult continueDestroyBlock(BlockPos blockPos) {
         return this.continueDestroyBlock(blockPos, Direction.DOWN);
+    }
+
+    // 方块破坏结果枚举（核心新增）
+    public enum BlockBreakResult {
+        COMPLETED,    // 破坏完成
+        IN_PROGRESS,  // 正在破坏，需要继续tick
+        ABORTED,      // 破坏被中止（切换方块等）
+        FAILED        // 破坏失败（无权限/超出边界/无法交互等）
     }
 }

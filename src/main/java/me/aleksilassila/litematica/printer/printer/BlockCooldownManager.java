@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.printer;
 
 import me.aleksilassila.litematica.printer.enums.BlockCooldownType;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
@@ -61,6 +62,15 @@ public class BlockCooldownManager {
     }
 
     /**
+     * 设置冷却
+     */
+    public void setCooldown(BlockCooldownType type, BlockPos pos, int cooldownTicks) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null) return;
+        this.setCooldown(mc.level, type.type, pos, cooldownTicks);
+    }
+
+    /**
      * 判断指定方块是否处于冷却中
      *
      * @return true=冷却中，false=未冷却/无冷却
@@ -80,6 +90,16 @@ public class BlockCooldownManager {
         return this.isOnCooldown(level, type.type, pos);
     }
 
+    /**
+     * 判断指定方块是否处于冷却中
+     *
+     * @return true=冷却中，false=未冷却/无冷却
+     */
+    public boolean isOnCooldown(BlockCooldownType type, BlockPos pos) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null) return false;
+        return this.isOnCooldown(mc.level, type.type, pos);
+    }
 
     /**
      * 手动移除指定方块的冷却（强制取消冷却）
