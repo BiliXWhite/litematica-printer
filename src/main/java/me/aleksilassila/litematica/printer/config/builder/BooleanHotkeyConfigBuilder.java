@@ -3,16 +3,12 @@ package me.aleksilassila.litematica.printer.config.builder;
 import fi.dy.masa.malilib.config.options.ConfigBooleanHotkeyed;
 import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
-import fi.dy.masa.malilib.hotkeys.IKeybind;
-import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.StringUtils;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import net.minecraft.network.chat.MutableComponent;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
 
 public class BooleanHotkeyConfigBuilder extends BaseConfigBuilder<ConfigBooleanHotkeyed, BooleanHotkeyConfigBuilder> {
     private boolean defaultValue = false;
@@ -51,12 +47,12 @@ public class BooleanHotkeyConfigBuilder extends BaseConfigBuilder<ConfigBooleanH
     @Override
     public ConfigBooleanHotkeyed build() {
         ConfigBooleanHotkeyed config = new ConfigBooleanHotkeyed(
-                i18n.getId(),
+                i18n.getNameKey(),
                 defaultValue,
                 defaultHotkey,
                 keybindSettings,
-                commentKey,
-                StringUtils.splitCamelCase(i18n.getId())
+                descKey,
+                StringUtils.splitCamelCase(i18n.getNameKey())
         );
         if (keybindCallback == null) {
             keybindCallback = (action, key) -> onKeyAction(config);
@@ -70,9 +66,9 @@ public class BooleanHotkeyConfigBuilder extends BaseConfigBuilder<ConfigBooleanH
         boolean newValue = config.getBooleanValue();
         String pre = newValue ? GuiBase.TXT_GREEN : GuiBase.TXT_RED;
         I18n statusI18n = newValue ? I18n.MESSAGE_VALUE_ON : I18n.MESSAGE_VALUE_OFF;
-        MutableComponent message = I18n.MESSAGE_TOGGLED.getComponent(
+        MutableComponent message = I18n.MESSAGE_TOGGLED.getName(
                 config.getPrettyName(),
-                pre + statusI18n.getComponent().getString() + GuiBase.TXT_RST
+                pre + statusI18n.getName().getString() + GuiBase.TXT_RST
         );
         MessageUtils.setOverlayMessage(message);
         return true;

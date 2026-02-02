@@ -23,7 +23,7 @@ public class ConfigUi extends GuiConfigsBase {
     private static Tab tab = Tab.GENERAL;
 
     public ConfigUi(@Nullable Screen parent) {
-        super(10, 50, Reference.MOD_ID, parent, "Litematica Printer " + UpdateCheckerUtils.LOCAL_VERSION + "   " + I18n.FREE_NOTICE.getComponent().getString());
+        super(10, 50, Reference.MOD_ID, parent, "Litematica Printer " + UpdateCheckerUtils.LOCAL_VERSION + "   " + I18n.FREE_NOTICE.getName().getString());
     }
 
     public ConfigUi() {
@@ -94,11 +94,11 @@ public class ConfigUi extends GuiConfigsBase {
         }
 
         public String getName() {
-            return i18n.getConfigComponent().getString();
+            return i18n.getConfigName().getString();
         }
 
         public String getComment() {
-            return i18n.getConfigCommentComponent().getString();
+            return i18n.getConfigDesc().getString();
         }
 
         public ImmutableList<IConfigBase> getConfigs() {

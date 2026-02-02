@@ -5,7 +5,6 @@ import me.aleksilassila.litematica.printer.utils.StringUtils;
 import net.minecraft.network.chat.MutableComponent;
 import org.jetbrains.annotations.Nullable;
 
-/*** 本地化翻译类，管理所有打印机模组的翻译键 ***/
 @Getter
 public class I18n {
     public static final I18n MESSAGE_TOGGLED = of("message.toggled");
@@ -25,23 +24,21 @@ public class I18n {
     private static final String PREFIX_CONFIG = "config";
     private static final String PREFIX_COMMENT = "comment";
 
-    // 原有成员变量保留
     private final @Nullable String prefix;
-    private final String id;
-    private final String configKey;
-    private final String configCommentKey;
+    private final String nameKey;
+    private final String withPrefixNameKey;
+    private final String descKey;
+    private final String configNameKey;
+    private final String configDescKey;
 
-    private I18n(@Nullable String prefix, String id) {
+    private I18n(@Nullable String prefix, String nameKey) {
         this.prefix = prefix;
-        this.id = id;
-        String configKey;
-        if (prefix != null) {
-            configKey = prefix + "." + PREFIX_CONFIG;
-        } else {
-            configKey = PREFIX_CONFIG;
-        }
-        this.configKey = configKey + "." + id;
-        this.configCommentKey = configKey + "." + id + "." + PREFIX_COMMENT;
+        this.nameKey = nameKey;
+        this.withPrefixNameKey = prefix == null ? nameKey : prefix + "." + nameKey;
+        this.descKey = withPrefixNameKey + "." + PREFIX_COMMENT;
+        String configNameKey = prefix == null ? PREFIX_CONFIG : prefix + "." + PREFIX_CONFIG;
+        this.configNameKey = configNameKey + "." + nameKey;
+        this.configDescKey = configNameKey + "." + nameKey + "." + PREFIX_COMMENT;
     }
 
     public static I18n of(@Nullable String prefix, String key) {
@@ -52,48 +49,58 @@ public class I18n {
         return new I18n(Reference.MOD_ID, key);
     }
 
-    public String getWithPrefixKey() {
-        if (prefix != null) {
-            return prefix + "." + id;
-        }
-        return id;
+    /*** 获取键名 ***/
+    public MutableComponent getName() {
+        return StringUtils.translatable(this.withPrefixNameKey);
     }
 
-    public MutableComponent getComponent() {
-        return StringUtils.translatable(getWithPrefixKey());
+    /*** 获取键名(带参数) ***/
+    public MutableComponent getName(Object... objects) {
+        return StringUtils.translatable(this.withPrefixNameKey, objects);
     }
 
-    public MutableComponent getComponent(Object... objects) {
-        return StringUtils.translatable(getWithPrefixKey(), objects);
+    /*** 获取描述 ***/
+    public MutableComponent getDesc() {
+        return StringUtils.translatable(this.descKey);
     }
 
-    public MutableComponent getConfigComponent() {
-        return StringUtils.translatable(getConfigKey());
+    /*** 获取描述(带参数) ***/
+    public MutableComponent getDesc(Object... objects) {
+        return StringUtils.translatable(this.descKey, objects);
     }
 
-    public MutableComponent getConfigComponent(Object... objects) {
-        return StringUtils.translatable(getConfigKey(), objects);
+    /*** 获取配置键名 ***/
+    public MutableComponent getConfigName() {
+        return StringUtils.translatable(this.configNameKey);
     }
 
-    public MutableComponent getConfigCommentComponent() {
-        return StringUtils.translatable(getConfigCommentKey());
+    /*** 获取配置键名(带参数) ***/
+    public MutableComponent getConfigName(Object... objects) {
+        return StringUtils.translatable(this.configNameKey, objects);
     }
 
-    public MutableComponent getConfigCommentComponent(Object... objects) {
-        return StringUtils.translatable(getConfigCommentKey(), objects);
+    /*** 获取配置描述 ***/
+    public MutableComponent getConfigDesc() {
+        return StringUtils.translatable(this.configDescKey);
     }
 
+    /*** 获取配置描述(带参数) ***/
+    public MutableComponent getConfigDesc(Object... objects) {
+        return StringUtils.translatable(this.configDescKey, objects);
+    }
+
+    /*** 获取简易键名(一般用于枚举, 会取 "." 最后的文本) ***/
     public String getSimpleKey() {
-        if (id == null || id.isEmpty()) {
-            return id == null ? "" : id;
+        if (nameKey == null || nameKey.isEmpty()) {
+            return nameKey == null ? "" : nameKey;
         }
-        int lastDotIndex = id.lastIndexOf('.');
+        int lastDotIndex = nameKey.lastIndexOf('.');
         if (lastDotIndex == -1) {
-            return id;
+            return nameKey;
         }
-        if (lastDotIndex == id.length() - 1) {
+        if (lastDotIndex == nameKey.length() - 1) {
             return "";
         }
-        return id.substring(lastDotIndex + 1);
+        return nameKey.substring(lastDotIndex + 1);
     }
 }

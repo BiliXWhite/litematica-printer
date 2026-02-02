@@ -21,7 +21,7 @@ public class ColorConfigBuilder extends BaseConfigBuilder<ConfigColor, ColorConf
 
     @Override
     public ConfigColor build() {
-        ConfigColor config = new ConfigColor(i18n.getId(), defaultValue, commentKey);
+        ConfigColor config = new ConfigColor(i18n.getNameKey(), defaultValue, descKey);
         return buildExtension(config);
     }
 }

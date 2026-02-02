@@ -2,9 +2,7 @@ package me.aleksilassila.litematica.printer.config.builder;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.config.options.ConfigOptionList;
-import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import me.aleksilassila.litematica.printer.I18n;
-import org.jetbrains.annotations.Nullable;
 
 public class OptionListConfigBuilder extends BaseConfigBuilder<ConfigOptionList, OptionListConfigBuilder> {
     private IConfigOptionListEntry defaultValue;
@@ -24,7 +22,7 @@ public class OptionListConfigBuilder extends BaseConfigBuilder<ConfigOptionList,
 
     @Override
     public ConfigOptionList build() {
-        ConfigOptionList config = new ConfigOptionList(i18n.getId(), defaultValue, commentKey);
+        ConfigOptionList config = new ConfigOptionList(i18n.getNameKey(), defaultValue, descKey);
         return buildExtension(config);
     }
 }

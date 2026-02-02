@@ -13,14 +13,14 @@ import java.util.function.Consumer;
 public abstract class BaseConfigBuilder<T extends ConfigBase<?>, B extends BaseConfigBuilder<T, B>> {
     protected final I18n i18n;
     protected String nameKey;
-    protected String commentKey;
+    protected String descKey;
     protected @Nullable BooleanSupplier visible;
     protected final CopyOnWriteArrayList<Consumer<IConfigBase>> valueChangeCallbacks = new CopyOnWriteArrayList<>();
 
     public BaseConfigBuilder(I18n i18n) {
         this.i18n = i18n;
-        this.nameKey = i18n.getConfigKey();
-        this.commentKey = i18n.getConfigCommentKey();
+        this.nameKey = i18n.getConfigNameKey();
+        this.descKey = i18n.getConfigDescKey();
         this.visible = null;
     }
 
@@ -35,8 +35,8 @@ public abstract class BaseConfigBuilder<T extends ConfigBase<?>, B extends BaseC
     }
 
     @SuppressWarnings("unchecked")
-    public B setCommentKey(String comment) {
-        this.commentKey = comment;
+    public B setDescKey(String comment) {
+        this.descKey = comment;
         return (B) this;
     }
 
@@ -70,7 +70,7 @@ public abstract class BaseConfigBuilder<T extends ConfigBase<?>, B extends BaseC
     protected void buildI18n(T config) {
         ConfigExtension extension = (ConfigExtension) config;
         extension.litematica_printer$setTranslateNameKey(this.nameKey);
-        extension.litematica_printer$setTranslateCommentKey(this.commentKey);
+        extension.litematica_printer$setTranslateCommentKey(this.descKey);
     }
 
     protected void buildVisible(T config) {

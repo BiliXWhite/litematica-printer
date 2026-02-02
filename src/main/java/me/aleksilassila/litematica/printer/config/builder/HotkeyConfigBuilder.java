@@ -46,7 +46,7 @@ public class HotkeyConfigBuilder extends BaseConfigBuilder<ConfigHotkey, HotkeyC
 
     @Override
     public ConfigHotkey build() {
-        ConfigHotkey config = new ConfigHotkey(i18n.getId(), defaultStorageString, keybindSettings, commentKey);
+        ConfigHotkey config = new ConfigHotkey(i18n.getNameKey(), defaultStorageString, keybindSettings, descKey);
         if (keybindCallback == null) {
             if (bindConfig == null) {
                 keybindCallback = HotkeysCallback::onKeyAction;

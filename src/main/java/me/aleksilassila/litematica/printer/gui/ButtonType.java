@@ -11,11 +11,7 @@ public enum ButtonType {
         this.i18n = i18n;
     }
 
-    public String getLabelKey() {
-        return this.i18n.getWithPrefixKey();
-    }
-
     public String getDisplayName() {
-        return this.i18n.getComponent().getString();
+        return this.i18n.getName().getString();
     }
 }

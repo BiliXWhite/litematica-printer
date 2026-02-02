@@ -47,11 +47,11 @@ public class UpdateCheckerUtils {
             // 仅当最新正式版 > 本地版本时，触发更新提示
             if (latestSemVer.isHigherThan(localSemVer)) {
                 Minecraft.getInstance().execute(() -> {
-                    MessageUtils.addMessage(I18n.UPDATE_AVAILABLE.getComponent(LOCAL_VERSION, latestOfficialVersion)
+                    MessageUtils.addMessage(I18n.UPDATE_AVAILABLE.getName(LOCAL_VERSION, latestOfficialVersion)
                             .withStyle(ChatFormatting.YELLOW));
-                    MessageUtils.addMessage(I18n.UPDATE_RECOMMENDATION.getComponent()
+                    MessageUtils.addMessage(I18n.UPDATE_RECOMMENDATION.getName()
                             .withStyle(ChatFormatting.RED));
-                    MessageUtils.addMessage(I18n.UPDATE_REPOSITORY.getComponent()
+                    MessageUtils.addMessage(I18n.UPDATE_REPOSITORY.getName()
                             .withStyle(ChatFormatting.WHITE));
                     MessageUtils.addMessage(StringUtils.literal("https://github.com/BiliXWhite/litematica-printer")
                             .setStyle(Style.EMPTY
@@ -62,7 +62,7 @@ public class UpdateCheckerUtils {
                                     //#endif
                                     .withUnderlined(true)
                                     .withColor(ChatFormatting.BLUE)));
-                    MessageUtils.addMessage(I18n.UPDATE_DOWNLOAD.getComponent()
+                    MessageUtils.addMessage(I18n.UPDATE_DOWNLOAD.getName()
                             .setStyle(Style.EMPTY
                                     //#if MC >= 12105
                                     .withClickEvent(new ClickEvent.OpenUrl(URI.create("https://xeno.lanzoue.com/b00l1v20vi")))
@@ -71,7 +71,7 @@ public class UpdateCheckerUtils {
                                     //#endif
                                     .withBold(true)
                                     .withColor(ChatFormatting.GREEN)));
-                    MessageUtils.addMessage(I18n.UPDATE_PASSWORD.getComponent("cgxw")
+                    MessageUtils.addMessage(I18n.UPDATE_PASSWORD.getName("cgxw")
                             .withStyle(ChatFormatting.WHITE));
                     MessageUtils.addMessage(
                             StringUtils.literal("------------------------").withStyle(ChatFormatting.GRAY));
@@ -105,7 +105,7 @@ public class UpdateCheckerUtils {
             }
         } catch (Exception exception) {
             System.out.println("无法检查更新: " + exception.getMessage());
-            Minecraft.getInstance().execute(() -> MessageUtils.addMessage(I18n.UPDATE_FAILED.getComponent()));
+            Minecraft.getInstance().execute(() -> MessageUtils.addMessage(I18n.UPDATE_FAILED.getName()));
             exception.printStackTrace();
         }
         return null;

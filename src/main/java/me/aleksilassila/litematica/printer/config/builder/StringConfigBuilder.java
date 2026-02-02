@@ -21,7 +21,7 @@ public class StringConfigBuilder extends BaseConfigBuilder<ConfigString, StringC
 
     @Override
     public ConfigString build() {
-        ConfigString config = new ConfigString(i18n.getId(), defaultValue, commentKey);
+        ConfigString config = new ConfigString(i18n.getNameKey(), defaultValue, descKey);
         return buildExtension(config);
     }
 }

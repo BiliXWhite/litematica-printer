@@ -43,7 +43,7 @@ public class IntegerConfigBuilder extends BaseConfigBuilder<ConfigInteger, Integ
 
     @Override
     public ConfigInteger build() {
-        ConfigInteger config = new ConfigInteger(i18n.getId(), defaultValue, minValue, maxValue, useSlider, commentKey);
+        ConfigInteger config = new ConfigInteger(i18n.getNameKey(), defaultValue, minValue, maxValue, useSlider, descKey);
         return buildExtension(config);
     }
 }

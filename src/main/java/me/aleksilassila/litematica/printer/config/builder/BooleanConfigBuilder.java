@@ -21,7 +21,7 @@ public class BooleanConfigBuilder extends BaseConfigBuilder<ConfigBoolean, Boole
 
     @Override
     public ConfigBoolean build() {
-        ConfigBoolean config = new ConfigBoolean(i18n.getId(), defaultValue, commentKey);
+        ConfigBoolean config = new ConfigBoolean(i18n.getNameKey(), defaultValue, descKey);
         return buildExtension(config);
     }
 }
