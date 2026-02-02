@@ -84,7 +84,7 @@ public class PlacementGuide extends PrinterUtils {
                     return null;
                 } else {
                     InteractionUtils.INSTANCE.add(ctx);
-                    BlockCooldownManager.INSTANCE.setCooldown(BlockCooldownType.PRINT_WATER, ctx.blockPos, 40);
+                    BlockCooldownManager.INSTANCE.setCooldown(BlockCooldownType.PRINT_WATER, ctx.blockPos, 20);
                 }
                 return null;
             }
