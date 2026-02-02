@@ -230,7 +230,6 @@ public class Printer extends PrinterUtils {
 
     private void functionTick(Minecraft client, ClientLevel level, LocalPlayer player) {
         for (Function function : Functions.VALUES) {
-            function.cooldownTick();
             if (!function.isConfigAllowExecute(this)) {
                 continue;
             }

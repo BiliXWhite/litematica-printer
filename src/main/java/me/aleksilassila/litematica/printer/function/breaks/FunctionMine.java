@@ -38,20 +38,6 @@ public class FunctionMine extends FunctionBreak {
     }
 
     @Override
-    public void cooldownTick() {
-        super.cooldownTick();
-        // 缓存清理逻辑（每Tick递减，至少保留1个Tick）
-        if (lastBlockCacheTick > 0) {
-            lastBlockCacheTick--;
-            // 缓存过期后清空，避免内存泄漏
-            if (lastBlockCacheTick == 0) {
-                lastMinedBlock = null;
-                tickMinedCount = 0;
-            }
-        }
-    }
-
-    @Override
     public boolean canIterationTest(Printer printer, ClientLevel level, LocalPlayer player, BlockPos pos) {
         if (pos != null) {
             if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.Mine.MINE_SELECTION_TYPE)) {

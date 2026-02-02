@@ -25,9 +25,6 @@ public abstract class Function extends PrinterUtils {
 
     public AtomicReference<MyBox> multiBox = new AtomicReference<>();
 
-    public void cooldownTick() {
-    }
-
     public boolean isConfigAllowExecute(Printer printer) {
         ModeType modeType = (ModeType) Configs.Core.WORK_MODE.getOptionListValue();
         if (modeType.equals(ModeType.SINGLE)) {
