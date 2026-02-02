@@ -20,10 +20,10 @@ import java.util.Objects;
 import java.util.function.BooleanSupplier;
 
 public class ConfigUi extends GuiConfigsBase {
-    private static Tab tab = Tab.ALL;
+    private static Tab tab = Tab.GENERAL;
 
     public ConfigUi(@Nullable Screen parent) {
-        super(10, 50, Reference.MOD_ID, parent, "投影打印机 " + UpdateCheckerUtils.LOCAL_VERSION);
+        super(10, 50, Reference.MOD_ID, parent, "Litematica Printer " + UpdateCheckerUtils.LOCAL_VERSION + " - " + I18n.FREE_NOTICE.getComponent().getString());
     }
 
     public ConfigUi() {
@@ -77,7 +77,6 @@ public class ConfigUi extends GuiConfigsBase {
     }
 
     public enum Tab {
-        ALL(I18n.of("category.all")),
         GENERAL(I18n.of("category.general")),
         PLACEMENT(I18n.of("category.placement")),
         BREAK(I18n.of("category.break")),
@@ -104,7 +103,6 @@ public class ConfigUi extends GuiConfigsBase {
 
         public ImmutableList<IConfigBase> getConfigs() {
             return switch (this) {
-                case ALL -> Configs.OPTIONS;
                 case GENERAL -> Configs.General.OPTIONS;
                 case PLACEMENT -> Configs.Placement.OPTIONS;
                 case BREAK -> Configs.Break.OPTIONS;

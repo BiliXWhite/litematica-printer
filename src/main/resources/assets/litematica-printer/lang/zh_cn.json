@@ -1,5 +1,6 @@
 {
   "litematica_printer.auto_disable_notice": "打印机已自动关闭",
+  "litematica_printer.free_notice": "此模组在GitHub上开源免费，如从收费渠道购买请自行退款",
   "litematica_printer.config.autoInventory": "远程交互 - 自动设置远程交互",
   "litematica_printer.config.autoInventory.comment": "在服务器允许的情况下自动开启远程容器交互功能，反之则自动关闭",
   "litematica_printer.config.bedrock": "破基岩",
@@ -18,8 +19,6 @@
   "litematica_printer.config.breakProgressThreshold.comment": "挖掘方块时的进度阈值，达到该百分比后判定挖掘完成（取值范围70-100%）。\n数值越高，挖掘体验越接近原版，但速度越慢；数值越低，挖掘速度越快，但可能跳过部分方块动画。",
   "litematica_printer.config.breakSpeed": "破坏 - 工作间隔（游戏刻）",
   "litematica_printer.config.breakSpeed.comment": "破坏方块的间隔时间（游戏刻）。\n设为0则无间隔（可能导致服务器卡顿），建议设为1-5以平衡速度与性能。\n设为§b0§r时，§6§l每刻执行方块数§r选项将激活（需重新打开设置菜单）。",
-  "litematica_printer.config.category.all": "全部",
-  "litematica_printer.config.category.all.comment": "包含所有配置项的总分类，可查看/修改打印机的全部相关设置",
   "litematica_printer.config.category.bedrock": "§6破基岩",
   "litematica_printer.config.category.bedrock.comment": "基岩挖掘模式相关配置",
   "litematica_printer.config.category.break": "破坏",

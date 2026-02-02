@@ -13,6 +13,7 @@ public class I18n {
     public static final I18n MESSAGE_VALUE_ON = of("message.value.on");
 
     public static final I18n AUTO_DISABLE_NOTICE = of("auto_disable_notice");
+    public static final I18n FREE_NOTICE = of("free_notice");
 
     public static final I18n UPDATE_AVAILABLE = of("update.available");
     public static final I18n UPDATE_DOWNLOAD = of("update.download");
