@@ -2,11 +2,14 @@ package me.aleksilassila.litematica.printer.function.placements;
 
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.enums.BlockCooldownType;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.function.FunctionPlacement;
+import me.aleksilassila.litematica.printer.printer.BlockCooldownManager;
 import me.aleksilassila.litematica.printer.printer.PlacementGuide;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
+import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.FilterUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -52,7 +55,7 @@ public class FunctionFluid extends FunctionPlacement {
             if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.Fluid.FLUID_SELECTION_TYPE)) {
                 return false;
             }
-            if (isPlaceCooldown(pos)) {
+            if (BlockCooldownManager.INSTANCE.isOnCooldown(BlockCooldownType.FLUID, blockPos)) {
                 return false;
             }
         }
@@ -93,14 +96,14 @@ public class FunctionFluid extends FunctionPlacement {
         int placeBlocksPerTick = Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue();
         boolean loop = true;
         while (loop && (blockPos = getBoxBlockPos()) != null) {
-            if (isPlaceCooldown(blockPos)) {
-                loop = false;
-            }
-            setPlaceCooldown(blockPos);
             if (Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue() != 0 && placeBlocksPerTick == 0) {
                 loop = false;
             }
+            if (BlockCooldownManager.INSTANCE.isOnCooldown(BlockCooldownType.FLUID, blockPos)) {
+                loop = false;
+            }
             if (!PrinterUtils.isPositionInSelectionRange(player, blockPos, Configs.Fluid.FLUID_SELECTION_TYPE)) {
+                BlockCooldownManager.INSTANCE.setCooldown(BlockCooldownType.FLUID, blockPos, 8);
                 continue;
             }
             FluidState fluidState = level.getBlockState(blockPos).getFluidState();
@@ -116,7 +119,7 @@ public class FunctionFluid extends FunctionPlacement {
                     placeBlocksPerTick--;
                 }
             }
-            setPlaceCooldown(blockPos);
+            BlockCooldownManager.INSTANCE.setCooldown(BlockCooldownType.FLUID, blockPos, ConfigUtils.getPlaceCooldown());
         }
     }
 }

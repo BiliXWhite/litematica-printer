@@ -4,6 +4,7 @@ import lombok.Getter;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.enums.BlockCooldownType;
 import me.aleksilassila.litematica.printer.enums.BlockPrintState;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.utils.*;
@@ -37,11 +38,10 @@ public class PlacementGuide extends PrinterUtils {
     @SuppressWarnings("all")
     protected static final Map<Block, Block> STRIPPED_LOGS = AxeItemAccessor.getStrippedBlocks();
     protected static final Item[] compostableItems = Arrays.stream(ComposterBlock.COMPOSTABLES.keySet().toArray(ItemLike[]::new)).map(ItemLike::asItem).toArray(Item[]::new);
-
-    protected final @NotNull Minecraft mc;
-    protected final AtomicReference<Boolean> skip = new AtomicReference<>(false);
     protected static List<String> compostWhitelistCache = new ArrayList<>();      // 缓存堆肥桶白名单的字符串列表（用于判断是否修改）
     protected static Item[] whitelistItemsCache = new Item[0];    // 缓存过滤后的可堆肥物品列表（避免重复计算）
+    protected final @NotNull Minecraft mc;
+    protected final AtomicReference<Boolean> skip = new AtomicReference<>(false);
 
 
     public PlacementGuide(@NotNull Minecraft client) {
@@ -80,9 +80,11 @@ public class PlacementGuide extends PrinterUtils {
                 return null;
             }
             if (ctx.currentState.getBlock() instanceof IceBlock) {  // 冰块
-                if (!Printer.getInstance().printWaterCooldownList.containsKey(ctx.blockPos)) {
+                if (BlockCooldownManager.INSTANCE.isOnCooldown(BlockCooldownType.PRINT_WATER, ctx.blockPos)) {
+                    return null;
+                } else {
                     InteractionUtils.INSTANCE.add(ctx);
-                    Printer.getInstance().printWaterCooldownList.put(ctx.blockPos, 20);
+                    BlockCooldownManager.INSTANCE.setCooldown(BlockCooldownType.PRINT_WATER, ctx.blockPos, 40);
                 }
                 return null;
             }

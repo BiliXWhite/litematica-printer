@@ -51,8 +51,7 @@
     "printer.mc.MixinClientPacketListener",
     "printer.mc.MixinLocalPlayer",
     "printer.mc.MixinMultiPlayerGameMode",
-    "printer.mc.ServerboundMovePlayerPacketAccessor",
-    "verify.MixinClientConnection"
+    "printer.mc.ServerboundMovePlayerPacketAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

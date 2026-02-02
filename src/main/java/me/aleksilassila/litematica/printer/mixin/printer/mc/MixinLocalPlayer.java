@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.printer.BlockCooldownManager;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import me.aleksilassila.litematica.printer.utils.UpdateCheckerUtils;
@@ -75,6 +76,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
 
     @Inject(at = @At("HEAD"), method = "tick")
     public void tick(CallbackInfo ci) {
+        BlockCooldownManager.INSTANCE.tick();
         ZxyUtils.tick();
         InteractionUtils.INSTANCE.onTick();
         Printer printer = Printer.getInstance();

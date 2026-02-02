@@ -101,7 +101,7 @@ public abstract class MemoryUtilsMixin {
                 Block block = state.getBlock();
                 //                System.out.println(state);
                 boolean k = true;
-                for (String string : Configs.General.INVENTORY_LIST.getStrings()) {
+                for (String string : Configs.Core.INVENTORY_LIST.getStrings()) {
                     if (BuiltInRegistries.BLOCK.getKey(block).toString().contains(string)) {
                         k = false;
                         break;

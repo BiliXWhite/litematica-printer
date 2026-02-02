@@ -9,6 +9,7 @@ import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.Debug;
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.enums.BlockCooldownType;
 import me.aleksilassila.litematica.printer.enums.IterationOrderType;
 import me.aleksilassila.litematica.printer.enums.BlockPrintState;
 import me.aleksilassila.litematica.printer.function.Function;
@@ -56,20 +57,14 @@ import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
 
 public class Printer extends PrinterUtils {
     private static Printer INSTANCE = null;
-
-    public boolean printerMemorySync = false;
-    public Map<BlockPos, Integer> placeCooldownList = new HashMap<>();
-    public Map<BlockPos, Integer> printWaterCooldownList = new HashMap<>();
-    public ItemStack orderlyStoreItem; //有序存放临时存储
-    public int shulkerCooldown = 0;
-
-    public long tickStartTime, tickEndTime;
-    public int packetTick;
-
     @NotNull
     public final PlacementGuide guide;
     public final Queue queue;
-
+    public boolean printerMemorySync = false;
+    public ItemStack orderlyStoreItem; //有序存放临时存储
+    public int shulkerCooldown = 0;
+    public long tickStartTime, tickEndTime;
+    public int packetTick;
     //强制循环半径
     public BlockPos basePos = null;
     public AtomicReference<MyBox> commonBox = new AtomicReference<>();
@@ -209,7 +204,6 @@ public class Printer extends PrinterUtils {
     }
 
     public void onGameTick(Minecraft client, ClientLevel level, LocalPlayer player) {
-        cooldownTick(); // 冷却TICK放在前面, 不受开关与延迟影响
         if (!isEnable()) {
             return;
         }
@@ -233,31 +227,6 @@ public class Printer extends PrinterUtils {
         printerTick(client, level, player);
     }
 
-    private void cooldownTick() {
-        if (shulkerCooldown > 0) {
-            shulkerCooldown--;
-        }
-        Iterator<Map.Entry<BlockPos, Integer>> iterator = placeCooldownList.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<BlockPos, Integer> entry = iterator.next();
-            int newValue = entry.getValue() - 1;
-            if (newValue <= 0) {
-                iterator.remove();
-            } else {
-                entry.setValue(newValue);
-            }
-        }
-        Iterator<Map.Entry<BlockPos, Integer>> iterator2 = printWaterCooldownList.entrySet().iterator();
-        while (iterator2.hasNext()) {
-            Map.Entry<BlockPos, Integer> entry = iterator2.next();
-            int newValue = entry.getValue() - 1;
-            if (newValue <= 0) {
-                iterator2.remove();
-            } else {
-                entry.setValue(newValue);
-            }
-        }
-    }
 
     private void functionTick(Minecraft client, ClientLevel level, LocalPlayer player) {
         for (Function function : Functions.VALUES) {
@@ -305,7 +274,7 @@ public class Printer extends PrinterUtils {
                 continue;
             }
             // 跳过冷却中的位置
-            if (placeCooldownList.containsKey(targetPos)) {
+            if (BlockCooldownManager.INSTANCE.isOnCooldown(level, BlockCooldownType.PRINT, targetPos)) {
                 continue;
             }
             blockContext = new BlockContext(client, level, schematic, targetPos);
@@ -362,7 +331,8 @@ public class Printer extends PrinterUtils {
                     pistonNeedFix = true;
                 }
                 queue.sendQueue(player);
-                placeCooldownList.put(blockContext.blockPos, Configs.Placement.PLACE_COOLDOWN.getIntegerValue());
+
+                BlockCooldownManager.INSTANCE.setCooldown(level, BlockCooldownType.PRINT, targetPos, ConfigUtils.getPlaceCooldown());
 
                 if (block instanceof PistonBaseBlock ||
                         block instanceof ObserverBlock ||
