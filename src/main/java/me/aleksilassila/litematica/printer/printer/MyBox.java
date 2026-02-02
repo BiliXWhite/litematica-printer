@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.printer;
 
-import me.aleksilassila.litematica.printer.config.enums.IterationOrderType;
+import me.aleksilassila.litematica.printer.enums.IterationOrderType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Vec3i;
 import org.jetbrains.annotations.NotNull;

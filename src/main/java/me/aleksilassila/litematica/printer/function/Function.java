@@ -2,8 +2,8 @@ package me.aleksilassila.litematica.printer.function;
 
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.config.enums.ModeType;
-import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
+import me.aleksilassila.litematica.printer.enums.ModeType;
+import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.printer.MyBox;
 import me.aleksilassila.litematica.printer.printer.Printer;
 

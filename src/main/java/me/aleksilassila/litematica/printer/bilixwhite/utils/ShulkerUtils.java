@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.config.enums.QuickShulkerModeType;
+import me.aleksilassila.litematica.printer.enums.QuickShulkerModeType;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import me.aleksilassila.litematica.printer.utils.StringUtils;

@@ -3,7 +3,7 @@ package me.aleksilassila.litematica.printer.function.breaks;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import lombok.Getter;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
+import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.function.FunctionBreak;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;

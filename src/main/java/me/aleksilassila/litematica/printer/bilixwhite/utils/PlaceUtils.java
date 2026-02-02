@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.bilixwhite.utils;
 
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.config.enums.FillModeFacingType;
+import me.aleksilassila.litematica.printer.enums.FillModeFacingType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

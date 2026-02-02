@@ -9,7 +9,8 @@ import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.Debug;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.config.enums.IterationOrderType;
+import me.aleksilassila.litematica.printer.enums.IterationOrderType;
+import me.aleksilassila.litematica.printer.enums.BlockPrintState;
 import me.aleksilassila.litematica.printer.function.Function;
 import me.aleksilassila.litematica.printer.function.Functions;
 import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
@@ -171,7 +172,7 @@ public class Printer extends PrinterUtils {
                 if (context.requiredState.isAir()) {
                     continue;
                 }
-                if (State.get(context) == State.CORRECT) {
+                if (BlockPrintState.get(context) == BlockPrintState.CORRECT) {
                     workProgressFinishedCount++;
                 }
             }

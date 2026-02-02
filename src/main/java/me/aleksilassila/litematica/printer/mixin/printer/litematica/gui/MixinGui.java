@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.mixin.printer.litematica.gui;
 
 import me.aleksilassila.litematica.printer.bilixwhite.utils.RenderUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.config.enums.ModeType;
+import me.aleksilassila.litematica.printer.enums.ModeType;
 import me.aleksilassila.litematica.printer.function.Functions;
 import me.aleksilassila.litematica.printer.printer.BlockContext;
 import me.aleksilassila.litematica.printer.printer.Printer;

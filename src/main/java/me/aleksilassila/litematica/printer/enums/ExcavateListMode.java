@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.config.enums;
+package me.aleksilassila.litematica.printer.enums;
 
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.ConfigOptionListEntry;

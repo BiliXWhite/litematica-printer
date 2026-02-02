@@ -3,7 +3,7 @@ package me.aleksilassila.litematica.printer.function;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.config.enums.PrintModeType;
+import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;

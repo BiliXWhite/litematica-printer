@@ -1,13 +1,11 @@
 package me.aleksilassila.litematica.printer.utils;
 
-import com.mojang.datafixers.kinds.IdF;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
-import lombok.Getter;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.TweakerooUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.config.enums.ExcavateListMode;
+import me.aleksilassila.litematica.printer.enums.ExcavateListMode;
 import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
 import me.aleksilassila.litematica.printer.printer.BlockContext;
 import me.aleksilassila.litematica.printer.printer.Printer;
