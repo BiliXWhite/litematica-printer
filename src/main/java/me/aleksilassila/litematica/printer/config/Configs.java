@@ -480,13 +480,8 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 MINE,                         // 挖掘 - 多模开关
-                EXCAVATE_LIMITER,             // 挖掘 - 挖掘模式限制器
-
-                Break.BREAK_PLACE_USE_PACKET,
-                Break.BREAK_PROGRESS_THRESHOLD,
-
-                // 自定义限制配置
                 MINE_SELECTION_TYPE,          // 挖掘 - 选区类型
+                EXCAVATE_LIMITER,             // 挖掘 - 挖掘模式限制器
                 EXCAVATE_LIMIT,               // 挖掘 - 挖掘模式限制
                 EXCAVATE_WHITELIST,           // 挖掘 - 挖掘白名单
                 EXCAVATE_BLACKLIST            // 挖掘 - 挖掘黑名单
@@ -521,11 +516,8 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
-                // 核心开关 & 基础配置
                 FILL,                         // 填充 - 多模开关
                 FILL_SELECTION_TYPE,          // 填充 - 选区类型
-
-                // 填充规则配置
                 FILL_BLOCK_MODE,              // 填充 - 填充方块模式
                 FILL_BLOCK_LIST,              // 填充 - 填充方块名单
                 FILL_BLOCK_FACING             // 填充 - 模式朝向
@@ -559,7 +551,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(Blocks.WATER, Blocks.LAVA)
                 .build();
 
-        // 排流体配置项列表（按功能分类排序）
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 FLUID,                        // 排流体 - 多模开关
                 FLUID_SELECTION_TYPE,         // 排流体 - 选区类型
@@ -631,21 +622,20 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
-                // 核心操作热键
                 OPEN_SCREEN,                  // 打开设置菜单
-                General.WORK_TOGGLE,
-                Print.WORK_TOGGLE_HOTKEY,           // 打印热键
+                General.WORK_TOGGLE,          // 工作开关
+                Print.WORK_TOGGLE_HOTKEY,     // 工作开关热键(按住)
                 CLOSE_ALL_MODE,               // 关闭全部模式
                 SWITCH_PRINTER_MODE,          // 切换模式
 
-                // 多模功能热键
+                // 多模
                 Print.PRINT,
                 Excavate.MINE,                // 挖掘
                 Fill.FILL,                    // 填充
                 FLUID.FLUID,                  // 排流体
                 BEDROCK,                      // 破基岩
 
-                // 远程交互热键
+                // 远程交互
                 SYNC_INVENTORY,               // 同步容器热键
                 SYNC_INVENTORY_CHECK,         // 同步容器开关热键
                 PRINTER_INVENTORY,            // 设置打印机库存热键
