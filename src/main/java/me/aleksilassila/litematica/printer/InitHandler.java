@@ -24,8 +24,8 @@ public class InitHandler implements IInitializationHandler {
     private static void initModConfig() {
         // 箱子追踪(模组没加载的情况下, 进行关闭)
         if (!ModLoadStatus.isLoadChestTrackerLoaded()) {
-            General.AUTO_INVENTORY.setBooleanValue(false);  // 自动设置远程交互
-            General.CLOUD_INVENTORY.setBooleanValue(false); // 远程交互容器
+            Core.AUTO_INVENTORY.setBooleanValue(false);  // 自动设置远程交互
+            Core.CLOUD_INVENTORY.setBooleanValue(false); // 远程交互容器
         }
         //#if MC >= 12001 && MC <= 12104
         //$$ if (ModLoadStatus.isLoadChestTrackerLoaded()) {
@@ -37,27 +37,16 @@ public class InitHandler implements IInitializationHandler {
     private void initConfigCallback() {
         Hotkeys.CLOSE_ALL_MODE.getKeybind().setCallback((action, keybind) -> {
             if (keybind.isKeybindHeld()) {
-                Configs.Excavate.MINE.setBooleanValue(false);
-                Configs.FLUID.FLUID.setBooleanValue(false);
-                Configs.General.WORK_TOGGLE.setBooleanValue(false);
-                Configs.General.WORK_MODE_TYPE.setOptionListValue(PrintModeType.PRINTER);
+                Core.MINE.setBooleanValue(false);
+                Core.FLUID.setBooleanValue(false);
+                Core.WORK_SWITCH.setBooleanValue(false);
+                Core.WORK_MODE_TYPE.setOptionListValue(PrintModeType.PRINTER);
                 MessageUtils.setOverlayMessage(StringUtils.nullToEmpty("已关闭全部模式"));
             }
             return true;
         });
 
-        Print.WORK_TOGGLE_HOTKEY.getKeybind().setCallback((action, key) -> {
-            if (key.isKeybindHeld()) {
-                if (!General.WORK_TOGGLE.getBooleanValue()) {
-                    General.WORK_TOGGLE.setBooleanValue(true);
-                }
-            } else {
-                General.WORK_TOGGLE.setBooleanValue(false);
-            }
-            return true;
-        });
-
-        General.WORK_TOGGLE.setValueChangeCallback(b -> {
+        Core.WORK_SWITCH.setValueChangeCallback(b -> {
             if (!b.getBooleanValue()) {
                 Printer printer = Printer.getInstance();
                 printer.clearQueue();
@@ -72,7 +61,7 @@ public class InitHandler implements IInitializationHandler {
         });
 
         // 切换模式时, 关闭破基岩
-        General.WORK_MODE_TYPE.setValueChangeCallback(b -> {
+        Core.WORK_MODE_TYPE.setValueChangeCallback(b -> {
             if (!b.getOptionListValue().equals(PrintModeType.BEDROCK)) {
                 if (ModLoadStatus.isBedrockMinerLoaded()) {
                     if (BedrockUtils.isWorking()) {

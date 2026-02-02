@@ -15,7 +15,7 @@ public class Debug {
     }
 
     public static void write(String var1, Object... var2) {
-        if (Configs.General.DEBUG_OUTPUT.getBooleanValue()) {
+        if (Configs.Core.DEBUG_OUTPUT.getBooleanValue()) {
             Reference.LOGGER.info(var1, var2);
         }
     }

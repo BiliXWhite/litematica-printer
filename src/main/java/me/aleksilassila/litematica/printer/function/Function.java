@@ -29,9 +29,9 @@ public abstract class Function extends PrinterUtils {
     }
 
     public boolean isConfigAllowExecute(Printer printer) {
-        ModeType modeType = (ModeType) Configs.General.WORK_MODE.getOptionListValue();
+        ModeType modeType = (ModeType) Configs.Core.WORK_MODE.getOptionListValue();
         if (modeType.equals(ModeType.SINGLE)) {
-            PrintModeType printModeType = (PrintModeType) Configs.General.WORK_MODE_TYPE.getOptionListValue();
+            PrintModeType printModeType = (PrintModeType) Configs.Core.WORK_MODE_TYPE.getOptionListValue();
             if (!printModeType.equals(getPrintModeType())) {
                 return false;
             }
@@ -47,7 +47,7 @@ public abstract class Function extends PrinterUtils {
     }
 
     public @Nullable BlockPos getBoxBlockPos() {
-        ModeType modeType = (ModeType) Configs.General.WORK_MODE.getOptionListValue();
+        ModeType modeType = (ModeType) Configs.Core.WORK_MODE.getOptionListValue();
         if (modeType.equals(ModeType.SINGLE)) {
             return Printer.getInstance().getBlockPos();
         }

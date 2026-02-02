@@ -3,21 +3,15 @@ package me.aleksilassila.litematica.printer.mixin.printer.mc;
 import com.mojang.authlib.GameProfile;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
-import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import me.aleksilassila.litematica.printer.utils.UpdateCheckerUtils;
-import me.aleksilassila.litematica.printer.utils.MessageUtils;
-import me.aleksilassila.litematica.printer.utils.StringUtils;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Style;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
 import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -40,7 +34,7 @@ import java.util.concurrent.CompletableFuture;
 //#else
 //#endif
 //#if MC >= 12105
-import java.net.URI;
+
 //#endif
 
 @Mixin(LocalPlayer.class)
@@ -65,7 +59,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
 
     @Inject(at = @At("HEAD"), method = "resetPos")
     public void init(CallbackInfo ci) {
-        if (Configs.General.UPDATE_CHECK.getBooleanValue() && !Printer.getInstance().updateChecked) {
+        if (Configs.Core.UPDATE_CHECK.getBooleanValue() && !Printer.getInstance().updateChecked) {
             CompletableFuture.runAsync(UpdateCheckerUtils::checkForUpdates);
         }
         Printer.getInstance().updateChecked = true;

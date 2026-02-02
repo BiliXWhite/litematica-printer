@@ -62,7 +62,7 @@ public abstract class MixinMinecraftClient {
         }
         Item item = level.getBlockState(pos).getBlock().asItem();
         if (player.inventoryMenu.slots.stream().noneMatch(slot -> slot.getItem().getItem().equals(item)) &&
-                !player.getAbilities().instabuild && (Configs.General.CLOUD_INVENTORY.getBooleanValue() || Configs.General.QUICK_SHULKER.getBooleanValue())) {
+                !player.getAbilities().instabuild && (Configs.Core.CLOUD_INVENTORY.getBooleanValue() || Configs.Placement.QUICK_SHULKER.getBooleanValue())) {
             lastNeedItemList.add(item);
             InventoryUtils.switchItem();
             return;
@@ -74,7 +74,7 @@ public abstract class MixinMinecraftClient {
     ////$$ @WrapOperation(method = "pickBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/level/entity/player/Inventory;findSlotMatchingItem(Lnet/minecraft/level/item/ItemStack;)I" ))
     ////$$ private int doItemPick(Inventory instance, ItemStack stack, Operation<Integer> original) {
     ////$$     int slotWithStack = original.call(instance, stack);
-    ////$$     if(!player.getAbilities().instabuild && (Configs.General.CLOUD_INVENTORY.getBooleanValue() || Configs.General.QUICK_SHULKER.getBooleanValue()) && slotWithStack == -1){
+    ////$$     if(!player.getAbilities().instabuild && (Configs.Core.CLOUD_INVENTORY.getBooleanValue() || Configs.Placement.QUICK_SHULKER.getBooleanValue()) && slotWithStack == -1){
     ////$$         Item item = stack.getItem();
     ////$$         lastNeedItemList.add(item);
     ////$$         InventoryUtils.switchItem();
