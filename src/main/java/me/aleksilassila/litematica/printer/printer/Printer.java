@@ -520,7 +520,7 @@ public class Printer extends PrinterUtils {
             }
 
 
-            if (Configs.Print.PRINT_USE_PACKET.getBooleanValue()) {
+            if (Configs.Placement.PRINT_USE_PACKET.getBooleanValue()) {
                 NetworkUtils.sendPacket(sequence -> new ServerboundUseItemOnPacket(
                         InteractionHand.MAIN_HAND,
                         new BlockHitResult(hitVec, side, target, false)

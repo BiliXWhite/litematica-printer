@@ -14,7 +14,7 @@ public class MixinGenericContainerScreenHandler {
     @Inject(at = @At("HEAD"), method = "removed", cancellable = true)
     public void onClosed(Player player, CallbackInfo ci) {
         if(!(player instanceof ServerPlayer)) return;
-        for (ServerPlayer player1 : OpenInventoryPacket.playerlist) {
+        for (ServerPlayer player1 : OpenInventoryPacket.playerList) {
             if (player.equals(player1)) {
                 ci.cancel();
             }

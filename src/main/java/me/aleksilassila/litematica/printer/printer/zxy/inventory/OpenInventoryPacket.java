@@ -32,6 +32,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 //#if MC > 12004
 import net.minecraft.world.level.block.Block;
@@ -46,8 +48,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //$$ import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#endif
-import java.util.ArrayList;
-import java.util.HashMap;
+
 
 //#if MC <= 12105
 //$$ import java.util.Comparator;
@@ -69,12 +70,10 @@ import net.minecraft.core.registries.Registries;
 //#endif
 
 public class OpenInventoryPacket {
-
     private static final @NotNull Minecraft client = Minecraft.getInstance();
     private static final Identifier OPEN_INVENTORY = IdentifierUtils.of("remoteinventory", "open_inventory");
     private static final Identifier OPEN_RETURN = IdentifierUtils.of("openreturn", "open_return");
     private static final Identifier HELLO_REMOTE_INTERACTIONS = IdentifierUtils.of("hello", "hello_remote_interactions");
-
 
     //#if MC > 12104
     private static final TicketType OPEN_TICKET = TicketType.UNKNOWN;
@@ -91,7 +90,7 @@ public class OpenInventoryPacket {
     public static long clientTryTime = 0;
     public static long remoteTime = 0;
 
-    public static ArrayList<ServerPlayer> playerlist = new ArrayList<>();
+    public static ArrayList<ServerPlayer> playerList = new ArrayList<>();
 
     //#if MC > 12004
     public static class OpenPackage implements CustomPacketPayload{
@@ -257,7 +256,7 @@ public class OpenInventoryPacket {
             //$$ world.getChunkSource().addRegionTicket(OPEN_TICKET, new ChunkPos(pos), 2, new ChunkPos(pos));
             //#endif
         }
-        playerlist.add(player);
+        playerList.add(player);
         if (blockState == null) return;
         tickMap.put(player, new TickList(blockState.getBlock(), world, pos, blockState));
         BlockEntity blockEntity = world.getBlockEntity(pos);

@@ -11,14 +11,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.playerlist;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.playerList;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.tickMap;
 
 @Mixin(ServerLevel.class)
 public class MixinServerWorld {
     @Inject(at = @At("HEAD"),method = "tick")
     public void tick(CallbackInfo ci){
-        for (ServerPlayer s : playerlist) {
+        for (ServerPlayer s : playerList) {
             TickList list = tickMap.get(s);
             if (!list.world.areEntitiesLoaded(ChunkPos.asLong(list.pos))) {
                 //#if MC > 11802

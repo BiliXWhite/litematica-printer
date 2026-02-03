@@ -12,12 +12,32 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Container.class)
 public interface InventoryMixin {
-    @Inject(at = @At("HEAD"), method = "stillValidBlockEntity(Lnet/minecraft/world/level/block/entity/BlockEntity;Lnet/minecraft/world/entity/player/Player;F)Z", cancellable = true)
-    private static void canPlayeruse(BlockEntity blockEntity, Player player, float range, CallbackInfoReturnable<Boolean> cir) {
+
+    @Inject(
+            at = @At("HEAD"),
+            //#if MC >= 12004
+            method = "stillValidBlockEntity(Lnet/minecraft/world/level/block/entity/BlockEntity;Lnet/minecraft/world/entity/player/Player;F)Z",
+            //#else
+            //$$ method = "stillValidBlockEntity(Lnet/minecraft/world/level/block/entity/BlockEntity;Lnet/minecraft/world/entity/player/Player;I)Z",
+            //#endif
+            cancellable = true
+    )
+    private static void canPlayeruse(BlockEntity blockEntity,
+                                     Player player,
+                                     //#if MC >= 12004
+                                     float range,
+                                     //#else
+                                     //$$ int range,
+                                     //#endif
+                                     CallbackInfoReturnable<Boolean> cir) {
         if (player instanceof ServerPlayer) {
-            for (ServerPlayer serverPlayerEntity : OpenInventoryPacket.playerlist) {
-                if (serverPlayerEntity.equals(player)) cir.setReturnValue(true);
+            for (ServerPlayer serverPlayer : OpenInventoryPacket.playerList) {
+                if (serverPlayer.equals(player)) {
+                    cir.setReturnValue(true);
+                }
             }
         }
     }
+
+
 }
