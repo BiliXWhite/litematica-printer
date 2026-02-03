@@ -234,6 +234,11 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(false)
                 .build();
 
+        // 使用数据包打印
+        public static final ConfigBoolean PRINT_USE_PACKET = bool("printUsePacket")
+                .defaultValue(false)
+                .build();
+
         // 凭空放置
         public static final ConfigBoolean PLACE_IN_AIR = bool("placeInAir")
                 .defaultValue(true)
@@ -282,6 +287,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
+                PRINT_USE_PACKET,
                 PLACE_SPEED,
                 PLACE_BLOCKS_PER_TICK,
                 PLACE_COOLDOWN,
@@ -333,11 +339,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
     }
 
     public static class Print {
-        // 使用数据包打印
-        public static final ConfigBoolean PRINT_USE_PACKET = bool("printUsePacket")
-                .defaultValue(false)
-                .build();
-
         // 选区类型
         public static final ConfigOptionList PRINT_SELECTION_TYPE = optionList("printSelectionType")
                 .defaultValue(SelectionType.LITEMATICA_RENDER_LAYER)
