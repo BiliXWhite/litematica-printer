@@ -356,6 +356,11 @@ public class Printer extends PrinterUtils {
                 if (Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue() != 0) {
                     printerWorkingCountPerTick--;
                 }
+            } else {
+                // 未找到所需物品，给当前位置添加冷却并短暂暂停打印，避免无物品时持续遍历导致卡顿
+                BlockCooldownManager.INSTANCE.setCooldown(level, BlockCooldownType.PRINT, targetPos, ConfigUtils.getPlaceCooldown());
+                waitTicks = Math.max(waitTicks, ConfigUtils.getPlaceCooldown());
+                break;
             }
         }
     }
