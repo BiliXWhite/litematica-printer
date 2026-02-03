@@ -480,11 +480,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 EXCAVATE_LIMITER,             // 挖掘 - 挖掘模式限制器
-
-                Break.BREAK_USE_PACKET,
-                Break.BREAK_PROGRESS_THRESHOLD,
-
-                // 自定义限制配置
                 MINE_SELECTION_TYPE,          // 挖掘 - 选区类型
                 EXCAVATE_LIMIT,               // 挖掘 - 挖掘模式限制
                 EXCAVATE_WHITELIST,           // 挖掘 - 挖掘白名单
