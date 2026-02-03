@@ -13,7 +13,7 @@
   "litematica_printer.config.breakUsePacket": "挖掘使用数据包",
   "litematica_printer.config.breakUsePacket.desc": "用发送挖掘数据包代替常规挖掘逻辑，在玄学上可以加快挖掘效率。",
   "litematica_printer.config.breakProgressThreshold": "挖掘进度阈值",
-  "litematica_printer.config.breakProgressThreshold.desc": "挖掘方块时的进度阈值，达到该百分比后判定挖掘完成。\n数值越高，挖掘效率越低；数值越低，挖掘效率越快。\n因为破坏进度达到70%%%%，服务器就会视为挖掘完成，然后等待结束挖掘数据包的接收，\n所以在没有额外挖掘检测的服务器上你可以调低它。",
+  "litematica_printer.config.breakProgressThreshold.desc": "挖掘方块时的进度阈值，达到该百分比后判定挖掘完成。\n数值越高，挖掘效率越低；数值越低，挖掘效率越快。\n因为第一个游戏刻后破坏进度达到70%%%%，服务器就会视为挖掘完成，然后等待结束挖掘数据包的接收，\n所以在没有额外挖掘检测的服务器上你可以调低它。",
   "litematica_printer.config.breakSpeed": "破坏间隔时间",
   "litematica_printer.config.breakSpeed.desc": "破坏方块的间隔时间(单位为游戏刻)。\n设为0则无间隔(可能导致服务器卡顿)，建议设为1-5以平衡速度与性能。",
   "litematica_printer.config.category.bedrock": "§6破基岩",

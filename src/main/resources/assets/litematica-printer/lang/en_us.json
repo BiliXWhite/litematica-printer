@@ -13,7 +13,7 @@
   "litematica_printer.config.breakUsePacket": "Mining Using Packets",
   "litematica_printer.config.breakUsePacket.desc": "Use sending mining packets instead of conventional mining logic, which can theoretically speed up mining efficiency.",
   "litematica_printer.config.breakProgressThreshold": "Mining Progress Threshold",
-  "litematica_printer.config.breakProgressThreshold.desc": "Progress threshold when mining blocks. Mining is considered complete when this percentage is reached.\nHigher values mean lower mining efficiency; lower values mean faster mining efficiency.\nSince servers consider mining complete when progress reaches 70%%%%, then wait for end mining packet reception,\nyou can lower it on servers without additional mining detection.",
+  "litematica_printer.config.breakProgressThreshold.desc": "Progress threshold when mining blocks. Mining is considered complete when this percentage is reached.\nHigher values mean lower mining efficiency; lower values mean faster mining efficiency.\nSince the break progress reaches 70% after the first game tick, then wait for end mining packet reception,\nyou can lower it on servers without additional mining detection. :)",
   "litematica_printer.config.breakSpeed": "Breaking Interval Time",
   "litematica_printer.config.breakSpeed.desc": "Interval time for breaking blocks (in game ticks).\nSet to 0 for no interval (may cause server lag), recommended to set to 1-5 to balance speed and performance.",
   "litematica_printer.config.category.bedrock": "§6Bedrock Breaking",
