@@ -60,7 +60,7 @@ public class FunctionFluid extends FunctionPlacement {
             }
         }
         // 填充方块
-        List<String> fileBlocks = Configs.Fluid.FLUID_BLOCK_LIST.getStrings();
+        List<String> fileBlocks = Configs.Fluid.FLUID_REPLACE_BLOCK_LIST.getStrings();
         if (!fileBlocks.equals(fillBlocks)) {
             fillBlocks = new ArrayList<>(fileBlocks);
             if (fileBlocks.isEmpty()) {

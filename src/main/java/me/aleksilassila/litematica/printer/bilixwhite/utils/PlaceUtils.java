@@ -53,9 +53,10 @@ public class PlaceUtils {
                 case EAST -> Direction.EAST;
                 case NORTH -> Direction.NORTH;
                 case SOUTH -> Direction.SOUTH;
+                default -> null;
             };
         }
-        return Direction.UP;
+        return null;
     }
 
 

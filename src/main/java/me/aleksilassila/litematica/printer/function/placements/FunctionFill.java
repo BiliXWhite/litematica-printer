@@ -1,11 +1,10 @@
 package me.aleksilassila.litematica.printer.function.placements;
 
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.BlockCooldownType;
-import me.aleksilassila.litematica.printer.enums.FileBlockModeType;
+import me.aleksilassila.litematica.printer.enums.FillBlockModeType;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.function.FunctionPlacement;
 import me.aleksilassila.litematica.printer.printer.BlockCooldownManager;
@@ -33,7 +32,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.Inventor
 
 public class FunctionFill extends FunctionPlacement {
     private List<Item> fillModeItemList = new ArrayList<>();
-    private List<String> fillcaCheBlocklist = new ArrayList<>();
+    private List<String> fillCacheBlocklist = new ArrayList<>();
     private @Nullable BlockPos blockPos;
 
     @Override
@@ -61,7 +60,7 @@ public class FunctionFill extends FunctionPlacement {
             }
         }
         // 手持物品
-        if (Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FileBlockModeType.HANDHELD) {
+        if (Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FillBlockModeType.HANDHELD) {
             ItemStack heldStack = player.getMainHandItem(); // 获取主手物品
             if (heldStack.isEmpty() || heldStack.getCount() <= 0) {
                 return false; // 主手无物品时跳过填充
@@ -69,15 +68,15 @@ public class FunctionFill extends FunctionPlacement {
             fillModeItemList = List.of(heldStack.getItem());
         }
         // 白名单模式
-        if (Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FileBlockModeType.WHITELIST) {
+        if (Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FillBlockModeType.BLOCKLIST) {
             // 每次去MC注册表中获取会造成大量卡顿, 所以仅在玩家修改了填充列表, 再去读取以便注册表
             List<String> strings = Configs.Fill.FILL_BLOCK_LIST.getStrings();
-            if (!strings.equals(fillcaCheBlocklist)) {
-                fillcaCheBlocklist = new ArrayList<>(strings);
+            if (!strings.equals(fillCacheBlocklist)) {
+                fillCacheBlocklist = new ArrayList<>(strings);
                 if (strings.isEmpty()) {
                     return false;
                 }
-                for (String itemName : fillcaCheBlocklist) {
+                for (String itemName : fillCacheBlocklist) {
                     fillModeItemList = BuiltInRegistries.ITEM.stream().filter(item -> FilterUtils.matchName(itemName, new ItemStack(item))).toList();
                 }
             }
@@ -90,7 +89,7 @@ public class FunctionFill extends FunctionPlacement {
         if (isOpenHandler || switchItem()) {
             return;
         }
-        boolean handheld = Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FileBlockModeType.HANDHELD;
+        boolean handheld = Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FillBlockModeType.HANDHELD;
         if (!canIterationTest(printer, level, player, blockPos)) {
             return;
         }
@@ -114,9 +113,14 @@ public class FunctionFill extends FunctionPlacement {
                         ItemStack heldStack = player.getMainHandItem(); // 获取主手物品
                         if (heldStack.isEmpty() || heldStack.getCount() <= 0) return; // 主手无物品时跳过填充
                     }
-                    new PlacementGuide.Action()
-                            .setLookDirection(PlaceUtils.getFillModeFacing().getOpposite())
-                            .queueAction(printer.queue, blockPos, PlaceUtils.getFillModeFacing(), false);
+                    if (PlaceUtils.getFillModeFacing() != null) {
+                        new PlacementGuide.Action()
+                                .setLookDirection(PlaceUtils.getFillModeFacing().getOpposite())
+                                .queueAction(printer.queue, blockPos, PlaceUtils.getFillModeFacing(), false);
+                    } else {
+                        new PlacementGuide.Action()
+                                .queueAction(printer.queue, blockPos, null, false);
+                    }
                     printer.queue.sendQueue(player);
                     if (Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue() != 0) {
                         placeBlocksPerTick--;

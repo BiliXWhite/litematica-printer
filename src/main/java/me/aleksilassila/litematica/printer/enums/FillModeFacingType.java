@@ -4,6 +4,7 @@ import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.ConfigOptionListEntry;
 
 public enum FillModeFacingType implements ConfigOptionListEntry<FillModeFacingType> {
+    NONE("fillModeFacing.none"),
     DOWN("fillModeFacing.down"),
     UP("fillModeFacing.up"),
     WEST("fillModeFacing.west"),
