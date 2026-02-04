@@ -38,6 +38,10 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
     private static final BooleanSupplier isSingle = () -> Core.WORK_MODE.getOptionListValue().equals(ModeType.SINGLE);
     private static final BooleanSupplier isMulti = () -> Core.WORK_MODE.getOptionListValue().equals(ModeType.MULTI);
     private static final BooleanSupplier isExcavateCustom = () -> Mine.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.CUSTOM);
+    private static final BooleanSupplier isExcavateWhitelist = () -> isExcavateCustom.getAsBoolean() && Mine.EXCAVATE_LIMIT.getOptionListValue().equals(UsageRestriction.ListType.WHITELIST);
+    private static final BooleanSupplier isExcavateBlacklist = () -> isExcavateCustom.getAsBoolean() && Mine.EXCAVATE_LIMIT.getOptionListValue().equals(UsageRestriction.ListType.BLACKLIST);
+    private static final BooleanSupplier isBlocklist = () -> Fill.FILL_BLOCK_MODE.getOptionListValue().equals(FillBlockModeType.BLOCKLIST);
+
 
     public static final ImmutableList<IConfigBase> OPTIONS;
     public static final ImmutableList<IHotkey> HOTKEYS;
@@ -48,7 +52,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         optionSet.addAll(Core.OPTIONS);        // 核心
         optionSet.addAll(Placement.OPTIONS);      // 放置
         optionSet.addAll(Break.OPTIONS);          // 破坏
-        optionSet.addAll(Color.OPTIONS);          // 颜色
         optionSet.addAll(Hotkeys.OPTIONS);        // 热键
         optionSet.addAll(Print.OPTIONS);          // 打印
         optionSet.addAll(Mine.OPTIONS);       // 挖掘
@@ -199,6 +202,11 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪 Mod 加载时显示
                 .build();
 
+        // 容器同步与打印机添加库存高亮颜色
+        public static final ConfigColor SYNC_INVENTORY_COLOR = color("syncInventoryColor")
+                .defaultValue("#4CFF4CE6")
+                .build();
+
         // 通用配置项列表（按功能分类排序）
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 WORK_SWITCH,
@@ -224,18 +232,15 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 DEBUG_OUTPUT,
                 CLOUD_INVENTORY,
                 AUTO_INVENTORY,
-                INVENTORY_LIST
+                INVENTORY_LIST,
+                SYNC_INVENTORY_COLOR
         );
     }
 
     public static class Placement {
-        // 投影轻松放置协议
-        public static final ConfigBoolean EASY_PLACE_PROTOCOL = bool("easyPlaceProtocol")
-                .defaultValue(false)
-                .build();
 
         // 使用数据包打印
-        public static final ConfigBoolean PRINT_USE_PACKET = bool("printUsePacket")
+        public static final ConfigBoolean PRINT_USE_PACKET = bool("placeUsePacket")
                 .defaultValue(false)
                 .build();
 
@@ -291,7 +296,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 PLACE_SPEED,
                 PLACE_BLOCKS_PER_TICK,
                 PLACE_COOLDOWN,
-                EASY_PLACE_PROTOCOL,
                 STORE_ORDERLY,
                 QUICK_SHULKER,
                 QUICK_SHULKER_MODE,
@@ -428,25 +432,31 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(false)
                 .build();
 
+        // 投影轻松放置协议
+        public static final ConfigBoolean EASY_PLACE_PROTOCOL = bool("easyPlaceProtocol")
+                .defaultValue(false)
+                .build();
+
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 PRINT_SELECTION_TYPE,
-                SKIP_WATERLOGGED_BLOCK,
-                PRINT_SKIP,
-                PRINT_SKIP_LIST,
+                EASY_PLACE_PROTOCOL,
                 PRINT_FORCED_SNEAK,
-                PRINT_REPLACE,
-                REPLACEABLE_LIST,
-                REPLACE_CORAL,
-                PRINT_ICE_FOR_WATER,
-                STRIP_LOGS,
-                NOTE_BLOCK_TUNING,
-                SAFELY_OBSERVER,
-                FILL_COMPOSTER,
-                FILL_COMPOSTER_WHITELIST,
-                FALLING_CHECK,
                 BREAK_WRONG_BLOCK,
                 BREAK_EXTRA_BLOCK,
-                BREAK_WRONG_STATE_BLOCK
+                BREAK_WRONG_STATE_BLOCK,
+                PRINT_SKIP,
+                PRINT_SKIP_LIST,
+                PRINT_REPLACE,
+                REPLACEABLE_LIST,
+                SKIP_WATERLOGGED_BLOCK,
+                PRINT_ICE_FOR_WATER,
+                FALLING_CHECK,
+                SAFELY_OBSERVER,
+                STRIP_LOGS,
+                NOTE_BLOCK_TUNING,
+                REPLACE_CORAL,
+                FILL_COMPOSTER,
+                FILL_COMPOSTER_WHITELIST
         );
     }
 
@@ -459,28 +469,27 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         // 选区类型
         public static final ConfigOptionList MINE_SELECTION_TYPE = optionList("mineSelectionType")
                 .defaultValue(SelectionType.LITEMATICA_SELECTION)
-                .setVisible(isExcavateCustom) // 仅自定义挖掘限制时显示
                 .build();
 
         // 挖掘模式限制
         public static final ConfigOptionList EXCAVATE_LIMIT = optionList("excavateLimit")
                 .defaultValue(UsageRestriction.ListType.NONE)
-                .setVisible(isExcavateCustom) // 仅自定义挖掘限制时显示
+                .setVisible(isExcavateCustom)
                 .build();
 
         // 挖掘白名单
         public static final ConfigStringList EXCAVATE_WHITELIST = stringList("excavateWhitelist")
-                .setVisible(isExcavateCustom) // 仅自定义挖掘限制时显示
+                .setVisible(isExcavateWhitelist)
                 .build();
 
         // 挖掘黑名单
         public static final ConfigStringList EXCAVATE_BLACKLIST = stringList("excavateBlacklist")
-                .setVisible(isExcavateCustom) // 仅自定义挖掘限制时显示
+                .setVisible(isExcavateBlacklist)
                 .build();
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
-                EXCAVATE_LIMITER,             // 挖掘 - 挖掘模式限制器
                 MINE_SELECTION_TYPE,          // 挖掘 - 选区类型
+                EXCAVATE_LIMITER,             // 挖掘 - 挖掘模式限制器
                 EXCAVATE_LIMIT,               // 挖掘 - 挖掘模式限制
                 EXCAVATE_WHITELIST,           // 挖掘 - 挖掘白名单
                 EXCAVATE_BLACKLIST            // 挖掘 - 挖掘黑名单
@@ -488,7 +497,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
     }
 
     public static class Fill {
-
         // 选区类型
         public static final ConfigOptionList FILL_SELECTION_TYPE = optionList("fillSelectionType")
                 .defaultValue(SelectionType.LITEMATICA_SELECTION)
@@ -496,17 +504,18 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 填充方块模式
         public static final ConfigOptionList FILL_BLOCK_MODE = optionList("fillBlockMode")
-                .defaultValue(FileBlockModeType.WHITELIST)
+                .defaultValue(FillBlockModeType.BLOCKLIST)
                 .build();
 
         // 填充方块名单
         public static final ConfigStringList FILL_BLOCK_LIST = stringList("fillBlockList")
                 .defaultValue(Blocks.COBBLESTONE)
+                .setVisible(isBlocklist)
                 .build();
 
         // 模式朝向
         public static final ConfigOptionList FILL_BLOCK_FACING = optionList("fillModeFacing")
-                .defaultValue(FillModeFacingType.DOWN)
+                .defaultValue(FillModeFacingType.NONE)
                 .build();
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
@@ -530,7 +539,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         // 方块名单
-        public static final ConfigStringList FLUID_BLOCK_LIST = stringList("fluidBlockList")
+        public static final ConfigStringList FLUID_REPLACE_BLOCK_LIST = stringList("fluidReplaceBlockList")
                 .defaultValue(Blocks.SAND)
                 .build();
 
@@ -542,7 +551,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 FLUID_SELECTION_TYPE,         // 排流体 - 选区类型
                 FILL_FLOWING_FLUID,           // 排流体 - 填充流动液体
-                FLUID_BLOCK_LIST,             // 排流体 - 方块名单
+                FLUID_REPLACE_BLOCK_LIST,             // 排流体 - 方块名单
                 FLUID_LIST                    // 排流体 - 液体名单
         );
     }
@@ -570,7 +579,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .setVisible(isMulti) // 仅多模式时显示
                 .build();
 
-        // ========== 远程交互热键 ==========
         // 同步容器热键
         public static final ConfigHotkey SYNC_INVENTORY = hotkey("syncInventory")
                 .build();
@@ -579,6 +587,8 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         public static final ConfigBooleanHotkeyed SYNC_INVENTORY_CHECK = booleanHotkey("syncInventoryCheck")
                 .defaultValue(false)
                 .build();
+
+        // ========== 远程交互热键 ==========
 
         // 设置打印机库存热键
         public static final ConfigHotkey PRINTER_INVENTORY = hotkey("printerInventory")
@@ -629,17 +639,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 LAST,                         // 上一个箱子
                 NEXT,                         // 下一个箱子
                 DELETE                        // 删除当前容器
-        );
-    }
-
-    public static class Color {
-        // 容器同步与打印机添加库存高亮颜色
-        public static final ConfigColor SYNC_INVENTORY_COLOR = color("syncInventoryColor")
-                .defaultValue("#4CFF4CE6")
-                .build();
-
-        public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
-                SYNC_INVENTORY_COLOR          // 容器同步与打印机添加库存高亮颜色
         );
     }
 

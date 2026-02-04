@@ -361,7 +361,7 @@ public class Printer extends PrinterUtils {
     }
 
     public Vec3 usePrecisionPlacement(BlockPos pos, BlockState stateSchematic) {
-        if (Configs.Placement.EASY_PLACE_PROTOCOL.getBooleanValue()) {
+        if (Configs.Print.EASY_PLACE_PROTOCOL.getBooleanValue()) {
             EasyPlaceProtocol protocol = PlacementHandler.getEffectiveProtocolVersion();
             Vec3 hitPos = Vec3.atLowerCornerOf(pos);
             if (protocol == EasyPlaceProtocol.V3) {

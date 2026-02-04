@@ -108,7 +108,7 @@ public class ZxyUtils {
     static Map<ItemStack, Integer> playerItemsCount = new HashMap<>();
 
     private static void getReadyColor() {
-        HighlightBlockRenderer.createHighlightBlockList(syncInventoryId, Configs.Color.SYNC_INVENTORY_COLOR);
+        HighlightBlockRenderer.createHighlightBlockList(syncInventoryId, Configs.Core.SYNC_INVENTORY_COLOR);
         highlightPosList = HighlightBlockRenderer.getHighlightBlockPosList(syncInventoryId);
     }
 

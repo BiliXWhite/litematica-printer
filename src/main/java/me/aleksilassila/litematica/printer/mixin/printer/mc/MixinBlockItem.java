@@ -27,7 +27,7 @@ public abstract class MixinBlockItem extends Item {
 
     @Inject(method = "getPlacementState", at = @At("HEAD"), cancellable = true)
     private void modifyPlacementState(BlockPlaceContext ctx, CallbackInfoReturnable<BlockState> cir) {
-        if (Configs.Placement.EASY_PLACE_PROTOCOL.getBooleanValue()) {
+        if (Configs.Print.EASY_PLACE_PROTOCOL.getBooleanValue()) {
             BlockState stateOrig = this.getBlock().getStateForPlacement(ctx);
             if (stateOrig != null && this.canPlace(ctx, stateOrig)) {
                 PlacementHandler.UseContext context = PlacementHandler.UseContext.from(ctx, ctx.getHand());

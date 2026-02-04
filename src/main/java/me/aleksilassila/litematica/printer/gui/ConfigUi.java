@@ -80,12 +80,11 @@ public class ConfigUi extends GuiConfigsBase {
         CORE(I18n.of("category.core")),
         PLACEMENT(I18n.of("category.placement")),
         BREAK(I18n.of("category.break")),
-        PRINT(I18n.of("category.print")),
-        FLUID(I18n.of("category.fluid")),
-        EXCAVATE(I18n.of("category.excavate")),
-        FILL(I18n.of("category.fill")),
         HOTKEYS(I18n.of("category.hotkeys")),
-        COLOR(I18n.of("category.color"));
+        PRINT(I18n.of("category.print")),
+        EXCAVATE(I18n.of("category.mine")),
+        FILL(I18n.of("category.fill")),
+        FLUID(I18n.of("category.fluid"));
 
         private final I18n i18n;
 
@@ -107,11 +106,10 @@ public class ConfigUi extends GuiConfigsBase {
                 case PLACEMENT -> Configs.Placement.OPTIONS;
                 case BREAK -> Configs.Break.OPTIONS;
                 case PRINT -> Configs.Print.OPTIONS;
-                case FLUID -> Configs.Fluid.OPTIONS;
                 case EXCAVATE -> Configs.Mine.OPTIONS;
                 case FILL -> Configs.Fill.OPTIONS;
+                case FLUID -> Configs.Fluid.OPTIONS;
                 case HOTKEYS -> Configs.Hotkeys.OPTIONS;
-                case COLOR -> Configs.Color.OPTIONS;
             };
         }
     }
