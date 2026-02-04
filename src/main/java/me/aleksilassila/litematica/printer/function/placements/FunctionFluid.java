@@ -55,7 +55,7 @@ public class FunctionFluid extends FunctionPlacement {
             if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.Fluid.FLUID_SELECTION_TYPE)) {
                 return false;
             }
-            if (BlockCooldownManager.INSTANCE.isOnCooldown(BlockCooldownType.FLUID, blockPos)) {
+            if (BlockCooldownManager.INSTANCE.isOnCooldown(BlockCooldownType.FLUID, pos)) {
                 return false;
             }
         }

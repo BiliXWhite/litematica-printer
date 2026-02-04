@@ -43,7 +43,7 @@ public class FunctionMine extends FunctionBreak {
             if (!PrinterUtils.isPositionInSelectionRange(player, pos, Configs.Mine.MINE_SELECTION_TYPE)) {
                 return false;
             }
-            if (BlockCooldownManager.INSTANCE.isOnCooldown(BlockCooldownType.MINE, blockPos)) {
+            if (BlockCooldownManager.INSTANCE.isOnCooldown(BlockCooldownType.MINE, pos)) {
                 return false;
             }
             return InteractionUtils.canBreakBlock(pos) && InteractionUtils.breakRestriction(level.getBlockState(pos));
