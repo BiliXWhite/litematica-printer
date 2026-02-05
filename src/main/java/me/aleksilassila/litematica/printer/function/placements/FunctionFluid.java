@@ -5,10 +5,7 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.BlockCooldownType;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.function.FunctionPlacement;
-import me.aleksilassila.litematica.printer.printer.BlockCooldownManager;
-import me.aleksilassila.litematica.printer.printer.PlacementGuide;
-import me.aleksilassila.litematica.printer.printer.Printer;
-import me.aleksilassila.litematica.printer.printer.PrinterUtils;
+import me.aleksilassila.litematica.printer.printer.*;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.FilterUtils;
 import net.minecraft.client.Minecraft;
@@ -113,8 +110,8 @@ public class FunctionFluid extends FunctionPlacement {
                 if (!printer.switchToItems(player, fillItems.toArray(new Item[0]))) {
                     continue;
                 }
-                new PlacementGuide.Action().queueAction(printer.queue, blockPos, Direction.UP, false);
-                printer.queue.sendQueue(player);
+                new Action().queueAction(printer.actionManager, blockPos, Direction.UP, false);
+                printer.actionManager.sendQueue(player);
                 if (Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue() != 0) {
                     placeBlocksPerTick--;
                 }

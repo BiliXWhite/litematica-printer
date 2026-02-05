@@ -118,13 +118,18 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         // 核心 - 工作半径
-        public static final ConfigInteger WORK_RANGE = integer("printerRange")
+        public static final ConfigInteger WORK_RANGE = integer("workRange")
                 .defaultValue(6)
                 .range(1, 256)
                 .build();
 
+        public static final ConfigInteger ITERATOR_TOTAL_PER_TICK = integer("workIterationsTotalPerTick")
+                .defaultValue(0)
+                .range(0, 10240)
+                .build();
+
         // 核心 - 迭代占用时长
-        public static final ConfigInteger ITERATOR_USE_TIME = integer("printerIteratorUseTime")
+        public static final ConfigInteger ITERATOR_USE_TIME = integer("workIteratorUseTime")
                 .defaultValue(8)
                 .range(0, 128)
                 .build();
@@ -219,6 +224,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 WORK_MODE_TYPE_MULTI_BREAK,
                 WORK_RANGE,
                 ITERATOR_USE_TIME,
+                ITERATOR_TOTAL_PER_TICK,
                 RENDER_HUD,
                 LAG_CHECK,
                 CHECK_PLAYER_INTERACTION_RANGE,
@@ -250,7 +256,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         // 核心 - 工作间隔
-        public static final ConfigInteger PLACE_SPEED = integer("placeSpeed")
+        public static final ConfigInteger PLACE_INTERVAL = integer("placeInterval")
                 .defaultValue(1)
                 .range(0, 20)
                 .build();
@@ -293,14 +299,14 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 PRINT_USE_PACKET,
-                PLACE_SPEED,
+                PLACE_INTERVAL,
                 PLACE_BLOCKS_PER_TICK,
                 PLACE_COOLDOWN,
                 STORE_ORDERLY,
                 QUICK_SHULKER,
                 QUICK_SHULKER_MODE,
                 QUICK_SHULKER_COOLDOWN
-                );
+        );
     }
 
     public static class Break {
@@ -313,7 +319,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .range(70, 100)
                 .build();
 
-        public static final ConfigInteger BREAK_SPEED = integer("breakSpeed")
+        public static final ConfigInteger BREAK_INTERVAL = integer("breakInterval")
                 .defaultValue(1)
                 .range(0, 20)
                 .build();
@@ -335,11 +341,11 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 BREAK_CHECK_HARDNESS,
                 BREAK_USE_PACKET,
-                BREAK_SPEED,
+                BREAK_INTERVAL,
                 BREAK_BLOCKS_PER_TICK,
                 BREAK_COOLDOWN,
                 BREAK_PROGRESS_THRESHOLD
-                );
+        );
     }
 
     public static class Print {

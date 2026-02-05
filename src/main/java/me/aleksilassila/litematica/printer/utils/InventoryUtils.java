@@ -8,6 +8,8 @@ import fi.dy.masa.malilib.gui.Message;
 import fi.dy.masa.malilib.util.InfoUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import lombok.Getter;
+import lombok.Setter;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.mixin.printer.litematica.EasyPlaceUtilsAccessor;
 import me.aleksilassila.litematica.printer.mixin.printer.litematica.InventoryUtilsAccessor;
@@ -34,12 +36,16 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static fi.dy.masa.malilib.util.InventoryUtils.*;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList;
 
 public class InventoryUtils {
     private static final Minecraft client = Minecraft.getInstance();
     private static final int OFFHAND_SLOT_INDEX = 40;
     private static final long MESSAGE_COOLDOWN_MS = 5000L;
     private static final Map<String, Long> LAST_MESSAGE_SEND_TIME = new ConcurrentHashMap<>();
+    @Getter
+    @Setter
+    private static ItemStack orderlyStoreItem; //有序存放临时存储
 
     public static int getSelectedSlot(Inventory inventory) {
         //#if MC > 12104
@@ -442,5 +448,35 @@ public class InventoryUtils {
         // 超过冷却时间，发送消息并更新【该Key】的最后发送时间
         InfoUtils.showGuiOrInGameMessage(type, messageKey);
         LAST_MESSAGE_SEND_TIME.put(messageKey, currentTime);
+    }
+
+    public static boolean switchToItems(LocalPlayer player, Item[] items) {
+        if (items == null || items.length == 0) {
+            items = new Item[]{Items.AIR};
+        }
+        Inventory inv = player.getInventory();
+        boolean isCreativeMode = PlayerUtils.getAbilities(player).instabuild;
+        // 创造模式
+        if (isCreativeMode) {
+            var stack = new ItemStack(items[0]);
+            return InventoryUtils.setPickedItemToHand(stack, client);
+        }
+        // 找到背包中可用的物品
+        for (Item item : items) {
+            int slot = -1;
+            for (int i = 0; i < inv.getContainerSize(); i++) {
+                ItemStack itemStack = inv.getItem(i);
+                if (itemStack.getItem().equals(item)) {
+                    slot = i;
+                    break;
+                }
+            }
+            if (slot != -1) {
+                orderlyStoreItem = inv.getItem(slot);
+                return InventoryUtils.setPickedItemToHand(slot, orderlyStoreItem, client);
+            }
+            lastNeedItemList.add(item);
+        }
+        return false;
     }
 }

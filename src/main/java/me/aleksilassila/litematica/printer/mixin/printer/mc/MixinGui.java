@@ -3,7 +3,9 @@ package me.aleksilassila.litematica.printer.mixin.printer.mc;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.RenderUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.ModeType;
-import me.aleksilassila.litematica.printer.function.Functions;
+import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
+import me.aleksilassila.litematica.printer.handler.GuiBlockInfo;
+import me.aleksilassila.litematica.printer.handler.Handlers;
 import me.aleksilassila.litematica.printer.printer.BlockContext;
 import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
@@ -15,7 +17,6 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -77,43 +78,29 @@ public abstract class MixinGui {
                 RenderUtils.drawString("投影: " + context.getRequiredBlockNameString(), x, y, Color.CYAN.getRGB(), true);
                 y += 9;
                 RenderUtils.drawString("实际: " + context.getCurrentBlockNameString(), x, y, Color.ORANGE.getRGB(), true);
-                y += 9;
-            } else if (PrinterUtils.isFillMode()) {
-                BlockPos blockPos = Functions.FILL.getBlockPos();
-                if (blockPos != null) {
-                    BlockState blockState = level.getBlockState(blockPos);
-                    Block block = blockState.getBlock();
+            } else {
+                for (ClientPlayerTickHandler handler : Handlers.VALUES) {
+                    GuiBlockInfo gui = handler.getGuiBlockInfo();
+                    if (gui == null) continue;
+                    Block block = gui.state.getBlock();
+                    BlockPos blockPos = gui.pos;
                     MutableComponent blockName = block.getName();
-                    RenderUtils.drawString("位置: " + blockPos.toShortString(), x, y, Color.CYAN.getRGB(), true);
-                }
-            } else if (PrinterUtils.isFluidMode()) {
-                BlockPos blockPos = Functions.FLUID.getBlockPos();
-                if (blockPos != null) {
-                    BlockState blockState = level.getBlockState(blockPos);
-                    Block block = blockState.getBlock();
-                    MutableComponent blockName = block.getName();
-                    RenderUtils.drawString("位置: " + blockPos.toShortString(), x, y, Color.CYAN.getRGB(), true);
-                    y += 9;
-                    RenderUtils.drawString("实际: " + blockName.getString(), x, y, Color.ORANGE.getRGB(), true);
-                    y += 9;
-                    RenderUtils.drawString("液体: " + !blockState.getFluidState().isEmpty(), x, y, Color.ORANGE.getRGB(), true);
-                }
-            } else if (PrinterUtils.isMineMode()) {
-                BlockPos blockPos = Functions.MINE.getBlockPos();
-                int tickCount = Functions.MINE.getTickMinedCount(); // 新增：获取单Tick处理数量
-                if (blockPos != null) {
-                    BlockState blockState = level.getBlockState(blockPos);
-                    Block block = blockState.getBlock();
-                    MutableComponent blockName = block.getName();
-                    RenderUtils.drawString("位置: " + blockPos.toShortString(), x, y, Color.CYAN.getRGB(), true);
-                    y += 9;
-                    RenderUtils.drawString("实际: " + blockName.getString(), x, y, Color.ORANGE.getRGB(), true);
 
-                    if (tickCount > 0) {
-                        lastCount = tickCount;
-                    }
+                    RenderUtils.drawString("Tick: " + ClientPlayerTickHandler.getCurrentHandlerTime(), x, y, Color.CYAN.getRGB(), true);
                     y += 9;
-                    RenderUtils.drawString("最后Tick处理数: " + lastCount, x, y, Color.GREEN.getRGB(), true);
+                    RenderUtils.drawString("类型: " + handler.getId(), x, y, Color.CYAN.getRGB(), true);
+                    y += 9;
+                    RenderUtils.drawString("位置: " + blockPos.toShortString(), x, y, Color.CYAN.getRGB(), true);
+                    y += 9;
+                    RenderUtils.drawString("方块: " + blockName.getString(), x, y, Color.CYAN.getRGB(), true);
+                    y += 9;
+                    RenderUtils.drawString("可以交互: " + gui.interacted, x, y, Color.CYAN.getRGB(), true);
+                    y += 9;
+                    RenderUtils.drawString("渲染范围: " + gui.posInSelectionRange, x, y, Color.CYAN.getRGB(), true);
+                    y += 9;
+                    RenderUtils.drawString("已经执行: " + gui.execute, x, y, Color.CYAN.getRGB(), true);
+
+                    x += 50;    // 添加另一列偏移量
                 }
             }
         }

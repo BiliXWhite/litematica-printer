@@ -6,6 +6,7 @@ import net.minecraft.core.Vec3i;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
+import java.util.Objects;
 
 import net.minecraft.core.BlockPos;
 
@@ -80,6 +81,18 @@ public class MyBox implements Iterable<BlockPos> {
             this.iterator = new BoxIterator();
         }
         return this.iterator;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        MyBox box = (MyBox) o;
+        return minX == box.minX && minY == box.minY && minZ == box.minZ && maxX == box.maxX && maxY == box.maxY && maxZ == box.maxZ;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
     private class BoxIterator implements Iterator<BlockPos> {

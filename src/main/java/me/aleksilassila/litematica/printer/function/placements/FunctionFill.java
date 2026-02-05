@@ -7,10 +7,7 @@ import me.aleksilassila.litematica.printer.enums.BlockCooldownType;
 import me.aleksilassila.litematica.printer.enums.FillBlockModeType;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.function.FunctionPlacement;
-import me.aleksilassila.litematica.printer.printer.BlockCooldownManager;
-import me.aleksilassila.litematica.printer.printer.PlacementGuide;
-import me.aleksilassila.litematica.printer.printer.Printer;
-import me.aleksilassila.litematica.printer.printer.PrinterUtils;
+import me.aleksilassila.litematica.printer.printer.*;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.FilterUtils;
 import net.minecraft.client.Minecraft;
@@ -114,14 +111,14 @@ public class FunctionFill extends FunctionPlacement {
                         if (heldStack.isEmpty() || heldStack.getCount() <= 0) return; // 主手无物品时跳过填充
                     }
                     if (PlaceUtils.getFillModeFacing() != null) {
-                        new PlacementGuide.Action()
+                        new Action()
                                 .setLookDirection(PlaceUtils.getFillModeFacing().getOpposite())
-                                .queueAction(printer.queue, blockPos, PlaceUtils.getFillModeFacing(), false);
+                                .queueAction(printer.actionManager, blockPos, PlaceUtils.getFillModeFacing(), false);
                     } else {
-                        new PlacementGuide.Action()
-                                .queueAction(printer.queue, blockPos, null, false);
+                        new Action()
+                                .queueAction(printer.actionManager, blockPos, null, false);
                     }
-                    printer.queue.sendQueue(player);
+                    printer.actionManager.sendQueue(player);
                     if (Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue() != 0) {
                         placeBlocksPerTick--;
                     }

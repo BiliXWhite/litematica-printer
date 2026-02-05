@@ -14,12 +14,10 @@ import me.aleksilassila.litematica.printer.enums.IterationOrderType;
 import me.aleksilassila.litematica.printer.enums.BlockPrintState;
 import me.aleksilassila.litematica.printer.function.Function;
 import me.aleksilassila.litematica.printer.function.Functions;
-import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
+import me.aleksilassila.litematica.printer.handler.Handlers;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
-import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.utils.*;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -30,9 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
@@ -49,8 +45,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.Inventor
 import org.jetbrains.annotations.Nullable;
 
 //#if MC > 12105
-import net.minecraft.world.entity.player.Input;
-import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
+
 //#else
 //$$ import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
 //#endif
@@ -59,7 +54,7 @@ public class Printer extends PrinterUtils {
     private static Printer INSTANCE = null;
     @NotNull
     public final PlacementGuide guide;
-    public final Queue queue;
+    public final ActionManager actionManager;
     public boolean printerMemorySync = false;
     public ItemStack orderlyStoreItem; //有序存放临时存储
     public int shulkerCooldown = 0;
@@ -71,7 +66,7 @@ public class Printer extends PrinterUtils {
     public AtomicReference<MyBox> guiBox = new AtomicReference<>();
     public AtomicReference<MyBox> placeBox = new AtomicReference<>();
     public int printRange = Configs.Core.WORK_RANGE.getIntegerValue();
-    public int placeSpeed = Configs.Placement.PLACE_SPEED.getIntegerValue();
+    public int placeInterval = Configs.Placement.PLACE_INTERVAL.getIntegerValue();
     public int waitTicks = 0;
 
     public boolean updateChecked = false;
@@ -84,7 +79,7 @@ public class Printer extends PrinterUtils {
 
     private Printer(@NotNull Minecraft client) {
         this.guide = new PlacementGuide(client);
-        this.queue = new Queue(this);
+        this.actionManager = new ActionManager();
         INSTANCE = this;
     }
 
@@ -184,7 +179,7 @@ public class Printer extends PrinterUtils {
                 if (!PrinterUtils.isPositionInSelectionRange(client.player, pos, Configs.Fill.FILL_SELECTION_TYPE)) {
                     continue;
                 }
-                if (Arrays.asList(Functions.FILL.getFillItemsArray()).contains(client.level.getBlockState(pos).getBlock().asItem())) {
+                if (Arrays.asList(Handlers.FILL.getFillModeItemList()).contains(client.level.getBlockState(pos).getBlock().asItem())) {
                     workProgressFinishedCount++;
                 }
             }
@@ -208,7 +203,7 @@ public class Printer extends PrinterUtils {
             return;
         }
         printRange = Configs.Core.WORK_RANGE.getIntegerValue();
-        placeSpeed = Configs.Placement.PLACE_SPEED.getIntegerValue();
+        placeInterval = Configs.Placement.PLACE_INTERVAL.getIntegerValue();
         tickStartTime = System.currentTimeMillis();
         tickEndTime = tickStartTime + Configs.Core.ITERATOR_USE_TIME.getIntegerValue();
         if (Configs.Core.LAG_CHECK.getBooleanValue()) {
@@ -219,8 +214,8 @@ public class Printer extends PrinterUtils {
             packetTick++;
         }
         // 清理上一次队列（正常情况下, 在打印等功能内已经被调用, 此时应该是空的, 避免特殊情况, 所以这边进行先处理）
-        queue.sendQueue(player);
-        if (queue.needWait) {
+        actionManager.sendQueue(player);
+        if (actionManager.needWait) {
             return;
         }
         functionTick(client, level, player);
@@ -238,7 +233,7 @@ public class Printer extends PrinterUtils {
     }
 
     private void printerTick(Minecraft client, ClientLevel level, LocalPlayer player) {
-        if (placeSpeed != 0 && (tickStartTime / 50) % placeSpeed != 0) {
+        if (placeInterval != 0 && (tickStartTime / 50) % placeInterval != 0) {
             return;
         }
         // 如果正在处理打开的容器/处理远程交互和快捷潜影盒/破坏方块列表有东西，则直接返回
@@ -285,7 +280,7 @@ public class Printer extends PrinterUtils {
                 }
             }
 
-            PlacementGuide.Action action = guide.getAction(blockContext);
+            Action action = guide.getAction(blockContext);
             if (action == null) {
                 continue;
             }
@@ -314,22 +309,22 @@ public class Printer extends PrinterUtils {
                         || Configs.Print.PRINT_FORCED_SNEAK.getBooleanValue()
                         || action.useShift;
 
-                action.queueAction(queue, targetPos, side, useShift);
+                action.queueAction(actionManager, targetPos, side, useShift);
 
                 Vec3 hitModifier = usePrecisionPlacement(targetPos, blockContext.requiredState);
                 if (hitModifier != null) {
-                    queue.hitModifier = hitModifier;
-                    queue.useProtocol = true;
+                    actionManager.hitModifier = hitModifier;
+                    actionManager.useProtocol = true;
                 }
 
-                if (action.getLookYaw() != null && action.getLookPitch() != null) {
-                    sendLook(player, action.getLookYaw(), action.getLookPitch());
+                if (action.getLook() != null) {
+                    sendLook(player, action.getLook());
                 }
                 var block = blockContext.requiredState.getBlock();
                 if (block instanceof PistonBaseBlock) {
                     pistonNeedFix = true;
                 }
-                queue.sendQueue(player);
+                actionManager.sendQueue(player);
 
                 BlockCooldownManager.INSTANCE.setCooldown(level, BlockCooldownType.PRINT, targetPos, ConfigUtils.getPlaceCooldown());
 
@@ -350,7 +345,7 @@ public class Printer extends PrinterUtils {
                 if (waitTicks > 0) {
                     return;
                 }
-                if (queue.needWait) {
+                if (actionManager.needWait) {
                     return;
                 }
                 if (Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue() != 0) {
@@ -404,14 +399,13 @@ public class Printer extends PrinterUtils {
         return false;
     }
 
-    public void sendLook(LocalPlayer player, float directionYaw, float directionPitch) {
-        queue.lookYaw = directionYaw;
-        queue.lookPitch = directionPitch;
-        Implementation.sendLookPacket(player, directionYaw, directionPitch);
+    public void sendLook(LocalPlayer player, Look look) {
+        actionManager.look = look;
+        Implementation.sendLookPacket(player, look);
     }
 
     public void clearQueue() {
-        queue.clearQueue();
+        actionManager.clearQueue();
     }
 
     public static class TempData {
@@ -436,134 +430,6 @@ public class Printer extends PrinterUtils {
             if (box == null || box.getPos1() == null || box.getPos2() == null || pos == null) return false;
             MyBox printerBox = new MyBox(box.getPos1(), box.getPos2());
             return printerBox.contains(pos);
-        }
-    }
-
-    public class Queue {
-        final Printer printerInstance;
-        public BlockPos target;
-        public Direction side;
-        public Vec3 hitModifier;
-        public boolean useShift = false;
-        public boolean useProtocol = false;
-        public @Nullable Float lookYaw = null;
-        public @Nullable Float lookPitch = null;
-        public boolean needWait = false;
-
-        public Queue(Printer printerInstance) {
-            this.printerInstance = printerInstance;
-        }
-
-        public void queueClick(@NotNull BlockPos target, @NotNull Direction side, @NotNull Vec3 hitModifier, boolean useShift) {
-            if (Configs.Placement.PLACE_SPEED.getIntegerValue() != 0) {
-                if (this.target != null) {
-                    System.out.println("Was not ready yet.");
-                    return;
-                }
-            }
-            this.target = target;
-            this.side = side;
-            this.hitModifier = hitModifier;
-            this.useShift = useShift;
-        }
-
-
-        public void sendQueue(LocalPlayer player) {
-            if (target == null || side == null || hitModifier == null) {
-                // 会刷屏污染日志
-                // Debug.write("放置所需信息缺少！ Target:" + (target == null) + " Side:" + (side == null) + " HitModifier:" + (hitModifier == null));
-                clearQueue();
-                return;
-            }
-            if (!useProtocol && !needWait) {
-                if (lookYaw != null && lookPitch != null) {
-                    if (DirectionUtils.orderedByNearest(lookYaw, lookPitch)[0].getAxis().isHorizontal()) {
-                        needWait = true;
-                        return;
-                    }
-                }
-            }
-            if (needWait) {
-                needWait = false;
-            }
-            Direction direction;
-            if (lookYaw == null) {
-                direction = side;
-            } else {
-                direction = DirectionUtils.getHorizontalDirection(lookYaw);
-            }
-
-            Vec3 hitVec;
-            if (!useProtocol) {
-                Vec3 targetCenter = Vec3.atCenterOf(target);
-                Vec3 sideOffset = Vec3.atLowerCornerOf(DirectionUtils.getVector(side)).scale(0.5);
-                Vec3 rotatedHitModifier = hitModifier.yRot((direction.toYRot() + 90) % 360).scale(0.5);
-                hitVec = targetCenter.add(sideOffset).add(rotatedHitModifier);
-            } else {
-                hitVec = hitModifier;
-            }
-
-            if (orderlyStoreItem != null) {
-                if (orderlyStoreItem.isEmpty()) {
-                    SwitchItem.removeItem(orderlyStoreItem);
-                } else {
-                    SwitchItem.syncUseTime(orderlyStoreItem);
-                }
-            }
-
-            boolean wasSneak = player.isShiftKeyDown();
-
-            if (useShift && !wasSneak) {
-                setShift(player, true);
-            } else if (!useShift && wasSneak) {
-                setShift(player, false);
-            }
-
-
-            if (Configs.Placement.PRINT_USE_PACKET.getBooleanValue()) {
-                NetworkUtils.sendPacket(sequence -> new ServerboundUseItemOnPacket(
-                        InteractionHand.MAIN_HAND,
-                        new BlockHitResult(hitVec, side, target, false)
-                        //#if MC > 11802
-                        , sequence
-                        //#endif
-                ));
-            } else {
-                if (client.gameMode != null) {
-                    ((IMultiPlayerGameMode) client.gameMode).litematica_printer$rightClickBlock(target, side, hitVec);
-                }
-            }
-
-            if (useShift && !wasSneak) {
-                setShift(player, false);
-            } else if (!useShift && wasSneak) {
-                setShift(player, true);
-            }
-
-            clearQueue();
-        }
-
-        public void setShift(LocalPlayer player, boolean shift) {
-            //#if MC > 12105
-            Input input = new Input(player.input.keyPresses.forward(), player.input.keyPresses.backward(), player.input.keyPresses.left(), player.input.keyPresses.right(), player.input.keyPresses.jump(), shift, player.input.keyPresses.sprint());
-            ServerboundPlayerInputPacket packet = new ServerboundPlayerInputPacket(input);
-            //#else
-            //$$ ServerboundPlayerCommandPacket packet = new ServerboundPlayerCommandPacket(player, shift ? ServerboundPlayerCommandPacket.Action.PRESS_SHIFT_KEY : ServerboundPlayerCommandPacket.Action.RELEASE_SHIFT_KEY);
-            //#endif
-
-            player.setShiftKeyDown(shift);
-            NetworkUtils.sendPacket(packet);
-        }
-
-        public void clearQueue() {
-            this.target = null;
-            this.side = null;
-            this.hitModifier = null;
-            this.useShift = false;
-            this.useProtocol = false;
-            this.needWait = false;
-            this.lookYaw = null;
-            this.lookPitch = null;
         }
     }
 

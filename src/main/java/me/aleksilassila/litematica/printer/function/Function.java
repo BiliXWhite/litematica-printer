@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.function;
 
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
+import lombok.Getter;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.ModeType;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
@@ -23,7 +24,15 @@ public abstract class Function extends PrinterUtils {
 
     public abstract ConfigBoolean getCurrentConfig();
 
+    @Getter
+    private @Nullable BlockPos guiDisplayBlockPos;
+    private int guiDisplayBlockPosTickCount;
+
     public AtomicReference<MyBox> multiBox = new AtomicReference<>();
+
+    protected void updateGuiDisplayBlockPos(@Nullable BlockPos pos) {
+        this.guiDisplayBlockPos = pos;
+    }
 
     public boolean isConfigAllowExecute(Printer printer) {
         ModeType modeType = (ModeType) Configs.Core.WORK_MODE.getOptionListValue();
@@ -54,5 +63,7 @@ public abstract class Function extends PrinterUtils {
         return null;
     }
 
-    public abstract void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player);
+    /*** 一些内部处理(它总是会被执行, 它不会受到isConfigAllowExecute影响) ***/
+    public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
+    }
 }
