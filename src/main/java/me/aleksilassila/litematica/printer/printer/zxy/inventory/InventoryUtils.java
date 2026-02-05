@@ -33,17 +33,21 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
-    //#if MC > 11902
-    //$$ import net.minecraft.core.registries.Registries;
-    //#endif
+//#if MC > 11902
+//$$ import net.minecraft.core.registries.Registries;
+//#endif
 //#endif
 
 import java.util.HashSet;
+
 import static me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus.closeScreen;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.openIng;
 
 public class InventoryUtils {
-    static final Minecraft client = Minecraft.getInstance();
+    private static int shulkerCooldown = 0;
+
+    private static final Minecraft client = Minecraft.getInstance();
+
     public static boolean isInventory(Level world, BlockPos pos) {
         return fi.dy.masa.malilib.util.InventoryUtils.getInventory(world, pos) != null;
     }
@@ -111,11 +115,11 @@ public class InventoryUtils {
                     //$$        for (ResourceLocation dimension : database.getDimensions()) {
                     //$$            for (Memory memory : database.findItems(item.getDefaultInstance(), dimension)) {
                     //$$                MemoryUtils.setLatestPos(memory.getPosition());
-                        //#if MC < 11904
-                        //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), ResourceKey.create(Registry.DIMENSION_REGISTRY, dimension));
-                        //#else
-                        //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), ResourceKey.create(Registries.DIMENSION, dimension));
-                        //#endif
+                    //#if MC < 11904
+                    //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), ResourceKey.create(Registry.DIMENSION_REGISTRY, dimension));
+                    //#else
+                    //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), ResourceKey.create(Registries.DIMENSION, dimension));
+                    //#endif
                     //$$                if(closeScreen == 0)closeScreen++;
                     //$$                Printer.getInstance().printerMemorySync = true;
                     //$$                isOpenHandler = true;
@@ -195,8 +199,8 @@ public class InventoryUtils {
         }
     }
 
-    static boolean openShulker(HashSet<Item> items) {
-        if (Printer.getInstance().shulkerCooldown > 0) {
+    private static boolean openShulker(HashSet<Item> items) {
+        if (shulkerCooldown > 0) {
             return false;
         }
         for (Item item : items) {
@@ -216,7 +220,7 @@ public class InventoryUtils {
                             ShulkerUtils.openShulker(stack, shulkerBoxSlot);
                             closeScreen++;
                             isOpenHandler = true;
-                            Printer.getInstance().shulkerCooldown = Configs.Placement.QUICK_SHULKER_COOLDOWN.getIntegerValue();
+                            shulkerCooldown = Configs.Placement.QUICK_SHULKER_COOLDOWN.getIntegerValue();
                             return true;
                         } catch (Exception e) {
                         }
@@ -225,5 +229,11 @@ public class InventoryUtils {
             }
         }
         return false;
+    }
+
+    public static void tick() {
+        if (shulkerCooldown > 0) {
+            shulkerCooldown--;
+        }
     }
 }

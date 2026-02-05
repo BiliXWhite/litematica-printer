@@ -57,7 +57,6 @@ public class Printer extends PrinterUtils {
     public final ActionManager actionManager;
     public boolean printerMemorySync = false;
     public ItemStack orderlyStoreItem; //有序存放临时存储
-    public int shulkerCooldown = 0;
     public long tickStartTime, tickEndTime;
     public int packetTick;
     //强制循环半径

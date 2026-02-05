@@ -8,6 +8,7 @@ import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.handler.Handlers;
 import me.aleksilassila.litematica.printer.printer.BlockCooldownManager;
 import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import me.aleksilassila.litematica.printer.utils.UpdateCheckerUtils;
 import net.minecraft.client.Minecraft;
@@ -80,6 +81,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     public void tick(CallbackInfo ci) {
         ClientPlayerTickHandler.updateTickHandlerTime();
         BlockCooldownManager.INSTANCE.tick();
+        InventoryUtils.tick();
         ZxyUtils.tick();
         InteractionUtils.INSTANCE.onTick();
         Handlers.tick();
