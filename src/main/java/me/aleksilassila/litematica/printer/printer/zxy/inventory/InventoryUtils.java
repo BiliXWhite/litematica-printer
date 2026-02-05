@@ -32,9 +32,9 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
-    //#if MC > 11902
-    //$$ import net.minecraft.core.registries.Registries;
-    //#endif
+//#if MC > 11902
+//$$ import net.minecraft.core.registries.Registries;
+//#endif
 //#endif
 
 import java.util.HashSet;
