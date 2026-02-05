@@ -77,29 +77,6 @@ public class ConfigUtils {
         return true;
     }
 
-    /**
-     * 判断位置是否位于当前加载的投影范围内。
-     *
-     * @param pos 要检测的方块位置
-     * @return 如果位置属于图纸结构的一部分，则返回 true，否则返回 false
-     */
-    public static boolean isSchematicBlock(BlockPos pos) {
-        SchematicPlacementManager schematicPlacementManager = DataManager.getSchematicPlacementManager();
-        //#if MC < 11900
-        //$$ List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingSubChunk(new SubChunkPos(pos));
-        //#else
-        List<SchematicPlacementManager.PlacementPart> allPlacementsTouchingChunk = schematicPlacementManager.getAllPlacementsTouchingChunk(pos);
-        //#endif
-
-        for (SchematicPlacementManager.PlacementPart placementPart : allPlacementsTouchingChunk) {
-            if (placementPart.getBox().containsPos(pos)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-
     public static boolean isPositionInSelectionRange(Player player, @NotNull BlockPos pos, ConfigOptionList selectionTypeConfig) {
         if (player == null || selectionTypeConfig == null) {
             return false;
@@ -108,7 +85,7 @@ public class ConfigUtils {
             return false;
         }
         return switch (selectionType) {
-            case LITEMATICA_RENDER_LAYER -> DataManager.getRenderLayerRange().isPositionWithinRange(pos);
+            case LITEMATICA_RENDER_LAYER -> LitematicaUtils.isPositionWithinRange(pos);
             case LITEMATICA_SELECTION_BELOW_PLAYER -> pos.getY() <= Math.floor(player.getY());
             case LITEMATICA_SELECTION_ABOVE_PLAYER -> pos.getY() >= Math.ceil(player.getY());
             default -> true;

@@ -9,14 +9,20 @@ import me.aleksilassila.litematica.printer.utils.NetworkUtils;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
+
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+//#if MC > 12105
+import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
+import net.minecraft.world.entity.player.Input;
+//#else
+//$$ import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
+//#endif
 
 public class ActionManager {
     public BlockPos target;

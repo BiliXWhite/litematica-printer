@@ -7,6 +7,7 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.*;
 import me.aleksilassila.litematica.printer.printer.*;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
+import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -288,7 +289,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                         gui.interacted = false;
                         continue;
                     }
-                    boolean isPrinterRange = isPrintMode() && isSchematicBlock(pos);
+                    boolean isPrinterRange = isPrintMode() && LitematicaUtils.isSchematicBlock(pos);
                     if (!isPrinterRange && !Printer.TempData.xuanQuFanWeiNei_p(pos)) {
                         continue;
                     }
