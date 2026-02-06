@@ -109,7 +109,7 @@ public abstract class MixinGui {
             guiGraphics.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Handlers.GUI.getWorkProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
             //#else
             //$$ GuiComponent.fill(poseStack, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
-            //$$ GuiComponent.fill(poseStack, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getInstance().getProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
+            //$$ GuiComponent.fill(poseStack, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Handlers.GUI.getWorkProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
             //#endif
         }
         RenderUtils.drawString(Configs.Core.WORK_MODE_TYPE.getOptionListValue().getDisplayName(), (int) (width / 2), (int) (height / 2 + 52), Color.WHITE.getRGB(), true, true);

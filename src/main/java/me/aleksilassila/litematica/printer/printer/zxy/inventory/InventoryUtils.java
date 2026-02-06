@@ -94,6 +94,7 @@ public class InventoryUtils {
                 SwitchItem.checkItems();
                 return true;
             }
+
             if (Configs.Placement.QUICK_SHULKER.getBooleanValue() && openShulker(lastNeedItemList)) {
                 return true;
             } else if (Configs.Core.CLOUD_INVENTORY.getBooleanValue()) {
@@ -104,7 +105,7 @@ public class InventoryUtils {
                     //$$ if (SearchItem.search(true)) {
                     //$$     closeScreen++;
                     //$$     isOpenHandler = true;
-                    //$$     Printer.getInstance().printerMemorySync = true;
+                    //$$     me.aleksilassila.litematica.printer.handler.Handlers.PRINT.setPrinterMemorySync(true);
                     //$$     return true;
                     //$$ }
                     //#elseif MC < 12001
@@ -114,13 +115,13 @@ public class InventoryUtils {
                     //$$        for (ResourceLocation dimension : database.getDimensions()) {
                     //$$            for (Memory memory : database.findItems(item.getDefaultInstance(), dimension)) {
                     //$$                MemoryUtils.setLatestPos(memory.getPosition());
-                    //#if MC < 11904
-                    //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), ResourceKey.create(Registry.DIMENSION_REGISTRY, dimension));
-                    //#else
-                    //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), ResourceKey.create(Registries.DIMENSION, dimension));
-                    //#endif
+                        //#if MC < 11904
+                        //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), ResourceKey.create(Registry.DIMENSION_REGISTRY, dimension));
+                        //#else
+                        //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), ResourceKey.create(Registries.DIMENSION, dimension));
+                        //#endif
                     //$$                if(closeScreen == 0)closeScreen++;
-                    //$$                Printer.getInstance().printerMemorySync = true;
+                    //$$                me.aleksilassila.litematica.printer.handler.Handlers.PRINT.setPrinterMemorySync(true);
                     //$$                isOpenHandler = true;
                     //$$                return true;
                     //$$            }
