@@ -81,10 +81,10 @@ public class FluidHandler extends ClientPlayerTickHandler {
 
     @Override
     public boolean canIterationBlockPos(BlockPos blockPos) {
-        if (!isOpenHandler && !switchItem()) {
+        if (isOpenHandler || switchItem()) {
             return false;
         }
-        return this.isBlockPosOnCooldown(blockPos);
+        return !this.isBlockPosOnCooldown(blockPos);
     }
 
     @Override

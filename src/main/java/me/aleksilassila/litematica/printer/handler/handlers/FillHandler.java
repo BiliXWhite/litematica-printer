@@ -84,14 +84,14 @@ public class FillHandler extends ClientPlayerTickHandler {
 
     @Override
     public boolean canIterationBlockPos(BlockPos blockPos) {
-        if (!isOpenHandler && !switchItem()) {
+        if (isOpenHandler || switchItem()) {
             return false;
         }
         if (Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FillBlockModeType.HANDHELD) {
             ItemStack heldStack = player.getMainHandItem(); // 获取主手物品
             return !heldStack.isEmpty() && heldStack.getCount() > 0;
         }
-        return this.isBlockPosOnCooldown(blockPos);
+        return !this.isBlockPosOnCooldown(blockPos);
     }
 
 
