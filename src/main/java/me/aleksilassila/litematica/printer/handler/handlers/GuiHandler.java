@@ -39,6 +39,7 @@ public class GuiHandler extends ClientPlayerTickHandler {
             WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
             if (schematic == null) {
                 workProgress = 0.0f;
+                return;
             }
             BlockContext context = new BlockContext(client, level, schematic, blockPos);
             if (context.requiredState.isAir()) {
