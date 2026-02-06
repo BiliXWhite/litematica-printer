@@ -19,16 +19,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("UnusedReturnValue")
 public class Action {
     protected Map<Direction, Vec3> sides;
+
     @Nullable
     @Getter
-    public Look look = null;
+    protected Look look = null;
+
     @Nullable
     protected Item[] clickItems; // null == 空手
     protected boolean requiresSupport = false;
-    protected boolean useShift = false;
+
+    @Getter
+    protected boolean shift = false;
+
     @Getter
     protected int waitTick = 0;     // 会占用其他任务
 
@@ -149,13 +153,13 @@ public class Action {
         return this.setRequiresSupport(true);
     }
 
-    public Action setUseShift(boolean useShift) {
-        this.useShift = useShift;
+    public Action setShift(boolean useShift) {
+        this.shift = useShift;
         return this;
     }
 
-    public Action setUseShift() {
-        return this.setUseShift(true);
+    public Action setShift() {
+        return this.setShift(true);
     }
 
     public Action setWaitTick(int waitTick) {
@@ -163,16 +167,16 @@ public class Action {
         return this;
     }
 
-    public void queueAction(ActionManager actionManager, BlockPos blockPos, Direction side, boolean useShift) {
+    public void queueAction(BlockPos blockPos, Direction side, boolean useShift) {
         if (Configs.Placement.PLACE_IN_AIR.getBooleanValue() && !this.requiresSupport) {
-            actionManager.queueClick(
+            ActionManager.INSTANCE.queueClick(
                     blockPos,
                     side.getOpposite(),
                     getSides().get(side),
                     useShift
             );
         } else {
-            actionManager.queueClick(
+            ActionManager.INSTANCE.queueClick(
                     blockPos.relative(side),
                     side.getOpposite(),
                     getSides().get(side),

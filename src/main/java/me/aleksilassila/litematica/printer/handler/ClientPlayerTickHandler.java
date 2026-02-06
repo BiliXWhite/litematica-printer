@@ -3,6 +3,7 @@ package me.aleksilassila.litematica.printer.handler;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import fi.dy.masa.malilib.config.options.ConfigOptionList;
 import lombok.Getter;
+import lombok.Setter;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.*;
 import me.aleksilassila.litematica.printer.printer.*;
@@ -19,6 +20,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -36,17 +38,16 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     @Getter
     private static long currentHandlerTime;
 
+    @Getter
+    @Setter
+    private static int packetTick;
+
     /**
      * 递增全局Tick计数器
      */
     public static void updateTickHandlerTime() {
         currentHandlerTime++;
     }
-
-    /**
-     * 动作管理器
-     */
-    public static final ActionManager actionManager = new ActionManager();
 
     /**
      * 处理器唯一标识
@@ -182,6 +183,22 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         this.enableConfig = enableConfig;
         this.selectionType = selectionType;
         this.playerInteractionBox = useBox ? new AtomicReference<>() : null;
+        this.updateVariables();
+    }
+
+    protected void updateVariables() {
+        this.mc = Minecraft.getInstance();
+        this.level = mc.level;
+        this.player = mc.player;
+        this.connection = mc.getConnection();
+        this.gameMode = mc.gameMode;
+        this.gameType = mc.gameMode == null ? null : mc.gameMode.getPlayerMode();
+        this.hitResult = mc.hitResult;
+        if (mc.hitResult != null && mc.hitResult.getType() == HitResult.Type.BLOCK) {
+            this.blockHitResult = (BlockHitResult) mc.hitResult;
+        } else {
+            this.blockHitResult = null;
+        }
     }
 
     /**
@@ -209,26 +226,26 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             this.lastTickTime = currentTick; // 更新上次执行时间，首次执行也会初始化
         }
 
+        if (Configs.Core. LAG_CHECK.getBooleanValue()) {
+            if (packetTick > 20) {
+                return;
+            }
+            packetTick++;
+        }
+
         if (!isEnable()) {
             return;
         }
 
-        // 初始化Minecraft核心游戏对象：所有后续逻辑的基础，需先完成初始化
-        this.mc = Minecraft.getInstance();
-        this.level = mc.level;
-        this.player = mc.player;
-        this.connection = mc.getConnection();
-        this.gameMode = mc.gameMode;
-        this.gameType = mc.gameMode == null ? null : mc.gameMode.getPlayerMode();
-        this.hitResult = mc.hitResult;
-        if (mc.hitResult != null && mc.hitResult.getType() == HitResult.Type.BLOCK) {
-            this.blockHitResult = (BlockHitResult) mc.hitResult;
-        } else {
-            this.blockHitResult = null;
-        }
+        this.updateVariables();
 
         // 核心游戏对象空值校验：任意对象为空则终止本次Tick，避免空指针异常
         if (this.mc == null || this.level == null || this.player == null || this.connection == null || this.gameMode == null || this.gameType == null) {
+            return;
+        }
+
+        ActionManager.INSTANCE.sendQueue(player);
+        if (ActionManager.INSTANCE.needWait) {
             return;
         }
 
@@ -290,7 +307,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                         continue;
                     }
                     boolean isPrinterRange = isPrintMode() && LitematicaUtils.isSchematicBlock(pos);
-                    if (!isPrinterRange && !Printer.TempData.xuanQuFanWeiNei_p(pos)) {
+                    if (!isPrinterRange && !LitematicaUtils.xuanQuFanWeiNei_p(pos)) {
                         continue;
                     }
                     if (selectionType != null && !ConfigUtils.isPositionInSelectionRange(player, pos, selectionType)) {
@@ -398,6 +415,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     protected int getMaxTotalIterationsPerTick() {
         return Configs.Core.ITERATOR_TOTAL_PER_TICK.getIntegerValue();
     }
+
     /**
      * 普通任务执行前的预处理逻辑，子类可重写实现
      * 执行时机：游戏对象初始化完成后，{link #execute()}执行前

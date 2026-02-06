@@ -1,42 +1,42 @@
-package me.aleksilassila.litematica.printer.function;
+package me.aleksilassila.litematica.printer.handler.handlers;
 
-import fi.dy.masa.malilib.config.options.ConfigBoolean;
+import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.BlockCooldownType;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
+import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.printer.BlockCooldownManager;
-import me.aleksilassila.litematica.printer.printer.Printer;
-import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
-import org.jetbrains.annotations.NotNull;
 
-public class FunctionBedrock extends Function {
+import java.util.concurrent.atomic.AtomicReference;
 
-    @Override
-    public PrintModeType getPrintModeType() {
-        return PrintModeType.BEDROCK;
+public class BedrockHandler extends ClientPlayerTickHandler {
+    public BedrockHandler() {
+        super("bedrock", PrintModeType.BEDROCK, Configs.Hotkeys.BEDROCK, null, true);
     }
 
     @Override
-    public ConfigBoolean getCurrentConfig() {
-        return Configs.Hotkeys.BEDROCK;
+    protected int getTickInterval() {
+        return Configs.Break.BREAK_INTERVAL.getIntegerValue();
     }
 
     @Override
-    public void tick(Printer printer, @NotNull Minecraft client, @NotNull ClientLevel level, @NotNull LocalPlayer player) {
+    protected int getMaxEffectiveExecutionsPerTick() {
+        return Configs.Break.BREAK_BLOCKS_PER_TICK.getIntegerValue();
+    }
+
+    @Override
+    protected boolean canExecute() {
         if (player.isCreative()) {
             MessageUtils.setOverlayMessage("创造模式无法使用破基岩模式！");
-            return;
+            return false;
         }
         if (!ModLoadStatus.isBedrockMinerLoaded()) {
             MessageUtils.setOverlayMessage("未安装 Fabric-Bedrock-Miner 模组/游戏版本小于1.19，无法破基岩！");
-            return;
+            return false;
         }
         if (!BedrockUtils.isWorking()) {
             BedrockUtils.setWorking(true);
@@ -44,13 +44,15 @@ public class FunctionBedrock extends Function {
         if (BedrockUtils.isBedrockMinerFeatureEnable()) {   // 限制原功能(手动点击或使用方块：添加、开关)
             BedrockUtils.setBedrockMinerFeatureEnable(false);
         }
-        BlockPos pos;
-        while ((pos = getBoxBlockPos()) != null) {
-            if (BlockCooldownManager.INSTANCE.isOnCooldown(BlockCooldownType.BEDROCK, pos)) {
-                continue;
-            }
-            BedrockUtils.addToBreakList(pos, client.level);
-            BlockCooldownManager.INSTANCE.setCooldown(BlockCooldownType.BEDROCK, pos, 100);
+        return true;
+    }
+
+    @Override
+    protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
+        if (isBlockPosOnCooldown(blockPos)) {
+            return;
         }
+        BedrockUtils.addToBreakList(blockPos, client.level);
+        setBlockPosCooldown(blockPos, 100);
     }
 }

@@ -7,7 +7,6 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.handler.Handlers;
 import me.aleksilassila.litematica.printer.printer.BlockCooldownManager;
-import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import me.aleksilassila.litematica.printer.utils.UpdateCheckerUtils;
@@ -51,6 +50,9 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     @Shadow
     protected Minecraft minecraft;
 
+    @Unique
+    private boolean updateChecked;
+
     //#if MC == 11902
     //$$ public MixinLocalPlayer(ClientLevel world, GameProfile profile, @Nullable PlayerPublicKey publicKey) {
     //$$    super(world, profile, publicKey);
@@ -63,10 +65,10 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
 
     @Inject(at = @At("HEAD"), method = "resetPos")
     public void init(CallbackInfo ci) {
-        if (Configs.Core.UPDATE_CHECK.getBooleanValue() && !Printer.getInstance().updateChecked) {
+        if (Configs.Core.UPDATE_CHECK.getBooleanValue() && !updateChecked) {
             CompletableFuture.runAsync(UpdateCheckerUtils::checkForUpdates);
         }
-        Printer.getInstance().updateChecked = true;
+        updateChecked = true;
     }
 
     @Inject(at = @At("HEAD"), method = "closeContainer")
@@ -85,8 +87,6 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
         ZxyUtils.tick();
         InteractionUtils.INSTANCE.onTick();
         Handlers.tick();
-        Printer printer = Printer.getInstance();
-        printer.onGameTick(minecraft, minecraft.level, (LocalPlayer) (Object) this);
     }
 
 

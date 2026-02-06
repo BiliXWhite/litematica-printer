@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.printer;
 
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
+import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.utils.DirectionUtils;
 import me.aleksilassila.litematica.printer.utils.InventoryUtils;
@@ -25,6 +26,8 @@ import net.minecraft.world.entity.player.Input;
 //#endif
 
 public class ActionManager {
+    public static final ActionManager INSTANCE = new ActionManager();
+
     public BlockPos target;
     public Direction side;
     public Vec3 hitModifier;
@@ -33,6 +36,9 @@ public class ActionManager {
     @Nullable
     public Look look = null;
     public boolean needWait = false;
+
+    private ActionManager() {
+    }
 
     public void queueClick(@NotNull BlockPos target, @NotNull Direction side, @NotNull Vec3 hitModifier, boolean useShift) {
         if (Configs.Placement.PLACE_INTERVAL.getIntegerValue() != 0) {
@@ -121,6 +127,11 @@ public class ActionManager {
         }
 
         clearQueue();
+    }
+
+    public void sendLook(LocalPlayer player, Look look) {
+        this.look = look;
+        Implementation.sendLookPacket(player, look);
     }
 
     public void setShift(LocalPlayer player, boolean shift) {

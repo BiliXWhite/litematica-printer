@@ -45,7 +45,7 @@ public class MineHandler extends ClientPlayerTickHandler {
             return;
         }
         this.lastMinedBlock = null;
-//        this.setBlockPosCooldown(blockPos, getBreakCooldown());
+        this.setBlockPosCooldown(blockPos, getBreakCooldown());
     }
 
 }

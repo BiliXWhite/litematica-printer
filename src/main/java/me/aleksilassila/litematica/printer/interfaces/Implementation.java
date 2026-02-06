@@ -1,8 +1,8 @@
 package me.aleksilassila.litematica.printer.interfaces;
 
 import me.aleksilassila.litematica.printer.mixin.printer.mc.ServerboundMovePlayerPacketAccessor;
+import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.printer.Look;
-import me.aleksilassila.litematica.printer.printer.Printer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
@@ -100,7 +100,7 @@ public class Implementation {
     }
 
     public static Packet<?> getFixedPacket(Packet<?> packet) {
-        Look look = Printer.getInstance().actionManager.look;
+        Look look = ActionManager.INSTANCE.look;
         if (!isMovePlayerPacket(packet) || look == null) {
             return packet;
         }

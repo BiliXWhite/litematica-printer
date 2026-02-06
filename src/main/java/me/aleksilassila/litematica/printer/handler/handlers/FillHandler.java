@@ -7,6 +7,7 @@ import me.aleksilassila.litematica.printer.enums.FillBlockModeType;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.printer.Action;
+import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.FilterUtils;
 import me.aleksilassila.litematica.printer.utils.InventoryUtils;
@@ -82,22 +83,20 @@ public class FillHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    public boolean canIterationBlockPos(BlockPos pos) {
+    public boolean canIterationBlockPos(BlockPos blockPos) {
+        if (!isOpenHandler && !switchItem()) {
+            return false;
+        }
         if (Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FillBlockModeType.HANDHELD) {
             ItemStack heldStack = player.getMainHandItem(); // 获取主手物品
             return !heldStack.isEmpty() && heldStack.getCount() > 0;
         }
-        return true;
+        return this.isBlockPosOnCooldown(blockPos);
     }
+
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
-        if (isOpenHandler || switchItem()) {
-            return;
-        }
-        if (this.isBlockPosOnCooldown(blockPos)) {
-            return;
-        }
         boolean handheld = Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FillBlockModeType.HANDHELD;
         BlockState currentState = level.getBlockState(blockPos);
         if (currentState.isAir()
@@ -108,12 +107,12 @@ public class FillHandler extends ClientPlayerTickHandler {
                 if (PlaceUtils.getFillModeFacing() != null) {
                     new Action()
                             .setLookDirection(PlaceUtils.getFillModeFacing().getOpposite())
-                            .queueAction(actionManager, blockPos, PlaceUtils.getFillModeFacing(), false);
+                            .queueAction(blockPos, PlaceUtils.getFillModeFacing(), false);
                 } else {
                     new Action()
-                            .queueAction(actionManager, blockPos, null, false);
+                            .queueAction(blockPos, null, false);
                 }
-                actionManager.sendQueue(player);
+                ActionManager.INSTANCE.sendQueue(player);
             }
         }
         this.setBlockPosCooldown(blockPos, ConfigUtils.getPlaceCooldown());

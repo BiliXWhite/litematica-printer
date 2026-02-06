@@ -205,7 +205,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (type == ChestType.SINGLE) {
                     for (Direction side : BlockStateProperties.HORIZONTAL_FACING.getPossibleValues()) {
                         if (!noChestSides.containsKey(side)) {
-                            return new Action().setLookDirection(facing).setUseShift();
+                            return new Action().setLookDirection(facing).setShift();
                         }
                         return new Action().setSides(noChestSides).setLookDirection(facing);
                     }
@@ -217,9 +217,9 @@ public class PlacementGuide extends PrinterUtils {
                         chestFacing = facing.getClockWise();
                     }
                     if (ctx.level.getBlockState(ctx.blockPos.relative(chestFacing)).getBlock() instanceof ChestBlock) {
-                        return new Action().setSides(Map.of(chestFacing, Vec3.ZERO)).setLookDirection(facing).setUseShift(false);
+                        return new Action().setSides(Map.of(chestFacing, Vec3.ZERO)).setLookDirection(facing).setShift(false);
                     } else {
-                        return new Action().setSides(noChestSides).setLookDirection(facing).setUseShift();
+                        return new Action().setSides(noChestSides).setLookDirection(facing).setShift();
                     }
                 }
             }
@@ -535,7 +535,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (signBlock instanceof CeilingHangingSignBlock) {
                     int rotation = ctx.requiredState.getValue(CeilingHangingSignBlock.ROTATION);
                     boolean attachFace = ctx.requiredState.getValue(CeilingHangingSignBlock.ATTACHED);
-                    return new Action().setUseShift(attachFace).setSides(Direction.UP).setLookRotation(rotation).setRequiresSupport();
+                    return new Action().setShift(attachFace).setSides(Direction.UP).setLookRotation(rotation).setRequiresSupport();
                 }
                 //#endif
                 return null;
@@ -596,7 +596,7 @@ public class PlacementGuide extends PrinterUtils {
                         facing = ctx.requiredState.getValue(BlockStateProperties.FACING);
                         if (ctx.requiredState.getBlock() instanceof ShulkerBoxBlock) {
                             facing = facing.getOpposite();
-                            action.setUseShift();
+                            action.setShift();
                         }
                         action.setSides(facing).setLookDirection(facing.getOpposite());
                     }
@@ -1059,8 +1059,8 @@ public class PlacementGuide extends PrinterUtils {
 
     public static class ClickAction extends Action {
         @Override
-        public void queueAction(ActionManager actionManager, BlockPos blockPos, Direction side, boolean useShift) {
-            actionManager.queueClick(blockPos, side, getSides().get(side), false);
+        public void queueAction(BlockPos blockPos, Direction side, boolean useShift) {
+            ActionManager.INSTANCE.queueClick(blockPos, side, getSides().get(side), false);
         }
 
         @Override

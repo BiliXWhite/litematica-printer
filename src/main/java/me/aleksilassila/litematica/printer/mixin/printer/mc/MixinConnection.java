@@ -1,6 +1,8 @@
 package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
-import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
+import me.aleksilassila.litematica.printer.handler.Handlers;
+import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.network.Connection;
@@ -19,8 +21,8 @@ import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.exi
 public class MixinConnection {
     @Inject(method = "genericsFtw", at = @At("HEAD"), require = 1)
     private static void hookGenericsFtw(Packet<?> packet, PacketListener listener, CallbackInfo ci) {
-        if (Printer.isEnable()) {
-            Printer.getInstance().packetTick = 0;   // 用于延迟检测
+        if (ConfigUtils.isEnable()) {
+            ClientPlayerTickHandler.setPacketTick(0);   // 用于延迟检测
         }
     }
 

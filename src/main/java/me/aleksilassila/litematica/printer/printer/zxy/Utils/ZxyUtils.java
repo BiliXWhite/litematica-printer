@@ -4,7 +4,6 @@ import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
 import me.aleksilassila.litematica.printer.printer.MyBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
@@ -47,14 +46,14 @@ import static me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus.close
 import static net.minecraft.world.level.block.ShulkerBoxBlock.FACING;
 
 public class ZxyUtils {
+    private static final Minecraft client = Minecraft.getInstance();
+
     //旧版箱子追踪
     @SuppressWarnings("unused")
     public static boolean qw = false;
     @SuppressWarnings("unused")
     public static int currWorldId = 0;
 
-    @NotNull
-    static Minecraft client = Minecraft.getInstance();
     public static LinkedList<BlockPos> invBlockList = new LinkedList<>();
     public static boolean printerMemoryAdding = false;
     @SuppressWarnings("unused")
@@ -351,12 +350,12 @@ public class ZxyUtils {
         if (i == null) return blocks;
         boxes = i.getAllSubRegionBoxes();
         for (Box box : boxes) {
-            if (box.getPos1()==null||box.getPos2()==null) continue;
+            if (box.getPos1() == null || box.getPos2() == null) continue;
             MyBox printerBox = new MyBox(box.getPos1(), box.getPos2());
             for (BlockPos pos : printerBox) {
                 BlockState state = null;
-                if (Printer.client.level != null) {
-                    state = Printer.client.level.getBlockState(pos);
+                if (client.level != null) {
+                    state = client.level.getBlockState(pos);
                 }
                 if (FilterUtils.matchName(blockName, state)) {
                     blocks.add(pos);

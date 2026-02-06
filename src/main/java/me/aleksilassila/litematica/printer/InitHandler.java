@@ -5,7 +5,8 @@ import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
-import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.handler.Handlers;
+import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import me.aleksilassila.litematica.printer.utils.StringUtils;
@@ -48,9 +49,8 @@ public class InitHandler implements IInitializationHandler {
 
         Core.WORK_SWITCH.setValueChangeCallback(b -> {
             if (!b.getBooleanValue()) {
-                Printer printer = Printer.getInstance();
-                printer.clearQueue();
-                printer.pistonNeedFix = false;
+                ActionManager.INSTANCE.clearQueue();
+                Handlers.PRINT.setPistonNeedFix(false);
                 if (ModLoadStatus.isBedrockMinerLoaded()) {
                     if (BedrockUtils.isWorking()) {
                         BedrockUtils.setWorking(false);

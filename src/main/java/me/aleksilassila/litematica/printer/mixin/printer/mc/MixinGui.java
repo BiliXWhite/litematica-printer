@@ -7,8 +7,8 @@ import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.handler.GuiBlockInfo;
 import me.aleksilassila.litematica.printer.handler.Handlers;
 import me.aleksilassila.litematica.printer.printer.BlockContext;
-import me.aleksilassila.litematica.printer.printer.Printer;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
+import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
@@ -58,7 +58,7 @@ public abstract class MixinGui {
         float height = mc.getWindow().getGuiScaledHeight();
 
         if (player.isSpectator()) return;
-        if (!Printer.isEnable()) return;
+        if (!ConfigUtils.isEnable()) return;
         if (PrinterUtils.isBedrockMode()) return;
         if (!Configs.Core.RENDER_HUD.getBooleanValue()) return;
 
@@ -68,60 +68,83 @@ public abstract class MixinGui {
         RenderUtils.initGuiGraphics(guiGraphics);
         //#endif
 
-        BlockContext context = Printer.getInstance().blockContext;
         if (Configs.Core.DEBUG_OUTPUT.getBooleanValue()) {
-            int x = 50;
-            int y = 50;
-            if (PrinterUtils.isPrinterMode() && context != null) {
-                RenderUtils.drawString("位置: " + context.blockPos.toShortString(), x, y, Color.CYAN.getRGB(), true);
+            int rootX = 50;
+            int rootY = 50;
+            int x = rootX;
+            int y = rootY;
+            for (ClientPlayerTickHandler handler : Handlers.VALUES) {
+                y = rootY;
+                GuiBlockInfo gui = handler.getGuiBlockInfo();
+                if (gui == null) continue;
+                Block block = gui.state.getBlock();
+                BlockPos blockPos = gui.pos;
+                MutableComponent blockName = block.getName();
+                RenderUtils.drawString("Tick: " + ClientPlayerTickHandler.getCurrentHandlerTime(), x, y, Color.CYAN.getRGB(), true);
                 y += 9;
-                RenderUtils.drawString("投影: " + context.getRequiredBlockNameString(), x, y, Color.CYAN.getRGB(), true);
+                RenderUtils.drawString("类型: " + handler.getId(), x, y, Color.CYAN.getRGB(), true);
                 y += 9;
-                RenderUtils.drawString("实际: " + context.getCurrentBlockNameString(), x, y, Color.ORANGE.getRGB(), true);
-            } else {
-                for (ClientPlayerTickHandler handler : Handlers.VALUES) {
-                    GuiBlockInfo gui = handler.getGuiBlockInfo();
-                    if (gui == null) continue;
-                    Block block = gui.state.getBlock();
-                    BlockPos blockPos = gui.pos;
-                    MutableComponent blockName = block.getName();
+                RenderUtils.drawString("位置: " + blockPos.toShortString(), x, y, Color.CYAN.getRGB(), true);
+                y += 9;
+                RenderUtils.drawString("方块: " + blockName.getString(), x, y, Color.CYAN.getRGB(), true);
+                y += 9;
+                RenderUtils.drawString("可以交互: " + gui.interacted, x, y, Color.CYAN.getRGB(), true);
+                y += 9;
+                RenderUtils.drawString("渲染范围: " + gui.posInSelectionRange, x, y, Color.CYAN.getRGB(), true);
+                y += 9;
+                RenderUtils.drawString("已经执行: " + gui.execute, x, y, Color.CYAN.getRGB(), true);
 
-                    RenderUtils.drawString("Tick: " + ClientPlayerTickHandler.getCurrentHandlerTime(), x, y, Color.CYAN.getRGB(), true);
-                    y += 9;
-                    RenderUtils.drawString("类型: " + handler.getId(), x, y, Color.CYAN.getRGB(), true);
-                    y += 9;
-                    RenderUtils.drawString("位置: " + blockPos.toShortString(), x, y, Color.CYAN.getRGB(), true);
-                    y += 9;
-                    RenderUtils.drawString("方块: " + blockName.getString(), x, y, Color.CYAN.getRGB(), true);
-                    y += 9;
-                    RenderUtils.drawString("可以交互: " + gui.interacted, x, y, Color.CYAN.getRGB(), true);
-                    y += 9;
-                    RenderUtils.drawString("渲染范围: " + gui.posInSelectionRange, x, y, Color.CYAN.getRGB(), true);
-                    y += 9;
-                    RenderUtils.drawString("已经执行: " + gui.execute, x, y, Color.CYAN.getRGB(), true);
-
-                    x += 50;    // 添加另一列偏移量
-                }
+                x += 100;    // 添加另一列偏移量
             }
+
         }
 
-        if (Configs.Core.LAG_CHECK.getBooleanValue() && Printer.getInstance().packetTick > 20) {
+        if (Configs.Core.LAG_CHECK.getBooleanValue() && ClientPlayerTickHandler.getPacketTick() > 20) {
             RenderUtils.drawString("延迟过大，已暂停运行", (int) (width / 2), (int) (height / 2 - 22), Color.ORANGE.getRGB(), true, true);
         }
         if (Configs.Core.WORK_MODE.getOptionListValue().equals(ModeType.SINGLE)) {
-            RenderUtils.drawString((int) (Printer.getInstance().getProgress() * 100) + "%", (int) (width / 2), (int) (height / 2 + 22), Color.WHITE.getRGB(), true, true);
+            RenderUtils.drawString((int) (Handlers.GUI.getWorkProgress() * 100) + "%", (int) (width / 2), (int) (height / 2 + 22), Color.WHITE.getRGB(), true, true);
             //#if MC > 11904
             guiGraphics.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
-            guiGraphics.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getInstance().getProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
+            guiGraphics.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Handlers.GUI.getWorkProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
             //#else
             //$$ GuiComponent.fill(poseStack, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());
             //$$ GuiComponent.fill(poseStack, (int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 - 20 + Printer.getInstance().getProgress() * 40), (int) (height / 2 + 42), new Color(0, 255, 0, 255).getRGB());
             //#endif
         }
         RenderUtils.drawString(Configs.Core.WORK_MODE_TYPE.getOptionListValue().getDisplayName(), (int) (width / 2), (int) (height / 2 + 52), Color.WHITE.getRGB(), true, true);
-        if (context != null) {
-            RenderUtils.drawString(context.requiredState.getBlock().getName().getString(), (int) (width / 2), (int) (height / 2 + 64), Color.WHITE.getRGB(), true, true);
-        }
+//        if (context != null) {
+//            RenderUtils.drawString(context.requiredState.getBlock().getName().getString(), (int) (width / 2), (int) (height / 2 + 64), Color.WHITE.getRGB(), true, true);
+//        }
+//        int centerX = (int) (width / 2);
+//        int centerY = (int) (height / 2);
+//        int x = centerX - 20;
+//        int y = centerY + 36;
+//
+//
+//        for (ClientPlayerTickHandler handler : Handlers.VALUES) {
+//            y = rootY;
+//            GuiBlockInfo gui = handler.getGuiBlockInfo();
+//            if (gui == null) continue;
+//            Block block = gui.state.getBlock();
+//            BlockPos blockPos = gui.pos;
+//            MutableComponent blockName = block.getName();
+//            RenderUtils.drawString("Tick: " + ClientPlayerTickHandler.getCurrentHandlerTime(), x, y, Color.CYAN.getRGB(), true);
+//            y += 9;
+//            RenderUtils.drawString("类型: " + handler.getId(), x, y, Color.CYAN.getRGB(), true);
+//            y += 9;
+//            RenderUtils.drawString("位置: " + blockPos.toShortString(), x, y, Color.CYAN.getRGB(), true);
+//            y += 9;
+//            RenderUtils.drawString("方块: " + blockName.getString(), x, y, Color.CYAN.getRGB(), true);
+//            y += 9;
+//            RenderUtils.drawString("可以交互: " + gui.interacted, x, y, Color.CYAN.getRGB(), true);
+//            y += 9;
+//            RenderUtils.drawString("渲染范围: " + gui.posInSelectionRange, x, y, Color.CYAN.getRGB(), true);
+//            y += 9;
+//            RenderUtils.drawString("已经执行: " + gui.execute, x, y, Color.CYAN.getRGB(), true);
+//
+//            x += 100;    // 添加另一列偏移量
+//        }
     }
 
 }
