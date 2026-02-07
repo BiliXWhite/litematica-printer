@@ -10,8 +10,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 public class ConfigUtils {
     @NotNull
     public static final Minecraft client = Minecraft.getInstance();
@@ -60,7 +58,7 @@ public class ConfigUtils {
     public static boolean canInteracted(BlockPos blockPos) {
         double workRange = getWorkRange();
         if (Configs.Core.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()) {
-            if (client.player != null && !PlayerUtils.canInteractWithBlockAt(client.player, blockPos, 1F)) {
+            if (client.player != null && !PlayerUtils.isWithinBlockInteractionRange(client.player, blockPos, 1F)) {
                 return false;
             }
         }
