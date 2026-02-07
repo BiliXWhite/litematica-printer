@@ -168,10 +168,7 @@ public class Action {
         return this;
     }
 
-    public void queueAction(BlockPos blockPos, Direction side, boolean useShift, LocalPlayer player) {
-        if (side == null) {
-            side = Direction.orderedByNearest(player)[0].getOpposite();
-        }
+    public void queueAction(@NotNull BlockPos blockPos, @NotNull Direction side, boolean useShift, @NotNull LocalPlayer player) {
         if (Configs.Placement.PLACE_IN_AIR.getBooleanValue() && !this.requiresSupport) {
             ActionManager.INSTANCE.queueClick(
                     blockPos,

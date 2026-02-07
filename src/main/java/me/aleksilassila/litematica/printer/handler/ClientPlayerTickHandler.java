@@ -15,6 +15,7 @@ import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -226,7 +227,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             this.lastTickTime = currentTick; // 更新上次执行时间，首次执行也会初始化
         }
 
-        if (Configs.Core. LAG_CHECK.getBooleanValue()) {
+        if (Configs.Core.LAG_CHECK.getBooleanValue()) {
             if (packetTick > 20) {
                 return;
             }
@@ -496,5 +497,13 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     public void setBlockPosCooldown(@Nullable BlockPos pos, int cooldownTicks) {
         if (this.level == null || pos == null || cooldownTicks < 1) return;
         BlockCooldownManager.INSTANCE.setCooldown(this.level, this.getId(), pos, cooldownTicks);
+    }
+
+    protected Direction[] getPlayerOrderedByNearest() {
+        return Direction.orderedByNearest(player);
+    }
+
+    protected Direction getPlayerPlacementDirection() {
+        return getPlayerOrderedByNearest()[0].getOpposite();
     }
 }

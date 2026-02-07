@@ -1060,7 +1060,7 @@ public class PlacementGuide extends PrinterUtils {
 
     public static class ClickAction extends Action {
         @Override
-        public void queueAction(BlockPos blockPos, Direction side, boolean useShift, LocalPlayer player) {
+        public void queueAction(@NotNull BlockPos blockPos, @NotNull Direction side, boolean useShift, @NotNull LocalPlayer player) {
             ActionManager.INSTANCE.queueClick(blockPos, side, getSides().get(side), false);
         }
 
