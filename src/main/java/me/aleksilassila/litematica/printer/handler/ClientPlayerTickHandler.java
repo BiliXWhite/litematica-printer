@@ -8,6 +8,7 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.*;
 import me.aleksilassila.litematica.printer.printer.*;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
+import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -23,6 +24,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.switchItem;
 
 /**
  * 打印机客户端玩家Tick抽象处理器
@@ -241,6 +245,10 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
 
         // 核心游戏对象空值校验：任意对象为空则终止本次Tick，避免空指针异常
         if (this.mc == null || this.level == null || this.player == null || this.connection == null || this.gameMode == null || this.gameType == null) {
+            return;
+        }
+
+        if (isOpenHandler || switchItem() || InteractionUtils.INSTANCE.hasTargets()) {
             return;
         }
 

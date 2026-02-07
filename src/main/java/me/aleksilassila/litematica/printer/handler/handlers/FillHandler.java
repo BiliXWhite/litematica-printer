@@ -22,9 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.switchItem;
-
 public class FillHandler extends ClientPlayerTickHandler {
     private List<String> fillCacheBlocklist = new ArrayList<>();
     @Getter
@@ -56,12 +53,15 @@ public class FillHandler extends ClientPlayerTickHandler {
                     if (strings.isEmpty()) {
                         return;
                     }
+                    List<Item> items = new ArrayList<>();
                     for (String itemName : fillCacheBlocklist) {
-                        fillModeItemList = BuiltInRegistries.ITEM
+                        items.addAll(BuiltInRegistries.ITEM
                                 .stream()
                                 .filter(item -> FilterUtils.matchName(itemName, new ItemStack(item)))
-                                .toArray(Item[]::new);
+                                .toList()
+                        );
                     }
+                    fillModeItemList = items.toArray(new Item[0]);
                 }
                 break;
             case HANDHELD:  // 手持物品
@@ -84,9 +84,6 @@ public class FillHandler extends ClientPlayerTickHandler {
 
     @Override
     public boolean canIterationBlockPos(BlockPos blockPos) {
-        if (isOpenHandler || switchItem()) {
-            return false;
-        }
         if (Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FillBlockModeType.HANDHELD) {
             ItemStack heldStack = player.getMainHandItem(); // 获取主手物品
             return !heldStack.isEmpty() && heldStack.getCount() > 0;

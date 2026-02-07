@@ -56,16 +56,6 @@ public class PrintHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected boolean canExecute() {
-        return !isOpenHandler && !switchItem() && !InteractionUtils.INSTANCE.hasTargets();
-    }
-
-    @Override
-    protected boolean canExecuteIteration() {
-        return !isOpenHandler && !switchItem() && !InteractionUtils.INSTANCE.hasTargets();
-    }
-
-    @Override
     public boolean canIterationBlockPos(BlockPos blockPos) {
         if (!LitematicaUtils.isSchematicBlock(blockPos)) {
             return false;

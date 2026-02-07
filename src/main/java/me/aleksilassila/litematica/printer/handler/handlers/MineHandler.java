@@ -9,8 +9,6 @@ import net.minecraft.core.BlockPos;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class MineHandler extends ClientPlayerTickHandler {
-    private BlockPos lastMinedBlock = null;
-
     public MineHandler() {
         super("mine", PrintModeType.MINE, Configs.Core.MINE, Configs.Mine.MINE_SELECTION_TYPE, true);
     }
@@ -27,9 +25,6 @@ public class MineHandler extends ClientPlayerTickHandler {
 
     @Override
     public boolean canIterationBlockPos(BlockPos pos) {
-        if (lastMinedBlock != null && !lastMinedBlock.equals(pos)) {
-            return false;
-        }
         if (isBlockPosOnCooldown(pos)) {
             return false;
         }
