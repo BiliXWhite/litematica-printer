@@ -97,7 +97,7 @@ public class FluidHandler extends ClientPlayerTickHandler {
             if (!InventoryUtils.switchToItems(player, fillItems.toArray(new Item[0]))) {
                 return;
             }
-            new Action().queueAction(blockPos, Direction.UP, false);
+            new Action().queueAction(blockPos, Direction.UP, false, player);
             ActionManager.INSTANCE.sendQueue(player);
         }
         BlockCooldownManager.INSTANCE.setCooldown(BlockCooldownType.FLUID, blockPos, ConfigUtils.getPlaceCooldown());

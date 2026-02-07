@@ -5,6 +5,7 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.utils.BlockUtils;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.Item;
@@ -167,7 +168,10 @@ public class Action {
         return this;
     }
 
-    public void queueAction(BlockPos blockPos, Direction side, boolean useShift) {
+    public void queueAction(BlockPos blockPos, Direction side, boolean useShift, LocalPlayer player) {
+        if (side == null) {
+            side = Direction.orderedByNearest(player)[0].getOpposite();
+        }
         if (Configs.Placement.PLACE_IN_AIR.getBooleanValue() && !this.requiresSupport) {
             ActionManager.INSTANCE.queueClick(
                     blockPos,

@@ -107,10 +107,10 @@ public class FillHandler extends ClientPlayerTickHandler {
                 if (PlaceUtils.getFillModeFacing() != null) {
                     new Action()
                             .setLookDirection(PlaceUtils.getFillModeFacing().getOpposite())
-                            .queueAction(blockPos, PlaceUtils.getFillModeFacing(), false);
+                            .queueAction(blockPos, PlaceUtils.getFillModeFacing(), false, player);
                 } else {
                     new Action()
-                            .queueAction(blockPos, null, false);
+                            .queueAction(blockPos, null, false, player);
                 }
                 ActionManager.INSTANCE.sendQueue(player);
             }

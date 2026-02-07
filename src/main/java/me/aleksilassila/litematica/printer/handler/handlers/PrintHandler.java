@@ -106,7 +106,7 @@ public class PrintHandler extends ClientPlayerTickHandler {
                 || Configs.Print.PRINT_FORCED_SNEAK.getBooleanValue()
                 || action.isShift();
 
-        action.queueAction(blockPos, side, useShift);
+        action.queueAction(blockPos, side, useShift, player);
         Vec3 hitModifier = LitematicaUtils.usePrecisionPlacement(blockPos, blockContext.requiredState);
         if (hitModifier != null) {
             ActionManager.INSTANCE.hitModifier = hitModifier;
@@ -115,7 +115,7 @@ public class PrintHandler extends ClientPlayerTickHandler {
         if (action.getLook() != null) {
             ActionManager.INSTANCE.sendLook(player, action.getLook());
         }
-        var block = blockContext.requiredState.getBlock();
+        Block block = blockContext.requiredState.getBlock();
         if (block instanceof PistonBaseBlock) {
             pistonNeedFix = true;
         }

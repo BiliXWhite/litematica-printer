@@ -10,6 +10,7 @@ import me.aleksilassila.litematica.printer.utils.*;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.FrontAndTop;
@@ -1059,7 +1060,7 @@ public class PlacementGuide extends PrinterUtils {
 
     public static class ClickAction extends Action {
         @Override
-        public void queueAction(BlockPos blockPos, Direction side, boolean useShift) {
+        public void queueAction(BlockPos blockPos, Direction side, boolean useShift, LocalPlayer player) {
             ActionManager.INSTANCE.queueClick(blockPos, side, getSides().get(side), false);
         }
 
