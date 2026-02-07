@@ -9,6 +9,7 @@ import org.gradle.language.jvm.tasks.ProcessResources
 import org.gradle.kotlin.dsl.*
 import org.gradle.api.plugins.JavaPlugin
 
+@Suppress("unused")
 abstract class ModPlugin : Plugin<Project> {
     override fun apply(project: Project) = with(project) {
         pluginManager.apply("java")
