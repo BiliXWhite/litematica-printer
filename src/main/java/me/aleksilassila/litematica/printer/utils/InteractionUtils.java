@@ -47,12 +47,14 @@ public class InteractionUtils {
     public static boolean canBreakBlock(BlockPos pos) {
         ClientLevel world = client.level;
         BlockState currentState = world.getBlockState(pos);
+        if (Configs.Break.BREAK_CHECK_HARDNESS.getBooleanValue() && currentState.getBlock().defaultDestroyTime() < 0) {
+            return false;
+        }
         return !currentState.isAir() &&
                 !(currentState.getBlock() instanceof LiquidBlock) &&
                 !currentState.is(Blocks.AIR) &&
                 !currentState.is(Blocks.CAVE_AIR) &&
                 !currentState.is(Blocks.VOID_AIR) &&
-                !(currentState.getBlock().defaultDestroyTime() == -1) &&
                 !client.player.blockActionRestricted(client.level, pos, client.gameMode.getPlayerMode());
     }
 

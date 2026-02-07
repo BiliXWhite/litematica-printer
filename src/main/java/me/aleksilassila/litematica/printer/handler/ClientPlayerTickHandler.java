@@ -21,7 +21,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -326,14 +325,18 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                         }
                     }
                     if (interrupt) {
-                        return;
+                        break;
                     }
                 }
+                stopIteration(interrupt);
             }
         }
         if (!interrupt) {
             this.lastPlayerPos = null;
         }
+    }
+
+    protected void stopIteration(boolean interrupt) {
     }
 
     /**
