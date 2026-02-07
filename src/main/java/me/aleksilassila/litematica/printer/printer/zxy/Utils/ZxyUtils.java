@@ -63,7 +63,7 @@ public class ZxyUtils {
         getReadyColor();
         if (Configs.Core.CLOUD_INVENTORY.getBooleanValue() && !printerMemoryAdding) {
             printerMemoryAdding = true;
-            //#if MC > 11802
+            //#if MC > 12001
             //$$ if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
             //#endif
             for (String string : Configs.Core.INVENTORY_LIST.getStrings()) {
