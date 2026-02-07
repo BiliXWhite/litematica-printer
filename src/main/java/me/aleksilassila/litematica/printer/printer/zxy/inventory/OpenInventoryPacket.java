@@ -320,7 +320,7 @@ public class OpenInventoryPacket {
         openIng = true;
         OpenInventoryPacket.pos = pos;
         OpenInventoryPacket.key = key;
-        System.out.println(pos+"   key: "+key);
+//        System.out.println(pos+"   key: "+key);
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         buf.writeBlockPos(pos);
         buf.writeIdentifier(key.identifier());
