@@ -69,7 +69,6 @@ public abstract class MixinMinecraftClient {
         }
         original.call(instance, pos, b);
     }
-    //TODO: 以下低版本mixin有错, 分析检查出来的, 待修复
     //#else
     //$$ @WrapOperation(method = "pickBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;findSlotMatchingItem(Lnet/minecraft/world/item/ItemStack;)I" ))
     //$$ private int doItemPick(Inventory instance, ItemStack stack, Operation<Integer> original) {

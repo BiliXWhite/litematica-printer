@@ -12,7 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Container.class)
 public interface InventoryMixin {
-
     @Inject(
             at = @At("HEAD"),
             method = "stillValidBlockEntity(Lnet/minecraft/world/level/block/entity/BlockEntity;Lnet/minecraft/world/entity/player/Player;)Z",
@@ -29,6 +28,4 @@ public interface InventoryMixin {
             }
         }
     }
-
-
 }

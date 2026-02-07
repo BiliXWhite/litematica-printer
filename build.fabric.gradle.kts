@@ -11,11 +11,19 @@ plugins {
     id("com.replaymod.preprocess")
 }
 
-val buildTimestamp: String? = SimpleDateFormat("yyMMdd").apply {
-    timeZone = TimeZone.getTimeZone("GMT+08:00")
-}.format(Date())
+val time = SimpleDateFormat("yyMMdd")
+    .apply { timeZone = TimeZone.getTimeZone("GMT+08:00") }
+    .format(Date())
+    .toString()
 
-version = "$modVersion+$buildTimestamp"
+var fullProjectVersion = "$modVersion+$time"
+if (System.getenv("IS_THIS_RELEASE") == "false") {
+    val buildNumber: String? = System.getenv("GITHUB_RUN_NUMBER")
+    if (buildNumber != null) {
+        fullProjectVersion += "+build.$buildNumber"
+    }
+}
+version = fullProjectVersion
 group = modMavenGroup
 
 repositories {

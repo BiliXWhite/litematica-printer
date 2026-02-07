@@ -34,8 +34,8 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.*;
 
-//#if MC >= 12001 && MC <= 12104
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+//#if MC >= 12001 
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#elseif MC < 12001
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //#endif
@@ -63,10 +63,9 @@ public class ZxyUtils {
         getReadyColor();
         if (Configs.Core.CLOUD_INVENTORY.getBooleanValue() && !printerMemoryAdding) {
             printerMemoryAdding = true;
-            //#if MC >= 12001 && MC <= 12104
-            //$$ if (MemoryUtils.PRINTER_MEMORY == null) MemoryUtils.createPrinterMemory();
-            //#endif
-
+            if (MemoryUtils.PRINTER_MEMORY == null) {
+                MemoryUtils.createPrinterMemory();
+            }
             for (String string : Configs.Core.INVENTORY_LIST.getStrings()) {
                 invBlockList.addAll(filterBlocksByName(string).stream().filter(InventoryUtils::canOpenInv).toList());
             }

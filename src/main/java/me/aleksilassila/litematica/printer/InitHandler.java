@@ -28,7 +28,7 @@ public class InitHandler implements IInitializationHandler {
             Core.AUTO_INVENTORY.setBooleanValue(false);  // 自动设置远程交互
             Core.CLOUD_INVENTORY.setBooleanValue(false); // 远程交互容器
         }
-        //#if MC >= 12001 && MC <= 12104
+        //#if MC >= 12001 
         //$$ if (ModLoadStatus.isLoadChestTrackerLoaded()) {
         //$$     me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.setup();
         //$$ }

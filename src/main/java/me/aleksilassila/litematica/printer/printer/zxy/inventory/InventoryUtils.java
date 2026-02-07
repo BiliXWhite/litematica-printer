@@ -21,10 +21,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-//#if MC > 11904 && MC <= 12104
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
-//$$ import red.jackf.chesttracker.api.providers.InteractionTracker;
+
+//#if MC > 11904 
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
+import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#elseif MC <= 11904
 //$$ import net.minecraft.core.Registry;
 //$$ import net.minecraft.resources.ResourceLocation;
@@ -32,9 +33,9 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.Memory;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
-//#if MC > 11902
-//$$ import net.minecraft.core.registries.Registries;
-//#endif
+    //#if MC > 11902
+    //$$ import net.minecraft.core.registries.Registries;
+    //#endif
 //#endif
 
 import java.util.HashSet;
@@ -99,15 +100,15 @@ public class InventoryUtils {
                 return true;
             } else if (Configs.Core.CLOUD_INVENTORY.getBooleanValue()) {
                 for (Item item : lastNeedItemList) {
-                    //#if MC >= 12001 && MC <= 12104
-                    //$$ MemoryUtils.currentMemoryKey = client.level.dimension().location();
-                    //$$ MemoryUtils.itemStack = new ItemStack(item);
-                    //$$ if (SearchItem.search(true)) {
-                    //$$     closeScreen++;
-                    //$$     isOpenHandler = true;
-                    //$$     me.aleksilassila.litematica.printer.handler.Handlers.PRINT.setPrinterMemorySync(true);
-                    //$$     return true;
-                    //$$ }
+                    //#if MC >= 12001
+                    MemoryUtils.currentMemoryKey = client.level.dimension().identifier();
+                    MemoryUtils.itemStack = new ItemStack(item);
+                    if (SearchItem.search(true)) {
+                        closeScreen++;
+                        isOpenHandler = true;
+                        me.aleksilassila.litematica.printer.handler.Handlers.PRINT.setPrinterMemorySync(true);
+                        return true;
+                    }
                     //#elseif MC < 12001
                     //$$
                     //$$    MemoryDatabase database = MemoryDatabase.getCurrent();
@@ -214,7 +215,7 @@ public class InventoryUtils {
                         try {
                             shulkerBoxSlot = i;
 //                            ClientUtil.CheckAndSend(stack,i);
-                            //#if MC >= 12001 && MC <= 12104
+                            //#if MC >= 12001 
                             //$$ if (me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus.isLoadChestTrackerLoaded()) InteractionTracker.INSTANCE.clear();
                             //#endif
                             ShulkerUtils.openShulker(stack, shulkerBoxSlot);

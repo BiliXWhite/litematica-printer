@@ -11,11 +11,19 @@ plugins {
     id("com.replaymod.preprocess")
 }
 
-val buildTimestamp: String? = SimpleDateFormat("yyMMdd").apply {
-    timeZone = TimeZone.getTimeZone("GMT+08:00")
-}.format(Date())
+val time = SimpleDateFormat("yyMMdd")
+    .apply { timeZone = TimeZone.getTimeZone("GMT+08:00") }
+    .format(Date())
+    .toString()
 
-version = "$modVersion+$buildTimestamp"
+var fullProjectVersion = "$modVersion+$time"
+if (System.getenv("IS_THIS_RELEASE") == "false") {
+    val buildNumber: String? = System.getenv("GITHUB_RUN_NUMBER")
+    if (buildNumber != null) {
+        fullProjectVersion += "+build.$buildNumber"
+    }
+}
+version = fullProjectVersion
 group = modMavenGroup
 
 repositories {
@@ -65,9 +73,22 @@ dependencies {
     modImplementation("maven.modrinth:tweakeroo:${prop("tweakeroo")}")
 
     // 箱子追踪相关（1.21.5 以下）
-    if (mcVersionInt < 12105) {
+    if (mcVersionInt <= 12105) {
         modImplementation("maven.modrinth:chest-tracker:${prop("chesttracker")}")
         modImplementation("maven.modrinth:where-is-it:${prop("whereisit")}")
+        if (mcVersionInt >= 12001) {
+            modImplementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
+        }
+    } else {
+        modImplementation("maven.modrinth:chest-tracker-port:${prop("chesttracker")}")
+        if (mcVersionInt >= 12001) {
+            if (mcVersionInt >= 12106) {
+                modImplementation("com.github.bunnyi116:JackFredLib:${prop("jackfredlib")}")
+            } else {
+                modImplementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
+            }
+            modImplementation("maven.modrinth:where-is-it-port:${prop("whereisit")}")
+        }
     }
 
     // 快捷潜影盒
@@ -79,6 +100,8 @@ dependencies {
                 modImplementation(files(quickshulkerFile))
             }
         }
+
+
         // 快捷潜影盒依赖(运行时)
         if (mcVersionInt == 12006) {  // 1.20.6 是 Haocen2004/quickshulker 分支, 所以还是使用之前老版本的依赖
             modImplementation("net.kyrptonaught:kyrptconfig:${prop("kyrptconfig")}") // 快捷潜影盒依赖(运行时)
@@ -93,13 +116,6 @@ dependencies {
     // 暂时不知是什么依赖
     if (mcVersionInt >= 12001) {
         modImplementation("dev.isxander:yet-another-config-lib:${prop("yacl")}")
-
-        // TODO: 暂时不知道是什么模组的依赖, 不过在1.21.11中会报错, 因为这个库没有最新版本, 移除后正在运行, 不知道有什么BUG
-        // java.lang.NoSuchMethodError: 'long net.minecraft.server.level.ServerLevel.method_8510()'
-        // Jackfred maven复活
-        if (mcVersionInt < 12111) {
-            implementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
-        }
         modImplementation("com.blamejared.searchables:${prop("searchables")}")
     } else {
         modImplementation("maven.modrinth:cloth-config:${prop("cloth_config")}")
