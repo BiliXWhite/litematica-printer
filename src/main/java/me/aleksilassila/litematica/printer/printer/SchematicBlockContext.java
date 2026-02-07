@@ -7,13 +7,12 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 
 import java.util.Optional;
 
-public class BlockContext {
+public class SchematicBlockContext {
     public final Minecraft client;
     public final ClientLevel level;
     public final WorldSchematic schematic;
@@ -21,7 +20,7 @@ public class BlockContext {
     public final BlockState currentState;
     public final BlockState requiredState;
 
-    public BlockContext(Minecraft client, ClientLevel level, WorldSchematic schematic, BlockPos blockPos) {
+    public SchematicBlockContext(Minecraft client, ClientLevel level, WorldSchematic schematic, BlockPos blockPos) {
         this.client = client;
         this.level = level;
         this.schematic = schematic;
@@ -30,8 +29,8 @@ public class BlockContext {
         this.requiredState = schematic.getBlockState(blockPos);
     }
 
-    public BlockContext offset(Direction direction) {
-        return new BlockContext(client, level, schematic, blockPos.relative(direction));
+    public SchematicBlockContext offset(Direction direction) {
+        return new SchematicBlockContext(client, level, schematic, blockPos.relative(direction));
     }
 
     public static <T extends Comparable<T>> Optional<T> getProperty(BlockState blockState, Property<T> property) {
@@ -64,7 +63,7 @@ public class BlockContext {
 
     @Override
     public String toString() {
-        return "BlockContext{" +
+        return "SchematicBlockContext{" +
                 "client=" + client +
                 ", level=" + level +
                 ", schematic=" + schematic +

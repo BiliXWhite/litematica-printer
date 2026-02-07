@@ -34,7 +34,7 @@ public class ActionManager {
     public boolean useShift = false;
     public boolean useProtocol = false;
     @Nullable
-    public Look look = null;
+    public PlayerLook playerLook = null;
     public boolean needWait = false;
 
     private ActionManager() {
@@ -62,8 +62,8 @@ public class ActionManager {
             return;
         }
         if (!useProtocol && !needWait) {
-            if (look != null) {
-                if (DirectionUtils.orderedByNearest(look.yaw, look.pitch)[0].getAxis().isHorizontal()) {
+            if (playerLook != null) {
+                if (DirectionUtils.orderedByNearest(playerLook.yaw, playerLook.pitch)[0].getAxis().isHorizontal()) {
                     needWait = true;
                     return;
                 }
@@ -73,10 +73,10 @@ public class ActionManager {
             needWait = false;
         }
         Direction direction;
-        if (look == null) {
+        if (playerLook == null) {
             direction = side;
         } else {
-            direction = DirectionUtils.getHorizontalDirection(look.yaw);
+            direction = DirectionUtils.getHorizontalDirection(playerLook.yaw);
         }
 
         Vec3 hitVec;
@@ -129,9 +129,9 @@ public class ActionManager {
         clearQueue();
     }
 
-    public void sendLook(LocalPlayer player, Look look) {
-        this.look = look;
-        Implementation.sendLookPacket(player, look);
+    public void sendLook(LocalPlayer player, PlayerLook playerLook) {
+        this.playerLook = playerLook;
+        Implementation.sendLookPacket(player, playerLook);
     }
 
     public void setShift(LocalPlayer player, boolean shift) {
@@ -153,6 +153,6 @@ public class ActionManager {
         this.useShift = false;
         this.useProtocol = false;
         this.needWait = false;
-        this.look = null;
+        this.playerLook = null;
     }
 }

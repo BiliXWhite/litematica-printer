@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.printer;
 
-import me.aleksilassila.litematica.printer.enums.BlockCooldownType;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -12,8 +11,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 
-public class BlockCooldownManager {
-    public static BlockCooldownManager INSTANCE = new BlockCooldownManager();
+public class BlockPosCooldownManager {
+    public static BlockPosCooldownManager INSTANCE = new BlockPosCooldownManager();
 
     private final Map<Info, Integer> cooldownMap = new HashMap<>();
 
@@ -55,22 +54,6 @@ public class BlockCooldownManager {
     }
 
     /**
-     * 设置冷却
-     */
-    public void setCooldown(ClientLevel level, BlockCooldownType type, BlockPos pos, int cooldownTicks) {
-        this.setCooldown(level, type.type, pos, cooldownTicks);
-    }
-
-    /**
-     * 设置冷却
-     */
-    public void setCooldown(BlockCooldownType type, BlockPos pos, int cooldownTicks) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null) return;
-        this.setCooldown(mc.level, type.type, pos, cooldownTicks);
-    }
-
-    /**
      * 判断指定方块是否处于冷却中
      *
      * @return true=冷却中，false=未冷却/无冷却
@@ -79,26 +62,6 @@ public class BlockCooldownManager {
         Identifier dimension = level.dimension().identifier();
         Info key = new Info(dimension, type, pos);
         return cooldownMap.containsKey(key);
-    }
-
-    /**
-     * 判断指定方块是否处于冷却中
-     *
-     * @return true=冷却中，false=未冷却/无冷却
-     */
-    public boolean isOnCooldown(ClientLevel level, BlockCooldownType type, BlockPos pos) {
-        return this.isOnCooldown(level, type.type, pos);
-    }
-
-    /**
-     * 判断指定方块是否处于冷却中
-     *
-     * @return true=冷却中，false=未冷却/无冷却
-     */
-    public boolean isOnCooldown(BlockCooldownType type, BlockPos pos) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null) return false;
-        return this.isOnCooldown(mc.level, type.type, pos);
     }
 
     /**
@@ -111,13 +74,6 @@ public class BlockCooldownManager {
     }
 
     /**
-     * 手动移除指定方块的冷却（强制取消冷却）
-     */
-    public void removeCooldown(ClientLevel level, BlockCooldownType type, BlockPos pos) {
-        this.removeCooldown(level, type.type, pos);
-    }
-
-    /**
      * 获取指定方块的剩余冷却刻数
      *
      * @return 剩余冷却刻数，未冷却则返回0
@@ -126,15 +82,6 @@ public class BlockCooldownManager {
         Identifier dimension = level.dimension().identifier();
         Info key = new Info(dimension, type, pos);
         return cooldownMap.getOrDefault(key, 0);
-    }
-
-    /**
-     * 获取指定方块的剩余冷却刻数
-     *
-     * @return 剩余冷却刻数，未冷却则返回0
-     */
-    public int getRemainingCooldown(ClientLevel level, BlockCooldownType type, BlockPos pos) {
-        return this.getRemainingCooldown(level, type.type, pos);
     }
 
     /**
@@ -151,13 +98,6 @@ public class BlockCooldownManager {
     public void clearTypeCooldowns(ClientLevel level, String type) {
         Identifier dimension = level.dimension().identifier();
         cooldownMap.keySet().removeIf(info -> info.dimension.equals(dimension) && info.type.equals(type));
-    }
-
-    /**
-     * 清空指定维度+指定类型的所有冷却数据（如清空某维度所有打印冷却）
-     */
-    public void clearTypeCooldowns(ClientLevel level, BlockCooldownType type) {
-        this.clearTypeCooldowns(level, type.toString());
     }
 
     /**

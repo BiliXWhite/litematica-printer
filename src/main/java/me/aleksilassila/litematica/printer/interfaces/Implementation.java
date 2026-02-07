@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.interfaces;
 
 import me.aleksilassila.litematica.printer.mixin.printer.mc.ServerboundMovePlayerPacketAccessor;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
-import me.aleksilassila.litematica.printer.printer.Look;
+import me.aleksilassila.litematica.printer.printer.PlayerLook;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
@@ -87,8 +87,8 @@ public class Implementation {
         ));
     }
 
-    public static void sendLookPacket(LocalPlayer playerEntity, Look look) {
-        sendLookPacket(playerEntity, look.getYaw(), look.getPitch());
+    public static void sendLookPacket(LocalPlayer playerEntity, PlayerLook playerLook) {
+        sendLookPacket(playerEntity, playerLook.getYaw(), playerLook.getPitch());
     }
 
     public static boolean isRotPacket(Packet<?> packet) {
@@ -100,13 +100,13 @@ public class Implementation {
     }
 
     public static Packet<?> getFixedPacket(Packet<?> packet) {
-        Look look = ActionManager.INSTANCE.look;
-        if (!isMovePlayerPacket(packet) || look == null) {
+        PlayerLook playerLook = ActionManager.INSTANCE.playerLook;
+        if (!isMovePlayerPacket(packet) || playerLook == null) {
             return packet;
         }
         boolean onGround = ((ServerboundMovePlayerPacketAccessor) packet).getOnGround();
         if (isRotPacket(packet)) {
-            return new ServerboundMovePlayerPacket.Rot(look.yaw, look.pitch, onGround
+            return new ServerboundMovePlayerPacket.Rot(playerLook.yaw, playerLook.pitch, onGround
                     //#if MC > 12101
                     , ((ServerboundMovePlayerPacketAccessor) packet).getHorizontalCollision()
                     //#endif
@@ -115,7 +115,7 @@ public class Implementation {
         double x = ((ServerboundMovePlayerPacketAccessor) packet).getX();
         double y = ((ServerboundMovePlayerPacketAccessor) packet).getY();
         double z = ((ServerboundMovePlayerPacketAccessor) packet).getZ();
-        return new ServerboundMovePlayerPacket.PosRot(x, y, z, look.yaw, look.pitch, onGround
+        return new ServerboundMovePlayerPacket.PosRot(x, y, z, playerLook.yaw, playerLook.pitch, onGround
                 //#if MC > 12101
                 , ((ServerboundMovePlayerPacketAccessor) packet).getHorizontalCollision()
                 //#endif

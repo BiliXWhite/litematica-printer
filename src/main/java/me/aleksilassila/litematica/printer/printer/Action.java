@@ -25,7 +25,7 @@ public class Action {
 
     @Nullable
     @Getter
-    protected Look look = null;
+    protected PlayerLook playerLook = null;
 
     @Nullable
     protected Item[] clickItems; // null == 空手
@@ -45,22 +45,22 @@ public class Action {
     }
 
     public Action setLookYawPitch(float lookYaw, float lookPitch) {
-        this.look = new Look(lookYaw, lookPitch);
+        this.playerLook = new PlayerLook(lookYaw, lookPitch);
         return this;
     }
 
     public Action setLookRotation(int lookRotation) {
-        this.look = new Look(lookRotation);
+        this.playerLook = new PlayerLook(lookRotation);
         return this;
     }
 
     public Action setLookDirection(Direction lookDirection) {
-        this.look = new Look(lookDirection);
+        this.playerLook = new PlayerLook(lookDirection);
         return this;
     }
 
     public Action setLookDirection(Direction lookDirectionYaw, Direction lookDirectionPitch) {
-        this.look = new Look(lookDirectionYaw, lookDirectionPitch);
+        this.playerLook = new PlayerLook(lookDirectionYaw, lookDirectionPitch);
         return this;
     }
 

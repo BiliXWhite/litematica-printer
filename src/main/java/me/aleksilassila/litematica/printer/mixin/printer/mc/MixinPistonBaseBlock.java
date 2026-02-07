@@ -13,7 +13,7 @@ public class MixinPistonBaseBlock {
 //    private BlockState fixStateForPlacement(BlockState blockState) {
 //        if (Handlers.PRINT.isPistonNeedFix()) {
 //            printer.pistonNeedFix = false;
-//            BlockContext ctx = printer.blockContext;
+//            SchematicBlockContext ctx = printer.blockContext;
 //            if (ctx != null && ctx.requiredState.getBlock() instanceof PistonBaseBlock) {
 //                blockState = ctx.requiredState.setValue(PistonBaseBlock.EXTENDED, false);
 //            }

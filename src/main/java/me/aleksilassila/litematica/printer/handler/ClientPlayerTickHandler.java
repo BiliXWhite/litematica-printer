@@ -94,14 +94,14 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
      */
     @Getter
     @Nullable
-    public final AtomicReference<MyBox> playerInteractionBox;
+    public final AtomicReference<PrinterBox> playerInteractionBox;
 
     /**
      * 上次Tick的玩家交互盒对象，用于检测玩家位置/范围是否发生变化
      * 避免每Tick重复创建交互盒，提升性能
      */
     @Nullable
-    private MyBox lastPlayerInteractionBox;
+    private PrinterBox lastPlayerInteractionBox;
 
     /**
      * 上次Tick的玩家所在位置，用于检测玩家是否发生移动
@@ -260,8 +260,8 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         // 更新玩家交互盒：玩家位置/范围变化时重新创建，否则复用原有对象
         if (this.playerInteractionBox != null) {
             BlockPos playerPos = this.player.getOnPos();
-            double threshold = getWorkRange() * 0.7; // 玩家移动阈值：工作范围的70%
-            @Nullable MyBox playerInteractionBox = this.playerInteractionBox.get();
+            double threshold = getWorkRangeD() * 0.7; // 玩家移动阈值：工作范围的70%
+            @Nullable PrinterBox playerInteractionBox = this.playerInteractionBox.get();
             // 交互盒未创建/玩家移动超阈值/交互盒不匹配时，重新创建交互盒
             if (playerInteractionBox == null
                     || !playerInteractionBox.equals(this.lastPlayerInteractionBox)
@@ -269,7 +269,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                     || !this.lastPlayerPos.closerThan(playerPos, threshold)
             ) {
                 this.lastPlayerPos = playerPos;
-                playerInteractionBox = new MyBox(playerPos).expand(getWorkRange()); // 按工作范围扩展交互盒
+                playerInteractionBox = new PrinterBox(playerPos).expand(getWorkRangeI()); // 按工作范围扩展交互盒
                 this.lastPlayerInteractionBox = playerInteractionBox;
                 this.playerInteractionBox.set(playerInteractionBox); // 更新原子引用
             }
@@ -290,7 +290,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         boolean interrupt = false;
         // 执行迭代业务任务：基于玩家交互盒的方块迭代处理（防主线程阻塞）
         if (this.playerInteractionBox != null && this.canExecute()) {
-            MyBox playerInteractionBox = this.playerInteractionBox.get();
+            PrinterBox playerInteractionBox = this.playerInteractionBox.get();
             // 交互盒非空且满足迭代执行条件时，执行迭代逻辑
             if (playerInteractionBox != null && canExecuteIteration()) {
                 int maxEffectiveExec = this.getMaxEffectiveExecutionsPerTick();
@@ -488,26 +488,26 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
 
     /**
      * 判断指定方块是否处于当前处理器的冷却中，避免重复处理
-     * 冷却数据由{link BlockCooldownManager}统一管理，按处理器id区分
+     * 冷却数据由{link BlockPosCooldownManager}统一管理，按处理器id区分
      *
      * @param pos 待判断的方块位置，可为null
      * @return true-处于冷却中，false-可处理；位置/世界为空时默认返回true
      */
     public boolean isBlockPosOnCooldown(@Nullable BlockPos pos) {
         if (this.level == null || pos == null) return true;
-        return BlockCooldownManager.INSTANCE.isOnCooldown(this.level, this.getId(), pos);
+        return BlockPosCooldownManager.INSTANCE.isOnCooldown(this.level, this.getId(), pos);
     }
 
     /**
      * 为指定方块设置当前处理器的冷却时间，避免短时间内重复处理
-     * 冷却数据由{link BlockCooldownManager}统一管理，按处理器id区分
+     * 冷却数据由{link BlockPosCooldownManager}统一管理，按处理器id区分
      *
      * @param pos           待设置冷却的方块位置，可为null
      * @param cooldownTicks 冷却时间（单位：Tick），小于1则不处理
      */
     public void setBlockPosCooldown(@Nullable BlockPos pos, int cooldownTicks) {
         if (this.level == null || pos == null || cooldownTicks < 1) return;
-        BlockCooldownManager.INSTANCE.setCooldown(this.level, this.getId(), pos, cooldownTicks);
+        BlockPosCooldownManager.INSTANCE.setCooldown(this.level, this.getId(), pos, cooldownTicks);
     }
 
     protected Direction[] getPlayerOrderedByNearest() {

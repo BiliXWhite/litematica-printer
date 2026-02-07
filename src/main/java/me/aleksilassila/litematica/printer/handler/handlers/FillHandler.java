@@ -23,12 +23,14 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class FillHandler extends ClientPlayerTickHandler {
+    public final static String NAME = "fill";
+
     private List<String> fillCacheBlocklist = new ArrayList<>();
     @Getter
     private Item[] fillModeItemList = new Item[0];
 
     public FillHandler() {
-        super("fill", PrintModeType.FILL, Configs.Core.FILL, Configs.Fill.FILL_SELECTION_TYPE, true);
+        super(NAME, PrintModeType.FILL, Configs.Core.FILL, Configs.Fill.FILL_SELECTION_TYPE, true);
     }
 
     @Override

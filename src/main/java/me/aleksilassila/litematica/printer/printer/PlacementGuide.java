@@ -3,7 +3,6 @@ package me.aleksilassila.litematica.printer.printer;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.enums.BlockCooldownType;
 import me.aleksilassila.litematica.printer.enums.BlockPrintState;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.utils.*;
@@ -48,7 +47,7 @@ public class PlacementGuide extends PrinterUtils {
         this.mc = client;
     }
 
-    public @Nullable Action getAction(BlockContext ctx) {
+    public @Nullable Action getAction(SchematicBlockContext ctx) {
         BlockPrintState state = BlockPrintState.get(ctx);
         if (!ctx.requiredState.canSurvive(ctx.level, ctx.blockPos) || state == BlockPrintState.CORRECT) {
             return null;
@@ -69,7 +68,7 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     @SuppressWarnings("EnhancedSwitchMigration")
-    private @Nullable Action buildAction(BlockContext ctx, ClassHook requiredType, BlockPrintState state, AtomicReference<Boolean> skip) {
+    private @Nullable Action buildAction(SchematicBlockContext ctx, ClassHook requiredType, BlockPrintState state, AtomicReference<Boolean> skip) {
         // 跳过含水方块
         if (Configs.Print.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && PlaceUtils.isWaterRequired(ctx.requiredState)) {
             return null;
@@ -80,11 +79,11 @@ public class PlacementGuide extends PrinterUtils {
                 return null;
             }
             if (ctx.currentState.getBlock() instanceof IceBlock) {  // 冰块
-                if (BlockCooldownManager.INSTANCE.isOnCooldown(BlockCooldownType.PRINT_WATER, ctx.blockPos)) {
+                if (BlockPosCooldownManager.INSTANCE.isOnCooldown(ctx.level, "print_water", ctx.blockPos)) {
                     return null;
                 } else {
                     InteractionUtils.INSTANCE.add(ctx);
-                    BlockCooldownManager.INSTANCE.setCooldown(BlockCooldownType.PRINT_WATER, ctx.blockPos, 20);
+                    BlockPosCooldownManager.INSTANCE.setCooldown(ctx.level, "print_water", ctx.blockPos, 20);
                 }
                 return null;
             }
@@ -117,7 +116,7 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     /*** 缺失方块：实际位置为空，或当前方块在可替换列表中且启用了替换功能 ***/
-    private @Nullable Action buildActionMissingBlock(BlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
+    private @Nullable Action buildActionMissingBlock(SchematicBlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
         switch (requiredType) {
             case TORCH -> {
                 Direction lookDirection = ctx.getRequiredStateProperty(WallTorchBlock.FACING).orElse(Direction.UP).getOpposite();
@@ -340,8 +339,8 @@ public class PlacementGuide extends PrinterUtils {
                 if (facing == null) {
                     return null;
                 }
-                BlockContext input = ctx.offset(facing);                    // 输入端(侦测面)
-                BlockContext output = ctx.offset(facing.getOpposite());     // 输出端(红点面)
+                SchematicBlockContext input = ctx.offset(facing);                    // 输入端(侦测面)
+                SchematicBlockContext output = ctx.offset(facing.getOpposite());     // 输出端(红点面)
                 if (Configs.Print.SAFELY_OBSERVER.getBooleanValue()) {        // 安全放置
 
                     // 获取输入端方块属性
@@ -360,11 +359,11 @@ public class PlacementGuide extends PrinterUtils {
                     BlockPrintState outputState = BlockPrintState.get(output);
                     if (inputState == BlockPrintState.CORRECT && outputState == BlockPrintState.CORRECT) {
                         // 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
-                        BlockContext temp = input;
+                        SchematicBlockContext temp = input;
                         while (temp.requiredState.getBlock() instanceof ObserverBlock) {
                             @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
                             // 查找下一个侦测器并检查并检查状态是否正确
-                            BlockContext offset = temp.offset(tempObserverFacing);
+                            SchematicBlockContext offset = temp.offset(tempObserverFacing);
                             if (tempObserverFacing != null && BlockPrintState.get(offset) != BlockPrintState.CORRECT) {
                                 return null;
                             }
@@ -375,9 +374,9 @@ public class PlacementGuide extends PrinterUtils {
                     }
                     // 输入端已放置成功，并状态一致
                     if (inputState == BlockPrintState.CORRECT) {
-                        BlockContext temp = input;
+                        SchematicBlockContext temp = input;
                         while (temp.requiredState.getBlock() instanceof FallingBlock) {
-                            BlockContext offset = temp.offset(Direction.DOWN);
+                            SchematicBlockContext offset = temp.offset(Direction.DOWN);
                             if (BlockPrintState.get(offset) != BlockPrintState.CORRECT) {
                                 return null;
                             }
@@ -389,7 +388,7 @@ public class PlacementGuide extends PrinterUtils {
                             while (temp.requiredState.getBlock() instanceof ObserverBlock) {
                                 @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
                                 // 查找下一个侦测器并检查并检查状态是否正确
-                                BlockContext offset = temp.offset(tempObserverFacing);
+                                SchematicBlockContext offset = temp.offset(tempObserverFacing);
                                 if (tempObserverFacing != null && BlockPrintState.get(offset) != BlockPrintState.CORRECT) {
                                     return null;
                                 }
@@ -400,7 +399,7 @@ public class PlacementGuide extends PrinterUtils {
 
                         // 侦测器隔空激活活塞
                         for (Direction direction : Direction.values()) {
-                            BlockContext offset = output.offset(direction);
+                            SchematicBlockContext offset = output.offset(direction);
                             if (offset.blockPos.equals(output.blockPos)) {
                                 continue;
                             }
@@ -487,11 +486,11 @@ public class PlacementGuide extends PrinterUtils {
                 if (Configs.Print.SAFELY_OBSERVER.getBooleanValue()) {
                     // 活塞四周
                     for (Direction direction : Direction.values()) {
-                        BlockContext temp = ctx.offset(direction);
+                        SchematicBlockContext temp = ctx.offset(direction);
                         while (temp.requiredState.getBlock() instanceof ObserverBlock) {
                             @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
                             if (tempObserverFacing != null) {
-                                BlockContext offset = temp.offset(tempObserverFacing);
+                                SchematicBlockContext offset = temp.offset(tempObserverFacing);
                                 if (tempObserverFacing == direction) {
                                     if (BlockPrintState.get(offset) != BlockPrintState.CORRECT) {
                                         return null;
@@ -624,7 +623,7 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     /*** 状态错误：方块类型相同，但方块状态（如朝向、亮度等）不一致 ***/
-    private @Nullable Action buildActionErrorBlockState(BlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
+    private @Nullable Action buildActionErrorBlockState(SchematicBlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
         boolean printBreakWrongStateBlock = Configs.Print.BREAK_WRONG_STATE_BLOCK.getBooleanValue();
 
         switch (requiredType) {
@@ -721,7 +720,7 @@ public class PlacementGuide extends PrinterUtils {
                     Direction requiredFacing = ctx.requiredState.getValue(ComparatorBlock.FACING);
                     Direction currentFacing = ctx.currentState.getValue(ComparatorBlock.FACING);
                     if (requiredFacing == currentFacing) {
-                        BlockContext facingFirstBlockCtx = ctx.offset(requiredFacing);
+                        SchematicBlockContext facingFirstBlockCtx = ctx.offset(requiredFacing);
                         // 检验输出信号
                         if (ctx.level.getSignal(ctx.blockPos, requiredFacing) != ctx.schematic.getSignal(ctx.blockPos, requiredFacing)) {
                             // 检验输入端是否为"能输出比较器信号方块"
@@ -730,7 +729,7 @@ public class PlacementGuide extends PrinterUtils {
                             }
                             // 检验输入端非透明方块
                             if (facingFirstBlockCtx.requiredState.isRedstoneConductor(facingFirstBlockCtx.level, facingFirstBlockCtx.blockPos)) {
-                                BlockContext facingSecondBlockCtx = facingFirstBlockCtx.offset(requiredFacing);
+                                SchematicBlockContext facingSecondBlockCtx = facingFirstBlockCtx.offset(requiredFacing);
                                 // 仿照原版检验物品展示框
                                 BlockPos blockPos = facingSecondBlockCtx.blockPos;
                                 List<ItemFrame> itemFrameList = facingSecondBlockCtx.schematic.getEntitiesOfClass(
@@ -897,7 +896,7 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     /*** 方块错误：方块类型完全不同，且不满足缺失/状态错误的条件 ***/
-    private @Nullable Action buildActionErrorBlock(BlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
+    private @Nullable Action buildActionErrorBlock(SchematicBlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
         switch (requiredType) {
             case FARMLAND -> {
                 Block[] soilBlocks = new Block[]{Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.DIRT_PATH, Blocks.COARSE_DIRT};

@@ -10,7 +10,7 @@ import java.util.Objects;
 
 import net.minecraft.core.BlockPos;
 
-public class MyBox implements Iterable<BlockPos> {
+public class PrinterBox implements Iterable<BlockPos> {
     public static final Minecraft client = Minecraft.getInstance();
     public final int minX;
     public final int minY;
@@ -24,7 +24,7 @@ public class MyBox implements Iterable<BlockPos> {
     public IterationOrderType iterationMode = IterationOrderType.XZY;
     private Iterator<BlockPos> iterator;
 
-    public MyBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+    public PrinterBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         this.minX = Math.min(minX, maxX);
         this.minZ = Math.min(minZ, maxZ);
         this.maxX = Math.max(minX, maxX);
@@ -40,11 +40,11 @@ public class MyBox implements Iterable<BlockPos> {
         }
     }
 
-    public MyBox(BlockPos pos) {
+    public PrinterBox(BlockPos pos) {
         this(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
     }
 
-    public MyBox(Vec3i pos1, Vec3i pos2) {
+    public PrinterBox(Vec3i pos1, Vec3i pos2) {
         this(pos1.getX(), pos1.getY(), pos1.getZ(), pos2.getX(), pos2.getY(), pos2.getZ());
     }
 
@@ -56,7 +56,7 @@ public class MyBox implements Iterable<BlockPos> {
         return vec3i.getX() >= this.minX && vec3i.getX() <= this.maxX && vec3i.getY() >= this.minY && vec3i.getY() <= this.maxY && vec3i.getZ() >= this.minZ && vec3i.getZ() <= this.maxZ;
     }
 
-    public MyBox expand(int expandX, int expandY, int expandZ) {
+    public PrinterBox expand(int expandX, int expandY, int expandZ) {
         int minX = this.minX - expandX;
         int minZ = this.minZ - expandZ;
         int maxX = this.maxX + expandX;
@@ -67,10 +67,10 @@ public class MyBox implements Iterable<BlockPos> {
             minY = Math.max(client.level.getMinY(), minY);
             maxY = Math.min(client.level.getMaxY(), maxY);
         }
-        return new MyBox(minX, minY, minZ, maxX, maxY, maxZ);
+        return new PrinterBox(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
-    public MyBox expand(int value) {
+    public PrinterBox expand(int value) {
         return this.expand(value, value, value);
     }
 
@@ -86,7 +86,7 @@ public class MyBox implements Iterable<BlockPos> {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        MyBox box = (MyBox) o;
+        PrinterBox box = (PrinterBox) o;
         return minX == box.minX && minY == box.minY && minZ == box.minZ && maxX == box.maxX && maxY == box.maxY && maxZ == box.maxZ;
     }
 
@@ -117,9 +117,9 @@ public class MyBox implements Iterable<BlockPos> {
             // 初始化起始位置
             if (currPos == null) {
                 currPos = new BlockPos(
-                        IterationOrderType.Axis.X.reset(MyBox.this),
-                        IterationOrderType.Axis.Y.reset(MyBox.this),
-                        IterationOrderType.Axis.Z.reset(MyBox.this)
+                        IterationOrderType.Axis.X.reset(PrinterBox.this),
+                        IterationOrderType.Axis.Y.reset(PrinterBox.this),
+                        IterationOrderType.Axis.Z.reset(PrinterBox.this)
                 );
                 return currPos;
             }
@@ -132,15 +132,15 @@ public class MyBox implements Iterable<BlockPos> {
             // 获取当前迭代模式的轴优先级，通用处理所有轴迭代（无任何switch）
             for (IterationOrderType.Axis axis : iterationMode.axis) {
                 // 对当前轴执行增量
-                int newValue = axis.increment(MyBox.this, axis.getCoord(MyBox.this, x, y, z));
+                int newValue = axis.increment(PrinterBox.this, axis.getCoord(PrinterBox.this, x, y, z));
 
                 // 检查是否溢出
-                if (axis.isOverflow(MyBox.this, newValue)) {
+                if (axis.isOverflow(PrinterBox.this, newValue)) {
                     // 溢出则重置当前轴，继续处理下一个轴
                     switch (axis) {
-                        case X -> x = axis.reset(MyBox.this);
-                        case Y -> y = axis.reset(MyBox.this);
-                        case Z -> z = axis.reset(MyBox.this);
+                        case X -> x = axis.reset(PrinterBox.this);
+                        case Y -> y = axis.reset(PrinterBox.this);
+                        case Z -> z = axis.reset(PrinterBox.this);
                     }
                 } else {
                     // 未溢出则更新当前轴坐标，终止循环

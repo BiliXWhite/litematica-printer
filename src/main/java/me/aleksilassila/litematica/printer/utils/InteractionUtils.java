@@ -5,12 +5,10 @@ import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
 import me.aleksilassila.litematica.printer.bilixwhite.utils.TweakerooUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.enums.BlockCooldownType;
 import me.aleksilassila.litematica.printer.enums.ExcavateListMode;
 import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
-import me.aleksilassila.litematica.printer.printer.BlockContext;
-import me.aleksilassila.litematica.printer.printer.BlockCooldownManager;
-import me.aleksilassila.litematica.printer.printer.PrinterUtils;
+import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
+import me.aleksilassila.litematica.printer.printer.BlockPosCooldownManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -90,7 +88,7 @@ public class InteractionUtils {
         breakTargets.add(pos);
     }
 
-    public void add(BlockContext ctx) {
+    public void add(SchematicBlockContext ctx) {
         if (ctx == null) return;
         this.add(ctx.blockPos);
     }
@@ -127,7 +125,7 @@ public class InteractionUtils {
 
         while ((breakPos = (!breakTargets.isEmpty() && breakPos != null) ? updateTarget() : null) != null) {
             // 检查方块是否已消失或变为流体
-            if (!PrinterUtils.canInteracted(breakPos) || !canBreakBlock(breakPos)) {
+            if (!ConfigUtils.canInteracted(breakPos) || !canBreakBlock(breakPos)) {
                 resetBreakTarget();
                 continue;
             }
@@ -159,7 +157,6 @@ public class InteractionUtils {
     private void resetBreakTarget() {
         // 性能优化：避免不必要的remove操作
         if (breakPos != null) {
-            BlockCooldownManager.INSTANCE.setCooldown(BlockCooldownType.MINE, breakPos, 4);
             breakTargets.remove(breakPos);
         }
         updateTarget();

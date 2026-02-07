@@ -9,10 +9,10 @@ import net.minecraft.core.BlockPos;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class MineHandler extends ClientPlayerTickHandler {
-    private BlockPos lastMinedBlock = null;
+    public final static String NAME = "mine";
 
     public MineHandler() {
-        super("mine", PrintModeType.MINE, Configs.Core.MINE, Configs.Mine.MINE_SELECTION_TYPE, true);
+        super(NAME, PrintModeType.MINE, Configs.Core.MINE, Configs.Mine.MINE_SELECTION_TYPE, true);
     }
 
     @Override

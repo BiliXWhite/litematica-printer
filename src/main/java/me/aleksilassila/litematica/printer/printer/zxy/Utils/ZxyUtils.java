@@ -4,11 +4,11 @@ import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.printer.PrinterUtils;
-import me.aleksilassila.litematica.printer.printer.MyBox;
+import me.aleksilassila.litematica.printer.printer.PrinterBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
+import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.FilterUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -31,7 +31,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -169,7 +168,7 @@ public class ZxyUtils {
             OpenInventoryPacket.sendOpenInventory(pos, client.level.dimension());
             return true;
         } else {
-            if (client.player != null && !PrinterUtils.canInteracted(pos)) {
+            if (client.player != null && !ConfigUtils.canInteracted(pos)) {
                 if (!ignoreThePrompt)
                     client.gui.setOverlayMessage(Component.nullToEmpty("距离过远无法打开容器"), false);
                 return false;
@@ -351,7 +350,7 @@ public class ZxyUtils {
         boxes = i.getAllSubRegionBoxes();
         for (Box box : boxes) {
             if (box.getPos1() == null || box.getPos2() == null) continue;
-            MyBox printerBox = new MyBox(box.getPos1(), box.getPos2());
+            PrinterBox printerBox = new PrinterBox(box.getPos1(), box.getPos2());
             for (BlockPos pos : printerBox) {
                 BlockState state = null;
                 if (client.level != null) {

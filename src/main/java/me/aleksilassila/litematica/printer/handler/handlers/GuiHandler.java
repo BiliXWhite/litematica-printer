@@ -7,7 +7,7 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.BlockPrintState;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.handler.Handlers;
-import me.aleksilassila.litematica.printer.printer.BlockContext;
+import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.LiquidBlock;
@@ -16,13 +16,15 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GuiHandler extends ClientPlayerTickHandler {
+    public final static String NAME = "gui";
+
     private long workProgressTotalCount;
     private long workProgressFinishedCount;
     @Getter
     private double workProgress;
 
     public GuiHandler() {
-        super("gui", null, Configs.Core.DEBUG_OUTPUT, null, true);
+        super(NAME, null, Configs.Core.DEBUG_OUTPUT, null, true);
     }
 
     @Override
@@ -33,7 +35,7 @@ public class GuiHandler extends ClientPlayerTickHandler {
                 workProgress = 0.0f;
                 return;
             }
-            BlockContext context = new BlockContext(client, level, schematic, blockPos);
+            SchematicBlockContext context = new SchematicBlockContext(client, level, schematic, blockPos);
             if (context.requiredState.isAir()) {
                 return;
             }

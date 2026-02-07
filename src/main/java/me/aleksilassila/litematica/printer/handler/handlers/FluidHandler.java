@@ -1,12 +1,11 @@
 package me.aleksilassila.litematica.printer.handler.handlers;
 
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.enums.BlockCooldownType;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.printer.Action;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
-import me.aleksilassila.litematica.printer.printer.BlockCooldownManager;
+import me.aleksilassila.litematica.printer.printer.BlockPosCooldownManager;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.FilterUtils;
 import me.aleksilassila.litematica.printer.utils.InventoryUtils;
@@ -26,6 +25,8 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.Inventor
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.switchItem;
 
 public class FluidHandler extends ClientPlayerTickHandler {
+    public final static String NAME = "fluid";
+
     private List<String> fillBlocks = new ArrayList<>();
     private List<Item> fillItems = new ArrayList<>();
 
@@ -33,7 +34,7 @@ public class FluidHandler extends ClientPlayerTickHandler {
     private List<Fluid> fluids = List.of(new Fluid[0]);
 
     public FluidHandler() {
-        super("fluid", PrintModeType.FLUID, Configs.Core.FLUID, Configs.Fluid.FLUID_SELECTION_TYPE, true);
+        super(NAME, PrintModeType.FLUID, Configs.Core.FLUID, Configs.Fluid.FLUID_SELECTION_TYPE, true);
     }
 
     @Override
@@ -81,9 +82,6 @@ public class FluidHandler extends ClientPlayerTickHandler {
 
     @Override
     public boolean canIterationBlockPos(BlockPos blockPos) {
-        if (isOpenHandler || switchItem()) {
-            return false;
-        }
         return !this.isBlockPosOnCooldown(blockPos);
     }
 
@@ -100,6 +98,6 @@ public class FluidHandler extends ClientPlayerTickHandler {
             new Action().queueAction(blockPos, Direction.UP, false, player);
             ActionManager.INSTANCE.sendQueue(player);
         }
-        BlockCooldownManager.INSTANCE.setCooldown(BlockCooldownType.FLUID, blockPos, ConfigUtils.getPlaceCooldown());
+        setBlockPosCooldown(blockPos, ConfigUtils.getPlaceCooldown());
     }
 }
