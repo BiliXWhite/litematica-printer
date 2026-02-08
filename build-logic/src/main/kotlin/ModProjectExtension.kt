@@ -2,6 +2,9 @@ import org.gradle.api.Project
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.TimeZone
 
 fun Project.propOrNull(key: String) = findProperty(key)
 fun Project.prop(key: String) = propOrNull(key) ?: throw GradleException("属性 $key 未配置/值为空")
@@ -48,18 +51,36 @@ val Project.javaVersion
     }
 val Project.mixinJavaVersion get() = "JAVA_${javaVersion}"
 
+
+val Project.fullProjectVersion: String get() = getFullProjectVersion(modVersion)
+
+private fun getFullProjectVersion(modVersion: String): String {
+    val time = SimpleDateFormat("yyMMdd")
+        .apply { timeZone = TimeZone.getTimeZone("GMT+08:00") }
+        .format(Date())
+        .toString()
+    var version = "$modVersion+$time"
+    if (System.getenv("IS_THIS_RELEASE") == "false") {
+        val buildNumber: String? = System.getenv("GITHUB_RUN_NUMBER")
+        if (buildNumber != null) {
+            version += "+build.$buildNumber"
+        }
+    }
+    return version;
+}
+
 val Project.placeholderProps: Map<String, Any?>
     get() = mapOf(
         "mod_id" to modId,
         "mod_wrapper_id" to wrapperModId,
         "mod_name" to modName,
-        "mod_version" to modVersion,
+        "mod_version" to fullProjectVersion,
         "mod_description" to modDescription,
         "mod_homepage" to modHomepage,
         "mod_license" to modLicense,
         "mod_sources" to modSources,
         "loader_version" to fabricLoaderVersion,
-        "fabric_api_version" to fabricApiVersion, // 补充fabric-api占位符（可选）
+        "fabric_api_version" to fabricApiVersion,
         "minecraft_dependency" to mcDependency,
         "compatibility_level" to mixinJavaVersion
     ).filterValues { it != null }.mapValues { it.value!! }
