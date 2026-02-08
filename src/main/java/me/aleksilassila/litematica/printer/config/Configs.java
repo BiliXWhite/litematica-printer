@@ -257,13 +257,13 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 核心 - 工作间隔
         public static final ConfigInteger PLACE_INTERVAL = integer("placeInterval")
-                .defaultValue(1)
+                .defaultValue(0)
                 .range(0, 20)
                 .build();
 
         // 每刻放置方块数
         public static final ConfigInteger PLACE_BLOCKS_PER_TICK = integer("placeBlocksPerTick")
-                .defaultValue(1)
+                .defaultValue(20)
                 .range(0, 256)
                 .build();
 
@@ -320,7 +320,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         public static final ConfigInteger BREAK_INTERVAL = integer("breakInterval")
-                .defaultValue(1)
+                .defaultValue(0)
                 .range(0, 20)
                 .build();
 
