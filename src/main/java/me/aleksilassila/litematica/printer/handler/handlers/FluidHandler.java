@@ -16,6 +16,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,11 +82,6 @@ public class FluidHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    public boolean canIterationBlockPos(BlockPos blockPos) {
-        return !this.isBlockPosOnCooldown(blockPos);
-    }
-
-    @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         FluidState fluidState = level.getBlockState(blockPos).getFluidState();
         if (fluids.contains(fluidState.getType())) {
@@ -97,7 +93,8 @@ public class FluidHandler extends ClientPlayerTickHandler {
             }
             new Action().queueAction(blockPos, Direction.UP, false, player);
             ActionManager.INSTANCE.sendQueue(player);
+
+            setBlockPosCooldown(blockPos, Fluids.WATER.getTickDelay(level) * 2);
         }
-        setBlockPosCooldown(blockPos, ConfigUtils.getPlaceCooldown());
     }
 }

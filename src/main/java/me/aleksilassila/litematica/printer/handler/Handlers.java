@@ -14,9 +14,9 @@ public class Handlers {
     public static final ImmutableList<ClientPlayerTickHandler> VALUES = ImmutableList.of(
             GUI,
             PRINT,
-            MINE,
             FILL,
             FLUID,
+            MINE,
             BEDROCK
     );
 

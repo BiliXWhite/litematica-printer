@@ -3,6 +3,7 @@ package me.aleksilassila.litematica.printer.handler.handlers;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
+import me.aleksilassila.litematica.printer.printer.BlockPosCooldownManager;
 import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import net.minecraft.core.BlockPos;
 
@@ -27,7 +28,7 @@ public class MineHandler extends ClientPlayerTickHandler {
 
     @Override
     public boolean canIterationBlockPos(BlockPos pos) {
-        if (isBlockPosOnCooldown(pos)) {
+        if (isBlockPosOnCooldown(pos) || BlockPosCooldownManager.INSTANCE.isOnCooldown(level, FluidHandler.NAME, pos)) {
             return false;
         }
         return InteractionUtils.canBreakBlock(pos) && InteractionUtils.breakRestriction(level.getBlockState(pos));
@@ -38,6 +39,7 @@ public class MineHandler extends ClientPlayerTickHandler {
         InteractionUtils.BlockBreakResult result = InteractionUtils.INSTANCE.continueDestroyBlock(blockPos);
         if (result == InteractionUtils.BlockBreakResult.IN_PROGRESS) {
             skipIteration.set(true);
+            this.setBlockPosCooldown(blockPos, getBreakCooldown());
             return;
         }
         this.setBlockPosCooldown(blockPos, getBreakCooldown());
