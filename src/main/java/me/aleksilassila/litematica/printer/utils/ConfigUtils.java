@@ -52,20 +52,12 @@ public class ConfigUtils {
         return Configs.Break.BREAK_COOLDOWN.getIntegerValue();
     }
 
-    public static double getWorkRangeD() {
-        double workRange = Configs.Core.WORK_RANGE.getIntegerValue();
-        if (Configs.Core.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()) {
-            return Math.min(workRange, PlayerUtils.getPlayerBlockInteractionRange());
-        }
-        return workRange;
-    }
-
-    public static int getWorkRangeI() {
-        return (int) Math.ceil(getWorkRangeD());
+    public static int getWorkRange() {
+        return Configs.Core.WORK_RANGE.getIntegerValue();
     }
 
     public static boolean canInteracted(BlockPos blockPos) {
-        double workRange = getWorkRangeD();
+        double workRange = getWorkRange();
         if (Configs.Core.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()) {
             if (client.player != null && !PlayerUtils.isWithinBlockInteractionRange(client.player, blockPos, 1F)) {
                 return false;

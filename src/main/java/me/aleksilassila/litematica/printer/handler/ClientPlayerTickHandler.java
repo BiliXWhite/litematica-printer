@@ -260,7 +260,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         // 更新玩家交互盒：玩家位置/范围变化时重新创建，否则复用原有对象
         if (this.playerInteractionBox != null) {
             BlockPos playerPos = this.player.getOnPos();
-            double threshold = getWorkRangeD() * 0.7; // 玩家移动阈值：工作范围的70%
+            double threshold = getWorkRange() * 0.7; // 玩家移动阈值：工作范围的70%
             @Nullable PrinterBox playerInteractionBox = this.playerInteractionBox.get();
             // 交互盒未创建/玩家移动超阈值/交互盒不匹配时，重新创建交互盒
             if (playerInteractionBox == null
@@ -269,7 +269,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                     || !this.lastPlayerPos.closerThan(playerPos, threshold)
             ) {
                 this.lastPlayerPos = playerPos;
-                playerInteractionBox = new PrinterBox(playerPos).expand(getWorkRangeI()); // 按工作范围扩展交互盒
+                playerInteractionBox = new PrinterBox(playerPos).expand(getWorkRange()); // 按工作范围扩展交互盒
                 this.lastPlayerInteractionBox = playerInteractionBox;
                 this.playerInteractionBox.set(playerInteractionBox); // 更新原子引用
             }
