@@ -70,7 +70,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     @Inject(at = @At("HEAD"), method = "closeContainer")
     public void close(CallbackInfo ci) {
         //#if MC >= 12001
-        if(ModLoadStatus.isLoadChestTrackerLoaded()) {
+        if (ModLoadStatus.isLoadChestTrackerLoaded()) {
             MemoryUtils.saveMemory(this.containerMenu);
         }
         OpenInventoryPacket.reSet();
@@ -87,10 +87,15 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
         InventoryUtils.tick();
         // 宅闲鱼相关
         ZxyUtils.tick();
-        // 挖掘相关
-        InteractionUtils.INSTANCE.onTick();
-        // 模式运行
-        Handlers.tick();
+
+        // 提前过滤检查破坏情况, 避免 Handlers.tick() 运行到挖掘处理, 进行重复累计进度或避免一些问题
+        if (InteractionUtils.INSTANCE.hasTargets()) {
+            // 挖掘相关
+            InteractionUtils.INSTANCE.onTick();
+        } else {
+            // 模式运行
+            Handlers.tick();
+        }
     }
 
 
