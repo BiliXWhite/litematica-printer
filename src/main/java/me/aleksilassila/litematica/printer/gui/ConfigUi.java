@@ -13,7 +13,6 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.utils.UpdateCheckerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.MouseButtonEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -46,12 +45,6 @@ public class ConfigUi extends GuiConfigsBase {
         reCreateListWidget();
         Objects.requireNonNull(getListWidget()).resetScrollbarPosition();
         initGui();
-    }
-
-    @Override
-    public boolean onMouseReleased(MouseButtonEvent click) {
-        this.reset();
-        return super.onMouseReleased(click);
     }
 
     private int createButton(int x, int y, int width, Tab tab) {
