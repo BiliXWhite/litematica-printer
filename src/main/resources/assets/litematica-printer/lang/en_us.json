@@ -162,8 +162,6 @@
   "litematica_printer.config.printerIteratorShape.desc": "Area shape for printer block iteration:\n§dCube§r: Cube with §6§lWork Radius§r as edge length (recommended value: 3)\n§dSphere§r: Sphere with §6§lWork Radius§r as radius (recommended value: 6)\n§dOctahedron§r: Octahedron with §6§lWork Radius§r as edge length (recommended value: 6)",
   "litematica_printer.config.workIterationsTotalPerTick": "Traversal - Upper Limit",
   "litematica_printer.config.workIterationsTotalPerTick.desc": "Upper limit of blocks traversed per game tick (blocks), without considering the processing result of the block during iteration.\nSet the running radius to x, then the optimal parameter for this value is 2x cubed.\nThis value is only applicable for special needs, generally disabled.",
-  "litematica_printer.config.workIteratorUseTime": "Traversal - Maximum Time Consumption",
-  "litematica_printer.config.workIteratorUseTime.desc": "During work, the maximum time allocated to printer block traversal per game tick (milliseconds), set to 0 for no limit.\nUsually no need to modify this item. If lag occurs, try reducing this value; if you want to improve efficiency in large area work, please try increasing this item.",
   "litematica_printer.config.printerLagCheck": "Lag Detection",
   "litematica_printer.config.printerLagCheck.desc": "Detect packet reception lag when printer is working; if no new packets received for over 20 game ticks,\nwill automatically pause work until packet reception resumes.",
   "litematica_printer.config.printerMode": "Work Mode",

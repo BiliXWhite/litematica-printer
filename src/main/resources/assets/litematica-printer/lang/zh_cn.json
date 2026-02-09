@@ -221,8 +221,6 @@
   "litematica_printer.config.updateCheck.desc": "首次进入世界时，自动检查模组更新。",
   "litematica_printer.config.workIterationsTotalPerTick": "遍历 - 次数上限",
   "litematica_printer.config.workIterationsTotalPerTick.desc": "每游戏刻遍历方块的上限(方块)，不考虑迭代时方块的处理结果。\n设运行半径为x，那么该值的最佳参数为2x的立方。\n该值仅适用于特殊需求使用，一般禁用即可。",
-  "litematica_printer.config.workIteratorUseTime": "遍历 - 最大耗时",
-  "litematica_printer.config.workIteratorUseTime.desc": "工作时，每游戏刻分配给打印机遍历方块的最长时间(毫秒)，设为0则无限制。\n通常不需要修改此项，如果遇到了卡顿，请尝试调低此值；如果想提高在大范围工作的效率，则请尝试调高此项。",
   "litematica_printer.config.workRange": "工作半径",
   "litematica_printer.config.workRange.desc": "打印机以玩家为中心的最大工作半径(方块)，数值越大覆盖范围越广。\n此参数与§6§l迭代区域形状§r关联。",
   "litematica_printer.config.workingSwitch": "工作开关",

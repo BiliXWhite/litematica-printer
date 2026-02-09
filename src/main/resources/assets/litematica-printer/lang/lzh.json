@@ -162,8 +162,6 @@
   "litematica_printer.config.printerIteratorShape.desc": "機巧徧歷石之域形：\n§d立方§r：以§6§l工徑§r為稜之立方（薦值：三）\n§d球體§r：以§6§l工徑§r為徑之球（薦值：六）\n§d八面§r：以§6§l工徑§r為稜之八面體（薦值：六）",
   "litematica_printer.config.workIterationsTotalPerTick": "徧歷 - 次數上限",
   "litematica_printer.config.workIterationsTotalPerTick.desc": "每遊戲刻徧歷石之上限（石），不慮疊代時石之處果。\n設行徑為x，則此值之佳參為2x之立方。\n此值惟用於殊需，常禁之即可。",
-  "litematica_printer.config.workIteratorUseTime": "徧歷 - 最大耗時",
-  "litematica_printer.config.workIteratorUseTime.desc": "工時，每遊戲刻予機巧徧歷石之最長時（毫秒），設零則無禁。\n常無須改此，若遇遲滯，可試降之；欲提大域工效，可試增之。",
   "litematica_printer.config.printerLagCheck": "察遲滯",
   "litematica_printer.config.printerLagCheck.desc": "機巧工時察包絡回傳之遲；若逾二十刻未收新包，則自暫工事，待包絡復通後續。",
   "litematica_printer.config.printerMode": "工式",

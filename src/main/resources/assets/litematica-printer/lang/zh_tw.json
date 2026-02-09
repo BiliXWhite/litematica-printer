@@ -162,8 +162,6 @@
   "litematica_printer.config.printerIteratorShape.desc": "印表機遍歷方塊的區域形狀：\n§d立方體§r：以§6§l工作半徑§r為邊長的立方體(推薦值：3)\n§d球體§r：以§6§l工作半徑§r為半徑的球體(推薦值：6)\n§d八面體§r：以§6§l工作半徑§r為邊長的八面體(推薦值：6)",
   "litematica_printer.config.workIterationsTotalPerTick": "遍歷 - 次數上限",
   "litematica_printer.config.workIterationsTotalPerTick.desc": "每遊戲刻遍歷方塊的上限(方塊)，不考慮疊代時方塊的處理結果。\n設運行半徑為x，那麼該值的最佳參數為2x的立方。\n該值僅適用於特殊需求使用，一般禁用即可。",
-  "litematica_printer.config.workIteratorUseTime": "遍歷 - 最大耗時",
-  "litematica_printer.config.workIteratorUseTime.desc": "工作時，每遊戲刻分配給印表機遍歷方塊的最長時間(毫秒)，設為0則無限制。\n通常不需要修改此項，如果遇到了卡頓，請嘗試調低此值；如果想提高在大範圍工作的效率，則請嘗試調高此項。",
   "litematica_printer.config.printerLagCheck": "延遲檢測",
   "litematica_printer.config.printerLagCheck.desc": "印表機工作時檢測數據包接收延遲；若超過20個遊戲刻未收到新數據包，\n將自動暫停工作，直至數據包接收恢復後繼續。",
   "litematica_printer.config.printerMode": "工作模式",

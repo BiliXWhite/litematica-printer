@@ -111,12 +111,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .setVisible(isSingle) // 仅单模式时显示
                 .build();
 
-        // 核心 - 多模阻断
-        public static final ConfigBoolean WORK_MODE_TYPE_MULTI_BREAK = bool("multiBreak")
-                .defaultValue(true)
-                .setVisible(isMulti) // 仅多模式时显示
-                .build();
-
         // 核心 - 工作半径
         public static final ConfigInteger WORK_RANGE = integer("workRange")
                 .defaultValue(6)
@@ -126,12 +120,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         public static final ConfigInteger ITERATOR_TOTAL_PER_TICK = integer("workIterationsTotalPerTick")
                 .defaultValue(0)
                 .range(0, 1919810)
-                .build();
-
-        // 核心 - 迭代占用时长
-        public static final ConfigInteger ITERATOR_USE_TIME = integer("workIteratorUseTime")
-                .defaultValue(8)
-                .range(0, 128)
                 .build();
 
         // 核心 - 检查玩家方块交互范围
@@ -221,9 +209,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 MINE,
                 FILL,
                 FLUID,
-                WORK_MODE_TYPE_MULTI_BREAK,
                 WORK_RANGE,
-                ITERATOR_USE_TIME,
                 ITERATOR_TOTAL_PER_TICK,
                 RENDER_HUD,
                 LAG_CHECK,
