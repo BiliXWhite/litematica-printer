@@ -2,7 +2,6 @@ package me.aleksilassila.litematica.printer.utils;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
-import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.ExcavateListMode;
 import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
@@ -20,9 +19,7 @@ import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST;
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
@@ -33,7 +30,7 @@ public class InteractionUtils {
     public static final Minecraft client = Minecraft.getInstance();
     public static final InteractionUtils INSTANCE = new InteractionUtils();
 
-    private final Set<BlockPos> breakTargets = new HashSet<>();
+    private final List<BlockPos> breakTargets = new LinkedList<>();
     private BlockPos breakPos;
     private BlockState state;
 
@@ -42,16 +39,18 @@ public class InteractionUtils {
 
     public static boolean canBreakBlock(BlockPos pos) {
         ClientLevel world = client.level;
+        LocalPlayer player = client.player;
+        if (world == null || player == null) return false;
         BlockState currentState = world.getBlockState(pos);
         if (Configs.Break.BREAK_CHECK_HARDNESS.getBooleanValue() && currentState.getBlock().defaultDestroyTime() < 0) {
             return false;
         }
         return !currentState.isAir() &&
-                !(currentState.getBlock() instanceof LiquidBlock) &&
                 !currentState.is(Blocks.AIR) &&
                 !currentState.is(Blocks.CAVE_AIR) &&
                 !currentState.is(Blocks.VOID_AIR) &&
-                !client.player.blockActionRestricted(client.level, pos, client.gameMode.getPlayerMode());
+                !(currentState.getBlock() instanceof LiquidBlock) &&
+                !player.blockActionRestricted(client.level, pos, client.gameMode.getPlayerMode());
     }
 
     public static boolean breakRestriction(BlockState blockState) {
@@ -89,6 +88,17 @@ public class InteractionUtils {
     public void add(SchematicBlockContext ctx) {
         if (ctx == null) return;
         this.add(ctx.blockPos);
+    }
+
+    @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
+    public void addToFirst(BlockPos pos) {
+        if (pos == null) return;
+        breakTargets.remove(pos);
+        breakTargets.add(0, pos);
+    }
+
+    public void addToFirst(SchematicBlockContext ctx) {
+        addToFirst(ctx.blockPos);
     }
 
     public boolean hasTargets() {

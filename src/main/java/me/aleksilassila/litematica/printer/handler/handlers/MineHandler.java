@@ -38,7 +38,8 @@ public class MineHandler extends ClientPlayerTickHandler {
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         InteractionUtils.BlockBreakResult result = InteractionUtils.INSTANCE.continueDestroyBlock(blockPos);
         if (result == InteractionUtils.BlockBreakResult.IN_PROGRESS) {
-            skipIteration.set(true);
+            skipIteration.set(true);    // 本 TICK 退出剩下位置迭代
+            InteractionUtils.INSTANCE.addToFirst(blockPos); // 添加到破坏队列中去
             this.setBlockPosCooldown(blockPos, getBreakCooldown());
             return;
         }
