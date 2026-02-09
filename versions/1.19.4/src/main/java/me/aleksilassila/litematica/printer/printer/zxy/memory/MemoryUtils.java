@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.printer.zxy.memory;
 
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;

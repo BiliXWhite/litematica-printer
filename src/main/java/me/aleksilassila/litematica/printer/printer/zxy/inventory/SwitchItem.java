@@ -1,8 +1,8 @@
 package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.malilib.util.InventoryUtils;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.ShulkerUtils;
-import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.ShulkerUtils;
+import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;

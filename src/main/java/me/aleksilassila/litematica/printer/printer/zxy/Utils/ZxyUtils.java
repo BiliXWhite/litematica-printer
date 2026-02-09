@@ -10,6 +10,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPa
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.FilterUtils;
+import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -41,7 +42,6 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //#endif
 
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
-import static me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus.closeScreen;
 import static net.minecraft.world.level.block.ShulkerBoxBlock.FACING;
 
 public class ZxyUtils {
@@ -86,7 +86,7 @@ public class ZxyUtils {
                     //#if MC < 12001
                     //$$ MemoryUtils.setLatestPos(pos);
                     //#endif
-                    closeScreen++;
+                    ModLoadStatus.closeScreen++;
                     OpenInventoryPacket.sendOpenInventory(pos, client.level.dimension());
                 }
                 invBlockList.remove(pos);
@@ -150,7 +150,7 @@ public class ZxyUtils {
                     return;
                 }
                 highlightPosList.addAll(syncPosList);
-                closeScreen++;
+                ModLoadStatus.closeScreen++;
                 num = 1;
             }
         } else if (!syncPosList.isEmpty()) {
@@ -237,7 +237,7 @@ public class ZxyUtils {
                 if ((!Configs.Core.CLOUD_INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
                     for (BlockPos pos : syncPosList) {
                         if (!openInv(pos, true)) continue;
-                        closeScreen++;
+                        ModLoadStatus.closeScreen++;
                         blockPos = pos;
                         num = 3;
                         break;

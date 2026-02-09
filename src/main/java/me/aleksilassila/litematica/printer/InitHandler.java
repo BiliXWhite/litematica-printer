@@ -1,8 +1,9 @@
 package me.aleksilassila.litematica.printer;
 
 import fi.dy.masa.malilib.interfaces.IInitializationHandler;
-import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
+import me.aleksilassila.litematica.printer.gui.ConfigUi;
+import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.Handlers;
@@ -71,5 +72,30 @@ public class InitHandler implements IInitializationHandler {
                 }
             }
         });
-    }
+
+        // 特殊设置时，自动刷新界面
+        Core.WORK_MODE.setValueChangeCallback(b -> {
+            if (Reference.MINECRAFT.screen instanceof ConfigUi gui)
+                gui.initGui();
+        });
+
+        Print.FILL_COMPOSTER.setValueChangeCallback(b -> {
+            if (Reference.MINECRAFT.screen instanceof ConfigUi gui)
+                gui.initGui();
+        });
+
+        Mine.EXCAVATE_LIMITER.setValueChangeCallback(b -> {
+            if (Reference.MINECRAFT.screen instanceof ConfigUi gui)
+                gui.initGui();
+        });
+
+        Mine.EXCAVATE_LIMIT.setValueChangeCallback(b -> {
+            if (Reference.MINECRAFT.screen instanceof ConfigUi gui)
+                gui.initGui();
+        });
+
+        Fill.FILL_BLOCK_MODE.setValueChangeCallback(b -> {
+            if (Reference.MINECRAFT.screen instanceof ConfigUi gui)
+                gui.initGui();
+        });    }
 }

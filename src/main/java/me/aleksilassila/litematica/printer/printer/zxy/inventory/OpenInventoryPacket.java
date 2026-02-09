@@ -3,7 +3,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 import fi.dy.masa.malilib.util.StringUtils;
 import io.netty.buffer.Unpooled;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
 import me.aleksilassila.litematica.printer.handler.Handlers;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import me.aleksilassila.litematica.printer.utils.IdentifierUtils;

@@ -2,13 +2,11 @@ package me.aleksilassila.litematica.printer.utils;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
-import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.TweakerooUtils;
+import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.ExcavateListMode;
 import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
 import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
-import me.aleksilassila.litematica.printer.printer.BlockPosCooldownManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;

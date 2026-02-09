@@ -33,7 +33,6 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.Inventor
  * 基于模板方法模式设计，封装所有打印处理器的通用逻辑与执行流程
  * 子类仅需按需重写对应抽象/空实现方法，即可实现自定义打印处理器逻辑
  */
-@SuppressWarnings("SpellCheckingInspection")
 public abstract class ClientPlayerTickHandler extends ConfigUtils {
     /**
      * 全局Tick计数器，所有处理器共享的时间基准
@@ -112,9 +111,9 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
 
     /**
      * 该处理器上次执行的全局Tick时间，用于控制处理器执行间隔
-     * 初始值-1作为首次执行的判断标识，兼容全局Tick从0开始的场景
+     * 初始值-1L作为首次执行的判断标识，兼容全局Tick从0开始的场景
      */
-    private long lastTickTime = -1;
+    private long lastTickTime = -1L;
 
     /**
      * GUI展示的当前迭代目标方块信息，用于0Tick实时渲染迭代结果
@@ -216,18 +215,16 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             this.guiBlockInfo = null; // 缓存时间到，清空GUI信息，停止渲染
         }
 
-        // Tick间隔控制逻辑（方法最开头，优先执行）：未达到间隔则直接阻断本次所有逻辑
-        int tickInterval = this.getTickInterval();
+        int tickInterval = this.getTickInterval(); // 工作间隔
         if (tickInterval > 0) {
-            long currentTick = ClientPlayerTickHandler.getCurrentHandlerTime();
-            // 非首次执行时，判断时间差是否达到配置间隔
+            long currentTickTime = ClientPlayerTickHandler.getCurrentHandlerTime();
             if (this.lastTickTime != -1L) {
-                long timeDiff = currentTick - this.lastTickTime;
-                if (timeDiff < tickInterval) {
-                    return; // 未达到间隔，直接阻断本次所有逻辑
+                // 非首次执行
+                if (currentTickTime - this.lastTickTime < tickInterval) {
+                    return;
                 }
             }
-            this.lastTickTime = currentTick; // 更新上次执行时间，首次执行也会初始化
+            this.lastTickTime = currentTickTime; // 更新上次执行时间，首次执行也会初始化
         }
 
         if (Configs.Core.LAG_CHECK.getBooleanValue()) {
@@ -257,7 +254,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             return;
         }
 
-        // 更新玩家交互盒：玩家位置/范围变化时重新创建，否则复用原有对象
+        // 更新迭代范围
         if (this.playerInteractionBox != null) {
             BlockPos playerPos = this.player.getOnPos();
             double threshold = getWorkRange() * 0.7; // 玩家移动阈值：工作范围的70%
@@ -279,14 +276,13 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             playerInteractionBox.yIncrement = !Configs.Core.Y_REVERSE.getBooleanValue();
             playerInteractionBox.zIncrement = !Configs.Core.Z_REVERSE.getBooleanValue();
         }
-        // 执行普通业务任务：无迭代功能的处理器核心逻辑
-        this.preprocess(); // 任务执行前的预处理逻辑
+
+
+        this.preprocess(); // 预处理一些值，例如破坏方块列表
         if (!this.isConfigAllowExecute()) {
             return;
         }
-        if (this.canExecute()) {
-            this.execute(); // 执行普通核心业务
-        }
+
         boolean interrupt = false;
         // 执行迭代业务任务：基于玩家交互盒的方块迭代处理（防主线程阻塞）
         if (this.playerInteractionBox != null && this.canExecute()) {
@@ -369,7 +365,6 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
      *
      * @return true-配置允许执行，false-配置禁止执行
      */
-    @SuppressWarnings("EnhancedSwitchMigration")
     private boolean isConfigAllowExecute() {
         // 全局打印机功能未启用，直接禁止所有处理器执行
         if (!ConfigUtils.isEnable()) {
@@ -377,15 +372,11 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         }
         // 处理器绑定了模式和配置，按当前游戏模式校验
         if (this.printMode != null && this.enableConfig != null) {
-            ModeType modeType = (ModeType) Configs.Core.WORK_MODE.getOptionListValue();
-            switch (modeType) {
-                case SINGLE:
-                    return Configs.Core.WORK_MODE_TYPE.getOptionListValue().equals(this.printMode);
-                case MULTI:
-                    return this.enableConfig.getBooleanValue();
-                default:
-                    throw new IllegalStateException("Unexpected game mode type: " + modeType);
-            }
+            WorkingModeType modeType = (WorkingModeType) Configs.Core.WORK_MODE.getOptionListValue();
+            return switch (modeType) {
+                case SINGLE -> Configs.Core.WORK_MODE_TYPE.getOptionListValue().equals(this.printMode);
+                case MULTI -> this.enableConfig.getBooleanValue();
+            };
         }
         // 仅绑定了启用配置，直接校验配置是否启用
         if (this.enableConfig != null) {
@@ -445,14 +436,6 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
      */
     protected boolean canExecute() {
         return true;
-    }
-
-    /**
-     * 处理器普通业务的核心执行方法，子类必须重写实现自定义逻辑
-     * 执行时机：{link #isConfigAllowExecute()}和{link #canExecute()}均返回true时
-     * 适用于：无迭代需求的简单业务逻辑（非方块遍历类）
-     */
-    protected void execute() {
     }
 
     /**

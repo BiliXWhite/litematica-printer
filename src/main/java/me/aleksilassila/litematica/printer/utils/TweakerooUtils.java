@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.bilixwhite.utils;
+package me.aleksilassila.litematica.printer.utils;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;

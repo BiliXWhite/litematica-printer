@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
-import me.aleksilassila.litematica.printer.bilixwhite.utils.ShulkerUtils;
+import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.ShulkerUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.mixin.printer.litematica.InventoryUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
@@ -25,7 +26,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 //#if MC > 11904 
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
-import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#elseif MC <= 11904
 //$$ import net.minecraft.core.Registry;
 //$$ import net.minecraft.resources.ResourceLocation;
@@ -38,9 +38,11 @@ import red.jackf.chesttracker.api.providers.InteractionTracker;
     //#endif
 //#endif
 
-import java.util.HashSet;
+//#if MC >= 12001
+//$$ import red.jackf.chesttracker.api.providers.InteractionTracker;
+//#endif
 
-import static me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus.closeScreen;
+import java.util.HashSet;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.openIng;
 
 public class InventoryUtils {
@@ -104,7 +106,7 @@ public class InventoryUtils {
                     MemoryUtils.currentMemoryKey = client.level.dimension().identifier();
                     MemoryUtils.itemStack = new ItemStack(item);
                     if (SearchItem.search(true)) {
-                        closeScreen++;
+                        ModLoadStatus.closeScreen++;
                         isOpenHandler = true;
                         me.aleksilassila.litematica.printer.handler.Handlers.PRINT.setPrinterMemorySync(true);
                         return true;
@@ -121,7 +123,7 @@ public class InventoryUtils {
                         //#else
                         //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), ResourceKey.create(Registries.DIMENSION, dimension));
                         //#endif
-                    //$$                if(closeScreen == 0)closeScreen++;
+                    //$$                if(ModLoadStatus.closeScreen == 0) ModLoadStatus.closeScreen++;
                     //$$                me.aleksilassila.litematica.printer.handler.Handlers.PRINT.setPrinterMemorySync(true);
                     //$$                isOpenHandler = true;
                     //$$                return true;
@@ -216,10 +218,10 @@ public class InventoryUtils {
                             shulkerBoxSlot = i;
 //                            ClientUtil.CheckAndSend(stack,i);
                             //#if MC >= 12001 
-                            //$$ if (me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus.isLoadChestTrackerLoaded()) InteractionTracker.INSTANCE.clear();
+                            //$$ if (ModLoadStatus.isLoadChestTrackerLoaded()) InteractionTracker.INSTANCE.clear();
                             //#endif
                             ShulkerUtils.openShulker(stack, shulkerBoxSlot);
-                            closeScreen++;
+                            ModLoadStatus.closeScreen++;
                             isOpenHandler = true;
                             shulkerCooldown = Configs.Placement.QUICK_SHULKER_COOLDOWN.getIntegerValue();
                             return true;

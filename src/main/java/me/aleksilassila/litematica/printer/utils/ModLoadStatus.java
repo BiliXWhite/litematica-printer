@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.bilixwhite;
+package me.aleksilassila.litematica.printer.utils;
 
 import net.fabricmc.loader.api.FabricLoader;
 

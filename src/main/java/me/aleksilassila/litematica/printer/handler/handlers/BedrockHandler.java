@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.handler.handlers;
 
-import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.BedrockUtils;
+import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.BedrockUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;

@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.bilixwhite.utils;
+package me.aleksilassila.litematica.printer.utils;
 
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.FillModeFacingType;

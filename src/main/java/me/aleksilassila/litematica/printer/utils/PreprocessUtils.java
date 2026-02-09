@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.bilixwhite.utils;
+package me.aleksilassila.litematica.printer.utils;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;

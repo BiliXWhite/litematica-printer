@@ -1,8 +1,8 @@
 package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
-import me.aleksilassila.litematica.printer.bilixwhite.utils.RenderUtils;
+import me.aleksilassila.litematica.printer.utils.RenderUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.enums.ModeType;
+import me.aleksilassila.litematica.printer.enums.WorkingModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.handler.GuiBlockInfo;
 import me.aleksilassila.litematica.printer.handler.Handlers;
@@ -98,7 +98,7 @@ public abstract class MixinGui {
             if (Configs.Core.LAG_CHECK.getBooleanValue() && ClientPlayerTickHandler.getPacketTick() > 20) {
                 RenderUtils.drawString("延迟过大，已暂停运行", (int) (width / 2), (int) (height / 2 - 22), Color.ORANGE.getRGB(), true, true);
             }
-            if (Configs.Core.WORK_MODE.getOptionListValue().equals(ModeType.SINGLE)) {
+            if (Configs.Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.SINGLE)) {
                 RenderUtils.drawString((int) (Handlers.GUI.getWorkProgress() * 100) + "%", (int) (width / 2), (int) (height / 2 + 22), Color.WHITE.getRGB(), true, true);
                 //#if MC > 11904
                 guiGraphics.fill((int) (width / 2 - 20), (int) (height / 2 + 36), (int) (width / 2 + 20), (int) (height / 2 + 42), new Color(0, 0, 0, 150).getRGB());

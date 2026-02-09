@@ -9,6 +9,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
+import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -26,7 +27,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus.closeScreen;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList;
 
 //#if MC <= 12103
@@ -46,8 +46,8 @@ public abstract class MixinMinecraftClient {
 
     @Inject(method = {"setScreen"}, at = {@At(value = "HEAD")}, cancellable = true)
     public void setScreen(@Nullable Screen screen, CallbackInfo ci) {
-        if(closeScreen > 0 && /*screen != null &&*/ screen instanceof AbstractContainerScreen<?>){
-            closeScreen--;
+        if(ModLoadStatus.closeScreen > 0 && /*screen != null &&*/ screen instanceof AbstractContainerScreen<?>){
+            ModLoadStatus.closeScreen--;
             ci.cancel();
         }
     }

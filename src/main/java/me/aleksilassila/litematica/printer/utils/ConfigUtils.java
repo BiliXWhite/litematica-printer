@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.utils;
 
 import fi.dy.masa.malilib.config.options.ConfigOptionList;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.enums.ModeType;
+import me.aleksilassila.litematica.printer.enums.WorkingModeType;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.enums.RadiusShapeType;
 import me.aleksilassila.litematica.printer.enums.SelectionType;
@@ -20,27 +20,27 @@ public class ConfigUtils {
     }
 
     public static boolean isPrintMode() {
-        return (Configs.Core.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Core.PRINT.getBooleanValue())
+        return (Configs.Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.MULTI) && Configs.Core.PRINT.getBooleanValue())
                 || Configs.Core.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.PRINTER;
     }
 
     public static boolean isMineMode() {
-        return (Configs.Core.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Core.MINE.getBooleanValue())
+        return (Configs.Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.MULTI) && Configs.Core.MINE.getBooleanValue())
                 || Configs.Core.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.MINE;
     }
 
     public static boolean isFillMode() {
-        return (Configs.Core.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Core.FILL.getBooleanValue())
+        return (Configs.Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.MULTI) && Configs.Core.FILL.getBooleanValue())
                 || Configs.Core.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.FILL;
     }
 
     public static boolean isFluidMode() {
-        return (Configs.Core.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Core.FLUID.getBooleanValue())
+        return (Configs.Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.MULTI) && Configs.Core.FLUID.getBooleanValue())
                 || Configs.Core.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.FLUID;
     }
 
     public static boolean isBedrockMode() {
-        return (Configs.Core.WORK_MODE.getOptionListValue().equals(ModeType.MULTI) && Configs.Hotkeys.BEDROCK.getBooleanValue())
+        return (Configs.Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.MULTI) && Configs.Hotkeys.BEDROCK.getBooleanValue())
                 || Configs.Core.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.BEDROCK;
     }
 

@@ -1,8 +1,5 @@
-package me.aleksilassila.litematica.printer.bilixwhite.utils;
+package me.aleksilassila.litematica.printer.utils;
 
-import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
-import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;

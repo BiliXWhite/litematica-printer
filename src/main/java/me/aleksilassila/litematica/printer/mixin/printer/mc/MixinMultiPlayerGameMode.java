@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
-import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.TweakerooUtils;
+import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.TweakerooUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
 import me.aleksilassila.litematica.printer.utils.InteractionUtils;

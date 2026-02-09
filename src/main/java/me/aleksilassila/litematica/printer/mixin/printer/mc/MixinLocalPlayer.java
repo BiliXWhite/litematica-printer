@@ -33,7 +33,7 @@ import java.util.concurrent.CompletableFuture;
 //#if MC >= 12001 
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
 //#endif
 
 @Mixin(LocalPlayer.class)
@@ -79,11 +79,17 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
 
     @Inject(at = @At("HEAD"), method = "tick")
     public void tick(CallbackInfo ci) {
+        // 全局Tick统计
         ClientPlayerTickHandler.updateTickHandlerTime();
+        // 放置/破坏冷却
         BlockPosCooldownManager.INSTANCE.tick();
+        // 快捷潜影盒冷却
         InventoryUtils.tick();
+        // 宅闲鱼相关
         ZxyUtils.tick();
+        // 挖掘相关
         InteractionUtils.INSTANCE.onTick();
+        // 模式运行
         Handlers.tick();
     }
 

@@ -14,7 +14,7 @@ import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import fi.dy.masa.malilib.config.ConfigManager;
 import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.enums.*;
-import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
 import me.aleksilassila.litematica.printer.gui.ConfigUi;
 import net.minecraft.world.level.block.Blocks;
 
@@ -35,8 +35,8 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
     // 配置页面是否可视(函数式, 动态获取, 全局统一使用)
     private static final BooleanSupplier isLoadChestTrackerLoaded = ModLoadStatus::isLoadChestTrackerLoaded;
     private static final BooleanSupplier isLoadQuickShulkerLoaded = ModLoadStatus::isLoadQuickShulkerLoaded;
-    private static final BooleanSupplier isSingle = () -> Core.WORK_MODE.getOptionListValue().equals(ModeType.SINGLE);
-    private static final BooleanSupplier isMulti = () -> Core.WORK_MODE.getOptionListValue().equals(ModeType.MULTI);
+    private static final BooleanSupplier isSingle = () -> Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.SINGLE);
+    private static final BooleanSupplier isMulti = () -> Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.MULTI);
     private static final BooleanSupplier isExcavateCustom = () -> Mine.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.CUSTOM);
     private static final BooleanSupplier isExcavateWhitelist = () -> isExcavateCustom.getAsBoolean() && Mine.EXCAVATE_LIMIT.getOptionListValue().equals(UsageRestriction.ListType.WHITELIST);
     private static final BooleanSupplier isExcavateBlacklist = () -> isExcavateCustom.getAsBoolean() && Mine.EXCAVATE_LIMIT.getOptionListValue().equals(UsageRestriction.ListType.BLACKLIST);
@@ -78,7 +78,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 核心 - 模式切换
         public static final ConfigOptionList WORK_MODE = optionList("modeSwitch")
-                .defaultValue(ModeType.SINGLE)
+                .defaultValue(WorkingModeType.SINGLE)
                 .build();
 
         // 多模 - 打印
@@ -125,7 +125,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         public static final ConfigInteger ITERATOR_TOTAL_PER_TICK = integer("workIterationsTotalPerTick")
                 .defaultValue(0)
-                .range(0, 10240)
+                .range(0, 1919810)
                 .build();
 
         // 核心 - 迭代占用时长

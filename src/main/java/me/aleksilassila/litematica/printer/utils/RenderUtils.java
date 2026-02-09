@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.bilixwhite.utils;
+package me.aleksilassila.litematica.printer.utils;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;

@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 
 import me.aleksilassila.litematica.printer.InitHandler;
-import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
