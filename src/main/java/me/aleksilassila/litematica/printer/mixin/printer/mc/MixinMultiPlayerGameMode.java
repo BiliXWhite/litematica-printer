@@ -139,7 +139,7 @@ public abstract class MixinMultiPlayerGameMode implements IMultiPlayerGameMode {
                     blockState.attack(level, blockPos, player);
                 }
             }
-            float destroyProgress = PlayerUtils.getDestroyProgress(player, blockState);
+            float destroyProgress = blockState.getDestroyProgress(player, level, blockPos);
             if (bl && destroyProgress >= 1.0F) {
                 if (localPrediction) {
                     gameMode.destroyBlock(blockPos);
@@ -193,7 +193,7 @@ public abstract class MixinMultiPlayerGameMode implements IMultiPlayerGameMode {
                 this.isDestroying = false;
                 return InteractionUtils.BlockBreakResult.COMPLETED;
             } else {
-                this.destroyProgress = this.destroyProgress + PlayerUtils.getDestroyProgress(player, blockState);
+                this.destroyProgress = this.destroyProgress + blockState.getDestroyProgress(player, level, blockPos);
                 boolean b = this.destroyProgress >= litematica_printer$GetBreakingProgressMax();
                 if (b) {
                     this.isDestroying = false;
