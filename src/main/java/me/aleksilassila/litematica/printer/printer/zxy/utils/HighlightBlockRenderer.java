@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.printer.zxy.Utils;
+package me.aleksilassila.litematica.printer.printer.zxy.utils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;

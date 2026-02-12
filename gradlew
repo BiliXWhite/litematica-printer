@@ -30,7 +30,7 @@
 #           ksh Gradle
 #
 #       Busybox and similar reduced shells will NOT work, because this script
-#       requires all of these POSIX shell features:
+#       requires all of these POSIX shell extension:
 #         * functions;
 #         * expansions «$var», «${var}», «${var:-default}», «${var+SET}»,
 #           «${var#prefix}», «${var%suffix}», and «$( cmd )»;

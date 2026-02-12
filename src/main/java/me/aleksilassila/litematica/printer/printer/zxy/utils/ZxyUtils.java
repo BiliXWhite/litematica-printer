@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.printer.zxy.Utils;
+package me.aleksilassila.litematica.printer.printer.zxy.utils;
 
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;

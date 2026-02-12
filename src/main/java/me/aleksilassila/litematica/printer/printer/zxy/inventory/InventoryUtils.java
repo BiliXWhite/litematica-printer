@@ -4,7 +4,7 @@ import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
 import me.aleksilassila.litematica.printer.utils.ShulkerUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.mixin.printer.litematica.InventoryUtilsAccessor;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;

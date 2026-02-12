@@ -3,7 +3,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 //#if MC >= 12001
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.client.Minecraft;

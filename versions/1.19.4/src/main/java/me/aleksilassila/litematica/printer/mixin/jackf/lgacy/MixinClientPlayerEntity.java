@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 
-import me.aleksilassila.litematica.printer.InitHandler;
 import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
@@ -15,8 +14,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.printerMemoryAdding;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.*;
+import static me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils.printerMemoryAdding;
+import static me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils.*;
 
 @Mixin(LocalPlayer.class)
 public class MixinClientPlayerEntity {

@@ -41,7 +41,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
-import static me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils.syncPrinterInventory;
+import static me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils.syncPrinterInventory;
 import static red.jackf.chesttracker.ChestTracker.id;
 
 import com.mojang.realmsclient.dto.RealmsServer;

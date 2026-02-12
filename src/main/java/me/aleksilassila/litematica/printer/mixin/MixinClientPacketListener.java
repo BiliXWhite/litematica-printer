@@ -5,7 +5,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ClientboundContainerSetContentPacket;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

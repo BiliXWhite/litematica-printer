@@ -8,7 +8,7 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.Handlers;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.HighlightBlockRenderer;
+import me.aleksilassila.litematica.printer.printer.zxy.utils.HighlightBlockRenderer;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import me.aleksilassila.litematica.printer.utils.StringUtils;
 
