@@ -1,7 +1,8 @@
 package me.aleksilassila.litematica.printer.printer;
 
+import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
+import me.aleksilassila.litematica.printer.mixin_interface.MultiPlayerGameModeExtension;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.utils.DirectionUtils;
@@ -11,7 +12,6 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 
-import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -34,7 +34,7 @@ public class ActionManager {
     public boolean useShift = false;
     public boolean useProtocol = false;
     @Nullable
-    public PlayerLook playerLook = null;
+    public PlayerLook look;
     public boolean needWait = false;
 
     private ActionManager() {
@@ -62,8 +62,8 @@ public class ActionManager {
             return;
         }
         if (!useProtocol && !needWait) {
-            if (playerLook != null) {
-                if (DirectionUtils.orderedByNearest(playerLook.yaw, playerLook.pitch)[0].getAxis().isHorizontal()) {
+            if (look != null) {
+                if (DirectionUtils.orderedByNearest(look.yaw, look.pitch)[0].getAxis().isHorizontal()) {
                     needWait = true;
                     return;
                 }
@@ -73,10 +73,10 @@ public class ActionManager {
             needWait = false;
         }
         Direction direction;
-        if (playerLook == null) {
+        if (look == null) {
             direction = side;
         } else {
-            direction = DirectionUtils.getHorizontalDirection(playerLook.yaw);
+            direction = DirectionUtils.getHorizontalDirection(look.yaw);
         }
 
         Vec3 hitVec;
@@ -105,19 +105,11 @@ public class ActionManager {
             setShift(player, false);
         }
 
-
-        if (Configs.Placement.PRINT_USE_PACKET.getBooleanValue()) {
-            NetworkUtils.sendPacket(sequence -> new ServerboundUseItemOnPacket(
-                    InteractionHand.MAIN_HAND,
-                    new BlockHitResult(hitVec, side, target, false)
-                    //#if MC > 11802
-                    , sequence
-                    //#endif
-            ));
-        } else {
-            if (PrinterUtils.client.gameMode != null) {
-                ((IMultiPlayerGameMode) PrinterUtils.client.gameMode).litematica_printer$rightClickBlock(target, side, hitVec);
-            }
+        MultiPlayerGameModeExtension gameModeExtension = (MultiPlayerGameModeExtension) Reference.MINECRAFT.gameMode;
+        if (gameModeExtension != null) {
+            boolean localPrediction = !Configs.Placement.PRINT_USE_PACKET.getBooleanValue();
+            BlockHitResult blockHitResult = new BlockHitResult(hitVec, side, target, false);
+            gameModeExtension.fabric_bedrock_miner$useItemOn(localPrediction, InteractionHand.MAIN_HAND, blockHitResult);
         }
 
         if (useShift && !wasSneak) {
@@ -130,7 +122,7 @@ public class ActionManager {
     }
 
     public void sendLook(LocalPlayer player, PlayerLook playerLook) {
-        this.playerLook = playerLook;
+        this.look = playerLook;
         Implementation.sendLookPacket(player, playerLook);
     }
 
@@ -153,6 +145,6 @@ public class ActionManager {
         this.useShift = false;
         this.useProtocol = false;
         this.needWait = false;
-        this.playerLook = null;
+        this.look = null;
     }
 }

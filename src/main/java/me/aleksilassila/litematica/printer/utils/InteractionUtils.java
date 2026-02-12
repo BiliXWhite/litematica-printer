@@ -2,9 +2,11 @@ package me.aleksilassila.litematica.printer.utils;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
+import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.ExcavateListMode;
-import me.aleksilassila.litematica.printer.interfaces.IMultiPlayerGameMode;
+import me.aleksilassila.litematica.printer.mixin_interface.BlockBreakResult;
+import me.aleksilassila.litematica.printer.mixin_interface.MultiPlayerGameModeExtension;
 import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -13,10 +15,12 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -112,7 +116,7 @@ public class InteractionUtils {
     public void onTick() {
         LocalPlayer player = client.player;
         ClientLevel level = client.level;
-        IMultiPlayerGameMode gameMode = (@Nullable IMultiPlayerGameMode) client.gameMode;
+        MultiPlayerGameModeExtension gameMode = (@Nullable MultiPlayerGameModeExtension) client.gameMode;
         if (player == null || level == null || gameMode == null) {
             return;
         }
@@ -199,39 +203,18 @@ public class InteractionUtils {
         state = null;
     }
 
-    /**
-     * 挖掘指定位置的方块
-     * 需要每tick都执行一次
-     *
-     * @param pos 要挖掘的方块位置
-     * @return 如果挖掘成功且方块状态未改变则返回true，否则返回false
-     */
-    public boolean breakBlock(BlockPos pos) {
-        ClientLevel world = client.level;
-        if (world == null || client.player == null || client.gameMode == null) return false;
-        BlockState currentState = world.getBlockState(pos);
-        Block block = currentState.getBlock();
-        // 检查方块是否可以破坏，如果可以则执行挖掘操作
-        if (canBreakBlock(pos)) {
-            if (ModLoadStatus.isTweakerooLoaded()) {
-                if (TweakerooUtils.isToolSwitchEnabled()) {
-                    TweakerooUtils.trySwitchToEffectiveTool(pos);
-                }
-            }
-            client.gameMode.continueDestroyBlock(pos, Direction.DOWN);
-            return (world.getBlockState(pos).is(block) && !client.player.isCreative());
-        }
-        return false;
-    }
-
     public BlockBreakResult continueDestroyBlock(final BlockPos blockPos, Direction direction, boolean localPrediction) {
         LocalPlayer player = client.player;
         ClientLevel level = client.level;
-        IMultiPlayerGameMode gameMode = (@Nullable IMultiPlayerGameMode) client.gameMode;
+        MultiPlayerGameModeExtension gameMode = (@Nullable MultiPlayerGameModeExtension) client.gameMode;
         if (blockPos == null || player == null || level == null || gameMode == null) {
             return BlockBreakResult.FAILED;
         }
-        return gameMode.litematica_printer$ContinueDestroyBlock(blockPos, direction, localPrediction);
+        MultiPlayerGameModeExtension gameModeExtension = (MultiPlayerGameModeExtension) Reference.MINECRAFT.gameMode;
+        if (gameModeExtension != null) {
+            return gameModeExtension.litematica_printer$continueDestroyBlock(localPrediction, blockPos, direction);
+        }
+        return BlockBreakResult.FAILED;
     }
 
     public BlockBreakResult continueDestroyBlock(BlockPos blockPos, Direction direction) {
@@ -242,11 +225,4 @@ public class InteractionUtils {
         return this.continueDestroyBlock(blockPos, Direction.DOWN);
     }
 
-    // 方块破坏结果枚举（核心新增）
-    public enum BlockBreakResult {
-        COMPLETED,    // 破坏完成
-        IN_PROGRESS,  // 正在破坏，需要继续tick
-        ABORTED,      // 破坏被中止（切换方块等）
-        FAILED        // 破坏失败（无权限/超出边界/无法交互等）
-    }
 }

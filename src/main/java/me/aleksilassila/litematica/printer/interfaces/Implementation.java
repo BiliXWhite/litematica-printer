@@ -100,7 +100,7 @@ public class Implementation {
     }
 
     public static Packet<?> getFixedPacket(Packet<?> packet) {
-        PlayerLook playerLook = ActionManager.INSTANCE.playerLook;
+        PlayerLook playerLook = ActionManager.INSTANCE.look;
         if (!isMovePlayerPacket(packet) || playerLook == null) {
             return packet;
         }

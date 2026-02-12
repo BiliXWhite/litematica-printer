@@ -4,6 +4,7 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.printer.BlockPosCooldownManager;
+import me.aleksilassila.litematica.printer.mixin_interface.BlockBreakResult;
 import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import net.minecraft.core.BlockPos;
 
@@ -36,8 +37,8 @@ public class MineHandler extends ClientPlayerTickHandler {
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
-        InteractionUtils.BlockBreakResult result = InteractionUtils.INSTANCE.continueDestroyBlock(blockPos);
-        if (result == InteractionUtils.BlockBreakResult.IN_PROGRESS) {
+        BlockBreakResult result = InteractionUtils.INSTANCE.continueDestroyBlock(blockPos);
+        if (result == BlockBreakResult.IN_PROGRESS) {
             skipIteration.set(true);    // 本 TICK 退出剩下位置迭代
             InteractionUtils.INSTANCE.addToFirst(blockPos); // 添加到破坏队列中去
             this.setBlockPosCooldown(blockPos, getBreakCooldown());
