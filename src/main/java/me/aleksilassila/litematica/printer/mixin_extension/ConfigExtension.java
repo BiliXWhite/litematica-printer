@@ -1,19 +1,16 @@
-package me.aleksilassila.litematica.printer.config;
+package me.aleksilassila.litematica.printer.mixin_extension;
 
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.options.ConfigBase;
-import fi.dy.masa.malilib.interfaces.IValueChangeCallback;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Unique;
 
-import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 public interface ConfigExtension {
 
-    // ========== 值变更回调相关方法 ==========
     @Nullable String litematica_printer$getTranslateNameKey();
 
     void litematica_printer$setTranslateNameKey(@Nullable String translateKey);
@@ -21,9 +18,6 @@ public interface ConfigExtension {
     @Nullable String litematica_printer$getTranslateCommentKey();
 
     void litematica_printer$setTranslateCommentKey(@Nullable String translateKey);
-
-
-    // ========== 配置选项可见性相关方法 ==========
 
     @Unique
     BooleanSupplier litematica_printer$TRUE = () -> true;
@@ -55,8 +49,6 @@ public interface ConfigExtension {
         }
     }
 
-
-    // ========== 值变更回调相关方法 ==========
     CopyOnWriteArrayList<Consumer<IConfigBase>> litematica_printer$getValueChangeCallbacks();
 
     default void litematica_printer$addValueChangeListener(Consumer<IConfigBase> callback) {

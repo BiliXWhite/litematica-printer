@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.config;
+package me.aleksilassila.litematica.printer.mixin_extension;
 
 /**
  * 多版本适配专用的空占位类

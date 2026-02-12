@@ -4,7 +4,7 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.printer.BlockPosCooldownManager;
-import me.aleksilassila.litematica.printer.mixin_interface.BlockBreakResult;
+import me.aleksilassila.litematica.printer.mixin_extension.BlockBreakResult;
 import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import net.minecraft.core.BlockPos;
 

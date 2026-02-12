@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.mixin_interface;
+package me.aleksilassila.litematica.printer.mixin_extension;
 
 // 方块破坏结果枚举（核心新增）
 public enum BlockBreakResult {

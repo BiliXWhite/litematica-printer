@@ -3,7 +3,7 @@ package me.aleksilassila.litematica.printer.config.builder;
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.options.ConfigBase;
 import me.aleksilassila.litematica.printer.I18n;
-import me.aleksilassila.litematica.printer.config.ConfigExtension;
+import me.aleksilassila.litematica.printer.mixin_extension.ConfigExtension;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CopyOnWriteArrayList;

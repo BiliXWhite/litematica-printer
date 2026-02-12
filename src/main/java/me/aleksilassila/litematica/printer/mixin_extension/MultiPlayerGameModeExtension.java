@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.mixin_interface;
+package me.aleksilassila.litematica.printer.mixin_extension;
 
 import me.aleksilassila.litematica.printer.utils.PredictiveAction;
 import net.minecraft.core.BlockPos;
@@ -7,6 +7,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.phys.BlockHitResult;
 
+@SuppressWarnings("UnusedReturnValue")
 public interface MultiPlayerGameModeExtension {
     InteractionResult fabric_bedrock_miner$useItemOn(boolean localPrediction, InteractionHand hand, BlockHitResult blockHit);
 
