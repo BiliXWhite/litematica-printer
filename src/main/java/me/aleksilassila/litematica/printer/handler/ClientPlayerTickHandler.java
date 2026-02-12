@@ -23,6 +23,8 @@ import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
@@ -116,16 +118,19 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     private long lastTickTime = -1L;
 
     /**
-     * GUI展示的当前迭代目标方块信息，用于0Tick实时渲染迭代结果
-     * 为null时表示当前无有效迭代目标，由{@link #setGuiBlockInfo(GuiBlockInfo)}更新
+     * 线程安全队列：存储当前Tick内迭代的所有方块信息（用于渲染帧级消费）
+     */
+    private final Queue<GuiBlockInfo> guiBlockInfoQueue = new ConcurrentLinkedQueue<>();
+
+    /**
+     * 渲染进度索引：控制每帧从队列中读取第几个方块信息
      */
     @Getter
-    @Nullable
-    protected GuiBlockInfo guiBlockInfo;
+    private int renderIndex = 0;
 
     /**
      * GUI方块信息的缓存剩余Tick数，控制GUI信息的展示时长
-     * 每次更新GUI信息时重置为20，每Tick递减，为0时清空GUI信息
+     * 每次更新GUI队列时重置为20，每Tick递减，为0时清空队列
      */
     private int guiBlockPosCacheTicks;
 
@@ -208,11 +213,12 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
      * 核心Tick方法，模板方法设计的核心执行流程
      */
     public void tick() {
-        // GUI迭代信息缓存处理：每Tick递减缓存计数，计数为0时清空GUI信息
+        // GUI迭代信息缓存处理：每Tick递减缓存计数，计数为0时清空队列
         if (this.guiBlockPosCacheTicks > 0) {
             this.guiBlockPosCacheTicks--;
         } else {
-            this.guiBlockInfo = null; // 缓存时间到，清空GUI信息，停止渲染
+            this.guiBlockInfoQueue.clear(); // 缓存时间到，清空队列
+            this.renderIndex = 0; // 重置渲染索引
         }
 
         int tickInterval = this.getTickInterval(); // 工作间隔
@@ -295,6 +301,9 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                 int effectiveExecCount = 0;
                 skipIteration.set(false);
                 Iterator<BlockPos> iterator = playerInteractionBox.iterator();
+                // 重置渲染信息
+                this.guiBlockInfoQueue.clear();
+                this.renderIndex = 0;
                 while (!this.skipIteration.get() && iterator.hasNext()) {
                     // 单Tick迭代次数限制：达到最大次数则终止循环（防主线程阻塞）
                     if (maxTotalIter > 0 && ++totalIterCount >= maxTotalIter) {
@@ -303,7 +312,9 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                     BlockPos pos = iterator.next();
                     if (pos == null) continue;
                     GuiBlockInfo gui = new GuiBlockInfo(level, pos, level.getBlockState(pos));
-                    this.setGuiBlockInfo(gui);
+
+                    this.addGuiBlockInfoToQueue(gui);
+
                     if (ConfigUtils.canInteracted(pos)) {
                         gui.interacted = true;
                     } else {
@@ -344,19 +355,63 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     }
 
     /**
-     * 设置GUI迭代目标方块信息，并初始化20Tick缓存时长
-     * 用于0Tick实时渲染当前迭代的目标方块，缓存计数为0时自动清空
-     *
-     * @param guiBlockInfo 待展示的GUI方块信息，null则直接清空当前信息
+     * 添加方块信息到迭代队列，并初始化缓存时长
+     * @param guiBlockInfo 待添加的方块信息
+     */
+    private void addGuiBlockInfoToQueue(GuiBlockInfo guiBlockInfo) {
+        if (guiBlockInfo != null) {
+            this.guiBlockInfoQueue.add(guiBlockInfo);
+            this.guiBlockPosCacheTicks = 20; // 重置缓存Tick数为20
+        }
+    }
+
+    /**
+     * 【渲染阶段调用】获取当前帧要显示的迭代方块信息
+     * 按渲染帧率逐帧消费队列中的信息，模拟迭代过程
+     * @return 当前帧应显示的方块信息，无则返回null
+     */
+    @Nullable
+    public GuiBlockInfo getCurrentRenderGuiBlockInfo() {
+        if (guiBlockInfoQueue.isEmpty()) {
+            return null;
+        }
+        GuiBlockInfo[] infoArray = guiBlockInfoQueue.toArray(new GuiBlockInfo[0]);
+        // 渲染索引超出队列长度时，返回最后一个元素并重置索引
+        if (renderIndex >= infoArray.length) {
+            renderIndex = 0; // 循环展示（可选：也可返回null）
+            return infoArray[infoArray.length - 1];
+        }
+        // 获取当前帧的信息并推进索引
+        GuiBlockInfo currentInfo = infoArray[renderIndex];
+        renderIndex++;
+        return currentInfo;
+    }
+
+    /**
+     * 兼容原有逻辑的set方法（可选保留，避免子类报错）
      */
     public void setGuiBlockInfo(@Nullable GuiBlockInfo guiBlockInfo) {
-        if (guiBlockInfo != null) {
-            this.guiBlockInfo = guiBlockInfo;
-            this.guiBlockPosCacheTicks = 20;    // 重置缓存Tick数为20，适配0TICK迭代方块渲染
-        } else {
-            this.guiBlockInfo = null;
-            this.guiBlockPosCacheTicks = 0;
+        this.addGuiBlockInfoToQueue(guiBlockInfo);
+    }
+
+    /**
+     * 兼容原有逻辑的get方法（可选保留）
+     * @return 队列中最后一个元素（原逻辑的最终位置）
+     */
+    @Nullable
+    public GuiBlockInfo getGuiBlockInfo() {
+        if (guiBlockInfoQueue.isEmpty()) {
+            return null;
         }
+        // 返回队列最后一个元素（兼容原有逻辑）
+        return ((GuiBlockInfo[]) guiBlockInfoQueue.toArray(new GuiBlockInfo[0]))[guiBlockInfoQueue.size() - 1];
+    }
+
+    /**
+     * 获取迭代队列的长度（用于HUD显示迭代总数）
+     */
+    public int getGuiBlockInfoQueueSize() {
+        return guiBlockInfoQueue.size();
     }
 
     /**

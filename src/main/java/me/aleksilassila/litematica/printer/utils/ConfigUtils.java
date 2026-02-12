@@ -44,6 +44,10 @@ public class ConfigUtils {
                 || Configs.Core.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.BEDROCK;
     }
 
+    public static PrintModeType getPrintModeType() {
+        return (PrintModeType) Configs.Core.WORK_MODE_TYPE.getOptionListValue();
+    }
+
     public static int getPlaceCooldown() {
         return Configs.Placement.PLACE_COOLDOWN.getIntegerValue();
     }
