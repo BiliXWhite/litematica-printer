@@ -31,11 +31,10 @@ import java.awt.*;
 import net.minecraft.client.DeltaTracker;
 //#endif
 
-
 /**
  * HUD渲染Mixin，负责打印器调试信息和进度条的绘制
  */
-@SuppressWarnings("SameParameterValue")
+@SuppressWarnings({"SameParameterValue", "SpellCheckingInspection"})
 @Mixin(Gui.class)
 public abstract class MixinGui {
     // @formatter:off
@@ -87,12 +86,12 @@ public abstract class MixinGui {
         RenderUtils.initGuiGraphics(guiGraphics);
         //#endif
 
-        // 绘制调试信息（DEBUG模式）
+        // 绘制调试信息
         if (Configs.Core.DEBUG_OUTPUT.getBooleanValue()) {
             drawSmoothDebugInfo(scaledWidth, scaledHeight);
         }
 
-        // 绘制核心HUD信息（单/多模式进度，视觉统一）
+        // 绘制HUD
         if (Configs.Core.RENDER_HUD.getBooleanValue()) {
             drawHudInfo(scaledWidth, scaledHeight);
         }
@@ -129,7 +128,6 @@ public abstract class MixinGui {
             RenderUtils.fill(bgX1, bgY1, bgX2, bgY2, new Color(0, 0, 0, 120));
 
             // 数据防抖
-            long currentTick = ClientPlayerTickHandler.getCurrentHandlerTime();
             int currentRenderIndex = handler.getRenderIndex();
             int currentQueueSize = handler.getGuiBlockInfoQueueSize();
 
@@ -139,7 +137,7 @@ public abstract class MixinGui {
             MutableComponent blockName = block.getName();
 
             int lineY = currentY;
-            drawDebugLine("Tick: " + currentTick, currentX + DEBUG_PADDING, lineY);
+            drawDebugLine("Tick: " + ClientPlayerTickHandler.getCurrentHandlerTime(), currentX + DEBUG_PADDING, currentY);
             lineY += DEBUG_LINE_HEIGHT;
 
             drawDebugLine("类型: " + handler.getId(), currentX + DEBUG_PADDING, lineY);
@@ -179,7 +177,7 @@ public abstract class MixinGui {
         GuiHandler guiHandler = Handlers.GUI;
 
         // 绘制延迟过大警告（保持不变）
-        if (Configs.Core.LAG_CHECK.getBooleanValue() && ClientPlayerTickHandler.getPacketTick() > 20) {
+        if (Configs.Core.LAG_CHECK.getBooleanValue() && ClientPlayerTickHandler.getPacketTick() > Configs.Core.LAG_CHECK_MAX.getIntegerValue()) {
             RenderUtils.drawString(
                     "延迟过大，已暂停运行",
                     centerX,

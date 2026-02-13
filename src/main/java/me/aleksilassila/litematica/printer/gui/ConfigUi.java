@@ -30,6 +30,12 @@ public class ConfigUi extends GuiConfigsBase {
         this(Minecraft.getInstance().screen);
     }
 
+    public static void refresh() {
+        if (Reference.MINECRAFT.screen instanceof ConfigUi gui) {
+            gui.initGui();
+        }
+    }
+
     @Override
     public void initGui() {
         super.initGui();
@@ -68,14 +74,6 @@ public class ConfigUi extends GuiConfigsBase {
         return builder.build();
     }
 
-    public record ButtonListener(Tab tab, ConfigUi parent) implements IButtonActionListener {
-        @Override
-        public void actionPerformedWithButton(ButtonBase button, int mouseButton) {
-            ConfigUi.tab = this.tab;
-            this.parent.reset();
-        }
-    }
-
     public enum Tab {
         CORE(I18n.of("category.core")),
         PLACEMENT(I18n.of("category.placement")),
@@ -111,6 +109,14 @@ public class ConfigUi extends GuiConfigsBase {
                 case FLUID -> Configs.Fluid.OPTIONS;
                 case HOTKEYS -> Configs.Hotkeys.OPTIONS;
             };
+        }
+    }
+
+    public record ButtonListener(Tab tab, ConfigUi parent) implements IButtonActionListener {
+        @Override
+        public void actionPerformedWithButton(ButtonBase button, int mouseButton) {
+            ConfigUi.tab = this.tab;
+            this.parent.reset();
         }
     }
 }

@@ -7,6 +7,7 @@ import lombok.Setter;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.*;
 import me.aleksilassila.litematica.printer.printer.*;
+import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
@@ -98,6 +99,46 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     public final AtomicReference<PrinterBox> playerInteractionBox;
 
     /**
+     * 线程安全队列：存储当前Tick内迭代的所有方块信息（用于渲染帧级消费）
+     */
+    private final Queue<GuiBlockInfo> guiBlockInfoQueue = new ConcurrentLinkedQueue<>();
+    /**
+     * Minecraft客户端核心实例，所有游戏对象的获取入口
+     */
+    protected Minecraft mc;
+    /**
+     * 客户端当前所在的游戏世界实例，用于方块状态、世界操作等
+     */
+    protected ClientLevel level;
+    /**
+     * 客户端当前的本地玩家实例，用于玩家位置、操作等
+     */
+    protected LocalPlayer player;
+    /**
+     * 客户端网络连接实例，用于网络相关操作（如发送数据包）
+     */
+    protected ClientPacketListener connection;
+    /**
+     * 客户端游戏模式实例，用于获取当前游戏模式（生存/创造/冒险等）
+     */
+    protected MultiPlayerGameMode gameMode;
+    /**
+     * 客户端当前的游戏类型，由gameMode解析而来，简化模式判断
+     */
+    protected GameType gameType;
+    /**
+     * 客户端当前的射线检测总结果，包含所有类型的射线检测目标
+     */
+    @Nullable
+    protected HitResult hitResult;
+    /**
+     * 客户端当前的方块射线检测结果，仅包含方块类型的射线检测目标
+     * 为null时表示射线未命中任何方块
+     */
+    @Nullable
+    protected BlockHitResult blockHitResult;
+
+    /**
      * 上次Tick的玩家交互盒对象，用于检测玩家位置/范围是否发生变化
      * 避免每Tick重复创建交互盒，提升性能
      */
@@ -118,11 +159,6 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     private long lastTickTime = -1L;
 
     /**
-     * 线程安全队列：存储当前Tick内迭代的所有方块信息（用于渲染帧级消费）
-     */
-    private final Queue<GuiBlockInfo> guiBlockInfoQueue = new ConcurrentLinkedQueue<>();
-
-    /**
      * 渲染进度索引：控制每帧从队列中读取第几个方块信息
      */
     @Getter
@@ -133,49 +169,6 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
      * 每次更新GUI队列时重置为20，每Tick递减，为0时清空队列
      */
     private int guiBlockPosCacheTicks;
-
-    /**
-     * Minecraft客户端核心实例，所有游戏对象的获取入口
-     */
-    protected Minecraft mc;
-
-    /**
-     * 客户端当前所在的游戏世界实例，用于方块状态、世界操作等
-     */
-    protected ClientLevel level;
-
-    /**
-     * 客户端当前的本地玩家实例，用于玩家位置、操作等
-     */
-    protected LocalPlayer player;
-
-    /**
-     * 客户端网络连接实例，用于网络相关操作（如发送数据包）
-     */
-    protected ClientPacketListener connection;
-
-    /**
-     * 客户端游戏模式实例，用于获取当前游戏模式（生存/创造/冒险等）
-     */
-    protected MultiPlayerGameMode gameMode;
-
-    /**
-     * 客户端当前的游戏类型，由gameMode解析而来，简化模式判断
-     */
-    protected GameType gameType;
-
-    /**
-     * 客户端当前的射线检测总结果，包含所有类型的射线检测目标
-     */
-    @Nullable
-    protected HitResult hitResult;
-
-    /**
-     * 客户端当前的方块射线检测结果，仅包含方块类型的射线检测目标
-     * 为null时表示射线未命中任何方块
-     */
-    @Nullable
-    protected BlockHitResult blockHitResult;
 
     /**
      * 构造器，初始化处理器核心属性
@@ -234,7 +227,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         }
 
         if (Configs.Core.LAG_CHECK.getBooleanValue()) {
-            if (packetTick > 20) {
+            if (packetTick > Configs.Core.LAG_CHECK_MAX.getIntegerValue()) {
                 return;
             }
             packetTick++;
@@ -356,6 +349,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
 
     /**
      * 添加方块信息到迭代队列，并初始化缓存时长
+     *
      * @param guiBlockInfo 待添加的方块信息
      */
     private void addGuiBlockInfoToQueue(GuiBlockInfo guiBlockInfo) {
@@ -368,6 +362,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     /**
      * 【渲染阶段调用】获取当前帧要显示的迭代方块信息
      * 按渲染帧率逐帧消费队列中的信息，模拟迭代过程
+     *
      * @return 当前帧应显示的方块信息，无则返回null
      */
     @Nullable
@@ -388,14 +383,8 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     }
 
     /**
-     * 兼容原有逻辑的set方法（可选保留，避免子类报错）
-     */
-    public void setGuiBlockInfo(@Nullable GuiBlockInfo guiBlockInfo) {
-        this.addGuiBlockInfoToQueue(guiBlockInfo);
-    }
-
-    /**
      * 兼容原有逻辑的get方法（可选保留）
+     *
      * @return 队列中最后一个元素（原逻辑的最终位置）
      */
     @Nullable
@@ -405,6 +394,13 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         }
         // 返回队列最后一个元素（兼容原有逻辑）
         return ((GuiBlockInfo[]) guiBlockInfoQueue.toArray(new GuiBlockInfo[0]))[guiBlockInfoQueue.size() - 1];
+    }
+
+    /**
+     * 兼容原有逻辑的set方法（可选保留，避免子类报错）
+     */
+    public void setGuiBlockInfo(@Nullable GuiBlockInfo guiBlockInfo) {
+        this.addGuiBlockInfoToQueue(guiBlockInfo);
     }
 
     /**
@@ -536,6 +532,11 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         return BlockPosCooldownManager.INSTANCE.isOnCooldown(this.level, this.getId(), pos);
     }
 
+    public boolean isBlockPosOnCooldown(String name, @Nullable BlockPos pos) {
+        if (this.level == null || pos == null) return true;
+        return BlockPosCooldownManager.INSTANCE.isOnCooldown(this.level, this.getId() + "_" + name, pos);
+    }
+
     /**
      * 为指定方块设置当前处理器的冷却时间，避免短时间内重复处理
      * 冷却数据由{link BlockPosCooldownManager}统一管理，按处理器id区分
@@ -547,6 +548,12 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         if (this.level == null || pos == null || cooldownTicks < 1) return;
         BlockPosCooldownManager.INSTANCE.setCooldown(this.level, this.getId(), pos, cooldownTicks);
     }
+
+    public void setBlockPosCooldown(String name, @Nullable BlockPos pos, int cooldownTicks) {
+        if (this.level == null || pos == null || cooldownTicks < 1) return;
+        BlockPosCooldownManager.INSTANCE.setCooldown(this.level, this.getId() + "_" + name, pos, cooldownTicks);
+    }
+
 
     protected Direction[] getPlayerOrderedByNearest() {
         return Direction.orderedByNearest(player);

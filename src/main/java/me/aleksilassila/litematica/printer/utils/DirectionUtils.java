@@ -59,33 +59,21 @@ public class DirectionUtils {
     public static Direction[] orderedByNearest(float yaw, float pitch) {
         double pitchRad = pitch * (Math.PI / 180.0);
         double yawRad = -yaw * (Math.PI / 180.0);
-
-        // 计算三角函数
         float sinPitch = sin(pitchRad);
         float cosPitch = cos(pitchRad);
         float sinYaw = sin(yawRad);
         float cosYaw = cos(yawRad);
-
-        // 判断方向的布尔标志
         boolean isEastFacing = sinYaw > 0.0F;
         boolean isUpFacing = sinPitch < 0.0F;
         boolean isSouthFacing = cosYaw > 0.0F;
-
-        // 计算各方向分量的绝对值
         float eastWestMagnitude = isEastFacing ? sinYaw : -sinYaw;
         float upDownMagnitude = isUpFacing ? -sinPitch : sinPitch;
         float northSouthMagnitude = isSouthFacing ? cosYaw : -cosYaw;
-
-        // 计算调整后的分量
         float adjustedX = eastWestMagnitude * cosPitch;
         float adjustedZ = northSouthMagnitude * cosPitch;
-
-        // 确定基础方向
         Direction primaryXDirection = isEastFacing ? Direction.EAST : Direction.WEST;
         Direction primaryYDirection = isUpFacing ? Direction.UP : Direction.DOWN;
         Direction primaryZDirection = isSouthFacing ? Direction.SOUTH : Direction.NORTH;
-
-        // 根据分量比较确定方向优先级
         if (eastWestMagnitude > northSouthMagnitude) {
             if (upDownMagnitude > adjustedX) {
                 return makeDirectionArray(primaryYDirection, primaryXDirection, primaryZDirection);

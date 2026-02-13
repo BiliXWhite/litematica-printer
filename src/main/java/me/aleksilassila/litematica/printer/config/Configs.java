@@ -132,6 +132,12 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(true)
                 .build();
 
+        public static final ConfigInteger LAG_CHECK_MAX = integer("printerLagCheckMax")
+                .defaultValue(20)
+                .setVisible(LAG_CHECK::getBooleanValue)
+                .range(20, 1200)
+                .build();
+
         // 核心 - 迭代区域形状
         public static final ConfigOptionList ITERATOR_SHAPE = optionList("printerIteratorShape")
                 .defaultValue(RadiusShapeType.SPHERE)
@@ -213,6 +219,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 ITERATOR_TOTAL_PER_TICK,
                 RENDER_HUD,
                 LAG_CHECK,
+                LAG_CHECK_MAX,
                 CHECK_PLAYER_INTERACTION_RANGE,
                 ITERATOR_SHAPE,
                 ITERATION_ORDER,

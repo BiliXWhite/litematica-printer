@@ -7,6 +7,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 
@@ -29,12 +30,12 @@ public class SchematicBlockContext {
         this.requiredState = schematic.getBlockState(blockPos);
     }
 
-    public SchematicBlockContext offset(Direction direction) {
-        return new SchematicBlockContext(client, level, schematic, blockPos.relative(direction));
-    }
-
     public static <T extends Comparable<T>> Optional<T> getProperty(BlockState blockState, Property<T> property) {
         return BlockStateUtils.getProperty(blockState, property);
+    }
+
+    public SchematicBlockContext offset(Direction direction) {
+        return new SchematicBlockContext(client, level, schematic, blockPos.relative(direction));
     }
 
     public <T extends Comparable<T>> Optional<T> getRequiredStateProperty(Property<T> property) {
@@ -45,29 +46,29 @@ public class SchematicBlockContext {
         return getProperty(currentState, property);
     }
 
-    public MutableComponent getRequiredBlockName() {
-        return requiredState.getBlock().getName();
+    public Block getRequiredBlock() {
+        return requiredState.getBlock();
     }
 
-    public String getRequiredBlockNameString() {
-        return getRequiredBlockName().getString();
+    public Block getCurrentBlock() {
+        return currentState.getBlock();
+    }
+
+    public MutableComponent getRequiredBlockName() {
+        return requiredState.getBlock().getName();
     }
 
     public MutableComponent getCurrentBlockName() {
         return currentState.getBlock().getName();
     }
 
-    public String getCurrentBlockNameString() {
-        return getRequiredBlockName().getString();
-    }
-
     @Override
     public String toString() {
         return "SchematicBlockContext{" +
-                "client=" + client +
+                "blockPos=" + blockPos +
+                ", client=" + client +
                 ", level=" + level +
                 ", schematic=" + schematic +
-                ", blockPos=" + blockPos +
                 ", currentState=" + currentState +
                 ", requiredState=" + requiredState +
                 '}';
