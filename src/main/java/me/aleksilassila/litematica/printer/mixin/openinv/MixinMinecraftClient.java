@@ -35,7 +35,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.Inventor
 //#endif
 
 @Environment(EnvType.CLIENT)
-@Mixin({Minecraft.class})
+@Mixin(Minecraft.class)
 public abstract class MixinMinecraftClient {
     @Shadow
     public LocalPlayer player;

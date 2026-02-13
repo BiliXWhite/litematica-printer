@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.openinv;
 
+//#if MC > 11904
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -29,3 +30,9 @@ public interface InventoryMixin {
         }
     }
 }
+//#else
+//$$ import me.aleksilassila.litematica.printer.mixin_extension.Pointless;
+//$$ import org.spongepowered.asm.mixin.Mixin;
+//$$ @Mixin(value = Pointless.class)
+//$$ public class InventoryMixin { }
+//#endif

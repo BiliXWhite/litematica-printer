@@ -20,8 +20,11 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 // 对masa配置基类进行扩展, 进行I18n实现
-@Mixin(value = ConfigBase.class)
+@Mixin(value = ConfigBase.class, remap = false)
 public abstract class MixinConfigBase<T extends IConfigBase> implements IConfigBase, IConfigResettable, IConfigNotifiable<T>, ConfigExtension {
+    @Unique
+    private final CopyOnWriteArrayList<Consumer<IConfigBase>> litematica_printer$valueChangeCallbacks = new CopyOnWriteArrayList<>();
+
     @Shadow
     protected String prettyName;
 
@@ -90,9 +93,6 @@ public abstract class MixinConfigBase<T extends IConfigBase> implements IConfigB
     public void litematica_printer$setVisible(BooleanSupplier visible) {
         this.litematica_printer$visible = visible;
     }
-
-    @Unique
-    private final CopyOnWriteArrayList<Consumer<IConfigBase>> litematica_printer$valueChangeCallbacks = new CopyOnWriteArrayList<>();
 
     @Override
     public CopyOnWriteArrayList<Consumer<IConfigBase>> litematica_printer$getValueChangeCallbacks() {

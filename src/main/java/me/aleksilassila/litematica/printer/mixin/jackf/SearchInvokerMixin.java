@@ -1,8 +1,31 @@
 package me.aleksilassila.litematica.printer.mixin.jackf;
 
-import me.aleksilassila.litematica.printer.mixin_extension.Pointless;
+//#if MC >= 12001
+import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import red.jackf.whereisit.api.SearchRequest;
+import red.jackf.whereisit.client.api.events.SearchInvoker;
 
-@Mixin(value = Pointless.class)
-public class SearchInvokerMixin {
+
+@Mixin(value = SearchInvoker.class, remap = false)
+public interface SearchInvokerMixin {
+    @Inject(at = @At("RETURN"), method = "doSearch",remap = false)
+    private static void doSearch(SearchRequest request, CallbackInfoReturnable<Boolean> cir) {
+        if(Configs.Core.CLOUD_INVENTORY.getBooleanValue()){
+            MemoryUtils.request = request;
+            SearchItem.search(false);
+            SearchItem.openInventory(0);
+        }
+    }
 }
+//#else
+//$$ import me.aleksilassila.litematica.printer.mixin_extension.Pointless;
+//$$ import org.spongepowered.asm.mixin.Mixin;
+//$$ @Mixin(value = Pointless.class)
+//$$ public class SearchInvokerMixin { }
+//#endif

@@ -64,7 +64,9 @@ public abstract class MixinGui {
     @Inject(method = "renderItemHotbar", at = @At("TAIL"))
     //#if MC > 12006
     private void hookRenderItemHotbar(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci
-    //#elseif MC > 11904
+    //#elseif MC >= 12006
+    //$$ private void hookRenderItemHotbar(GuiGraphics guiGraphics, float f, CallbackInfo ci
+    //#elseif MC > 11904 && MC < 12006
     //$$ private void hookRenderItemHotbar(float f, GuiGraphics guiGraphics, CallbackInfo ci
     //#else
     //$$ private void hookRenderItemHotbar(float f, PoseStack poseStack, CallbackInfo ci

@@ -23,7 +23,7 @@ public class ConfigUi extends GuiConfigsBase {
     private static Tab tab = Tab.CORE;
 
     public ConfigUi(@Nullable Screen parent) {
-        super(10, 50, Reference.MOD_ID, parent, "Litematica Printer " + UpdateCheckerUtils.LOCAL_VERSION + "   " + I18n.FREE_NOTICE.getName().getString());
+        super(10, 50, Reference.MOD_ID, parent, Reference.MOD_NAME + " " + UpdateCheckerUtils.LOCAL_VERSION + "   " + I18n.FREE_NOTICE.getName().getString());
     }
 
     public ConfigUi() {

@@ -142,8 +142,6 @@ public class InventoryUtils {
     static int shulkerBoxSlot = -1;
 
     public static void switchInv() {
-//        if(true) return;
-
         LocalPlayer player = Minecraft.getInstance().player;
         AbstractContainerMenu sc = player.containerMenu;
         if (sc.equals(player.inventoryMenu)) {
@@ -153,7 +151,6 @@ public class InventoryUtils {
         for (Item item : lastNeedItemList) {
             for (int y = 0; y < slots.get(0).container.getContainerSize(); y++) {
                 if (slots.get(y).getItem().getItem().equals(item)) {
-
                     String[] str = fi.dy.masa.litematica.config.Configs.Generic.PICK_BLOCKABLE_SLOTS.getStringValue().split(",");
                     if (str.length == 0) return;
                     for (String s : str) {
@@ -165,7 +162,6 @@ public class InventoryUtils {
                                 Minecraft.getInstance().gui.setOverlayMessage(Component.nullToEmpty("濳影盒占用了预选栏"), false);
                                 continue;
                             }
-
                             if (OpenInventoryPacket.key != null) {
                                 SwitchItem.newItem(slots.get(y).getItem(), OpenInventoryPacket.pos, OpenInventoryPacket.key, y, -1);
                             } else SwitchItem.newItem(slots.get(y).getItem(), null, null, y, shulkerBoxSlot);
@@ -216,7 +212,6 @@ public class InventoryUtils {
                     if (items1.stream().anyMatch(s1 -> s1.getItem().equals(item))) {
                         try {
                             shulkerBoxSlot = i;
-//                            ClientUtil.CheckAndSend(stack,i);
                             //#if MC >= 12001 
                             //$$ if (ModLoadStatus.isLoadChestTrackerLoaded()) InteractionTracker.INSTANCE.clear();
                             //#endif
