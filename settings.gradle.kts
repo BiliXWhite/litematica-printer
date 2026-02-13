@@ -15,7 +15,6 @@ pluginManagement {
             }
         }
     }
-    includeBuild("build-logic")
 }
 
 
