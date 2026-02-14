@@ -68,9 +68,6 @@ public abstract class ChestTrackerScreenMixin extends Screen {
         MemoryUtils.currentMemoryKey = currentMemoryKey;
     }
 
-    @Shadow
-    public abstract void close();
-
     //#if MC >= 12109
     @Inject(at = @At("HEAD"), method = "keyPressed", cancellable = true)
     public void keyPressed(net.minecraft.client.input.KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
