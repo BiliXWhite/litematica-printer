@@ -47,14 +47,13 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     @Getter
     @Setter
     private static int packetTick;
-
     /**
-     * 递增全局Tick计数器
+     * 玩家交互盒原子引用，用于存储当前玩家的迭代范围（方块检测范围）
+     * 原子引用保证多线程环境下的安全访问，null表示该处理器不使用迭代功能
      */
-    public static void updateTickHandlerTime() {
-        currentHandlerTime++;
-    }
-
+    @Getter
+    @Nullable
+    public final AtomicReference<PrinterBox> playerInteractionBox;
     /**
      * 处理器唯一标识
      */
@@ -89,15 +88,6 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
      * 跳过迭代(可传递对象)
      */
     private final AtomicReference<Boolean> skipIteration = new AtomicReference<>(false);
-
-    /**
-     * 玩家交互盒原子引用，用于存储当前玩家的迭代范围（方块检测范围）
-     * 原子引用保证多线程环境下的安全访问，null表示该处理器不使用迭代功能
-     */
-    @Getter
-    @Nullable
-    public final AtomicReference<PrinterBox> playerInteractionBox;
-
     /**
      * 线程安全队列：存储当前Tick内迭代的所有方块信息（用于渲染帧级消费）
      */
@@ -137,33 +127,28 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
      */
     @Nullable
     protected BlockHitResult blockHitResult;
-
     /**
      * 上次Tick的玩家交互盒对象，用于检测玩家位置/范围是否发生变化
      * 避免每Tick重复创建交互盒，提升性能
      */
     @Nullable
     private PrinterBox lastPlayerInteractionBox;
-
     /**
      * 上次Tick的玩家所在位置，用于检测玩家是否发生移动
      * 玩家移动超过阈值时，会重新创建玩家交互盒
      */
     @Nullable
     private BlockPos lastPlayerPos;
-
     /**
      * 该处理器上次执行的全局Tick时间，用于控制处理器执行间隔
      * 初始值-1L作为首次执行的判断标识，兼容全局Tick从0开始的场景
      */
     private long lastTickTime = -1L;
-
     /**
      * 渲染进度索引：控制每帧从队列中读取第几个方块信息
      */
     @Getter
     private int renderIndex = 0;
-
     /**
      * GUI方块信息的缓存剩余Tick数，控制GUI信息的展示时长
      * 每次更新GUI队列时重置为20，每Tick递减，为0时清空队列
@@ -185,6 +170,13 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         this.selectionType = selectionType;
         this.playerInteractionBox = useBox ? new AtomicReference<>() : null;
         this.updateVariables();
+    }
+
+    /**
+     * 递增全局Tick计数器
+     */
+    public static void updateTickHandlerTime() {
+        currentHandlerTime++;
     }
 
     protected void updateVariables() {
@@ -305,9 +297,10 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                     BlockPos pos = iterator.next();
                     if (pos == null) continue;
                     GuiBlockInfo gui = new GuiBlockInfo(level, pos, level.getBlockState(pos));
-
-                    this.addGuiBlockInfoToQueue(gui);
-
+                    // 仅调试时候加入队列, 避免队列储存无用位置信息
+                    if (Configs.Core.DEBUG_OUTPUT.getBooleanValue()) {
+                        this.addGuiBlockInfoToQueue(gui);
+                    }
                     if (ConfigUtils.canInteracted(pos)) {
                         gui.interacted = true;
                     } else {
