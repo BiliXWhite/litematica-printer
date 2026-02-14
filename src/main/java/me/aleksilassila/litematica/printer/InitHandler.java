@@ -21,9 +21,9 @@ public class InitHandler implements IInitializationHandler {
             Core.CLOUD_INVENTORY.setBooleanValue(false); // 远程交互容器
         }
         //#if MC >= 12001
-        //$$ if (ModLoadStatus.isLoadChestTrackerLoaded()) {
-        //$$     me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.setup();
-        //$$ }
+        if (ModLoadStatus.isLoadChestTrackerLoaded()) {
+            me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.setup();
+        }
         //#endif
     }
 
