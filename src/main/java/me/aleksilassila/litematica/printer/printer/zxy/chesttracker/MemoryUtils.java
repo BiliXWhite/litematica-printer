@@ -65,7 +65,7 @@ public class MemoryUtils {
     }
 
     public static void setup() {
-        //破坏方块后清除打印机库存的该记录
+        // 破坏方块后清除打印机库存的该记录
         AfterPlayerDestroyBlock.EVENT.register(cbs -> {
             if (PRINTER_MEMORY != null
                     && PRINTER_MEMORY.getMetadata().getIntegritySettings().removeOnPlayerBlockBreak
@@ -74,14 +74,14 @@ public class MemoryUtils {
             }
         });
 
-        //关闭屏幕后保存 在屏蔽掉ui的情况下 这里可能无法触发 建议在mixin中调用保存方法
-        ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-            if (screen instanceof AbstractContainerScreen<?> sc) {
-                ScreenEvents.remove(screen).register(screen1 -> {
-//                    saveMemory(sc.getScreenHandler());
-                });
-            }
-        });
+//        // 关闭屏幕后保存 在屏蔽掉ui的情况下 这里可能无法触发 建议在mixin中调用保存方法
+//        ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
+//            if (screen instanceof AbstractContainerScreen<?> sc) {
+//                ScreenEvents.remove(screen).register(screen1 -> {
+//                    saveMemory(sc.getMenu());
+//                });
+//            }
+//        });
 
         //加载打印机库存
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> client.execute(MemoryUtils::createPrinterMemory));
