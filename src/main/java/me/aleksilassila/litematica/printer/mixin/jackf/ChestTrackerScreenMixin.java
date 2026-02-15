@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.mixin.jackf;
 
-//#if MC >= 12106
+//#if MC >= 12001
 
 import fi.dy.masa.malilib.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
