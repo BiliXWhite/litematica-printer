@@ -4,6 +4,7 @@
   "package": "me.aleksilassila.litematica.printer.mixin",
   "compatibilityLevel": "${compatibility_level}",
   "mixins": [
+    "jackf.fix.ClientUtilMixin",
     "openinv.InventoryMixin",
     "openinv.MixinClientPlayNetworkHandler",
     "openinv.MixinGenericContainerScreenHandler",
@@ -15,11 +16,11 @@
     "printer.litematica.EasyPlaceUtilsAccessor",
     "printer.litematica.InventoryUtilsAccessor",
     "printer.litematica.MixinInventoryUtils",
-    "printer.mc.MixinGui",
     "printer.malilib.config.MixinConfigBase",
     "printer.malilib.config.MixinIConfigBase",
     "printer.mc.MixinBlockItem",
     "printer.mc.MixinConnection",
+    "printer.mc.MixinGui",
     "printer.mc.MixinPistonBaseBlock"
   ],
   "client": [
@@ -32,6 +33,7 @@
     "jackf.SearchInvokerMixin",
     "jackf.SearchRequestMixin",
     "jackf.SearchRequestPopulatorMixin",
+    "jackf.fix.InteractionTrackerImplMixin",
     "jackf.lgacy.MemoryUtilsMixin",
     "jackf.lgacy.MixinBlock",
     "jackf.lgacy.MixinChestTracker",
@@ -42,13 +44,13 @@
     "jackf.lgacy.MixinWCardPanel",
     "jackf.lgacy.WItemListPanelMixin",
     "openinv.MixinMinecraftClient",
-    "printer.mc.MixinGui",
     "printer.litematica.gui.MixinLitematicaGuiMainMenu",
     "printer.malilib.MixinAbstractCraftingMenu",
     "printer.malilib.MixinGuiStringListEdit",
     "printer.mc.MixinClientCommonPacketListener",
     "printer.mc.MixinClientLevel",
     "printer.mc.MixinClientPacketListener",
+    "printer.mc.MixinGui",
     "printer.mc.MixinLocalPlayer",
     "printer.mc.MixinMultiPlayerGameMode",
     "printer.mc.ServerboundMovePlayerPacketAccessor"

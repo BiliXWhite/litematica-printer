@@ -85,3 +85,5 @@ $RECYCLE.BIN/
 .env
 .env.*
 !.env.example
+
+*profile*

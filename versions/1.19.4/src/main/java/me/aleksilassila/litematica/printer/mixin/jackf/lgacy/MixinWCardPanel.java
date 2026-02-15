@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.jackf.lgacy;
 
 import io.github.cottonmc.cotton.gui.widget.WCardPanel;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

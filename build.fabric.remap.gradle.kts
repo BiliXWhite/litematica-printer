@@ -1,5 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
+import groovy.json.JsonSlurper
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -10,11 +11,19 @@ plugins {
     id("com.replaymod.preprocess")
 }
 
-val buildTimestamp: String? = SimpleDateFormat("yyMMdd").apply {
-    timeZone = TimeZone.getTimeZone("GMT+08:00")
-}.format(Date())
+val time = SimpleDateFormat("yyMMdd")
+    .apply { timeZone = TimeZone.getTimeZone("GMT+08:00") }
+    .format(Date())
+    .toString()
 
-version = "$modVersion+$buildTimestamp"
+var fullProjectVersion = "$modVersion+$time"
+if (System.getenv("IS_THIS_RELEASE") == "false") {
+    val buildNumber: String? = System.getenv("GITHUB_RUN_NUMBER")
+    if (buildNumber != null) {
+        fullProjectVersion += "+build.$buildNumber"
+    }
+}
+version = fullProjectVersion
 group = modMavenGroup
 
 repositories {
@@ -45,6 +54,10 @@ repositories {
 configurations.all {
     resolutionStrategy {
         force("net.fabricmc:fabric-loader:$fabricLoaderVersion")
+        force("maven.modrinth:malilib:${prop("malilib")}")
+        force("maven.modrinth:litematica:${prop("litematica")}")
+        force("maven.modrinth:tweakeroo:${prop("tweakeroo")}")
+        force("com.terraformersmc:modmenu:${prop("modmenu")}")
     }
 }
 
@@ -54,19 +67,44 @@ dependencies {
     modImplementation("net.fabricmc:fabric-loader:$fabricLoaderVersion")
     modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
     modImplementation("com.belerweb:pinyin4j:${prop("pinyin_version")}")?.let { include(it) }
+
     modImplementation("com.terraformersmc:modmenu:${prop("modmenu")}")
 
     // modImplementation("com.github.sakura-ryoko:malilib:${props["malilib"]}")
     // modImplementation("com.github.sakura-ryoko:litematica:${props["litematica"]}")
     // modImplementation("com.github.sakura-ryoko:tweakeroo:${props["tweakeroo"]}")
+
     modImplementation("maven.modrinth:malilib:${prop("malilib")}")
     modImplementation("maven.modrinth:litematica:${prop("litematica")}")
     modImplementation("maven.modrinth:tweakeroo:${prop("tweakeroo")}")
 
-    // 箱子追踪相关（1.21.5 以下）
-    if (mcVersionInt < 12105) {
+    // 箱子追踪
+    if (mcVersionInt >= 12106) {
+        modImplementation("maven.modrinth:chest-tracker-port:${prop("chesttracker")}")
+        if (mcVersionInt >= 12106) {
+            modImplementation("com.github.bunnyi116:JackFredLib:${prop("jackfredlib")}")
+        } else {
+            modImplementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
+        }
+        modImplementation("maven.modrinth:where-is-it-port:${prop("whereisit")}")
+    } else {
         modImplementation("maven.modrinth:chest-tracker:${prop("chesttracker")}")
         modImplementation("maven.modrinth:where-is-it:${prop("whereisit")}")
+        if (mcVersionInt >= 12001) {
+            modImplementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
+        } else {
+            modImplementation("me.shedaniel.cloth:cloth-config-fabric:${prop("cloth_config")}")
+            if (mcVersionInt < 11904) {
+                modImplementation("me.shedaniel.cloth.api:cloth-api:${prop("cloth_api")}")
+            }
+            if (mcVersionInt <= 11904) {
+                modImplementation("io.github.cottonmc:LibGui:${prop("LibGui")}")
+            }
+        }
+    }
+    if (mcVersionInt >= 12001) {
+        modImplementation("dev.isxander:yet-another-config-lib:${prop("yacl")}")
+        modImplementation("com.blamejared.searchables:${prop("searchables")}")
     }
 
     // 快捷潜影盒
@@ -78,40 +116,39 @@ dependencies {
                 modImplementation(files(quickshulkerFile))
             }
         }
-        // 快捷潜影盒依赖(运行时)
         if (mcVersionInt == 12006) {  // 1.20.6 是 Haocen2004/quickshulker 分支, 所以还是使用之前老版本的依赖
-            modImplementation("net.kyrptonaught:kyrptconfig:${prop("kyrptconfig")}") // 快捷潜影盒依赖(运行时)
+            modImplementation("net.kyrptonaught:kyrptconfig:${prop("kyrptconfig")}")
         } else {
             modImplementation("me.fallenbreath:conditional-mixin-fabric:0.6.4")
         }
     } else {
         modImplementation("curse.maven:quick-shulker-362669:${prop("quick_shulker")}")
-        modImplementation("net.kyrptonaught:kyrptconfig:${prop("kyrptconfig")}") // 快捷潜影盒依赖(运行时)
-    }
-
-    // 暂时不知是什么依赖
-    if (mcVersionInt >= 12001) {
-        modImplementation("dev.isxander:yet-another-config-lib:${prop("yacl")}")
-
-        // TODO: 暂时不知道是什么模组的依赖, 不过在1.21.11中会报错, 因为这个库没有最新版本, 移除后正在运行, 不知道有什么BUG
-        // java.lang.NoSuchMethodError: 'long net.minecraft.server.level.ServerLevel.method_8510()'
-        // Jackfred maven复活
-        if (mcVersionInt < 12111) {
-            implementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
-        }
-        modImplementation("com.blamejared.searchables:${prop("searchables")}")
-    } else {
-        modImplementation("maven.modrinth:cloth-config:${prop("cloth_config")}")
-        modImplementation("io.github.cottonmc:LibGui:${prop("LibGui")}")
-    }
-    if (mcVersionInt < 11904) {
-        modImplementation("me.shedaniel.cloth.api:cloth-api:${prop("cloth_api")}")
+        modImplementation("net.kyrptonaught:kyrptconfig:${prop("kyrptconfig")}")
     }
 }
 
 loom {
     val commonVmArgs = listOf("-Dmixin.debug.export=true", "-Dmixin.debug.verbose=true", "-Dmixin.env.remapRefMap=true")
-    val programArgs = listOf("--width", "1280", "--height", "720", "--username", "PrinterTest")
+    var programArgs = listOf("--width", "1280", "--height", "720")
+    val profileFile = file("../../profile.json")
+    if (profileFile.exists()) {
+        @Suppress("UNCHECKED_CAST")
+        val profile = JsonSlurper().parseText(profileFile.readText()) as Map<String, List<String>>
+        val username = profile["username"].toString()
+        val uuid = profile["uuid"].toString()
+        val xuid = profile["xuid"].toString()
+        val accessToken = profile["accessToken"].toString()
+        programArgs = programArgs + listOf(
+            "--username", username,
+            "--uuid", uuid,
+            "--xuid", xuid,
+            "--accessToken", accessToken,
+            "--userType", "msa",
+            "--versionType", "release"
+        )
+    } else {
+        programArgs = programArgs + listOf("--username", "PrinterTest")
+    }
     runs {
         named("client") {
             ideConfigGenerated(true)

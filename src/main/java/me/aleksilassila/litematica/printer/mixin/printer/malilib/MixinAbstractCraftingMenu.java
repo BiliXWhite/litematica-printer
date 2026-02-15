@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 // MASA 全家桶搜素增强
-@Mixin(WidgetListBase.class)
+@Mixin(value = WidgetListBase.class, remap = false)
 public abstract class MixinAbstractCraftingMenu<TYPE, WIDGET extends WidgetListEntryBase<TYPE>> extends GuiBase {
     @Inject(method = "entryMatchesFilter", at = @At("HEAD"), cancellable = true)
     public void matchesFilter(TYPE entry, String filterText, CallbackInfoReturnable<Boolean> cir) {

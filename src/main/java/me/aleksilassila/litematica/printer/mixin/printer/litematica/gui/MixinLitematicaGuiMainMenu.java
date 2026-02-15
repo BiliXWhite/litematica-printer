@@ -12,7 +12,7 @@ import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.litematica.gui.GuiMainMenu;
 
-@Mixin(GuiMainMenu.class)
+@Mixin(value = GuiMainMenu.class, remap = false)
 public abstract class MixinLitematicaGuiMainMenu extends GuiBase {
 
     @Invoker(remap = false)

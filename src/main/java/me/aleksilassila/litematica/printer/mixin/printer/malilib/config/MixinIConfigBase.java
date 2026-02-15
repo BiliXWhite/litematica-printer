@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.mixin.printer.malilib.config;
 
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.options.ConfigBase;
-import me.aleksilassila.litematica.printer.config.ConfigExtension;
+import me.aleksilassila.litematica.printer.mixin_extension.ConfigExtension;
 import me.aleksilassila.litematica.printer.utils.StringUtils;
 import org.spongepowered.asm.mixin.Mixin;
 

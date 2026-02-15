@@ -3,8 +3,8 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 import fi.dy.masa.malilib.util.StringUtils;
 import io.netty.buffer.Unpooled;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.printer.Printer;
-import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
+import me.aleksilassila.litematica.printer.handler.Handlers;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import me.aleksilassila.litematica.printer.utils.IdentifierUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -44,9 +44,9 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //$$ import net.minecraft.world.InteractionHand;
 //#endif
 
-//#if MC >= 12001 && MC <= 12104
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-//$$ import red.jackf.chesttracker.api.providers.InteractionTracker;
+//#if MC >= 12001
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#endif
 
 
@@ -220,8 +220,11 @@ public class OpenInventoryPacket {
     public static void registerReceivePacket() {
         //#if MC > 12004
         ServerPlayNetworking.registerGlobalReceiver(OPEN_INVENTORY_ID, (payload,context) -> {
+            MinecraftServer server = context.player().level().getServer();
             if (payload instanceof OpenPackage packetByteBuf) {
-                context.player().level().getServer().execute(() -> openInv(context.player().level().getServer(), context.player(), packetByteBuf.pos, packetByteBuf.world));
+                server.execute(() ->
+                        openInv(server, context.player(), packetByteBuf.pos, packetByteBuf.world)
+                );
             }
         });
         //#else
@@ -249,15 +252,12 @@ public class OpenInventoryPacket {
         ServerLevel world = server.getLevel(key);
         if (world == null) return;
         BlockState blockState = world.getBlockState(pos);
-        if (blockState == null) {
-            //#if MC > 12104
-            world.getChunkSource().addTicketWithRadius(OPEN_TICKET, new ChunkPos(pos), 2);
-            //#else
-            //$$ world.getChunkSource().addRegionTicket(OPEN_TICKET, new ChunkPos(pos), 2, new ChunkPos(pos));
-            //#endif
-        }
+        //#if MC > 12104
+        world.getChunkSource().addTicketWithRadius(OPEN_TICKET, new ChunkPos(pos), 2);
+        //#else
+        //$$ world.getChunkSource().addRegionTicket(OPEN_TICKET, new ChunkPos(pos), 2, new ChunkPos(pos));
+        //#endif
         playerList.add(player);
-        if (blockState == null) return;
         tickMap.put(player, new TickList(blockState.getBlock(), world, pos, blockState));
         BlockEntity blockEntity = world.getBlockEntity(pos);
         boolean isInv = isContainer(blockEntity);
@@ -311,7 +311,7 @@ public class OpenInventoryPacket {
         OpenInventoryPacket.pos = null;
         OpenInventoryPacket.key = null;
         //避免箱子追踪重复保存，
-        //#if MC >= 12001 && MC <= 12104
+        //#if MC >= 12001
         //$$ //避免箱子追踪胡乱记录，若不清空，则会吧打开容器前右键的方块视为目标容器
         //$$ InteractionTracker.INSTANCE.clear();
         //#endif
@@ -347,8 +347,8 @@ public class OpenInventoryPacket {
             return;
         }
         if (open) {
-            //#if MC >= 12001 && MC <= 12104
-            //$$ MemoryUtils.blockState = state;
+            //#if MC >= 12001
+            MemoryUtils.blockState = state;
             //#endif
 //            client.player.sendMessage(Text.of("return "+state.toString()));
         } else {
@@ -363,8 +363,8 @@ public class OpenInventoryPacket {
                 if (client.player != null) client.player.displayClientMessage(Component.nullToEmpty("打开容器失败 \n位于"+ translate+"  "+pos.getCenter().toString()),false);
                 //#endif
 
-                //#if MC >= 12001 && MC <= 12104
-                //$$ MemoryUtils.PRINTER_MEMORY.removeMemory(key.location(), pos);
+                //#if MC >= 12001
+                MemoryUtils.PRINTER_MEMORY.removeMemory(key.identifier(), pos);
                 //#elseif MC < 12001
                 //$$ red.jackf.chesttracker.memory.MemoryDatabase.getCurrent().removePos(key.location() , pos);
                 //$$ me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase.getCurrent().removePos(key.location() , pos);
@@ -376,7 +376,7 @@ public class OpenInventoryPacket {
             ModLoadStatus.closeScreen--;
             openIng = false;
             isOpenHandler = false;
-            Printer.getInstance().printerMemorySync = false;
+            Handlers.PRINT.setPrinterMemorySync(false); ;
             key = null;
             pos = null;
         }
@@ -418,14 +418,6 @@ public class OpenInventoryPacket {
         }
     }
 
-    //    //#if MC > 12004
-//    @Override
-//    public Id<? extends CustomPayload> getId() {
-//        return null;
-//    }
-//    //#else
-//    //$$
-//    //#endif
     public static boolean isContainer(BlockEntity blockEntity){
         return blockEntity instanceof Container;
     }

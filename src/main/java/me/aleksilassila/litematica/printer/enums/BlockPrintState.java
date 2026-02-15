@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.enums;
 
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.printer.BlockContext;
+import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
 import me.aleksilassila.litematica.printer.utils.FilterUtils;
 import me.aleksilassila.litematica.printer.utils.BlockStateUtils;
 import net.minecraft.client.Minecraft;
@@ -89,7 +89,7 @@ public enum BlockPrintState {
         return ERROR_BLOCK;
     }
 
-    public static BlockPrintState get(BlockContext context, Property<?>... propertiesToIgnore) {
+    public static BlockPrintState get(SchematicBlockContext context, Property<?>... propertiesToIgnore) {
         return get(context.requiredState, context.currentState, propertiesToIgnore);
     }
 

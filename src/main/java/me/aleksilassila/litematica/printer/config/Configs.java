@@ -14,7 +14,7 @@ import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import fi.dy.masa.malilib.config.ConfigManager;
 import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.enums.*;
-import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
 import me.aleksilassila.litematica.printer.gui.ConfigUi;
 import net.minecraft.world.level.block.Blocks;
 
@@ -35,8 +35,8 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
     // 配置页面是否可视(函数式, 动态获取, 全局统一使用)
     private static final BooleanSupplier isLoadChestTrackerLoaded = ModLoadStatus::isLoadChestTrackerLoaded;
     private static final BooleanSupplier isLoadQuickShulkerLoaded = ModLoadStatus::isLoadQuickShulkerLoaded;
-    private static final BooleanSupplier isSingle = () -> Core.WORK_MODE.getOptionListValue().equals(ModeType.SINGLE);
-    private static final BooleanSupplier isMulti = () -> Core.WORK_MODE.getOptionListValue().equals(ModeType.MULTI);
+    private static final BooleanSupplier isSingle = () -> Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.SINGLE);
+    private static final BooleanSupplier isMulti = () -> Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.MULTI);
     private static final BooleanSupplier isExcavateCustom = () -> Mine.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.CUSTOM);
     private static final BooleanSupplier isExcavateWhitelist = () -> isExcavateCustom.getAsBoolean() && Mine.EXCAVATE_LIMIT.getOptionListValue().equals(UsageRestriction.ListType.WHITELIST);
     private static final BooleanSupplier isExcavateBlacklist = () -> isExcavateCustom.getAsBoolean() && Mine.EXCAVATE_LIMIT.getOptionListValue().equals(UsageRestriction.ListType.BLACKLIST);
@@ -78,7 +78,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 核心 - 模式切换
         public static final ConfigOptionList WORK_MODE = optionList("modeSwitch")
-                .defaultValue(ModeType.SINGLE)
+                .defaultValue(WorkingModeType.SINGLE)
                 .build();
 
         // 多模 - 打印
@@ -111,22 +111,15 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .setVisible(isSingle) // 仅单模式时显示
                 .build();
 
-        // 核心 - 多模阻断
-        public static final ConfigBoolean WORK_MODE_TYPE_MULTI_BREAK = bool("multiBreak")
-                .defaultValue(true)
-                .setVisible(isMulti) // 仅多模式时显示
-                .build();
-
         // 核心 - 工作半径
-        public static final ConfigInteger WORK_RANGE = integer("printerRange")
+        public static final ConfigInteger WORK_RANGE = integer("workRange")
                 .defaultValue(6)
                 .range(1, 256)
                 .build();
 
-        // 核心 - 迭代占用时长
-        public static final ConfigInteger ITERATOR_USE_TIME = integer("printerIteratorUseTime")
-                .defaultValue(8)
-                .range(0, 128)
+        public static final ConfigInteger ITERATOR_TOTAL_PER_TICK = integer("workIterationsTotalPerTick")
+                .defaultValue(0)
+                .range(0, 1919810)
                 .build();
 
         // 核心 - 检查玩家方块交互范围
@@ -137,6 +130,12 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         // 核心 - 延迟检测
         public static final ConfigBoolean LAG_CHECK = bool("printerLagCheck")
                 .defaultValue(true)
+                .build();
+
+        public static final ConfigInteger LAG_CHECK_MAX = integer("printerLagCheckMax")
+                .defaultValue(20)
+                .setVisible(LAG_CHECK::getBooleanValue)
+                .range(20, 1200)
                 .build();
 
         // 核心 - 迭代区域形状
@@ -216,11 +215,11 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 MINE,
                 FILL,
                 FLUID,
-                WORK_MODE_TYPE_MULTI_BREAK,
                 WORK_RANGE,
-                ITERATOR_USE_TIME,
+                ITERATOR_TOTAL_PER_TICK,
                 RENDER_HUD,
                 LAG_CHECK,
+                LAG_CHECK_MAX,
                 CHECK_PLAYER_INTERACTION_RANGE,
                 ITERATOR_SHAPE,
                 ITERATION_ORDER,
@@ -250,14 +249,14 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         // 核心 - 工作间隔
-        public static final ConfigInteger PLACE_SPEED = integer("placeSpeed")
-                .defaultValue(1)
+        public static final ConfigInteger PLACE_INTERVAL = integer("placeInterval")
+                .defaultValue(0)
                 .range(0, 20)
                 .build();
 
         // 每刻放置方块数
         public static final ConfigInteger PLACE_BLOCKS_PER_TICK = integer("placeBlocksPerTick")
-                .defaultValue(1)
+                .defaultValue(0)
                 .range(0, 256)
                 .build();
 
@@ -293,14 +292,14 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 PRINT_USE_PACKET,
-                PLACE_SPEED,
+                PLACE_INTERVAL,
                 PLACE_BLOCKS_PER_TICK,
                 PLACE_COOLDOWN,
                 STORE_ORDERLY,
                 QUICK_SHULKER,
                 QUICK_SHULKER_MODE,
                 QUICK_SHULKER_COOLDOWN
-                );
+        );
     }
 
     public static class Break {
@@ -313,18 +312,18 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .range(70, 100)
                 .build();
 
-        public static final ConfigInteger BREAK_SPEED = integer("breakSpeed")
-                .defaultValue(1)
+        public static final ConfigInteger BREAK_INTERVAL = integer("breakInterval")
+                .defaultValue(0)
                 .range(0, 20)
                 .build();
 
         public static final ConfigInteger BREAK_BLOCKS_PER_TICK = integer("breakBlocksPerTick")
-                .defaultValue(20)
+                .defaultValue(0)
                 .range(0, 256)
                 .build();
 
         public static final ConfigInteger BREAK_COOLDOWN = integer("breakCooldown")
-                .defaultValue(1)
+                .defaultValue(3)
                 .range(0, 64)
                 .build();
 
@@ -335,11 +334,11 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 BREAK_CHECK_HARDNESS,
                 BREAK_USE_PACKET,
-                BREAK_SPEED,
+                BREAK_INTERVAL,
                 BREAK_BLOCKS_PER_TICK,
                 BREAK_COOLDOWN,
                 BREAK_PROGRESS_THRESHOLD
-                );
+        );
     }
 
     public static class Print {

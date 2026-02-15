@@ -4,9 +4,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 //#if MC > 12100
-@Mixin(fi.dy.masa.litematica.util.EasyPlaceUtils.class)
+@Mixin(value = fi.dy.masa.litematica.util.EasyPlaceUtils.class, remap = false)
 //#else
-//$$ @Mixin(fi.dy.masa.litematica.util.WorldUtils.class)
+//$$ @Mixin(value = fi.dy.masa.litematica.util.WorldUtils.class, remap = false)
 //#endif
 public interface EasyPlaceUtilsAccessor {
     @Invoker("setEasyPlaceLastPickBlockTime")

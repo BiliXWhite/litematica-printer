@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.utils;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import me.aleksilassila.litematica.printer.Debug;
 import me.aleksilassila.litematica.printer.I18n;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
@@ -41,7 +42,7 @@ public class UpdateCheckerUtils {
             SemanticVersion latestSemVer = SemanticVersion.parse(latestOfficialVersion);
             // 版本解析失败则跳过
             if (localSemVer == null || latestSemVer == null) {
-                System.out.println("版本号解析失败，本地版本：" + LOCAL_VERSION + "，最新版本：" + latestOfficialVersion);
+                Debug.alwaysWrite("版本号解析失败，本地版本：" + LOCAL_VERSION + "，最新版本：" + latestOfficialVersion);
                 return;
             }
             // 仅当最新正式版 > 本地版本时，触发更新提示
@@ -104,7 +105,7 @@ public class UpdateCheckerUtils {
                 }
             }
         } catch (Exception exception) {
-            System.out.println("无法检查更新: " + exception.getMessage());
+            Debug.alwaysWrite("无法检查更新: " + exception.getMessage());
             Minecraft.getInstance().execute(() -> MessageUtils.addMessage(I18n.UPDATE_FAILED.getName()));
             exception.printStackTrace();
         }

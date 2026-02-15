@@ -4,8 +4,10 @@ import com.mojang.authlib.GameProfile;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.printer.BlockCooldownManager;
-import me.aleksilassila.litematica.printer.printer.Printer;
+import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
+import me.aleksilassila.litematica.printer.handler.Handlers;
+import me.aleksilassila.litematica.printer.printer.BlockPosCooldownManager;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import me.aleksilassila.litematica.printer.utils.UpdateCheckerUtils;
 import net.minecraft.client.Minecraft;
@@ -13,7 +15,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
-import me.aleksilassila.litematica.printer.printer.zxy.Utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils;
 import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
@@ -28,14 +30,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-//#if MC >= 12001 && MC <= 12104
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-//$$ import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
-//$$ import me.aleksilassila.litematica.printer.bilixwhite.ModLoadStatus;
-//#else
-//#endif
-//#if MC >= 12105
-
+//#if MC >= 12001 
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
+import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
 //#endif
 
 @Mixin(LocalPlayer.class)
@@ -47,6 +45,9 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     @Final
     @Shadow
     protected Minecraft minecraft;
+
+    @Unique
+    private boolean updateChecked;
 
     //#if MC == 11902
     //$$ public MixinLocalPlayer(ClientLevel world, GameProfile profile, @Nullable PlayerPublicKey publicKey) {
@@ -60,27 +61,41 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
 
     @Inject(at = @At("HEAD"), method = "resetPos")
     public void init(CallbackInfo ci) {
-        if (Configs.Core.UPDATE_CHECK.getBooleanValue() && !Printer.getInstance().updateChecked) {
+        if (Configs.Core.UPDATE_CHECK.getBooleanValue() && !updateChecked) {
             CompletableFuture.runAsync(UpdateCheckerUtils::checkForUpdates);
         }
-        Printer.getInstance().updateChecked = true;
+        updateChecked = true;
     }
 
     @Inject(at = @At("HEAD"), method = "closeContainer")
     public void close(CallbackInfo ci) {
-        //#if MC >= 12001 && MC <= 12104
-        //$$ if(ModLoadStatus.isLoadChestTrackerLoaded()) MemoryUtils.saveMemory(this.containerMenu);
-        //$$ OpenInventoryPacket.reSet();
+        //#if MC >= 12001
+        if (ModLoadStatus.isLoadChestTrackerLoaded()) {
+            MemoryUtils.saveMemory(this.containerMenu);
+        }
+        OpenInventoryPacket.reSet();
         //#endif
     }
 
     @Inject(at = @At("HEAD"), method = "tick")
     public void tick(CallbackInfo ci) {
-        BlockCooldownManager.INSTANCE.tick();
+        // 全局Tick统计
+        ClientPlayerTickHandler.updateTickHandlerTime();
+        // 放置/破坏冷却
+        BlockPosCooldownManager.INSTANCE.tick();
+        // 快捷潜影盒冷却
+        InventoryUtils.tick();
+        // 宅闲鱼相关
         ZxyUtils.tick();
-        InteractionUtils.INSTANCE.onTick();
-        Printer printer = Printer.getInstance();
-        printer.onGameTick(minecraft, minecraft.level, (LocalPlayer) (Object) this);
+
+        // 提前过滤检查破坏情况, 避免 Handlers.tick() 运行到挖掘处理, 进行重复累计进度或避免一些问题
+        if (InteractionUtils.INSTANCE.hasTargets()) {
+            // 挖掘相关
+            InteractionUtils.INSTANCE.onTick();
+        } else {
+            // 模式运行
+            Handlers.tick();
+        }
     }
 
 

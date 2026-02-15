@@ -1,16 +1,15 @@
 package me.aleksilassila.litematica.printer.printer;
 
-import lombok.Getter;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.PlaceUtils;
-import me.aleksilassila.litematica.printer.bilixwhite.utils.PreprocessUtils;
+import me.aleksilassila.litematica.printer.printer.action.Action;
+import me.aleksilassila.litematica.printer.printer.action.ClickAction;
+import me.aleksilassila.litematica.printer.utils.PlaceUtils;
+import me.aleksilassila.litematica.printer.utils.PreprocessUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.enums.BlockCooldownType;
 import me.aleksilassila.litematica.printer.enums.BlockPrintState;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.utils.*;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.FrontAndTop;
@@ -48,7 +47,7 @@ public class PlacementGuide extends PrinterUtils {
         this.mc = client;
     }
 
-    public @Nullable Action getAction(BlockContext ctx) {
+    public @Nullable Action getAction(SchematicBlockContext ctx) {
         BlockPrintState state = BlockPrintState.get(ctx);
         if (!ctx.requiredState.canSurvive(ctx.level, ctx.blockPos) || state == BlockPrintState.CORRECT) {
             return null;
@@ -69,7 +68,7 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     @SuppressWarnings("EnhancedSwitchMigration")
-    private @Nullable Action buildAction(BlockContext ctx, ClassHook requiredType, BlockPrintState state, AtomicReference<Boolean> skip) {
+    private @Nullable Action buildAction(SchematicBlockContext ctx, ClassHook requiredType, BlockPrintState state, AtomicReference<Boolean> skip) {
         // 跳过含水方块
         if (Configs.Print.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && PlaceUtils.isWaterRequired(ctx.requiredState)) {
             return null;
@@ -80,11 +79,11 @@ public class PlacementGuide extends PrinterUtils {
                 return null;
             }
             if (ctx.currentState.getBlock() instanceof IceBlock) {  // 冰块
-                if (BlockCooldownManager.INSTANCE.isOnCooldown(BlockCooldownType.PRINT_WATER, ctx.blockPos)) {
+                if (BlockPosCooldownManager.INSTANCE.isOnCooldown(ctx.level, "print_water", ctx.blockPos)) {
                     return null;
                 } else {
                     InteractionUtils.INSTANCE.add(ctx);
-                    BlockCooldownManager.INSTANCE.setCooldown(BlockCooldownType.PRINT_WATER, ctx.blockPos, 20);
+                    BlockPosCooldownManager.INSTANCE.setCooldown(ctx.level, "print_water", ctx.blockPos, 20);
                 }
                 return null;
             }
@@ -117,7 +116,7 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     /*** 缺失方块：实际位置为空，或当前方块在可替换列表中且启用了替换功能 ***/
-    private @Nullable Action buildActionMissingBlock(BlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
+    private @Nullable Action buildActionMissingBlock(SchematicBlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
         switch (requiredType) {
             case TORCH -> {
                 Direction lookDirection = ctx.getRequiredStateProperty(WallTorchBlock.FACING).orElse(Direction.UP).getOpposite();
@@ -206,7 +205,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (type == ChestType.SINGLE) {
                     for (Direction side : BlockStateProperties.HORIZONTAL_FACING.getPossibleValues()) {
                         if (!noChestSides.containsKey(side)) {
-                            return new Action().setLookDirection(facing).setUseShift();
+                            return new Action().setLookDirection(facing).setShift();
                         }
                         return new Action().setSides(noChestSides).setLookDirection(facing);
                     }
@@ -218,9 +217,9 @@ public class PlacementGuide extends PrinterUtils {
                         chestFacing = facing.getClockWise();
                     }
                     if (ctx.level.getBlockState(ctx.blockPos.relative(chestFacing)).getBlock() instanceof ChestBlock) {
-                        return new Action().setSides(Map.of(chestFacing, Vec3.ZERO)).setLookDirection(facing).setUseShift(false);
+                        return new Action().setSides(Map.of(chestFacing, Vec3.ZERO)).setLookDirection(facing).setShift(false);
                     } else {
-                        return new Action().setSides(noChestSides).setLookDirection(facing).setUseShift();
+                        return new Action().setSides(noChestSides).setLookDirection(facing).setShift();
                     }
                 }
             }
@@ -340,8 +339,8 @@ public class PlacementGuide extends PrinterUtils {
                 if (facing == null) {
                     return null;
                 }
-                BlockContext input = ctx.offset(facing);                    // 输入端(侦测面)
-                BlockContext output = ctx.offset(facing.getOpposite());     // 输出端(红点面)
+                SchematicBlockContext input = ctx.offset(facing);                    // 输入端(侦测面)
+                SchematicBlockContext output = ctx.offset(facing.getOpposite());     // 输出端(红点面)
                 if (Configs.Print.SAFELY_OBSERVER.getBooleanValue()) {        // 安全放置
 
                     // 获取输入端方块属性
@@ -360,11 +359,11 @@ public class PlacementGuide extends PrinterUtils {
                     BlockPrintState outputState = BlockPrintState.get(output);
                     if (inputState == BlockPrintState.CORRECT && outputState == BlockPrintState.CORRECT) {
                         // 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
-                        BlockContext temp = input;
+                        SchematicBlockContext temp = input;
                         while (temp.requiredState.getBlock() instanceof ObserverBlock) {
                             @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
                             // 查找下一个侦测器并检查并检查状态是否正确
-                            BlockContext offset = temp.offset(tempObserverFacing);
+                            SchematicBlockContext offset = temp.offset(tempObserverFacing);
                             if (tempObserverFacing != null && BlockPrintState.get(offset) != BlockPrintState.CORRECT) {
                                 return null;
                             }
@@ -375,9 +374,9 @@ public class PlacementGuide extends PrinterUtils {
                     }
                     // 输入端已放置成功，并状态一致
                     if (inputState == BlockPrintState.CORRECT) {
-                        BlockContext temp = input;
+                        SchematicBlockContext temp = input;
                         while (temp.requiredState.getBlock() instanceof FallingBlock) {
-                            BlockContext offset = temp.offset(Direction.DOWN);
+                            SchematicBlockContext offset = temp.offset(Direction.DOWN);
                             if (BlockPrintState.get(offset) != BlockPrintState.CORRECT) {
                                 return null;
                             }
@@ -389,7 +388,7 @@ public class PlacementGuide extends PrinterUtils {
                             while (temp.requiredState.getBlock() instanceof ObserverBlock) {
                                 @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
                                 // 查找下一个侦测器并检查并检查状态是否正确
-                                BlockContext offset = temp.offset(tempObserverFacing);
+                                SchematicBlockContext offset = temp.offset(tempObserverFacing);
                                 if (tempObserverFacing != null && BlockPrintState.get(offset) != BlockPrintState.CORRECT) {
                                     return null;
                                 }
@@ -400,7 +399,7 @@ public class PlacementGuide extends PrinterUtils {
 
                         // 侦测器隔空激活活塞
                         for (Direction direction : Direction.values()) {
-                            BlockContext offset = output.offset(direction);
+                            SchematicBlockContext offset = output.offset(direction);
                             if (offset.blockPos.equals(output.blockPos)) {
                                 continue;
                             }
@@ -487,11 +486,11 @@ public class PlacementGuide extends PrinterUtils {
                 if (Configs.Print.SAFELY_OBSERVER.getBooleanValue()) {
                     // 活塞四周
                     for (Direction direction : Direction.values()) {
-                        BlockContext temp = ctx.offset(direction);
+                        SchematicBlockContext temp = ctx.offset(direction);
                         while (temp.requiredState.getBlock() instanceof ObserverBlock) {
                             @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
                             if (tempObserverFacing != null) {
-                                BlockContext offset = temp.offset(tempObserverFacing);
+                                SchematicBlockContext offset = temp.offset(tempObserverFacing);
                                 if (tempObserverFacing == direction) {
                                     if (BlockPrintState.get(offset) != BlockPrintState.CORRECT) {
                                         return null;
@@ -536,7 +535,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (signBlock instanceof CeilingHangingSignBlock) {
                     int rotation = ctx.requiredState.getValue(CeilingHangingSignBlock.ROTATION);
                     boolean attachFace = ctx.requiredState.getValue(CeilingHangingSignBlock.ATTACHED);
-                    return new Action().setUseShift(attachFace).setSides(Direction.UP).setLookRotation(rotation).setRequiresSupport();
+                    return new Action().setShift(attachFace).setSides(Direction.UP).setLookRotation(rotation).setRequiresSupport();
                 }
                 //#endif
                 return null;
@@ -597,7 +596,7 @@ public class PlacementGuide extends PrinterUtils {
                         facing = ctx.requiredState.getValue(BlockStateProperties.FACING);
                         if (ctx.requiredState.getBlock() instanceof ShulkerBoxBlock) {
                             facing = facing.getOpposite();
-                            action.setUseShift();
+                            action.setShift();
                         }
                         action.setSides(facing).setLookDirection(facing.getOpposite());
                     }
@@ -624,7 +623,7 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     /*** 状态错误：方块类型相同，但方块状态（如朝向、亮度等）不一致 ***/
-    private @Nullable Action buildActionErrorBlockState(BlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
+    private @Nullable Action buildActionErrorBlockState(SchematicBlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
         boolean printBreakWrongStateBlock = Configs.Print.BREAK_WRONG_STATE_BLOCK.getBooleanValue();
 
         switch (requiredType) {
@@ -721,7 +720,7 @@ public class PlacementGuide extends PrinterUtils {
                     Direction requiredFacing = ctx.requiredState.getValue(ComparatorBlock.FACING);
                     Direction currentFacing = ctx.currentState.getValue(ComparatorBlock.FACING);
                     if (requiredFacing == currentFacing) {
-                        BlockContext facingFirstBlockCtx = ctx.offset(requiredFacing);
+                        SchematicBlockContext facingFirstBlockCtx = ctx.offset(requiredFacing);
                         // 检验输出信号
                         if (ctx.level.getSignal(ctx.blockPos, requiredFacing) != ctx.schematic.getSignal(ctx.blockPos, requiredFacing)) {
                             // 检验输入端是否为"能输出比较器信号方块"
@@ -730,7 +729,7 @@ public class PlacementGuide extends PrinterUtils {
                             }
                             // 检验输入端非透明方块
                             if (facingFirstBlockCtx.requiredState.isRedstoneConductor(facingFirstBlockCtx.level, facingFirstBlockCtx.blockPos)) {
-                                BlockContext facingSecondBlockCtx = facingFirstBlockCtx.offset(requiredFacing);
+                                SchematicBlockContext facingSecondBlockCtx = facingFirstBlockCtx.offset(requiredFacing);
                                 // 仿照原版检验物品展示框
                                 BlockPos blockPos = facingSecondBlockCtx.blockPos;
                                 List<ItemFrame> itemFrameList = facingSecondBlockCtx.schematic.getEntitiesOfClass(
@@ -897,7 +896,7 @@ public class PlacementGuide extends PrinterUtils {
     }
 
     /*** 方块错误：方块类型完全不同，且不满足缺失/状态错误的条件 ***/
-    private @Nullable Action buildActionErrorBlock(BlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
+    private @Nullable Action buildActionErrorBlock(SchematicBlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
         switch (requiredType) {
             case FARMLAND -> {
                 Block[] soilBlocks = new Block[]{Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.DIRT_PATH, Blocks.COARSE_DIRT};
@@ -1055,289 +1054,6 @@ public class PlacementGuide extends PrinterUtils {
 
         ClassHook(Class<?>... classes) {
             this.classes = classes;
-        }
-    }
-
-    @SuppressWarnings("UnusedReturnValue")
-    public static class Action {
-        protected Map<Direction, Vec3> sides;
-        protected @Nullable Float lookYaw;
-        protected @Nullable Float lookPitch;
-        @Nullable
-        protected Item[] clickItems; // null == 空手
-        protected boolean requiresSupport = false;
-        protected boolean useShift = false;
-        /**
-         * -- GETTER --
-         * 获取放置后需要等待的游戏刻
-         *
-         * @return 整数
-         */
-        @Getter
-        protected int waitTick = 0;     // 会占用其他任务
-
-        public Action() {
-            this.sides = new HashMap<>();
-            for (Direction direction : Direction.values()) {
-                sides.put(direction, new Vec3(0, 0, 0));
-            }
-        }
-
-        public Action setLookDirection(Direction lookDirection) {
-            this.lookYaw = DirectionUtils.getRequiredYaw(lookDirection);
-            this.lookPitch = DirectionUtils.getRequiredPitch(lookDirection);
-            return this;
-        }
-
-        public Action setLookDirection(Direction lookDirectionYaw, Direction lookDirectionPitch) {
-            this.lookYaw = DirectionUtils.getRequiredYaw(lookDirectionYaw);
-            this.lookPitch = DirectionUtils.getRequiredPitch(lookDirectionPitch);
-            return this;
-        }
-
-        public Action setLookYawPitch(float lookYaw, float lookPitch) {
-            this.lookYaw = lookYaw;
-            this.lookPitch = lookPitch;
-            return this;
-        }
-
-        public Action setLookRotation(int rotation) {
-            setLookYawPitch(DirectionUtils.rotationToPlayerYaw(rotation), 0);
-            return this;
-        }
-
-        public @Nullable Float getLookYaw() {
-            return lookYaw;
-        }
-
-        public @Nullable Float getLookPitch() {
-            return lookPitch;
-        }
-
-        public @Nullable Item[] getRequiredItems(Block backup) {
-            return clickItems == null ? new Item[]{backup.asItem()} : clickItems;
-        }
-
-        public @NotNull Map<Direction, Vec3> getSides() {
-            if (this.sides == null) {
-                this.sides = new HashMap<>();
-                for (Direction d : Direction.values()) {
-                    this.sides.put(d, new Vec3(0, 0, 0));
-                }
-            }
-
-            return this.sides;
-        }
-
-        /**
-         * 设置可以和方块交互的所有方向。
-         * <p>
-         * 这个方法会找到所有指定的方向轴（比如：X轴、Y轴、Z轴）上的所有方向，
-         * 然后把这些方向都设置为可以交互的方向，并且设置默认的点击偏移量为 (0,0,0)。
-         * 简单来说，就是设置你可以从哪些方向点击这个方块。
-         *
-         * @param axis 要设置的方向轴列表（例如：只允许上下方向，不允许左、右方向）
-         * @return 当前 Action 实例，方便你继续设置其他属性
-         */
-        public Action setSides(Direction.Axis... axis) {
-            Map<Direction, Vec3> sides = new HashMap<>();
-            for (Direction.Axis a : axis) {
-                for (Direction d : Direction.values()) {
-                    if (d.getAxis() == a) {
-                        sides.put(d, new Vec3(0, 0, 0));
-                    }
-                }
-            }
-            this.sides = sides;
-            return this;
-        }
-
-        /**
-         * 设置放置的有效面，以及指定每个面对应的偏移位置。
-         * <p>
-         * 这个方法允许你指定放置方块时，可以用哪些方向交互。
-         * 例如，你可以设置只有在方块的上方或下方才能进行放置。
-         * </p>
-         * <p>
-         * 你也可以调整偏移量，进行更精确的控制点击的位置，从而实现一些特殊的放置效果。
-         * 例如，你可以通过偏移量来点击方块的边缘，而不是中心。
-         * </p>
-         *
-         * @param sides 包含方向和偏移量的 Map，其中 Key 是方向 (Direction)，Value 是偏移量 (Vec3)。
-         *              如果某个方向没有对应的偏移量，则使用默认的 (0, 0, 0)。
-         * @return 当前 Action 实例，便于链式调用。
-         * 通过链式调用，你可以连续设置多个属性，使代码更加简洁易读。
-         */
-        public Action setSides(Map<Direction, Vec3> sides) {
-            this.sides = sides;
-            return this;
-        }
-
-        /**
-         * 设置放置的有效面。
-         * <p>
-         * 传入的方向参数均设置默认的偏移值 (0, 0, 0)。
-         * </p>
-         *
-         * @param directions 要设置的方向（可以是多个）
-         * @return 当前 Action 实例
-         */
-        public Action setSides(Direction... directions) {
-            Map<Direction, Vec3> sides = new HashMap<>();
-            for (Direction d : directions) {
-                sides.put(d, new Vec3(0, 0, 0));
-            }
-            this.sides = sides;
-            return this;
-        }
-
-        /**
-         * 获取有效的侧面。
-         * <p>
-         * 遍历所有侧面并返回第一个可用的方向，
-         * 如果没有可用的侧面，则返回 null 。
-         *
-         * @param world 当前的客户端世界
-         * @param pos   方块的位置
-         * @return 第一个有效侧面，如果不存在则返回 null
-         */
-        @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
-        public @Nullable Direction getValidSide(ClientLevel world, BlockPos pos) {
-            Map<Direction, Vec3> sides = getSides();
-            List<Direction> validSides = new ArrayList<>();
-            for (Direction side : sides.keySet()) {
-                BlockPos neighborPos = pos.relative(side);
-                BlockState neighborState = world.getBlockState(neighborPos);
-                if (Configs.Placement.PLACE_IN_AIR.getBooleanValue() && !this.requiresSupport
-                    // TODO: 没理解, 都凭空放置了, 还检查相邻方块类型？所以注释掉了
-                    // && !Implementation.isInteractive(neighborState.getBlock())
-                ) {
-                    return side;
-                }
-                if (canBeClicked(world, neighborPos) && !BlockUtils.isReplaceable(neighborState)) {
-                    validSides.add(side);
-                }
-            }
-            if (validSides.isEmpty()) {
-                return null;
-            }
-            // 选择一个不需要潜行放置的面
-            for (Direction validSide : validSides) {
-                BlockState requiredState = world.getBlockState(pos);
-                BlockState sideBlockState = world.getBlockState(pos.relative(validSide));
-                if (!Implementation.isInteractive(sideBlockState.getBlock()) && requiredState.canSurvive(world, pos)) {
-                    return validSide;
-                }
-            }
-            return validSides.get(0);
-        }
-
-        /**
-         * 设置打印这种方块对应使用的物品
-         *
-         * @param item 要选择的物品
-         * @return 当前 Action 实例
-         */
-        public Action setItem(Item item) {
-            return this.setItems(item);
-        }
-
-        /**
-         * 设置打印这种方块对应使用的物品（多个）
-         *
-         * @param items 要选择的物品（多个）
-         * @return 当前 Action 实例
-         */
-        public Action setItems(Item... items) {
-            this.clickItems = items;
-            return this;
-        }
-
-        public Action setRequiresSupport(boolean requiresSupport) {
-            this.requiresSupport = requiresSupport;
-            return this;
-        }
-
-        /**
-         * 需有支撑面才能放置
-         *
-         * @return 当前 Action 实例
-         */
-        public Action setRequiresSupport() {
-            return this.setRequiresSupport(true);
-        }
-
-        public Action setUseShift(boolean useShift) {
-            this.useShift = useShift;
-            return this;
-        }
-
-        /**
-         * 需要按下 Shift 键进行放置
-         *
-         * @return 当前 Action 实例
-         */
-        public Action setUseShift() {
-            return this.setUseShift(true);
-        }
-
-        /**
-         * 设置放置后需要等待的游戏刻
-         *
-         * @param waitTick 整数
-         * @return 当前 Action 实例
-         */
-        public Action setWaitTick(int waitTick) {
-            this.waitTick = waitTick;
-            return this;
-        }
-
-        public void queueAction(Printer.Queue queue, BlockPos blockPos, Direction side, boolean useShift) {
-            if (Configs.Placement.PLACE_IN_AIR.getBooleanValue() && !this.requiresSupport) {
-                queue.queueClick(
-                        blockPos,
-                        side.getOpposite(),
-                        getSides().get(side),
-                        useShift
-                );
-            } else {
-                queue.queueClick(
-                        blockPos.relative(side),
-                        side.getOpposite(),
-                        getSides().get(side),
-                        useShift
-                );
-            }
-        }
-    }
-
-    public static class ClickAction extends Action {
-        @Override
-        public void queueAction(Printer.Queue queue, BlockPos blockPos, Direction side, boolean useShift) {
-            queue.queueClick(blockPos, side, getSides().get(side), false);
-        }
-
-        @Override
-        public @Nullable Item[] getRequiredItems(Block backup) {
-            return this.clickItems;
-        }
-
-        /**
-         * 获取有效的侧面。
-         * <p>
-         * 遍历所有侧面并返回第一个可用的方向，
-         * 如果没有可用的侧面，则返回 null 。
-         *
-         * @param world 当前的 ClientLevel 实例
-         * @param pos   块的位置
-         * @return 第一个有效侧面，如果不存在则返回 null
-         */
-        @Override
-        public @Nullable Direction getValidSide(ClientLevel world, BlockPos pos) {
-            for (Direction side : getSides().keySet()) {
-                return side;
-            }
-            return null;
         }
     }
 

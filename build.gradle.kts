@@ -48,7 +48,6 @@ preprocess {
 
     // See https://github.com/Fallen-Breath/fabric-mod-template/blob/1d72d77a1c5ce0bf060c2501270298a12adab679/build.gradle#L55-L63
     for (node in getNodes()) {
-        println("${node.project}: ${node.mcVersion}")
         findProject(node.project)
             ?.ext
             ?.set("mcVersion", node.mcVersion)

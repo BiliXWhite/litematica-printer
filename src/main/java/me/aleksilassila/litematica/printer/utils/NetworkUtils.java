@@ -1,7 +1,5 @@
 package me.aleksilassila.litematica.printer.utils;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.Packet;
@@ -39,12 +37,6 @@ public class NetworkUtils {
 
     public static void sendPacket(PredictiveAction packetCreator) {
         NetworkUtils.sendPacket(packetCreator, null, null);
-    }
-
-    @FunctionalInterface
-    @Environment(EnvType.CLIENT)
-    public interface PredictiveAction {
-        Packet<ServerGamePacketListener> predict(int sequence);
     }
 
     public interface SequenceExtension {

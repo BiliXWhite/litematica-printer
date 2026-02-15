@@ -8,7 +8,7 @@ import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.Reference;
-import me.aleksilassila.litematica.printer.config.ConfigExtension;
+import me.aleksilassila.litematica.printer.mixin_extension.ConfigExtension;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.utils.UpdateCheckerUtils;
 import net.minecraft.client.Minecraft;
@@ -23,11 +23,17 @@ public class ConfigUi extends GuiConfigsBase {
     private static Tab tab = Tab.CORE;
 
     public ConfigUi(@Nullable Screen parent) {
-        super(10, 50, Reference.MOD_ID, parent, "Litematica Printer " + UpdateCheckerUtils.LOCAL_VERSION + "   " + I18n.FREE_NOTICE.getName().getString());
+        super(10, 50, Reference.MOD_ID, parent, Reference.MOD_NAME + " " + UpdateCheckerUtils.LOCAL_VERSION + "   " + I18n.FREE_NOTICE.getName().getString());
     }
 
     public ConfigUi() {
         this(Minecraft.getInstance().screen);
+    }
+
+    public static void refresh() {
+        if (Reference.MINECRAFT.screen instanceof ConfigUi gui) {
+            gui.initGui();
+        }
     }
 
     @Override
@@ -68,14 +74,6 @@ public class ConfigUi extends GuiConfigsBase {
         return builder.build();
     }
 
-    public record ButtonListener(Tab tab, ConfigUi parent) implements IButtonActionListener {
-        @Override
-        public void actionPerformedWithButton(ButtonBase button, int mouseButton) {
-            ConfigUi.tab = this.tab;
-            this.parent.reset();
-        }
-    }
-
     public enum Tab {
         CORE(I18n.of("category.core")),
         PLACEMENT(I18n.of("category.placement")),
@@ -111,6 +109,14 @@ public class ConfigUi extends GuiConfigsBase {
                 case FLUID -> Configs.Fluid.OPTIONS;
                 case HOTKEYS -> Configs.Hotkeys.OPTIONS;
             };
+        }
+    }
+
+    public record ButtonListener(Tab tab, ConfigUi parent) implements IButtonActionListener {
+        @Override
+        public void actionPerformedWithButton(ButtonBase button, int mouseButton) {
+            ConfigUi.tab = this.tab;
+            this.parent.reset();
         }
     }
 }
