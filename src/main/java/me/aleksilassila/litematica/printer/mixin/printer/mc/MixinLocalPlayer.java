@@ -8,6 +8,7 @@ import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.handler.Handlers;
 import me.aleksilassila.litematica.printer.printer.BlockPosCooldownManager;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
+import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import me.aleksilassila.litematica.printer.utils.UpdateCheckerUtils;
 import net.minecraft.client.Minecraft;
@@ -79,25 +80,17 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
 
     @Inject(at = @At("HEAD"), method = "tick")
     public void tick(CallbackInfo ci) {
-        // 全局Tick统计
         ClientPlayerTickHandler.updateTickHandlerTime();
-        // 放置/破坏冷却
         BlockPosCooldownManager.INSTANCE.tick();
-        // 快捷潜影盒冷却
         InventoryUtils.tick();
-        // 宅闲鱼相关
         ZxyUtils.tick();
-
-        // 提前过滤检查破坏情况, 避免 Handlers.tick() 运行到挖掘处理, 进行重复累计进度或避免一些问题
+        InteractionUtils.INSTANCE.preprocess();
         if (InteractionUtils.INSTANCE.hasTargets()) {
-            // 挖掘相关
             InteractionUtils.INSTANCE.onTick();
         } else {
-            // 模式运行
             Handlers.tick();
         }
     }
-
 
     @Inject(method = "openTextEdit", at = @At("HEAD"), cancellable = true)
     //#if MC > 11904

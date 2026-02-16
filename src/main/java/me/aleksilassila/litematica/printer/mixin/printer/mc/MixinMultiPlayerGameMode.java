@@ -145,7 +145,7 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
                     level.destroyBlockProgress(player.getId(), this.destroyBlockPos, this.litematica_printer$GetDestroyStage());
                 }
             }
-            NetworkUtils.sendPacket(i -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, i));
+            NetworkUtils.sendPacket(sequence -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
             if (destroyProgress >= 1.0F) {
                 return BlockBreakResult.COMPLETED;
             } else {

@@ -15,6 +15,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -31,9 +32,8 @@ public class InteractionUtils {
     public static final Minecraft client = Minecraft.getInstance();
     public static final InteractionUtils INSTANCE = new InteractionUtils();
 
-    private final List<BlockPos> breakTargets = new LinkedList<>();
+    private final Queue<BlockPos> breakTargets = new LinkedList<>();
     private BlockPos breakPos;
-    private BlockState state;
 
     private InteractionUtils() {
     }
@@ -91,113 +91,57 @@ public class InteractionUtils {
         this.add(ctx.blockPos);
     }
 
-    @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
-    public void addToFirst(BlockPos pos) {
-        if (pos == null) return;
-        breakTargets.remove(pos);
-        breakTargets.add(0, pos);
-    }
-
-    public void addToFirst(SchematicBlockContext ctx) {
-        addToFirst(ctx.blockPos);
+    public void preprocess() {
+        if (!ConfigUtils.isEnable()) {
+            if (!breakTargets.isEmpty()) {
+                breakTargets.clear();
+            }
+            if (breakPos != null) {
+                breakPos = null;
+            }
+        }
     }
 
     public boolean hasTargets() {
-        return !breakTargets.isEmpty();
-    }
-
-    public boolean inBreakTargets(BlockPos pos) {
-        return breakTargets.contains(pos);
+        return !breakTargets.isEmpty() || breakPos != null;
     }
 
     public void onTick() {
         LocalPlayer player = client.player;
         ClientLevel level = client.level;
-        MultiPlayerGameModeExtension gameMode = (@Nullable MultiPlayerGameModeExtension) client.gameMode;
-        if (player == null || level == null || gameMode == null) {
+        if (player == null || level == null) {
             return;
         }
-        // 性能优化：提前检查是否有必要继续执行
-        if (breakTargets.isEmpty()) {
-            // 确保清理状态
-            if (breakPos != null) {
-                breakPos = null;
-                state = null;
-            }
+        if (breakPos == null && breakTargets.isEmpty()) {
             return;
         }
-
-        // 初始化 breakPos 和 state
         if (breakPos == null) {
-            updateTarget();
-        }
-
-        while ((breakPos = (!breakTargets.isEmpty() && breakPos != null) ? updateTarget() : null) != null) {
-            // 检查方块是否已消失或变为流体
-            if (!ConfigUtils.canInteracted(breakPos) || !canBreakBlock(breakPos)) {
-                resetBreakTarget();
-                continue;
-            }
-            // 执行挖掘进度更新
-            boolean success;
-            try {
+            Iterator<BlockPos> iterator = breakTargets.iterator();
+            while (iterator.hasNext()) {
+                BlockPos pos = iterator.next();
+                if (pos == null) {
+                    iterator.remove();
+                    continue;
+                }
+                if (!ConfigUtils.canInteracted(pos) || !canBreakBlock(pos)) {
+                    continue;
+                }
                 if (ModLoadStatus.isTweakerooLoaded()) {
                     if (TweakerooUtils.isToolSwitchEnabled()) {
-                        TweakerooUtils.trySwitchToEffectiveTool(breakPos);
+                        TweakerooUtils.trySwitchToEffectiveTool(pos);
                     }
                 }
-                success = client.gameMode.continueDestroyBlock(breakPos, Direction.DOWN);
-                client.gameMode.stopDestroyBlock();
-            } catch (Exception e) {
-                // 防止外部方法异常导致 tick 中断
-                success = false;
+                if (continueDestroyBlock(pos, Direction.DOWN) == BlockBreakResult.IN_PROGRESS) {
+                    breakPos = pos;
+                    iterator.remove();
+                    break;
+                }
+                iterator.remove();
             }
-            if (!success) {
-                resetBreakTarget();
-            }
-
-            if (!client.player.isCreative() && client.level.getBlockState(breakPos).is(state.getBlock())) {
-                return;
-            }
-
-        }
-    }
-
-    private void resetBreakTarget() {
-        // 性能优化：避免不必要的remove操作
-        if (breakPos != null) {
-            breakTargets.remove(breakPos);
-        }
-        updateTarget();
-        if (breakPos != null) {
-            state = client.level.getBlockState(breakPos);
-        } else {
-            state = null; // 确保state也被重置
-        }
-    }
-
-    private BlockPos updateTarget() {
-        if (breakTargets.isEmpty()) {
+        } else if (continueDestroyBlock(breakPos, Direction.DOWN) != BlockBreakResult.IN_PROGRESS) {
             breakPos = null;
-            state = null;
-            return null;
+            onTick();
         }
-        // 性能优化：使用迭代器直接获取第一个元素，避免创建新的集合
-        Iterator<BlockPos> iterator = breakTargets.iterator();
-        if (iterator.hasNext()) {
-            breakPos = iterator.next();
-            state = client.level.getBlockState(breakPos);
-        } else {
-            breakPos = null;
-        }
-        return breakPos;
-    }
-
-    // 清空所有待挖掘方块
-    public void clear() {
-        breakTargets.clear();
-        breakPos = null;
-        state = null;
     }
 
     public BlockBreakResult continueDestroyBlock(final BlockPos blockPos, Direction direction, boolean localPrediction) {
@@ -207,11 +151,16 @@ public class InteractionUtils {
         if (blockPos == null || player == null || level == null || gameMode == null) {
             return BlockBreakResult.FAILED;
         }
-        MultiPlayerGameModeExtension gameModeExtension = (MultiPlayerGameModeExtension) Reference.MINECRAFT.gameMode;
-        if (gameModeExtension != null) {
-            return gameModeExtension.litematica_printer$continueDestroyBlock(localPrediction, blockPos, direction);
+        BlockBreakResult result = gameMode.litematica_printer$continueDestroyBlock(localPrediction, blockPos, direction);
+        if (result == BlockBreakResult.IN_PROGRESS) {
+            breakPos = blockPos;
         }
-        return BlockBreakResult.FAILED;
+        return result;
+    }
+
+    public void reset() {
+        breakPos = null;
+        breakTargets.clear();
     }
 
     public BlockBreakResult continueDestroyBlock(BlockPos blockPos, Direction direction) {
