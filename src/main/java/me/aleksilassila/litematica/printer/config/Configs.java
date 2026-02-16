@@ -49,12 +49,12 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
     static {
         LinkedHashSet<IConfigBase> optionSet = new LinkedHashSet<>();
-        optionSet.addAll(Core.OPTIONS);        // 核心
+        optionSet.addAll(Core.OPTIONS);           // 核心
         optionSet.addAll(Placement.OPTIONS);      // 放置
         optionSet.addAll(Break.OPTIONS);          // 破坏
         optionSet.addAll(Hotkeys.OPTIONS);        // 热键
         optionSet.addAll(Print.OPTIONS);          // 打印
-        optionSet.addAll(Mine.OPTIONS);       // 挖掘
+        optionSet.addAll(Mine.OPTIONS);           // 挖掘
         optionSet.addAll(Fill.OPTIONS);           // 填充
         optionSet.addAll(Fluid.OPTIONS);          // 排流体
         OPTIONS = ImmutableList.copyOf(optionSet);
