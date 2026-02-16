@@ -1010,6 +1010,7 @@ public class PlacementGuide extends PrinterUtils {
                 , CeilingHangingSignBlock.class
                 //#endif
         ),
+
         // 点击
         FLOWER_POT(FlowerPotBlock.class),               // 花盆
         BIG_DRIPLEAF_STEM(BigDripleafStemBlock.class),  // 大垂叶茎

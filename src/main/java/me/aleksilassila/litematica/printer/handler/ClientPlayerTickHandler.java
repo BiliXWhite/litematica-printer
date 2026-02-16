@@ -231,7 +231,6 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
 
         this.updateVariables();
 
-        // 核心游戏对象空值校验：任意对象为空则终止本次Tick，避免空指针异常
         if (this.mc == null || this.level == null || this.player == null || this.connection == null || this.gameMode == null || this.gameType == null) {
             return;
         }
@@ -250,7 +249,6 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             BlockPos playerPos = this.player.getOnPos();
             double threshold = getWorkRange() * 0.7; // 玩家移动阈值：工作范围的70%
             @Nullable PrinterBox playerInteractionBox = this.playerInteractionBox.get();
-            // 交互盒未创建/玩家移动超阈值/交互盒不匹配时，重新创建交互盒
             if (playerInteractionBox == null
                     || !playerInteractionBox.equals(this.lastPlayerInteractionBox)
                     || this.lastPlayerPos == null
@@ -259,7 +257,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                 this.lastPlayerPos = playerPos;
                 playerInteractionBox = new PrinterBox(playerPos).expand(getWorkRange()); // 按工作范围扩展交互盒
                 this.lastPlayerInteractionBox = playerInteractionBox;
-                this.playerInteractionBox.set(playerInteractionBox); // 更新原子引用
+                this.playerInteractionBox.set(playerInteractionBox);
             }
             // 同步交互盒的迭代配置：从全局配置读取迭代顺序、方向等
             playerInteractionBox.iterationMode = (IterationOrderType) Configs.Core.ITERATION_ORDER.getOptionListValue();
@@ -269,7 +267,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         }
 
 
-        this.preprocess(); // 预处理一些值，例如破坏方块列表
+        this.preprocess(); // 运行前处理的事情
         if (!this.isConfigAllowExecute()) {
             return;
         }
@@ -279,7 +277,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         if (this.playerInteractionBox != null && this.canExecute()) {
             PrinterBox playerInteractionBox = this.playerInteractionBox.get();
             // 交互盒非空且满足迭代执行条件时，执行迭代逻辑
-            if (playerInteractionBox != null && canExecuteIteration()) {
+            if (playerInteractionBox != null && canIterate()) {
                 int maxEffectiveExec = this.getMaxEffectiveExecutionsPerTick();
                 int maxTotalIter = this.getMaxTotalIterationsPerTick();
                 int totalIterCount = 0;
@@ -489,7 +487,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
      *
      * @return true-满足迭代执行条件，false-不满足，默认true
      */
-    protected boolean canExecuteIteration() {
+    protected boolean canIterate() {
         return true;
     }
 

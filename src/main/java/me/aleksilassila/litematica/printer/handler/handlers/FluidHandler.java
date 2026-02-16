@@ -72,7 +72,7 @@ public class FluidHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected boolean canExecuteIteration() {
+    protected boolean canIterate() {
         return !fillItems.isEmpty() && !fluidBlocks.isEmpty();
     }
 

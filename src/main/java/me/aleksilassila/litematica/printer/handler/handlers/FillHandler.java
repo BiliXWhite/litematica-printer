@@ -80,7 +80,7 @@ public class FillHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected boolean canExecuteIteration() {
+    protected boolean canIterate() {
         return fillModeItemList.length > 0;
     }
 
