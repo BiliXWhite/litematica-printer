@@ -33,8 +33,8 @@ repositories {
     maven("https://www.cursemaven.com") { name = "CurseMaven" }
     maven("https://maven.terraformersmc.com/releases") { name = "TerraformersMC" } // ModMenu 源
     maven("https://maven.nucleoid.xyz") { name = "Nucleoid" }  // ModMenu依赖 Text Placeholder API
-    maven("https://masa.dy.fi/maven") { name = "Masa" }
-    maven("https://masa.dy.fi/maven/sakura-ryoko") { name = "SakuraRyoko" }
+//    maven("https://masa.dy.fi/maven") { name = "Masa" }
+//    maven("https://masa.dy.fi/maven/sakura-ryoko") { name = "SakuraRyoko" }
     maven("https://maven.shedaniel.me") { name = "Shedaniel" }  // Cloth API/Config 官方源
     maven("https://maven.isxander.dev/releases") { name = "XanderReleases" }
     maven("https://maven.jackf.red/releases") { name = "Jackfred" }   // JackFredLib 依赖
