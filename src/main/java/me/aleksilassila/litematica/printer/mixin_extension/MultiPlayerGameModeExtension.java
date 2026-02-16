@@ -9,13 +9,13 @@ import net.minecraft.world.phys.BlockHitResult;
 
 @SuppressWarnings("UnusedReturnValue")
 public interface MultiPlayerGameModeExtension {
-    InteractionResult fabric_bedrock_miner$useItemOn(boolean localPrediction, InteractionHand hand, BlockHitResult blockHit);
+    InteractionResult litematica_printer$useItemOn(boolean localPrediction, InteractionHand hand, BlockHitResult blockHit);
 
     BlockBreakResult litematica_printer$continueDestroyBlock(boolean localPrediction, BlockPos blockPos, Direction direction);
 
-    void fabric_bedrock_miner$startPrediction(PredictiveAction predictiveAction);
+    void litematica_printer$startPrediction(PredictiveAction predictiveAction);
 
-    BlockPos fabric_bedrock_miner$destroyBlockPos();
+    BlockPos litematica_printer$destroyBlockPos();
 
-    boolean fabric_bedrock_miner$isDestroying();
+    boolean litematica_printer$isDestroying();
 }
