@@ -42,22 +42,22 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
     // @formatter:on
 
     @Override
-    public BlockPos fabric_bedrock_miner$destroyBlockPos() {
+    public BlockPos litematica_printer$destroyBlockPos() {
         return destroyBlockPos;
     }
 
     @Override
-    public boolean fabric_bedrock_miner$isDestroying() {
+    public boolean litematica_printer$isDestroying() {
         return isDestroying;
     }
 
     @Override
-    public void fabric_bedrock_miner$startPrediction(PredictiveAction predictiveAction) {
+    public void litematica_printer$startPrediction(PredictiveAction predictiveAction) {
         NetworkUtils.sendPacket(predictiveAction);
     }
 
     @Override
-    public InteractionResult fabric_bedrock_miner$useItemOn(boolean localPrediction, InteractionHand hand, BlockHitResult blockHit) {
+    public InteractionResult litematica_printer$useItemOn(boolean localPrediction, InteractionHand hand, BlockHitResult blockHit) {
         if (localPrediction) {
             //#if MC > 11802
             return useItemOn(minecraft.player, hand, blockHit);
@@ -70,9 +70,9 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
             return InteractionResult.FAIL;
         }
         //#if MC > 11802
-        fabric_bedrock_miner$startPrediction((sequence) -> new ServerboundUseItemOnPacket(hand, blockHit, sequence));
+        litematica_printer$startPrediction((sequence) -> new ServerboundUseItemOnPacket(hand, blockHit, sequence));
         //#else
-        //$$ fabric_bedrock_miner$startPrediction((sequence) -> new ServerboundUseItemOnPacket(hand, blockHit));
+        //$$ litematica_printer$startPrediction((sequence) -> new ServerboundUseItemOnPacket(hand, blockHit));
         //#endif
         return InteractionResult.PASS;
     }
