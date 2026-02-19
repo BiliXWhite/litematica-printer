@@ -19,6 +19,14 @@ public class ConfigUtils {
         return Configs.Core.WORK_SWITCH.getBooleanValue();
     }
 
+    public static boolean isMultiMode() {
+        return Configs.Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.MULTI);
+    }
+
+    public static boolean isSingleMode() {
+        return Configs.Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.SINGLE);
+    }
+
     public static boolean isPrintMode() {
         return (Configs.Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.MULTI) && Configs.Core.PRINT.getBooleanValue())
                 || Configs.Core.WORK_MODE_TYPE.getOptionListValue() == PrintModeType.PRINTER;

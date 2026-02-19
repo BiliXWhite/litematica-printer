@@ -31,7 +31,7 @@ public class GuiHandler extends ClientPlayerTickHandler {
     private final Progress mineProgress = new Progress(Configs.Core.MINE);
 
     public GuiHandler() {
-        super(NAME, null, Configs.Core.DEBUG_OUTPUT, null, true);
+        super(NAME, null, Configs.Core.RENDER_HUD, null, true);
     }
 
     @Override

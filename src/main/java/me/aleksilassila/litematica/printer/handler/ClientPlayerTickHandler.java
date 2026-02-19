@@ -205,7 +205,6 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             this.guiBlockInfoQueue.clear(); // 缓存时间到，清空队列
             this.renderIndex = 0; // 重置渲染索引
         }
-
         int tickInterval = this.getTickInterval(); // 工作间隔
         if (tickInterval > 0) {
             long currentTickTime = ClientPlayerTickHandler.getCurrentHandlerTime();
@@ -217,33 +216,27 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             }
             this.lastTickTime = currentTickTime; // 更新上次执行时间，首次执行也会初始化
         }
-
         if (Configs.Core.LAG_CHECK.getBooleanValue()) {
             if (packetTick > Configs.Core.LAG_CHECK_MAX.getIntegerValue()) {
                 return;
             }
             packetTick++;
         }
-
         if (!isEnable()) {
+            this.lastPlayerPos = null;
             return;
         }
-
         this.updateVariables();
-
         if (this.mc == null || this.level == null || this.player == null || this.connection == null || this.gameMode == null || this.gameType == null) {
+            this.lastPlayerPos = null;
             return;
         }
-
         if (isOpenHandler || switchItem() || InteractionUtils.INSTANCE.hasTargets()) {
             return;
         }
-
-        ActionManager.INSTANCE.sendQueue(player);
-        if (ActionManager.INSTANCE.needWait) {
+        if (ActionManager.INSTANCE.sendQueue(player).needWait) {
             return;
         }
-
         // 更新迭代范围
         if (this.playerInteractionBox != null) {
             BlockPos playerPos = this.player.getOnPos();
@@ -265,13 +258,11 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             playerInteractionBox.yIncrement = !Configs.Core.Y_REVERSE.getBooleanValue();
             playerInteractionBox.zIncrement = !Configs.Core.Z_REVERSE.getBooleanValue();
         }
-
-
         this.preprocess(); // 运行前处理的事情
         if (!this.isConfigAllowExecute()) {
+            this.lastPlayerPos = null;
             return;
         }
-
         boolean interrupt = false;
         // 执行迭代业务任务：基于玩家交互盒的方块迭代处理（防主线程阻塞）
         if (this.playerInteractionBox != null && this.canExecute()) {
@@ -284,9 +275,8 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                 int effectiveExecCount = 0;
                 skipIteration.set(false);
                 Iterator<BlockPos> iterator = playerInteractionBox.iterator();
-                // 重置渲染信息
-                this.guiBlockInfoQueue.clear();
-                this.renderIndex = 0;
+                this.guiBlockInfoQueue.clear(); // 重置渲染信息
+                this.renderIndex = 0;   // 重置渲染信息
                 while (!this.skipIteration.get() && iterator.hasNext()) {
                     // 单Tick迭代次数限制：达到最大次数则终止循环（防主线程阻塞）
                     if (maxTotalIter > 0 && ++totalIterCount >= maxTotalIter) {
@@ -305,10 +295,20 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                         gui.interacted = false;
                         continue;
                     }
-                    boolean isPrinterRange = isPrintMode() && LitematicaUtils.isSchematicBlock(pos);
-                    if (!isPrinterRange && !LitematicaUtils.xuanQuFanWeiNei_p(pos)) {
+                    if (isSingleMode()) {
+                        boolean isPrinterRange = isPrintMode() && LitematicaUtils.isSchematicBlock(pos);
+                        if (!isPrinterRange && !LitematicaUtils.xuanQuFanWeiNei_p(pos)) {
+                            continue;
+                        }
+                    } else if (isSchematicBlockHandler()) {
+                        if (!LitematicaUtils.isSchematicBlock(pos)) {
+                            continue;
+                        }
+                    } else if (!LitematicaUtils.xuanQuFanWeiNei_p(pos)) {
                         continue;
                     }
+
+
                     if (selectionType != null && !ConfigUtils.isPositionInSelectionRange(player, pos, selectionType)) {
                         gui.posInSelectionRange = false;
                         continue;
@@ -319,7 +319,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                     if (this.canIterationBlockPos(pos)) {
                         this.executeIteration(pos, this.skipIteration);
                         gui.execute = true;
-                        if (maxEffectiveExec > 0 && ++effectiveExecCount >= maxEffectiveExec) {
+                        if (this.skipIteration.get() || maxEffectiveExec > 0 && ++effectiveExecCount >= maxEffectiveExec) {
                             interrupt = true;
                         }
                     }
@@ -336,6 +336,10 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     }
 
     protected void stopIteration(boolean interrupt) {
+    }
+
+    protected boolean isSchematicBlockHandler() {
+        return false;
     }
 
     /**

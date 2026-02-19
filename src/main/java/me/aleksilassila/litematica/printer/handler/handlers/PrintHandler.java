@@ -54,10 +54,12 @@ public class PrintHandler extends ClientPlayerTickHandler {
     }
 
     @Override
+    protected boolean isSchematicBlockHandler() {
+        return true;
+    }
+
+    @Override
     public boolean canIterationBlockPos(BlockPos blockPos) {
-        if (!LitematicaUtils.isSchematicBlock(blockPos)) {
-            return false;
-        }
         if (isBlockPosOnCooldown(blockPos)) {
             return false;
         }
@@ -82,7 +84,7 @@ public class PrintHandler extends ClientPlayerTickHandler {
         if (Configs.Print.FALLING_CHECK.getBooleanValue() && schematicBlockContext.requiredState.getBlock() instanceof FallingBlock) {
             BlockPos downPos = blockPos.below();
             if (level.getBlockState(downPos) != schematic.getBlockState(downPos)) {
-                MessageUtils.setOverlayMessage("方块 " + schematicBlockContext.getRequiredBlockName() + " 下方方块不相符，跳过放置");
+                MessageUtils.setOverlayMessage("方块 " + schematicBlockContext.getRequiredBlockName().getString() + " 下方方块不相符，跳过放置");
                 return;
             }
         }
@@ -103,11 +105,10 @@ public class PrintHandler extends ClientPlayerTickHandler {
         if (action.getPlayerLook() != null) {
             ActionManager.INSTANCE.sendLook(player, action.getPlayerLook());
         }
-        ActionManager.INSTANCE.sendQueue(player);
-        setBlockPosCooldown(blockPos, ConfigUtils.getPlaceCooldown());
-        if (ActionManager.INSTANCE.needWait) {
+        if (ActionManager.INSTANCE.sendQueue(player).needWait) {
             skipIteration.set(true);
         }
+        setBlockPosCooldown(blockPos, ConfigUtils.getPlaceCooldown());
     }
 }
 

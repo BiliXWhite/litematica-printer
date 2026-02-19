@@ -54,10 +54,10 @@ public class ActionManager {
     }
 
 
-    public void sendQueue(LocalPlayer player) {
+    public ActionManager sendQueue(LocalPlayer player) {
         if (target == null || side == null || hitModifier == null) {
             clearQueue();
-            return;
+            return this;
         }
 
         if (!useProtocol && !needWait) {
@@ -67,7 +67,7 @@ public class ActionManager {
                     Direction playerLookDirection = Direction.orderedByNearest(player)[0];
                     if (playerLookDirection != lookDirection) {
                         needWait = true;
-                        return;
+                        return this;
                     }
                 }
             }
@@ -123,6 +123,7 @@ public class ActionManager {
         }
 
         clearQueue();
+        return this;
     }
 
     public void sendLook(LocalPlayer player, PlayerLook playerLook) {
