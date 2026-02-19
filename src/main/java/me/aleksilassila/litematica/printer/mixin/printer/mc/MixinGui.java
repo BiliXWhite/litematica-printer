@@ -1,5 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
+import com.google.common.collect.ImmutableList;
+import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import me.aleksilassila.litematica.printer.utils.RenderUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.WorkingModeType;
@@ -21,6 +23,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.awt.*;
+import java.util.HashSet;
 
 //#if MC <= 11904
 //$$import com.mojang.blaze3d.systems.RenderSystem;
@@ -197,8 +200,21 @@ public abstract class MixinGui {
             RenderUtils.drawString(progressString, centerX, centerY + 22, Color.WHITE, true, true);
             drawProgressBar(centerX, centerY + 36, 40, 6, progress, new Color(0, 0, 0, 150), new Color(0, 255, 0, 255));
         }
-        String modeName = Configs.Core.WORK_MODE_TYPE.getOptionListValue().getDisplayName();
-        RenderUtils.drawString(modeName, centerX, centerY + 52, Color.WHITE, true, true);
+        if (ConfigUtils.isSingleMode()) {
+            String modeName = Configs.Core.WORK_MODE_TYPE.getOptionListValue().getDisplayName();
+            RenderUtils.drawString(modeName, centerX, centerY + 52, Color.WHITE, true, true);
+        } else {
+            HashSet<String> strings = new HashSet<>();
+            for (ClientPlayerTickHandler handler : Handlers.VALUES) {
+                if (handler.getId().equals(GuiHandler.NAME)) continue;
+                ConfigBoolean config = handler.getEnableConfig();
+                if (config == null || !config.getBooleanValue()) continue;
+                String modeName = config.getPrettyName();
+                strings.add(modeName);
+            }
+            RenderUtils.drawString(String.join(", ", strings), centerX, centerY + 52, Color.WHITE, true, true);
+        }
+
     }
 
 

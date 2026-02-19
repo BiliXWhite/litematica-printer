@@ -116,11 +116,9 @@ public class InteractionUtils {
             return;
         }
         if (breakPos == null) {
-            Iterator<BlockPos> iterator = breakTargets.iterator();
-            while (iterator.hasNext()) {
-                BlockPos pos = iterator.next();
+            while (!breakTargets.isEmpty()) {
+                BlockPos pos = breakTargets.poll();
                 if (pos == null) {
-                    iterator.remove();
                     continue;
                 }
                 if (!ConfigUtils.canInteracted(pos) || !canBreakBlock(pos)) {
@@ -133,10 +131,8 @@ public class InteractionUtils {
                 }
                 if (continueDestroyBlock(pos, Direction.DOWN) == BlockBreakResult.IN_PROGRESS) {
                     breakPos = pos;
-                    iterator.remove();
                     break;
                 }
-                iterator.remove();
             }
         } else if (continueDestroyBlock(breakPos, Direction.DOWN) != BlockBreakResult.IN_PROGRESS) {
             breakPos = null;
