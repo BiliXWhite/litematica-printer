@@ -27,16 +27,17 @@ public class PrintHandler extends ClientPlayerTickHandler {
     public final static String NAME = "print";
 
     private final PlacementGuide guide;
+
     @Getter
     @Setter
     private boolean pistonNeedFix;
+
     @Getter
     @Setter
     private boolean printerMemorySync;
 
     private Action action;
-    private SchematicBlockContext schematicBlockContext;
-    private WorldSchematic schematic;
+    private SchematicBlockContext ctx;
 
     public PrintHandler() {
         super(NAME, PrintModeType.PRINTER, Configs.Core.PRINT, Configs.Print.PRINT_SELECTION_TYPE, true);
@@ -65,15 +66,14 @@ public class PrintHandler extends ClientPlayerTickHandler {
         }
         WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
         if (schematic == null) return false;
-        this.schematic = schematic;
-        this.schematicBlockContext = new SchematicBlockContext(client, level, schematic, blockPos);
+        this.ctx = new SchematicBlockContext(client, level, schematic, blockPos);
         if (Configs.Print.PRINT_SKIP.getBooleanValue()) {
             Set<String> skipSet = new HashSet<>(Configs.Print.PRINT_SKIP_LIST.getStrings()); // 转换为 HashSet
-            if (skipSet.stream().anyMatch(s -> FilterUtils.matchName(s, schematicBlockContext.requiredState))) {
+            if (skipSet.stream().anyMatch(s -> FilterUtils.matchName(s, ctx.requiredState))) {
                 return false;
             }
         }
-        Action action = guide.getAction(schematicBlockContext);
+        Action action = guide.getAction(ctx);
         if (action == null) return false;
         this.action = action;
         return true;
@@ -81,23 +81,23 @@ public class PrintHandler extends ClientPlayerTickHandler {
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
-        if (Configs.Print.FALLING_CHECK.getBooleanValue() && schematicBlockContext.requiredState.getBlock() instanceof FallingBlock) {
+        if (Configs.Print.FALLING_CHECK.getBooleanValue() && ctx.requiredState.getBlock() instanceof FallingBlock) {
             BlockPos downPos = blockPos.below();
-            if (level.getBlockState(downPos) != schematic.getBlockState(downPos)) {
-                MessageUtils.setOverlayMessage("方块 " + schematicBlockContext.getRequiredBlockName().getString() + " 下方方块不相符，跳过放置");
+            if (level.getBlockState(downPos) != ctx.requiredState) {
+                MessageUtils.setOverlayMessage("方块 " + ctx.getRequiredBlockName().getString() + " 下方方块不相符，跳过放置");
                 return;
             }
         }
         Direction side = action.getValidSide(level, blockPos);
         if (side == null) return;
-        Item[] reqItems = action.getRequiredItems(schematicBlockContext.requiredState.getBlock());
+        Item[] reqItems = action.getRequiredItems(ctx.requiredState.getBlock());
         if (!InventoryUtils.switchToItems(player, reqItems)) return;
         boolean useShift = (Implementation.isInteractive(level.getBlockState(blockPos.relative(side)).getBlock()) && !(action instanceof ClickAction))
                 || Configs.Print.PRINT_FORCED_SNEAK.getBooleanValue()
                 || action.isShift();
 
         action.queueAction(blockPos, side, useShift, player);
-        Vec3 hitModifier = LitematicaUtils.usePrecisionPlacement(blockPos, schematicBlockContext.requiredState);
+        Vec3 hitModifier = LitematicaUtils.usePrecisionPlacement(blockPos, ctx.requiredState);
         if (hitModifier != null) {
             ActionManager.INSTANCE.hitModifier = hitModifier;
             ActionManager.INSTANCE.useProtocol = true;
