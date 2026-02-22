@@ -4,7 +4,7 @@ import fi.dy.masa.malilib.util.StringUtils;
 import io.netty.buffer.Unpooled;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
-import me.aleksilassila.litematica.printer.handler.Handlers;
+import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import me.aleksilassila.litematica.printer.utils.IdentifierUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -46,7 +46,6 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 //#if MC >= 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#endif
 
 
@@ -376,7 +375,7 @@ public class OpenInventoryPacket {
             ModLoadStatus.closeScreen--;
             openIng = false;
             isOpenHandler = false;
-            Handlers.PRINT.setPrinterMemorySync(false); ;
+            ClientPlayerTickManager.PRINT.setPrinterMemorySync(false); ;
             key = null;
             pos = null;
         }

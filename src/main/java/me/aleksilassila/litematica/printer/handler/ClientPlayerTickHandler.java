@@ -1,16 +1,17 @@
 package me.aleksilassila.litematica.printer.handler;
 
+import fi.dy.masa.litematica.world.SchematicWorldHandler;
+import fi.dy.masa.litematica.world.WorldSchematic;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import fi.dy.masa.malilib.config.options.ConfigOptionList;
 import lombok.Getter;
-import lombok.Setter;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.*;
 import me.aleksilassila.litematica.printer.printer.*;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
-import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
+import me.aleksilassila.litematica.printer.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -28,25 +29,12 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.switchItem;
-
 /**
  * 打印机客户端玩家Tick抽象处理器
  * 基于模板方法模式设计，封装所有打印处理器的通用逻辑与执行流程
  * 子类仅需按需重写对应抽象/空实现方法，即可实现自定义打印处理器逻辑
  */
 public abstract class ClientPlayerTickHandler extends ConfigUtils {
-    /**
-     * 全局Tick计数器，所有处理器共享的时间基准
-     * 由外部定时调用{@link #updateTickHandlerTime()}递增，代表处理程序运行的总Tick数(非游戏实际时间)
-     */
-    @Getter
-    private static long currentHandlerTime;
-
-    @Getter
-    @Setter
-    private static int packetTick;
     /**
      * 玩家交互盒原子引用，用于存储当前玩家的迭代范围（方块检测范围）
      * 原子引用保证多线程环境下的安全访问，null表示该处理器不使用迭代功能
@@ -88,57 +76,32 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
      * 跳过迭代(可传递对象)
      */
     private final AtomicReference<Boolean> skipIteration = new AtomicReference<>(false);
+
     /**
      * 线程安全队列：存储当前Tick内迭代的所有方块信息（用于渲染帧级消费）
      */
     private final Queue<GuiBlockInfo> guiBlockInfoQueue = new ConcurrentLinkedQueue<>();
-    /**
-     * Minecraft客户端核心实例，所有游戏对象的获取入口
-     */
+
     protected Minecraft mc;
-    /**
-     * 客户端当前所在的游戏世界实例，用于方块状态、世界操作等
-     */
     protected ClientLevel level;
-    /**
-     * 客户端当前的本地玩家实例，用于玩家位置、操作等
-     */
     protected LocalPlayer player;
-    /**
-     * 客户端网络连接实例，用于网络相关操作（如发送数据包）
-     */
     protected ClientPacketListener connection;
-    /**
-     * 客户端游戏模式实例，用于获取当前游戏模式（生存/创造/冒险等）
-     */
     protected MultiPlayerGameMode gameMode;
-    /**
-     * 客户端当前的游戏类型，由gameMode解析而来，简化模式判断
-     */
     protected GameType gameType;
-    /**
-     * 客户端当前的射线检测总结果，包含所有类型的射线检测目标
-     */
     @Nullable
     protected HitResult hitResult;
-    /**
-     * 客户端当前的方块射线检测结果，仅包含方块类型的射线检测目标
-     * 为null时表示射线未命中任何方块
-     */
     @Nullable
     protected BlockHitResult blockHitResult;
-    /**
-     * 上次Tick的玩家交互盒对象，用于检测玩家位置/范围是否发生变化
-     * 避免每Tick重复创建交互盒，提升性能
-     */
     @Nullable
     private PrinterBox lastPlayerInteractionBox;
+
     /**
      * 上次Tick的玩家所在位置，用于检测玩家是否发生移动
      * 玩家移动超过阈值时，会重新创建玩家交互盒
      */
     @Nullable
     private BlockPos lastPlayerPos;
+
     /**
      * 该处理器上次执行的全局Tick时间，用于控制处理器执行间隔
      * 初始值-1L作为首次执行的判断标识，兼容全局Tick从0开始的场景
@@ -172,13 +135,6 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         this.updateVariables();
     }
 
-    /**
-     * 递增全局Tick计数器
-     */
-    public static void updateTickHandlerTime() {
-        currentHandlerTime++;
-    }
-
     protected void updateVariables() {
         this.mc = Minecraft.getInstance();
         this.level = mc.level;
@@ -207,7 +163,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         }
         int tickInterval = this.getTickInterval(); // 工作间隔
         if (tickInterval > 0) {
-            long currentTickTime = ClientPlayerTickHandler.getCurrentHandlerTime();
+            long currentTickTime = ClientPlayerTickManager.getCurrentHandlerTime();
             if (this.lastTickTime != -1L) {
                 // 非首次执行
                 if (currentTickTime - this.lastTickTime < tickInterval) {
@@ -216,12 +172,6 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             }
             this.lastTickTime = currentTickTime; // 更新上次执行时间，首次执行也会初始化
         }
-        if (Configs.Core.LAG_CHECK.getBooleanValue()) {
-            if (packetTick > Configs.Core.LAG_CHECK_MAX.getIntegerValue()) {
-                return;
-            }
-            packetTick++;
-        }
         if (!isEnable()) {
             this.lastPlayerPos = null;
             return;
@@ -229,12 +179,6 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         this.updateVariables();
         if (this.mc == null || this.level == null || this.player == null || this.connection == null || this.gameMode == null || this.gameType == null) {
             this.lastPlayerPos = null;
-            return;
-        }
-        if (isOpenHandler || switchItem() || InteractionUtils.INSTANCE.hasTargets()) {
-            return;
-        }
-        if (ActionManager.INSTANCE.sendQueue(player).needWait) {
             return;
         }
         // 更新迭代范围
@@ -248,7 +192,13 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                     || !this.lastPlayerPos.closerThan(playerPos, threshold)
             ) {
                 this.lastPlayerPos = playerPos;
-                playerInteractionBox = new PrinterBox(playerPos).expand(getWorkRange()); // 按工作范围扩展交互盒
+                PrinterBox box = new PrinterBox(playerPos);
+                if (Configs.Core.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()) {
+                    // 性能优化
+                    playerInteractionBox = box.expand((int) Math.ceil(PlayerUtils.getPlayerBlockInteractionRange(5) + 3));
+                } else {
+                    playerInteractionBox = box.expand(getWorkRange());
+                }
                 this.lastPlayerInteractionBox = playerInteractionBox;
                 this.playerInteractionBox.set(playerInteractionBox);
             }
@@ -277,14 +227,23 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                 Iterator<BlockPos> iterator = playerInteractionBox.iterator();
                 this.guiBlockInfoQueue.clear(); // 重置渲染信息
                 this.renderIndex = 0;   // 重置渲染信息
-                while (!this.skipIteration.get() && iterator.hasNext()) {
+                while (!this.skipIteration.get() && iterator.hasNext() && !ActionManager.INSTANCE.needWaitModifyLook) {
                     // 单Tick迭代次数限制：达到最大次数则终止循环（防主线程阻塞）
                     if (maxTotalIter > 0 && ++totalIterCount >= maxTotalIter) {
                         interrupt = true;
                     }
                     BlockPos pos = iterator.next();
                     if (pos == null) continue;
-                    GuiBlockInfo gui = new GuiBlockInfo(level, pos, level.getBlockState(pos));
+
+                    GuiBlockInfo gui;
+                    if (isSchematicBlockHandler()) {
+                        WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
+                        gui = new GuiBlockInfo(level, schematic, pos);
+                    } else {
+                        gui = new GuiBlockInfo(level, null, pos);
+                    }
+
+
                     // 仅调试时候加入队列, 避免队列储存无用位置信息
                     if (Configs.Core.DEBUG_OUTPUT.getBooleanValue()) {
                         this.addGuiBlockInfoToQueue(gui);
@@ -295,19 +254,14 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                         gui.interacted = false;
                         continue;
                     }
-                    if (isSingleMode()) {
-                        boolean isPrinterRange = isPrintMode() && LitematicaUtils.isSchematicBlock(pos);
-                        if (!isPrinterRange && !LitematicaUtils.xuanQuFanWeiNei_p(pos)) {
-                            continue;
-                        }
-                    } else if (isSchematicBlockHandler()) {
+
+                    if (isSchematicBlockHandler()) {
                         if (!LitematicaUtils.isSchematicBlock(pos)) {
                             continue;
                         }
-                    } else if (!LitematicaUtils.xuanQuFanWeiNei_p(pos)) {
+                    } else if (!LitematicaUtils.isWithinSelection1ModeRange(pos)) {
                         continue;
                     }
-
 
                     if (selectionType != null && !ConfigUtils.isPositionInSelectionRange(player, pos, selectionType)) {
                         gui.posInSelectionRange = false;

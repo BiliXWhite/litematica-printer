@@ -87,8 +87,9 @@ public class FluidHandler extends ClientPlayerTickHandler {
                 return;
             }
             new Action().queueAction(blockPos, Direction.UP, false, player);
-            ActionManager.INSTANCE.sendQueue(player);
-
+            if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook){
+                skipIteration.set(true);
+            }
             setBlockPosCooldown(blockPos, Fluids.WATER.getTickDelay(level) * 2);
         }
     }

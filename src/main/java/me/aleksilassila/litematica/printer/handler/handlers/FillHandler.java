@@ -111,7 +111,9 @@ public class FillHandler extends ClientPlayerTickHandler {
                     new Action()
                             .queueAction(blockPos, getPlayerPlacementDirection(), false, player);
                 }
-                ActionManager.INSTANCE.sendQueue(player);
+                if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook){
+                    skipIteration.set(true);
+                }
                 this.setBlockPosCooldown(blockPos, ConfigUtils.getPlaceCooldown());
             }
         }
