@@ -37,6 +37,12 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
     private static final BooleanSupplier isLoadQuickShulkerLoaded = ModLoadStatus::isLoadQuickShulkerLoaded;
     private static final BooleanSupplier isSingle = () -> Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.SINGLE);
     private static final BooleanSupplier isMulti = () -> Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.MULTI);
+
+    private static final BooleanSupplier isBreakCustom = () -> Break.BREAK_LIMITER.getOptionListValue().equals(ExcavateListMode.CUSTOM);
+    private static final BooleanSupplier isBreakWhitelist = () -> isBreakCustom.getAsBoolean() && Break.BREAK_LIMIT.getOptionListValue().equals(UsageRestriction.ListType.WHITELIST);
+    private static final BooleanSupplier isBreakBlacklist = () -> isBreakCustom.getAsBoolean() && Break.BREAK_LIMIT.getOptionListValue().equals(UsageRestriction.ListType.BLACKLIST);
+
+
     private static final BooleanSupplier isExcavateCustom = () -> Mine.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.CUSTOM);
     private static final BooleanSupplier isExcavateWhitelist = () -> isExcavateCustom.getAsBoolean() && Mine.EXCAVATE_LIMIT.getOptionListValue().equals(UsageRestriction.ListType.WHITELIST);
     private static final BooleanSupplier isExcavateBlacklist = () -> isExcavateCustom.getAsBoolean() && Mine.EXCAVATE_LIMIT.getOptionListValue().equals(UsageRestriction.ListType.BLACKLIST);
@@ -326,13 +332,39 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(true)
                 .build();
 
+        // 模式限制器
+        public static final ConfigOptionList BREAK_LIMITER = optionList("breakLimiter")
+                .defaultValue(ExcavateListMode.CUSTOM)
+                .build();
+
+        // 模式限制
+        public static final ConfigOptionList BREAK_LIMIT = optionList("breakLimit")
+                .defaultValue(UsageRestriction.ListType.NONE)
+                .setVisible(isBreakCustom)
+                .build();
+
+        // 白名单
+        public static final ConfigStringList BREAK_WHITELIST = stringList("breakWhitelist")
+                .setVisible(isBreakWhitelist)
+                .build();
+
+        // 黑名单
+        public static final ConfigStringList BREAK_BLACKLIST = stringList("breakBlacklist")
+                .setVisible(isBreakBlacklist)
+                .build();
+
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 BREAK_CHECK_HARDNESS,
                 BREAK_USE_PACKET,
                 BREAK_INTERVAL,
                 BREAK_BLOCKS_PER_TICK,
                 BREAK_COOLDOWN,
-                BREAK_PROGRESS_THRESHOLD
+                BREAK_PROGRESS_THRESHOLD,
+                // 限制器
+                BREAK_LIMITER,
+                BREAK_LIMIT,
+                BREAK_WHITELIST,
+                BREAK_BLACKLIST
         );
     }
 
@@ -461,14 +493,14 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
     }
 
     public static class Mine {
-        // 挖掘模式限制器
-        public static final ConfigOptionList EXCAVATE_LIMITER = optionList("excavateLimiter")
-                .defaultValue(ExcavateListMode.CUSTOM)
-                .build();
-
         // 选区类型
         public static final ConfigOptionList MINE_SELECTION_TYPE = optionList("mineSelectionType")
                 .defaultValue(SelectionType.LITEMATICA_SELECTION)
+                .build();
+
+        // 挖掘模式限制器
+        public static final ConfigOptionList EXCAVATE_LIMITER = optionList("excavateLimiter")
+                .defaultValue(ExcavateListMode.CUSTOM)
                 .build();
 
         // 挖掘模式限制
