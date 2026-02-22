@@ -243,11 +243,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(false)
                 .build();
 
-        // 凭空放置
-        public static final ConfigBoolean PLACE_IN_AIR = bool("placeInAir")
-                .defaultValue(true)
-                .build();
-
         // 核心 - 工作间隔
         public static final ConfigInteger PLACE_INTERVAL = integer("placeInterval")
                 .defaultValue(0)
@@ -347,6 +342,16 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(SelectionType.LITEMATICA_RENDER_LAYER)
                 .build();
 
+        // 投影轻松放置协议
+        public static final ConfigBoolean EASY_PLACE_PROTOCOL = bool("easyPlaceProtocol")
+                .defaultValue(false)
+                .build();
+
+        // 凭空放置
+        public static final ConfigBoolean PLACE_IN_AIR = bool("placeInAir")
+                .defaultValue(true)
+                .build();
+
         // 跳过含水方块
         public static final ConfigBoolean SKIP_WATERLOGGED_BLOCK = bool("printSkipWaterlogged")
                 .defaultValue(false)
@@ -431,14 +436,10 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(false)
                 .build();
 
-        // 投影轻松放置协议
-        public static final ConfigBoolean EASY_PLACE_PROTOCOL = bool("easyPlaceProtocol")
-                .defaultValue(false)
-                .build();
-
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 PRINT_SELECTION_TYPE,
                 EASY_PLACE_PROTOCOL,
+                PLACE_IN_AIR,
                 PRINT_FORCED_SNEAK,
                 BREAK_WRONG_BLOCK,
                 BREAK_EXTRA_BLOCK,

@@ -115,7 +115,7 @@ public class Action {
         for (Direction side : sides.keySet()) {
             BlockPos neighborPos = pos.relative(side);
             BlockState neighborState = world.getBlockState(neighborPos);
-            if (Configs.Placement.PLACE_IN_AIR.getBooleanValue() && !this.requiresSupport
+            if (Configs.Print.PLACE_IN_AIR.getBooleanValue() && !this.requiresSupport
                 // TODO: 没理解, 都凭空放置了, 还检查相邻方块类型？所以注释掉了
                 // && !Implementation.isInteractive(neighborState.getBlock())
             ) {
@@ -172,7 +172,7 @@ public class Action {
     }
 
     public void queueAction(@NotNull BlockPos blockPos, @NotNull Direction side, boolean useShift, @NotNull LocalPlayer player) {
-        if (Configs.Placement.PLACE_IN_AIR.getBooleanValue() && !this.requiresSupport) {
+        if (Configs.Print.PLACE_IN_AIR.getBooleanValue() && !this.requiresSupport) {
             ActionManager.INSTANCE.queueClick(
                     blockPos,
                     side.getOpposite(),
