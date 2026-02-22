@@ -75,6 +75,8 @@ public class InitHandler implements IInitializationHandler {
         // 特殊设置时，自动刷新界面
         Core.WORK_MODE.setValueChangeCallback(b -> ConfigUi.refresh());
         Print.FILL_COMPOSTER.setValueChangeCallback(b -> ConfigUi.refresh());
+        Break.BREAK_LIMITER.setValueChangeCallback(b -> ConfigUi.refresh());
+        Break.BREAK_LIMIT.setValueChangeCallback(b -> ConfigUi.refresh());
         Mine.EXCAVATE_LIMITER.setValueChangeCallback(b -> ConfigUi.refresh());
         Mine.EXCAVATE_LIMIT.setValueChangeCallback(b -> ConfigUi.refresh());
         Fill.FILL_BLOCK_MODE.setValueChangeCallback(b -> ConfigUi.refresh());
