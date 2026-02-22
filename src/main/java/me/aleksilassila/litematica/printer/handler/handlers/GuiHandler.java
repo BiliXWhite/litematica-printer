@@ -7,7 +7,7 @@ import lombok.Getter;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.BlockPrintState;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
-import me.aleksilassila.litematica.printer.handler.Handlers;
+import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
 import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import net.minecraft.core.BlockPos;
@@ -61,7 +61,7 @@ public class GuiHandler extends ClientPlayerTickHandler {
         }
 
         if (isFillMode()) {
-            if (Arrays.asList(Handlers.FILL.getFillModeItemList()).contains(level.getBlockState(blockPos).getBlock().asItem())) {
+            if (Arrays.asList(ClientPlayerTickManager.FILL.getFillModeItemList()).contains(level.getBlockState(blockPos).getBlock().asItem())) {
                 fillProgress.finished++;
                 totalProgress.finished++; // 同步到总进度
             }

@@ -37,11 +37,16 @@ public class PrintHandler extends ClientPlayerTickHandler {
     private boolean printerMemorySync;
 
     private Action action;
+
     private SchematicBlockContext ctx;
 
     public PrintHandler() {
         super(NAME, PrintModeType.PRINTER, Configs.Core.PRINT, Configs.Print.PRINT_SELECTION_TYPE, true);
         this.guide = new PlacementGuide(client);
+    }
+
+    public SchematicBlockContext getContext() {
+        return ctx;
     }
 
     @Override
@@ -105,7 +110,7 @@ public class PrintHandler extends ClientPlayerTickHandler {
         if (action.getPlayerLook() != null) {
             ActionManager.INSTANCE.sendLook(player, action.getPlayerLook());
         }
-        if (ActionManager.INSTANCE.sendQueue(player).needWait) {
+        if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook) {
             skipIteration.set(true);
         }
         setBlockPosCooldown(blockPos, ConfigUtils.getPlaceCooldown());

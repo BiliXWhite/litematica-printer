@@ -35,7 +35,7 @@ public class ActionManager {
     public boolean useProtocol = false;
     @Nullable
     public PlayerLook look;
-    public boolean needWait = false;
+    public boolean needWaitModifyLook = false;
 
     private ActionManager() {
     }
@@ -59,31 +59,27 @@ public class ActionManager {
             clearQueue();
             return this;
         }
-
-        if (!useProtocol && !needWait) {
+        if (!useProtocol && !needWaitModifyLook) {
             if (look != null) {
                 Direction lookDirection = DirectionUtils.orderedByNearest(look.yaw, look.pitch)[0];
                 if (lookDirection.getAxis().isHorizontal()) {
                     Direction playerLookDirection = Direction.orderedByNearest(player)[0];
                     if (playerLookDirection != lookDirection) {
-                        needWait = true;
+                        needWaitModifyLook = true;
                         return this;
                     }
                 }
             }
         }
-
-        if (needWait) {
-            needWait = false;
+        if (needWaitModifyLook) {
+            needWaitModifyLook = false;
         }
-
         Direction direction;
         if (look == null) {
             direction = side;
         } else {
             direction = DirectionUtils.getHorizontalDirection(look.yaw);
         }
-
         Vec3 hitVec;
         if (!useProtocol) {
             Vec3 targetCenter = Vec3.atCenterOf(target);
@@ -93,7 +89,6 @@ public class ActionManager {
         } else {
             hitVec = hitModifier;
         }
-
         if (InventoryUtils.getOrderlyStoreItem() != null) {
             if (InventoryUtils.getOrderlyStoreItem().isEmpty()) {
                 SwitchItem.removeItem(InventoryUtils.getOrderlyStoreItem());
@@ -101,27 +96,23 @@ public class ActionManager {
                 SwitchItem.syncUseTime(InventoryUtils.getOrderlyStoreItem());
             }
         }
-
         boolean wasSneak = player.isShiftKeyDown();
         if (useShift && !wasSneak) {
             setShift(player, true);
         } else if (!useShift && wasSneak) {
             setShift(player, false);
         }
-
         MultiPlayerGameModeExtension gameModeExtension = (MultiPlayerGameModeExtension) Reference.MINECRAFT.gameMode;
         if (gameModeExtension != null) {
             boolean localPrediction = !Configs.Placement.PRINT_USE_PACKET.getBooleanValue();
             BlockHitResult blockHitResult = new BlockHitResult(hitVec, side, target, false);
             gameModeExtension.litematica_printer$useItemOn(localPrediction, InteractionHand.MAIN_HAND, blockHitResult);
         }
-
         if (useShift && !wasSneak) {
             setShift(player, false);
         } else if (!useShift && wasSneak) {
             setShift(player, true);
         }
-
         clearQueue();
         return this;
     }
@@ -138,7 +129,6 @@ public class ActionManager {
         //#else
         //$$ ServerboundPlayerCommandPacket packet = new ServerboundPlayerCommandPacket(player, shift ? ServerboundPlayerCommandPacket.Action.PRESS_SHIFT_KEY : ServerboundPlayerCommandPacket.Action.RELEASE_SHIFT_KEY);
         //#endif
-
         player.setShiftKeyDown(shift);
         NetworkUtils.sendPacket(packet);
     }
@@ -149,7 +139,7 @@ public class ActionManager {
         this.hitModifier = null;
         this.useShift = false;
         this.useProtocol = false;
-        this.needWait = false;
+        this.needWaitModifyLook = false;
         this.look = null;
     }
 }

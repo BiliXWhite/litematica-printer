@@ -1,7 +1,6 @@
 package me.aleksilassila.litematica.printer.utils;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import me.aleksilassila.litematica.printer.handler.Handlers;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
