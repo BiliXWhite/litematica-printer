@@ -12,8 +12,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class ClickAction extends Action {
     @Override
-    public void queueAction(@NotNull BlockPos blockPos, @NotNull Direction side, boolean useShift, @NotNull LocalPlayer player) {
+    public Action queueAction(@NotNull BlockPos blockPos, @NotNull Direction side, boolean useShift, @NotNull LocalPlayer player) {
         ActionManager.INSTANCE.queueClick(blockPos, side, getSides().get(side), false);
+        return this;
     }
 
     @Override

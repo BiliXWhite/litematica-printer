@@ -59,6 +59,9 @@ public class ActionManager {
             clearQueue();
             return this;
         }
+        if (!needWaitModifyLook && look != null) {
+            Implementation.sendLookPacket(player, look);
+        }
         if (!useProtocol && !needWaitModifyLook) {
             if (look != null) {
                 Direction lookDirection = DirectionUtils.orderedByNearest(look.yaw, look.pitch)[0];
@@ -117,7 +120,7 @@ public class ActionManager {
         return this;
     }
 
-    public void sendLook(LocalPlayer player, PlayerLook playerLook) {
+    public void setLook(LocalPlayer player, PlayerLook playerLook) {
         this.look = playerLook;
         Implementation.sendLookPacket(player, playerLook);
     }

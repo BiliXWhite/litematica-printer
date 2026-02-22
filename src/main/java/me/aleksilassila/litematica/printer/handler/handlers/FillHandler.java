@@ -103,13 +103,17 @@ public class FillHandler extends ClientPlayerTickHandler {
                 || Configs.Print.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> FilterUtils.matchName(s, currentState))
         ) {
             if (handheld || InventoryUtils.switchToItems(player, this.fillModeItemList)) {
+                Action action;
                 if (PlaceUtils.getFillModeFacing() != null) {
-                    new Action()
+                    action = new Action()
                             .setLookDirection(PlaceUtils.getFillModeFacing().getOpposite())
                             .queueAction(blockPos, PlaceUtils.getFillModeFacing(), false, player);
                 } else {
-                    new Action()
+                    action = new Action()
                             .queueAction(blockPos, getPlayerPlacementDirection(), false, player);
+                }
+                if (action.getPlayerLook() != null) {
+                    ActionManager.INSTANCE.setLook(player, action.getPlayerLook());
                 }
                 if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook){
                     skipIteration.set(true);

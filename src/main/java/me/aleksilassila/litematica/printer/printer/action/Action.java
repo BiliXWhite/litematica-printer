@@ -171,7 +171,7 @@ public class Action {
         return this;
     }
 
-    public void queueAction(@NotNull BlockPos blockPos, @NotNull Direction side, boolean useShift, @NotNull LocalPlayer player) {
+    public Action queueAction(@NotNull BlockPos blockPos, @NotNull Direction side, boolean useShift, @NotNull LocalPlayer player) {
         if (Configs.Print.PLACE_IN_AIR.getBooleanValue() && !this.requiresSupport) {
             ActionManager.INSTANCE.queueClick(
                     blockPos,
@@ -187,5 +187,6 @@ public class Action {
                     useShift
             );
         }
+        return this;
     }
 }
