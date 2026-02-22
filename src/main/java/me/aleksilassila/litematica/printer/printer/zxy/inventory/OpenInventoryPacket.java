@@ -46,6 +46,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 //#if MC >= 12001
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
+import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#endif
 
 
