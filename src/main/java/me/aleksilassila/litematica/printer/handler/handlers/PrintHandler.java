@@ -107,7 +107,7 @@ public class PrintHandler extends ClientPlayerTickHandler {
             ActionManager.INSTANCE.useProtocol = true;
         }
         if (action.getPlayerLook() != null) {
-            ActionManager.INSTANCE.setLook(player, action.getPlayerLook());
+            ActionManager.INSTANCE.setLook(action.getPlayerLook());
         }
         if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook) {
             skipIteration.set(true);
