@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.printer;
 
+import lombok.Setter;
 import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.mixin_extension.MultiPlayerGameModeExtension;
@@ -33,6 +34,7 @@ public class ActionManager {
     public Vec3 hitModifier;
     public boolean useShift = false;
     public boolean useProtocol = false;
+    @Setter
     @Nullable
     public PlayerLook look;
     public boolean needWaitModifyLook = false;
@@ -115,11 +117,6 @@ public class ActionManager {
         }
         clearQueue();
         return this;
-    }
-
-    public void setLook(LocalPlayer player, PlayerLook playerLook) {
-        this.look = playerLook;
-        NetworkUtils.sendLookPacket(player, playerLook);
     }
 
     public void setShift(LocalPlayer player, boolean shift) {
