@@ -24,10 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 
 //#if MC <= 11904
-//$$import com.mojang.blaze3d.systems.RenderSystem;
 //$$import com.mojang.blaze3d.vertex.PoseStack;
-//$$import org.lwjgl.opengl.GL11;
-//$$import org.lwjgl.opengl.GL11C;
 //#elseif MC > 12006
 import net.minecraft.client.DeltaTracker;
 //#endif
