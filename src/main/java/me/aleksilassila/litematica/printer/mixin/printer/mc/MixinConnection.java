@@ -33,7 +33,6 @@ public class MixinConnection {
     public void disconnect(Component ignored, CallbackInfo ci) {
         exitGameReSet();    // 退出重置
         if (Configs.Core.AUTO_DISABLE_PRINTER.getBooleanValue() && Configs.Core.WORK_SWITCH.getBooleanValue()) {
-            MessageUtils.setOverlayMessage(I18n.AUTO_DISABLE_NOTICE.getName());
             Configs.Core.WORK_SWITCH.setBooleanValue(false);
         }
     }
