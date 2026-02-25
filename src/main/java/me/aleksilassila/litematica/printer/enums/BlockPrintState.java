@@ -41,18 +41,7 @@ public enum BlockPrintState {
      */
     CORRECT;
 
-    private final static BooleanProperty wallUpProperty = WallBlock.UP;
-    //#if MC > 12104
-    private final static EnumProperty<WallSide> wallNorthProperty = WallBlock.NORTH;
-    private final static EnumProperty<WallSide> wallSouthProperty = WallBlock.SOUTH;
-    private final static EnumProperty<WallSide> wallWestProperty = WallBlock.WEST;
-    private final static EnumProperty<WallSide> wallEastProperty = WallBlock.EAST;
-    //#else
-    //$$ private final static EnumProperty<WallSide> wallNorthProperty = WallBlock.NORTH_WALL;
-    //$$ private final static EnumProperty<WallSide> wallSouthProperty = WallBlock.SOUTH_WALL;
-    //$$ private final static EnumProperty<WallSide> wallWestProperty = WallBlock.WEST_WALL;
-    //$$ private final static EnumProperty<WallSide> wallEastProperty = WallBlock.EAST_WALL;
-    //#endif
+
 
     public static BlockPrintState get(BlockState requiredState, BlockState currentState, Property<?>... propertiesToIgnore) {
         Set<String> replaceSet = new HashSet<>(Configs.Print.REPLACEABLE_LIST.getStrings());
@@ -97,45 +86,6 @@ public enum BlockPrintState {
         BlockState requiredState = SchematicWorldHandler.getSchematicWorld().getBlockState(pos);
         BlockState currentState = Minecraft.getInstance().level.getBlockState(pos);
         return get(requiredState, currentState, propertiesToIgnore);
-    }
-
-    public static Optional<Property<?>> getWallFacingProperty(Direction wallFacing) {
-        switch (wallFacing) {
-            case UP -> {
-                return Optional.of(wallUpProperty);
-            }
-            case NORTH -> {
-                return Optional.of(wallNorthProperty);
-            }
-            case SOUTH -> {
-                return Optional.of(wallSouthProperty);
-            }
-            case WEST -> {
-                return Optional.of(wallWestProperty);
-            }
-            case EAST -> {
-                return Optional.of(wallEastProperty);
-            }
-        }
-        return Optional.empty();
-    }
-
-    public static Optional<Property<?>> getCrossCollisionBlock(Direction wallFacing) {
-        switch (wallFacing) {
-            case NORTH -> {
-                return Optional.of(wallNorthProperty);
-            }
-            case SOUTH -> {
-                return Optional.of(wallSouthProperty);
-            }
-            case WEST -> {
-                return Optional.of(wallWestProperty);
-            }
-            case EAST -> {
-                return Optional.of(wallEastProperty);
-            }
-        }
-        return Optional.empty();
     }
 }
 

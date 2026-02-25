@@ -7,14 +7,10 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Method;
 
 public class TweakerooUtils {
-
     private static @Nullable Object tweakToolSwitchEnum;
     private static @Nullable Method trySwitchToEffectiveToolMethod;
     private static @Nullable Method getBooleanValueMethod;
 
-    /*
-      静态初始化块：只在 Tweakeroo Mod 存在时，通过反射加载必要的类和方法。
-     */
     static {
         if (FabricLoader.getInstance().isModLoaded("tweakeroo")) {
             try {
@@ -44,9 +40,7 @@ public class TweakerooUtils {
         if (getBooleanValueMethod == null || tweakToolSwitchEnum == null) {
             return false;
         }
-
         try {
-            // 通过反射调用枚举常量上的 getBooleanValue() 方法
             return (boolean) getBooleanValueMethod.invoke(tweakToolSwitchEnum);
         } catch (Exception e) {
             e.printStackTrace();
@@ -63,14 +57,10 @@ public class TweakerooUtils {
         if (trySwitchToEffectiveToolMethod == null) {
             return;
         }
-
         try {
-            // 通过反射调用静态方法。静态方法调用时第一个参数对象应为 null。
-            // 第二个参数是方法的实际参数 BlockPos。
             trySwitchToEffectiveToolMethod.invoke(null, pos);
         } catch (Exception e) {
             e.printStackTrace();
-            // e.printStackTrace(); // 调试时可以打开
         }
     }
 }

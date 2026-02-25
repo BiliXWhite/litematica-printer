@@ -10,12 +10,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
+@SuppressWarnings("unchecked")
 public abstract class BaseConfigBuilder<T extends ConfigBase<?>, B extends BaseConfigBuilder<T, B>> {
     protected final I18n i18n;
+    protected final CopyOnWriteArrayList<Consumer<IConfigBase>> valueChangeCallbacks = new CopyOnWriteArrayList<>();
     protected String nameKey;
     protected String descKey;
     protected @Nullable BooleanSupplier visible;
-    protected final CopyOnWriteArrayList<Consumer<IConfigBase>> valueChangeCallbacks = new CopyOnWriteArrayList<>();
 
     public BaseConfigBuilder(I18n i18n) {
         this.i18n = i18n;
@@ -28,31 +29,33 @@ public abstract class BaseConfigBuilder<T extends ConfigBase<?>, B extends BaseC
         this(I18n.of(translateKey));
     }
 
-    @SuppressWarnings("unchecked")
+    public B translationAlias(String alias) {
+        I18n i18n = I18n.of(alias);
+        this.nameKey = i18n.getConfigNameKey();
+        this.descKey = i18n.getConfigDescKey();
+        return (B) this;
+    }
+
     public B setNameKey(String name) {
         this.nameKey = name;
         return (B) this;
     }
 
-    @SuppressWarnings("unchecked")
     public B setDescKey(String comment) {
         this.descKey = comment;
         return (B) this;
     }
 
-    @SuppressWarnings("unchecked")
     public B setVisible(boolean visible) {
         this.visible = visible ? ConfigExtension.litematica_printer$TRUE : ConfigExtension.litematica_printer$FALSE;
         return (B) this;
     }
 
-    @SuppressWarnings("unchecked")
     public B setVisible(@Nullable BooleanSupplier visible) {
         this.visible = visible;
         return (B) this;
     }
 
-    @SuppressWarnings("unchecked")
     public B addValueChangeListener(Consumer<IConfigBase> callback) {
         if (callback != null) {
             this.valueChangeCallbacks.add(callback);

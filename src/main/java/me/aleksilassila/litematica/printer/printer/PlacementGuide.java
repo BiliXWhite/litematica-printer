@@ -1,12 +1,11 @@
 package me.aleksilassila.litematica.printer.printer;
 
+import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.printer.action.Action;
 import me.aleksilassila.litematica.printer.printer.action.ClickAction;
-import me.aleksilassila.litematica.printer.utils.PlaceUtils;
-import me.aleksilassila.litematica.printer.utils.PreprocessUtils;
+import me.aleksilassila.litematica.printer.utils.ItemUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.BlockPrintState;
-import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.utils.*;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.client.Minecraft;
@@ -36,8 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class PlacementGuide extends PrinterUtils {
     @SuppressWarnings("all")
     protected static final Map<Block, Block> STRIPPED_LOGS = AxeItemAccessor.getStrippedBlocks();
-    protected static final Item[] compostableItems = Arrays.stream(ComposterBlock.COMPOSTABLES.keySet().toArray(ItemLike[]::new)).map(ItemLike::asItem).toArray(Item[]::new);
-    protected static List<String> compostWhitelistCache = new ArrayList<>();      // 缓存堆肥桶白名单的字符串列表（用于判断是否修改）
+      protected static List<String> compostWhitelistCache = new ArrayList<>();      // 缓存堆肥桶白名单的字符串列表（用于判断是否修改）
     protected static Item[] whitelistItemsCache = new Item[0];    // 缓存过滤后的可堆肥物品列表（避免重复计算）
     protected final @NotNull Minecraft mc;
     protected final AtomicReference<Boolean> skip = new AtomicReference<>(false);
@@ -70,11 +68,11 @@ public class PlacementGuide extends PrinterUtils {
     @SuppressWarnings("EnhancedSwitchMigration")
     private @Nullable Action buildAction(SchematicBlockContext ctx, ClassHook requiredType, BlockPrintState state, AtomicReference<Boolean> skip) {
         // 跳过含水方块
-        if (Configs.Print.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && PlaceUtils.isWaterRequired(ctx.requiredState)) {
+        if (Configs.Print.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && BlockStateUtils.isWaterBlock(ctx.requiredState)) {
             return null;
         }
         // 破冰放水
-        if (Configs.Print.PRINT_ICE_FOR_WATER.getBooleanValue() && PlaceUtils.isWaterRequired(ctx.requiredState)) {
+        if (Configs.Print.PRINT_ICE_FOR_WATER.getBooleanValue() && BlockStateUtils.isWaterBlock(ctx.requiredState)) {
             if (mc.gameMode == null || mc.gameMode.getPlayerMode().isCreative()) {
                 return null;
             }
@@ -87,7 +85,7 @@ public class PlacementGuide extends PrinterUtils {
                 }
                 return null;
             }
-            if (!PlaceUtils.isCorrectWaterLevel(ctx.requiredState, ctx.currentState)) {
+            if (!BlockStateUtils.isCorrectWaterLevel(ctx.requiredState, ctx.currentState)) {
                 if (!ctx.currentState.isAir() && !(ctx.currentState.getBlock() instanceof LiquidBlock)) {
                     if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue()) {
                         InteractionUtils.INSTANCE.add(ctx);
@@ -144,7 +142,12 @@ public class PlacementGuide extends PrinterUtils {
                 return new Action().setSides(sides).setLookDirection(facing);
             }
             case TRAPDOOR -> {
-                return new Action().setSides(getHalf(ctx.requiredState.getValue(TrapDoorBlock.HALF))).setLookDirection(ctx.requiredState.getValue(TrapDoorBlock.FACING).getOpposite());
+                Half half = ctx.requiredState.getValue(TrapDoorBlock.HALF);
+                Direction side = half == Half.TOP ? Direction.UP : Direction.DOWN;
+                Direction facing = ctx.requiredState.getValue(TrapDoorBlock.FACING);
+                return new Action()
+                        .setSides(side)
+                        .setLookDirection(facing.getOpposite());
             }
             case STRIP_LOG -> {
                 Action action = new Action().setSides(ctx.requiredState.getValue(RotatedPillarBlock.AXIS));
@@ -347,11 +350,11 @@ public class PlacementGuide extends PrinterUtils {
                     List<Property<?>> inputPropertiesToIgnore = new ArrayList<>();
                     // 如果是侦测面是墙, 忽略侦测面墙方向属性
                     if (input.requiredState.getBlock() instanceof WallBlock) {
-                        BlockPrintState.getWallFacingProperty(facing.getOpposite()).ifPresent(inputPropertiesToIgnore::add);
+                        BlockStateUtils.getWallFacingProperty(facing.getOpposite()).ifPresent(inputPropertiesToIgnore::add);
                     }
                     // 如果是侦测面是墙, 忽略侦测面墙方向属性
                     if (output.requiredState.getBlock() instanceof CrossCollisionBlock) {
-                        BlockPrintState.getCrossCollisionBlock(facing.getOpposite()).ifPresent(inputPropertiesToIgnore::add);
+                        BlockStateUtils.getCrossCollisionBlock(facing.getOpposite()).ifPresent(inputPropertiesToIgnore::add);
                     }
 
                     // 输入端与输出端放置状态一致情况下
@@ -758,7 +761,7 @@ public class PlacementGuide extends PrinterUtils {
             }
             case CAMPFIRE -> {
                 if (!ctx.requiredState.getValue(CampfireBlock.LIT) && ctx.currentState.getValue(CampfireBlock.LIT)) {
-                    return new ClickAction().setItems(Implementation.SHOVELS).setSides(Direction.UP);
+                    return new ClickAction().setItems(Reference.SHOVEL_ITEMS).setSides(Direction.UP);
                 }
                 if (ctx.requiredState.getValue(CampfireBlock.LIT) && !ctx.currentState.getValue(CampfireBlock.LIT)) {
                     return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
@@ -818,7 +821,7 @@ public class PlacementGuide extends PrinterUtils {
                         return new ClickAction().setItem(Items.GLASS_BOTTLE);
                     } else {
                         //TODO: 未I18n
-                        MessageUtils.setOverlayMessage(Component.nullToEmpty("降低炼药锅内水位需要 §l§6" + PreprocessUtils.getNameFromItem(Items.GLASS_BOTTLE)), false);
+                        MessageUtils.setOverlayMessage(Component.nullToEmpty("降低炼药锅内水位需要 §l§6" + ItemUtils.getNameFromItem(Items.GLASS_BOTTLE)), false);
                     }
                 }
                 if (ctx.currentState.getValue(LayeredCauldronBlock.LEVEL) < ctx.requiredState.getValue(LayeredCauldronBlock.LEVEL))
@@ -826,7 +829,7 @@ public class PlacementGuide extends PrinterUtils {
                         return new ClickAction().setItem(Items.POTION);
                     } else {
                         //TODO: 未I18n
-                        MessageUtils.setOverlayMessage(Component.nullToEmpty("增加炼药锅内水位需要 §l§6" + PreprocessUtils.getNameFromItem(Items.GLASS_BOTTLE)), false);
+                        MessageUtils.setOverlayMessage(Component.nullToEmpty("增加炼药锅内水位需要 §l§6" + ItemUtils.getNameFromItem(Items.GLASS_BOTTLE)), false);
                     }
             }
             case DAYLIGHT_DETECTOR -> {
@@ -858,7 +861,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (!whitelist.equals(compostWhitelistCache)) {
                     compostWhitelistCache = new ArrayList<>(whitelist);
                     List<Item> whitelistItems = new ArrayList<>();
-                    for (Item item : compostableItems) {
+                    for (Item item : Reference.COMPOSTABLE_ITEMS) {
                         for (String rule : whitelist) {
                             if (FilterUtils.matchName(rule, new ItemStack(item))) {
                                 whitelistItems.add(item);
@@ -868,7 +871,7 @@ public class PlacementGuide extends PrinterUtils {
                     }
                     whitelistItemsCache = whitelistItems.toArray(Item[]::new);
                 }
-                Item[] finalItems = whitelistItemsCache.length > 0 ? whitelistItemsCache : compostableItems;
+                Item[] finalItems = whitelistItemsCache.length > 0 ? whitelistItemsCache : Reference.COMPOSTABLE_ITEMS;
                 if (finalItems.length > 0) {
                     return new ClickAction().setItems(finalItems);
                 }
@@ -902,7 +905,7 @@ public class PlacementGuide extends PrinterUtils {
                 Block[] soilBlocks = new Block[]{Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.DIRT_PATH, Blocks.COARSE_DIRT};
                 for (Block soilBlock : soilBlocks) {
                     if (ctx.currentState.getBlock().equals(soilBlock)) {
-                        return new ClickAction().setItems(Implementation.HOES);
+                        return new ClickAction().setItems(Reference.HOE_ITEMS);
                     }
                 }
             }
@@ -910,7 +913,7 @@ public class PlacementGuide extends PrinterUtils {
                 Block[] soilBlocks = new Block[]{Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.COARSE_DIRT, Blocks.ROOTED_DIRT, Blocks.MYCELIUM, Blocks.PODZOL};
                 for (Block soilBlock : soilBlocks) {
                     if (ctx.currentState.getBlock().equals(soilBlock)) {
-                        return new ClickAction().setItems(Implementation.SHOVELS);
+                        return new ClickAction().setItems(Reference.SHOVEL_ITEMS);
                     }
                 }
             }
@@ -933,7 +936,7 @@ public class PlacementGuide extends PrinterUtils {
             case STRIP_LOG -> {
                 Block stripped = STRIPPED_LOGS.get(ctx.currentState.getBlock());
                 if (stripped != null && stripped == ctx.requiredState.getBlock()) {
-                    return new ClickAction().setItems(Implementation.AXES);
+                    return new ClickAction().setItems(Reference.AXE_ITEMS);
                 }
             }
             case SIGN -> {

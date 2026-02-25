@@ -21,6 +21,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.Objects;
 import java.util.Optional;
 
+@SuppressWarnings("EnhancedSwitchMigration")
 public class PlayerUtils {
     private static final Minecraft client = Minecraft.getInstance();
 
@@ -54,7 +55,6 @@ public class PlayerUtils {
         double blockPosX = blockPos.getX();
         double blockPosY = blockPos.getY();
         double blockPosZ = blockPos.getZ();
-
         double eyePosX = player.getX();
         double eyePosZ = player.getZ();
         //#if MC > 11802
@@ -62,9 +62,7 @@ public class PlayerUtils {
         //#else
         //$$ double eyePosY = player.getY() + 1.5;
         //#endif
-
         double distance = getPlayerBlockInteractionRange(5) + additionalRange;
-
         //#if MC > 12006
         double dx = Math.max(Math.max(blockPosX - eyePosX, eyePosX - (blockPosX + 1)), 0);
         double dy = Math.max(Math.max(blockPosY - eyePosY, eyePosY - (blockPosY + 1)), 0);
@@ -79,14 +77,14 @@ public class PlayerUtils {
     }
 
     // 球面（欧几里得距离）
-    public static boolean canInteractedEuclidean(BlockPos blockPos, double range) {
+    public static boolean isWithinWorkInteractedEuclideanRange(BlockPos blockPos, double range) {
         LocalPlayer player = client.player;
         if (player == null || blockPos == null) return false;
         return player.getEyePosition().distanceToSqr(Vec3.atCenterOf(blockPos)) <= range * range;
     }
 
     // 八面体（曼哈顿距离）
-    public static boolean canInteractedManhattan(BlockPos blockPos, double range) {
+    public static boolean isWithinWorkInteractedManhattanRange(BlockPos blockPos, double range) {
         LocalPlayer player = client.player;
         if (player == null || blockPos == null) return false;
         BlockPos center = player.blockPosition();
@@ -97,7 +95,7 @@ public class PlayerUtils {
     }
 
     // 立方体（CUBE）：以玩家方块位置为中心
-    public static boolean canInteractedCube(BlockPos blockPos, double range) {
+    public static boolean isWithinWorkInteractedCubeRange(BlockPos blockPos, double range) {
         LocalPlayer player = client.player;
         if (player == null || blockPos == null) return false;
         BlockPos center = player.blockPosition();
@@ -135,7 +133,6 @@ public class PlayerUtils {
      */
     public static float getBlockBreakingSpeed(LocalPlayer player, BlockState blockState, ItemStack itemStack) {
         float f = itemStack.getDestroySpeed(blockState);
-
         //#if MC > 12006
         if (f > 1.0F) {
             for (Holder<Enchantment> enchantment : itemStack.getEnchantments().keySet()) {
@@ -158,11 +155,9 @@ public class PlayerUtils {
         //$$     }
         //$$ }
         //#endif
-
         if (MobEffectUtil.hasDigSpeed(player)) {
             f *= 1.0F + (float) (MobEffectUtil.getDigSpeedAmplification(player) + 1) * 0.2F;
         }
-
         if (player.hasEffect(MobEffects.MINING_FATIGUE)) {
             float g;
             switch (Objects.requireNonNull(player.getEffect(MobEffects.MINING_FATIGUE)).getAmplifier()) {
@@ -181,7 +176,6 @@ public class PlayerUtils {
             }
             f *= g;
         }
-
         //#if MC > 12006
         f *= (float) player.getAttributeValue(Attributes.BLOCK_BREAK_SPEED);
         if (player.isEyeInFluid(FluidTags.WATER)) {
@@ -195,7 +189,6 @@ public class PlayerUtils {
         //$$     f /= 5.0F;
         //$$ }
         //#endif
-
         if (!player.onGround()) {
             f /= 5.0F;
         }

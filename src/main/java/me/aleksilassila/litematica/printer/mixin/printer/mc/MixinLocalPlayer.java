@@ -4,7 +4,6 @@ import com.mojang.authlib.GameProfile;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
 import me.aleksilassila.litematica.printer.printer.BlockPosCooldownManager;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
@@ -84,7 +83,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
         InventoryUtils.tick();
         ZxyUtils.tick();
         InteractionUtils.INSTANCE.preprocess();
-        if (InteractionUtils.INSTANCE.hasTargets()) {
+        if (InteractionUtils.INSTANCE.isNeedHandle()) {
             InteractionUtils.INSTANCE.onTick();
         } else {
             ClientPlayerTickManager.tick();

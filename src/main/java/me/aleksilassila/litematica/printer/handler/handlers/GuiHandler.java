@@ -35,6 +35,16 @@ public class GuiHandler extends ClientPlayerTickHandler {
     }
 
     @Override
+    protected boolean isNeedRangeCheck() {
+        return false;
+    }
+
+    @Override
+    public boolean canIterationBlockPos(BlockPos pos) {
+        return super.canIterationBlockPos(pos);
+    }
+
+    @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         if (ConfigUtils.isPrintMode()) {
             WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
@@ -50,7 +60,6 @@ public class GuiHandler extends ClientPlayerTickHandler {
                 }
             }
         }
-
         if (isFluidMode()) {
             if (!(level.getBlockState(blockPos).getBlock() instanceof LiquidBlock)) {
                 fluidProgress.finished++;
@@ -59,21 +68,18 @@ public class GuiHandler extends ClientPlayerTickHandler {
             fluidProgress.total++;
             totalProgress.total++;
         }
-
         if (isFillMode()) {
             if (Arrays.asList(ClientPlayerTickManager.FILL.getFillModeItemList()).contains(level.getBlockState(blockPos).getBlock().asItem())) {
                 fillProgress.finished++;
-                totalProgress.finished++; // 同步到总进度
+                totalProgress.finished++;
             }
             fillProgress.total++;
             totalProgress.total++;
         }
-
         if (isMineMode()) {
-            // 空气方块时，完成计数+1
             if (level.getBlockState(blockPos).isAir()) {
                 mineProgress.finished++;
-                totalProgress.finished++; // 同步到总进度
+                totalProgress.finished++;
             }
             mineProgress.total++;
             totalProgress.total++;

@@ -35,7 +35,7 @@ public class ClientPlayerTickManager {
 
     public static void tick() {
         // 本次TICK共享部分预先检查
-        if (isOpenHandler || switchItem() || InteractionUtils.INSTANCE.hasTargets()) {
+        if (isOpenHandler || switchItem() || InteractionUtils.INSTANCE.isNeedHandle()) {
             return;
         }
         if (ActionManager.INSTANCE.sendQueue(mc.player).needWaitModifyLook) {
@@ -48,13 +48,15 @@ public class ClientPlayerTickManager {
             packetTick++;
         }
         for (ClientPlayerTickHandler handler : VALUES) {
-            // 同TICK不同处理程序进行二次迭代检查, 避免独立的处理程序修改了内容没有及时跳出导致出现资源抢占问题
-            if (isOpenHandler || switchItem() || InteractionUtils.INSTANCE.hasTargets()) {
-                return;
-            }
-            // 有任务需要修改视角强制退出
-            if (ActionManager.INSTANCE.needWaitModifyLook) {
-                return;
+            if (!(handler instanceof GuiHandler)) {
+                // 同TICK不同处理程序进行二次迭代检查, 避免独立的处理程序修改了内容没有及时跳出导致出现资源抢占问题
+                if (isOpenHandler || switchItem() || InteractionUtils.INSTANCE.isNeedHandle()) {
+                    return;
+                }
+                // 有任务需要修改视角强制退出
+                if (ActionManager.INSTANCE.needWaitModifyLook) {
+                    return;
+                }
             }
             handler.tick();
         }

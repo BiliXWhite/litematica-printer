@@ -1,9 +1,12 @@
 package me.aleksilassila.litematica.printer.utils;
 
+import me.aleksilassila.litematica.printer.printer.PlayerLook;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ServerGamePacketListener;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import org.jetbrains.annotations.Nullable;
 
 public class NetworkUtils {
@@ -17,26 +20,27 @@ public class NetworkUtils {
         }
     }
 
-    public static void sendPacket(Packet<?> packet, @Nullable Runnable beforeSending, @Nullable Runnable afterSending) {
-        if (beforeSending != null) {
-            beforeSending.run();
-        }
-        NetworkUtils.sendPacket(packet);
-        if (afterSending != null) {
-            afterSending.run();
-        }
-    }
-
-    public static void sendPacket(PredictiveAction packetCreator, @Nullable Runnable beforeSending, @Nullable Runnable afterSending) {
+    public static void sendPacket(PredictiveAction packetCreator) {
         if (client.level instanceof SequenceExtension sequenceExtension) {
             int currentSequence = sequenceExtension.litematica_printer3$getSequence();
             Packet<ServerGamePacketListener> packet = packetCreator.predict(currentSequence);
-            NetworkUtils.sendPacket(packet, beforeSending, afterSending);
+            NetworkUtils.sendPacket(packet);
         }
     }
 
-    public static void sendPacket(PredictiveAction packetCreator) {
-        NetworkUtils.sendPacket(packetCreator, null, null);
+    public static void sendLookPacket(LocalPlayer playerEntity, float lookYaw, float lookPitch) {
+        playerEntity.connection.send(new ServerboundMovePlayerPacket.Rot(
+                lookYaw,
+                lookPitch,
+                playerEntity.onGround()
+                //#if MC > 12101
+                , playerEntity.horizontalCollision
+                //#endif
+        ));
+    }
+
+    public static void sendLookPacket(LocalPlayer playerEntity, PlayerLook playerLook) {
+        sendLookPacket(playerEntity, playerLook.getYaw(), playerLook.getPitch());
     }
 
     public interface SequenceExtension {

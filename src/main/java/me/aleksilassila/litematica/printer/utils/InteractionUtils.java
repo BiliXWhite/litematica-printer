@@ -2,7 +2,6 @@ package me.aleksilassila.litematica.printer.utils;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
-import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.ExcavateListMode;
 import me.aleksilassila.litematica.printer.mixin_extension.BlockBreakResult;
@@ -15,10 +14,12 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.server.level.ServerPlayerGameMode;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -27,12 +28,13 @@ import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRIC
 import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
 import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
 
+@SuppressWarnings({"DataFlowIssue", "BooleanMethodIsAlwaysInverted"})
 @Environment(EnvType.CLIENT)
 public class InteractionUtils {
     public static final Minecraft client = Minecraft.getInstance();
     public static final InteractionUtils INSTANCE = new InteractionUtils();
 
-    private final Queue<BlockPos> breakTargets = new LinkedList<>();
+    private final Queue<BlockPos> breakQueue = new LinkedList<>();
     private BlockPos breakPos;
 
     private InteractionUtils() {
@@ -83,7 +85,7 @@ public class InteractionUtils {
 
     public void add(BlockPos pos) {
         if (pos == null) return;
-        breakTargets.add(pos);
+        breakQueue.add(pos);
     }
 
     public void add(SchematicBlockContext ctx) {
@@ -93,8 +95,8 @@ public class InteractionUtils {
 
     public void preprocess() {
         if (!ConfigUtils.isEnable()) {
-            if (!breakTargets.isEmpty()) {
-                breakTargets.clear();
+            if (!breakQueue.isEmpty()) {
+                breakQueue.clear();
             }
             if (breakPos != null) {
                 breakPos = null;
@@ -102,8 +104,8 @@ public class InteractionUtils {
         }
     }
 
-    public boolean hasTargets() {
-        return !breakTargets.isEmpty() || breakPos != null;
+    public boolean isNeedHandle() {
+        return !breakQueue.isEmpty() || breakPos != null;
     }
 
     public void onTick() {
@@ -112,12 +114,12 @@ public class InteractionUtils {
         if (player == null || level == null) {
             return;
         }
-        if (breakPos == null && breakTargets.isEmpty()) {
+        if (breakPos == null && breakQueue.isEmpty()) {
             return;
         }
         if (breakPos == null) {
-            while (!breakTargets.isEmpty()) {
-                BlockPos pos = breakTargets.poll();
+            while (!breakQueue.isEmpty()) {
+                BlockPos pos = breakQueue.poll();
                 if (pos == null) {
                     continue;
                 }
@@ -141,22 +143,12 @@ public class InteractionUtils {
     }
 
     public BlockBreakResult continueDestroyBlock(final BlockPos blockPos, Direction direction, boolean localPrediction) {
-        LocalPlayer player = client.player;
-        ClientLevel level = client.level;
         MultiPlayerGameModeExtension gameMode = (@Nullable MultiPlayerGameModeExtension) client.gameMode;
-        if (blockPos == null || player == null || level == null || gameMode == null) {
-            return BlockBreakResult.FAILED;
-        }
         BlockBreakResult result = gameMode.litematica_printer$continueDestroyBlock(localPrediction, blockPos, direction);
         if (result == BlockBreakResult.IN_PROGRESS) {
             breakPos = blockPos;
         }
         return result;
-    }
-
-    public void reset() {
-        breakPos = null;
-        breakTargets.clear();
     }
 
     public BlockBreakResult continueDestroyBlock(BlockPos blockPos, Direction direction) {
@@ -167,4 +159,12 @@ public class InteractionUtils {
         return this.continueDestroyBlock(blockPos, Direction.DOWN);
     }
 
+    public InteractionResult useItemOn(boolean localPrediction, InteractionHand hand, BlockHitResult blockHit) {
+        MultiPlayerGameModeExtension gameMode = (@Nullable MultiPlayerGameModeExtension) client.gameMode;
+        return gameMode.litematica_printer$useItemOn(localPrediction, hand, blockHit);
+    }
+
+    public InteractionResult useItemOn(InteractionHand hand, BlockHitResult blockHit) {
+        return this.useItemOn(!Configs.Placement.PRINT_USE_PACKET.getBooleanValue(), hand, blockHit);
+    }
 }

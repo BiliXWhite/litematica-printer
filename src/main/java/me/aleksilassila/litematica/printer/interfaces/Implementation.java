@@ -1,33 +1,9 @@
 package me.aleksilassila.litematica.printer.interfaces;
 
-import me.aleksilassila.litematica.printer.mixin.printer.mc.ServerboundMovePlayerPacketAccessor;
-import me.aleksilassila.litematica.printer.printer.ActionManager;
-import me.aleksilassila.litematica.printer.printer.PlayerLook;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.*;
 
 public class Implementation {
-    /**
-     * All types of hoes.
-     */
-    public static final Item[] HOES = {Items.DIAMOND_HOE, Items.IRON_HOE, Items.GOLDEN_HOE,
-            Items.NETHERITE_HOE, Items.STONE_HOE, Items.WOODEN_HOE};
 
-    /**
-     * All types of shovels.
-     */
-    public static final Item[] SHOVELS = {Items.DIAMOND_SHOVEL, Items.IRON_SHOVEL, Items.GOLDEN_SHOVEL,
-            Items.NETHERITE_SHOVEL, Items.STONE_SHOVEL, Items.WOODEN_SHOVEL};
-
-    /**
-     * All types of axes.
-     */
-    public static final Item[] AXES = {Items.DIAMOND_AXE, Items.IRON_AXE, Items.GOLDEN_AXE,
-            Items.NETHERITE_AXE, Items.STONE_AXE, Items.WOODEN_AXE};
     /**
      * 可以交互的方块类
      */
@@ -74,53 +50,6 @@ public class Implementation {
             CrafterBlock.class              // 合成器（自动合成台）
             //#endif
     };
-
-
-    public static void sendLookPacket(LocalPlayer playerEntity, float lookYaw, float lookPitch) {
-        playerEntity.connection.send(new ServerboundMovePlayerPacket.Rot(
-                lookYaw,
-                lookPitch,
-                playerEntity.onGround()
-                //#if MC > 12101
-                , playerEntity.horizontalCollision
-                //#endif
-        ));
-    }
-
-    public static void sendLookPacket(LocalPlayer playerEntity, PlayerLook playerLook) {
-        sendLookPacket(playerEntity, playerLook.getYaw(), playerLook.getPitch());
-    }
-
-    public static boolean isRotPacket(Packet<?> packet) {
-        return packet instanceof ServerboundMovePlayerPacket.Rot;
-    }
-
-    public static boolean isMovePlayerPacket(Packet<?> packet) {
-        return packet instanceof ServerboundMovePlayerPacket;
-    }
-
-    public static Packet<?> getFixedPacket(Packet<?> packet) {
-        PlayerLook playerLook = ActionManager.INSTANCE.look;
-        if (!isMovePlayerPacket(packet) || playerLook == null) {
-            return packet;
-        }
-        boolean onGround = ((ServerboundMovePlayerPacketAccessor) packet).getOnGround();
-        if (isRotPacket(packet)) {
-            return new ServerboundMovePlayerPacket.Rot(playerLook.yaw, playerLook.pitch, onGround
-                    //#if MC > 12101
-                    , ((ServerboundMovePlayerPacketAccessor) packet).getHorizontalCollision()
-                    //#endif
-            );
-        }
-        double x = ((ServerboundMovePlayerPacketAccessor) packet).getX();
-        double y = ((ServerboundMovePlayerPacketAccessor) packet).getY();
-        double z = ((ServerboundMovePlayerPacketAccessor) packet).getZ();
-        return new ServerboundMovePlayerPacket.PosRot(x, y, z, playerLook.yaw, playerLook.pitch, onGround
-                //#if MC > 12101
-                , ((ServerboundMovePlayerPacketAccessor) packet).getHorizontalCollision()
-                //#endif
-        );
-    }
 
     /**
      * 检查方块是否可以交互

@@ -66,19 +66,19 @@ public abstract class MixinGui {
     @Unique
     private List<String> buildHandlerDebugLines(ClientPlayerTickHandler handler, GuiBlockInfo guiInfo) {
         List<String> lines = new ArrayList<>();
-        lines.add("类型: " + handler.getId());
-        lines.add("位置: " + guiInfo.pos.toShortString());
+        lines.add("处理类型: " + handler.getId());
+        lines.add("当前位置: " + guiInfo.pos.toShortString());
         if (guiInfo.requiredState != null) {
-            lines.add("投影: " + guiInfo.requiredState.getBlock().getName().getString());
+            lines.add("投影方块: " + guiInfo.requiredState.getBlock().getName().getString());
         }
-        lines.add("方块: " + guiInfo.currentState.getBlock().getName().getString());
-        lines.add("交互: " + booleanToColoredString(guiInfo.interacted));
-        lines.add("范围: " + booleanToColoredString(guiInfo.posInSelectionRange));
-        lines.add("执行: " + booleanToColoredString(guiInfo.execute));
+        lines.add("当前方块: " + guiInfo.currentState.getBlock().getName().getString());
+        lines.add("交互范围: " + booleanToColoredString(guiInfo.interacted));
+        lines.add("选区类型: " + booleanToColoredString(guiInfo.posInSelectionRange));
+        lines.add("已经执行: " + booleanToColoredString(guiInfo.execute));
 
         int renderIndex = handler.getRenderIndex();
         int queueSize = handler.getGuiBlockInfoQueueSize();
-        lines.add("HUD迭代(同刻): " + formatAlignedNumber(renderIndex, queueSize) + "/" + queueSize);
+        lines.add("同刻迭代(GUI): " + formatAlignedNumber(renderIndex, queueSize) + "/" + queueSize);
 
         return lines;
     }

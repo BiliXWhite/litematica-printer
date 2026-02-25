@@ -100,7 +100,6 @@ public class PrintHandler extends ClientPlayerTickHandler {
         boolean useShift = (Implementation.isInteractive(level.getBlockState(blockPos.relative(side)).getBlock()) && !(action instanceof ClickAction))
                 || Configs.Print.PRINT_FORCED_SNEAK.getBooleanValue()
                 || action.isShift();
-
         action.queueAction(blockPos, side, useShift, player);
         Vec3 hitModifier = LitematicaUtils.usePrecisionPlacement(blockPos, ctx.requiredState);
         if (hitModifier != null) {

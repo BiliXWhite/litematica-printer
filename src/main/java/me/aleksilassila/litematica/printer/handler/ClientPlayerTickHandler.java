@@ -31,9 +31,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 打印机客户端玩家Tick抽象处理器
- * 基于模板方法模式设计，封装所有打印处理器的通用逻辑与执行流程
- * 子类仅需按需重写对应抽象/空实现方法，即可实现自定义打印处理器逻辑
  */
+@SuppressWarnings("SpellCheckingInspection")
 public abstract class ClientPlayerTickHandler extends ConfigUtils {
     /**
      * 玩家交互盒原子引用，用于存储当前玩家的迭代范围（方块检测范围）
@@ -42,6 +41,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     @Getter
     @Nullable
     public final AtomicReference<PrinterBox> playerInteractionBox;
+
     /**
      * 处理器唯一标识
      */
@@ -107,11 +107,13 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
      * 初始值-1L作为首次执行的判断标识，兼容全局Tick从0开始的场景
      */
     private long lastTickTime = -1L;
+
     /**
      * 渲染进度索引：控制每帧从队列中读取第几个方块信息
      */
     @Getter
     private int renderIndex = 0;
+
     /**
      * GUI方块信息的缓存剩余Tick数，控制GUI信息的展示时长
      * 每次更新GUI队列时重置为20，每Tick递减，为0时清空队列
@@ -243,7 +245,6 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                         gui = new GuiBlockInfo(level, null, pos);
                     }
 
-
                     // 仅调试时候加入队列, 避免队列储存无用位置信息
                     if (Configs.Core.DEBUG_OUTPUT.getBooleanValue()) {
                         this.addGuiBlockInfoToQueue(gui);
@@ -254,21 +255,21 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                         gui.interacted = false;
                         continue;
                     }
-
-                    if (isSchematicBlockHandler()) {
-                        if (!LitematicaUtils.isSchematicBlock(pos)) {
+                    if (isNeedRangeCheck()) {   // 给GUI计算进度而生的一个虚方法
+                        if (isSchematicBlockHandler()) {
+                            if (!LitematicaUtils.isSchematicBlock(pos)) {
+                                continue;
+                            }
+                        } else if (!LitematicaUtils.isWithinSelection1ModeRange(pos)) {
                             continue;
                         }
-                    } else if (!LitematicaUtils.isWithinSelection1ModeRange(pos)) {
-                        continue;
+                        if (selectionType != null && !ConfigUtils.isPositionInSelectionRange(player, pos, selectionType)) {
+                            gui.posInSelectionRange = false;
+                            continue;
+                        }
                     }
+                    gui.posInSelectionRange = true;
 
-                    if (selectionType != null && !ConfigUtils.isPositionInSelectionRange(player, pos, selectionType)) {
-                        gui.posInSelectionRange = false;
-                        continue;
-                    } else {
-                        gui.posInSelectionRange = true;
-                    }
                     // 方块迭代权限校验：子类可重写实现自定义过滤逻辑
                     if (this.canIterationBlockPos(pos)) {
                         this.executeIteration(pos, this.skipIteration);
@@ -510,5 +511,9 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
 
     protected Direction getPlayerPlacementDirection() {
         return getPlayerOrderedByNearest()[0].getOpposite();
+    }
+
+    protected boolean isNeedRangeCheck() {
+        return true;
     }
 }
