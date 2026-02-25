@@ -4,7 +4,6 @@ import lombok.Data;
 import me.aleksilassila.litematica.printer.utils.DirectionUtils;
 import net.minecraft.core.Direction;
 
-@SuppressWarnings("ClassCanBeRecord")
 @Data
 public class PlayerLook {
     public final float yaw;

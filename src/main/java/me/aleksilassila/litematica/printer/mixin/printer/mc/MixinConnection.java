@@ -1,8 +1,11 @@
 package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
+import me.aleksilassila.litematica.printer.I18n;
+import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
+import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.network.Connection;
@@ -29,5 +32,9 @@ public class MixinConnection {
     @Inject(method = "disconnect*", at = {@At("HEAD")})
     public void disconnect(Component ignored, CallbackInfo ci) {
         exitGameReSet();    // 退出重置
+        if (Configs.Core.AUTO_DISABLE_PRINTER.getBooleanValue() && Configs.Core.WORK_SWITCH.getBooleanValue()) {
+            MessageUtils.setOverlayMessage(I18n.AUTO_DISABLE_NOTICE.getName());
+            Configs.Core.WORK_SWITCH.setBooleanValue(false);
+        }
     }
 }

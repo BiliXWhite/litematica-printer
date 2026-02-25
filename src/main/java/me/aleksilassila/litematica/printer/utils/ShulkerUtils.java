@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
 
+@SuppressWarnings({"DataFlowIssue", "SpellCheckingInspection"})
 public class ShulkerUtils {
     static final Minecraft client = Minecraft.getInstance();
     static IConfigOptionListEntry openMode = Configs.Placement.QUICK_SHULKER_MODE.getOptionListValue();

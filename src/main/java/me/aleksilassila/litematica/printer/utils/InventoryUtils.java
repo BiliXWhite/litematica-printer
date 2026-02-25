@@ -38,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static fi.dy.masa.malilib.util.InventoryUtils.*;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList;
 
+@SuppressWarnings({"DataFlowIssue", "SpellCheckingInspection", "GrazieInspection"})
 public class InventoryUtils {
     private static final Minecraft client = Minecraft.getInstance();
     private static final int OFFHAND_SLOT_INDEX = 40;
@@ -105,33 +106,6 @@ public class InventoryUtils {
         setSelectedSlot(inventory, slot);
     }
 
-    public enum PickResult {
-        SUCCESS,
-        FAIL,
-        FAIL_NO_PICK_SLOTS_CONFIGURED,
-        FAIL_NO_SUITABLE_SLOT_FOUND;
-
-        // 快捷判断：是否是「未配置可拾取槽位」
-        public boolean isNoPickSlotsConfigured() {
-            return this == FAIL_NO_PICK_SLOTS_CONFIGURED;
-        }
-
-        // 快捷判断：是否是「无可用槽位」
-        public boolean isNoSuitableSlotFound() {
-            return this == FAIL_NO_SUITABLE_SLOT_FOUND;
-        }
-
-        // 核心快捷方法：是否「无可用槽位」（包含两种精准失败类型）
-        public boolean isNoAvailableSlot() {
-            return isNoPickSlotsConfigured() || isNoSuitableSlotFound();
-        }
-
-        // 核心快捷方法：是否「有可用槽位」（仅SUCCESS表示有）
-        public boolean isAvailable() {
-            return this == SUCCESS;
-        }
-    }
-
     /**
      * 检查是否有可用的 Pick 槽位
      *
@@ -142,18 +116,14 @@ public class InventoryUtils {
     public static PickResult checkPickSlotAvailable(int sourceSlot, Minecraft mc) {
         // 基础校验失败 → 返回通用FAIL
         if (mc.player == null) return PickResult.FAIL;
-
         Player player = mc.player;
         Inventory inventory = player.getInventory();
-
         // 源槽位是快捷栏 → 成功
         if (Inventory.isHotbarSlot(sourceSlot)) return PickResult.SUCCESS;
-
         // 无配置可拾取槽位 → 精准失败类型
         if (InventoryUtilsAccessor.getPICK_BLOCKABLE_SLOTS().isEmpty()) {
             return PickResult.FAIL_NO_PICK_SLOTS_CONFIGURED;
         }
-
         // 寻找可用槽位
         int hotbarSlot = sourceSlot;
         if (sourceSlot == -1 || !Inventory.isHotbarSlot(sourceSlot)) {
@@ -162,77 +132,44 @@ public class InventoryUtils {
         if (hotbarSlot == -1) {
             hotbarSlot = InventoryUtilsAccessor.getPickBlockTargetSlot(player);
         }
-
         // 无可用槽位 → 精准失败类型；否则成功
         return hotbarSlot != -1 ? PickResult.SUCCESS : PickResult.FAIL_NO_SUITABLE_SLOT_FOUND;
-    }
-
-    /**
-     * 检查是否能切换到目标物品（配合槽位检查，仅判断不执行切换）
-     *
-     * @param player 本地玩家实例
-     * @param items  目标物品数组（null/空则视为AIR）
-     * @return PickResult 检查结果
-     */
-    public PickResult checkCanSwitchToItems(LocalPlayer player, Item[] items) {
-        if (player == null) {
-            return PickResult.FAIL;
-        }
-        Item[] targetItems = items;
-        if (targetItems == null || targetItems.length == 0) {
-            targetItems = new Item[]{Items.AIR};
-        }
-        Inventory inv = player.getInventory();
-        boolean isCreativeMode = PlayerUtils.getAbilities(player).instabuild;
-        if (isCreativeMode) {
-            return InventoryUtils.checkPickSlotAvailable(-1, client);
-        }
-        for (Item item : targetItems) {
-            for (int i = 0; i < inv.getContainerSize(); i++) {
-                ItemStack itemStack = inv.getItem(i);
-                if (itemStack.getItem().equals(item)) {
-                    return InventoryUtils.checkPickSlotAvailable(i, client);
-                }
-            }
-        }
-        return PickResult.FAIL;
     }
 
     public static boolean setPickedItemToHand(int sourceSlot, ItemStack stack, Minecraft mc) {
         if (mc.player == null) return false;
         Player player = mc.player;
         Inventory inventory = player.getInventory();
-
+        // 目标物品在热键栏中
         if (Inventory.isHotbarSlot(sourceSlot)) {
             setHotbarSlot(sourceSlot, inventory);
             return true;
+        }
+        if (InventoryUtilsAccessor.getPICK_BLOCKABLE_SLOTS().isEmpty()) {
+            showMessageWithCooldown(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_valid_slots_configured");
+            return false;
+        }
+        int hotbarSlot = sourceSlot;
+        // 尝试寻找一个空的可拾取方块的热键栏槽位
+        if (sourceSlot == -1 || !Inventory.isHotbarSlot(sourceSlot)) {
+            hotbarSlot = InventoryUtilsAccessor.getEmptyPickBlockableHotbarSlot(inventory);
+        }
+        // 如果没有空槽位，则寻找一个可拾取方块的热键栏槽位
+        if (hotbarSlot == -1) {
+            hotbarSlot = InventoryUtilsAccessor.getPickBlockTargetSlot(player);
+        }
+        if (hotbarSlot != -1) {
+            setHotbarSlot(hotbarSlot, inventory);
+            if (EntityUtils.isCreativeMode(player)) {
+                getMainStacks(inventory).set(hotbarSlot, stack.copy());
+                client.gameMode.handleCreativeModeItemAdd(client.player.getMainHandItem(), 36 + hotbarSlot);
+                return true;
+            }
+            EasyPlaceUtilsAccessor.callSetEasyPlaceLastPickBlockTime();
+            return swapItemToMainHand(stack.copy(), mc);
         } else {
-            if (InventoryUtilsAccessor.getPICK_BLOCKABLE_SLOTS().isEmpty()) {
-                showMessageWithCooldown(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_valid_slots_configured");
-                return false;
-            }
-            int hotbarSlot = sourceSlot;
-            // 尝试寻找一个空的可拾取方块的热键栏槽位
-            if (sourceSlot == -1 || !Inventory.isHotbarSlot(sourceSlot)) {
-                hotbarSlot = InventoryUtilsAccessor.getEmptyPickBlockableHotbarSlot(inventory);
-            }
-            // 如果没有空槽位，则寻找一个可拾取方块的热键栏槽位
-            if (hotbarSlot == -1) {
-                hotbarSlot = InventoryUtilsAccessor.getPickBlockTargetSlot(player);
-            }
-            if (hotbarSlot != -1) {
-                setHotbarSlot(hotbarSlot, inventory);
-                if (EntityUtils.isCreativeMode(player)) {
-                    getMainStacks(inventory).set(hotbarSlot, stack.copy());
-                    client.gameMode.handleCreativeModeItemAdd(client.player.getMainHandItem(), 36 + hotbarSlot);
-                    return true;
-                }
-                EasyPlaceUtilsAccessor.callSetEasyPlaceLastPickBlockTime();
-                return swapItemToMainHand(stack.copy(), mc);
-            } else {
-                showMessageWithCooldown(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");
-                return false;
-            }
+            showMessageWithCooldown(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");
+            return false;
         }
     }
 
@@ -315,9 +252,6 @@ public class InventoryUtils {
         }
         return false;
     }
-
-
-    // ========== 新增：副手核心方法（无选中格子逻辑） ==========
 
     /**
      * 获取玩家副手的物品栈（全版本通用，极简实现）
@@ -435,6 +369,9 @@ public class InventoryUtils {
         return true;
     }
 
+
+    // ========== 新增：副手核心方法（无选中格子逻辑） ==========
+
     private static void showMessageWithCooldown(Message.MessageType type, String messageKey) {
         long currentTime = System.currentTimeMillis();
         // 核心修改：通过消息Key获取最后发送时间，而非消息类型
@@ -454,29 +391,88 @@ public class InventoryUtils {
         if (items == null || items.length == 0) {
             items = new Item[]{Items.AIR};
         }
-        Inventory inv = player.getInventory();
+        Inventory inventory = player.getInventory();
         boolean isCreativeMode = PlayerUtils.getAbilities(player).instabuild;
         // 创造模式
         if (isCreativeMode) {
-            var stack = new ItemStack(items[0]);
+            ItemStack stack = new ItemStack(items[0]);
             return InventoryUtils.setPickedItemToHand(stack, client);
         }
         // 找到背包中可用的物品
         for (Item item : items) {
             int slot = -1;
-            for (int i = 0; i < inv.getContainerSize(); i++) {
-                ItemStack itemStack = inv.getItem(i);
+            for (int i = 0; i < inventory.getContainerSize(); i++) {
+                ItemStack itemStack = inventory.getItem(i);
                 if (itemStack.getItem().equals(item)) {
                     slot = i;
                     break;
                 }
             }
             if (slot != -1) {
-                orderlyStoreItem = inv.getItem(slot);
-                return InventoryUtils.setPickedItemToHand(slot, orderlyStoreItem, client);
+                ItemStack itemStack = inventory.getItem(slot);
+                orderlyStoreItem = itemStack;
+                return InventoryUtils.setPickedItemToHand(slot, itemStack, client);
             }
             lastNeedItemList.add(item);
         }
         return false;
+    }
+
+    /**
+     * 检查是否能切换到目标物品（配合槽位检查，仅判断不执行切换）
+     *
+     * @param player 本地玩家实例
+     * @param items  目标物品数组（null/空则视为AIR）
+     * @return PickResult 检查结果
+     */
+    public PickResult checkCanSwitchToItems(LocalPlayer player, Item[] items) {
+        if (player == null) {
+            return PickResult.FAIL;
+        }
+        Item[] targetItems = items;
+        if (targetItems == null || targetItems.length == 0) {
+            targetItems = new Item[]{Items.AIR};
+        }
+        Inventory inv = player.getInventory();
+        boolean isCreativeMode = PlayerUtils.getAbilities(player).instabuild;
+        if (isCreativeMode) {
+            return InventoryUtils.checkPickSlotAvailable(-1, client);
+        }
+        for (Item item : targetItems) {
+            for (int i = 0; i < inv.getContainerSize(); i++) {
+                ItemStack itemStack = inv.getItem(i);
+                if (itemStack.getItem().equals(item)) {
+                    return InventoryUtils.checkPickSlotAvailable(i, client);
+                }
+            }
+        }
+        return PickResult.FAIL;
+    }
+
+    public enum PickResult {
+        SUCCESS,
+        FAIL,
+        FAIL_NO_PICK_SLOTS_CONFIGURED,
+        FAIL_NO_SUITABLE_SLOT_FOUND;
+
+        // 快捷判断：是否是「未配置可拾取槽位」
+        public boolean isNoPickSlotsConfigured() {
+            return this == FAIL_NO_PICK_SLOTS_CONFIGURED;
+        }
+
+        // 快捷判断：是否是「无可用槽位」
+        public boolean isNoSuitableSlotFound() {
+            return this == FAIL_NO_SUITABLE_SLOT_FOUND;
+        }
+
+        // 快捷方法：是否「无可用槽位」（包含两种精准失败类型）
+        public boolean isNoAvailableSlot() {
+            return isNoPickSlotsConfigured() || isNoSuitableSlotFound();
+        }
+
+        // 快捷方法：是否「有可用槽位」（仅SUCCESS表示有）
+        public boolean isAvailable() {
+            return this == SUCCESS;
+        }
     }
 }

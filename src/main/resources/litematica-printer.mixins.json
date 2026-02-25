@@ -21,7 +21,7 @@
     "printer.mc.MixinBlockItem",
     "printer.mc.MixinConnection",
     "printer.mc.MixinGui",
-    "printer.mc.MixinPistonBaseBlock"
+    "printer.mc.MixinServerboundMovePlayerPacket"
   ],
   "client": [
     "MixinClientPacketListener",
@@ -47,13 +47,11 @@
     "printer.litematica.gui.MixinLitematicaGuiMainMenu",
     "printer.malilib.MixinAbstractCraftingMenu",
     "printer.malilib.MixinGuiStringListEdit",
-    "printer.mc.MixinClientCommonPacketListener",
     "printer.mc.MixinClientLevel",
     "printer.mc.MixinClientPacketListener",
     "printer.mc.MixinGui",
     "printer.mc.MixinLocalPlayer",
-    "printer.mc.MixinMultiPlayerGameMode",
-    "printer.mc.ServerboundMovePlayerPacketAccessor"
+    "printer.mc.MixinMultiPlayerGameMode"
   ],
   "injectors": {
     "defaultRequire": 1

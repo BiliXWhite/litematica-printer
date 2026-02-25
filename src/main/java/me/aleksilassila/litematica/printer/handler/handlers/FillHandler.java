@@ -1,7 +1,6 @@
 package me.aleksilassila.litematica.printer.handler.handlers;
 
 import lombok.Getter;
-import me.aleksilassila.litematica.printer.utils.PlaceUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.FillBlockModeType;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
@@ -104,10 +103,10 @@ public class FillHandler extends ClientPlayerTickHandler {
         ) {
             if (handheld || InventoryUtils.switchToItems(player, this.fillModeItemList)) {
                 Action action;
-                if (PlaceUtils.getFillModeFacing() != null) {
+                if (ConfigUtils.getFillModeFacing() != null) {
                     action = new Action()
-                            .setLookDirection(PlaceUtils.getFillModeFacing().getOpposite())
-                            .queueAction(blockPos, PlaceUtils.getFillModeFacing(), false, player);
+                            .setLookDirection(ConfigUtils.getFillModeFacing().getOpposite())
+                            .queueAction(blockPos, ConfigUtils.getFillModeFacing(), false, player);
                 } else {
                     action = new Action()
                             .queueAction(blockPos, getPlayerPlacementDirection(), false, player);

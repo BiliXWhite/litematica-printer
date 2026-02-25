@@ -38,7 +38,7 @@ public class BlockUtils {
         return getKey(block).toString();
     }
 
-    public static boolean sideCoversSmallSquare(LevelReader levelReader, BlockPos blockPos, Direction direction) {
+    public static boolean canSupportCenter(LevelReader levelReader, BlockPos blockPos, Direction direction) {
         return Block.canSupportCenter(levelReader, blockPos, direction);
     }
 }

@@ -32,14 +32,11 @@ public class FilterUtils {
         if (targetStr == null || matchStr == null) {
             return false;
         }
-
         // 规则1：是否启用"包含"匹配（只要有一个"c"参数就启用）
         boolean enableContainsMatch = Arrays.asList(matchRules).contains(CONTAINS_FLAG);
         boolean containsMatchResult = enableContainsMatch && targetStr.contains(matchStr);
-
         // 规则2：精确相等匹配
         boolean exactMatchResult = targetStr.equals(matchStr);
-
         // 满足任一规则即匹配成功
         return containsMatchResult || exactMatchResult;
     }

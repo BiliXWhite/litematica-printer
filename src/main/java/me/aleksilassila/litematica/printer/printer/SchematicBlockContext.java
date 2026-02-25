@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.printer;
 
 import fi.dy.masa.litematica.world.WorldSchematic;
+import lombok.ToString;
 import me.aleksilassila.litematica.printer.utils.BlockStateUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -13,6 +14,7 @@ import net.minecraft.world.level.block.state.properties.Property;
 
 import java.util.Optional;
 
+@ToString
 public class SchematicBlockContext {
     public final Minecraft client;
     public final ClientLevel level;
@@ -60,17 +62,5 @@ public class SchematicBlockContext {
 
     public MutableComponent getCurrentBlockName() {
         return currentState.getBlock().getName();
-    }
-
-    @Override
-    public String toString() {
-        return "SchematicBlockContext{" +
-                "blockPos=" + blockPos +
-                ", client=" + client +
-                ", level=" + level +
-                ", schematic=" + schematic +
-                ", currentState=" + currentState +
-                ", requiredState=" + requiredState +
-                '}';
     }
 }

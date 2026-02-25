@@ -2,12 +2,10 @@ package me.aleksilassila.litematica.printer.utils;
 
 import fi.dy.masa.malilib.config.options.ConfigOptionList;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.enums.WorkingModeType;
-import me.aleksilassila.litematica.printer.enums.PrintModeType;
-import me.aleksilassila.litematica.printer.enums.RadiusShapeType;
-import me.aleksilassila.litematica.printer.enums.SelectionType;
+import me.aleksilassila.litematica.printer.enums.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -77,9 +75,9 @@ public class ConfigUtils {
         }
         if (Configs.Core.ITERATOR_SHAPE.getOptionListValue() instanceof RadiusShapeType radiusShapeType) {
             return switch (radiusShapeType) {
-                case SPHERE -> PlayerUtils.canInteractedEuclidean(blockPos, workRange);
-                case OCTAHEDRON -> PlayerUtils.canInteractedManhattan(blockPos, workRange);
-                case CUBE -> PlayerUtils.canInteractedCube(blockPos, workRange);
+                case SPHERE -> PlayerUtils.isWithinWorkInteractedEuclideanRange(blockPos, workRange);
+                case OCTAHEDRON -> PlayerUtils.isWithinWorkInteractedManhattanRange(blockPos, workRange);
+                case CUBE -> PlayerUtils.isWithinWorkInteractedCubeRange(blockPos, workRange);
             };
         }
         return true;
@@ -98,5 +96,20 @@ public class ConfigUtils {
             case LITEMATICA_SELECTION_ABOVE_PLAYER -> pos.getY() >= Math.ceil(player.getY());
             default -> true;
         };
+    }
+
+    public static Direction getFillModeFacing() {
+        if (Configs.Fill.FILL_BLOCK_FACING.getOptionListValue() instanceof FillModeFacingType fillModeFacingType) {
+            return switch (fillModeFacingType) {
+                case DOWN -> Direction.DOWN;
+                case UP -> Direction.UP;
+                case WEST -> Direction.WEST;
+                case EAST -> Direction.EAST;
+                case NORTH -> Direction.NORTH;
+                case SOUTH -> Direction.SOUTH;
+                default -> null;
+            };
+        }
+        return null;
     }
 }

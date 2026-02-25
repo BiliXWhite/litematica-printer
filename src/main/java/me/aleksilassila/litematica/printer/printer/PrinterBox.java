@@ -12,12 +12,8 @@ import net.minecraft.core.BlockPos;
 
 public class PrinterBox implements Iterable<BlockPos> {
     public static final Minecraft client = Minecraft.getInstance();
-    public final int minX;
-    public final int minY;
-    public final int minZ;
-    public final int maxX;
-    public final int maxY;
-    public final int maxZ;
+    public final int minX, minY, minZ;
+    public final int maxX, maxY, maxZ;
     public boolean yIncrement = true;
     public boolean xIncrement = true;
     public boolean zIncrement = true;
