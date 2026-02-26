@@ -18,7 +18,6 @@ import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.piston.PistonBaseBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -585,6 +584,19 @@ public class PlacementGuide extends PrinterUtils {
                             .setRequiresSupport();
                 }
             }
+            case STEM -> {
+                String blockKey = BlockUtils.getKeyString(ctx.requiredState.getBlock());
+                if (blockKey.contains("pumpkin")) {
+                    return new Action()
+                            .setItem(Items.PUMPKIN_SEEDS)
+                            .setRequiresSupport();
+                }
+                if (blockKey.contains("melon")) {
+                    return new Action()
+                            .setItem(Items.MELON_SEEDS)
+                            .setRequiresSupport();
+                }
+            }
             case SKIP -> {
                 return null;
             }
@@ -985,9 +997,18 @@ public class PlacementGuide extends PrinterUtils {
                     }
                 }
             }
+            case STEM -> {
+                String requiredBlockKey = BlockUtils.getKeyString(ctx.requiredState.getBlock());
+                String currentBlockKey = BlockUtils.getKeyString(ctx.currentState.getBlock());
+                if (requiredBlockKey.contains("pumpkin_stem") && !currentBlockKey.contains("pumpkin_stem")) {
+                    InteractionUtils.INSTANCE.add(ctx);
+                } else if (requiredBlockKey.contains("melon_stem") && !currentBlockKey.contains("melon_stem")) {
+                    InteractionUtils.INSTANCE.add(ctx);
+                }
+            }
             default -> {
                 if (Configs.Print.REPLACE_CORAL.getBooleanValue() && ctx.requiredState.getBlock().getDescriptionId().contains("coral")) {
-                    return null;
+                    break;
                 }
                 boolean printBreakWrongBlock = Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue();
                 boolean printBreakExtraBlock = Configs.Print.BREAK_EXTRA_BLOCK.getBooleanValue();
@@ -1047,6 +1068,7 @@ public class PlacementGuide extends PrinterUtils {
         ),
         BANNER(AbstractBannerBlock.class),      // 旗帜
         SKULL(AbstractSkullBlock.class),        // 头颅
+        STEM(AttachedStemBlock.class, StemBlock.class),          // 种子(茎)
 
         // 点击
         FLOWER_POT(FlowerPotBlock.class),               // 花盆
