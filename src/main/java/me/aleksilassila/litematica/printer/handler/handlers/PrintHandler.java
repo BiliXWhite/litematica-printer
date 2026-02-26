@@ -66,9 +66,6 @@ public class PrintHandler extends ClientPlayerTickHandler {
 
     @Override
     public boolean canIterationBlockPos(BlockPos blockPos) {
-        if (isBlockPosOnCooldown(blockPos)) {
-            return false;
-        }
         WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
         if (schematic == null) return false;
         this.ctx = new SchematicBlockContext(client, level, schematic, blockPos);
@@ -97,9 +94,13 @@ public class PrintHandler extends ClientPlayerTickHandler {
         if (side == null) return;
         Item[] reqItems = action.getRequiredItems(ctx.requiredState.getBlock());
         if (!InventoryUtils.switchToItems(player, reqItems)) return;
-        boolean useShift = (Implementation.isInteractive(level.getBlockState(blockPos.relative(side)).getBlock()) && !(action instanceof ClickAction))
-                || Configs.Print.PRINT_FORCED_SNEAK.getBooleanValue()
-                || action.isShift();
+        boolean useShift;
+        if (action.getShift() == null) {
+            useShift = (Implementation.isInteractive(level.getBlockState(blockPos.relative(side)).getBlock()) && !(action instanceof ClickAction))
+                    || Configs.Print.PRINT_FORCED_SNEAK.getBooleanValue();
+        } else {
+            useShift = action.getShift();
+        }
         action.queueAction(blockPos, side, useShift, player);
         Vec3 hitModifier = LitematicaUtils.usePrecisionPlacement(blockPos, ctx.requiredState);
         if (hitModifier != null) {

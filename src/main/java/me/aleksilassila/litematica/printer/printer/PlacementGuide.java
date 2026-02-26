@@ -32,10 +32,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+@SuppressWarnings("IfCanBeSwitch")
 public class PlacementGuide extends PrinterUtils {
     @SuppressWarnings("all")
     protected static final Map<Block, Block> STRIPPED_LOGS = AxeItemAccessor.getStrippedBlocks();
-      protected static List<String> compostWhitelistCache = new ArrayList<>();      // 缓存堆肥桶白名单的字符串列表（用于判断是否修改）
+    protected static List<String> compostWhitelistCache = new ArrayList<>();      // 缓存堆肥桶白名单的字符串列表（用于判断是否修改）
     protected static Item[] whitelistItemsCache = new Item[0];    // 缓存过滤后的可堆肥物品列表（避免重复计算）
     protected final @NotNull Minecraft mc;
     protected final AtomicReference<Boolean> skip = new AtomicReference<>(false);
@@ -507,18 +508,23 @@ public class PlacementGuide extends PrinterUtils {
                 }
                 return new Action().setLookDirection(facing.getOpposite());
             }
-            // 新增：告示牌16方向处理
             case SIGN -> {
                 Block signBlock = ctx.requiredState.getBlock();
                 // 站立告示牌：处理0-15的16方向旋转值
                 if (signBlock instanceof StandingSignBlock) {
                     int rotation = ctx.requiredState.getValue(StandingSignBlock.ROTATION);
-                    return new Action().setSides(Direction.DOWN).setLookRotation(rotation).setRequiresSupport();
+                    return new Action()
+                            .setSides(Direction.DOWN)
+                            .setLookRotation(rotation)
+                            .setRequiresSupport();
                 }
                 // 墙告示牌：保留原有4方向逻辑
                 if (signBlock instanceof WallSignBlock) {
                     Direction facing = ctx.requiredState.getValue(WallSignBlock.FACING);
-                    return new Action().setSides(facing.getOpposite()).setLookDirection(facing.getOpposite()).setRequiresSupport();
+                    return new Action()
+                            .setSides(facing.getOpposite())
+                            .setLookDirection(facing.getOpposite())
+                            .setRequiresSupport();
                 }
                 // 天花板悬挂告示牌处理逻辑
                 //#if MC >= 12002
@@ -533,15 +539,51 @@ public class PlacementGuide extends PrinterUtils {
                         sides.add(Direction.EAST);
                         sides.add(Direction.WEST);
                     }
-                    return new Action().setSides(sides.toArray(new Direction[0])).setLookDirection(facing.getOpposite()).setRequiresSupport();
+                    return new Action()
+                            .setSides(sides.toArray(new Direction[0]))
+                            .setLookDirection(facing.getOpposite()).setRequiresSupport();
                 }
                 if (signBlock instanceof CeilingHangingSignBlock) {
                     int rotation = ctx.requiredState.getValue(CeilingHangingSignBlock.ROTATION);
                     boolean attachFace = ctx.requiredState.getValue(CeilingHangingSignBlock.ATTACHED);
-                    return new Action().setShift(attachFace).setSides(Direction.UP).setLookRotation(rotation).setRequiresSupport();
+                    return new Action()
+                            .setShift(attachFace)
+                            .setSides(Direction.UP)
+                            .setLookRotation(rotation)
+                            .setRequiresSupport();
                 }
                 //#endif
                 return null;
+            }
+            case BANNER -> {
+                if (ctx.requiredState.getBlock() instanceof BannerBlock) {
+                    int rotation = ctx.requiredState.getValue(BannerBlock.ROTATION);
+                    return new Action()
+                            .setSides(Direction.DOWN)
+                            .setLookRotation(rotation)
+                            .setRequiresSupport();
+                } else if (ctx.requiredState.getBlock() instanceof WallBannerBlock) {
+                    Direction facing = ctx.requiredState.getValue(WallBannerBlock.FACING);
+                    return new Action()
+                            .setSides(facing.getOpposite())
+                            .setLookDirection(facing.getOpposite())
+                            .setRequiresSupport();
+                }
+            }
+            case SKULL -> {
+                if (ctx.requiredState.getBlock() instanceof SkullBlock) {
+                    int rotation = ctx.requiredState.getValue(SkullBlock.ROTATION);
+                    return new Action()
+                            .setSides(Direction.DOWN)
+                            .setLookRotation(DirectionUtils.getOppositeRotation(rotation))
+                            .setRequiresSupport();
+                } else if (ctx.requiredState.getBlock() instanceof WallSkullBlock) {
+                    Direction facing = ctx.requiredState.getValue(WallSkullBlock.FACING);
+                    return new Action()
+                            .setSides(facing.getOpposite())
+                            .setLookDirection(facing.getOpposite())
+                            .setRequiresSupport();
+                }
             }
             case SKIP -> {
                 return null;
@@ -549,24 +591,18 @@ public class PlacementGuide extends PrinterUtils {
             default -> {
                 Action action = new Action();
                 Block block = ctx.requiredState.getBlock();
-
                 if (block instanceof FaceAttachedHorizontalDirectionalBlock) {
                     Direction side = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING);
                     AttachFace face = ctx.requiredState.getValue(BlockStateProperties.ATTACH_FACE);
-
                     // 简化方向判断逻辑
                     Direction sidePitch = face == AttachFace.CEILING ? Direction.UP : face == AttachFace.FLOOR ? Direction.DOWN : side;
-
                     if (face != AttachFace.WALL) {
                         side = side.getOpposite();
                     }
-
                     return new Action().setSides(side).setLookDirection(side.getOpposite(), sidePitch);
                 }
-
                 if (block instanceof HorizontalDirectionalBlock || block instanceof StonecutterBlock
                         // @formatter:off
-
                         //#if MC >= 11904
                         || block instanceof
                             //#if MC >= 12105
@@ -575,7 +611,6 @@ public class PlacementGuide extends PrinterUtils {
                             //$$ PinkPetalsBlock
                             //#endif
                         //#endif
-
                         // @formatter:on
                 ) {
                     Direction facing = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING);
@@ -583,7 +618,6 @@ public class PlacementGuide extends PrinterUtils {
                         facing = facing.getOpposite();
                     action.setLookDirection(facing.getOpposite());
                 }
-
                 if (block instanceof BaseEntityBlock) {
                     Direction facing;
                     if (ctx.requiredState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
@@ -604,7 +638,6 @@ public class PlacementGuide extends PrinterUtils {
                         action.setSides(facing).setLookDirection(facing.getOpposite());
                     }
                 }
-
                 //方块型珊瑚的替换
                 if (Configs.Print.REPLACE_CORAL.getBooleanValue() && block.getDescriptionId().endsWith("_coral_block")) {
                     //例子：block.minecraft.dead_tube_coral
@@ -618,7 +651,6 @@ public class PlacementGuide extends PrinterUtils {
                     }
                     action.setRequiresSupport();
                 }
-
                 return action;
             }
         }
@@ -1013,6 +1045,8 @@ public class PlacementGuide extends PrinterUtils {
                 , CeilingHangingSignBlock.class
                 //#endif
         ),
+        BANNER(AbstractBannerBlock.class),      // 旗帜
+        SKULL(AbstractSkullBlock.class),        // 头颅
 
         // 点击
         FLOWER_POT(FlowerPotBlock.class),               // 花盆

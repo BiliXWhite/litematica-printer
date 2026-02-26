@@ -225,18 +225,20 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                 int maxTotalIter = this.getMaxTotalIterationsPerTick();
                 int totalIterCount = 0;
                 int effectiveExecCount = 0;
-                skipIteration.set(false);
-                Iterator<BlockPos> iterator = playerInteractionBox.iterator();
+                this.skipIteration.set(false);
                 this.guiBlockInfoQueue.clear(); // 重置渲染信息
                 this.renderIndex = 0;   // 重置渲染信息
-                while (!this.skipIteration.get() && iterator.hasNext() && !ActionManager.INSTANCE.needWaitModifyLook) {
+                for (BlockPos pos : playerInteractionBox) {
                     // 单Tick迭代次数限制：达到最大次数则终止循环（防主线程阻塞）
                     if (maxTotalIter > 0 && ++totalIterCount >= maxTotalIter) {
                         interrupt = true;
+                        break;
                     }
-                    BlockPos pos = iterator.next();
+                    if (this.skipIteration.get() || ActionManager.INSTANCE.needWaitModifyLook) {
+                        interrupt = true;
+                        break;
+                    }
                     if (pos == null) continue;
-
                     GuiBlockInfo gui;
                     if (isSchematicBlockHandler()) {
                         WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
@@ -244,7 +246,6 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                     } else {
                         gui = new GuiBlockInfo(level, null, pos);
                     }
-
                     // 仅调试时候加入队列, 避免队列储存无用位置信息
                     if (Configs.Core.DEBUG_OUTPUT.getBooleanValue()) {
                         this.addGuiBlockInfoToQueue(gui);
@@ -269,9 +270,8 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                         }
                     }
                     gui.posInSelectionRange = true;
-
                     // 方块迭代权限校验：子类可重写实现自定义过滤逻辑
-                    if (this.canIterationBlockPos(pos)) {
+                    if (this.canIterationBlockPos(pos) && !isBlockPosOnCooldown(pos)) {
                         this.executeIteration(pos, this.skipIteration);
                         gui.execute = true;
                         if (this.skipIteration.get() || maxEffectiveExec > 0 && ++effectiveExecCount >= maxEffectiveExec) {
