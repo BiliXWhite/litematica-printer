@@ -81,7 +81,6 @@ public class ActionManager {
         } else {
             direction = DirectionUtils.getHorizontalDirection(look.yaw);
         }
-        NetworkUtils.sendLookPacket(player, new PlayerLook(direction));
         Vec3 hitVec;
         if (!useProtocol) {
             Vec3 targetCenter = Vec3.atCenterOf(target);
