@@ -89,9 +89,8 @@ public class FillHandler extends ClientPlayerTickHandler {
             ItemStack heldStack = player.getMainHandItem(); // 获取主手物品
             return !heldStack.isEmpty() && heldStack.getCount() > 0;
         }
-        return !this.isBlockPosOnCooldown(blockPos);
+        return true;
     }
-
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
