@@ -7,11 +7,11 @@ import java.util.Date
 import java.util.TimeZone
 
 fun Project.propOrNull(key: String) = findProperty(key)
-fun Project.prop(key: String) = propOrNull(key) ?: throw GradleException("属性 $key 未配置/值为空")
+fun Project.prop(key: String) = propOrNull(key) ?: throw GradleException("buildSrc: 属性 $key 未配置/值为空")
 
 fun Project.propStrOrNull(key: String): String? = propOrNull(key)?.toString()
 fun Project.propStr(key: String): String = propStrOrNull(key)
-    ?: throw GradleException("属性 $key 未配置/值为空，或无法转换为字符串")
+    ?: throw GradleException("buildSrc: 属性 $key 未配置/值为空，或无法转换为字符串")
 
 fun Project.downloadDependencyMod(downloadUrl: String, fileName: String? = null): File? {
     return rootProject.downloadFile(
@@ -39,6 +39,9 @@ val Project.mcVersionInt get() = propStrOrNull("mcVersion")?.toIntOrNull() ?: -1
 val Project.fabricLoaderVersion get() = propStrOrNull("loader_version")
 val Project.fabricApiVersion get() = propStrOrNull("fabric_version")
 
+val Project.malilib get() = propStrOrNull("malilib")
+val Project.litematica get() = propStrOrNull("litematica")
+
 val Project.lombokVersion get() = propStr("lombok_version")
 
 val Project.javaVersion
@@ -50,7 +53,6 @@ val Project.javaVersion
         else -> JavaVersion.VERSION_1_8
     }
 val Project.mixinJavaVersion get() = "JAVA_${javaVersion}"
-
 
 val Project.fullProjectVersion: String get() = getFullProjectVersion(modVersion)
 
@@ -82,5 +84,7 @@ val Project.placeholderProps: Map<String, Any?>
         "loader_version" to fabricLoaderVersion,
         "fabric_api_version" to fabricApiVersion,
         "minecraft_dependency" to mcDependency,
-        "compatibility_level" to mixinJavaVersion
+        "compatibility_level" to mixinJavaVersion,
+        "malilib" to malilib,
+        "litematica" to litematica
     ).filterValues { it != null }.mapValues { it.value!! }

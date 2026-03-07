@@ -39,11 +39,5 @@
   "license": "${mod_license}",
   "environment": "*",
   "entrypoints": {
-
-  },
-  "depends": {
-    "malilib": "*"
-  },
-  "custom": {
   }
 }
