@@ -37,6 +37,11 @@
     "malilib": ">=${malilib}",
     "litematica": ">=${litematica}",
     "fabric-content-registries-v0": "*"
+  },
+  "custom": {
+    "modmenu": {
+      "parent": "${mod_wrapper_id}"
+    }
   }
 }
 
