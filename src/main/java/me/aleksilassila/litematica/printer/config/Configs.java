@@ -34,7 +34,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
     // 配置页面是否可视(函数式, 动态获取, 全局统一使用)
     private static final BooleanSupplier isLoadChestTrackerLoaded = ModLoadStatus::isLoadChestTrackerLoaded;
-    private static final BooleanSupplier isLoadQuickShulkerLoaded = ModLoadStatus::isLoadQuickShulkerLoaded;
     private static final BooleanSupplier isSingle = () -> Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.SINGLE);
     private static final BooleanSupplier isMulti = () -> Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.MULTI);
 
@@ -269,19 +268,16 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 快捷潜影盒 - 开关
         public static final ConfigBoolean QUICK_SHULKER = bool("quickShulker")
-                .setVisible(isLoadQuickShulkerLoaded)
                 .defaultValue(false)
                 .build();
 
         // 快捷潜影盒 - 工作模式
         public static final ConfigOptionList QUICK_SHULKER_MODE = optionList("quickShulkerMode")
-                .setVisible(isLoadQuickShulkerLoaded)
                 .defaultValue(QuickShulkerModeType.INVOKE)
                 .build();
 
         // 快捷潜影盒 - 冷却时间
         public static final ConfigInteger QUICK_SHULKER_COOLDOWN = integer("quickShulkerCooldown")
-                .setVisible(isLoadQuickShulkerLoaded)
                 .defaultValue(10)
                 .range(0, 20)
                 .build();
