@@ -74,8 +74,8 @@ dependencies {
     // modImplementation("com.github.sakura-ryoko:litematica:${props["litematica"]}")
     // modImplementation("com.github.sakura-ryoko:tweakeroo:${props["tweakeroo"]}")
 
-    modImplementation("maven.modrinth:malilib:${prop("malilib")}")
-    modImplementation("maven.modrinth:litematica:${prop("litematica")}")
+    modImplementation("maven.modrinth:malilib:$malilib")
+    modImplementation("maven.modrinth:litematica:$litematica")
     modImplementation("maven.modrinth:tweakeroo:${prop("tweakeroo")}")
 
     // 箱子追踪
