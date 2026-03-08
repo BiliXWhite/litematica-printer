@@ -122,9 +122,10 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .range(1, 256)
                 .build();
 
-        public static final ConfigInteger ITERATOR_TOTAL_PER_TICK = integer("workIterationsTotalPerTick")
-                .defaultValue(0)
-                .range(0, 1919810)
+        // 核心 - 迭代占用时长（毫秒）
+        public static final ConfigInteger ITERATION_TIME_LIMIT = integer("iterationTimeLimit")
+                .defaultValue(8)
+                .range(0, 32)
                 .build();
 
         // 核心 - 检查玩家方块交互范围
@@ -221,7 +222,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 FILL,
                 FLUID,
                 WORK_RANGE,
-                ITERATOR_TOTAL_PER_TICK,
+                ITERATION_TIME_LIMIT,
                 RENDER_HUD,
                 LAG_CHECK,
                 LAG_CHECK_MAX,
@@ -250,13 +251,13 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 核心 - 工作间隔
         public static final ConfigInteger PLACE_INTERVAL = integer("placeInterval")
-                .defaultValue(0)
+                .defaultValue(1)
                 .range(0, 20)
                 .build();
 
         // 每刻放置方块数
         public static final ConfigInteger PLACE_BLOCKS_PER_TICK = integer("placeBlocksPerTick")
-                .defaultValue(0)
+                .defaultValue(1)
                 .range(0, 256)
                 .build();
 
@@ -310,12 +311,12 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         public static final ConfigInteger BREAK_INTERVAL = integer("breakInterval")
-                .defaultValue(0)
+                .defaultValue(1)
                 .range(0, 20)
                 .build();
 
         public static final ConfigInteger BREAK_BLOCKS_PER_TICK = integer("breakBlocksPerTick")
-                .defaultValue(0)
+                .defaultValue(1)
                 .range(0, 256)
                 .build();
 
