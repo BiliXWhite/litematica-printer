@@ -323,7 +323,7 @@ public class LitematicaUtils {
     }
 
     public void preprocess() {
-        if (!ConfigUtils.isEnable()) {
+        if (!ConfigUtils.isPrinterEnable()) {
             if (!breakQueue.isEmpty()) {
                 breakQueue.clear();
             }

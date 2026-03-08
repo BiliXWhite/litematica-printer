@@ -1,7 +1,6 @@
 package me.aleksilassila.litematica.printer.printer;
 
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
@@ -22,7 +21,7 @@ public class BlockPosCooldownManager {
      * Iterator遍历避免ConcurrentModificationException，适配高频调用
      */
     public void tick() {
-        if (!ConfigUtils.isEnable()) {
+        if (!ConfigUtils.isPrinterEnable()) {
             if (!cooldownMap.isEmpty()) {
                 cooldownMap.clear();
             }
