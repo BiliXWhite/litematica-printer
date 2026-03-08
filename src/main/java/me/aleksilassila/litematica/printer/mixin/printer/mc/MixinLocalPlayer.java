@@ -7,8 +7,8 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
 import me.aleksilassila.litematica.printer.printer.BlockPosCooldownManager;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
-import me.aleksilassila.litematica.printer.utils.InteractionUtils;
-import me.aleksilassila.litematica.printer.utils.UpdateCheckerUtils;
+import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
+import me.aleksilassila.litematica.printer.utils.ModUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -32,7 +32,7 @@ import java.util.concurrent.CompletableFuture;
 //#if MC >= 12001 
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.ModUtils;
 //#endif
 
 @Mixin(LocalPlayer.class)
@@ -61,7 +61,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     @Inject(at = @At("HEAD"), method = "resetPos")
     public void init(CallbackInfo ci) {
         if (Configs.Core.UPDATE_CHECK.getBooleanValue() && !updateChecked) {
-            CompletableFuture.runAsync(UpdateCheckerUtils::checkForUpdates);
+            CompletableFuture.runAsync(ModUtils::checkForUpdates);
         }
         updateChecked = true;
     }
@@ -69,7 +69,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     @Inject(at = @At("HEAD"), method = "closeContainer")
     public void close(CallbackInfo ci) {
         //#if MC >= 12001
-        if (ModLoadStatus.isLoadMod("chesttracker")) {
+        if (ModUtils.isLoadMod("chesttracker")) {
             MemoryUtils.saveMemory(this.containerMenu);
         }
         OpenInventoryPacket.reSet();
@@ -82,9 +82,9 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
         BlockPosCooldownManager.INSTANCE.tick();
         InventoryUtils.tick();
         ZxyUtils.tick();
-        InteractionUtils.INSTANCE.preprocess();
-        if (InteractionUtils.INSTANCE.isNeedHandle()) {
-            InteractionUtils.INSTANCE.onTick();
+        LitematicaUtils.INSTANCE.preprocess();
+        if (LitematicaUtils.INSTANCE.isNeedHandle()) {
+            LitematicaUtils.INSTANCE.onTick();
         } else {
             ClientPlayerTickManager.tick();
         }

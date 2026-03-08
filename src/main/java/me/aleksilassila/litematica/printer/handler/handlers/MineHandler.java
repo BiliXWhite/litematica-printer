@@ -8,9 +8,8 @@ import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.printer.BlockPosCooldownManager;
 import me.aleksilassila.litematica.printer.mixin_extension.BlockBreakResult;
-import me.aleksilassila.litematica.printer.utils.FilterUtils;
-import me.aleksilassila.litematica.printer.utils.InteractionUtils;
-import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
+import me.aleksilassila.litematica.printer.utils.ModUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -28,18 +27,18 @@ public class MineHandler extends ClientPlayerTickHandler {
     }
 
     public static boolean mineRestriction(BlockState blockState) {
-        if (!InteractionUtils.breakRestriction(blockState)) {
+        if (!LitematicaUtils.breakRestriction(blockState)) {
             return false;
         }
         if (Configs.Mine.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
-            if (!ModLoadStatus.isLoadMod("tweakeroo")) return true;
+            if (!ModUtils.isLoadMod("tweakeroo")) return true;
             UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
                 return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> FilterUtils.matchBlockName(string, blockState));
+                        .noneMatch(string -> LitematicaUtils.matchBlockName(string, blockState));
             } else if (listType == UsageRestriction.ListType.WHITELIST) {
                 return BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> FilterUtils.matchBlockName(string, blockState));
+                        .anyMatch(string -> LitematicaUtils.matchBlockName(string, blockState));
             } else {
                 return true;
             }
@@ -47,10 +46,10 @@ public class MineHandler extends ClientPlayerTickHandler {
             IConfigOptionListEntry optionListValue = Configs.Mine.EXCAVATE_LIMIT.getOptionListValue();
             if (optionListValue == UsageRestriction.ListType.BLACKLIST) {
                 return Configs.Mine.EXCAVATE_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> FilterUtils.matchBlockName(string, blockState));
+                        .noneMatch(string -> LitematicaUtils.matchBlockName(string, blockState));
             } else if (optionListValue == UsageRestriction.ListType.WHITELIST) {
                 return Configs.Mine.EXCAVATE_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> FilterUtils.matchBlockName(string, blockState));
+                        .anyMatch(string -> LitematicaUtils.matchBlockName(string, blockState));
             } else {
                 return true;
             }
@@ -72,12 +71,12 @@ public class MineHandler extends ClientPlayerTickHandler {
         if (isBlockPosOnCooldown(pos) || BlockPosCooldownManager.INSTANCE.isOnCooldown(level, FluidHandler.NAME, pos)) {
             return false;
         }
-        return InteractionUtils.canBreakBlock(pos) && mineRestriction(level.getBlockState(pos));
+        return LitematicaUtils.canBreakBlock(pos) && mineRestriction(level.getBlockState(pos));
     }
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
-        BlockBreakResult result = InteractionUtils.INSTANCE.continueDestroyBlock(blockPos);
+        BlockBreakResult result = LitematicaUtils.INSTANCE.continueDestroyBlock(blockPos);
         if (result == BlockBreakResult.IN_PROGRESS) {
             skipIteration.set(true);    // 本 TICK 退出剩下位置迭代
             this.setBlockPosCooldown(blockPos, getBreakCooldown());

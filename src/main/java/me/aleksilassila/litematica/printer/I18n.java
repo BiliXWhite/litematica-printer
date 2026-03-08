@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer;
 
 import lombok.Getter;
-import me.aleksilassila.litematica.printer.utils.StringUtils;
+import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import net.minecraft.network.chat.MutableComponent;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,42 +51,42 @@ public class I18n {
 
     /*** 获取键名 ***/
     public MutableComponent getName() {
-        return StringUtils.translatable(this.withPrefixNameKey);
+        return MessageUtils.translatable(this.withPrefixNameKey);
     }
 
     /*** 获取键名(带参数) ***/
     public MutableComponent getName(Object... objects) {
-        return StringUtils.translatable(this.withPrefixNameKey, objects);
+        return MessageUtils.translatable(this.withPrefixNameKey, objects);
     }
 
     /*** 获取描述 ***/
     public MutableComponent getDesc() {
-        return StringUtils.translatable(this.descKey);
+        return MessageUtils.translatable(this.descKey);
     }
 
     /*** 获取描述(带参数) ***/
     public MutableComponent getDesc(Object... objects) {
-        return StringUtils.translatable(this.descKey, objects);
+        return MessageUtils.translatable(this.descKey, objects);
     }
 
     /*** 获取配置键名 ***/
     public MutableComponent getConfigName() {
-        return StringUtils.translatable(this.configNameKey);
+        return MessageUtils.translatable(this.configNameKey);
     }
 
     /*** 获取配置键名(带参数) ***/
     public MutableComponent getConfigName(Object... objects) {
-        return StringUtils.translatable(this.configNameKey, objects);
+        return MessageUtils.translatable(this.configNameKey, objects);
     }
 
     /*** 获取配置描述 ***/
     public MutableComponent getConfigDesc() {
-        return StringUtils.translatable(this.configDescKey);
+        return MessageUtils.translatable(this.configDescKey);
     }
 
     /*** 获取配置描述(带参数) ***/
     public MutableComponent getConfigDesc(Object... objects) {
-        return StringUtils.translatable(this.configDescKey, objects);
+        return MessageUtils.translatable(this.configDescKey, objects);
     }
 
     /*** 获取简易键名(一般用于枚举, 会取 "." 最后的文本) ***/

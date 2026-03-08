@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.printer;
 
-import me.aleksilassila.litematica.printer.utils.DirectionUtils;
+import me.aleksilassila.litematica.printer.utils.BlockUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -52,7 +52,7 @@ public class PrinterUtils {
         Map<Direction, Vec3> sides = new HashMap<>();
         sides.put(requiredDir, new Vec3(0, 0, 0));
         if (world.getBlockState(pos).hasProperty(SlabBlock.TYPE)) {
-            sides.put(requiredDir.getOpposite(), Vec3.atLowerCornerOf(DirectionUtils.getVector(requiredDir)).scale(0.5));
+            sides.put(requiredDir.getOpposite(), Vec3.atLowerCornerOf(BlockUtils.getVector(requiredDir)).scale(0.5));
         }
         for (Direction side : horizontalDirections) {
             BlockState neighborCurrentState = world.getBlockState(pos.relative(side));
@@ -61,7 +61,7 @@ public class PrinterUtils {
                     continue;
                 }
             }
-            sides.put(side, Vec3.atLowerCornerOf(DirectionUtils.getVector(requiredDir)).scale(0.25));
+            sides.put(side, Vec3.atLowerCornerOf(BlockUtils.getVector(requiredDir)).scale(0.25));
         }
         return sides;
     }

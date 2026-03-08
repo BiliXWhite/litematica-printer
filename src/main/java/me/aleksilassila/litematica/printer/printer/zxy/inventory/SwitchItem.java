@@ -1,8 +1,8 @@
 package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.malilib.util.InventoryUtils;
-import me.aleksilassila.litematica.printer.utils.ShulkerUtils;
-import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.BlockUtils;
+import me.aleksilassila.litematica.printer.utils.ModUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -42,7 +42,7 @@ public class SwitchItem {
     }
 
     public static void openInv(ItemStack itemStack) {
-        if (!client.player.containerMenu.equals(client.player.inventoryMenu) || ModLoadStatus.closeScreen > 0) {
+        if (!client.player.containerMenu.equals(client.player.inventoryMenu) || ModUtils.closeScreen > 0) {
             return;
         }
         AbstractContainerMenu sc = client.player.containerMenu;
@@ -57,9 +57,9 @@ public class SwitchItem {
             if (itemStatistics.key != null && OpenInventoryPacket.key == null) {
                 OpenInventoryPacket.sendOpenInventory(itemStatistics.pos, itemStatistics.key);
             } else {
-                ShulkerUtils.openShulker(sc.slots.get(itemStatistics.shulkerBoxSlot).getItem(), itemStatistics.shulkerBoxSlot);
+                BlockUtils.openShulker(sc.slots.get(itemStatistics.shulkerBoxSlot).getItem(), itemStatistics.shulkerBoxSlot);
             }
-            ModLoadStatus.closeScreen++;
+            ModUtils.closeScreen++;
         } else {
             removeItem(reSwitchItem);
             reSwitchItem = null;

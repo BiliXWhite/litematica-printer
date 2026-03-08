@@ -71,7 +71,7 @@ public class PrintHandler extends ClientPlayerTickHandler {
         this.ctx = new SchematicBlockContext(client, level, schematic, blockPos);
         if (Configs.Print.PRINT_SKIP.getBooleanValue()) {
             Set<String> skipSet = new HashSet<>(Configs.Print.PRINT_SKIP_LIST.getStrings()); // 转换为 HashSet
-            if (skipSet.stream().anyMatch(s -> FilterUtils.matchName(s, ctx.requiredState))) {
+            if (skipSet.stream().anyMatch(s -> LitematicaUtils.matchName(s, ctx.requiredState))) {
                 return false;
             }
         }

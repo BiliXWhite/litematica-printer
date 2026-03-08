@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 
 //#if MC < 12001
 //$$ import me.aleksilassila.litematica.printer.config.Configs;
-//$$ import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
+//$$ import me.aleksilassila.litematica.printer.utils.ModUtils;
 //$$ import net.fabricmc.api.EnvType;
 //$$ import net.fabricmc.api.Environment;
 //$$ import net.fabricmc.loader.api.FabricLoader;
@@ -49,7 +49,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 //$$
 //$$ @Environment(EnvType.CLIENT)
 //$$ public abstract class MemoryUtils {
-//$$     public static final ResourceLocation ENDER_CHEST_ID = ModLoadStatus.isLoadMod("chesttracker") ? id("ender_chest") : null;
+//$$     public static final ResourceLocation ENDER_CHEST_ID = ModUtils.isLoadMod("chesttracker") ? id("ender_chest") : null;
 //$$     @Nullable
 //$$     private static BlockPos latestPos = null;
 //$$     @Nullable
