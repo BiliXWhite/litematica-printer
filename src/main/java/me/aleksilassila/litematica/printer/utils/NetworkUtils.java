@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.utils;
 
+import me.aleksilassila.litematica.printer.mixin_extension.MultiPlayerGameModeExtension;
 import me.aleksilassila.litematica.printer.printer.PlayerLook;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -7,7 +8,6 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ServerGamePacketListener;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
-import org.jetbrains.annotations.Nullable;
 
 public class NetworkUtils {
 
@@ -20,7 +20,7 @@ public class NetworkUtils {
         }
     }
 
-    public static void sendPacket(PredictiveAction packetCreator) {
+    public static void sendPacket(MultiPlayerGameModeExtension.PredictiveAction packetCreator) {
         if (client.level instanceof SequenceExtension sequenceExtension) {
             int currentSequence = sequenceExtension.litematica_printer3$getSequence();
             Packet<ServerGamePacketListener> packet = packetCreator.predict(currentSequence);
@@ -40,7 +40,7 @@ public class NetworkUtils {
     }
 
     public static void sendLookPacket(LocalPlayer playerEntity, PlayerLook playerLook) {
-        sendLookPacket(playerEntity, playerLook.getYaw(), playerLook.getPitch());
+        sendLookPacket(playerEntity, playerLook.yaw(), playerLook.pitch());
     }
 
     public interface SequenceExtension {

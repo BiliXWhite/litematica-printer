@@ -32,7 +32,7 @@ public class MineHandler extends ClientPlayerTickHandler {
             return false;
         }
         if (Configs.Mine.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
-            if (!ModLoadStatus.isTweakerooLoaded()) return true;
+            if (!ModLoadStatus.isLoadMod("tweakeroo")) return true;
             UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
                 return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()

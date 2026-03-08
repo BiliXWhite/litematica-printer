@@ -65,7 +65,7 @@ public class ActionManager {
         }
         if (!useProtocol && !needWaitModifyLook) {
             if (look != null) {
-                Direction lookDirection = DirectionUtils.orderedByNearest(look.yaw, look.pitch)[0];
+                Direction lookDirection = DirectionUtils.orderedByNearest(look.yaw(), look.pitch())[0];
                 if (lookDirection.getAxis().isHorizontal()) {
                     needWaitModifyLook = true;
                     return this;
@@ -79,7 +79,7 @@ public class ActionManager {
         if (look == null) {
             direction = side;
         } else {
-            direction = DirectionUtils.getHorizontalDirection(look.yaw);
+            direction = DirectionUtils.getHorizontalDirection(look.yaw());
         }
         Vec3 hitVec;
         if (!useProtocol) {

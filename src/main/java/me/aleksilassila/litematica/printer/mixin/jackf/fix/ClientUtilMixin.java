@@ -20,7 +20,7 @@ public class ClientUtilMixin {
     private static void CheckAndSend(ItemStack stack, int slot, CallbackInfoReturnable<Boolean> cir) {
         //远程取物时再打开濳影盒会将濳影盒内的物品保存到打开的容器..
         PlayerUtils.getPlayer().ifPresent(player ->{
-            if(ModLoadStatus.isLoadChestTrackerLoaded()){
+            if(ModLoadStatus.isLoadMod("chesttracker")){
                 //#if MC >= 12001
                 MemoryUtils.saveMemory(player.containerMenu);
                 OpenInventoryPacket.reSet();

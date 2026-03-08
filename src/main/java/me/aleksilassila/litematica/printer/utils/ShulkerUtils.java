@@ -3,9 +3,6 @@ package me.aleksilassila.litematica.printer.utils;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.QuickShulkerModeType;
-import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
-import me.aleksilassila.litematica.printer.utils.MessageUtils;
-import me.aleksilassila.litematica.printer.utils.StringUtils;
 import net.kyrptonaught.quickshulker.client.ClientUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.inventory.ClickType;
@@ -20,7 +17,7 @@ public class ShulkerUtils {
         if (openMode == QuickShulkerModeType.CLICK_SLOT) {
             client.gameMode.handleInventoryMouseClick(client.player.containerMenu.containerId, shulkerBoxSlot, 1, ClickType.PICKUP, client.player);
         } else if (openMode == QuickShulkerModeType.INVOKE) {
-            if (ModLoadStatus.isLoadQuickShulkerLoaded()) {
+            if (ModLoadStatus.isLoadMod("quickshulker")) {
                 try {
                     ClientUtil.CheckAndSend(stack, shulkerBoxSlot);
                 } catch (Exception ignored) {}

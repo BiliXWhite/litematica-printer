@@ -17,7 +17,7 @@ public class MixinServerboundMovePlayerPacket {
     private static float modifyLookYaw(float yaw) {
         PlayerLook playerLook = ActionManager.INSTANCE.look;
         if (playerLook != null) {
-            return playerLook.yaw;
+            return playerLook.yaw();
         }
         return yaw;
     }
@@ -30,7 +30,7 @@ public class MixinServerboundMovePlayerPacket {
     private static float modifyLookPitch(float pitch) {
         PlayerLook playerLook = ActionManager.INSTANCE.look;
         if (playerLook != null) {
-            return playerLook.pitch;
+            return playerLook.pitch();
         }
         return pitch;
     }

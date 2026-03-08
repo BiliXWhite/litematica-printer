@@ -58,7 +58,7 @@ public class InteractionUtils {
 
     public static boolean breakRestriction(BlockState blockState) {
         if (Configs.Break.BREAK_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
-            if (!ModLoadStatus.isTweakerooLoaded()) return true;
+            if (!ModLoadStatus.isLoadMod("tweakeroo")) return true;
             UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
                 return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
@@ -126,7 +126,7 @@ public class InteractionUtils {
                 if (!ConfigUtils.canInteracted(pos) || !canBreakBlock(pos) || !breakRestriction(level.getBlockState(pos))) {
                     continue;
                 }
-                if (ModLoadStatus.isTweakerooLoaded()) {
+                if (ModLoadStatus.isLoadMod("tweakeroo")) {
                     if (TweakerooUtils.isToolSwitchEnabled()) {
                         TweakerooUtils.trySwitchToEffectiveTool(pos);
                     }

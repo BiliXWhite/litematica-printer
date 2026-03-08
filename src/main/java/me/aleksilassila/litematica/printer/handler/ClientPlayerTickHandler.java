@@ -60,7 +60,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     
     // 迭代状态缓存（性能优化关键）
     private Iterator<BlockPos> cachedIterator = null;
-    private BlockPos lastBasePos = null;
+    private final BlockPos lastBasePos = null;
     private int cachedExpandRange = -1;
 
     protected Minecraft mc;

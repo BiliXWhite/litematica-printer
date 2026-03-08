@@ -69,7 +69,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     @Inject(at = @At("HEAD"), method = "closeContainer")
     public void close(CallbackInfo ci) {
         //#if MC >= 12001
-        if (ModLoadStatus.isLoadChestTrackerLoaded()) {
+        if (ModLoadStatus.isLoadMod("chesttracker")) {
             MemoryUtils.saveMemory(this.containerMenu);
         }
         OpenInventoryPacket.reSet();
