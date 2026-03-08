@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.printer;
 
 import fi.dy.masa.litematica.world.WorldSchematic;
 import lombok.ToString;
-import me.aleksilassila.litematica.printer.utils.BlockStateUtils;
+import me.aleksilassila.litematica.printer.utils.BlockUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -33,7 +33,7 @@ public class SchematicBlockContext {
     }
 
     public static <T extends Comparable<T>> Optional<T> getProperty(BlockState blockState, Property<T> property) {
-        return BlockStateUtils.getProperty(blockState, property);
+        return BlockUtils.getProperty(blockState, property);
     }
 
     public SchematicBlockContext offset(Direction direction) {

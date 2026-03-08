@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.handler.handlers;
 
-import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
-import me.aleksilassila.litematica.printer.utils.BedrockUtils;
+import me.aleksilassila.litematica.printer.utils.ModUtils;
+import me.aleksilassila.litematica.printer.utils.BlockUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
@@ -31,22 +31,22 @@ public class BedrockHandler extends ClientPlayerTickHandler {
             MessageUtils.setOverlayMessage("创造模式无法使用破基岩模式！");
             return false;
         }
-        if (!ModLoadStatus.isLoadMod("bedrockminer")) {
+        if (!ModUtils.isLoadMod("bedrockminer")) {
             MessageUtils.setOverlayMessage("未安装 Fabric-Bedrock-Miner 模组/游戏版本小于1.19，无法破基岩！");
             return false;
         }
-        if (!BedrockUtils.isWorking()) {
-            BedrockUtils.setWorking(true);
+        if (!BlockUtils.isWorking()) {
+            BlockUtils.setWorking(true);
         }
-        if (BedrockUtils.isBedrockMinerFeatureEnable()) {   // 限制原功能(手动点击或使用方块：添加、开关)
-            BedrockUtils.setBedrockMinerFeatureEnable(false);
+        if (BlockUtils.isBedrockMinerFeatureEnable()) {   // 限制原功能(手动点击或使用方块：添加、开关)
+            BlockUtils.setBedrockMinerFeatureEnable(false);
         }
         return true;
     }
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
-        BedrockUtils.addToBreakList(blockPos, client.level);
+        BlockUtils.addToBreakList(blockPos, client.level);
         setBlockPosCooldown(blockPos, 100);
     }
 }

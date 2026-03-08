@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.jackf.fix;
 
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.ModUtils;
 import me.aleksilassila.litematica.printer.utils.PlayerUtils;
 import net.kyrptonaught.quickshulker.client.ClientUtil;
 import net.minecraft.world.item.ItemStack;
@@ -20,7 +20,7 @@ public class ClientUtilMixin {
     private static void CheckAndSend(ItemStack stack, int slot, CallbackInfoReturnable<Boolean> cir) {
         //远程取物时再打开濳影盒会将濳影盒内的物品保存到打开的容器..
         PlayerUtils.getPlayer().ifPresent(player ->{
-            if(ModLoadStatus.isLoadMod("chesttracker")){
+            if(ModUtils.isLoadMod("chesttracker")){
                 //#if MC >= 12001
                 MemoryUtils.saveMemory(player.containerMenu);
                 OpenInventoryPacket.reSet();

@@ -8,7 +8,7 @@ import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.printer.action.Action;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
-import me.aleksilassila.litematica.printer.utils.FilterUtils;
+import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
 import me.aleksilassila.litematica.printer.utils.InventoryUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -58,7 +58,7 @@ public class FillHandler extends ClientPlayerTickHandler {
                     for (String itemName : fillCacheBlocklist) {
                         items.addAll(BuiltInRegistries.ITEM
                                 .stream()
-                                .filter(item -> FilterUtils.matchName(itemName, new ItemStack(item)))
+                                .filter(item -> LitematicaUtils.matchName(itemName, new ItemStack(item)))
                                 .toList()
                         );
                     }
@@ -98,7 +98,7 @@ public class FillHandler extends ClientPlayerTickHandler {
         BlockState currentState = level.getBlockState(blockPos);
         if (currentState.isAir()
                 || (currentState.getBlock() instanceof LiquidBlock)
-                || Configs.Print.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> FilterUtils.matchName(s, currentState))
+                || Configs.Print.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> LitematicaUtils.matchName(s, currentState))
         ) {
             if (handheld || InventoryUtils.switchToItems(player, this.fillModeItemList)) {
                 Action action;

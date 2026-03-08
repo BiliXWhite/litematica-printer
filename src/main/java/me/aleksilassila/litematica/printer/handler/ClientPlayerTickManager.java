@@ -6,13 +6,10 @@ import lombok.Setter;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.handler.handlers.*;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
-import me.aleksilassila.litematica.printer.utils.InteractionUtils;
+import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
+import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
 import net.minecraft.client.Minecraft;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.switchItem;
-
-@SuppressWarnings("SpellCheckingInspection")
 public class ClientPlayerTickManager {
     public static final Minecraft mc = Minecraft.getInstance();
 
@@ -35,7 +32,7 @@ public class ClientPlayerTickManager {
 
     public static void tick() {
         // 本次TICK共享部分预先检查
-        if (isOpenHandler || switchItem() || InteractionUtils.INSTANCE.isNeedHandle()) {
+        if (InventoryUtils.isOpenHandler || InventoryUtils.switchItem() || LitematicaUtils.INSTANCE.isNeedHandle()) {
             return;
         }
         if (ActionManager.INSTANCE.sendQueue(mc.player).needWaitModifyLook) {
@@ -50,7 +47,7 @@ public class ClientPlayerTickManager {
         for (ClientPlayerTickHandler handler : VALUES) {
             if (!(handler instanceof GuiHandler)) {
                 // 同TICK不同处理程序进行二次迭代检查, 避免独立的处理程序修改了内容没有及时跳出导致出现资源抢占问题
-                if (isOpenHandler || switchItem() || InteractionUtils.INSTANCE.isNeedHandle()) {
+                if (InventoryUtils.isOpenHandler || InventoryUtils.switchItem() || LitematicaUtils.INSTANCE.isNeedHandle()) {
                     return;
                 }
                 // 有任务需要修改视角强制退出

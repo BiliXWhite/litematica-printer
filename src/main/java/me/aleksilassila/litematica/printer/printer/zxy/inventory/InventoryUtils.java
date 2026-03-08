@@ -1,8 +1,8 @@
 package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
-import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
-import me.aleksilassila.litematica.printer.utils.ShulkerUtils;
+import me.aleksilassila.litematica.printer.utils.ModUtils;
+import me.aleksilassila.litematica.printer.utils.BlockUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.mixin.printer.litematica.InventoryUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils;
@@ -107,7 +107,7 @@ public class InventoryUtils {
                     MemoryUtils.currentMemoryKey = client.level.dimension().identifier();
                     MemoryUtils.itemStack = new ItemStack(item);
                     if (SearchItem.search(true)) {
-                        ModLoadStatus.closeScreen++;
+                        ModUtils.closeScreen++;
                         isOpenHandler = true;
                         ClientPlayerTickManager.PRINT.setPrinterMemorySync(true);
                         return true;
@@ -124,7 +124,7 @@ public class InventoryUtils {
                         //#else
                         //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), ResourceKey.create(Registries.DIMENSION, dimension));
                         //#endif
-                    //$$                if(ModLoadStatus.closeScreen == 0) ModLoadStatus.closeScreen++;
+                    //$$                if(ModUtils.closeScreen == 0) ModUtils.closeScreen++;
                     //$$                me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager.PRINT.setPrinterMemorySync(true);
                     //$$                isOpenHandler = true;
                     //$$                return true;
@@ -214,10 +214,10 @@ public class InventoryUtils {
                         try {
                             shulkerBoxSlot = i;
                             //#if MC >= 12001 
-                            //$$ if (ModLoadStatus.isLoadMod("chesttracker")) InteractionTracker.INSTANCE.clear();
+                            //$$ if (ModUtils.isLoadMod("chesttracker")) InteractionTracker.INSTANCE.clear();
                             //#endif
-                            ShulkerUtils.openShulker(stack, shulkerBoxSlot);
-                            ModLoadStatus.closeScreen++;
+                            BlockUtils.openShulker(stack, shulkerBoxSlot);
+                            ModUtils.closeScreen++;
                             isOpenHandler = true;
                             shulkerCooldown = Configs.Placement.QUICK_SHULKER_COOLDOWN.getIntegerValue();
                             return true;

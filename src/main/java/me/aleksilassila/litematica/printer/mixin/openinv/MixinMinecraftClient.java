@@ -9,7 +9,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
-import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
+import me.aleksilassila.litematica.printer.utils.ModUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -26,8 +26,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList;
 
 //#if MC <= 12103
 //$$ import net.minecraft.world.entity.player.Inventory;
@@ -46,8 +44,8 @@ public abstract class MixinMinecraftClient {
 
     @Inject(method = {"setScreen"}, at = {@At(value = "HEAD")}, cancellable = true)
     public void setScreen(@Nullable Screen screen, CallbackInfo ci) {
-        if(ModLoadStatus.closeScreen > 0 && /*screen != null &&*/ screen instanceof AbstractContainerScreen<?>){
-            ModLoadStatus.closeScreen--;
+        if(ModUtils.closeScreen > 0 && /*screen != null &&*/ screen instanceof AbstractContainerScreen<?>){
+            ModUtils.closeScreen--;
             ci.cancel();
         }
     }
@@ -63,7 +61,7 @@ public abstract class MixinMinecraftClient {
         Item item = level.getBlockState(pos).getBlock().asItem();
         if (player.inventoryMenu.slots.stream().noneMatch(slot -> slot.getItem().getItem().equals(item)) &&
                 !player.getAbilities().instabuild && (Configs.Core.CLOUD_INVENTORY.getBooleanValue() || Configs.Placement.QUICK_SHULKER.getBooleanValue())) {
-            lastNeedItemList.add(item);
+            InventoryUtils.lastNeedItemList.add(item);
             InventoryUtils.switchItem();
             return;
         }

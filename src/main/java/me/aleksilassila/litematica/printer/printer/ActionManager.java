@@ -5,7 +5,7 @@ import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.mixin_extension.MultiPlayerGameModeExtension;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
-import me.aleksilassila.litematica.printer.utils.DirectionUtils;
+import me.aleksilassila.litematica.printer.utils.BlockUtils;
 import me.aleksilassila.litematica.printer.utils.InventoryUtils;
 import me.aleksilassila.litematica.printer.utils.NetworkUtils;
 import net.minecraft.client.player.LocalPlayer;
@@ -25,7 +25,6 @@ import net.minecraft.world.entity.player.Input;
 //$$ import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
 //#endif
 
-@SuppressWarnings("SpellCheckingInspection")
 public class ActionManager {
     public static final ActionManager INSTANCE = new ActionManager();
 
@@ -65,7 +64,7 @@ public class ActionManager {
         }
         if (!useProtocol && !needWaitModifyLook) {
             if (look != null) {
-                Direction lookDirection = DirectionUtils.orderedByNearest(look.yaw(), look.pitch())[0];
+                Direction lookDirection = BlockUtils.orderedByNearest(look.yaw(), look.pitch())[0];
                 if (lookDirection.getAxis().isHorizontal()) {
                     needWaitModifyLook = true;
                     return this;
@@ -79,12 +78,12 @@ public class ActionManager {
         if (look == null) {
             direction = side;
         } else {
-            direction = DirectionUtils.getHorizontalDirection(look.yaw());
+            direction = BlockUtils.getHorizontalDirection(look.yaw());
         }
         Vec3 hitVec;
         if (!useProtocol) {
             Vec3 targetCenter = Vec3.atCenterOf(target);
-            Vec3 sideOffset = Vec3.atLowerCornerOf(DirectionUtils.getVector(side)).scale(0.5);
+            Vec3 sideOffset = Vec3.atLowerCornerOf(BlockUtils.getVector(side)).scale(0.5);
             Vec3 rotatedHitModifier = hitModifier.yRot((direction.toYRot() + 90) % 360).scale(0.5);
             hitVec = targetCenter.add(sideOffset).add(rotatedHitModifier);
         } else {

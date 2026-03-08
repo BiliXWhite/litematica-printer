@@ -3,21 +3,15 @@ package me.aleksilassila.litematica.printer.enums;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
-import me.aleksilassila.litematica.printer.utils.FilterUtils;
-import me.aleksilassila.litematica.printer.utils.BlockStateUtils;
+import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
+import me.aleksilassila.litematica.printer.utils.BlockUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraft.world.level.block.state.properties.WallSide;
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 public enum BlockPrintState {
@@ -54,7 +48,7 @@ public enum BlockPrintState {
         // 方块相同
         if (requiredState.getBlock().equals(currentState.getBlock())) {
             // 状态不同，则返回错误状态
-            if (!BlockStateUtils.statesEqualIgnoreProperties(requiredState, currentState, propertiesToIgnore)) {
+            if (!BlockUtils.statesEqualIgnoreProperties(requiredState, currentState, propertiesToIgnore)) {
                 return ERROR_BLOCK_STATE;
             }
         }
@@ -68,8 +62,8 @@ public enum BlockPrintState {
 
         // 如果启用了替换功能，且当前方块在可替换列表中，则返回缺失方块状态（实际上这会和破坏额外方块打架）
         if (Configs.Print.PRINT_REPLACE.getBooleanValue() &&
-                replaceSet.stream().anyMatch(string -> !FilterUtils.matchName(string, requiredState) &&
-                        FilterUtils.matchName(string, currentState)) && !requiredState.isAir()
+                replaceSet.stream().anyMatch(string -> !LitematicaUtils.matchName(string, requiredState) &&
+                        LitematicaUtils.matchName(string, currentState)) && !requiredState.isAir()
         ) {
             return MISSING_BLOCK;
         }
