@@ -39,7 +39,7 @@ public class FluidHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected int getMaxEffectiveExecutionsPerTick() {
+    protected int getMaxExecutions() {
         return Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue();
     }
 
@@ -90,7 +90,7 @@ public class FluidHandler extends ClientPlayerTickHandler {
             if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook) {
                 skipIteration.set(true);
             }
-            setBlockPosCooldown(blockPos, Fluids.WATER.getTickDelay(level) * 2);
+            setCooldown(blockPos, Fluids.WATER.getTickDelay(level) * 2);
         }
     }
 }

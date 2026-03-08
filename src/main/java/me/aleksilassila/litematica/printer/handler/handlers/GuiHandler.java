@@ -35,13 +35,13 @@ public class GuiHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected boolean isNeedRangeCheck() {
+    protected boolean needsRangeCheck() {
         return false;
     }
 
     @Override
-    public boolean canIterationBlockPos(BlockPos pos) {
-        return super.canIterationBlockPos(pos);
+    public boolean canProcessPos(BlockPos pos) {
+        return super.canProcessPos(pos);
     }
 
     @Override

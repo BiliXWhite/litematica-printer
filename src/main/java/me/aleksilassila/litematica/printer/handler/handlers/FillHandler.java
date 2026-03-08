@@ -38,7 +38,7 @@ public class FillHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected int getMaxEffectiveExecutionsPerTick() {
+    protected int getMaxExecutions() {
         return Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue();
     }
 
@@ -84,7 +84,7 @@ public class FillHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    public boolean canIterationBlockPos(BlockPos blockPos) {
+    public boolean canProcessPos(BlockPos blockPos) {
         if (Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FillBlockModeType.HANDHELD) {
             ItemStack heldStack = player.getMainHandItem(); // 获取主手物品
             return !heldStack.isEmpty() && heldStack.getCount() > 0;
@@ -114,7 +114,7 @@ public class FillHandler extends ClientPlayerTickHandler {
                 if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook){
                     skipIteration.set(true);
                 }
-                this.setBlockPosCooldown(blockPos, ConfigUtils.getPlaceCooldown());
+                this.setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
             }
         }
     }

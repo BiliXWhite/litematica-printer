@@ -21,7 +21,7 @@ public class BedrockHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected int getMaxEffectiveExecutionsPerTick() {
+    protected int getMaxExecutions() {
         return Configs.Break.BREAK_BLOCKS_PER_TICK.getIntegerValue();
     }
 
@@ -47,6 +47,6 @@ public class BedrockHandler extends ClientPlayerTickHandler {
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         BlockUtils.addToBreakList(blockPos, client.level);
-        setBlockPosCooldown(blockPos, 100);
+        setCooldown(blockPos, 100);
     }
 }

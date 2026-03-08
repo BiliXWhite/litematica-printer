@@ -62,13 +62,13 @@ public class MineHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected int getMaxEffectiveExecutionsPerTick() {
+    protected int getMaxExecutions() {
         return Configs.Break.BREAK_BLOCKS_PER_TICK.getIntegerValue();
     }
 
     @Override
-    public boolean canIterationBlockPos(BlockPos pos) {
-        if (isBlockPosOnCooldown(pos) || BlockPosCooldownManager.INSTANCE.isOnCooldown(level, FluidHandler.NAME, pos)) {
+    public boolean canProcessPos(BlockPos pos) {
+        if (isOnCooldown(pos) || BlockPosCooldownManager.INSTANCE.isOnCooldown(level, FluidHandler.NAME, pos)) {
             return false;
         }
         return LitematicaUtils.canBreakBlock(pos) && mineRestriction(level.getBlockState(pos));
@@ -79,10 +79,10 @@ public class MineHandler extends ClientPlayerTickHandler {
         BlockBreakResult result = LitematicaUtils.INSTANCE.continueDestroyBlock(blockPos);
         if (result == BlockBreakResult.IN_PROGRESS) {
             skipIteration.set(true);    // 本 TICK 退出剩下位置迭代
-            this.setBlockPosCooldown(blockPos, getBreakCooldown());
+            this.setCooldown(blockPos, getBreakCooldown());
             return;
         }
-        this.setBlockPosCooldown(blockPos, getBreakCooldown());
+        this.setCooldown(blockPos, getBreakCooldown());
     }
 
 }

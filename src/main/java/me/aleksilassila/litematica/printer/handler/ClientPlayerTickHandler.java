@@ -32,10 +32,10 @@ import java.util.concurrent.atomic.AtomicReference;
  * 打印机客户端玩家Tick抽象处理器
  */
 public abstract class ClientPlayerTickHandler extends ConfigUtils {
-    // 玩家交互盒：存储迭代范围，null表示不使用迭代功能
+    // 交互盒引用：存储迭代范围，null表示不使用迭代功能
     @Getter
     @Nullable
-    public final AtomicReference<PrinterBox> playerInteractionBox;
+    public final AtomicReference<PrinterBox> boxRef;
 
     @Getter
     private final String id;
@@ -55,13 +55,13 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     // 跳过迭代标志
     private final AtomicReference<Boolean> skipIteration = new AtomicReference<>(false);
     
-    // GUI 方块信息队列（用于渲染）
-    private final Queue<GuiBlockInfo> guiBlockInfoQueue = new ConcurrentLinkedQueue<>();
+    // GUI信息队列（用于渲染）
+    private final Queue<GuiBlockInfo> guiQueue = new ConcurrentLinkedQueue<>();
     
     // 迭代状态缓存（性能优化关键）
     private Iterator<BlockPos> cachedIterator = null;
     private final BlockPos lastBasePos = null;
-    private int cachedExpandRange = -1;
+    private int expandRange = -1;
 
     protected Minecraft mc;
     protected ClientLevel level;
@@ -74,23 +74,23 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     @Nullable
     protected BlockHitResult blockHitResult;
     @Nullable
-    private PrinterBox lastPlayerInteractionBox;
+    private PrinterBox lastBox;
     @Nullable
-    private BlockPos lastPlayerPos;
+    private BlockPos lastPos;
 
     private long lastTickTime = -1L;
 
     @Getter
     private int renderIndex = 0;
 
-    private int guiBlockPosCacheTicks;
+    private int guiCacheTicks;
 
     protected ClientPlayerTickHandler(String id, @Nullable PrintModeType printMode, @Nullable ConfigBoolean enableConfig, @Nullable ConfigOptionList selectionType, boolean useBox) {
         this.id = id;
         this.printMode = printMode;
         this.enableConfig = enableConfig;
         this.selectionType = selectionType;
-        this.playerInteractionBox = useBox ? new AtomicReference<>() : null;
+        this.boxRef = useBox ? new AtomicReference<>() : null;
         updateVariables();
     }
 
@@ -111,10 +111,10 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
      */
     public void tick() {
         // GUI缓存倒计时
-        if (guiBlockPosCacheTicks > 0) {
-            guiBlockPosCacheTicks--;
+        if (guiCacheTicks > 0) {
+            guiCacheTicks--;
         } else {
-            guiBlockInfoQueue.clear();
+            guiQueue.clear();
             renderIndex = 0;
         }
 
@@ -130,111 +130,100 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
 
         // 基础检查
         if (!isEnable()) {
-            lastPlayerPos = null;
+            lastPos = null;
             return;
         }
 
         updateVariables();
         if (mc == null || level == null || player == null || connection == null || gameMode == null || gameType == null) {
-            lastPlayerPos = null;
+            lastPos = null;
             return;
         }
 
-        updatePlayerInteractionBox();
+        updateBox();
         preprocess();
 
-        if (!isConfigAllowExecute()) {
-            lastPlayerPos = null;
+        if (!isConfigAllowed()) {
+            lastPos = null;
             return;
         }
 
         // 执行方块迭代
-        if (!executeBlockIteration()) {
-            lastPlayerPos = null;
+        if (!iterateBlocks()) {
+            lastPos = null;
         }
     }
 
     /**
-     * 更新玩家交互盒：根据玩家位置和配置动态调整迭代范围
-     * 性能优化：只在必要时重建交互盒，复用迭代器状态
+     * 更新交互盒：根据玩家位置和配置动态调整迭代范围
      */
-    private void updatePlayerInteractionBox() {
-        if (playerInteractionBox == null) return;
+    private void updateBox() {
+        if (boxRef == null) return;
 
         BlockPos playerPos = player.getOnPos();
-        PrinterBox box = playerInteractionBox.get();
+        PrinterBox box = boxRef.get();
 
-        // 计算当前需要的扩展范围（但不立即使用）
-        int currentExpandRange = Configs.Core.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()
+        int currentRange = Configs.Core.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()
                 ? (int) PlayerUtils.getPlayerBlockInteractionRange(5)
                 : getWorkRange();
 
-        // 检查是否需要重建交互盒（首次创建、配置变化或玩家移动超过阈值）
+        // 检查是否需要重建交互盒
         boolean needRebuild = box == null 
-                || !box.equals(lastPlayerInteractionBox) 
-                || lastPlayerPos == null
-                || !lastPlayerPos.closerThan(playerPos, getWorkRange() * 0.7)
-                || cachedExpandRange != currentExpandRange;
+                || !box.equals(lastBox) 
+                || lastPos == null
+                || !lastPos.closerThan(playerPos, getWorkRange() * 0.7)
+                || expandRange != currentRange;
 
         if (needRebuild) {
-            lastPlayerPos = playerPos;
-            cachedExpandRange = currentExpandRange;
+            lastPos = playerPos;
+            expandRange = currentRange;
 
-            // 创建新的交互盒
-            box = new PrinterBox(playerPos).expand(cachedExpandRange);
-            lastPlayerInteractionBox = box;
-            playerInteractionBox.set(box);
+            box = new PrinterBox(playerPos).expand(expandRange);
+            lastBox = box;
+            boxRef.set(box);
 
-            // 同步迭代配置（只在重建时设置）
             box.iterationMode = (IterationOrderType) Configs.Core.ITERATION_ORDER.getOptionListValue();
             box.xIncrement = !Configs.Core.X_REVERSE.getBooleanValue();
             box.yIncrement = !Configs.Core.Y_REVERSE.getBooleanValue();
             box.zIncrement = !Configs.Core.Z_REVERSE.getBooleanValue();
             
-            // 重置迭代器，下次迭代时会重新初始化
             cachedIterator = null;
         }
     }
 
     /**
-     * 执行方块迭代：遍历交互盒内的方块并执行处理逻辑
-     * 性能优化：使用缓存的迭代器，避免重复遍历已处理的方块
+     * 执行方块迭代
      * @return 是否被中断
      */
-    private boolean executeBlockIteration() {
-        if (playerInteractionBox == null || !canExecute()) return false;
+    private boolean iterateBlocks() {
+        if (boxRef == null || !canExecute()) return false;
     
-        PrinterBox box = playerInteractionBox.get();
+        PrinterBox box = boxRef.get();
         if (box == null || !canIterate()) return false;
     
-        // 初始化或复用迭代器
         if (cachedIterator == null) {
             cachedIterator = box.iterator();
         }
     
-        int maxEffectiveExec = getMaxEffectiveExecutionsPerTick();
+        int maxExecs = getMaxExecutions();
         int timeLimit = getIterationTimeLimit();
-        int effectiveExecCount = 0;
+        int execCount = 0;
     
-        // 性能优化：缓存配置值和状态
         boolean debugMode = Configs.Core.DEBUG_OUTPUT.getBooleanValue();
-        boolean needRangeCheck = isNeedRangeCheck();
-        boolean isSchematicHandler = isSchematicBlockHandler();
+        boolean needRangeCheck = needsRangeCheck();
+        boolean isSchematic = isSchematicHandler();
     
-        // 时间限制优化：记录开始时间并设置检查间隔
         long startTime = timeLimit > 0 ? System.nanoTime() : 0;
         long timeLimitNanos = timeLimit * 1_000_000L;
-        int timeCheckInterval = 10; // 每 10 次迭代检查一次时间
+        int checkInterval = 10;
         int iterCount = 0;
     
         skipIteration.set(false);
-        guiBlockInfoQueue.clear();
+        guiQueue.clear();
         renderIndex = 0;
     
-        // 使用缓存的迭代器继续上次的位置
         while (cachedIterator.hasNext()) {
-            // 性能优化：减少时间检查频率
-            if (timeLimit > 0 && ++iterCount % timeCheckInterval == 0) {
+            if (timeLimit > 0 && ++iterCount % checkInterval == 0) {
                 if (System.nanoTime() - startTime >= timeLimitNanos) {
                     stopIteration(true);
                     return true;
@@ -249,12 +238,10 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             BlockPos pos = cachedIterator.next();
             if (pos == null) continue;
     
-            // 性能优化：提前检查可交互性，避免创建 GUI 对象
             if (!ConfigUtils.canInteracted(pos)) continue;
     
-            // 性能优化：提前进行范围检查
             if (needRangeCheck) {
-                if (isSchematicHandler ? !LitematicaUtils.isSchematicBlock(pos)
+                if (isSchematic ? !LitematicaUtils.isSchematicBlock(pos)
                         : !LitematicaUtils.isWithinSelection1ModeRange(pos)) {
                     continue;
                 }
@@ -264,29 +251,26 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                 }
             }
     
-            // 性能优化：只在调试模式下创建 GUI 对象
             if (debugMode) {
-                GuiBlockInfo gui = isSchematicHandler
+                GuiBlockInfo gui = isSchematic
                         ? new GuiBlockInfo(level, SchematicWorldHandler.getSchematicWorld(), pos)
                         : new GuiBlockInfo(level, null, pos);
                 gui.interacted = true;
                 gui.posInSelectionRange = true;
-                gui.execute = canIterationBlockPos(pos) && !isBlockPosOnCooldown(pos);
-                addGuiBlockInfoToQueue(gui);
+                gui.execute = canProcessPos(pos) && !isOnCooldown(pos);
+                addGuiInfo(gui);
             }
     
-            // 执行迭代处理
-            if (canIterationBlockPos(pos) && !isBlockPosOnCooldown(pos)) {
+            if (canProcessPos(pos) && !isOnCooldown(pos)) {
                 executeIteration(pos, skipIteration);
     
-                if (skipIteration.get() || (maxEffectiveExec > 0 && ++effectiveExecCount >= maxEffectiveExec)) {
+                if (skipIteration.get() || (maxExecs > 0 && ++execCount >= maxExecs)) {
                     stopIteration(true);
                     return true;
                 }
             }
         }
     
-        // 迭代完成，清空缓存以便下次重建
         cachedIterator = null;
         stopIteration(false);
         return false;
@@ -294,65 +278,65 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
 
     protected void stopIteration(boolean interrupt) {
         // 如果被打断，保留迭代器状态以便下次继续
-        // 如果完成迭代，cachedIterator 会在 executeBlockIteration 中被置 null
+        // 如果完成迭代，cachedIterator 会在 iterateBlocks 中被置 null
     }
 
-    protected boolean isSchematicBlockHandler() {
+    protected boolean isSchematicHandler() {
         return false;
     }
 
     /**
-     * 添加方块信息到队列并重置缓存时长
+     * 添加GUI信息到队列
      */
-    private void addGuiBlockInfoToQueue(GuiBlockInfo guiBlockInfo) {
-        if (guiBlockInfo != null) {
-            guiBlockInfoQueue.add(guiBlockInfo);
-            guiBlockPosCacheTicks = 20;
+    private void addGuiInfo(GuiBlockInfo info) {
+        if (info != null) {
+            guiQueue.add(info);
+            guiCacheTicks = 20;
         }
     }
 
     /**
-     * 获取当前帧要显示的方块信息（渲染阶段调用）
+     * 获取下一个GUI信息（渲染阶段调用）
      */
     @Nullable
-    public GuiBlockInfo getCurrentRenderGuiBlockInfo() {
-        if (guiBlockInfoQueue.isEmpty()) return null;
+    public GuiBlockInfo nextGuiInfo() {
+        if (guiQueue.isEmpty()) return null;
 
-        GuiBlockInfo[] infoArray = guiBlockInfoQueue.toArray(new GuiBlockInfo[0]);
-        if (renderIndex >= infoArray.length) {
+        GuiBlockInfo[] arr = guiQueue.toArray(new GuiBlockInfo[0]);
+        if (renderIndex >= arr.length) {
             renderIndex = 0;
-            return infoArray[infoArray.length - 1];
+            return arr[arr.length - 1];
         }
-        return infoArray[renderIndex++];
+        return arr[renderIndex++];
     }
 
     /**
-     * 获取队列中最后一个方块信息
+     * 获取最后一个GUI信息
      */
     @Nullable
-    public GuiBlockInfo getGuiBlockInfo() {
-        if (guiBlockInfoQueue.isEmpty()) return null;
-        GuiBlockInfo[] infoArray = guiBlockInfoQueue.toArray(new GuiBlockInfo[0]);
-        return infoArray[infoArray.length - 1];
+    public GuiBlockInfo getLastGuiInfo() {
+        if (guiQueue.isEmpty()) return null;
+        GuiBlockInfo[] arr = guiQueue.toArray(new GuiBlockInfo[0]);
+        return arr[arr.length - 1];
     }
 
-    public void setGuiBlockInfo(@Nullable GuiBlockInfo guiBlockInfo) {
-        addGuiBlockInfoToQueue(guiBlockInfo);
+    public void setGuiInfo(@Nullable GuiBlockInfo info) {
+        addGuiInfo(info);
     }
 
-    public int getGuiBlockInfoQueueSize() {
-        return guiBlockInfoQueue.size();
+    public int getGuiQueueSize() {
+        return guiQueue.size();
     }
 
     /**
      * 配置层面的执行权限校验
      */
-    private boolean isConfigAllowExecute() {
+    private boolean isConfigAllowed() {
         if (!ConfigUtils.isEnable()) return false;
 
         if (printMode != null && enableConfig != null) {
-            WorkingModeType modeType = (WorkingModeType) Configs.Core.WORK_MODE.getOptionListValue();
-            return switch (modeType) {
+            WorkingModeType mode = (WorkingModeType) Configs.Core.WORK_MODE.getOptionListValue();
+            return switch (mode) {
                 case SINGLE -> Configs.Core.WORK_MODE_TYPE.getOptionListValue().equals(printMode);
                 case MULTI -> enableConfig.getBooleanValue();
             };
@@ -365,7 +349,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         return -1;
     }
 
-    protected int getMaxEffectiveExecutionsPerTick() {
+    protected int getMaxExecutions() {
         return -1;
     }
 
@@ -387,7 +371,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         return true;
     }
 
-    public boolean canIterationBlockPos(BlockPos pos) {
+    public boolean canProcessPos(BlockPos pos) {
         return true;
     }
 
@@ -400,12 +384,12 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     /**
      * 判断方块是否处于冷却中
      */
-    public boolean isBlockPosOnCooldown(@Nullable BlockPos pos) {
+    public boolean isOnCooldown(@Nullable BlockPos pos) {
         if (level == null || pos == null) return true;
         return BlockPosCooldownManager.INSTANCE.isOnCooldown(level, id, pos);
     }
 
-    public boolean isBlockPosOnCooldown(String name, @Nullable BlockPos pos) {
+    public boolean isOnCooldown(String name, @Nullable BlockPos pos) {
         if (level == null || pos == null) return true;
         return BlockPosCooldownManager.INSTANCE.isOnCooldown(level, id + "_" + name, pos);
     }
@@ -413,14 +397,14 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     /**
      * 设置方块冷却时间
      */
-    public void setBlockPosCooldown(@Nullable BlockPos pos, int cooldownTicks) {
-        if (level == null || pos == null || cooldownTicks < 1) return;
-        BlockPosCooldownManager.INSTANCE.setCooldown(level, id, pos, cooldownTicks);
+    public void setCooldown(@Nullable BlockPos pos, int ticks) {
+        if (level == null || pos == null || ticks < 1) return;
+        BlockPosCooldownManager.INSTANCE.setCooldown(level, id, pos, ticks);
     }
 
-    public void setBlockPosCooldown(String name, @Nullable BlockPos pos, int cooldownTicks) {
-        if (level == null || pos == null || cooldownTicks < 1) return;
-        BlockPosCooldownManager.INSTANCE.setCooldown(level, id + "_" + name, pos, cooldownTicks);
+    public void setCooldown(String name, @Nullable BlockPos pos, int ticks) {
+        if (level == null || pos == null || ticks < 1) return;
+        BlockPosCooldownManager.INSTANCE.setCooldown(level, id + "_" + name, pos, ticks);
     }
 
 
@@ -432,7 +416,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         return Direction.orderedByNearest(player)[0].getOpposite();
     }
 
-    protected boolean isNeedRangeCheck() {
+    protected boolean needsRangeCheck() {
         return true;
     }
 }

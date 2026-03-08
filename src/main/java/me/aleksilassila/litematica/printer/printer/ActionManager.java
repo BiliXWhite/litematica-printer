@@ -62,15 +62,15 @@ public class ActionManager {
         if (!needWaitModifyLook && look != null) {
             NetworkUtils.sendLookPacket(player, look);
         }
-        if (!useProtocol && !needWaitModifyLook) {
-            if (look != null) {
-                Direction lookDirection = BlockUtils.orderedByNearest(look.yaw(), look.pitch())[0];
-                if (lookDirection.getAxis().isHorizontal()) {
-                    needWaitModifyLook = true;
-                    return this;
-                }
-            }
-        }
+//        if (!useProtocol && !needWaitModifyLook) {
+//            if (look != null) {
+//                Direction lookDirection = BlockUtils.orderedByNearest(look.yaw(), look.pitch())[0];
+//                if (lookDirection.getAxis().isHorizontal()) {
+//                    needWaitModifyLook = true;
+//                    return this;
+//                }
+//            }
+//        }
         if (needWaitModifyLook) {
             needWaitModifyLook = false;
         }
