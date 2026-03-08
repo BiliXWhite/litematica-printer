@@ -32,7 +32,6 @@ import net.minecraft.client.DeltaTracker;
 /**
  * HUD渲染Mixin，负责打印器调试信息和进度条的绘制
  */
-@SuppressWarnings({"SameParameterValue", "SpellCheckingInspection"})
 @Mixin(Gui.class)
 public abstract class MixinGui {
     @Unique
@@ -74,7 +73,7 @@ public abstract class MixinGui {
         lines.add("已经执行: " + booleanToColoredString(guiInfo.execute));
 
         int renderIndex = handler.getRenderIndex();
-        int queueSize = handler.getGuiBlockInfoQueueSize();
+        int queueSize = handler.getGuiQueueSize();
         lines.add("同刻迭代(GUI): " + formatAlignedNumber(renderIndex, queueSize) + "/" + queueSize);
 
         return lines;
@@ -131,7 +130,7 @@ public abstract class MixinGui {
 
         // 1. 收集有效Handler并计算全局最大宽度
         for (ClientPlayerTickHandler handler : ClientPlayerTickManager.VALUES) {
-            GuiBlockInfo guiInfo = handler.getCurrentRenderGuiBlockInfo();
+            GuiBlockInfo guiInfo = handler.nextGuiInfo();
             if (guiInfo == null) continue;
 
             validHandlers.add(handler);
@@ -203,7 +202,7 @@ public abstract class MixinGui {
 
         for (int i = startIndex; i < handlers.size(); i++) {
             ClientPlayerTickHandler handler = handlers.get(i);
-            GuiBlockInfo guiInfo = handler.getCurrentRenderGuiBlockInfo();
+            GuiBlockInfo guiInfo = handler.nextGuiInfo();
             if (guiInfo == null) continue;
 
             // 构建调试文本并计算面板高度

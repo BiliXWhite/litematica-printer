@@ -55,17 +55,17 @@ public class PrintHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected int getMaxEffectiveExecutionsPerTick() {
+    protected int getMaxExecutions() {
         return Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue();
     }
 
     @Override
-    protected boolean isSchematicBlockHandler() {
+    protected boolean isSchematicHandler() {
         return true;
     }
 
     @Override
-    public boolean canIterationBlockPos(BlockPos blockPos) {
+    public boolean canProcessPos(BlockPos blockPos) {
         WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
         if (schematic == null) return false;
         this.ctx = new SchematicBlockContext(client, level, schematic, blockPos);
@@ -111,7 +111,7 @@ public class PrintHandler extends ClientPlayerTickHandler {
         if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook) {
             skipIteration.set(true);
         }
-        setBlockPosCooldown(blockPos, ConfigUtils.getPlaceCooldown());
+        setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
     }
 }
 
