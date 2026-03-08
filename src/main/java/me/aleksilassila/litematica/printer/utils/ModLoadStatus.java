@@ -3,7 +3,7 @@ package me.aleksilassila.litematica.printer.utils;
 import net.fabricmc.loader.api.FabricLoader;
 
 public class ModLoadStatus {
-    //阻止UI显示 如果此时已经在UI中 请设置为2因为关闭UI也会调用一次
+    // 阻止 UI 显示 如果此时已经在 UI 中 请设置为 2 因为关闭 UI 也会调用一次
     public static int closeScreen = 0;
 
     public static boolean isLoadMod(String modId) {

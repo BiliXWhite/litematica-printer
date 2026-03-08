@@ -214,7 +214,7 @@ public class InventoryUtils {
                         try {
                             shulkerBoxSlot = i;
                             //#if MC >= 12001 
-                            //$$ if (ModLoadStatus.isLoadChestTrackerLoaded()) InteractionTracker.INSTANCE.clear();
+                            //$$ if (ModLoadStatus.isLoadMod("chesttracker")) InteractionTracker.INSTANCE.clear();
                             //#endif
                             ShulkerUtils.openShulker(stack, shulkerBoxSlot);
                             ModLoadStatus.closeScreen++;

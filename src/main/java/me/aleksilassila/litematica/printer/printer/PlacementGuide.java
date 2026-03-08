@@ -3,7 +3,6 @@ package me.aleksilassila.litematica.printer.printer;
 import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.printer.action.Action;
 import me.aleksilassila.litematica.printer.printer.action.ClickAction;
-import me.aleksilassila.litematica.printer.utils.ItemUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.BlockPrintState;
 import me.aleksilassila.litematica.printer.utils.*;
@@ -307,7 +306,7 @@ public class PlacementGuide extends PrinterUtils {
                     skip.set(true); // 使用了Block, 但不是该指南的方块, 让下一个指南进行处理
                     return null;
                 }
-                Identifier blockId2 = IdentifierUtils.of(blockId1.toString().replace("dead_", ""));
+                Identifier blockId2 = of(blockId1.toString().replace("dead_", ""));
                 boolean isBlock = blockId1.toString().contains("block");
                 List<Item> items = new ArrayList<>();
                 items.add(block.asItem());
@@ -865,7 +864,7 @@ public class PlacementGuide extends PrinterUtils {
                         return new ClickAction().setItem(Items.GLASS_BOTTLE);
                     } else {
                         //TODO: 未I18n
-                        MessageUtils.setOverlayMessage(Component.nullToEmpty("降低炼药锅内水位需要 §l§6" + ItemUtils.getNameFromItem(Items.GLASS_BOTTLE)), false);
+                        MessageUtils.setOverlayMessage(Component.nullToEmpty("降低炼药锅内水位需要 §l§6" + getNameFromItem(Items.GLASS_BOTTLE)), false);
                     }
                 }
                 if (ctx.currentState.getValue(LayeredCauldronBlock.LEVEL) < ctx.requiredState.getValue(LayeredCauldronBlock.LEVEL))
@@ -873,7 +872,7 @@ public class PlacementGuide extends PrinterUtils {
                         return new ClickAction().setItem(Items.POTION);
                     } else {
                         //TODO: 未I18n
-                        MessageUtils.setOverlayMessage(Component.nullToEmpty("增加炼药锅内水位需要 §l§6" + ItemUtils.getNameFromItem(Items.GLASS_BOTTLE)), false);
+                        MessageUtils.setOverlayMessage(Component.nullToEmpty("增加炼药锅内水位需要 §l§6" + getNameFromItem(Items.GLASS_BOTTLE)), false);
                     }
             }
             case DAYLIGHT_DETECTOR -> {
@@ -1117,4 +1116,29 @@ public class PlacementGuide extends PrinterUtils {
         }
     }
 
+    // 辅助方法：获取物品名称（版本适配）
+    private static Component getNameFromItem(Item item) {
+        //#if MC > 12101
+        return item.getName();
+        //#else
+        //$$ return item.getDescription();
+        //#endif
+    }
+
+    // 辅助方法：创建 Identifier（版本适配）
+    private static Identifier of(String namespace, String path) {
+        //#if MC > 12006
+        return Identifier.fromNamespaceAndPath(namespace, path);
+        //#else
+        //$$ return new ResourceLocation(namespace, path);
+        //#endif
+    }
+
+    private static Identifier of(String string) {
+        //#if MC > 12006
+        return Identifier.parse(string);
+        //#else
+        //$$ return new ResourceLocation(string);
+        //#endif
+    }
 }

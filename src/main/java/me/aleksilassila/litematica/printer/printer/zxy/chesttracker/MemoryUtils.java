@@ -91,7 +91,7 @@ public class MemoryUtils {
         if(PRINTER_MEMORY != null && ZxyUtils.printerMemoryAdding || ClientPlayerTickManager.PRINT.isPrinterMemorySync())
             save(sc , PRINTER_MEMORY);
         MemoryBankAccessImpl.INSTANCE.getLoadedInternal().ifPresent(memoryBank -> save(sc, memoryBank));
-        ClientPlayerTickManager.PRINT.setPrinterMemorySync(false);;
+        ClientPlayerTickManager.PRINT.setPrinterMemorySync(false);
     }
     public static void createPrinterMemory(){
         Optional<Coordinate> current = Coordinate.getCurrent();

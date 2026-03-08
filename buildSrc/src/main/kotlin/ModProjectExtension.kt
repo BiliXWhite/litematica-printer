@@ -68,7 +68,7 @@ private fun getFullProjectVersion(modVersion: String): String {
             version += "+build.$buildNumber"
         }
     }
-    return version;
+    return version
 }
 
 val Project.placeholderProps: Map<String, Any?>

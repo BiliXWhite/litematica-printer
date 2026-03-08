@@ -1,9 +1,9 @@
 package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
 import me.aleksilassila.litematica.printer.mixin_extension.BlockBreakResult;
-import me.aleksilassila.litematica.printer.utils.*;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.mixin_extension.MultiPlayerGameModeExtension;
+import me.aleksilassila.litematica.printer.utils.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
@@ -172,7 +172,7 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
             });
             return BlockBreakResult.COMPLETED;
         }
-        if (ModLoadStatus.isTweakerooLoaded()) {
+        if (ModLoadStatus.isLoadMod("tweakeroo")) {
             if (TweakerooUtils.isToolSwitchEnabled()) {
                 TweakerooUtils.trySwitchToEffectiveTool(blockPos);
             }

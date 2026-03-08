@@ -6,7 +6,6 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.utils.ModLoadStatus;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
-import me.aleksilassila.litematica.printer.utils.IdentifierUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.Minecraft;
@@ -34,6 +33,10 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+/*
+ * 老兄，千万别动这里，这里是坨超级无敌屎山，强烈不建议改动，我也不知道为什么这么写，你去问宅闲鱼。
+ */
 
 //#if MC > 12004
 import net.minecraft.world.level.block.Block;
@@ -71,9 +74,9 @@ import net.minecraft.core.registries.Registries;
 
 public class OpenInventoryPacket {
     private static final @NotNull Minecraft client = Minecraft.getInstance();
-    private static final Identifier OPEN_INVENTORY = IdentifierUtils.of("remoteinventory", "open_inventory");
-    private static final Identifier OPEN_RETURN = IdentifierUtils.of("openreturn", "open_return");
-    private static final Identifier HELLO_REMOTE_INTERACTIONS = IdentifierUtils.of("hello", "hello_remote_interactions");
+    private static final Identifier OPEN_INVENTORY = of("remoteinventory", "open_inventory");
+    private static final Identifier OPEN_RETURN = of("openreturn", "open_return");
+    private static final Identifier HELLO_REMOTE_INTERACTIONS = of("hello", "hello_remote_interactions");
 
     //#if MC > 12104
     private static final TicketType OPEN_TICKET = TicketType.UNKNOWN;
@@ -360,7 +363,7 @@ public class OpenInventoryPacket {
                 //#else
                 String translationKey = key.identifier().toLanguageKey();
                 String translate = StringUtils.translate(translationKey);
-                if (client.player != null) client.player.displayClientMessage(Component.nullToEmpty("打开容器失败 \n位于"+ translate+"  "+pos.getCenter().toString()),false);
+                if (client.player != null) client.player.displayClientMessage(Component.nullToEmpty("打开容器失败 \n位于"+ translate+"  "+ pos.getCenter()),false);
                 //#endif
 
                 //#if MC >= 12001
@@ -376,7 +379,7 @@ public class OpenInventoryPacket {
             ModLoadStatus.closeScreen--;
             openIng = false;
             isOpenHandler = false;
-            ClientPlayerTickManager.PRINT.setPrinterMemorySync(false); ;
+            ClientPlayerTickManager.PRINT.setPrinterMemorySync(false);
             key = null;
             pos = null;
         }
@@ -420,5 +423,13 @@ public class OpenInventoryPacket {
 
     public static boolean isContainer(BlockEntity blockEntity){
         return blockEntity instanceof Container;
+    }
+
+    public static Identifier of(String namespace, String path) {
+        //#if MC > 12006
+        return Identifier.fromNamespaceAndPath(namespace, path);
+        //#else
+        //$$ return new ResourceLocation(namespace, path);
+        //#endif
     }
 }

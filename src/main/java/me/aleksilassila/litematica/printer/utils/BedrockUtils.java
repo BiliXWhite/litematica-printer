@@ -19,7 +19,7 @@ public class BedrockUtils {
     private static Method setBedrockMinerFeatureEnableMethod;
 
     static {
-        if (ModLoadStatus.isBedrockMinerLoaded()) {
+        if (ModLoadStatus.isLoadMod("bedrockminer")) {
             try {
                 Class<?> taskManagerClass = Class.forName("com.github.bunnyi116.bedrockminer.task.TaskManager");
                 Method getInstanceMethod = taskManagerClass.getDeclaredMethod("getInstance");
