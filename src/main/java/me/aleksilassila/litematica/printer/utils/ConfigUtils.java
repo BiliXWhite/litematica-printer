@@ -13,7 +13,7 @@ public class ConfigUtils {
     @NotNull
     public static final Minecraft client = Minecraft.getInstance();
 
-    public static boolean isEnable() {
+    public static boolean isPrinterEnable() {
         return Configs.Core.WORK_SWITCH.getBooleanValue();
     }
 

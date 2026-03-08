@@ -129,7 +129,12 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         }
 
         // 基础检查
-        if (!isEnable()) {
+        if (!isPrinterEnable()) {
+            lastPos = null;
+            return;
+        }
+
+        if (!isConfigAllowed()) {
             lastPos = null;
             return;
         }
@@ -141,12 +146,8 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         }
 
         updateBox();
+        // 例如填充和拍流体等需要额外方块的模式，需要提前处理好转换
         preprocess();
-
-        if (!isConfigAllowed()) {
-            lastPos = null;
-            return;
-        }
 
         // 执行方块迭代
         if (!iterateBlocks()) {
@@ -164,14 +165,14 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         PrinterBox box = boxRef.get();
 
         int currentRange = Configs.Core.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()
-                ? (int) PlayerUtils.getPlayerBlockInteractionRange(5)
+                ? (int) PlayerUtils.getInteractionRange(5)
                 : getWorkRange();
 
         // 检查是否需要重建交互盒
-        boolean needRebuild = box == null 
-                || !box.equals(lastBox) 
+        boolean needRebuild = box == null
+                || !box.equals(lastBox)
                 || lastPos == null
-                || !lastPos.closerThan(playerPos, getWorkRange() * 0.7)
+                || !lastPos.closerThan(playerPos, getWorkRange() * 0.4)
                 || expandRange != currentRange;
 
         if (needRebuild) {
@@ -332,7 +333,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
      * 配置层面的执行权限校验
      */
     private boolean isConfigAllowed() {
-        if (!ConfigUtils.isEnable()) return false;
+        if (!ConfigUtils.isPrinterEnable()) return false;
 
         if (printMode != null && enableConfig != null) {
             WorkingModeType mode = (WorkingModeType) Configs.Core.WORK_MODE.getOptionListValue();

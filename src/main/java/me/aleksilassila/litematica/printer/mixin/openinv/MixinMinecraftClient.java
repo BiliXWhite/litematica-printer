@@ -73,7 +73,7 @@ public abstract class MixinMinecraftClient {
     //$$     int slotWithStack = original.call(instance, stack);
     //$$     if(!player.getAbilities().instabuild && (Configs.Core.CLOUD_INVENTORY.getBooleanValue() || Configs.Placement.QUICK_SHULKER.getBooleanValue()) && slotWithStack == -1){
     //$$         Item item = stack.getItem();
-    //$$         lastNeedItemList.add(item);
+    //$$         InventoryUtils.lastNeedItemList.add(item);
     //$$         InventoryUtils.switchItem();
     //$$         return -1;
     //$$     }

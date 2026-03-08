@@ -30,27 +30,32 @@ public class ClientPlayerTickManager {
             GUI, PRINT, FILL, FLUID, MINE, BEDROCK
     );
 
-    public static void tick() {
-        // 本次TICK共享部分预先检查
+public static void tick() {
         if (InventoryUtils.isOpenHandler || InventoryUtils.switchItem() || LitematicaUtils.INSTANCE.isNeedHandle()) {
             return;
         }
+        
+        // 检查是否需要等待视角修改
         if (ActionManager.INSTANCE.sendQueue(mc.player).needWaitModifyLook) {
             return;
         }
+
+        // 延迟检查
         if (Configs.Core.LAG_CHECK.getBooleanValue()) {
             if (packetTick > Configs.Core.LAG_CHECK_MAX.getIntegerValue()) {
                 return;
             }
             packetTick++;
         }
+
+        // 遍历所有处理器执行tick逻辑
         for (ClientPlayerTickHandler handler : VALUES) {
+            // 非GUI处理器需要进行二次迭代检查，避免资源抢占问题
             if (!(handler instanceof GuiHandler)) {
-                // 同TICK不同处理程序进行二次迭代检查, 避免独立的处理程序修改了内容没有及时跳出导致出现资源抢占问题
                 if (InventoryUtils.isOpenHandler || InventoryUtils.switchItem() || LitematicaUtils.INSTANCE.isNeedHandle()) {
                     return;
                 }
-                // 有任务需要修改视角强制退出
+                // 有任务需要修改视角时强制退出
                 if (ActionManager.INSTANCE.needWaitModifyLook) {
                     return;
                 }

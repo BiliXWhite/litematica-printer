@@ -33,7 +33,7 @@ public class PlayerUtils {
         return playerEntity.getAbilities();
     }
 
-    public static double getPlayerBlockInteractionRange(double defaultRange) {
+    public static double getInteractionRange(double defaultRange) {
         //#if MC>=12005
         if (client.player != null) {
             return client.player.blockInteractionRange();
@@ -46,9 +46,9 @@ public class PlayerUtils {
         return defaultRange;
     }
 
-    public static double getPlayerBlockInteractionRange() {
+    public static double getInteractionRange() {
         boolean creative = client.gameMode != null && client.gameMode.getPlayerMode().isCreative();
-        return getPlayerBlockInteractionRange(creative ? 5.0F : 4.5F);
+        return getInteractionRange(creative ? 5.0F : 4.5F);
     }
 
     public static boolean isWithinBlockInteractionRange(LocalPlayer player, BlockPos blockPos, double additionalRange) {
@@ -62,7 +62,7 @@ public class PlayerUtils {
         //#else
         //$$ double eyePosY = player.getY() + 1.5;
         //#endif
-        double distance = getPlayerBlockInteractionRange(5) + additionalRange;
+        double distance = getInteractionRange(5) + additionalRange;
         //#if MC > 12006
         double dx = Math.max(Math.max(blockPosX - eyePosX, eyePosX - (blockPosX + 1)), 0);
         double dy = Math.max(Math.max(blockPosY - eyePosY, eyePosY - (blockPosY + 1)), 0);
