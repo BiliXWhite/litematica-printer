@@ -287,7 +287,7 @@ public class LitematicaUtils {
 
     public static boolean breakRestriction(BlockState blockState) {
         if (Configs.Break.BREAK_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
-            if (!ModUtils.isLoadMod("tweakeroo")) return true;
+            if (!ModUtils.isTweakerooLoaded()) return true;
             UsageRestriction.ListType listType = PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
                 return fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
@@ -355,7 +355,7 @@ public class LitematicaUtils {
                 if (!ConfigUtils.canInteracted(pos) || !canBreakBlock(pos) || !breakRestriction(level.getBlockState(pos))) {
                     continue;
                 }
-                if (ModUtils.isLoadMod("tweakeroo")) {
+                if (ModUtils.isTweakerooLoaded()) {
                     if (ModUtils.isToolSwitchEnabled()) {
                         ModUtils.trySwitchToEffectiveTool(pos);
                     }

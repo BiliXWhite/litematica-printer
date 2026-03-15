@@ -172,7 +172,7 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
             });
             return BlockBreakResult.COMPLETED;
         }
-        if (ModUtils.isLoadMod("tweakeroo")) {
+        if (ModUtils.isTweakerooLoaded()) {
             if (ModUtils.isToolSwitchEnabled()) {
                 ModUtils.trySwitchToEffectiveTool(blockPos);
             }

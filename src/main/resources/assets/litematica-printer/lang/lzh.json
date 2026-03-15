@@ -8,6 +8,8 @@
   "litematica_printer.config.breakBlocksPerTick.desc": "每遊戲刻可破之石數。值愈高，則破石愈疾（然石須於一刻內可破）。\n設§b0§r則無上限，可輔以§6§l包絡置石§r增益其效。",
   "litematica_printer.config.breakCheckHardness": "察石之堅",
   "litematica_printer.config.breakCheckHardness.desc": "是否繞過堅不可破之石（硬度為-1者）。若伺服器獨改某石硬度，可閉此選項。",
+  "litematica_printer.config.checkByBlockChange": "察石變以知破",
+  "litematica_printer.config.checkByBlockChange.desc": "啟則藉察石之變易以斷破石功成與否，非賴破石進度。於某些伺服器上，或能更準察破石之成。",
   "litematica_printer.config.breakCooldown": "破石調息刻",
   "litematica_printer.config.breakCooldown.desc": "破同一石後須靜候之刻數，期滿方可再破。",
   "litematica_printer.config.breakInterval": "破石間隔刻",

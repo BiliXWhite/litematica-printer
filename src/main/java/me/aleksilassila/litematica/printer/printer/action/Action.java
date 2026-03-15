@@ -36,18 +36,13 @@ public class Action {
     protected Boolean shift = null;
 
     @Getter
-    protected int waitTick = 0;     // 会占用其他任务
+    protected Boolean needWaitModifyLook = false;
 
     public Action() {
         this.sides = new HashMap<>();
         for (Direction direction : Direction.values()) {
             sides.put(direction, new Vec3(0, 0, 0));
         }
-    }
-
-    public Action setLookYawPitch(float lookYaw, float lookPitch) {
-        this.playerLook = new PlayerLook(lookYaw, lookPitch);
-        return this;
     }
 
     public Action setLookRotation(int lookRotation) {
@@ -63,6 +58,15 @@ public class Action {
     public Action setLookDirection(Direction lookDirectionYaw, Direction lookDirectionPitch) {
         this.playerLook = new PlayerLook(lookDirectionYaw, lookDirectionPitch);
         return this;
+    }
+
+    public Action setNeedWaitModifyLook(boolean needWaitModifyLook) {
+        this.needWaitModifyLook = needWaitModifyLook;
+        return this;
+    }
+
+    public Action setNeedWaitModifyLook() {
+        return this.setNeedWaitModifyLook(true);
     }
 
     public @Nullable Item[] getRequiredItems(Block backup) {
@@ -162,11 +166,6 @@ public class Action {
 
     public Action setShift() {
         return this.setShift(true);
-    }
-
-    public Action setWaitTick(int waitTick) {
-        this.waitTick = waitTick;
-        return this;
     }
 
     public Action queueAction(@NotNull BlockPos blockPos, @NotNull Direction side, boolean useShift, @NotNull LocalPlayer player) {

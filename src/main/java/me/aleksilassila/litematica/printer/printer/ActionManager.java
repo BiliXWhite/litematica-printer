@@ -37,6 +37,7 @@ public class ActionManager {
     @Nullable
     public PlayerLook look;
     public boolean needWaitModifyLook = false;
+    private boolean waitedLook = false;
 
     private ActionManager() {
     }
@@ -59,20 +60,12 @@ public class ActionManager {
             clearQueue();
             return this;
         }
-        if (!needWaitModifyLook && look != null) {
+        if (look != null) {
             NetworkUtils.sendLookPacket(player, look);
         }
-//        if (!useProtocol && !needWaitModifyLook) {
-//            if (look != null) {
-//                Direction lookDirection = BlockUtils.orderedByNearest(look.yaw(), look.pitch())[0];
-//                if (lookDirection.getAxis().isHorizontal()) {
-//                    needWaitModifyLook = true;
-//                    return this;
-//                }
-//            }
-//        }
-        if (needWaitModifyLook) {
-            needWaitModifyLook = false;
+        if (!waitedLook && needWaitModifyLook) {
+            waitedLook = true;
+            return this;
         }
         Direction direction;
         if (look == null) {
@@ -136,5 +129,6 @@ public class ActionManager {
         this.useProtocol = false;
         this.needWaitModifyLook = false;
         this.look = null;
+        this.waitedLook = false;
     }
 }

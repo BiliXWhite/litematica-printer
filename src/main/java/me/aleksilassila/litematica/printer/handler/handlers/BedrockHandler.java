@@ -31,7 +31,7 @@ public class BedrockHandler extends ClientPlayerTickHandler {
             MessageUtils.setOverlayMessage("创造模式无法使用破基岩模式！");
             return false;
         }
-        if (!ModUtils.isLoadMod("bedrockminer")) {
+        if (!ModUtils.isBedrockMinerLoaded()) {
             MessageUtils.setOverlayMessage("未安装 Fabric-Bedrock-Miner 模组/游戏版本小于1.19，无法破基岩！");
             return false;
         }
