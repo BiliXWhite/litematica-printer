@@ -33,7 +33,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
     private static final KeybindSettings GUI_NO_ORDER = KeybindSettings.create(KeybindSettings.Context.GUI, KeyAction.PRESS, false, false, false, true);
 
     // 配置页面是否可视(函数式, 动态获取, 全局统一使用)
-    private static final BooleanSupplier isLoadChestTrackerLoaded = ModUtils::isLoadChestTrackerLoaded;
+    private static final BooleanSupplier isLoadChestTrackerLoaded = ModUtils::isChestTrackerLoaded;
     private static final BooleanSupplier isSingle = () -> Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.SINGLE);
     private static final BooleanSupplier isMulti = () -> Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.MULTI);
 
@@ -329,6 +329,11 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(true)
                 .build();
 
+        // 通过方块更改来判断
+        public static final ConfigBoolean CHECK_BY_BLOCK_CHANGE = bool("checkByBlockChange")
+                .defaultValue(false)
+                .build();
+
         // 模式限制器
         public static final ConfigOptionList BREAK_LIMITER = optionList("breakLimiter")
                 .defaultValue(ExcavateListMode.CUSTOM)
@@ -352,6 +357,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 BREAK_CHECK_HARDNESS,
+                CHECK_BY_BLOCK_CHANGE,
                 BREAK_USE_PACKET,
                 BREAK_INTERVAL,
                 BREAK_BLOCKS_PER_TICK,

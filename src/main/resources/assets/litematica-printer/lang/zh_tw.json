@@ -8,6 +8,8 @@
   "litematica_printer.config.breakBlocksPerTick.desc": "每遊戲刻可破壞的方塊數量。數值越高，每次破壞的方塊越多(前提是方塊可以在一遊戲刻內破壞)。\n設為§b0§r時無上限，可嘗試開啟§6§l使用數據包放置方塊§r優化效率。",
   "litematica_printer.config.breakCheckHardness": "檢查方塊硬度",
   "litematica_printer.config.breakCheckHardness.desc": "是否跳過無法破壞的方塊(也就是硬度為-1的方塊)，如果只在服務端修改了某些方塊的硬度，可以關閉此選項。",
+  "litematica_printer.config.checkByBlockChange": "透過方塊變更檢測",
+  "litematica_printer.config.checkByBlockChange.desc": "啟用後，透過檢測方塊是否發生變化來判斷挖掘是否完成，而不是依賴挖掘進度。在某些伺服器上可能更準確地檢測挖掘完成狀態。",
   "litematica_printer.config.breakCooldown": "挖掘冷卻時間",
   "litematica_printer.config.breakCooldown.desc": "同一位置破壞方塊後的冷卻時間(單位為遊戲刻)，冷卻結束後才會重試破壞操作。",
   "litematica_printer.config.breakInterval": "破壞間隔時間",

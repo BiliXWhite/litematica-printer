@@ -8,6 +8,8 @@
   "litematica_printer.config.breakBlocksPerTick.desc": "Number of blocks that can be broken per game tick. Higher values mean more blocks broken each time (provided the blocks can be broken within one game tick).\nSet to §b0§r for no limit, you can try enabling §6§lUse Packet Placement§r to optimize efficiency.",
   "litematica_printer.config.breakCheckHardness": "Check Block Hardness",
   "litematica_printer.config.breakCheckHardness.desc": "Whether to skip unbreakable blocks (blocks with hardness of -1). If only the hardness of certain blocks has been modified on the server side, you can disable this option.",
+  "litematica_printer.config.checkByBlockChange": "Detect by Block Change",
+  "litematica_printer.config.checkByBlockChange.desc": "When enabled, detects whether mining is complete by checking if the block has changed, rather than relying on mining progress. May more accurately detect mining completion status on some servers.",
   "litematica_printer.config.breakCooldown": "Mining Cooldown Time",
   "litematica_printer.config.breakCooldown.desc": "Cooldown time after breaking blocks at the same location (in game ticks). Retry breaking operation only after cooldown ends.",
   "litematica_printer.config.breakInterval": "Breaking Interval Time",

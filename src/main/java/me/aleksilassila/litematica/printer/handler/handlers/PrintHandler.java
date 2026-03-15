@@ -85,10 +85,17 @@ public class PrintHandler extends ClientPlayerTickHandler {
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         if (Configs.Print.FALLING_CHECK.getBooleanValue() && ctx.requiredState.getBlock() instanceof FallingBlock) {
             BlockPos downPos = blockPos.below();
-            if (level.getBlockState(downPos) != ctx.schematic.getBlockState(downPos)) {
-                MessageUtils.setOverlayMessage("方块 " + ctx.getRequiredBlockName().getString() + " 下方方块不相符，跳过放置");
+
+            if (level.getBlockState(downPos).isAir()) {
+                MessageUtils.setOverlayMessage("方块 " + ctx.getRequiredBlockName().getString() + " 下方无支撑，跳过放置");
                 return;
             }
+
+            if (!ctx.schematic.getBlockState(downPos).isAir() && level.getBlockState(downPos) != ctx.schematic.getBlockState(downPos)) {
+                    MessageUtils.setOverlayMessage("方块 " + ctx.getRequiredBlockName().getString() + " 下方方块不相符，跳过放置");
+                    return;
+                }
+
         }
         Direction side = action.getValidSide(level, blockPos);
         if (side == null) return;
@@ -108,6 +115,9 @@ public class PrintHandler extends ClientPlayerTickHandler {
             ActionManager.INSTANCE.useProtocol = true;
         }
         ActionManager.INSTANCE.setLook(action.getPlayerLook());
+        if (action.getNeedWaitModifyLook()) {
+            skipIteration.set(true);
+        }
         if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook) {
             skipIteration.set(true);
         }

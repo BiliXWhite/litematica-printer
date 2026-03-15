@@ -430,7 +430,10 @@ public class PlacementGuide extends PrinterUtils {
             }
             case LADDER -> {
                 Direction facing = ctx.requiredState.getValue(LadderBlock.FACING);
-                return new Action().setSides(facing).setLookDirection(facing.getOpposite());
+                return new Action()
+                        .setSides(facing)
+                        .setLookDirection(facing.getOpposite())
+                        .setNeedWaitModifyLook();
             }
             case LANTERN -> {
                 if (ctx.requiredState.getValue(LanternBlock.HANGING))
@@ -646,6 +649,8 @@ public class PlacementGuide extends PrinterUtils {
                             facing = facing.getOpposite();
                             action.setShift();
                         }
+                        if (ctx.requiredState.getBlock() instanceof BarrelBlock)
+                            action.setNeedWaitModifyLook();
                         action.setSides(facing).setLookDirection(facing.getOpposite());
                     }
                 }

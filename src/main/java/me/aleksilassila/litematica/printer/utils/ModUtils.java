@@ -32,11 +32,11 @@ public class ModUtils {
         return FabricLoader.getInstance().isModLoaded(modId);
     }
 
-    public static boolean isLoadChestTrackerLoaded(){
+    public static boolean isChestTrackerLoaded(){
         return isLoadMod("chesttracker");
     }
 
-    public static boolean isLoadQuickShulkerLoaded(){
+    public static boolean isQuickShulkerLoaded(){
         return isLoadMod("quickshulker");
     }
 

@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.utils;
 
-import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.QuickShulkerModeType;
 import net.kyrptonaught.quickshulker.client.ClientUtil;
@@ -62,10 +61,8 @@ public class BlockUtils {
     private static Method isBedrockMinerFeatureEnableMethod;
     private static Method setBedrockMinerFeatureEnableMethod;
 
-    static IConfigOptionListEntry openMode = Configs.Placement.QUICK_SHULKER_MODE.getOptionListValue();
-
     static {
-        if (ModUtils.isLoadMod("bedrockminer")) {
+        if (ModUtils.isBedrockMinerLoaded()) {
             try {
                 Class<?> taskManagerClass = Class.forName("com.github.bunnyi116.bedrockminer.task.TaskManager");
                 Method getInstanceMethod = taskManagerClass.getDeclaredMethod("getInstance");
@@ -482,10 +479,10 @@ public class BlockUtils {
 
     // Add methods from BlockUtils
     public static void openShulker(ItemStack stack, int shulkerBoxSlot) {
-        if (openMode == QuickShulkerModeType.CLICK_SLOT) {
+        if (Configs.Placement.QUICK_SHULKER_MODE.getOptionListValue() == QuickShulkerModeType.CLICK_SLOT) {
             client.gameMode.handleInventoryMouseClick(client.player.containerMenu.containerId, shulkerBoxSlot, 1, ClickType.PICKUP, client.player);
-        } else if (openMode == QuickShulkerModeType.INVOKE) {
-            if (ModUtils.isLoadMod("quickshulker")) {
+        } else if (Configs.Placement.QUICK_SHULKER_MODE.getOptionListValue() == QuickShulkerModeType.INVOKE) {
+            if (ModUtils.isQuickShulkerLoaded()) {
                 try {
                     ClientUtil.CheckAndSend(stack, shulkerBoxSlot);
                 } catch (Exception ignored) {}

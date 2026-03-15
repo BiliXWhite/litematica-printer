@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.handler.handlers;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
+import fi.dy.masa.tweakeroo.tweaks.PlacementTweaks;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.ExcavateListMode;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
@@ -11,13 +12,10 @@ import me.aleksilassila.litematica.printer.mixin_extension.BlockBreakResult;
 import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
 import me.aleksilassila.litematica.printer.utils.ModUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.concurrent.atomic.AtomicReference;
-
-import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST;
-import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
-import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
 
 public class MineHandler extends ClientPlayerTickHandler {
     public final static String NAME = "mine";
@@ -31,13 +29,13 @@ public class MineHandler extends ClientPlayerTickHandler {
             return false;
         }
         if (Configs.Mine.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
-            if (!ModUtils.isLoadMod("tweakeroo")) return true;
-            UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
+            if (!ModUtils.isTweakerooLoaded()) return true;
+            UsageRestriction.ListType listType = PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
-                return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
+                return fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
                         .noneMatch(string -> LitematicaUtils.matchBlockName(string, blockState));
             } else if (listType == UsageRestriction.ListType.WHITELIST) {
-                return BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
+                return fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
                         .anyMatch(string -> LitematicaUtils.matchBlockName(string, blockState));
             } else {
                 return true;
@@ -76,8 +74,17 @@ public class MineHandler extends ClientPlayerTickHandler {
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
+        Block block = level.getBlockState(blockPos).getBlock();
+
+        // 继续挖掘（规律是每tick发一次包）
         BlockBreakResult result = LitematicaUtils.INSTANCE.continueDestroyBlock(blockPos);
-        if (result == BlockBreakResult.IN_PROGRESS) {
+
+        if (Configs.Break.CHECK_BY_BLOCK_CHANGE.getBooleanValue()) {
+            if (level.getBlockState(blockPos).is(block)) {
+                skipIteration.set(true);
+                return;
+            }
+        } else if (result == BlockBreakResult.IN_PROGRESS) {
             skipIteration.set(true);    // 本 TICK 退出剩下位置迭代
             this.setCooldown(blockPos, getBreakCooldown());
             return;
