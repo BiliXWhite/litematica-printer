@@ -40,7 +40,7 @@ repositories {
     maven("https://maven.jackf.red/releases") { name = "Jackfred" }   // JackFredLib 依赖
     maven("https://maven.blamejared.com") { name = "BlameJared" }   // Searchables 配置库
     maven("https://maven.kyrptonaught.dev") { name = "Kyrptonaught" }   // KyrptConfig 依赖
-    maven("https://server.bbkr.space/artifactory/libs-release") { name = "CottonMC" }   // LibGui 依赖
+    maven("https://staging.alexiil.uk/maven/") { name = "CottonMC" }   // LibGui 依赖
     maven("https://jitpack.io") { name = "Jitpack" }
     maven("https://mvnrepository.com/artifact/com.belerweb/pinyin4j") { // 拼音库
         name = "Pinyin4j"
