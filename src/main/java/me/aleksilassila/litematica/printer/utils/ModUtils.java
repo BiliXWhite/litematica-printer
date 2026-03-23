@@ -48,6 +48,14 @@ public class ModUtils {
         //#endif
     }
 
+    public static boolean isBlockMinerLoaded() {
+        //#if MC >= 11605
+        return isLoadMod("blockminer");
+        //#else
+        //$$ return false;
+        //#endif
+    }
+
     public static boolean isTweakerooLoaded() {
         return isLoadMod("tweakeroo");
     }
