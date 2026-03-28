@@ -50,7 +50,7 @@ public class InitHandler implements IInitializationHandler {
         Core.WORK_SWITCH.setValueChangeCallback(b -> {
             if (!b.getBooleanValue()) {
                 ActionManager.INSTANCE.clearQueue();
-                if (ModUtils.isBedrockMinerLoaded()) {
+                if (ModUtils.isBedrockMinerLoaded() || ModUtils.isBlockMinerLoaded()) {
                     if (BlockUtils.isWorking()) {
                         BlockUtils.setWorking(false);
                         BlockUtils.setBedrockMinerFeatureEnable(true);
@@ -62,7 +62,7 @@ public class InitHandler implements IInitializationHandler {
         // 切换模式时, 关闭破基岩
         Core.WORK_MODE_TYPE.setValueChangeCallback(b -> {
             if (!b.getOptionListValue().equals(PrintModeType.BEDROCK)) {
-                if (ModUtils.isBedrockMinerLoaded()) {
+                if (ModUtils.isBedrockMinerLoaded() || ModUtils.isBlockMinerLoaded()) {
                     if (BlockUtils.isWorking()) {
                         BlockUtils.setWorking(false);
                         BlockUtils.setBedrockMinerFeatureEnable(true);
