@@ -7,12 +7,13 @@ on:
 
 env:
   IS_THIS_RELEASE: false
-  token1: ${{ secrets.GH_USERNAME }}
-  token2: ${{ secrets.GH_TOKEN }}
 
 jobs:
   build:
     runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_USERNAME: ${{ secrets.GH_USERNAME }}
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
