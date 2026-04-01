@@ -41,6 +41,9 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: build fabricWrapper subproject
+        with:
+          token1: ${{ secrets.GH_USERNAME }}
+          token2: ${{ secrets.GH_TOKEN }}
         run: ./gradlew :fabricWrapper:build --stacktrace
 
       - name: capture build artifacts
