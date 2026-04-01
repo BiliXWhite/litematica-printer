@@ -2,6 +2,12 @@ package me.aleksilassila.litematica.printer.printer.zxy.utils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+
+import com.mojang.blaze3d.pipeline.RenderTarget;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.client.renderer.RenderBuffers;
+import net.minecraft.client.renderer.culling.Frustum;
+
 import fi.dy.masa.malilib.config.options.ConfigColor;
 import fi.dy.masa.malilib.event.RenderEventHandler;
 import fi.dy.masa.malilib.interfaces.IRenderer;
@@ -32,6 +38,13 @@ import fi.dy.masa.malilib.render.RenderContext;
 
 //#if MC > 12006
 import com.mojang.blaze3d.vertex.MeshData;
+import org.joml.Vector4f;
+//#endif
+
+//#if MC >= 260001
+//$$ import org.joml.Matrix4fc;
+//$$ import com.mojang.blaze3d.buffers.GpuBufferSlice;
+//$$ import net.minecraft.client.renderer.state.level.CameraRenderState;
 //#endif
 
 //#if MC <= 12104
@@ -81,7 +94,9 @@ public class HighlightBlockRenderer implements IRenderer {
 
     // @formatter:off
 
-    //#if MC > 12004
+    //#if MC >= 260100
+    //$$ public void test3(Matrix4fc matrices, Color4f color4f, Set<BlockPos> posSet) {
+    //#elseif MC > 12004
     public void test3(Matrix4f matrices, Color4f color4f, Set<BlockPos> posSet) {
     //#else
     //$$ public void test3(PoseStack matrices, Color4f color4f, Set<BlockPos> posSet){
@@ -170,7 +185,9 @@ public class HighlightBlockRenderer implements IRenderer {
     }
 
     @Override
-    //#if MC > 12004
+    //#if MC >= 260001
+    //$$ public void onRenderWorldLast(RenderTarget fb, Matrix4fc matrices, CameraRenderState cameraState, Frustum culling, RenderBuffers buffers, GpuBufferSlice terrainFog, Vector4f fogColor, ProfilerFiller profiler) {
+    //#elseif MC > 12004
     public void onRenderWorldLast(Matrix4f matrices, Matrix4f projMatrix) {
     //#else
     //$$ public void onRenderWorldLast(PoseStack matrices, Matrix4f projMatrix){

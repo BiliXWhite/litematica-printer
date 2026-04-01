@@ -255,7 +255,9 @@ public class OpenInventoryPacket {
         ServerLevel world = server.getLevel(key);
         if (world == null) return;
         BlockState blockState = world.getBlockState(pos);
-        //#if MC > 12104
+        //#if MC >= 260100
+        //$$ world.getChunkSource().addTicketWithRadius(OPEN_TICKET, new ChunkPos(pos.getX(), pos.getZ()), 2);
+        //#elseif MC > 12104
         world.getChunkSource().addTicketWithRadius(OPEN_TICKET, new ChunkPos(pos), 2);
         //#else
         //$$ world.getChunkSource().addRegionTicket(OPEN_TICKET, new ChunkPos(pos), 2, new ChunkPos(pos));
@@ -356,7 +358,12 @@ public class OpenInventoryPacket {
 //            client.player.sendMessage(Text.of("return "+state.toString()));
         } else {
             if (key != null) {
-                //#if MC < 11904
+                //#if MC >= 260100
+                //$$ String translationKey = key.identifier().toLanguageKey();
+                //$$ String translate = StringUtils.translate(translationKey);
+                //$$ if (client.player != null)
+                //$$     MessageUtils.addMessage("打开容器失败 \n位于" + translate + "  " + pos.getCenter());
+                //#elseif MC < 11904
                 //$$ String translationKey = key.location().toString();
                 //$$ String translate = StringUtils.translate(translationKey);
                 //$$ if (client.player != null) me.aleksilassila.litematica.printer.utils.MessageUtils.addMessage("打开容器失败 \n位于"+ translate+"  "+pos.toString());
