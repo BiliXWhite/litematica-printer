@@ -608,8 +608,13 @@ public class PlacementGuide extends PrinterUtils {
                 if (block instanceof FaceAttachedHorizontalDirectionalBlock) {
                     Direction side = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING);
                     AttachFace face = ctx.requiredState.getValue(BlockStateProperties.ATTACH_FACE);
-                    // 简化方向判断逻辑
-                    Direction sidePitch = face == AttachFace.CEILING ? Direction.UP : face == AttachFace.FLOOR ? Direction.DOWN : side;
+                    // 简化方向判断逻辑 三元运算符 Direction.UP那报错？ 应该可以正常运行但是还是换了switch格式
+                    //Direction sidePitch = face == AttachFace.CEILING ? Direction.UP : face == AttachFace.FLOOR ? Direction.DOWN : side;
+                    Direction sidePitch = switch (face) {
+                        case CEILING -> Direction.UP;
+                        case FLOOR   -> Direction.DOWN;
+                        default      -> side;
+                    };
                     if (face != AttachFace.WALL) {
                         side = side.getOpposite();
                     }
@@ -1123,7 +1128,9 @@ public class PlacementGuide extends PrinterUtils {
 
     // 辅助方法：获取物品名称（版本适配）
     private static Component getNameFromItem(Item item) {
-        //#if MC > 12101
+        //#if MC >= 260100
+        //$$ return item.getName(item.getDefaultInstance());
+        //#elseif MC > 12101
         return item.getName();
         //#else
         //$$ return item.getDescription();
