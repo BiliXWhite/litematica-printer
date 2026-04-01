@@ -68,8 +68,8 @@ repositories {
     maven { // WhereIsIt ponuing
         url = uri("https://maven.pkg.github.com/ponuing/WhereIsIt")
         credentials {
-            username = System.getenv("GH_USERNAME")?: "github-actions[bot]"
-            password = System.getenv("GH_TOKEN")?: System.getenv("GITHUB_TOKEN")
+            username = System.getenv("GH_USERNAME")
+            password = System.getenv("GH_TOKEN")
         }
     }
 }
