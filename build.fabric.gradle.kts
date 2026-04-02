@@ -50,7 +50,7 @@ repositories {
     }
 
     // pkg.github.com. needs authentication(system environment)
-    // GH_USERNAME 和 GH_TOKEN 需要在系统环境变量中设置(windows) Github则需要在仓库机密中设置
+    // GH_USERNAME 和 GH_TOKEN 需要在系统环境变量中设置(windows) Github可设置自己用户名 也可以使用默认GITHUB_TOKEN( github-actions[bot] )
     maven { // JackFredLib ponuing
         url = uri("https://maven.pkg.github.com/ponuing/JackFredLib")
         credentials {
@@ -68,8 +68,8 @@ repositories {
     maven { // WhereIsIt ponuing
         url = uri("https://maven.pkg.github.com/ponuing/WhereIsIt")
         credentials {
-            username = System.getenv("GH_USERNAME")
-            password = System.getenv("GH_TOKEN")
+            username = System.getenv("GH_USERNAME")?: "github-actions[bot]"
+            password = System.getenv("GH_TOKEN")?: System.getenv("GITHUB_TOKEN")
         }
     }
 }
@@ -78,6 +78,10 @@ repositories {
 configurations.all {
     resolutionStrategy {
         force("net.fabricmc:fabric-loader:$fabricLoaderVersion")
+        force("com.terraformersmc:modmenu:${prop("modmenu")}")
+        force("maven.modrinth:malilib:${prop("malilib_dependency")}")
+        force("maven.modrinth:litematica:${prop("litematica_dependency")}")
+        force("maven.modrinth:tweakeroo:${prop("tweakeroo_dependency")}")
     }
 }
 

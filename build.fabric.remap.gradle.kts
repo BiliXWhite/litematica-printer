@@ -50,7 +50,7 @@ repositories {
     }
 
     // pkg.github.com. needs authentication(system environment)
-    // GH_USERNAME 和 GH_TOKEN 需要在系统环境变量中设置(windows) Github则需要在仓库机密中设置
+    // GH_USERNAME 和 GH_TOKEN 需要在系统环境变量中设置(windows) Github可设置自己用户名 也可以使用默认GITHUB_TOKEN( github-actions[bot] )
     maven { // JackFredLib ponuing
         url = uri("https://maven.pkg.github.com/ponuing/JackFredLib")
         credentials {
@@ -79,15 +79,9 @@ configurations.all {
     resolutionStrategy {
         force("net.fabricmc:fabric-loader:$fabricLoaderVersion")
         force("com.terraformersmc:modmenu:${prop("modmenu")}")
-        if (mcVersionInt >= 12101) {
-            force("maven.modrinth:malilib:${prop("malilib_dependency")}")
-            force("maven.modrinth:litematica:${prop("litematica_dependency")}")
-            force("maven.modrinth:tweakeroo:${prop("tweakeroo_dependency")}")
-        } else {
-            force("maven.modrinth:malilib:${prop("malilib")}")
-            force("maven.modrinth:litematica:${prop("litematica")}")
-            force("maven.modrinth:tweakeroo:${prop("tweakeroo")}")
-        }
+        force("maven.modrinth:malilib:${prop("malilib_dependency")}")
+        force("maven.modrinth:litematica:${prop("litematica_dependency")}")
+        force("maven.modrinth:tweakeroo:${prop("tweakeroo_dependency")}")
     }
 }
 
@@ -105,9 +99,9 @@ dependencies {
         modImplementation("fi.dy.masa.litematica:${prop("litematica")}")
         modImplementation("fi.dy.masa.tweakeroo:${prop("tweakeroo")}")
     } else { //mcVersionInt < 12101 // use https://api.modrinth.com/maven
-        modImplementation("maven.modrinth:malilib:${prop("malilib")}")
-        modImplementation("maven.modrinth:litematica:${prop("litematica")}")
-        modImplementation("maven.modrinth:tweakeroo:${prop("tweakeroo")}")
+        modImplementation("maven.modrinth:malilib:${prop("malilib_dependency")}")
+        modImplementation("maven.modrinth:litematica:${prop("litematica_dependency")}")
+        modImplementation("maven.modrinth:tweakeroo:${prop("tweakeroo_dependency")}")
     }
 
     // 箱子追踪
