@@ -39,8 +39,8 @@ val Project.mcVersionInt get() = propStrOrNull("mcVersion")?.toIntOrNull() ?: -1
 val Project.fabricLoaderVersion get() = propStrOrNull("loader_version")
 val Project.fabricApiVersion get() = propStrOrNull("fabric_version")
 
-val Project.malilib get() = propStrOrNull("malilib")
-val Project.litematica get() = propStrOrNull("litematica")
+val Project.malilib get() = propStrOrNull("malilib_dependency")
+val Project.litematica get() = propStrOrNull("litematica_dependency")
 
 val Project.lombokVersion get() = propStr("lombok_version")
 
