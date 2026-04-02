@@ -53,9 +53,12 @@ public abstract class MixinMinecraftClient {
     //鼠标中键从打印机库存或通过快捷濳影盒 取出对应物品
     //#if MC >= 260100
     //$$ @WrapOperation(method = "pickBlockOrEntity",at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;handlePickItemFromBlock(Lnet/minecraft/core/BlockPos;Z)V"))
-    //#else
+    //#elseif MC > 12103
     @WrapOperation(method = "pickBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;handlePickItemFromBlock(Lnet/minecraft/core/BlockPos;Z)V"))
+    //#else
+    //$$ @WrapOperation(method = "pickBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;findSlotMatchingItem(Lnet/minecraft/world/item/ItemStack;)I" ))
     //#endif
+
     //#if MC > 12103
     private void doItemPick(MultiPlayerGameMode instance, BlockPos pos, boolean b, Operation<Void> original) {
         if(level == null) {
@@ -72,7 +75,6 @@ public abstract class MixinMinecraftClient {
         original.call(instance, pos, b);
     }
     //#else
-    //$$ @WrapOperation(method = "pickBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;findSlotMatchingItem(Lnet/minecraft/world/item/ItemStack;)I" ))
     //$$ private int doItemPick(Inventory instance, ItemStack stack, Operation<Integer> original) {
     //$$     int slotWithStack = original.call(instance, stack);
     //$$     if(!player.getAbilities().instabuild && (Configs.Core.CLOUD_INVENTORY.getBooleanValue() || Configs.Placement.QUICK_SHULKER.getBooleanValue()) && slotWithStack == -1){
