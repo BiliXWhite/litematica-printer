@@ -41,9 +41,12 @@ jobs:
   changelog:
     runs-on: ubuntu-latest
     continue-on-error: true
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_USERNAME: ${{ secrets.GH_USERNAME }}
     steps:
       - name: Checkout all
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 

@@ -10,7 +10,8 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, 'SKIP') }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GH_USERNAME: ${{ secrets.GH_USERNAME }}
@@ -24,8 +25,8 @@ jobs:
       - name: setup jdk
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'microsoft'
+          java-version: '25'
+          distribution: 'termuin'
 
       - name: Cache Gradle dependencies (公共缓存)
         uses: actions/cache@v3
