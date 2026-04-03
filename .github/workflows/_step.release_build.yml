@@ -56,7 +56,7 @@ jobs:
           find fabricWrapper/build/libs/ -name "*-sources.jar" -exec rm {} \;
 
       - name: Upload versionpack jar
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: Artifacts
           path: fabricWrapper/build/libs/
