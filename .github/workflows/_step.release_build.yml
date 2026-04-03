@@ -24,7 +24,11 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GH_USERNAME: ${{ secrets.GH_USERNAME }}
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Validate gradle wrapper
+        uses: gradle/actions/wrapper-validation@v6
 
       - name: Setup Java
         uses: actions/setup-java@v5
@@ -45,7 +49,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-common
 
-      - name: make gradle wrapper executable
+      - name: Make gradle wrapper executable
         run: chmod +x ./gradlew
 
       - name: Build (多版本模组包)
@@ -61,7 +65,7 @@ jobs:
           name: Artifacts
           path: fabricWrapper/build/libs/
 
-      - name: release
+      - name: Release
         uses: softprops/action-gh-release@v2
         with:
           files: fabricWrapper/build/libs/*
