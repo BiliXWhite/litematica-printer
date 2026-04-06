@@ -35,9 +35,7 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
             ./.gradle
-          # 固定缓存键（公共缓存），不依赖文件哈希
           key: ${{ runner.os }}-gradle-common
-          # 恢复键与主键一致，确保优先使用公共缓存
           restore-keys: |
             ${{ runner.os }}-gradle-common
 
@@ -51,4 +49,5 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: Artifacts
-          path: fabricWrapper/build/libs/
+          path: fabricWrapper/build/libs/*.jar
+          archive: false
