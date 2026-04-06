@@ -85,17 +85,21 @@ public abstract class MixinGui {
     }
 
     // @formatter:off
-    @Inject(method = "renderItemHotbar", at = @At("TAIL"))
-    //#if MC > 12006
-    private void hookRenderItemHotbar(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci
-    //#elseif MC >= 12006
-    //$$ private void hookRenderItemHotbar(GuiGraphics guiGraphics, float f, CallbackInfo ci
-    //#elseif MC > 11904 && MC < 12006
-    //$$ private void hookRenderItemHotbar(float f, GuiGraphics guiGraphics, CallbackInfo ci
+    //#if MC >= 260100
+    //$$ @Inject(method = "extractHotbarAndDecorations", at = @At("TAIL"))
     //#else
-    //$$ private void hookRenderItemHotbar(float f, PoseStack poseStack, CallbackInfo ci
+    @Inject(method = "renderItemHotbar", at = @At("TAIL"))
     //#endif
-    ) {
+
+    //#if MC > 12006
+    private void hookRenderItemHotbar(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+    //#elseif MC >= 12006
+    //$$ private void hookRenderItemHotbar(GuiGraphics guiGraphics, float f, CallbackInfo ci) {
+    //#elseif MC > 11904 && MC < 12006
+    //$$ private void hookRenderItemHotbar(float f, GuiGraphics guiGraphics, CallbackInfo ci) {
+    //#else
+    //$$ private void hookRenderItemHotbar(float f, PoseStack poseStack, CallbackInfo ci) {
+    //#endif
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null || mc.player.isSpectator() || !ConfigUtils.isPrinterEnable()) {
             return;
@@ -105,10 +109,10 @@ public abstract class MixinGui {
         float scaledHeight = mc.getWindow().getGuiScaledHeight();
 
         // 初始化渲染矩阵
-        //#if MC <= 11904
-        //$$ RenderUtils.initMatrix(poseStack);
-        //#else
+        //#if MC > 11904
         RenderUtils.initGuiGraphics(guiGraphics);
+        //#else
+        //$$ RenderUtils.initMatrix(poseStack);
         //#endif
 
         if (Configs.Core.DEBUG_OUTPUT.getBooleanValue()) {

@@ -248,7 +248,11 @@ public class LitematicaUtils {
             return false;
         }
         // 直接处理Block类型的TagKey流，无类型转换
+        //#if MC >= 260100
+        //$$ Stream<TagKey<Block>> blockTagStream = blockState.tags();
+        //#else
         Stream<TagKey<Block>> blockTagStream = blockState.getTags();
+        //#endif
         return blockTagStream
                 .map(tag -> tag.location().toString())
                 .anyMatch(tagFullName -> matchString(tagFullName, tagName, matchRules));

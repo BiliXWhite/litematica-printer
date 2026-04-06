@@ -10,22 +10,26 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, 'SKIP') }}
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_USERNAME: ${{ secrets.GH_USERNAME }}
     steps:
-      - name: checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v6
 
-      - name: validate gradle wrapper
-        uses: gradle/actions/wrapper-validation@v4
+      - name: Validate gradle wrapper
+        uses: gradle/actions/wrapper-validation@v6
 
-      - name: setup jdk
-        uses: actions/setup-java@v4
+      - name: Setup jdk
+        uses: actions/setup-java@v5
         with:
-          java-version: '21'
-          distribution: 'microsoft'
+          java-version: '25'
+          distribution: 'temurin'
 
       - name: Cache Gradle dependencies (公共缓存)
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -37,14 +41,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-common
 
-      - name: make gradle wrapper executable
+      - name: Make gradle wrapper executable
         run: chmod +x ./gradlew
 
-      - name: build fabricWrapper subproject
+      - name: Build fabricWrapper subproject
         run: ./gradlew :fabricWrapper:build --stacktrace
 
-      - name: capture build artifacts
-        uses: actions/upload-artifact@v4
+      - name: Capture build artifacts
+        uses: actions/upload-artifact@v7
         with:
           name: Artifacts
           path: fabricWrapper/build/libs/

@@ -328,7 +328,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.memory;
 //$$                         if (!checkExistsInWorld(memory, world)) {
 //$$                             database.removePos(world.dimension().location(), memory.getPosition());
 //$$                         }
-//$$                         if (ChestTracker.CONFIG.miscOptions.rememberNewChests && memory.getTitle() == null && memory.getItems().size() == 0) {
+//$$                         if (ChestTracker.CONFIG.miscOptions.rememberNewChests && memory.getTitle() == null && memory.getItems().isEmpty()) {
 //$$                             database.removePos(world.dimension().location(), memory.getPosition());
 //$$                         }
 //$$                     }
