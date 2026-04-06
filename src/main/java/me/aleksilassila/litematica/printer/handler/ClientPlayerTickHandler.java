@@ -18,6 +18,7 @@ import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -155,13 +156,15 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         }
     }
 
+    private static final int EYE_HEIGHT_OFFSET = 2;
+
     /**
      * 更新交互盒：根据玩家位置和配置动态调整迭代范围
      */
     private void updateBox() {
         if (boxRef == null) return;
 
-        BlockPos playerPos = player.getOnPos();
+        BlockPos eyePos = new BlockPos(new Vec3i((int) player.getX(), (int) player.getEyeY(), (int) player.getZ()));
         PrinterBox box = boxRef.get();
 
         int currentRange = Configs.Core.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()
@@ -172,14 +175,14 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         boolean needRebuild = box == null
                 || !box.equals(lastBox)
                 || lastPos == null
-                || !lastPos.closerThan(playerPos, getWorkRange() * 0.4)
+                || !lastPos.closerThan(eyePos, getWorkRange() * 0.4)
                 || expandRange != currentRange;
 
         if (needRebuild) {
-            lastPos = playerPos;
+            lastPos = eyePos;
             expandRange = currentRange;
 
-            box = new PrinterBox(playerPos).expand(expandRange);
+            box = new PrinterBox(eyePos).expand(expandRange, expandRange + EYE_HEIGHT_OFFSET, expandRange);
             lastBox = box;
             boxRef.set(box);
 
