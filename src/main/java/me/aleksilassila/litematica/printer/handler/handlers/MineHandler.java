@@ -12,6 +12,7 @@ import me.aleksilassila.litematica.printer.mixin_extension.BlockBreakResult;
 import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
 import me.aleksilassila.litematica.printer.utils.ModUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -74,18 +75,11 @@ public class MineHandler extends ClientPlayerTickHandler {
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
-        Block block = level.getBlockState(blockPos).getBlock();
-
         // 继续挖掘（规律是每tick发一次包）
-        BlockBreakResult result = LitematicaUtils.INSTANCE.continueDestroyBlock(blockPos);
 
-        if (Configs.Break.CHECK_BY_BLOCK_CHANGE.getBooleanValue()) {
-            if (level.getBlockState(blockPos).is(block)) {
-                skipIteration.set(true);
-                return;
-            }
-        } else if (result == BlockBreakResult.IN_PROGRESS) {
-            skipIteration.set(true);    // 本 TICK 退出剩下位置迭代
+        BlockBreakResult result = LitematicaUtils.INSTANCE.continueDestroyBlock(blockPos);
+        if (result == BlockBreakResult.IN_PROGRESS) {
+            skipIteration.set(true);
             this.setCooldown(blockPos, getBreakCooldown());
             return;
         }

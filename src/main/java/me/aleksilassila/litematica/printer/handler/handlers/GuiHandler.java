@@ -94,19 +94,12 @@ public class GuiHandler extends ClientPlayerTickHandler {
     @Override
     protected void stopIteration(boolean interrupt) {
         if (!interrupt) {
-            resetAllProgress();
+            totalProgress.reset();
+            printProgress.reset();
+            fluidProgress.reset();
+            fillProgress.reset();
+            mineProgress.reset();
         }
-    }
-
-    /**
-     * 重置所有模式的进度计数
-     */
-    private void resetAllProgress() {
-        totalProgress.reset();
-        printProgress.reset();
-        fluidProgress.reset();
-        fillProgress.reset();
-        mineProgress.reset();
     }
 
     /**

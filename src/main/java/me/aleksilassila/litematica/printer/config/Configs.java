@@ -330,7 +330,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         // 通过方块更改来判断
-        public static final ConfigBoolean CHECK_BY_BLOCK_CHANGE = bool("checkByBlockChange")
+        public static final ConfigBoolean BREAK_INSTANT_MINE = bool("breakInstantOnSameTick")
                 .defaultValue(false)
                 .build();
 
@@ -357,7 +357,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 BREAK_CHECK_HARDNESS,
-                CHECK_BY_BLOCK_CHANGE,
+                BREAK_INSTANT_MINE,
                 BREAK_USE_PACKET,
                 BREAK_INTERVAL,
                 BREAK_BLOCKS_PER_TICK,

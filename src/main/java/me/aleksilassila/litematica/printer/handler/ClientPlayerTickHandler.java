@@ -44,21 +44,21 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     @Getter
     @Nullable
     private final PrintModeType printMode;
-    
+
     @Getter
     @Nullable
     private final ConfigBoolean enableConfig;
-    
+
     @Getter
     @Nullable
     private final ConfigOptionList selectionType;
-    
+
     // 跳过迭代标志
     private final AtomicReference<Boolean> skipIteration = new AtomicReference<>(false);
-    
+
     // GUI信息队列（用于渲染）
     private final Queue<GuiBlockInfo> guiQueue = new ConcurrentLinkedQueue<>();
-    
+
     // 迭代状态缓存（性能优化关键）
     private Iterator<BlockPos> cachedIterator = null;
     private final BlockPos lastBasePos = null;
@@ -156,8 +156,6 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         }
     }
 
-    private static final int EYE_HEIGHT_OFFSET = 2;
-
     /**
      * 更新交互盒：根据玩家位置和配置动态调整迭代范围
      */
@@ -182,7 +180,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             lastPos = eyePos;
             expandRange = currentRange;
 
-            box = new PrinterBox(eyePos).expand(expandRange, expandRange + EYE_HEIGHT_OFFSET, expandRange);
+            box = new PrinterBox(eyePos).expand(expandRange, expandRange, expandRange);
             lastBox = box;
             boxRef.set(box);
 
