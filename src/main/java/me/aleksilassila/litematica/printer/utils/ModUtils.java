@@ -141,7 +141,7 @@ public class ModUtils {
             // 仅当最新正式版 > 本地版本时，触发更新提示
             if (latestSemVer.isHigherThan(localSemVer)) {
                 Minecraft.getInstance().execute(() -> {
-                    MessageUtils.addMessage(MessageUtils.translatable("litematica-printer.update.available", LOCAL_VERSION, latestOfficialVersion)
+                    MessageUtils.addMessage(MessageUtils.translatable("litematica_printer.update.available", LOCAL_VERSION, latestOfficialVersion)
                             .setStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
                 });
             }
