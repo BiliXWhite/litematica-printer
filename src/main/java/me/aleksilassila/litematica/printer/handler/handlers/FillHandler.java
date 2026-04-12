@@ -97,35 +97,36 @@ public class FillHandler extends ClientPlayerTickHandler {
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
-        boolean handheld = Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FillBlockModeType.HANDHELD;
         BlockState currentState = level.getBlockState(blockPos);
         if (currentState.isAir()
                 || (currentState.getBlock() instanceof LiquidBlock)
                 || Configs.Print.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> LitematicaUtils.matchName(s, currentState))
         ) {
-            if (handheld || InventoryUtils.switchToItems(player, this.fillModeItemList)) {
-                if (Configs.Placement.FALLING_CHECK.getBooleanValue() &&
-                    player.getMainHandItem().getItem() instanceof BlockItem item &&
-                    item.getBlock() instanceof FallingBlock block &&
-                    FallingBlock.isFree(level.getBlockState(blockPos.below()))
-                ) {
-                    MessageUtils.setOverlayMessage("方块 " + block.getName().getString() + " 下方无支撑，跳过放置");
-                    return;
-                }
+            if (!InventoryUtils.switchToItems(player, this.fillModeItemList)) {
+                return;
+            }
+            if (Configs.Placement.FALLING_CHECK.getBooleanValue() &&
+                player.getMainHandItem().getItem() instanceof BlockItem item &&
+                item.getBlock() instanceof FallingBlock block &&
+                FallingBlock.isFree(level.getBlockState(blockPos.below()))
+            ) {
+                MessageUtils.setOverlayMessage("方块 " + block.getName().getString() + " 下方无支撑，跳过放置");
+                return;
+            }
 
-                Action action;
-                if (ConfigUtils.getFillModeFacing() != null) {
-                    action = new Action()
-                            .setLookDirection(ConfigUtils.getFillModeFacing().getOpposite())
-                            .queueAction(blockPos, ConfigUtils.getFillModeFacing(), false, player);
-                } else {
-                    action = new Action()
-                            .queueAction(blockPos, getPlayerPlacementDirection(), false, player);
-                }
-                ActionManager.INSTANCE.setLook(action.getPlayerLook());
-                if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook){
-                    skipIteration.set(true);
-                }
+            Action action;
+            if (ConfigUtils.getFillModeFacing() != null) {
+                action = new Action()
+                        .setLookDirection(ConfigUtils.getFillModeFacing().getOpposite())
+                        .queueAction(blockPos, ConfigUtils.getFillModeFacing(), false, player);
+            } else {
+                action = new Action()
+                        .queueAction(blockPos, getPlayerPlacementDirection(), false, player);
+            }
+            ActionManager.INSTANCE.setLook(action.getPlayerLook());
+            if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook){
+                skipIteration.set(true);
+            } else {
                 this.setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
             }
         }
