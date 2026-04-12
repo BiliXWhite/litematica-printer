@@ -139,6 +139,8 @@
   "litematica_printer.config.printAutoFillComposter.desc": "Automatically fill compostable items into composters to generate bone meal.\n(§lWarning: This operation will consume compostable items in inventory!§r)",
   "litematica_printer.config.printAutoFillComposterWhitelist": "Composter Auto Fill - Usable Items",
   "litematica_printer.config.printAutoFillComposterWhitelist.desc": "Compostable items used for automatic composter filling.\nCan input item ID or translated name in current language, example: §bminecraft:wheat§r §bwheat§r.\nPrefix §b#§r for tag matching, example: §l#compostable§r.\nAdd \",c\" after text for contains matching (prioritizing pinyin/direct matching), example: §lwheat,c§r.",
+  "litematica_printer.config.printBonemealCrops": "Bonemeal Crops",
+  "litematica_printer.config.printBonemealCrops.desc": "Use bone meal to grow crops.",
   "litematica_printer.config.printAutoStripLogs": "Auto Strip Logs",
   "litematica_printer.config.printAutoStripLogs.desc": "When enabled, if stripped logs are not in inventory, will first place normal logs, then automatically strip them with axe to save manual operation time.",
   "litematica_printer.config.printAutoTuning": "Note Block Auto Tuning",

@@ -139,6 +139,8 @@
   "litematica_printer.config.printAutoFillComposter.desc": "自動向堆肥桶填充可堆肥物品，以產生骨粉。\n(§l警告：此操作會消耗背包內的可堆肥物品！§r)",
   "litematica_printer.config.printAutoFillComposterWhitelist": "堆肥桶自動填充 - 可使用物品",
   "litematica_printer.config.printAutoFillComposterWhitelist.desc": "堆肥桶自動填充時使用的可堆肥物品。\n可輸入物品ID或當前語言的翻譯名稱，範例：§bminecraft:wheat§r §b小麥§r。\n前綴新增§b#§r表示標籤匹配，範例：§l#compostable§r。\n文字後加「,c」表示包含匹配(優先嘗試拼音/直接匹配)，範例：§l小麥,c§r。",
+  "litematica_printer.config.printBonemealCrops": "農作物催熟",
+  "litematica_printer.config.printBonemealCrops.desc": "使用骨粉催熟農作物。",
   "litematica_printer.config.printAutoStripLogs": "原木自動去皮",
   "litematica_printer.config.printAutoStripLogs.desc": "啟用後，若背包中無去皮原木，會先放置普通原木，再自動用斧頭去皮，節省手動操作時間。",
   "litematica_printer.config.printAutoTuning": "音符盒自動調音",
