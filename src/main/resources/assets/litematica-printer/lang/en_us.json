@@ -9,7 +9,7 @@
   "litematica_printer.config.breakCheckHardness": "Check Block Hardness",
   "litematica_printer.config.breakCheckHardness.desc": "Whether to skip unbreakable blocks (blocks with hardness of -1). If only the hardness of certain blocks has been modified on the server side, you can disable this option.",
   "litematica_printer.config.breakInstantOnSameTick": "Instant Mining",
-  "litematica_printer.config.breakInstantOnSameTick.desc": "When enabled, instantly breaks blocks when mining progress exceeds 50% within the same game tick. Improves mining efficiency on compatible servers.",
+  "litematica_printer.config.breakInstantOnSameTick.desc": "When enabled, instantly breaks blocks when mining progress exceeds 50% within the same game tick. Improves mining efficiency on compatible servers.\n§l§cNOTE:§r This feature is only available in certain cases.",
   "litematica_printer.config.breakCooldown": "Mining Cooldown Time",
   "litematica_printer.config.breakCooldown.desc": "Cooldown time after breaking blocks at the same location (in game ticks). Retry breaking operation only after cooldown ends.",
   "litematica_printer.config.breakInterval": "Breaking Interval Time",
