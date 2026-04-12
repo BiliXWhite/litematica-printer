@@ -37,7 +37,6 @@ preprocess {
     mc12103.link(mc12104, null)
     mc12104.link(mc12105, file("versions/mapping-1.21.4-1.21.5.txt"))
     mc12105.link(mc12106, null)
-    mc12105.link(mc12106, null)
     mc12106.link(mc12109, null)
     mc12109.link(mc12111, null)
     mc12111.link(mc260100, file("versions/mapping-1.21.11-26.1.txt"))
