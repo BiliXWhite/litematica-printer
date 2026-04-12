@@ -15,9 +15,6 @@ repositories {
     gradlePluginPortal()
 }
 
-val localBuildInfoFile = file(".local_build_counter.json")
-val jsonSlurper = JsonSlurper()
-
 group = modMavenGroup
 
 val time = SimpleDateFormat("yyMMdd")
@@ -41,10 +38,8 @@ base {
     archivesName.set("$modArchivesBaseName-versionpack")
 }
 
-// 获取所有子项目（排除当前项目）
 val fabricSubprojects = rootProject.subprojects.filter { it.name != "fabricWrapper" }
 
-// 确保先评估所有子项目
 fabricSubprojects.forEach {
     evaluationDependsOn(":${it.name}")
 }
@@ -53,19 +48,27 @@ tasks {
     val collectSubModules by registering {
         outputs.upToDateWhen { false }
 
-        dependsOn(fabricSubprojects.map { it.tasks.named("build") })
+        dependsOn(fabricSubprojects.map { it.tasks.named("buildAndCollect") })
 
         doLast {
             val destDir = layout.buildDirectory.dir("tmp/submods/META-INF/jars").get().asFile
             destDir.deleteRecursively()
             destDir.mkdirs()
 
+            val rootBuildDir = rootProject.layout.buildDirectory.get().asFile
+
             fabricSubprojects.forEach { sub ->
-                val jarTask = sub.tasks.named<Jar>("jar")
-                val jarFile = jarTask.get().archiveFile.get().asFile
-                if (jarFile.exists()) {
-                    jarFile.copyTo(destDir.resolve(jarFile.name), overwrite = true)
-                    println("Copied: ${jarFile.name}")
+                val subDir = rootBuildDir.resolve("libs/${sub.property("mod_version")}")
+                if (subDir.exists() && subDir.isDirectory) {
+                    subDir.listFiles()
+                        ?.filter { it.extension == "jar" }
+                        ?.forEach { jar ->
+                            val destFile = destDir.resolve(jar.name)
+                            if (!destFile.exists() || jar.readBytes().contentEquals(destFile.readBytes()).not()) {
+                                jar.copyTo(destFile, overwrite = true)
+                                println("Copied: ${jar.name}")
+                            }
+                        }
                 }
             }
         }
@@ -84,11 +87,10 @@ tasks {
 
         doLast {
             val jarsDir = layout.buildDirectory.dir("tmp/submods/META-INF/jars").get().asFile
-            val jars = mutableListOf<Map<String, String>>()
-
-            jarsDir.listFiles()?.filter { it.name.endsWith(".jar") }?.forEach { jar ->
-                jars.add(mapOf("file" to "META-INF/jars/${jar.name}"))
-            }
+            val jars = jarsDir.listFiles()
+                ?.filter { it.extension == "jar" }
+                ?.map { mapOf("file" to "META-INF/jars/${it.name}") }
+                ?: emptyList()
 
             val minecraftVersions = fabricSubprojects.mapNotNull { sub ->
                 try {
