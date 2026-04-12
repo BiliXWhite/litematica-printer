@@ -185,11 +185,11 @@ public class PlacementGuide extends PrinterUtils {
                 Direction facing = frontAndTop.front().getOpposite();
                 Direction rotation = frontAndTop.top().getOpposite();
                 if (facing == Direction.UP) {
-                    return new Action().setLookDirection(rotation, Direction.UP);
+                    return new Action().setLookDirection(rotation, Direction.UP).setNeedWaitModifyLook(true);
                 } else if (facing == Direction.DOWN) {
-                    return new Action().setLookDirection(rotation.getOpposite(), Direction.DOWN);
+                    return new Action().setLookDirection(rotation.getOpposite(), Direction.DOWN).setNeedWaitModifyLook(true);
                 } else {
-                    return new Action().setLookDirection(facing, facing);
+                    return new Action().setLookDirection(facing, facing).setNeedWaitModifyLook(true);
                 }
             }
             //#endif
@@ -373,7 +373,7 @@ public class PlacementGuide extends PrinterUtils {
                             // 传递检查
                             temp = offset;
                         }
-                        return new Action().setLookDirection(facing);
+                        return new Action().setLookDirection(facing).setNeedWaitModifyLook(true);
                     }
                     // 输入端已放置成功，并状态一致
                     if (inputState == BlockPrintState.CORRECT) {
@@ -427,7 +427,7 @@ public class PlacementGuide extends PrinterUtils {
                         }
                     }
                 }
-                return new Action().setLookDirection(facing);
+                return new Action().setLookDirection(facing).setNeedWaitModifyLook(true);
             }
             case LADDER -> {
                 Direction facing = ctx.requiredState.getValue(LadderBlock.FACING);
@@ -508,7 +508,7 @@ public class PlacementGuide extends PrinterUtils {
                     }
 
                 }
-                return new Action().setLookDirection(facing.getOpposite());
+                return new Action().setLookDirection(facing.getOpposite()).setNeedWaitModifyLook();
             }
             case SIGN -> {
                 Block signBlock = ctx.requiredState.getBlock();
@@ -659,6 +659,8 @@ public class PlacementGuide extends PrinterUtils {
                         if (ctx.requiredState.getBlock() instanceof BarrelBlock)
                             action.setNeedWaitModifyLook();
                         action.setSides(facing).setLookDirection(facing.getOpposite());
+                        if (block instanceof DispenserBlock)
+                            action.setNeedWaitModifyLook();
                     }
                 }
                 //方块型珊瑚的替换
