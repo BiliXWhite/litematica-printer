@@ -107,7 +107,7 @@ public class FillHandler extends ClientPlayerTickHandler {
                 if (Configs.Print.FALLING_CHECK.getBooleanValue() &&
                     player.getMainHandItem().getItem() instanceof BlockItem item &&
                     item.getBlock() instanceof FallingBlock block &&
-                    level.getBlockState(blockPos.below()).isAir()
+                    FallingBlock.isFree(level.getBlockState(blockPos.below()))
                 ) {
                     MessageUtils.setOverlayMessage("方块 " + block.getName().getString() + " 下方无支撑，跳过放置");
                     return;
