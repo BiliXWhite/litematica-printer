@@ -267,6 +267,11 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .range(0, 64)
                 .build();
 
+        // 下落方块检查
+        public static final ConfigBoolean FALLING_CHECK = bool("printFallingBlockCheck")
+            .defaultValue(true)
+            .build();
+
         // 快捷潜影盒 - 开关
         public static final ConfigBoolean QUICK_SHULKER = bool("quickShulker")
                 .defaultValue(false)
@@ -293,6 +298,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 PLACE_INTERVAL,
                 PLACE_BLOCKS_PER_TICK,
                 PLACE_COOLDOWN,
+                FALLING_CHECK,
                 STORE_ORDERLY,
                 QUICK_SHULKER,
                 QUICK_SHULKER_MODE,
@@ -456,11 +462,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(false)
                 .build();
 
-        // 下落方块检查
-        public static final ConfigBoolean FALLING_CHECK = bool("printFallingBlockCheck")
-                .defaultValue(true)
-                .build();
-
         // 破坏错误方块
         public static final ConfigBoolean BREAK_WRONG_BLOCK = bool("printBreakWrongBlock")
                 .defaultValue(false)
@@ -490,7 +491,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 REPLACEABLE_LIST,
                 SKIP_WATERLOGGED_BLOCK,
                 PRINT_ICE_FOR_WATER,
-                FALLING_CHECK,
                 SAFELY_OBSERVER,
                 STRIP_LOGS,
                 NOTE_BLOCK_TUNING,
