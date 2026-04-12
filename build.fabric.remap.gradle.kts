@@ -1,8 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
 import groovy.json.JsonSlurper
-import java.text.SimpleDateFormat
-import java.util.*
 
 plugins {
     id("mod-plugin")
@@ -11,18 +9,6 @@ plugins {
     id("com.replaymod.preprocess")
 }
 
-val time = SimpleDateFormat("yyMMdd")
-    .apply { timeZone = TimeZone.getTimeZone("GMT+08:00") }
-    .format(Date())
-    .toString()
-
-var fullProjectVersion = "$modVersion+$time"
-if (System.getenv("IS_THIS_RELEASE") == "false") {
-    val buildNumber: String? = System.getenv("GITHUB_RUN_NUMBER")
-    if (buildNumber != null) {
-        fullProjectVersion += "+build.$buildNumber"
-    }
-}
 version = fullProjectVersion
 group = modMavenGroup
 

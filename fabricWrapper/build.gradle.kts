@@ -1,7 +1,5 @@
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
-import java.text.SimpleDateFormat
-import java.util.*
 
 plugins {
     id("java-library")
@@ -16,22 +14,6 @@ repositories {
 }
 
 group = modMavenGroup
-
-val time = SimpleDateFormat("yyMMdd")
-    .apply { timeZone = TimeZone.getTimeZone("GMT+08:00") }
-    .format(Date())
-    .toString()
-
-var fullProjectVersion = "$modVersion+$time"
-
-val isCiBuild = System.getenv("GITHUB_ACTIONS") == "true"
-if (isCiBuild) {
-    val commitSha = System.getenv("GITHUB_SHA")?.take(8)
-    if (commitSha != null) {
-        fullProjectVersion += "+$commitSha"
-    }
-}
-
 version = fullProjectVersion
 
 base {
@@ -46,29 +28,24 @@ fabricSubprojects.forEach {
 
 tasks {
     val collectSubModules by registering {
-        outputs.upToDateWhen { false }
+        val destDir = layout.buildDirectory.dir("tmp/submods/META-INF/jars")
 
-        dependsOn(fabricSubprojects.map { it.tasks.named("buildAndCollect") })
+        outputs.dir(destDir)
+
+        dependsOn(fabricSubprojects.map { it.tasks.named("build") })
 
         doLast {
-            val destDir = layout.buildDirectory.dir("tmp/submods/META-INF/jars").get().asFile
-            destDir.deleteRecursively()
-            destDir.mkdirs()
-
-            val rootBuildDir = rootProject.layout.buildDirectory.get().asFile
+            val destDirFile = destDir.get().asFile
+            destDirFile.deleteRecursively()
+            destDirFile.mkdirs()
 
             fabricSubprojects.forEach { sub ->
-                val subDir = rootBuildDir.resolve("libs/${sub.property("mod_version")}")
+                val subDir = sub.projectDir.resolve("build/libs")
                 if (subDir.exists() && subDir.isDirectory) {
-                    subDir.listFiles()
-                        ?.filter { it.extension == "jar" }
-                        ?.forEach { jar ->
-                            val destFile = destDir.resolve(jar.name)
-                            if (!destFile.exists() || jar.readBytes().contentEquals(destFile.readBytes()).not()) {
-                                jar.copyTo(destFile, overwrite = true)
-                                println("Copied: ${jar.name}")
-                            }
-                        }
+                    val jars = subDir.listFiles()?.filter { it.extension == "jar" } ?: return@forEach
+                    val latestJar = jars.maxByOrNull { it.lastModified() } ?: return@forEach
+                    latestJar.copyTo(destDirFile.resolve(latestJar.name), overwrite = true)
+                    println("Copied: ${latestJar.name}")
                 }
             }
         }
