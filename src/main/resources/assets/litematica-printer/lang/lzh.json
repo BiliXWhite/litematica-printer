@@ -139,6 +139,8 @@
   "litematica_printer.config.printAutoFillComposter.desc": "自向堆肥桶投可肥之物，以成骨粉。\n（§l警：此舉將耗囊中可肥之物！§r）",
   "litematica_printer.config.printAutoFillComposterWhitelist": "自填堆肥桶 - 可用之物",
   "litematica_printer.config.printAutoFillComposterWhitelist.desc": "自填堆肥桶時所取之可肥物冊。格式同前。",
+  "litematica_printer.config.printBonemealCrops": "糞肥催熟",
+  "litematica_printer.config.printBonemealCrops.desc": "以骨粉催熟農作物。",
   "litematica_printer.config.printAutoStripLogs": "自伐木皮",
   "litematica_printer.config.printAutoStripLogs.desc": "啟後，若囊中無去皮原木，則先置常木，後自以斧去皮，省手動之工。",
   "litematica_printer.config.printAutoTuning": "自調音盒",
