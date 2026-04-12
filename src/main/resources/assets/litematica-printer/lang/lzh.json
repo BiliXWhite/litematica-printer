@@ -9,7 +9,7 @@
   "litematica_printer.config.breakCheckHardness": "察石之堅",
   "litematica_printer.config.breakCheckHardness.desc": "是否繞過堅不可破之石（硬度為-1者）。若伺服器獨改某石硬度，可閉此選項。",
   "litematica_printer.config.breakInstantOnSameTick": "即時破石",
-  "litematica_printer.config.breakInstantOnSameTick.desc": "啟則破石進度於同刻內逾半即立破之。於相容之伺服器上，可增破石之效。",
+  "litematica_printer.config.breakInstantOnSameTick.desc": "啟則破石進度於同刻內逾半即立破之。於相容之伺服器上，可增破石之效。\n提示：§l§c§r 此功能僅於特定情況下方可使用。",
   "litematica_printer.config.breakCooldown": "破石調息刻",
   "litematica_printer.config.breakCooldown.desc": "破同一石後須靜候之刻數，期滿方可再破。",
   "litematica_printer.config.breakInterval": "破石間隔刻",

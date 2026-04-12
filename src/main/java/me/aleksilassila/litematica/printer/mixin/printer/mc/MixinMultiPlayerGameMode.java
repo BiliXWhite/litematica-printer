@@ -147,21 +147,17 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
         }
         
         float destroyProgress = blockState.getDestroyProgress(player, level, blockPos);
-        
+
         // 立即破坏条件：破坏进度足够高或启用即时挖掘
         if (destroyProgress >= 1.0F || (Configs.Break.BREAK_INSTANT_MINE.getBooleanValue() && destroyProgress > 0.5F)) {
             if (localPrediction) {
                 destroyBlock(blockPos);
             }
-            
-            // 发送开始破坏包
+
+
             NetworkUtils.sendPacket(sequence -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
-            
-            // 对于完全破坏的方块，发送停止包
-            if (destroyProgress >= 1.0F) {
-                NetworkUtils.sendPacket(sequence -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
-            }
-            
+            NetworkUtils.sendPacket(sequence -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
+
             return BlockBreakResult.COMPLETED;
         }
         

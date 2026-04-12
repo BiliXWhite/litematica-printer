@@ -9,7 +9,7 @@
   "litematica_printer.config.breakCheckHardness": "检查方块硬度",
   "litematica_printer.config.breakCheckHardness.desc": "是否跳过无法破坏的方块(也就是硬度为-1的方块)，如果只在服务端修改了某些方块的硬度，可以关闭此选项。",
   "litematica_printer.config.breakInstantOnSameTick": "即时挖掘",
-  "litematica_printer.config.breakInstantOnSameTick.desc": "启用后，当挖掘进度在同一游戏刻内达到50%以上时立即破坏方块。在兼容的服务器上可提高挖掘效率。",
+  "litematica_printer.config.breakInstantOnSameTick.desc": "启用后，当挖掘进度在同一游戏刻内达到50%以上时立即破坏方块。在兼容的服务器上可提高挖掘效率。\n提示：§l§c§r 此功能仅在部分情况下可使用。",
   "litematica_printer.config.breakCooldown": "挖掘冷却时间",
   "litematica_printer.config.breakCooldown.desc": "同一位置破坏方块后的冷却时间(单位为游戏刻)，冷却结束后才会重试破坏操作。",
   "litematica_printer.config.breakInterval": "破坏间隔时间",
