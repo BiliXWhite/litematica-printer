@@ -10,10 +10,13 @@ import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
 import me.aleksilassila.litematica.printer.utils.InventoryUtils;
+import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -101,6 +104,15 @@ public class FillHandler extends ClientPlayerTickHandler {
                 || Configs.Print.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> LitematicaUtils.matchName(s, currentState))
         ) {
             if (handheld || InventoryUtils.switchToItems(player, this.fillModeItemList)) {
+                if (Configs.Placement.FALLING_CHECK.getBooleanValue() &&
+                    player.getMainHandItem().getItem() instanceof BlockItem item &&
+                    item.getBlock() instanceof FallingBlock block &&
+                    FallingBlock.isFree(level.getBlockState(blockPos.below()))
+                ) {
+                    MessageUtils.setOverlayMessage("方块 " + block.getName().getString() + " 下方无支撑，跳过放置");
+                    return;
+                }
+
                 Action action;
                 if (ConfigUtils.getFillModeFacing() != null) {
                     action = new Action()
