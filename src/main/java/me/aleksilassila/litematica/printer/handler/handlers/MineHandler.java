@@ -75,13 +75,9 @@ public class MineHandler extends ClientPlayerTickHandler {
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
-        // 继续挖掘（规律是每tick发一次包）
-
         BlockBreakResult result = LitematicaUtils.INSTANCE.continueDestroyBlock(blockPos);
-        if (result == BlockBreakResult.IN_PROGRESS) {
+        if (result == BlockBreakResult.IN_PROGRESS || result == BlockBreakResult.COMPLETED_WAIT) {
             skipIteration.set(true);
-            this.setCooldown(blockPos, getBreakCooldown());
-            return;
         }
         this.setCooldown(blockPos, getBreakCooldown());
     }
