@@ -9,7 +9,6 @@ import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.hotkeys.IHotkey;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
-import fi.dy.masa.malilib.util.JsonUtils;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import fi.dy.masa.malilib.config.ConfigManager;
 import me.aleksilassila.litematica.printer.Reference;
@@ -24,6 +23,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 
+//#if MC >= 12111
+import fi.dy.masa.malilib.util.data.json.JsonUtils;
+//#else
+//$$ import fi.dy.masa.malilib.util.JsonUtils;
+//#endif
 public class Configs extends ConfigBuilders implements IConfigHandler {
     private static final Configs INSTANCE = new Configs();
 
@@ -335,7 +339,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(true)
                 .build();
 
-        // 通过方块更改来判断
+        // 即时挖掘
         public static final ConfigBoolean BREAK_INSTANT_MINE = bool("breakInstantOnSameTick")
                 .defaultValue(false)
                 .build();
@@ -687,10 +691,10 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
     public void load() {
         File settingFile = new File(FILE_PATH);
         if (settingFile.isFile() && settingFile.exists()) {
-            //#if MC >= 260100
-            //$$ JsonElement jsonElement = JsonUtils.parseJsonFile(settingFile.toPath());
+            //#if MC >= 12111
+            JsonElement jsonElement = JsonUtils.parseJsonFile(settingFile.toPath());
             //#else
-            JsonElement jsonElement = JsonUtils.parseJsonFile(settingFile);
+            //$$ JsonElement jsonElement = JsonUtils.parseJsonFile(settingFile);
             //#endif
             if (jsonElement != null && jsonElement.isJsonObject()) {
                 JsonObject obj = jsonElement.getAsJsonObject();
@@ -704,10 +708,10 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         if ((CONFIG_DIR.exists() && CONFIG_DIR.isDirectory()) || CONFIG_DIR.mkdirs()) {
             JsonObject configRoot = new JsonObject();
             ConfigUtils.writeConfigBase(configRoot, Reference.MOD_ID, OPTIONS);
-            //#if MC >= 260100
-            //$$ JsonUtils.writeJsonToFile(configRoot, new File(FILE_PATH).toPath());
+            //#if MC >= 12111
+            JsonUtils.writeJsonToFile(configRoot, new File(FILE_PATH).toPath());
             //#else
-            JsonUtils.writeJsonToFile(configRoot, new File(FILE_PATH));
+            //$$ JsonUtils.writeJsonToFile(configRoot, new File(FILE_PATH));
             //#endif
         }
     }
