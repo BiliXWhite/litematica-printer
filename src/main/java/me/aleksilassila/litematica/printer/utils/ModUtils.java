@@ -140,10 +140,8 @@ public class ModUtils {
             }
             // 仅当最新正式版 > 本地版本时，触发更新提示
             if (latestSemVer.isHigherThan(localSemVer)) {
-                Minecraft.getInstance().execute(() -> {
-                    MessageUtils.addMessage(MessageUtils.translatable("litematica_printer.update.available", LOCAL_VERSION, latestOfficialVersion)
-                            .setStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-                });
+                Minecraft.getInstance().execute(() -> MessageUtils.addMessage(MessageUtils.translatable("litematica_printer.update.available", LOCAL_VERSION, latestOfficialVersion)
+                        .setStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW))));
             }
         });
     }
@@ -177,7 +175,7 @@ public class ModUtils {
      */
     private static String getLatestOfficialPrinterVersion() {
         try {
-            URI uri = URI.create("https://api.github.com/repos/aleksilassila/litematica-printer/releases/latest");
+            URI uri = URI.create("https://api.github.com/repos/BiliXWhite/litematica-printer/releases/latest");
             HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(5000);

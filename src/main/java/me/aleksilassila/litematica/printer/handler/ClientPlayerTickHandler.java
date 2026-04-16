@@ -162,7 +162,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     private void updateBox() {
         if (boxRef == null) return;
 
-        BlockPos eyePos = new BlockPos(new Vec3i((int) player.getX(), (int) player.getEyeY(), (int) player.getZ()));
+        BlockPos eyePos = new BlockPos(new Vec3i((int) Math.round(player.getX()), (int) Math.round(player.getEyeY()), (int) Math.round(player.getZ())));
         PrinterBox box = boxRef.get();
 
         int currentRange = Configs.Core.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()
