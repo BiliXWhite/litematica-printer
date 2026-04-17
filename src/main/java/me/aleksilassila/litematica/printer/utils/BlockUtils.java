@@ -10,7 +10,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -202,10 +201,10 @@ public class BlockUtils {
     public static Direction[] orderedByNearest(float yaw, float pitch) {
         double pitchRad = pitch * (Math.PI / 180.0);
         double yawRad = -yaw * (Math.PI / 180.0);
-        float sinPitch = Mth.sin(pitchRad);
-        float cosPitch = Mth.cos(pitchRad);
-        float sinYaw = Mth.sin(yawRad);
-        float cosYaw = Mth.cos(yawRad);
+        float sinPitch = (float) Math.sin(pitchRad);
+        float cosPitch = (float) Math.cos(pitchRad);
+        float sinYaw = (float) Math.sin(yawRad);
+        float cosYaw = (float) Math.cos(yawRad);
         boolean isEastFacing = sinYaw > 0.0F;
         boolean isUpFacing = sinPitch < 0.0F;
         boolean isSouthFacing = cosYaw > 0.0F;
