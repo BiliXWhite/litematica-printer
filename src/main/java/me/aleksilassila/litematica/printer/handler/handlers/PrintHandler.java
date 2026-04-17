@@ -113,14 +113,11 @@ public class PrintHandler extends ClientPlayerTickHandler {
             ActionManager.INSTANCE.useProtocol = true;
         }
         ActionManager.INSTANCE.setLook(action.getPlayerLook());
-        boolean needWait = action.getNeedWaitModifyLook();
-        if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook) {
-            needWait = true;
-        }
+        ActionManager.INSTANCE.setNeedWaitModifyLookFromAction(action.getNeedWaitModifyLook());
+        boolean needWait = ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook;
         if (needWait) {
             skipIteration.set(true);
-        } else {
-            setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
         }
+        setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
     }
 }

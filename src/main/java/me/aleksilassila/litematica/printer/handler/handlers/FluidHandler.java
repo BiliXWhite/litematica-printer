@@ -86,7 +86,8 @@ public class FluidHandler extends ClientPlayerTickHandler {
             if (!InventoryUtils.switchToItems(player, fillItems.toArray(new Item[0]))) {
                 return;
             }
-            new Action().queueAction(blockPos, Direction.UP, false, player);
+            Action action = new Action().queueAction(blockPos, Direction.UP, false, player);
+            ActionManager.INSTANCE.setNeedWaitModifyLookFromAction(action.getNeedWaitModifyLook());
             if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook) {
                 skipIteration.set(true);
             } else {
