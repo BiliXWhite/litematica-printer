@@ -337,44 +337,36 @@ public class PlacementGuide {
                 return new Action().setSides(Direction.DOWN).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
             }
             case OBSERVER -> {
-                @Nullable Direction facing = ctx.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
+                @Nullable
+                Direction facing = ctx.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
                 if (facing == null) {
                     return null;
                 }
-                SchematicBlockContext input = ctx.offset(facing);                    // 输入端(侦测面)
-                SchematicBlockContext output = ctx.offset(facing.getOpposite());     // 输出端(红点面)
-                if (Configs.Print.SAFELY_OBSERVER.getBooleanValue()) {        // 安全放置
 
-                    // 获取输入端方块属性
+                SchematicBlockContext input = ctx.offset(facing);
+                SchematicBlockContext output = ctx.offset(facing.getOpposite());
+
+                if (Configs.Print.SAFELY_OBSERVER.getBooleanValue()) {
                     List<Property<?>> inputPropertiesToIgnore = new ArrayList<>();
-                    // 如果是侦测面是墙, 忽略侦测面墙方向属性
                     if (input.requiredState.getBlock() instanceof WallBlock) {
-                        BlockUtils.getWallFacingProperty(facing.getOpposite()).ifPresent(inputPropertiesToIgnore::add);
+                        BlockUtils.getWallFacingProperty(facing.getOpposite())
+                                .ifPresent(inputPropertiesToIgnore::add);
                     }
-                    // 如果是侦测面是墙, 忽略侦测面墙方向属性
                     if (output.requiredState.getBlock() instanceof CrossCollisionBlock) {
-                        BlockUtils.getCrossCollisionBlock(facing.getOpposite()).ifPresent(inputPropertiesToIgnore::add);
+                        BlockUtils.getCrossCollisionBlock(facing.getOpposite())
+                                .ifPresent(inputPropertiesToIgnore::add);
                     }
 
-                    // 输入端与输出端放置状态一致情况下
                     BlockPrintState inputState = BlockPrintState.get(input, inputPropertiesToIgnore.toArray(new Property<?>[0]));
                     BlockPrintState outputState = BlockPrintState.get(output);
+
                     if (inputState == BlockPrintState.CORRECT && outputState == BlockPrintState.CORRECT) {
-                        // 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
-                        SchematicBlockContext temp = input;
-                        while (temp.requiredState.getBlock() instanceof ObserverBlock) {
-                            @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
-                            // 查找下一个侦测器并检查并检查状态是否正确
-                            SchematicBlockContext offset = temp.offset(tempObserverFacing);
-                            if (tempObserverFacing != null && BlockPrintState.get(offset) != BlockPrintState.CORRECT) {
-                                return null;
-                            }
-                            // 传递检查
-                            temp = offset;
+                        if (BlockUtils.checkObserverChain(input)) {
+                            return new Action().setLookDirection(facing).setNeedWaitModifyLook(true);
                         }
-                        return new Action().setLookDirection(facing).setNeedWaitModifyLook(true);
+                        return null;
                     }
-                    // 输入端已放置成功，并状态一致
+
                     if (inputState == BlockPrintState.CORRECT) {
                         SchematicBlockContext temp = input;
                         while (temp.requiredState.getBlock() instanceof FallingBlock) {
@@ -384,48 +376,42 @@ public class PlacementGuide {
                             }
                             temp = offset;
                         }
-                        if (!output.requiredState.isAir()) {
-                            // 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
-                            temp = input;
-                            while (temp.requiredState.getBlock() instanceof ObserverBlock) {
-                                @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
-                                // 查找下一个侦测器并检查并检查状态是否正确
-                                SchematicBlockContext offset = temp.offset(tempObserverFacing);
-                                if (tempObserverFacing != null && BlockPrintState.get(offset) != BlockPrintState.CORRECT) {
-                                    return null;
-                                }
-                                // 传递检查
-                                temp = offset;
+
+                        if (!output.requiredState.isAir() && !BlockUtils.checkObserverChain(input)) {
+                            return null;
+                        }
+
+                        for (Direction d : Direction.values()) {
+                            SchematicBlockContext offset = output.offset(d);
+                            if (offset.blockPos.equals(output.blockPos) || offset.blockPos.equals(input.blockPos) || offset.blockPos.equals(ctx.blockPos)) {
+                                continue;
+                            }
+                            if (offset.requiredState.getBlock() instanceof PistonBaseBlock && !offset.currentState.isAir()) {
+                                return null;
                             }
                         }
 
-                        // 侦测器隔空激活活塞
-                        for (Direction direction : Direction.values()) {
-                            SchematicBlockContext offset = output.offset(direction);
-                            if (offset.blockPos.equals(output.blockPos)) {
-                                continue;
-                            }
-                            if (offset.blockPos.equals(input.blockPos)) {
-                                continue;
-                            }
-                            if (offset.blockPos.equals(ctx.blockPos)) {
-                                continue;
-                            }
-                            if (offset.requiredState.getBlock() instanceof PistonBaseBlock) {
-                                if (!offset.currentState.isAir()) {
-                                    return null;
-                                }
-                            }
-                        }
-
-                    } else if (inputState == BlockPrintState.ERROR_BLOCK_STATE) {  // 方块类型相同，但方块状态不一致
+                    } else if (inputState == BlockPrintState.ERROR_BLOCK_STATE) {
                         return null;
                     } else {
                         if (!output.requiredState.isAir()) {
+                            if (output.currentState.isAir() && input.requiredState.getBlock() instanceof WallBlock) {
+                                BlockPosCooldownManager.INSTANCE.setCooldown(ctx.level, "observer", ctx.blockPos, 2);
+                                return new Action().setLookDirection(facing).setNeedWaitModifyLook(true);
+                            }
                             return null;
+                        } else {
+                            // 检查是否被其他侦测器侦测
+                            if (BlockUtils.checkObserverChain(input)) {
+                                return new Action().setLookDirection(facing).setNeedWaitModifyLook(true);
+                            }
+                            if (!BlockUtils.checkObserverChain(output)) {
+                                return null;
+                            }
                         }
                     }
                 }
+
                 return new Action().setLookDirection(facing).setNeedWaitModifyLook(true);
             }
             case LADDER -> {

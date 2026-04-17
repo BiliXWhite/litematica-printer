@@ -1,7 +1,9 @@
 package me.aleksilassila.litematica.printer.utils;
 
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.enums.BlockPrintState;
 import me.aleksilassila.litematica.printer.enums.QuickShulkerModeType;
+import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
 import net.kyrptonaught.quickshulker.client.ClientUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -21,6 +23,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -382,4 +385,17 @@ public class BlockUtils {
     }
 
 
+    public static boolean checkObserverChain(SchematicBlockContext start) {
+        SchematicBlockContext temp = start;
+        while (temp.requiredState.getBlock() instanceof ObserverBlock) {
+            @Nullable
+            Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
+            SchematicBlockContext offset = temp.offset(tempObserverFacing);
+            if (tempObserverFacing != null && BlockPrintState.get(offset) != BlockPrintState.CORRECT) {
+                return false;
+            }
+            temp = offset;
+        }
+        return true;
+    }
 }
