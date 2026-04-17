@@ -5,7 +5,6 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.printer.PlayerLook;
-import me.aleksilassila.litematica.printer.printer.PrinterUtils;
 import me.aleksilassila.litematica.printer.utils.BlockUtils;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -123,7 +122,7 @@ public class Action {
             ) {
                 return side;
             }
-            if (PrinterUtils.canBeClicked(world, neighborPos) && !BlockUtils.isReplaceable(neighborState)) {
+            if (BlockUtils.canBeClicked(world, neighborPos) && !BlockUtils.isReplaceable(neighborState)) {
                 validSides.add(side);
             }
         }

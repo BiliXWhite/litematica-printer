@@ -8,9 +8,9 @@ import me.aleksilassila.litematica.printer.printer.PrinterBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
-import me.aleksilassila.litematica.printer.utils.ConfigUtils;
-import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
 import me.aleksilassila.litematica.printer.utils.ModUtils;
+import me.aleksilassila.litematica.printer.utils.PinYinSearchUtils;
+import me.aleksilassila.litematica.printer.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -167,7 +167,7 @@ public class ZxyUtils {
             OpenInventoryPacket.sendOpenInventory(pos, client.level.dimension());
             return true;
         } else {
-            if (client.player != null && !ConfigUtils.canInteracted(pos)) {
+            if (client.player != null && !PlayerUtils.canInteracted(pos)) {
                 if (!ignoreThePrompt)
                     client.gui.setOverlayMessage(Component.nullToEmpty("距离过远无法打开容器"), false);
                 return false;
@@ -355,7 +355,7 @@ public class ZxyUtils {
                 if (client.level != null) {
                     state = client.level.getBlockState(pos);
                 }
-                if (LitematicaUtils.matchName(blockName, state)) {
+                if (PinYinSearchUtils.matchName(blockName, state)) {
                     blocks.add(pos);
                 }
             }

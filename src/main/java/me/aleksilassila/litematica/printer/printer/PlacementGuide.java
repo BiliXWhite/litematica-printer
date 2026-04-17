@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.printer;
 
-import me.aleksilassila.litematica.printer.Debug;
 import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.printer.action.Action;
 import me.aleksilassila.litematica.printer.printer.action.ClickAction;
@@ -32,7 +31,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("IfCanBeSwitch")
-public class PlacementGuide extends PrinterUtils {
+public class PlacementGuide {
     @SuppressWarnings("all")
     protected static final Map<Block, Block> STRIPPED_LOGS = AxeItemAccessor.getStrippedBlocks();
     protected static List<String> compostWhitelistCache = new ArrayList<>();      // 缓存堆肥桶白名单的字符串列表（用于判断是否修改）
@@ -80,7 +79,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (BlockPosCooldownManager.INSTANCE.isOnCooldown(ctx.level, "print_water", ctx.blockPos)) {
                     return null;
                 } else {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                     BlockPosCooldownManager.INSTANCE.setCooldown(ctx.level, "print_water", ctx.blockPos, 20);
                 }
                 return null;
@@ -88,7 +87,7 @@ public class PlacementGuide extends PrinterUtils {
             if (!BlockUtils.isCorrectWaterLevel(ctx.requiredState, ctx.currentState)) {
                 if (!ctx.currentState.isAir() && !(ctx.currentState.getBlock() instanceof LiquidBlock)) {
                     if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue()) {
-                        LitematicaUtils.INSTANCE.add(ctx);
+                        BreakUtils.INSTANCE.add(ctx);
                     }
                     return null;
                 }
@@ -125,7 +124,7 @@ public class PlacementGuide extends PrinterUtils {
                 return new Action().setSides(lookDirection).setRequiresSupport();
             }
             case SLAB -> {
-                Map<Direction, Vec3> slabSides = getSlabSides(ctx.level, ctx.blockPos, ctx.requiredState.getValue(SlabBlock.TYPE));
+                Map<Direction, Vec3> slabSides = BlockUtils.getSlabSides(ctx.level, ctx.blockPos, ctx.requiredState.getValue(SlabBlock.TYPE));
                 return new Action().setSides(slabSides);
             }
             case STAIR -> {
@@ -295,7 +294,7 @@ public class PlacementGuide extends PrinterUtils {
             case VINES, GLOW_LICHEN -> {
                 for (Direction direction : Direction.values()) {
                     if (direction == Direction.DOWN && ctx.requiredState.getBlock() == Blocks.VINE) continue;
-                    if ((Boolean) getPropertyByName(ctx.requiredState, direction.name())) {
+                    if ((Boolean) BlockUtils.getPropertyByName(ctx.requiredState, direction.name())) {
                         return new Action().setSides(direction);
                     }
                 }
@@ -331,7 +330,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
                 for (Direction direction : Direction.values()) {
                     if (direction == Direction.DOWN) continue;
-                    if ((Boolean) getPropertyByName(ctx.requiredState, direction.name())) {
+                    if ((Boolean) BlockUtils.getPropertyByName(ctx.requiredState, direction.name())) {
                         return new Action().setSides(direction).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
                     }
                 }
@@ -693,7 +692,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setSides(requiredHalf);
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case SNOW -> {
@@ -705,7 +704,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setItem(Items.SNOW).setSides(sides);
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case DOOR, TRAPDOOR -> {
@@ -717,7 +716,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction();
                 }
                 if (printBreakWrongStateBlock && ctx.requiredState.getValue(DoorBlock.FACING) != ctx.currentState.getValue(DoorBlock.FACING)) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case FENCE_GATE -> {
@@ -728,7 +727,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setSides(facing.getOpposite()).setLookDirection(facing);
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case LEVER -> {
@@ -736,7 +735,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction();
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case CANDLES -> {
@@ -750,7 +749,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction();
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case PICKLES -> {
@@ -758,7 +757,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setItem(Items.SEA_PICKLE);
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case REPEATER -> {
@@ -769,7 +768,7 @@ public class PlacementGuide extends PrinterUtils {
                         ctx.requiredState.getValue(RepeaterBlock.POWERED) == ctx.currentState.getValue(RepeaterBlock.POWERED) &&
                         ctx.requiredState.getValue(RepeaterBlock.LOCKED) == ctx.currentState.getValue(RepeaterBlock.LOCKED)
                 ) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case COMPARATOR -> {
@@ -808,7 +807,7 @@ public class PlacementGuide extends PrinterUtils {
                             }
                         }
                     }
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case CROPS -> {
@@ -839,7 +838,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
                 }
                 if (printBreakWrongStateBlock && ctx.requiredState.getValue(CampfireBlock.FACING) != ctx.currentState.getValue(CampfireBlock.FACING)) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case END_PORTAL_FRAME -> {
@@ -847,7 +846,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setItem(Items.ENDER_EYE);
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             //#if MC >= 11904
@@ -856,7 +855,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setItem(ctx.requiredState.getBlock().asItem());
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             //#endif
@@ -879,12 +878,12 @@ public class PlacementGuide extends PrinterUtils {
             case VINES, GLOW_LICHEN -> {
                 for (Direction direction : Direction.values()) {
                     if (direction == Direction.DOWN) continue;
-                    if ((Boolean) getPropertyByName(ctx.requiredState, direction.name())) {
+                    if ((Boolean) BlockUtils.getPropertyByName(ctx.requiredState, direction.name())) {
                         return new Action().setSides(direction).setLookDirection(direction);
                     }
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case CAULDRON -> {
@@ -916,7 +915,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (ctx.requiredState.getBlock() instanceof SoulFireBlock) return null;
                 for (Direction direction : Direction.values()) {
                     if (direction == Direction.DOWN) continue;
-                    if ((Boolean) getPropertyByName(ctx.requiredState, direction.name())) {
+                    if ((Boolean) BlockUtils.getPropertyByName(ctx.requiredState, direction.name())) {
                         return new Action().setSides(direction).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
                     }
                 }
@@ -935,7 +934,7 @@ public class PlacementGuide extends PrinterUtils {
                     List<Item> whitelistItems = new ArrayList<>();
                     for (Item item : Reference.COMPOSTABLE_ITEMS) {
                         for (String rule : whitelist) {
-                            if (LitematicaUtils.matchName(rule, new ItemStack(item))) {
+                            if (PinYinSearchUtils.matchName(rule, new ItemStack(item))) {
                                 whitelistItems.add(item);
                                 break;
                             }
@@ -952,7 +951,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (printBreakWrongStateBlock &&
                         (ctx.requiredState.getValue(StairBlock.FACING) != ctx.currentState.getValue(StairBlock.FACING) ||
                                 ctx.requiredState.getValue(StairBlock.HALF) != ctx.currentState.getValue(StairBlock.HALF))) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case DEFAULT -> {
@@ -963,7 +962,7 @@ public class PlacementGuide extends PrinterUtils {
                                 PressurePlateBlock.class,
                         };
                 if (printBreakWrongStateBlock && !Arrays.asList(ignored).contains(ctx.requiredState.getBlock().getClass())) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
         }
@@ -1001,8 +1000,8 @@ public class PlacementGuide extends PrinterUtils {
                 if (Arrays.asList(requiredType.classes).contains(ctx.currentState.getBlock().getClass())) {
                     return null;
                 }
-                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && LitematicaUtils.canBreakBlock(ctx.blockPos)) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && BreakUtils.canBreakBlock(ctx.blockPos)) {
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case STRIP_LOG -> {
@@ -1012,7 +1011,7 @@ public class PlacementGuide extends PrinterUtils {
                 }
             }
             case SIGN -> {
-                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && LitematicaUtils.canBreakBlock(ctx.blockPos)) {
+                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && BreakUtils.canBreakBlock(ctx.blockPos)) {
                     boolean isLegitimateSign = ctx.currentState.getBlock() instanceof StandingSignBlock
                             || ctx.currentState.getBlock() instanceof WallSignBlock
                             //#if MC >= 12002
@@ -1021,7 +1020,7 @@ public class PlacementGuide extends PrinterUtils {
                             //#endif
                             ;
                     if (!isLegitimateSign) {
-                        LitematicaUtils.INSTANCE.add(ctx);
+                        BreakUtils.INSTANCE.add(ctx);
                     }
                 }
             }
@@ -1029,9 +1028,9 @@ public class PlacementGuide extends PrinterUtils {
                 String requiredBlockKey = BlockUtils.getKeyString(ctx.requiredState.getBlock());
                 String currentBlockKey = BlockUtils.getKeyString(ctx.currentState.getBlock());
                 if (requiredBlockKey.contains("pumpkin_stem") && !currentBlockKey.contains("pumpkin_stem")) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 } else if (requiredBlockKey.contains("melon_stem") && !currentBlockKey.contains("melon_stem")) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             default -> {
@@ -1041,11 +1040,11 @@ public class PlacementGuide extends PrinterUtils {
                 boolean printBreakWrongBlock = Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue();
                 boolean printBreakExtraBlock = Configs.Print.BREAK_EXTRA_BLOCK.getBooleanValue();
                 if (printBreakWrongBlock || printBreakExtraBlock) {
-                    if (LitematicaUtils.canBreakBlock(ctx.blockPos)) {
+                    if (BreakUtils.canBreakBlock(ctx.blockPos)) {
                         if (printBreakWrongBlock && !ctx.requiredState.isAir()) {
-                            LitematicaUtils.INSTANCE.add(ctx);
+                            BreakUtils.INSTANCE.add(ctx);
                         } else if (printBreakExtraBlock && ctx.requiredState.isAir()) {
-                            LitematicaUtils.INSTANCE.add(ctx);
+                            BreakUtils.INSTANCE.add(ctx);
                         }
                     }
                 }

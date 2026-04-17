@@ -7,6 +7,7 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.handler.handlers.*;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
+import me.aleksilassila.litematica.printer.utils.BreakUtils;
 import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
 import net.minecraft.client.Minecraft;
 
@@ -31,7 +32,7 @@ public class ClientPlayerTickManager {
     );
 
 public static void tick() {
-        if (InventoryUtils.isOpenHandler || InventoryUtils.switchItem() || LitematicaUtils.INSTANCE.isNeedHandle()) {
+        if (InventoryUtils.isOpenHandler || InventoryUtils.switchItem() || BreakUtils.INSTANCE.isNeedHandle()) {
             return;
         }
         
@@ -52,7 +53,7 @@ public static void tick() {
         for (ClientPlayerTickHandler handler : VALUES) {
             // 非GUI处理器需要进行二次迭代检查，避免资源抢占问题
             if (!(handler instanceof GuiHandler)) {
-                if (InventoryUtils.isOpenHandler || InventoryUtils.switchItem() || LitematicaUtils.INSTANCE.isNeedHandle()) {
+                if (InventoryUtils.isOpenHandler || InventoryUtils.switchItem() || BreakUtils.INSTANCE.isNeedHandle()) {
                     return;
                 }
                 // 有任务需要修改视角时强制退出

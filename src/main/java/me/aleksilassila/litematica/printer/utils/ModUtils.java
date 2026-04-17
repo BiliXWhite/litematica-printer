@@ -2,7 +2,6 @@ package me.aleksilassila.litematica.printer.utils;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import me.aleksilassila.litematica.printer.Debug;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.ChatFormatting;
@@ -135,7 +134,7 @@ public class ModUtils {
             SemanticVersion latestSemVer = SemanticVersion.parse(latestOfficialVersion);
             // 版本解析失败则跳过
             if (localSemVer == null || latestSemVer == null) {
-                Debug.alwaysWrite("版本号解析失败，本地版本：" + LOCAL_VERSION + "，最新版本：" + latestOfficialVersion);
+                MessageUtils.addMessage("版本号解析失败，本地版本：" + LOCAL_VERSION + "，最新版本：" + latestOfficialVersion);
                 return;
             }
             // 仅当最新正式版 > 本地版本时，触发更新提示

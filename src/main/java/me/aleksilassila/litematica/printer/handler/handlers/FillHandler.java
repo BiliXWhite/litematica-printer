@@ -7,10 +7,7 @@ import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.printer.action.Action;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
-import me.aleksilassila.litematica.printer.utils.ConfigUtils;
-import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
-import me.aleksilassila.litematica.printer.utils.InventoryUtils;
-import me.aleksilassila.litematica.printer.utils.MessageUtils;
+import me.aleksilassila.litematica.printer.utils.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
@@ -61,7 +58,7 @@ public class FillHandler extends ClientPlayerTickHandler {
                     for (String itemName : fillCacheBlocklist) {
                         items.addAll(BuiltInRegistries.ITEM
                                 .stream()
-                                .filter(item -> LitematicaUtils.matchName(itemName, new ItemStack(item)))
+                                .filter(item -> PinYinSearchUtils.matchName(itemName, new ItemStack(item)))
                                 .toList()
                         );
                     }
@@ -100,7 +97,7 @@ public class FillHandler extends ClientPlayerTickHandler {
         BlockState currentState = level.getBlockState(blockPos);
         if (currentState.isAir()
                 || (currentState.getBlock() instanceof LiquidBlock)
-                || Configs.Print.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> LitematicaUtils.matchName(s, currentState))
+                || Configs.Print.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> PinYinSearchUtils.matchName(s, currentState))
         ) {
             if (!InventoryUtils.switchToItems(player, this.fillModeItemList)) {
                 return;
