@@ -53,7 +53,7 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
 
     @Override
     public void litematica_printer$startPrediction(PredictiveAction predictiveAction) {
-        NetworkUtils.sendPacket(predictiveAction);
+        PacketUtils.sendPacket(predictiveAction);
     }
 
     @Override
@@ -125,7 +125,7 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
         }
 
         if (player.getAbilities().instabuild) {
-            NetworkUtils.sendPacket(i -> {
+            PacketUtils.sendPacket(i -> {
                 if (localPrediction) {
                     destroyBlock(blockPos);
                 }
@@ -135,7 +135,7 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
         }
 
         if (this.isDestroying && !this.sameDestroyTarget(blockPos)) {
-            NetworkUtils.sendPacket(litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, this.destroyBlockPos, direction, 0));
+            PacketUtils.sendPacket(litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, this.destroyBlockPos, direction, 0));
         }
 
         BlockState blockState = level.getBlockState(blockPos);
@@ -156,8 +156,8 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
             }
 
 
-            NetworkUtils.sendPacket(sequence -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
-            NetworkUtils.sendPacket(sequence -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
+            PacketUtils.sendPacket(sequence -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
+            PacketUtils.sendPacket(sequence -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
             // 保守一点使用0.6,只测试了0.583333这个数值
             if (destroyProgress > 0.6F) {
                 return BlockBreakResult.COMPLETED;
@@ -179,7 +179,7 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
         }
         
         // 发送开始破坏包
-        NetworkUtils.sendPacket(sequence -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
+        PacketUtils.sendPacket(sequence -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
         
         return BlockBreakResult.IN_PROGRESS;
     }
@@ -195,7 +195,7 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
         }
 
         if (player.getAbilities().instabuild && level.getWorldBorder().isWithinBounds(blockPos)) {
-            NetworkUtils.sendPacket(sequence -> {
+            PacketUtils.sendPacket(sequence -> {
                 if (localPrediction) destroyBlock(blockPos);
                 return litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, sequence);
             });
@@ -220,7 +220,7 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
 
             if (completed) {
                 this.isDestroying = false;
-                NetworkUtils.sendPacket(sequence -> {
+                PacketUtils.sendPacket(sequence -> {
                     if (localPrediction) destroyBlock(blockPos);
                     return litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence);
                 });

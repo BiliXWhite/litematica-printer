@@ -3,12 +3,12 @@ package me.aleksilassila.litematica.printer;
 import fi.dy.masa.malilib.interfaces.IInitializationHandler;
 import me.aleksilassila.litematica.printer.gui.ConfigUi;
 import me.aleksilassila.litematica.printer.utils.ModUtils;
-import me.aleksilassila.litematica.printer.utils.BlockUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.printer.zxy.utils.HighlightBlockRenderer;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
+import me.aleksilassila.litematica.printer.utils.bedrock.BedrockUtils;
 
 import static me.aleksilassila.litematica.printer.config.Configs.*;
 
@@ -51,9 +51,9 @@ public class InitHandler implements IInitializationHandler {
             if (!b.getBooleanValue()) {
                 ActionManager.INSTANCE.clearQueue();
                 if (ModUtils.isBedrockMinerLoaded() || ModUtils.isBlockMinerLoaded()) {
-                    if (BlockUtils.isWorking()) {
-                        BlockUtils.setWorking(false);
-                        BlockUtils.setBedrockMinerFeatureEnable(true);
+                    if (BedrockUtils.isWorking()) {
+                        BedrockUtils.setWorking(false);
+                        BedrockUtils.setBedrockMinerFeatureEnable(true);
                     }
                 }
             }
@@ -63,9 +63,9 @@ public class InitHandler implements IInitializationHandler {
         Core.WORK_MODE_TYPE.setValueChangeCallback(b -> {
             if (!b.getOptionListValue().equals(PrintModeType.BEDROCK)) {
                 if (ModUtils.isBedrockMinerLoaded() || ModUtils.isBlockMinerLoaded()) {
-                    if (BlockUtils.isWorking()) {
-                        BlockUtils.setWorking(false);
-                        BlockUtils.setBedrockMinerFeatureEnable(true);
+                    if (BedrockUtils.isWorking()) {
+                        BedrockUtils.setWorking(false);
+                        BedrockUtils.setBedrockMinerFeatureEnable(true);
                     }
                 }
             }

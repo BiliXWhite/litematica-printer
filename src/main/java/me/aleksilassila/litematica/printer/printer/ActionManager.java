@@ -7,7 +7,7 @@ import me.aleksilassila.litematica.printer.mixin_extension.MultiPlayerGameModeEx
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
 import me.aleksilassila.litematica.printer.utils.BlockUtils;
 import me.aleksilassila.litematica.printer.utils.InventoryUtils;
-import me.aleksilassila.litematica.printer.utils.NetworkUtils;
+import me.aleksilassila.litematica.printer.utils.PacketUtils;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -61,7 +61,7 @@ public class ActionManager {
             return this;
         }
         if (look != null) {
-            NetworkUtils.sendLookPacket(player, look);
+            PacketUtils.sendLookPacket(player, look);
         }
         if (!waitedLook && needWaitModifyLook) {
             waitedLook = true;
@@ -118,7 +118,7 @@ public class ActionManager {
         //$$ ServerboundPlayerCommandPacket packet = new ServerboundPlayerCommandPacket(player, shift ? ServerboundPlayerCommandPacket.Action.PRESS_SHIFT_KEY : ServerboundPlayerCommandPacket.Action.RELEASE_SHIFT_KEY);
         //#endif
         player.setShiftKeyDown(shift);
-        NetworkUtils.sendPacket(packet);
+        PacketUtils.sendPacket(packet);
     }
 
     public void clearQueue() {

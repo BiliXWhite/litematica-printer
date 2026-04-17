@@ -3,8 +3,8 @@ package me.aleksilassila.litematica.printer.enums;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
-import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
 import me.aleksilassila.litematica.printer.utils.BlockUtils;
+import me.aleksilassila.litematica.printer.utils.PinYinSearchUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Blocks;
@@ -62,8 +62,8 @@ public enum BlockPrintState {
 
         // 如果启用了替换功能，且当前方块在可替换列表中，则返回缺失方块状态（实际上这会和破坏额外方块打架）
         if (Configs.Print.PRINT_REPLACE.getBooleanValue() &&
-                replaceSet.stream().anyMatch(string -> !LitematicaUtils.matchName(string, requiredState) &&
-                        LitematicaUtils.matchName(string, currentState)) && !requiredState.isAir()
+                replaceSet.stream().anyMatch(string -> !PinYinSearchUtils.matchName(string, requiredState) &&
+                        PinYinSearchUtils.matchName(string, currentState)) && !requiredState.isAir()
         ) {
             return MISSING_BLOCK;
         }

@@ -240,7 +240,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             BlockPos pos = cachedIterator.next();
             if (pos == null) continue;
     
-            if (!ConfigUtils.canInteracted(pos)) continue;
+            if (!PlayerUtils.canInteracted(pos)) continue;
     
             if (needRangeCheck) {
                 if (isSchematic ? !LitematicaUtils.isSchematicBlock(pos)
@@ -248,7 +248,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                     continue;
                 }
     
-                if (selectionType != null && !ConfigUtils.isPositionInSelectionRange(player, pos, selectionType)) {
+                if (selectionType != null && !PlayerUtils.isPositionInSelectionRange(player, pos, selectionType)) {
                     continue;
                 }
             }
