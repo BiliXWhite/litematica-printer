@@ -37,7 +37,7 @@ public class ActionManager {
     @Nullable
     public PlayerLook look;
     public boolean needWaitModifyLook = false;
-    private boolean waitedLook = false;
+    private boolean actionRequiresWaitModifyLook = false;
 
     private ActionManager() {
     }
@@ -63,10 +63,21 @@ public class ActionManager {
         if (look != null) {
             PacketUtils.sendLookPacket(player, look);
         }
-        if (!waitedLook && needWaitModifyLook) {
-            waitedLook = true;
-            return this;
+
+        if (!useProtocol && !needWaitModifyLook && actionRequiresWaitModifyLook) {
+            if (look != null) {
+                Direction lookDirection = BlockUtils.orderedByNearest(look.yaw(), look.pitch())[0];
+                if (lookDirection.getAxis().isHorizontal()) {
+                    needWaitModifyLook = true;
+                    return this;
+                }
+            }
         }
+
+        if (needWaitModifyLook) {
+            needWaitModifyLook = false;
+        }
+
         Direction direction;
         if (look == null) {
             direction = side;
@@ -110,6 +121,10 @@ public class ActionManager {
         return this;
     }
 
+    public void setNeedWaitModifyLookFromAction(boolean needWaitModifyLook) {
+        this.actionRequiresWaitModifyLook = needWaitModifyLook;
+    }
+
     public void setShift(LocalPlayer player, boolean shift) {
         //#if MC > 12105
         Input input = new Input(player.input.keyPresses.forward(), player.input.keyPresses.backward(), player.input.keyPresses.left(), player.input.keyPresses.right(), player.input.keyPresses.jump(), shift, player.input.keyPresses.sprint());
@@ -128,7 +143,7 @@ public class ActionManager {
         this.useShift = false;
         this.useProtocol = false;
         this.needWaitModifyLook = false;
+        this.actionRequiresWaitModifyLook = false;
         this.look = null;
-        this.waitedLook = false;
     }
 }

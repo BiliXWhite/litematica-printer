@@ -10,6 +10,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -196,6 +197,45 @@ public class BlockUtils {
         //#else
         //$$ return direction.getNormal();
         //#endif
+    }
+
+    public static Direction[] orderedByNearest(float yaw, float pitch) {
+        double pitchRad = pitch * (Math.PI / 180.0);
+        double yawRad = -yaw * (Math.PI / 180.0);
+        float sinPitch = Mth.sin(pitchRad);
+        float cosPitch = Mth.cos(pitchRad);
+        float sinYaw = Mth.sin(yawRad);
+        float cosYaw = Mth.cos(yawRad);
+        boolean isEastFacing = sinYaw > 0.0F;
+        boolean isUpFacing = sinPitch < 0.0F;
+        boolean isSouthFacing = cosYaw > 0.0F;
+        float eastWestMagnitude = isEastFacing ? sinYaw : -sinYaw;
+        float upDownMagnitude = isUpFacing ? -sinPitch : sinPitch;
+        float northSouthMagnitude = isSouthFacing ? cosYaw : -cosYaw;
+        float adjustedX = eastWestMagnitude * cosPitch;
+        float adjustedZ = northSouthMagnitude * cosPitch;
+        Direction primaryXDirection = isEastFacing ? Direction.EAST : Direction.WEST;
+        Direction primaryYDirection = isUpFacing ? Direction.UP : Direction.DOWN;
+        Direction primaryZDirection = isSouthFacing ? Direction.SOUTH : Direction.NORTH;
+        if (eastWestMagnitude > northSouthMagnitude) {
+            if (upDownMagnitude > adjustedX) {
+                return makeDirectionArray(primaryYDirection, primaryXDirection, primaryZDirection);
+            } else {
+                return adjustedZ > upDownMagnitude
+                        ? makeDirectionArray(primaryXDirection, primaryZDirection, primaryYDirection)
+                        : makeDirectionArray(primaryXDirection, primaryYDirection, primaryZDirection);
+            }
+        } else if (upDownMagnitude > adjustedZ) {
+            return makeDirectionArray(primaryYDirection, primaryZDirection, primaryXDirection);
+        } else {
+            return adjustedX > upDownMagnitude
+                    ? makeDirectionArray(primaryZDirection, primaryXDirection, primaryYDirection)
+                    : makeDirectionArray(primaryZDirection, primaryYDirection, primaryXDirection);
+        }
+    }
+
+    private static Direction[] makeDirectionArray(Direction dir1, Direction dir2, Direction dir3) {
+        return new Direction[]{dir1, dir2, dir3, dir3.getOpposite(), dir2.getOpposite(), dir1.getOpposite()};
     }
 
     public static Direction getHorizontalDirection(float yaw) {

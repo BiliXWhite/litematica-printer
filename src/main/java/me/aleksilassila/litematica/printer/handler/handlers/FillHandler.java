@@ -121,6 +121,7 @@ public class FillHandler extends ClientPlayerTickHandler {
                         .queueAction(blockPos, getPlayerPlacementDirection(), false, player);
             }
             ActionManager.INSTANCE.setLook(action.getPlayerLook());
+            ActionManager.INSTANCE.setNeedWaitModifyLookFromAction(action.getNeedWaitModifyLook());
             if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook){
                 skipIteration.set(true);
             } else {
