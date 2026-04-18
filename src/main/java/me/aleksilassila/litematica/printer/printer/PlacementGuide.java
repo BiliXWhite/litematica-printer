@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.printer;
 
+import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.printer.action.Action;
 import me.aleksilassila.litematica.printer.printer.action.ClickAction;
@@ -877,16 +878,14 @@ public class PlacementGuide {
                     if (InventoryUtils.playerHasAccessToItem(mc.player, Items.GLASS_BOTTLE)) {
                         return new ClickAction().setItem(Items.GLASS_BOTTLE);
                     } else {
-                        //TODO: 未I18n
-                        MessageUtils.setOverlayMessage(Component.nullToEmpty("降低炼药锅内水位需要 §l§6" + getNameFromItem(Items.GLASS_BOTTLE)), false);
+                        MessageUtils.setOverlayMessage(I18n.BREWINGSTAND_LOWER.getName(getNameFromItem(Items.GLASS_BOTTLE)));
                     }
                 }
                 if (ctx.currentState.getValue(LayeredCauldronBlock.LEVEL) < ctx.requiredState.getValue(LayeredCauldronBlock.LEVEL))
                     if (InventoryUtils.playerHasAccessToItem(mc.player, Items.POTION)) {
                         return new ClickAction().setItem(Items.POTION);
                     } else {
-                        //TODO: 未I18n
-                        MessageUtils.setOverlayMessage(Component.nullToEmpty("增加炼药锅内水位需要 §l§6" + getNameFromItem(Items.GLASS_BOTTLE)), false);
+                        MessageUtils.setOverlayMessage(I18n.BREWINGSTAND_RAISE.getName(getNameFromItem(Items.GLASS_BOTTLE)));
                     }
             }
             case DAYLIGHT_DETECTOR -> {

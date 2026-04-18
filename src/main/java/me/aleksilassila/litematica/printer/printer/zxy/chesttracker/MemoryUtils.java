@@ -1,10 +1,12 @@
 package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 
 //#if MC >= 12001
+import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -60,7 +62,7 @@ public class MemoryUtils {
             Storage.delete(id);
             createPrinterMemory();
         }
-        client.gui.setOverlayMessage(Component.nullToEmpty("打印机库存已清空"), false);
+        MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_CLEARED.getName());
     }
 
     public static void setup() {
