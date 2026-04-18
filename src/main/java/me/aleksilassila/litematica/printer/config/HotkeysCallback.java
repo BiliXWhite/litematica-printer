@@ -2,8 +2,10 @@ package me.aleksilassila.litematica.printer.config;
 
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
+import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.gui.ConfigUi;
 import me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils;
+import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import net.minecraft.client.Minecraft;
 
 //#if MC >= 12001 
@@ -55,7 +57,7 @@ public class HotkeysCallback {
             //$$     database.clearDimension(dimension);
             //$$     }
             //$$ }
-            //$$ client.gui.setOverlayMessage(Component.nullToEmpty("打印机库存已清空"), false);
+            //$$ MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_CLEARED.getName());
             //#endif
             return true;
         }
