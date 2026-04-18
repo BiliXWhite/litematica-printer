@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.malilib.util.StringUtils;
 import io.netty.buffer.Unpooled;
+import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.utils.ModUtils;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
@@ -175,14 +176,14 @@ public class OpenInventoryPacket {
                     client.execute(() -> openReturn(isOpen,state));
                 }
             } catch (Exception ignored) {
-                MessageUtils.setOverlayMessage("服务端回复异常，箱子追踪库存无法更新");
+                MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_DISABLED.getName());
             }
         });
         ClientPlayNetworking.registerGlobalReceiver(HELLO_REMOTE_INTERACTIONS_ID,(openInventoryPacket,context) -> {
             isRemote = true;
             client.execute(() -> {
                 if (Configs.Core.AUTO_INVENTORY.getBooleanValue()) {
-                    MessageUtils.setOverlayMessage("已自动启用远程交互容器!!!");
+                    MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_ENABLED.getName());
                     Configs.Core.CLOUD_INVENTORY.setBooleanValue(true);
                 }
             });
@@ -195,14 +196,14 @@ public class OpenInventoryPacket {
         //$$             client.execute(() -> openReturn(packet.isOpen(), packet.blockState()));
         //$$         });
         //$$     } catch (Exception ignored) {
-        //$$         MessageUtils.setOverlayMessage("服务端回复异常，箱子追踪库存无法更新");
+        //$$         MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_DISABLED.getName());
         //$$     }
         //$$ });
         //$$ ClientPlayNetworking.registerGlobalReceiver(HELLO_REMOTE_INTERACTIONS, (client, playNetworkHandler, packetByteBuf, packetSender) -> {
         //$$     isRemote = true;
         //$$     client.execute(() -> {
         //$$         if (Configs.Core.AUTO_INVENTORY.getBooleanValue()) {
-        //$$             MessageUtils.setOverlayMessage("已自动启用远程交互容器!!!");
+        //$$             MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_ENABLED.getName());
         //$$             Configs.Core.CLOUD_INVENTORY.setBooleanValue(true);
         //$$         }
         //$$     });
@@ -342,7 +343,7 @@ public class OpenInventoryPacket {
 
     public static void openReturn(boolean open, BlockState state) {
         if(clientTry){
-            MessageUtils.setOverlayMessage("已自动启用远程交互容器!!!");
+            MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_ENABLED.getName());
             Configs.Core.CLOUD_INVENTORY.setBooleanValue(true);
             key = null;
             pos = null;
@@ -362,17 +363,15 @@ public class OpenInventoryPacket {
                 //$$ String translationKey = key.identifier().toLanguageKey();
                 //$$ String translate = StringUtils.translate(translationKey);
                 //$$ if (client.player != null)
-                //$$     MessageUtils.addMessage("打开容器失败 \n位于" + translate + "  " + pos.getCenter());
                 //#elseif MC < 11904
                 //$$ String translationKey = key.location().toString();
                 //$$ String translate = StringUtils.translate(translationKey);
-                //$$ if (client.player != null) me.aleksilassila.litematica.printer.utils.MessageUtils.addMessage("打开容器失败 \n位于"+ translate+"  "+pos.toString());
                 //#else
                 String translationKey = key.identifier().toLanguageKey();
                 String translate = StringUtils.translate(translationKey);
-                if (client.player != null) client.player.displayClientMessage(Component.nullToEmpty("打开容器失败 \n位于"+ translate+"  "+ pos.getCenter()),false);
+                if (client.player != null)
+                    client.player.displayClientMessage(I18n.INVENTORY_SYNC_OPEN_FAILED.getName(translate, pos.getCenter()), false);
                 //#endif
-
                 //#if MC >= 12001
                 MemoryUtils.PRINTER_MEMORY.removeMemory(key.identifier(), pos);
                 //#elseif MC < 12001
@@ -420,7 +419,7 @@ public class OpenInventoryPacket {
             }
             clientTry = true;
             if(clientTryTime + 3000L < System.currentTimeMillis() && clientTry){
-                MessageUtils.setOverlayMessage("已自动关闭远程交互容器");
+                MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_DISABLED.getName());
                 Configs.Core.CLOUD_INVENTORY.setBooleanValue(false);
                 remoteTime = 0;
                 clientTry = false;
