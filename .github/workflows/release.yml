@@ -4,7 +4,7 @@ name: release
 # dispatch (all): Manual release for $target_release_tag
 # dispatch (specified): Manual release for $target_release_tag (subproject: $target_subproject)
 run-name: |-
-  ${{ github.event_name == 'workflow_dispatch' && format('Manual release for {0}' || '') || '' }}
+  ${{ github.event_name == 'workflow_dispatch' && format('Manual release for {0}', github.event.inputs.target_release_tag) || 'Release' }}
 
 on:
   release:
