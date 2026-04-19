@@ -35,7 +35,8 @@ jobs:
         run: |
           cat <<EOF > $GITHUB_STEP_SUMMARY
           ## Action Parameters
-          - target_release_tag: \`${{ github.event.inputs.target_release_tag }}\`
+          - target_release_tag: \
+          \
           EOF
 
   changelog:
@@ -55,8 +56,7 @@ jobs:
         run: |
           if [ $GITHUB_EVENT_NAME == 'release' ]
           then
-              # Leave an empty value here, so Kir-Antipov/mc-publish will infer the tag from the action context
-              echo "tag_name=" >> $GITHUB_OUTPUT
+              echo "tag_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           elif [ $GITHUB_EVENT_NAME == 'workflow_dispatch' ]
           then
               echo "tag_name=${{ github.event.inputs.target_release_tag }}" >> $GITHUB_OUTPUT
