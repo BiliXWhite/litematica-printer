@@ -44,7 +44,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build fabricWrapper subproject
-        run: ./gradlew :fabricWrapper:build --stacktrace
+        run: ./gradlew :fabricWrapper:build
 
       - name: Capture build artifacts
         uses: actions/upload-artifact@v7
