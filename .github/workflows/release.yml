@@ -1,10 +1,10 @@
-name: release
+name: 发布
 
-# release: <default> (release title)
-# dispatch (all): Manual release for $target_release_tag
-# dispatch (specified): Manual release for $target_release_tag (subproject: $target_subproject)
+# release: <默认> (release 标题)
+# dispatch (全部): 手动发布 $target_release_tag
+# dispatch (指定): 手动发布 $target_release_tag (子项目: $target_subproject)
 run-name: |-
-  ${{ github.event_name == 'workflow_dispatch' && format('Manual release for {0}', github.event.inputs.target_release_tag) || 'Release' }}
+  ${{ github.event_name == 'workflow_dispatch' && format('手动发布 {0}', github.event.inputs.target_release_tag) || '发布' }}
 
 on:
   release:
@@ -14,13 +14,13 @@ on:
     inputs:
       target_subproject:
         description: |-
-          The subproject name(s) of the specified Minecraft version to be released, seperated with ",".
-          By default all subprojects will be released
+          要发布的 Minecraft 版本子项目名称，多个用 "," 分隔。
+          留空则发布所有子项目
         type: string
         required: false
         default: ''
       target_release_tag:
-        description: The tag of the release you want to append the artifact to
+        description: 要附加构建产物的 Git tag 标签
         type: string
         required: true
 
@@ -31,10 +31,10 @@ jobs:
   show_action_parameters:
     runs-on: ubuntu-latest
     steps:
-      - name: Show action parameters
+      - name: 显示操作参数
         run: |
           cat <<EOF > $GITHUB_STEP_SUMMARY
-          ## Action Parameters
+          ## 操作参数
           - target_release_tag: \
           \
           EOF
@@ -46,12 +46,12 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GH_USERNAME: ${{ secrets.GH_USERNAME }}
     steps:
-      - name: Checkout all
+      - name: 检出完整仓库
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Generate publish related information
+      - name: 生成发布相关信息
         id: release_info_for_changelog
         run: |
           if [ $GITHUB_EVENT_NAME == 'release' ]
@@ -61,17 +61,17 @@ jobs:
           then
               echo "tag_name=${{ github.event.inputs.target_release_tag }}" >> $GITHUB_OUTPUT
           else
-              echo Unknown github event name $GITHUB_EVENT_NAME
+              echo 未知 GitHub 事件类型 $GITHUB_EVENT_NAME
               exit 1
           fi
 
-      - name: Install git-cliff
+      - name: 安装 git-cliff
         uses: taiki-e/install-action@git-cliff
 
-      - name: Generate changelog
+      - name: 生成更新日志
         run: git-cliff --latest -o CHANGELOG.md
 
-      - name: Upload changelog to release
+      - name: 上传更新日志到 Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.release_info_for_changelog.outputs.tag_name }}
@@ -79,12 +79,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ensure the input release tag is valid
+  # 验证输入的 release tag 是否有效
   validate_release:
     runs-on: ubuntu-latest
     needs: changelog
     steps:
-      - name: Get github release information
+      - name: 获取 GitHub Release 信息
         uses: cardinalby/git-get-release-action@1.2.5
         env:
           GITHUB_TOKEN: ${{ github.token }}
