@@ -57,18 +57,32 @@ val Project.mixinJavaVersion get() = "JAVA_${javaVersion}"
 val Project.fullProjectVersion: String get() = getFullProjectVersion(modVersion)
 
 private fun getFullProjectVersion(modVersion: String): String {
-    val time = SimpleDateFormat("yyMMdd")
-        .apply { timeZone = TimeZone.getTimeZone("GMT+08:00") }
-        .format(Date())
-        .toString()
-    var version = "$modVersion+$time"
-    if (System.getenv("IS_THIS_RELEASE") == "false") {
-        val buildNumber: String? = System.getenv("GITHUB_RUN_NUMBER")
-        if (buildNumber != null) {
-            version += "+build.$buildNumber"
+    val isRelease = System.getenv("IS_THIS_RELEASE")?.toBoolean() == true
+    val isCi = System.getenv("CI") == "true" || System.getenv("GITHUB_ACTIONS") == "true"
+
+    return when {
+        isRelease -> modVersion
+        isCi -> {
+            val time = SimpleDateFormat("yyMMdd")
+                .apply { timeZone = TimeZone.getTimeZone("GMT+08:00") }
+                .format(Date())
+                .toString()
+            val buildNumber = System.getenv("GITHUB_RUN_NUMBER")
+            val version = "$modVersion+$time"
+            if (buildNumber != null) {
+                "$version+build.$buildNumber"
+            } else {
+                version
+            }
+        }
+        else -> {
+            val time = SimpleDateFormat("yyMMdd")
+                .apply { timeZone = TimeZone.getTimeZone("GMT+08:00") }
+                .format(Date())
+                .toString()
+            "$modVersion+$time"
         }
     }
-    return version
 }
 
 val Project.placeholderProps: Map<String, Any?>
