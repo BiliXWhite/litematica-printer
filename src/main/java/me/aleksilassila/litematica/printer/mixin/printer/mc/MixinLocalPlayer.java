@@ -47,7 +47,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     protected Minecraft minecraft;
 
     @Unique
-    private boolean updateChecked;
+    private static boolean updateChecked;
 
     //#if MC == 11902
     //$$ public MixinLocalPlayer(ClientLevel world, GameProfile profile, @Nullable PlayerPublicKey publicKey) {
