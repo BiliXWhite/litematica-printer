@@ -21,6 +21,10 @@ gradle-app.setting
 *.rar
 bin/
 
+# 保留项目内嵌的本地 Maven 依赖产物，供 CI 解析旧版本依赖
+!project_maven/**/*.jar
+!project_maven/**/*.pom
+
 # JVM 相关日志 (崩溃日志+业务日志)
 hs_err_pid*
 replay_pid*
