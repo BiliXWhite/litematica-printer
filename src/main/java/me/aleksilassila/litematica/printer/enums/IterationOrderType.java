@@ -45,7 +45,7 @@ public enum IterationOrderType implements ConfigOptionListEntry<IterationOrderTy
 
             @Override
             public int reset(PrinterBox box) {
-                return box.xIncrement ? box.minX : box.maxX;
+                return (int) (box.xIncrement ? box.minX : box.maxX);
             }
         },
         Y {
@@ -66,7 +66,7 @@ public enum IterationOrderType implements ConfigOptionListEntry<IterationOrderTy
 
             @Override
             public int reset(PrinterBox box) {
-                return box.yIncrement ? box.minY : box.maxY;
+                return (int) (box.yIncrement ? box.minY : box.maxY);
             }
         },
         Z {
@@ -87,7 +87,7 @@ public enum IterationOrderType implements ConfigOptionListEntry<IterationOrderTy
 
             @Override
             public int reset(PrinterBox box) {
-                return box.zIncrement ? box.minZ : box.maxZ;
+                return (int) (box.zIncrement ? box.minZ : box.maxZ);
             }
         };
 

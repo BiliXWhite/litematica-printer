@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.utils.bedrock;
+package me.aleksilassila.litematica.printer.utils.mods.bedrock;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -9,6 +9,7 @@ public class BlockMiner implements Miner {
     public final Object instance;
 
     private final Method addBlockTaskMethod;
+    private final Method addRegionTaskMethod;
     private final Method clearTaskMethod;
     private final Method isRunningMethod;
     private final Method setEnableMethod;
@@ -23,6 +24,7 @@ public class BlockMiner implements Miner {
         Method getTaskManagerMethod = modContainer.getClass().getDeclaredMethod("getTaskManager");
         instance = getTaskManagerMethod.invoke(modContainer);
         addBlockTaskMethod = taskManagerClass.getDeclaredMethod("handleAttackBlock", BlockPos.class);
+        addRegionTaskMethod = taskManagerClass.getDeclaredMethod("addAura", BlockPos.class, BlockPos.class);
         clearTaskMethod = taskManagerClass.getDeclaredMethod("clearTasks");
         clearTaskMethod.setAccessible(true);
         isRunningMethod = taskManagerClass.getDeclaredMethod("isEnabled");
@@ -39,6 +41,11 @@ public class BlockMiner implements Miner {
         this.addBlockTaskMethod.invoke(this.instance, pos);
     }
 
+    @Override
+    public void addRegionTask(String name, ClientLevel world, BlockPos pos1, BlockPos pos2) throws Exception {
+        if (this.instance == null) return;
+        this.addRegionTaskMethod.invoke(this.instance, pos1, pos2);
+    }
     @Override
     public void clearTask() throws Exception {
         if (this.instance == null) return;
@@ -69,5 +76,11 @@ public class BlockMiner implements Miner {
 
     @Override
     public void setBedrockMinerFeatureEnable(boolean bedrockMinerFeatureEnable) {
+    }
+
+    @Override
+    public boolean isInTasks(ClientLevel world, BlockPos blockPos) throws Exception { // 修正方法名和参数
+        if (this.instance == null) return false;
+        return (boolean) this.isInTasksMethod.invoke(this.instance, blockPos);
     }
 }

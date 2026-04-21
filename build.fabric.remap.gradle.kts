@@ -1,6 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
 import groovy.json.JsonSlurper
+import java.text.SimpleDateFormat
+import java.util.*
 
 plugins {
     id("mod-plugin")
@@ -13,61 +15,50 @@ version = fullProjectVersion
 group = modMavenGroup
 
 repositories {
-    maven("https://maven.fabricmc.net") { name = "FabricMC" }
-    maven("https://maven.fallenbreath.me/releases") { name = "FallenBreath" }
-    maven("https://api.modrinth.com/maven") { name = "Modrinth" }
-    maven("https://www.cursemaven.com") { name = "CurseMaven" }
-    maven("https://maven.terraformersmc.com/releases") { name = "TerraformersMC" } // ModMenu 源
-    maven("https://maven.nucleoid.xyz") { name = "Nucleoid" }  // ModMenu依赖 Text Placeholder API
-    maven("https://masa.dy.fi/maven") { name = "Masa" }
-    maven("https://masa.dy.fi/maven/sakura-ryoko") { name = "SakuraRyoko" }
-    maven("https://maven.shedaniel.me") { name = "Shedaniel" }  // Cloth API/Config 官方源
-    maven("https://maven.isxander.dev/releases") { name = "XanderReleases" }
-    maven("https://maven.jackf.red/releases") { name = "Jackfred" }   // JackFredLib 依赖
-    maven("https://maven.blamejared.com") { name = "BlameJared" }   // Searchables 配置库
-    maven("https://maven.kyrptonaught.dev") { name = "Kyrptonaught" }   // KyrptConfig 依赖
-    maven("https://staging.alexiil.uk/maven/") { name = "CottonMC" }   // LibGui 依赖
-    maven("https://jitpack.io") { name = "Jitpack" }
-    maven("https://mvnrepository.com/artifact/com.belerweb/pinyin4j") { // 拼音库
-        name = "Pinyin4j"
-        content {
-            includeGroupAndSubgroups("com.belerweb")
+    mavenLocal()
+    maven { url = uri("$rootDir/project_maven") }
+    fun strictMaven(url: String, vararg groups: String) = exclusiveContent {
+        forRepository { maven(url) }
+        filter {
+            groups.forEach {
+                includeGroupAndSubgroups(it)
+                includeGroupAndSubgroups("$it.*")
+            }
         }
+    }
+    strictMaven("https://mvnrepository.com/artifact/com.belerweb/pinyin4j")
+
+    strictMaven("https://maven.fabricmc.net")
+    strictMaven("https://maven.fallenbreath.me/releases")
+    strictMaven("https://www.cursemaven.com", "curse.maven")
+    strictMaven("https://api.modrinth.com/maven", "maven.modrinth")
+
+    if (mcVersionInt <= 12006) {
+        strictMaven("https://maven.kyrptonaught.dev", "net.kyrptonaught")  // KyrptConfig依赖
     }
 
-    // pkg.github.com. needs authentication(system environment)
-    // GH_USERNAME 和 GH_TOKEN 需要在系统环境变量中设置(windows) Github可设置自己用户名 也可以使用默认GITHUB_TOKEN( github-actions[bot] )
-    maven { // JackFredLib ponuing
-        url = uri("https://maven.pkg.github.com/ponuing/JackFredLib")
-        credentials {
-            username = System.getenv("GH_USERNAME")?: "github-actions[bot]"
-            password = System.getenv("GH_TOKEN")?: System.getenv("GITHUB_TOKEN")
-        }
-    }
-    maven { // ChestTracker ponuing
-        url = uri("https://maven.pkg.github.com/ponuing/ChestTracker")
-        credentials {
-            username = System.getenv("GH_USERNAME")?: "github-actions[bot]"
-            password = System.getenv("GH_TOKEN")?: System.getenv("GITHUB_TOKEN")
-        }
-    }
-    maven { // WhereIsIt ponuing
-        url = uri("https://maven.pkg.github.com/ponuing/WhereIsIt")
-        credentials {
-            username = System.getenv("GH_USERNAME")?: "github-actions[bot]"
-            password = System.getenv("GH_TOKEN")?: System.getenv("GITHUB_TOKEN")
-        }
-    }
+    strictMaven("https://maven.terraformersmc.com/releases", "com.terraformersmc")  // ModMenu
+    strictMaven("https://maven.nucleoid.xyz", "eu.pb4") // ModMenu依赖TextPlaceholderAPI
+    strictMaven("https://maven.jackf.red/releases", "red.jackf")  // JackFredLib 依赖
+    strictMaven("https://maven.blamejared.com") // Searchables 配置库
+    strictMaven("https://staging.alexiil.uk/maven/")
+    strictMaven("https://maven.isxander.dev/releases")
+    strictMaven("https://maven.shedaniel.me")  // Cloth API/Config 官方源
+
+    // if (mcVersionInt <= 11904) {
+    //     strictMaven("https://maven.cottonmc.re", "io.github.cottonmc")   // LibGui 依赖
+    // }
+    strictMaven("https://jitpack.io")
 }
 
 // https://github.com/FabricMC/fabric-loader/issues/783
 configurations.all {
     resolutionStrategy {
         force("net.fabricmc:fabric-loader:$fabricLoaderVersion")
+        force("maven.modrinth:malilib:${prop("malilib")}")
+        force("maven.modrinth:litematica:${prop("litematica")}")
+        force("maven.modrinth:tweakeroo:${prop("tweakeroo")}")
         force("com.terraformersmc:modmenu:${prop("modmenu")}")
-        force("maven.modrinth:malilib:${prop("malilib_dependency")}")
-        force("maven.modrinth:litematica:${prop("litematica_dependency")}")
-        force("maven.modrinth:tweakeroo:${prop("tweakeroo_dependency")}")
     }
 }
 
@@ -80,25 +71,26 @@ dependencies {
 
     modImplementation("com.terraformersmc:modmenu:${prop("modmenu")}")
 
-    if (mcVersionInt >= 12101) {    // use https://masa.dy.fi/maven/sakura-ryoko
-        modImplementation("fi.dy.masa.malilib:${prop("malilib")}")
-        modImplementation("fi.dy.masa.litematica:${prop("litematica")}")
-        modImplementation("fi.dy.masa.tweakeroo:${prop("tweakeroo")}")
-    } else { //mcVersionInt < 12101 // use https://api.modrinth.com/maven
-        modImplementation("maven.modrinth:malilib:${prop("malilib_dependency")}")
-        modImplementation("maven.modrinth:litematica:${prop("litematica_dependency")}")
-        modImplementation("maven.modrinth:tweakeroo:${prop("tweakeroo_dependency")}")
-    }
+    // modImplementation("com.github.sakura-ryoko:malilib:${props["malilib"]}")
+    // modImplementation("com.github.sakura-ryoko:litematica:${props["litematica"]}")
+    // modImplementation("com.github.sakura-ryoko:tweakeroo:${props["tweakeroo"]}")
+
+    modImplementation("maven.modrinth:malilib:$malilib")
+    modImplementation("maven.modrinth:litematica:$litematica")
+    modImplementation("maven.modrinth:tweakeroo:${prop("tweakeroo")}")
 
     // 箱子追踪
-    if (mcVersionInt > 12006) {
-        modImplementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
-        modImplementation("red.jackf:chesttracker:${prop("chesttracker")}")
-        modImplementation("red.jackf:whereisit:${prop("whereisit")}")
+    if (mcVersionInt >= 12106) {
+        modImplementation("maven.modrinth:chest-tracker-port:${prop("chesttracker")}")
+        if (mcVersionInt >= 12106) {
+            modImplementation("com.github.bunnyi116:JackFredLib:${prop("jackfredlib")}")
+        } else {
+            modImplementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
+        }
+        modImplementation("maven.modrinth:where-is-it-port:${prop("whereisit")}")
     } else {
         modImplementation("maven.modrinth:chest-tracker:${prop("chesttracker")}")
-        modImplementation("maven.modrinth:where-is-it:${prop("whereisit")}") // JackFred 写 WhereIsIt 1.20.6的时候用的是jitpack的yacl ...
-
+        modImplementation("maven.modrinth:where-is-it:${prop("whereisit")}")
         if (mcVersionInt >= 12001) {
             modImplementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
         } else {
@@ -168,12 +160,11 @@ loom {
     }
 }
 
-
 tasks {
     register<Copy>("buildAndCollect") {
         group = "build"
         from(remapJar.map { it.archiveFile })
-        into(rootProject.layout.buildDirectory.file("libs/${project.property("mod_version")}"))
+        into(rootProject.layout.buildDirectory.file("libs/$modVersion"))
         dependsOn("build")
     }
 }

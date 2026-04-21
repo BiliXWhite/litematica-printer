@@ -1,19 +1,28 @@
 package me.aleksilassila.litematica.printer.printer;
 
-import me.aleksilassila.litematica.printer.utils.BlockUtils;
+import lombok.Data;
+import me.aleksilassila.litematica.printer.utils.minecraft.DirectionUtils;
 import net.minecraft.core.Direction;
 
-public record PlayerLook(float yaw, float pitch) {
+@Data
+public class PlayerLook {
+    public final float yaw;
+    public final float pitch;
+
+    public PlayerLook(float yaw, float pitch) {
+        this.yaw = yaw;
+        this.pitch = pitch;
+    }
 
     public PlayerLook(Direction lookDirection) {
-        this(BlockUtils.getRequiredYaw(lookDirection), BlockUtils.getRequiredPitch(lookDirection));
+        this(DirectionUtils.getRequiredYaw(lookDirection), DirectionUtils.getRequiredPitch(lookDirection));
     }
 
     public PlayerLook(Direction lookDirectionYaw, Direction lookDirectionPitch) {
-        this(BlockUtils.getRequiredYaw(lookDirectionYaw), BlockUtils.getRequiredPitch(lookDirectionPitch));
+        this(DirectionUtils.getRequiredYaw(lookDirectionYaw), DirectionUtils.getRequiredPitch(lookDirectionPitch));
     }
 
     public PlayerLook(int rotation) {
-        this(BlockUtils.rotationToPlayerYaw(rotation), 0);
+        this(DirectionUtils.rotationToPlayerYaw(rotation), 0);
     }
 }

@@ -4,11 +4,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
-import net.minecraft.world.level.block.ComposterBlock;
+import net.minecraft.world.level.block.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * 模组核心常量引用类
@@ -16,7 +17,7 @@ import java.util.Arrays;
  */
 public class Reference {
     public static final Minecraft MINECRAFT = Minecraft.getInstance();
-    public static final String MOD_ID = "litematica_printer";
+    public static final String MOD_ID = "litematica-printer";
     public static final String MOD_NAME = "Litematica Printer";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 

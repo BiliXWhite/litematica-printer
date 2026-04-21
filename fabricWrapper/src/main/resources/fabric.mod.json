@@ -39,5 +39,11 @@
   "license": "${mod_license}",
   "environment": "*",
   "entrypoints": {
+  },
+  "depends": {
+    "litematica-printer": "*",
+    "malilib": "*",
+    "litematica": "*",
+    "fabric-api": "*"
   }
 }

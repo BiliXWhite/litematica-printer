@@ -9,7 +9,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
-import me.aleksilassila.litematica.printer.utils.ModUtils;
+import me.aleksilassila.litematica.printer.utils.mods.ModLoadUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -26,6 +26,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList;
 
 //#if MC <= 12103
 //$$ import net.minecraft.world.entity.player.Inventory;
@@ -44,42 +46,41 @@ public abstract class MixinMinecraftClient {
 
     @Inject(method = {"setScreen"}, at = {@At(value = "HEAD")}, cancellable = true)
     public void setScreen(@Nullable Screen screen, CallbackInfo ci) {
-        if(ModUtils.closeScreen > 0 && /*screen != null &&*/ screen instanceof AbstractContainerScreen<?>){
-            ModUtils.closeScreen--;
+        if (ModLoadUtils.closeScreen > 0 && /*screen != null &&*/ screen instanceof AbstractContainerScreen<?>) {
+            ModLoadUtils.closeScreen--;
             ci.cancel();
         }
     }
 
     //鼠标中键从打印机库存或通过快捷濳影盒 取出对应物品
-    //#if MC >= 260100
-    //$$ @WrapOperation(method = "pickBlockOrEntity",at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;handlePickItemFromBlock(Lnet/minecraft/core/BlockPos;Z)V"))
-    //#elseif MC > 12103
-    @WrapOperation(method = "pickBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;handlePickItemFromBlock(Lnet/minecraft/core/BlockPos;Z)V"))
-    //#else
-    //$$ @WrapOperation(method = "pickBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;findSlotMatchingItem(Lnet/minecraft/world/item/ItemStack;)I" ))
-    //#endif
-
     //#if MC > 12103
+        //#if MC > 260100
+        @WrapOperation(method = "pickBlockOrEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;handlePickItemFromBlock(Lnet/minecraft/core/BlockPos;Z)V"))
+        //#else
+        //$$ @WrapOperation(method = "pickBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;handlePickItemFromBlock(Lnet/minecraft/core/BlockPos;Z)V"))
+        //#endif
     private void doItemPick(MultiPlayerGameMode instance, BlockPos pos, boolean b, Operation<Void> original) {
-        if(level == null) {
+        if (level == null) {
             original.call(instance, pos, b);
             return;
         }
         Item item = level.getBlockState(pos).getBlock().asItem();
         if (player.inventoryMenu.slots.stream().noneMatch(slot -> slot.getItem().getItem().equals(item)) &&
                 !player.getAbilities().instabuild && (Configs.Core.CLOUD_INVENTORY.getBooleanValue() || Configs.Placement.QUICK_SHULKER.getBooleanValue())) {
-            InventoryUtils.lastNeedItemList.add(item);
+            lastNeedItemList.add(item);
             InventoryUtils.switchItem();
             return;
         }
         original.call(instance, pos, b);
     }
+
     //#else
+    //$$ @WrapOperation(method = "pickBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;findSlotMatchingItem(Lnet/minecraft/world/item/ItemStack;)I" ))
     //$$ private int doItemPick(Inventory instance, ItemStack stack, Operation<Integer> original) {
     //$$     int slotWithStack = original.call(instance, stack);
     //$$     if(!player.getAbilities().instabuild && (Configs.Core.CLOUD_INVENTORY.getBooleanValue() || Configs.Placement.QUICK_SHULKER.getBooleanValue()) && slotWithStack == -1){
     //$$         Item item = stack.getItem();
-    //$$         InventoryUtils.lastNeedItemList.add(item);
+    //$$         lastNeedItemList.add(item);
     //$$         InventoryUtils.switchItem();
     //$$         return -1;
     //$$     }

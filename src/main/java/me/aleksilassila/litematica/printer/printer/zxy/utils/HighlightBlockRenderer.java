@@ -1,21 +1,20 @@
 package me.aleksilassila.litematica.printer.printer.zxy.utils;
 
+import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-
-import com.mojang.blaze3d.pipeline.RenderTarget;
-import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.client.renderer.RenderBuffers;
-import net.minecraft.client.renderer.culling.Frustum;
-
 import fi.dy.masa.malilib.config.options.ConfigColor;
 import fi.dy.masa.malilib.event.RenderEventHandler;
 import fi.dy.masa.malilib.interfaces.IRenderer;
 import fi.dy.masa.malilib.render.RenderUtils;
 import fi.dy.masa.malilib.util.data.Color4f;
+import me.aleksilassila.litematica.printer.Reference;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.minecraft.client.renderer.RenderBuffers;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.BlockPos;
-import org.joml.Matrix4f;
+import net.minecraft.util.profiling.ProfilerFiller;
+
 
 import java.util.*;
 
@@ -41,10 +40,12 @@ import com.mojang.blaze3d.vertex.MeshData;
 import org.joml.Vector4f;
 //#endif
 
-//#if MC >= 260001
-//$$ import org.joml.Matrix4fc;
-//$$ import com.mojang.blaze3d.buffers.GpuBufferSlice;
-//$$ import net.minecraft.client.renderer.state.level.CameraRenderState;
+//#if MC >= 260100
+import org.joml.Matrix4fc;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+//#else
+//$$ import org.joml.Matrix4f;
 //#endif
 
 //#if MC <= 12104
@@ -53,7 +54,7 @@ import org.joml.Vector4f;
 public class HighlightBlockRenderer implements IRenderer {
     public static HighlightBlockRenderer instance = new HighlightBlockRenderer();
     public static Map<String, HighlightTheProject> highlightTheProjectMap = new HashMap<>();
-    public static String threadName = "litematica-printer-render";
+    public static String threadName = Reference.MOD_ID + "-render";
     public static boolean shaderIng = false;
     public static List<String> clearList = new LinkedList<>();
     public static Map<String, Set<BlockPos>> setMap = new HashMap<>();
@@ -93,11 +94,10 @@ public class HighlightBlockRenderer implements IRenderer {
     }
 
     // @formatter:off
-
-    //#if MC >= 260100
-    //$$ public void test3(Matrix4fc matrices, Color4f color4f, Set<BlockPos> posSet) {
+    //#if MC > 260100
+    public void test3(Matrix4fc matrices, Color4f color4f, Set<BlockPos> posSet) {
     //#elseif MC > 12004
-    public void test3(Matrix4f matrices, Color4f color4f, Set<BlockPos> posSet) {
+    //$$ public void test3(Matrix4f matrices, Color4f color4f, Set<BlockPos> posSet) {
     //#else
     //$$ public void test3(PoseStack matrices, Color4f color4f, Set<BlockPos> posSet){
     //#endif
@@ -185,10 +185,10 @@ public class HighlightBlockRenderer implements IRenderer {
     }
 
     @Override
-    //#if MC >= 260001
-    //$$ public void onRenderWorldLast(RenderTarget fb, Matrix4fc matrices, CameraRenderState cameraState, Frustum culling, RenderBuffers buffers, GpuBufferSlice terrainFog, Vector4f fogColor, ProfilerFiller profiler) {
+    //#if MC >= 260100
+    public void onRenderWorldLast(RenderTarget fb, Matrix4fc matrices, CameraRenderState cameraState, Frustum culling, RenderBuffers buffers, GpuBufferSlice terrainFog, Vector4f fogColor, ProfilerFiller profiler) {
     //#elseif MC > 12004
-    public void onRenderWorldLast(Matrix4f matrices, Matrix4f projMatrix) {
+    //$$ public void onRenderWorldLast(Matrix4f matrices, Matrix4f projMatrix) {
     //#else
     //$$ public void onRenderWorldLast(PoseStack matrices, Matrix4f projMatrix){
     //#endif

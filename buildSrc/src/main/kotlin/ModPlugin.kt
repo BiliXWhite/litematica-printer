@@ -8,6 +8,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.language.jvm.tasks.ProcessResources
 import org.gradle.kotlin.dsl.*
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 
 @Suppress("unused")
 abstract class ModPlugin : Plugin<Project> {
@@ -25,6 +26,9 @@ abstract class ModPlugin : Plugin<Project> {
         extensions.configure<JavaPluginExtension> {
             sourceCompatibility = javaVersion
             targetCompatibility = javaVersion
+            toolchain {
+                languageVersion.set(JavaLanguageVersion.of(javaVersion.majorVersion))
+            }
             // withSourcesJar()
         }
     }

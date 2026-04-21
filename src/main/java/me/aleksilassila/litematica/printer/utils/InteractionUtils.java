@@ -2,12 +2,13 @@ package me.aleksilassila.litematica.printer.utils;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
-import fi.dy.masa.tweakeroo.tweaks.PlacementTweaks;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.ExcavateListMode;
 import me.aleksilassila.litematica.printer.mixin_extension.BlockBreakResult;
 import me.aleksilassila.litematica.printer.mixin_extension.MultiPlayerGameModeExtension;
 import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
+import me.aleksilassila.litematica.printer.utils.mods.ModLoadUtils;
+import me.aleksilassila.litematica.printer.utils.mods.TweakerooUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -15,29 +16,35 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
+import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST;
+import static fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST;
+import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION;
+
+@SuppressWarnings({"DataFlowIssue", "BooleanMethodIsAlwaysInverted"})
 @Environment(EnvType.CLIENT)
-public class BreakUtils {
+public class InteractionUtils {
     public static final Minecraft client = Minecraft.getInstance();
-    public static final BreakUtils INSTANCE = new BreakUtils();
+    public static final InteractionUtils INSTANCE = new InteractionUtils();
 
     private final Queue<BlockPos> breakQueue = new LinkedList<>();
     private BlockPos breakPos;
 
-    private BreakUtils() {
+    private InteractionUtils() {
     }
 
-    // Add methods from LitematicaUtils
     public static boolean canBreakBlock(BlockPos pos) {
-        ClientLevel world = LitematicaUtils.client.level;
-        LocalPlayer player = LitematicaUtils.client.player;
+        ClientLevel world = client.level;
+        LocalPlayer player = client.player;
         if (world == null || player == null) return false;
         BlockState currentState = world.getBlockState(pos);
         if (Configs.Break.BREAK_CHECK_HARDNESS.getBooleanValue() && currentState.getBlock().defaultDestroyTime() < 0) {
@@ -48,19 +55,19 @@ public class BreakUtils {
                 !currentState.is(Blocks.CAVE_AIR) &&
                 !currentState.is(Blocks.VOID_AIR) &&
                 !(currentState.getBlock() instanceof LiquidBlock) &&
-                !player.blockActionRestricted(LitematicaUtils.client.level, pos, LitematicaUtils.client.gameMode.getPlayerMode());
+                !player.blockActionRestricted(client.level, pos, client.gameMode.getPlayerMode());
     }
 
     public static boolean breakRestriction(BlockState blockState) {
         if (Configs.Break.BREAK_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
-            if (!ModUtils.isTweakerooLoaded()) return true;
-            UsageRestriction.ListType listType = PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION.getListType();
+            if (!ModLoadUtils.isTweakerooLoaded()) return true;
+            UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
-                return fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> PinYinSearchUtils.matchBlockName(string, blockState));
+                return BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
+                        .noneMatch(string -> FilterUtils.matchBlockName(string, blockState));
             } else if (listType == UsageRestriction.ListType.WHITELIST) {
-                return fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> PinYinSearchUtils.matchBlockName(string, blockState));
+                return BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
+                        .anyMatch(string -> FilterUtils.matchBlockName(string, blockState));
             } else {
                 return true;
             }
@@ -68,10 +75,10 @@ public class BreakUtils {
             IConfigOptionListEntry optionListValue = Configs.Break.BREAK_LIMIT.getOptionListValue();
             if (optionListValue == UsageRestriction.ListType.BLACKLIST) {
                 return Configs.Break.BREAK_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> PinYinSearchUtils.matchBlockName(string, blockState));
+                        .noneMatch(string -> FilterUtils.matchBlockName(string, blockState));
             } else if (optionListValue == UsageRestriction.ListType.WHITELIST) {
                 return Configs.Break.BREAK_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> PinYinSearchUtils.matchBlockName(string, blockState));
+                        .anyMatch(string -> FilterUtils.matchBlockName(string, blockState));
             } else {
                 return true;
             }
@@ -89,7 +96,7 @@ public class BreakUtils {
     }
 
     public void preprocess() {
-        if (!ConfigUtils.isPrinterEnable()) {
+        if (!ConfigUtils.isEnable()) {
             if (!breakQueue.isEmpty()) {
                 breakQueue.clear();
             }
@@ -118,12 +125,12 @@ public class BreakUtils {
                 if (pos == null) {
                     continue;
                 }
-                if (!PlayerUtils.canInteracted(pos) || !canBreakBlock(pos) || !breakRestriction(level.getBlockState(pos))) {
+                if (!ConfigUtils.canInteracted(pos) || !canBreakBlock(pos) || !breakRestriction(level.getBlockState(pos))) {
                     continue;
                 }
-                if (ModUtils.isTweakerooLoaded()) {
-                    if (ModUtils.isToolSwitchEnabled()) {
-                        ModUtils.trySwitchToEffectiveTool(pos);
+                if (ModLoadUtils.isTweakerooLoaded()) {
+                    if (TweakerooUtils.isToolSwitchEnabled()) {
+                        TweakerooUtils.trySwitchToEffectiveTool(pos);
                     }
                 }
                 if (continueDestroyBlock(pos, Direction.DOWN) == BlockBreakResult.IN_PROGRESS) {
@@ -152,5 +159,14 @@ public class BreakUtils {
 
     public BlockBreakResult continueDestroyBlock(BlockPos blockPos) {
         return this.continueDestroyBlock(blockPos, Direction.DOWN);
+    }
+
+    public InteractionResult useItemOn(boolean localPrediction, InteractionHand hand, BlockHitResult blockHit) {
+        MultiPlayerGameModeExtension gameMode = (@Nullable MultiPlayerGameModeExtension) client.gameMode;
+        return gameMode.litematica_printer$useItemOn(localPrediction, hand, blockHit);
+    }
+
+    public InteractionResult useItemOn(InteractionHand hand, BlockHitResult blockHit) {
+        return this.useItemOn(!Configs.Placement.PRINT_USE_PACKET.getBooleanValue(), hand, blockHit);
     }
 }

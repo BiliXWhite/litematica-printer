@@ -20,7 +20,7 @@ public class MixinServerWorld {
     public void tick(CallbackInfo ci){
         for (ServerPlayer s : playerList) {
             TickList list = tickMap.get(s);
-            if (!list.world.areEntitiesLoaded(ChunkPos.asLong(list.pos))) {
+            if (!list.world.areEntitiesLoaded(ChunkPos.pack(list.pos))) {
                 //#if MC > 11802
                 list.world.shouldTickBlocksAt(list.pos);
                 //#else

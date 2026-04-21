@@ -2,10 +2,8 @@ package me.aleksilassila.litematica.printer.config;
 
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.gui.ConfigUi;
 import me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils;
-import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import net.minecraft.client.Minecraft;
 
 //#if MC >= 12001 
@@ -18,6 +16,7 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 import red.jackf.chesttracker.impl.memory.MemoryBankAccessImpl;
 import red.jackf.chesttracker.impl.memory.MemoryBankImpl;
 //#elseif MC < 12001
+//$$ import me.aleksilassila.litematica.printer.utils.minecraft.MessageUtils;
 //$$ import net.minecraft.network.chat.Component;
 //$$ import net.minecraft.resources.ResourceLocation;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryDatabase;
@@ -57,7 +56,7 @@ public class HotkeysCallback {
             //$$     database.clearDimension(dimension);
             //$$     }
             //$$ }
-            //$$ MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_CLEARED.getName());
+            //$$ MessageUtils.setOverlayMessage(Component.nullToEmpty("打印机库存已清空"), false);
             //#endif
             return true;
         }

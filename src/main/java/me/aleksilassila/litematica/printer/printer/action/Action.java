@@ -5,7 +5,8 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.printer.PlayerLook;
-import me.aleksilassila.litematica.printer.utils.BlockUtils;
+import me.aleksilassila.litematica.printer.printer.PrinterUtils;
+import me.aleksilassila.litematica.printer.utils.minecraft.BlockUtils;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -35,13 +36,28 @@ public class Action {
     protected Boolean shift = null;
 
     @Getter
-    protected Boolean needWaitModifyLook = false;
+    protected int waitTick = 0;     // 会占用其他任务
+
+    protected boolean needWaitModifyLook = false;
+
+    public boolean isNeedWaitModifyLook() {
+        return needWaitModifyLook;
+    }
+
+    public boolean getNeedWaitModifyLook() {
+        return needWaitModifyLook;
+    }
 
     public Action() {
         this.sides = new HashMap<>();
         for (Direction direction : Direction.values()) {
             sides.put(direction, new Vec3(0, 0, 0));
         }
+    }
+
+    public Action setLookYawPitch(float lookYaw, float lookPitch) {
+        this.playerLook = new PlayerLook(lookYaw, lookPitch);
+        return this;
     }
 
     public Action setLookRotation(int lookRotation) {
@@ -57,15 +73,6 @@ public class Action {
     public Action setLookDirection(Direction lookDirectionYaw, Direction lookDirectionPitch) {
         this.playerLook = new PlayerLook(lookDirectionYaw, lookDirectionPitch);
         return this;
-    }
-
-    public Action setNeedWaitModifyLook(boolean needWaitModifyLook) {
-        this.needWaitModifyLook = needWaitModifyLook;
-        return this;
-    }
-
-    public Action setNeedWaitModifyLook() {
-        return this.setNeedWaitModifyLook(true);
     }
 
     public @Nullable Item[] getRequiredItems(Block backup) {
@@ -122,7 +129,7 @@ public class Action {
             ) {
                 return side;
             }
-            if (BlockUtils.canBeClicked(world, neighborPos) && !BlockUtils.isReplaceable(neighborState)) {
+            if (PrinterUtils.canBeClicked(world, neighborPos) && !BlockUtils.isReplaceable(neighborState)) {
                 validSides.add(side);
             }
         }
@@ -165,6 +172,16 @@ public class Action {
 
     public Action setShift() {
         return this.setShift(true);
+    }
+
+    public Action setWaitTick(int waitTick) {
+        this.waitTick = waitTick;
+        return this;
+    }
+
+    public Action setNeedWaitModifyLook(boolean needWaitModifyLook) {
+        this.needWaitModifyLook = needWaitModifyLook;
+        return this;
     }
 
     public Action queueAction(@NotNull BlockPos blockPos, @NotNull Direction side, boolean useShift, @NotNull LocalPlayer player) {

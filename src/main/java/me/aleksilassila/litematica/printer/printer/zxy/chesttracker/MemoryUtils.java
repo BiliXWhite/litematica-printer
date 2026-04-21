@@ -1,12 +1,11 @@
 package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 
 //#if MC >= 12001
-import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils;
-import me.aleksilassila.litematica.printer.utils.MessageUtils;
+import me.aleksilassila.litematica.printer.utils.minecraft.MessageUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -62,7 +61,7 @@ public class MemoryUtils {
             Storage.delete(id);
             createPrinterMemory();
         }
-        MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_CLEARED.getName());
+        MessageUtils.setOverlayMessage(Component.nullToEmpty("打印机库存已清空"), false);
     }
 
     public static void setup() {
@@ -93,7 +92,7 @@ public class MemoryUtils {
         if(PRINTER_MEMORY != null && ZxyUtils.printerMemoryAdding || ClientPlayerTickManager.PRINT.isPrinterMemorySync())
             save(sc , PRINTER_MEMORY);
         MemoryBankAccessImpl.INSTANCE.getLoadedInternal().ifPresent(memoryBank -> save(sc, memoryBank));
-        ClientPlayerTickManager.PRINT.setPrinterMemorySync(false);
+        ClientPlayerTickManager.PRINT.setPrinterMemorySync(false);;
     }
     public static void createPrinterMemory(){
         Optional<Coordinate> current = Coordinate.getCurrent();

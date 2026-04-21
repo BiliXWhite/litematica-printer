@@ -1,27 +1,19 @@
-net.minecraft.client.gui.GuiGraphics net.minecraft.client.gui.GuiGraphicsExtractor
-net.minecraft.client.gui.GuiGraphics drawString() text()
-net.minecraft.client.gui.GuiGraphics drawCenteredString() text()
-net.minecraft.client.gui.screens.Screen renderBackground() extractBackground()
-net.minecraft.client.gui.screens.Screen render() extractRenderState()
-net.minecraft.client.gui.components.AbstractButton renderDefaultSprite() extractDefaultSprite()
-net.minecraft.client.gui.components.AbstractButton renderDefaultLabel() extractDefaultLabel()
-net.minecraft.client.gui.components.AbstractWidget render() extractRenderState()
-
-net.minecraft.world.inventory.ClickType net.minecraft.world.inventory.ContainerInput
-
 net.fabricmc.fabric.api.client.command.v2.ClientCommands net.fabricmc.fabric.api.client.command.v2.ClientCommandManager
 net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry playC2S() serverboundPlay()
 net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry playS2C() clientboundPlay()
 net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor getStrippedBlocks() getStrippables()
 
 net.minecraft.client.multiplayer.MultiPlayerGameMode handleInventoryMouseClick() handleContainerInput()
+net.minecraft.client.gui.GuiGraphics net.minecraft.client.gui.GuiGraphicsExtractor
+net.minecraft.client.gui.GuiGraphicsExtractor drawString() text()
 
 fi.dy.masa.malilib.util.JsonUtils fi.dy.masa.malilib.util.data.json.JsonUtils
 
 net.minecraft.world.level.block.FarmBlock net.minecraft.world.level.block.FarmlandBlock
 net.minecraft.world.level.block.WaterlilyBlock net.minecraft.world.level.block.LilyPadBlock
 
+net.minecraft.world.inventory.ClickType net.minecraft.world.inventory.ContainerInput
 net.minecraft.world.item.ItemStack getItemHolder() typeHolder()
 net.minecraft.world.level.ChunkPos asLong() pack()
-net.minecraft.world.item.ItemStack getTags() tags()
-net.minecraft.world.item.ItemStack getItemHolder() typeHolder()
+
+net.minecraft.core.TypedInstance getTags() tags()

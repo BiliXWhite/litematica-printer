@@ -5,9 +5,9 @@ import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.mixin_extension.MultiPlayerGameModeExtension;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
-import me.aleksilassila.litematica.printer.utils.BlockUtils;
+import me.aleksilassila.litematica.printer.utils.minecraft.DirectionUtils;
 import me.aleksilassila.litematica.printer.utils.InventoryUtils;
-import me.aleksilassila.litematica.printer.utils.PacketUtils;
+import me.aleksilassila.litematica.printer.utils.minecraft.NetworkUtils;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -25,6 +25,7 @@ import net.minecraft.world.entity.player.Input;
 //$$ import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
 //#endif
 
+@SuppressWarnings("SpellCheckingInspection")
 public class ActionManager {
     public static final ActionManager INSTANCE = new ActionManager();
 
@@ -60,34 +61,31 @@ public class ActionManager {
             clearQueue();
             return this;
         }
-        if (look != null) {
-            PacketUtils.sendLookPacket(player, look);
+        if (!needWaitModifyLook && look != null) {
+            NetworkUtils.sendLookPacket(player, look);
         }
-
         if (!useProtocol && !needWaitModifyLook && actionRequiresWaitModifyLook) {
             if (look != null) {
-                Direction lookDirection = BlockUtils.orderedByNearest(look.yaw(), look.pitch())[0];
+                Direction lookDirection = DirectionUtils.orderedByNearest(look.yaw, look.pitch)[0];
                 if (lookDirection.getAxis().isHorizontal()) {
                     needWaitModifyLook = true;
                     return this;
                 }
             }
         }
-
         if (needWaitModifyLook) {
             needWaitModifyLook = false;
         }
-
         Direction direction;
         if (look == null) {
             direction = side;
         } else {
-            direction = BlockUtils.getHorizontalDirection(look.yaw());
+            direction = DirectionUtils.getHorizontalDirection(look.yaw);
         }
         Vec3 hitVec;
         if (!useProtocol) {
             Vec3 targetCenter = Vec3.atCenterOf(target);
-            Vec3 sideOffset = Vec3.atLowerCornerOf(BlockUtils.getVector(side)).scale(0.5);
+            Vec3 sideOffset = Vec3.atLowerCornerOf(DirectionUtils.getVector(side)).scale(0.5);
             Vec3 rotatedHitModifier = hitModifier.yRot((direction.toYRot() + 90) % 360).scale(0.5);
             hitVec = targetCenter.add(sideOffset).add(rotatedHitModifier);
         } else {
@@ -133,7 +131,7 @@ public class ActionManager {
         //$$ ServerboundPlayerCommandPacket packet = new ServerboundPlayerCommandPacket(player, shift ? ServerboundPlayerCommandPacket.Action.PRESS_SHIFT_KEY : ServerboundPlayerCommandPacket.Action.RELEASE_SHIFT_KEY);
         //#endif
         player.setShiftKeyDown(shift);
-        PacketUtils.sendPacket(packet);
+        NetworkUtils.sendPacket(packet);
     }
 
     public void clearQueue() {

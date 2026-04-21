@@ -1,13 +1,13 @@
 package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
-import me.aleksilassila.litematica.printer.utils.PacketUtils;
+import me.aleksilassila.litematica.printer.utils.minecraft.NetworkUtils;
 import net.minecraft.client.multiplayer.ClientLevel;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(ClientLevel.class)
-public abstract class MixinClientLevel implements PacketUtils.SequenceExtension {
+public abstract class MixinClientLevel implements NetworkUtils.SequenceExtension {
 
     //#if MC > 11802
     @Final

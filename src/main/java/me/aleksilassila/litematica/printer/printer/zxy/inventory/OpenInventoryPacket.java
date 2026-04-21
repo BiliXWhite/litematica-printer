@@ -2,18 +2,17 @@ package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.malilib.util.StringUtils;
 import io.netty.buffer.Unpooled;
-import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.utils.ModUtils;
+import me.aleksilassila.litematica.printer.utils.mods.ModLoadUtils;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
-import me.aleksilassila.litematica.printer.utils.MessageUtils;
+import me.aleksilassila.litematica.printer.utils.minecraft.MessageUtils;
+import me.aleksilassila.litematica.printer.utils.minecraft.IdentifierUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
@@ -32,12 +31,9 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-
-/*
- * 老兄，千万别动这里，这里是坨超级无敌屎山，强烈不建议改动，我也不知道为什么这么写，你去问宅闲鱼。
- */
 
 //#if MC > 12004
 import net.minecraft.world.level.block.Block;
@@ -62,6 +58,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.inventory.Inventor
 
 //#if MC > 12004
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.HelloPackage.HELLO_REMOTE_INTERACTIONS_ID;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.OpenPackage.OPEN_INVENTORY_ID;
 import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.ReturnPackage.OPEN_RETURN_ID;
@@ -75,9 +72,9 @@ import net.minecraft.core.registries.Registries;
 
 public class OpenInventoryPacket {
     private static final @NotNull Minecraft client = Minecraft.getInstance();
-    private static final Identifier OPEN_INVENTORY = of("remoteinventory", "open_inventory");
-    private static final Identifier OPEN_RETURN = of("openreturn", "open_return");
-    private static final Identifier HELLO_REMOTE_INTERACTIONS = of("hello", "hello_remote_interactions");
+    private static final Identifier OPEN_INVENTORY = IdentifierUtils.of("remoteinventory", "open_inventory");
+    private static final Identifier OPEN_RETURN = IdentifierUtils.of("openreturn", "open_return");
+    private static final Identifier HELLO_REMOTE_INTERACTIONS = IdentifierUtils.of("hello", "hello_remote_interactions");
 
     //#if MC > 12104
     private static final TicketType OPEN_TICKET = TicketType.UNKNOWN;
@@ -97,15 +94,16 @@ public class OpenInventoryPacket {
     public static ArrayList<ServerPlayer> playerList = new ArrayList<>();
 
     //#if MC > 12004
-    public static class OpenPackage implements CustomPacketPayload{
+    public static class OpenPackage implements CustomPacketPayload {
         public static final Type<OpenPackage> OPEN_INVENTORY_ID = new Type<>(OPEN_INVENTORY);
-        public static final StreamCodec<RegistryFriendlyByteBuf,OpenPackage> CODEC = new StreamCodec<>() {
+        public static final StreamCodec<RegistryFriendlyByteBuf, OpenPackage> CODEC = new StreamCodec<>() {
 
             @Override
             public void encode(RegistryFriendlyByteBuf buf, OpenPackage value) {
                 buf.writeResourceKey(value.world);
                 buf.writeBlockPos(value.pos);
             }
+
             @Override
             public OpenPackage decode(RegistryFriendlyByteBuf buf) {
                 OpenPackage openPackage = new OpenPackage();
@@ -116,40 +114,46 @@ public class OpenInventoryPacket {
         };
         ResourceKey<Level> world = null;
         BlockPos pos = null;
+
         public OpenPackage() {
         }
+
         @Override
         public Type<? extends CustomPacketPayload> type() {
             return OPEN_INVENTORY_ID;
         }
     }
 
-    public static class HelloPackage implements CustomPacketPayload{
+    public static class HelloPackage implements CustomPacketPayload {
         public static final Type<HelloPackage> HELLO_REMOTE_INTERACTIONS_ID = new Type<>(HELLO_REMOTE_INTERACTIONS);
-        public static final StreamCodec<RegistryFriendlyByteBuf,HelloPackage> CODEC = new StreamCodec<>() {
+        public static final StreamCodec<RegistryFriendlyByteBuf, HelloPackage> CODEC = new StreamCodec<>() {
             @Override
             public void encode(RegistryFriendlyByteBuf buf, HelloPackage value) {
             }
+
             @Override
             public HelloPackage decode(RegistryFriendlyByteBuf buf) {
                 return new HelloPackage();
             }
         };
+
         @Override
         public Type<? extends CustomPacketPayload> type() {
             return HELLO_REMOTE_INTERACTIONS_ID;
         }
     }
-    public static class ReturnPackage implements CustomPacketPayload{
+
+    public static class ReturnPackage implements CustomPacketPayload {
         BlockState state = null;
         boolean isOpen = false;
         public static final Type<ReturnPackage> OPEN_RETURN_ID = new Type<>(OPEN_RETURN);
-        public static final StreamCodec<RegistryFriendlyByteBuf,ReturnPackage> CODEC = new StreamCodec<>() {
+        public static final StreamCodec<RegistryFriendlyByteBuf, ReturnPackage> CODEC = new StreamCodec<>() {
             @Override
             public void encode(RegistryFriendlyByteBuf buf, ReturnPackage value) {
                 buf.writeInt(Block.getId(value.state));
                 buf.writeBoolean(value.isOpen);
             }
+
             @Override
             public ReturnPackage decode(RegistryFriendlyByteBuf buf) {
                 ReturnPackage returnPackage = new ReturnPackage();
@@ -173,17 +177,17 @@ public class OpenInventoryPacket {
                 if (payload instanceof ReturnPackage returnPackage) {
                     boolean isOpen = returnPackage.isOpen;
                     BlockState state = returnPackage.state;
-                    client.execute(() -> openReturn(isOpen,state));
+                    client.execute(() -> openReturn(isOpen, state));
                 }
             } catch (Exception ignored) {
-                MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_DISABLED.getName());
+                MessageUtils.setOverlayMessage("服务端回复异常，箱子追踪库存无法更新");
             }
         });
-        ClientPlayNetworking.registerGlobalReceiver(HELLO_REMOTE_INTERACTIONS_ID,(openInventoryPacket,context) -> {
+        ClientPlayNetworking.registerGlobalReceiver(HELLO_REMOTE_INTERACTIONS_ID, (openInventoryPacket, context) -> {
             isRemote = true;
             client.execute(() -> {
                 if (Configs.Core.AUTO_INVENTORY.getBooleanValue()) {
-                    MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_ENABLED.getName());
+                    MessageUtils.setOverlayMessage("已自动启用远程交互容器!!!");
                     Configs.Core.CLOUD_INVENTORY.setBooleanValue(true);
                 }
             });
@@ -196,34 +200,38 @@ public class OpenInventoryPacket {
         //$$             client.execute(() -> openReturn(packet.isOpen(), packet.blockState()));
         //$$         });
         //$$     } catch (Exception ignored) {
-        //$$         MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_DISABLED.getName());
+        //$$         MessageUtils.setOverlayMessage("服务端回复异常，箱子追踪库存无法更新");
         //$$     }
         //$$ });
         //$$ ClientPlayNetworking.registerGlobalReceiver(HELLO_REMOTE_INTERACTIONS, (client, playNetworkHandler, packetByteBuf, packetSender) -> {
         //$$     isRemote = true;
         //$$     client.execute(() -> {
         //$$         if (Configs.Core.AUTO_INVENTORY.getBooleanValue()) {
-        //$$             MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_ENABLED.getName());
+        //$$             MessageUtils.setOverlayMessage("已自动启用远程交互容器!!!");
         //$$             Configs.Core.CLOUD_INVENTORY.setBooleanValue(true);
         //$$         }
         //$$     });
         //$$ });
         //#endif
     }
+
     public static void init() {
         //#if MC > 12004
-        PayloadTypeRegistry.playC2S().register(OPEN_INVENTORY_ID, OpenPackage.CODEC);
-        PayloadTypeRegistry.playC2S().register(OPEN_RETURN_ID, ReturnPackage.CODEC);
-        PayloadTypeRegistry.playC2S().register(HELLO_REMOTE_INTERACTIONS_ID, HelloPackage.CODEC);
-        PayloadTypeRegistry.playS2C().register(OPEN_INVENTORY_ID, OpenPackage.CODEC);
-        PayloadTypeRegistry.playS2C().register(OPEN_RETURN_ID, ReturnPackage.CODEC);
-        PayloadTypeRegistry.playS2C().register(HELLO_REMOTE_INTERACTIONS_ID, HelloPackage.CODEC);
+        // C2S
+        PayloadTypeRegistry.serverboundPlay().register(OPEN_INVENTORY_ID, OpenPackage.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(OPEN_RETURN_ID, ReturnPackage.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(HELLO_REMOTE_INTERACTIONS_ID, HelloPackage.CODEC);
+
+        //S2C
+        PayloadTypeRegistry.clientboundPlay().register(OPEN_INVENTORY_ID, OpenPackage.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(OPEN_RETURN_ID, ReturnPackage.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(HELLO_REMOTE_INTERACTIONS_ID, HelloPackage.CODEC);
         //#endif
     }
 
     public static void registerReceivePacket() {
         //#if MC > 12004
-        ServerPlayNetworking.registerGlobalReceiver(OPEN_INVENTORY_ID, (payload,context) -> {
+        ServerPlayNetworking.registerGlobalReceiver(OPEN_INVENTORY_ID, (payload, context) -> {
             MinecraftServer server = context.player().level().getServer();
             if (payload instanceof OpenPackage packetByteBuf) {
                 server.execute(() ->
@@ -234,11 +242,11 @@ public class OpenInventoryPacket {
         //#else
         //$$ ServerPlayNetworking.registerGlobalReceiver(OPEN_INVENTORY, (server, player, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
         //$$     BlockPos pos = packetByteBuf.readBlockPos();
-            //#if MC < 11904
-            //$$ ResourceKey<Level> key = ResourceKey.create(Registry.DIMENSION_REGISTRY, packetByteBuf.readResourceLocation());
-            //#else
-            //$$ ResourceKey<Level> key = ResourceKey.create(Registries.DIMENSION, packetByteBuf.readResourceLocation());
-            //#endif
+        //#if MC < 11904
+        //$$ ResourceKey<Level> key = ResourceKey.create(Registry.DIMENSION_REGISTRY, packetByteBuf.readResourceLocation());
+        //#else
+        //$$ ResourceKey<Level> key = ResourceKey.create(Registries.DIMENSION, packetByteBuf.readResourceLocation());
+        //#endif
         //$$     server.execute(() -> openInv(server, player, pos, key));
         //$$ });
         //#endif
@@ -246,7 +254,7 @@ public class OpenInventoryPacket {
 
     public static void helloRemote(ServerPlayer player) {
         //#if MC > 12004
-        ServerPlayNetworking.send(player,new HelloPackage());
+        ServerPlayNetworking.send(player, new HelloPackage());
         //#else
         //$$ ServerPlayNetworking.send(player, HELLO_REMOTE_INTERACTIONS, new FriendlyByteBuf(Unpooled.buffer()));
         //#endif
@@ -257,9 +265,9 @@ public class OpenInventoryPacket {
         if (world == null) return;
         BlockState blockState = world.getBlockState(pos);
         //#if MC >= 260100
-        //$$ world.getChunkSource().addTicketWithRadius(OPEN_TICKET, new ChunkPos(pos.getX(), pos.getZ()), 2);
+        world.getChunkSource().addTicketWithRadius(OPEN_TICKET, new ChunkPos(pos.getX(), pos.getZ()), 2);
         //#elseif MC > 12104
-        world.getChunkSource().addTicketWithRadius(OPEN_TICKET, new ChunkPos(pos), 2);
+        //$$ world.getChunkSource().addTicketWithRadius(OPEN_TICKET, new ChunkPos(pos), 2);
         //#else
         //$$ world.getChunkSource().addRegionTicket(OPEN_TICKET, new ChunkPos(pos), 2, new ChunkPos(pos));
         //#endif
@@ -342,8 +350,8 @@ public class OpenInventoryPacket {
     }
 
     public static void openReturn(boolean open, BlockState state) {
-        if(clientTry){
-            MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_ENABLED.getName());
+        if (clientTry) {
+            MessageUtils.setOverlayMessage("已自动启用远程交互容器!!!");
             Configs.Core.CLOUD_INVENTORY.setBooleanValue(true);
             key = null;
             pos = null;
@@ -359,19 +367,17 @@ public class OpenInventoryPacket {
 //            client.player.sendMessage(Text.of("return "+state.toString()));
         } else {
             if (key != null) {
-                //#if MC >= 260100
-                //$$ String translationKey = key.identifier().toLanguageKey();
-                //$$ String translate = StringUtils.translate(translationKey);
-                //$$ if (client.player != null)
-                //#elseif MC < 11904
+                //#if MC < 11904
                 //$$ String translationKey = key.location().toString();
                 //$$ String translate = StringUtils.translate(translationKey);
+                //$$ if (client.player != null) MessageUtils.addMessage("打开容器失败 \n位于" + translate + "  "+ pos.toString());
                 //#else
                 String translationKey = key.identifier().toLanguageKey();
                 String translate = StringUtils.translate(translationKey);
                 if (client.player != null)
-                    client.player.displayClientMessage(I18n.INVENTORY_SYNC_OPEN_FAILED.getName(translate, pos.getCenter()), false);
+                    MessageUtils.addMessage("打开容器失败 \n位于" + translate + "  " + pos.getCenter());
                 //#endif
+
                 //#if MC >= 12001
                 MemoryUtils.PRINTER_MEMORY.removeMemory(key.identifier(), pos);
                 //#elseif MC < 12001
@@ -382,7 +388,7 @@ public class OpenInventoryPacket {
             if (Minecraft.getInstance().player != null) {
                 Minecraft.getInstance().player.closeContainer();
             }
-            ModUtils.closeScreen--;
+            ModLoadUtils.closeScreen--;
             openIng = false;
             isOpenHandler = false;
             ClientPlayerTickManager.PRINT.setPrinterMemorySync(false);
@@ -398,7 +404,7 @@ public class OpenInventoryPacket {
         ReturnPackage returnPackage = new ReturnPackage();
         returnPackage.state = state;
         returnPackage.isOpen = open;
-        ServerPlayNetworking.send(player,returnPackage);
+        ServerPlayNetworking.send(player, returnPackage);
         //#else
         //$$ ServerPlayNetworking.send(player, OPEN_RETURN, buf);
         //#endif
@@ -410,16 +416,16 @@ public class OpenInventoryPacket {
         openIng = false;
     }
 
-    public static void tick(){
+    public static void tick() {
         if (!Configs.Core.AUTO_INVENTORY.getBooleanValue()) return;
-        if(remoteTime != 0 && !isRemote && remoteTime + 3000L < System.currentTimeMillis()){
-            if(!clientTry) {
+        if (remoteTime != 0 && !isRemote && remoteTime + 3000L < System.currentTimeMillis()) {
+            if (!clientTry) {
                 clientTryTime = System.currentTimeMillis();
-                sendOpenInventory(new BlockPos(0,-999,0), client.level.dimension());
+                sendOpenInventory(new BlockPos(0, -999, 0), client.level.dimension());
             }
             clientTry = true;
-            if(clientTryTime + 3000L < System.currentTimeMillis() && clientTry){
-                MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_DISABLED.getName());
+            if (clientTryTime + 3000L < System.currentTimeMillis() && clientTry) {
+                MessageUtils.setOverlayMessage("已自动关闭远程交互容器");
                 Configs.Core.CLOUD_INVENTORY.setBooleanValue(false);
                 remoteTime = 0;
                 clientTry = false;
@@ -427,15 +433,7 @@ public class OpenInventoryPacket {
         }
     }
 
-    public static boolean isContainer(BlockEntity blockEntity){
+    public static boolean isContainer(BlockEntity blockEntity) {
         return blockEntity instanceof Container;
-    }
-
-    public static Identifier of(String namespace, String path) {
-        //#if MC > 12006
-        return Identifier.fromNamespaceAndPath(namespace, path);
-        //#else
-        //$$ return new ResourceLocation(namespace, path);
-        //#endif
     }
 }

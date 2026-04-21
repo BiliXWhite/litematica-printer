@@ -1,10 +1,9 @@
-import org.gradle.api.Project
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
+import org.gradle.api.Project
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.TimeZone
+import java.util.*
 
 fun Project.propOrNull(key: String) = findProperty(key)
 fun Project.prop(key: String) = propOrNull(key) ?: throw GradleException("buildSrc: 属性 $key 未配置/值为空")
@@ -39,8 +38,8 @@ val Project.mcVersionInt get() = propStrOrNull("mcVersion")?.toIntOrNull() ?: -1
 val Project.fabricLoaderVersion get() = propStrOrNull("loader_version")
 val Project.fabricApiVersion get() = propStrOrNull("fabric_version")
 
-val Project.malilib get() = propStrOrNull("malilib_dependency")
-val Project.litematica get() = propStrOrNull("litematica_dependency")
+val Project.malilib get() = propStrOrNull("malilib")
+val Project.litematica get() = propStrOrNull("litematica")
 
 val Project.lombokVersion get() = propStr("lombok_version")
 
@@ -54,35 +53,19 @@ val Project.javaVersion
     }
 val Project.mixinJavaVersion get() = "JAVA_${javaVersion}"
 
-val Project.fullProjectVersion: String get() = getFullProjectVersion(modVersion)
-
-private fun getFullProjectVersion(modVersion: String): String {
-    val isRelease = System.getenv("IS_THIS_RELEASE")?.toBoolean() == true
-    val isCi = System.getenv("CI") == "true" || System.getenv("GITHUB_ACTIONS") == "true"
-
-    return when {
-        isRelease -> modVersion
-        isCi -> {
-            val time = SimpleDateFormat("yyMMdd")
-                .apply { timeZone = TimeZone.getTimeZone("GMT+08:00") }
-                .format(Date())
-                .toString()
-            val buildNumber = System.getenv("GITHUB_RUN_NUMBER")
-            val version = "$modVersion+$time"
-            if (buildNumber != null) {
-                "$version+build.$buildNumber"
-            } else {
-                version
-            }
-        }
-        else -> {
-            val time = SimpleDateFormat("yyMMdd")
-                .apply { timeZone = TimeZone.getTimeZone("GMT+08:00") }
-                .format(Date())
-                .toString()
-            "$modVersion+$time"
+val Project.fullProjectVersion: String get() {
+    val time = SimpleDateFormat("yyMMdd")
+        .apply { timeZone = TimeZone.getTimeZone("GMT+08:00") }
+        .format(Date())
+        .toString()
+    var version = "$modVersion+$time"
+    if (System.getenv("IS_THIS_RELEASE") == "false") {
+        val buildNumber: String? = System.getenv("GITHUB_RUN_NUMBER")
+        if (buildNumber != null) {
+            version += "+build.$buildNumber"
         }
     }
+    return version
 }
 
 val Project.placeholderProps: Map<String, Any?>

@@ -9,11 +9,12 @@ import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.hotkeys.IHotkey;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
+import fi.dy.masa.malilib.util.data.json.JsonUtils;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import fi.dy.masa.malilib.config.ConfigManager;
 import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.enums.*;
-import me.aleksilassila.litematica.printer.utils.ModUtils;
+import me.aleksilassila.litematica.printer.utils.mods.ModLoadUtils;
 import me.aleksilassila.litematica.printer.gui.ConfigUi;
 import net.minecraft.world.level.block.Blocks;
 
@@ -23,11 +24,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 
-//#if MC >= 12111
-import fi.dy.masa.malilib.util.data.json.JsonUtils;
-//#else
-//$$ import fi.dy.masa.malilib.util.JsonUtils;
-//#endif
 public class Configs extends ConfigBuilders implements IConfigHandler {
     private static final Configs INSTANCE = new Configs();
 
@@ -37,7 +33,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
     private static final KeybindSettings GUI_NO_ORDER = KeybindSettings.create(KeybindSettings.Context.GUI, KeyAction.PRESS, false, false, false, true);
 
     // 配置页面是否可视(函数式, 动态获取, 全局统一使用)
-    private static final BooleanSupplier isLoadChestTrackerLoaded = ModUtils::isChestTrackerLoaded;
+    private static final BooleanSupplier isLoadChestTrackerLoaded = ModLoadUtils::isChestTrackerLoaded;
     private static final BooleanSupplier isSingle = () -> Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.SINGLE);
     private static final BooleanSupplier isMulti = () -> Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.MULTI);
 
@@ -126,10 +122,9 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .range(1, 256)
                 .build();
 
-        // 核心 - 迭代占用时长（毫秒）
-        public static final ConfigInteger ITERATION_TIME_LIMIT = integer("iterationTimeLimit")
-                .defaultValue(8)
-                .range(0, 32)
+        public static final ConfigInteger ITERATOR_TOTAL_PER_TICK = integer("workIterationsTotalPerTick")
+                .defaultValue(2744)
+                .range(0, 1919810)
                 .build();
 
         // 核心 - 检查玩家方块交互范围
@@ -226,7 +221,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 FILL,
                 FLUID,
                 WORK_RANGE,
-                ITERATION_TIME_LIMIT,
+                ITERATOR_TOTAL_PER_TICK,
                 RENDER_HUD,
                 LAG_CHECK,
                 LAG_CHECK_MAX,
@@ -255,7 +250,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 核心 - 工作间隔
         public static final ConfigInteger PLACE_INTERVAL = integer("placeInterval")
-                .defaultValue(1)
+                .defaultValue(0)
                 .range(0, 20)
                 .build();
 
@@ -267,14 +262,14 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         // 放置冷却
         public static final ConfigInteger PLACE_COOLDOWN = integer("placeCooldown")
-                .defaultValue(3)
+                .defaultValue(8)
                 .range(0, 64)
                 .build();
 
         // 下落方块检查
         public static final ConfigBoolean FALLING_CHECK = bool("printFallingBlockCheck")
-            .defaultValue(true)
-            .build();
+                .defaultValue(true)
+                .build();
 
         // 快捷潜影盒 - 开关
         public static final ConfigBoolean QUICK_SHULKER = bool("quickShulker")
@@ -311,35 +306,55 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
     }
 
     public static class Break {
+        public static final ConfigBoolean FAST_BREAK = bool("fastBreak")
+                .defaultValue(false)
+                .build();
+
         public static final ConfigBoolean BREAK_USE_PACKET = bool("breakUsePacket")
                 .defaultValue(false)
+                .setVisible(() -> !FAST_BREAK.getBooleanValue())
+                .build();
+
+        public static final ConfigBoolean BREAK_USE_DELAYED_DESTROY = bool("breakUseDelayedDestroy")
+                .defaultValue(false)
+                .setVisible(() -> !FAST_BREAK.getBooleanValue())
                 .build();
 
         public static final ConfigInteger BREAK_PROGRESS_THRESHOLD = integer("breakProgressThreshold")
                 .defaultValue(100)
                 .range(70, 100)
+                .setVisible(() -> !FAST_BREAK.getBooleanValue())
                 .build();
 
         public static final ConfigInteger BREAK_INTERVAL = integer("breakInterval")
-                .defaultValue(1)
+                .defaultValue(0)
                 .range(0, 20)
                 .build();
 
         public static final ConfigInteger BREAK_BLOCKS_PER_TICK = integer("breakBlocksPerTick")
-                .defaultValue(1)
+                .defaultValue(20)
                 .range(0, 256)
                 .build();
 
         public static final ConfigInteger BREAK_COOLDOWN = integer("breakCooldown")
-                .defaultValue(3)
+                .defaultValue(8)
                 .range(0, 64)
+                .build();
+
+        public static final ConfigInteger BEDROCK_INTERVAL = integer("bedrockInterval")
+                .defaultValue(0)
+                .range(0, 20)
+                .build();
+
+        public static final ConfigInteger BEDROCK_BLOCKS_PER_TICK = integer("bedrockBlocksPerTick")
+                .defaultValue(1)
+                .range(1, 10)
                 .build();
 
         public static final ConfigBoolean BREAK_CHECK_HARDNESS = bool("breakCheckHardness")
                 .defaultValue(true)
                 .build();
 
-        // 即时挖掘
         public static final ConfigBoolean BREAK_INSTANT_MINE = bool("breakInstantOnSameTick")
                 .defaultValue(false)
                 .build();
@@ -367,12 +382,16 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 BREAK_CHECK_HARDNESS,
-                BREAK_INSTANT_MINE,
+                FAST_BREAK,
+                BREAK_USE_DELAYED_DESTROY,
                 BREAK_USE_PACKET,
                 BREAK_INTERVAL,
                 BREAK_BLOCKS_PER_TICK,
                 BREAK_COOLDOWN,
+                BEDROCK_INTERVAL,
+                BEDROCK_BLOCKS_PER_TICK,
                 BREAK_PROGRESS_THRESHOLD,
+                BREAK_INSTANT_MINE,
                 // 限制器
                 BREAK_LIMITER,
                 BREAK_LIMIT,
@@ -691,7 +710,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
     public void load() {
         File settingFile = new File(FILE_PATH);
         if (settingFile.isFile() && settingFile.exists()) {
-            //#if MC >= 12111
+            //#if MC >= 260100
             JsonElement jsonElement = JsonUtils.parseJsonFile(settingFile.toPath());
             //#else
             //$$ JsonElement jsonElement = JsonUtils.parseJsonFile(settingFile);
@@ -705,13 +724,14 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
     @Override
     public void save() {
+        File settingFile = new File(FILE_PATH);
         if ((CONFIG_DIR.exists() && CONFIG_DIR.isDirectory()) || CONFIG_DIR.mkdirs()) {
             JsonObject configRoot = new JsonObject();
             ConfigUtils.writeConfigBase(configRoot, Reference.MOD_ID, OPTIONS);
-            //#if MC >= 12111
-            JsonUtils.writeJsonToFile(configRoot, new File(FILE_PATH).toPath());
+            //#if MC >= 260100
+            JsonUtils.writeJsonToFile(configRoot, settingFile.toPath());
             //#else
-            //$$ JsonUtils.writeJsonToFile(configRoot, new File(FILE_PATH));
+            //$$ JsonUtils.writeJsonToFile(configRoot, settingFile);
             //#endif
         }
     }

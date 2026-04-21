@@ -5,12 +5,13 @@ import fi.dy.masa.litematica.world.WorldSchematic;
 import fi.dy.masa.malilib.config.options.ConfigBase;
 import lombok.Getter;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.enums.BlockPrintState;
+import me.aleksilassila.litematica.printer.enums.BlockMatchResult;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
 import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.LiquidBlock;
 
 import java.util.Arrays;
@@ -30,18 +31,10 @@ public class GuiHandler extends ClientPlayerTickHandler {
     @Getter
     private final Progress mineProgress = new Progress(Configs.Core.MINE);
 
+    private final Progress[] progresses = new Progress[]{totalProgress, printProgress, fluidProgress, fillProgress, mineProgress};
+
     public GuiHandler() {
         super(NAME, null, Configs.Core.RENDER_HUD, null, true);
-    }
-
-    @Override
-    protected boolean needsRangeCheck() {
-        return false;
-    }
-
-    @Override
-    public boolean canProcessPos(BlockPos pos) {
-        return super.canProcessPos(pos);
     }
 
     @Override
@@ -51,7 +44,7 @@ public class GuiHandler extends ClientPlayerTickHandler {
             if (schematic != null) {
                 SchematicBlockContext context = new SchematicBlockContext(client, level, schematic, blockPos);
                 if (!context.requiredState.isAir()) {
-                    if (BlockPrintState.get(context) == BlockPrintState.CORRECT) {
+                    if (BlockMatchResult.compare(context) == BlockMatchResult.CORRECT) {
                         printProgress.finished++;
                         totalProgress.finished++;
                     }
@@ -69,7 +62,7 @@ public class GuiHandler extends ClientPlayerTickHandler {
             totalProgress.total++;
         }
         if (isFillMode()) {
-            if (Arrays.asList(ClientPlayerTickManager.FILL.getFillModeItemList()).contains(level.getBlockState(blockPos).getBlock().asItem())) {
+            if (!level.getBlockState(blockPos).isAir()) {
                 fillProgress.finished++;
                 totalProgress.finished++;
             }
@@ -84,27 +77,20 @@ public class GuiHandler extends ClientPlayerTickHandler {
             mineProgress.total++;
             totalProgress.total++;
         }
-        printProgress.calculateProgress();
-        fluidProgress.calculateProgress();
-        fillProgress.calculateProgress();
-        mineProgress.calculateProgress();
-        totalProgress.calculateProgress();
+        for (Progress progress : progresses) {
+            progress.calculateProgress();
+        }
     }
 
     @Override
     protected void stopIteration(boolean interrupt) {
         if (!interrupt) {
-            totalProgress.reset();
-            printProgress.reset();
-            fluidProgress.reset();
-            fillProgress.reset();
-            mineProgress.reset();
+            for (Progress progress : progresses) {
+                progress.reset();
+            }
         }
     }
 
-    /**
-     * 进度管理内部类（独立计数+自动修正进度范围）
-     */
     @Getter
     public static class Progress {
         private final ConfigBase<?> config;

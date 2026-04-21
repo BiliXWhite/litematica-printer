@@ -43,29 +43,18 @@ object ExternalModDownloader {
         val trimmedUrl = downloadUrl.trim()
         require(trimmedUrl.isNotBlank()) { "下载链接不能为空！" }
         require(outputDir.isDirectory || outputDir.mkdirs()) { "无法创建输出目录：${outputDir.absolutePath}" }
-        println()
-
         return try {
-            // 2. 处理文件名（优先级：用户指定 > 响应头 > 链接提取）
-            // val targetFileName = fileName ?: getFileNameFromResponse(connection) ?: extractFileNameFromUrl(trimmedUrl)
             val targetFileName = fileName ?: extractFileNameFromUrl(trimmedUrl)
             ?: throw IOException("无法识别文件名，请手动指定 fileName 参数")
-            // 3. 构建目标文件
             val targetFile = outputDir.resolve(targetFileName)
-            // 4. 检查文件是否已存在（避免重复下载）
             if (targetFile.exists() && targetFile.length() > 0) {
-                project.logger.log(LogLevel.LIFECYCLE, "文件已存在，跳过下载：${targetFile.absolutePath}")
+//                project.logger.log(LogLevel.LIFECYCLE, "文件已存在，跳过下载：${targetFile.absolutePath}")
                 return targetFile
             }
             project.logger.log(LogLevel.LIFECYCLE, "开始下载：$trimmedUrl")
-            project.logger.log(LogLevel.LIFECYCLE, "输出目录：${outputDir.absolutePath}")
-            // 1. 建立连接，获取响应信息（用于提取文件名和校验）
             val connection = createConnection(trimmedUrl)
             connection.connect()
-            // 5. 执行下载
-            project.logger.log(LogLevel.LIFECYCLE, "正在下载：${targetFile.absolutePath}")
             downloadFile(connection, targetFile)
-            // 6. 校验文件完整性
             if (!targetFile.exists() || targetFile.length() == 0L) {
                 throw IOException("下载的文件为空或损坏")
             }

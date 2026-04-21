@@ -10,7 +10,8 @@ import me.aleksilassila.litematica.printer.handler.handlers.GuiHandler;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiGraphics;
+
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,9 +30,14 @@ import java.util.List;
 import net.minecraft.client.DeltaTracker;
 //#endif
 
+//#if MC < 260000
+//$$ import net.minecraft.client.gui.GuiGraphics;
+//#endif
+
 /**
  * HUD渲染Mixin，负责打印器调试信息和进度条的绘制
  */
+@SuppressWarnings({"SameParameterValue", "SpellCheckingInspection"})
 @Mixin(Gui.class)
 public abstract class MixinGui {
     @Unique
@@ -73,7 +79,7 @@ public abstract class MixinGui {
         lines.add("已经执行: " + booleanToColoredString(guiInfo.execute));
 
         int renderIndex = handler.getRenderIndex();
-        int queueSize = handler.getGuiQueueSize();
+        int queueSize = handler.getGuiBlockInfoQueueSize();
         lines.add("同刻迭代(GUI): " + formatAlignedNumber(renderIndex, queueSize) + "/" + queueSize);
 
         return lines;
@@ -86,22 +92,22 @@ public abstract class MixinGui {
 
     // @formatter:off
     //#if MC >= 260100
-    //$$ @Inject(method = "extractHotbarAndDecorations", at = @At("TAIL"))
+    @Inject(method = "extractHotbarAndDecorations", at = @At("TAIL"))
     //#else
-    @Inject(method = "renderItemHotbar", at = @At("TAIL"))
+    //$$ @Inject(method = "renderItemHotbar", at = @At("TAIL"))
     //#endif
 
     //#if MC > 12006
-    private void hookRenderItemHotbar(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+    private void hookRenderItemHotbar(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
     //#elseif MC >= 12006
     //$$ private void hookRenderItemHotbar(GuiGraphics guiGraphics, float f, CallbackInfo ci) {
-    //#elseif MC > 11904 && MC < 12006
+    //#elseif MC > 11904
     //$$ private void hookRenderItemHotbar(float f, GuiGraphics guiGraphics, CallbackInfo ci) {
     //#else
     //$$ private void hookRenderItemHotbar(float f, PoseStack poseStack, CallbackInfo ci) {
     //#endif
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null || mc.level == null || mc.player.isSpectator() || !ConfigUtils.isPrinterEnable()) {
+        if (mc.player == null || mc.level == null || mc.player.isSpectator() || !ConfigUtils.isEnable()) {
             return;
         }
 
@@ -125,6 +131,7 @@ public abstract class MixinGui {
     }
     // @formatter:on
 
+
     // 调试信息绘制
     @Unique
     private void drawDebugInfo(float scaledWidth, float scaledHeight) {
@@ -134,7 +141,7 @@ public abstract class MixinGui {
 
         // 1. 收集有效Handler并计算全局最大宽度
         for (ClientPlayerTickHandler handler : ClientPlayerTickManager.VALUES) {
-            GuiBlockInfo guiInfo = handler.nextGuiInfo();
+            GuiBlockInfo guiInfo = handler.getCurrentRenderGuiBlockInfo();
             if (guiInfo == null) continue;
 
             validHandlers.add(handler);
@@ -206,7 +213,7 @@ public abstract class MixinGui {
 
         for (int i = startIndex; i < handlers.size(); i++) {
             ClientPlayerTickHandler handler = handlers.get(i);
-            GuiBlockInfo guiInfo = handler.nextGuiInfo();
+            GuiBlockInfo guiInfo = handler.getCurrentRenderGuiBlockInfo();
             if (guiInfo == null) continue;
 
             // 构建调试文本并计算面板高度

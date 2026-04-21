@@ -1,10 +1,9 @@
 package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
 import fi.dy.masa.malilib.util.InventoryUtils;
-import me.aleksilassila.litematica.printer.I18n;
-import me.aleksilassila.litematica.printer.utils.BlockUtils;
-import me.aleksilassila.litematica.printer.utils.MessageUtils;
-import me.aleksilassila.litematica.printer.utils.ModUtils;
+import me.aleksilassila.litematica.printer.utils.minecraft.MessageUtils;
+import me.aleksilassila.litematica.printer.utils.mods.ModLoadUtils;
+import me.aleksilassila.litematica.printer.utils.mods.ShulkerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -12,7 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -44,7 +43,7 @@ public class SwitchItem {
     }
 
     public static void openInv(ItemStack itemStack) {
-        if (!client.player.containerMenu.equals(client.player.inventoryMenu) || ModUtils.closeScreen > 0) {
+        if (!client.player.containerMenu.equals(client.player.inventoryMenu) || ModLoadUtils.closeScreen > 0) {
             return;
         }
         AbstractContainerMenu sc = client.player.containerMenu;
@@ -59,9 +58,9 @@ public class SwitchItem {
             if (itemStatistics.key != null && OpenInventoryPacket.key == null) {
                 OpenInventoryPacket.sendOpenInventory(itemStatistics.pos, itemStatistics.key);
             } else {
-                BlockUtils.openShulker(sc.slots.get(itemStatistics.shulkerBoxSlot).getItem(), itemStatistics.shulkerBoxSlot);
+                ShulkerUtils.openShulker(sc.slots.get(itemStatistics.shulkerBoxSlot).getItem(), itemStatistics.shulkerBoxSlot);
             }
-            ModUtils.closeScreen++;
+            ModLoadUtils.closeScreen++;
         } else {
             removeItem(reSwitchItem);
             reSwitchItem = null;
@@ -87,7 +86,7 @@ public class SwitchItem {
         if (itemStack != null) {
             reSwitchItem = itemStack;
             openInv(itemStack);
-        } else MessageUtils.setOverlayMessage(I18n.INVENTORY_BACKPACK_FULL.getName());
+        } else MessageUtils.setOverlayMessage(Component.nullToEmpty("背包已满，请先清理"), false);
     }
 
     public static void reSwitchItem() {
@@ -108,18 +107,18 @@ public class SwitchItem {
                 boolean reInv = false;
                 //检查记录的槽位是否有物品
                 if (sc.slots.get(slot1).getItem().isEmpty()) {
-                    client.gameMode.handleInventoryMouseClick(sc.containerId, i, 0, ClickType.PICKUP, client.player);
-                    client.gameMode.handleInventoryMouseClick(sc.containerId, slot1, 0, ClickType.PICKUP, client.player);
+                    client.gameMode.handleContainerInput(sc.containerId, i, 0, ContainerInput.PICKUP, client.player);
+                    client.gameMode.handleContainerInput(sc.containerId, slot1, 0, ContainerInput.PICKUP, client.player);
                     reInv = true;
                 } else {
                     int count = reSwitchItem.getCount();
-                    client.gameMode.handleInventoryMouseClick(sc.containerId, i, 0, ClickType.PICKUP, client.player);
+                    client.gameMode.handleContainerInput(sc.containerId, i, 0, ContainerInput.PICKUP, client.player);
                     for (Integer integer : sameItem) {
                         int count1 = sc.slots.get(integer).getItem().getCount();
                         int maxCount = sc.slots.get(integer).getItem().getMaxStackSize();
                         int i1 = maxCount - count1;
                         count -= i1;
-                        client.gameMode.handleInventoryMouseClick(sc.containerId, integer, 0, ClickType.PICKUP, client.player);
+                        client.gameMode.handleContainerInput(sc.containerId, integer, 0, ContainerInput.PICKUP, client.player);
                         if (count <= 0) reInv = true;
                     }
                 }
@@ -127,9 +126,9 @@ public class SwitchItem {
                 reSwitchItem = null;
                 player.closeContainer();
                 if (!reInv) {
-                    MessageUtils.setOverlayMessage(I18n.INVENTORY_RESTORE_FAILED.getName());
+                    MessageUtils.setOverlayMessage(Component.nullToEmpty("复原库存物品失败"), false);
                 }
-                client.gameMode.handleInventoryMouseClick(sc.containerId, i, 0, ClickType.PICKUP, client.player);
+                client.gameMode.handleContainerInput(sc.containerId, i, 0, ContainerInput.PICKUP, client.player);
                 return;
             }
         }

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.github.cottonmc</groupId>
+  <artifactId>LibGui</artifactId>
+  <version>7.1.1+1.19.4</version>
+  <name>LibGui</name>
+  <description>Minecraft GUI Library</description>
+  <url>https://github.com/CottonMC/LibGui</url>
+  <licenses>
+    <license>
+      <name>MIT</name>
+      <url>https://github.com/CottonMC/LibGui/blob/HEAD/LICENSE</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>CottonMC</name>
+      <url>https://github.com/CottonMC</url>
+    </developer>
+  </developers>
+  <dependencies>
+    <dependency>
+      <groupId>io.github.juuxel</groupId>
+      <artifactId>libninepatch</artifactId>
+      <version>1.2.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.fabricmc.fabric-api</groupId>
+      <artifactId>fabric-api-base</artifactId>
+      <version>0.4.23+9ff28bcef4</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.fabricmc.fabric-api</groupId>
+      <artifactId>fabric-networking-api-v1</artifactId>
+      <version>1.2.22+ca5f59aaf4</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.fabricmc</groupId>
+      <artifactId>fabric-loader</artifactId>
+      <version>0.14.17</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.fabricmc.fabric-api</groupId>
+      <artifactId>fabric-lifecycle-events-v1</artifactId>
+      <version>2.2.14+5da15ca1f4</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.fabricmc.fabric-api</groupId>
+      <artifactId>fabric-rendering-v1</artifactId>
+      <version>2.1.0+8f878217f4</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.cottonmc</groupId>
+      <artifactId>Jankson-Fabric</artifactId>
+      <version>5.0.1+j1.2.2</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>

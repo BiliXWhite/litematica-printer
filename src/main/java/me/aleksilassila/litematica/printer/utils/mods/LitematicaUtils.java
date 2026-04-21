@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.utils;
+package me.aleksilassila.litematica.printer.utils.mods;
 
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
@@ -7,44 +7,34 @@ import fi.dy.masa.litematica.selection.Box;
 import fi.dy.masa.litematica.selection.SelectionMode;
 import fi.dy.masa.litematica.util.EasyPlaceProtocol;
 import fi.dy.masa.litematica.util.PlacementHandler;
-import fi.dy.masa.litematica.util.WorldUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.PrinterBox;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.*;
+import java.util.List;
 
 //#if MC < 11900
 //$$ import fi.dy.masa.malilib.util.SubChunkPos;
 //#endif
 
-@SuppressWarnings({"BooleanMethodIsAlwaysInverted", "BooleanMethodIsAlwaysInverted"})
-@Environment(EnvType.CLIENT)
+@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 public class LitematicaUtils {
-    public static final Minecraft client = Minecraft.getInstance();
-    public static final LitematicaUtils INSTANCE = new LitematicaUtils();
-
-    private LitematicaUtils() {
-    }
-
     public static boolean isPositionWithinRange(BlockPos pos) {
         return DataManager.getRenderLayerRange().isPositionWithinRange(pos);
     }
 
+    @SuppressWarnings("deprecation")
     public static Vec3 usePrecisionPlacement(BlockPos pos, BlockState stateSchematic) {
         if (Configs.Print.EASY_PLACE_PROTOCOL.getBooleanValue()) {
             EasyPlaceProtocol protocol = PlacementHandler.getEffectiveProtocolVersion();
             Vec3 hitPos = Vec3.atLowerCornerOf(pos);
             if (protocol == EasyPlaceProtocol.V3) {
-                return WorldUtils.applyPlacementProtocolV3(pos, stateSchematic, hitPos);
+                return fi.dy.masa.litematica.util.WorldUtils.applyPlacementProtocolV3(pos, stateSchematic, hitPos);
             } else if (protocol == EasyPlaceProtocol.V2) {
                 // Carpet Accurate Block placements protocol support, plus slab support
-                return WorldUtils.applyCarpetProtocolHitVec(pos, stateSchematic, hitPos);
+                return fi.dy.masa.litematica.util.WorldUtils.applyCarpetProtocolHitVec(pos, stateSchematic, hitPos);
             }
         }
         return null;
@@ -93,5 +83,4 @@ public class LitematicaUtils {
         PrinterBox printerBox = new PrinterBox(box.getPos1(), box.getPos2());
         return printerBox.contains(pos);
     }
-
 }

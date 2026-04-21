@@ -1,14 +1,16 @@
 package me.aleksilassila.litematica.printer.handler.handlers;
 
 import lombok.Getter;
-import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.FillBlockModeType;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.printer.action.Action;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
-import me.aleksilassila.litematica.printer.utils.*;
+import me.aleksilassila.litematica.printer.utils.ConfigUtils;
+import me.aleksilassila.litematica.printer.utils.FilterUtils;
+import me.aleksilassila.litematica.printer.utils.InventoryUtils;
+import me.aleksilassila.litematica.printer.utils.minecraft.MessageUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
@@ -39,7 +41,7 @@ public class FillHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected int getMaxExecutions() {
+    protected int getMaxEffectiveExecutionsPerTick() {
         return Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue();
     }
 
@@ -59,7 +61,7 @@ public class FillHandler extends ClientPlayerTickHandler {
                     for (String itemName : fillCacheBlocklist) {
                         items.addAll(BuiltInRegistries.ITEM
                                 .stream()
-                                .filter(item -> PinYinSearchUtils.matchName(itemName, new ItemStack(item)))
+                                .filter(item -> FilterUtils.matchName(itemName, new ItemStack(item)))
                                 .toList()
                         );
                     }
@@ -85,7 +87,7 @@ public class FillHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    public boolean canProcessPos(BlockPos blockPos) {
+    public boolean canIterationBlockPos(BlockPos blockPos) {
         if (Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FillBlockModeType.HANDHELD) {
             ItemStack heldStack = player.getMainHandItem(); // 获取主手物品
             return !heldStack.isEmpty() && heldStack.getCount() > 0;
@@ -95,38 +97,36 @@ public class FillHandler extends ClientPlayerTickHandler {
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
-        BlockState currentState = level.getBlockState(blockPos);
-        if (currentState.isAir()
-                || (currentState.getBlock() instanceof LiquidBlock)
-                || Configs.Print.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> PinYinSearchUtils.matchName(s, currentState))
-        ) {
-            if (!InventoryUtils.switchToItems(player, this.fillModeItemList)) {
-                return;
-            }
-            if (Configs.Placement.FALLING_CHECK.getBooleanValue() &&
+        if (Configs.Placement.FALLING_CHECK.getBooleanValue() &&
                 player.getMainHandItem().getItem() instanceof BlockItem item &&
                 item.getBlock() instanceof FallingBlock block &&
                 FallingBlock.isFree(level.getBlockState(blockPos.below()))
-            ) {
-                MessageUtils.setOverlayMessage(I18n.BLOCK_NO_SUPPORT.getName(block.getName().getString()));
-                return;
-            }
-
-            Action action;
-            if (ConfigUtils.getFillModeFacing() != null) {
-                action = new Action()
-                        .setLookDirection(ConfigUtils.getFillModeFacing().getOpposite())
-                        .queueAction(blockPos, ConfigUtils.getFillModeFacing(), false, player);
-            } else {
-                action = new Action()
-                        .queueAction(blockPos, getPlayerPlacementDirection(), false, player);
-            }
-            ActionManager.INSTANCE.setLook(action.getPlayerLook());
-            ActionManager.INSTANCE.setNeedWaitModifyLookFromAction(action.getNeedWaitModifyLook());
-            if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook){
-                skipIteration.set(true);
-            } else {
-                this.setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
+        ) {
+            MessageUtils.setOverlayMessage("方块 " + block.getName().getString() + " 下方无支撑，跳过放置");
+            return;
+        }
+        boolean handheld = Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FillBlockModeType.HANDHELD;
+        BlockState currentState = level.getBlockState(blockPos);
+        if (currentState.isAir()
+                || (currentState.getBlock() instanceof LiquidBlock)
+                || Configs.Print.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> FilterUtils.matchName(s, currentState))
+        ) {
+            if (handheld || InventoryUtils.switchToItems(player, this.fillModeItemList)) {
+                Action action;
+                if (ConfigUtils.getFillModeFacing() != null) {
+                    action = new Action()
+                            .setLookDirection(ConfigUtils.getFillModeFacing().getOpposite())
+                            .queueAction(blockPos, ConfigUtils.getFillModeFacing(), false, player);
+                } else {
+                    action = new Action()
+                            .queueAction(blockPos, getPlayerPlacementDirection(), false, player);
+                }
+                ActionManager.INSTANCE.setLook(action.getPlayerLook());
+                ActionManager.INSTANCE.setNeedWaitModifyLookFromAction(action.getNeedWaitModifyLook());
+                if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook){
+                    skipIteration.set(true);
+                }
+                this.setBlockPosCooldown(blockPos, ConfigUtils.getPlaceCooldown());
             }
         }
     }

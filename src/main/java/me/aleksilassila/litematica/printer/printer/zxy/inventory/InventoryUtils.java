@@ -1,10 +1,9 @@
 package me.aleksilassila.litematica.printer.printer.zxy.inventory;
 
-import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
-import me.aleksilassila.litematica.printer.utils.ModUtils;
-import me.aleksilassila.litematica.printer.utils.BlockUtils;
-import me.aleksilassila.litematica.printer.utils.MessageUtils;
+import me.aleksilassila.litematica.printer.utils.minecraft.MessageUtils;
+import me.aleksilassila.litematica.printer.utils.mods.ModLoadUtils;
+import me.aleksilassila.litematica.printer.utils.mods.ShulkerUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.mixin.printer.litematica.InventoryUtilsAccessor;
 import me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils;
@@ -16,7 +15,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.monster.Shulker;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -109,7 +108,7 @@ public class InventoryUtils {
                     MemoryUtils.currentMemoryKey = client.level.dimension().identifier();
                     MemoryUtils.itemStack = new ItemStack(item);
                     if (SearchItem.search(true)) {
-                        ModUtils.closeScreen++;
+                        ModLoadUtils.closeScreen++;
                         isOpenHandler = true;
                         ClientPlayerTickManager.PRINT.setPrinterMemorySync(true);
                         return true;
@@ -126,7 +125,7 @@ public class InventoryUtils {
                         //#else
                         //$$ OpenInventoryPacket.sendOpenInventory(memory.getPosition(), ResourceKey.create(Registries.DIMENSION, dimension));
                         //#endif
-                    //$$                if(ModUtils.closeScreen == 0) ModUtils.closeScreen++;
+                    //$$                if(ModLoadUtils.closeScreen == 0) ModLoadUtils.closeScreen++;
                     //$$                me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager.PRINT.setPrinterMemorySync(true);
                     //$$                isOpenHandler = true;
                     //$$                return true;
@@ -162,7 +161,7 @@ public class InventoryUtils {
                             int c = Integer.parseInt(s) - 1;
                             if (BuiltInRegistries.ITEM.getKey(player.getInventory().getItem(c).getItem()).toString().contains("shulker_box") &&
                                     Configs.Placement.QUICK_SHULKER.getBooleanValue()) {
-                                MessageUtils.setOverlayMessage(I18n.INVENTORY_SHULKER_PRESELECT.getName());
+                                MessageUtils.setOverlayMessage(Component.nullToEmpty("濳影盒占用了预选栏"), false);
                                 continue;
                             }
                             if (OpenInventoryPacket.key != null) {
@@ -178,8 +177,8 @@ public class InventoryUtils {
                             player.closeContainer();
                             //刷新濳影盒
                             if (shulkerBoxSlot != -1) {
-                                client.gameMode.handleInventoryMouseClick(sc.containerId, shulkerBoxSlot, 0, ClickType.PICKUP, client.player);
-                                client.gameMode.handleInventoryMouseClick(sc.containerId, shulkerBoxSlot, 0, ClickType.PICKUP, client.player);
+                                client.gameMode.handleContainerInput(sc.containerId, shulkerBoxSlot, 0, ContainerInput.PICKUP, client.player);
+                                client.gameMode.handleContainerInput(sc.containerId, shulkerBoxSlot, 0, ContainerInput.PICKUP, client.player);
                             }
                             shulkerBoxSlot = -1;
                             isOpenHandler = false;
@@ -216,10 +215,10 @@ public class InventoryUtils {
                         try {
                             shulkerBoxSlot = i;
                             //#if MC >= 12001 
-                            //$$ if (ModUtils.isLoadMod("chesttracker")) InteractionTracker.INSTANCE.clear();
+                            //$$ if (ModLoadUtils.isChestTrackerLoaded()) InteractionTracker.INSTANCE.clear();
                             //#endif
-                            BlockUtils.openShulker(stack, shulkerBoxSlot);
-                            ModUtils.closeScreen++;
+                            ShulkerUtils.openShulker(stack, shulkerBoxSlot);
+                            ModLoadUtils.closeScreen++;
                             isOpenHandler = true;
                             shulkerCooldown = Configs.Placement.QUICK_SHULKER_COOLDOWN.getIntegerValue();
                             return true;

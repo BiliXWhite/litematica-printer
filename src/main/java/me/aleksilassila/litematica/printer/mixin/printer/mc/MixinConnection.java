@@ -21,7 +21,7 @@ import static me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils.exi
 public class MixinConnection {
     @Inject(method = "genericsFtw", at = @At("HEAD"), require = 1)
     private static void hookGenericsFtw(Packet<?> packet, PacketListener listener, CallbackInfo ci) {
-        if (ConfigUtils.isPrinterEnable()) {
+        if (ConfigUtils.isEnable()) {
             ClientPlayerTickManager.setPacketTick(0);   // 用于延迟检测
         }
     }

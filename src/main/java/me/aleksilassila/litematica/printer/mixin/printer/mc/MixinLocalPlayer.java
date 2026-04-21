@@ -5,11 +5,11 @@ import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
-import me.aleksilassila.litematica.printer.printer.BlockPosCooldownManager;
+import me.aleksilassila.litematica.printer.utils.CooldownUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
-import me.aleksilassila.litematica.printer.utils.BreakUtils;
-import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
-import me.aleksilassila.litematica.printer.utils.ModUtils;
+import me.aleksilassila.litematica.printer.utils.InteractionUtils;
+import me.aleksilassila.litematica.printer.utils.mods.ModLoadUtils;
+import me.aleksilassila.litematica.printer.utils.UpdateCheckerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -33,7 +33,6 @@ import java.util.concurrent.CompletableFuture;
 //#if MC >= 12001 
 import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.utils.ModUtils;
 //#endif
 
 @Mixin(LocalPlayer.class)
@@ -47,7 +46,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     protected Minecraft minecraft;
 
     @Unique
-    private static boolean updateChecked;
+    private boolean updateChecked;
 
     //#if MC == 11902
     //$$ public MixinLocalPlayer(ClientLevel world, GameProfile profile, @Nullable PlayerPublicKey publicKey) {
@@ -62,7 +61,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     @Inject(at = @At("HEAD"), method = "resetPos")
     public void init(CallbackInfo ci) {
         if (Configs.Core.UPDATE_CHECK.getBooleanValue() && !updateChecked) {
-            CompletableFuture.runAsync(ModUtils::checkForUpdates);
+            CompletableFuture.runAsync(UpdateCheckerUtils::checkForUpdates);
         }
         updateChecked = true;
     }
@@ -70,7 +69,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     @Inject(at = @At("HEAD"), method = "closeContainer")
     public void close(CallbackInfo ci) {
         //#if MC >= 12001
-        if (ModUtils.isChestTrackerLoaded()) {
+        if (ModLoadUtils.isChestTrackerLoaded()) {
             MemoryUtils.saveMemory(this.containerMenu);
         }
         OpenInventoryPacket.reSet();
@@ -80,12 +79,12 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     @Inject(at = @At("HEAD"), method = "tick")
     public void tick(CallbackInfo ci) {
         ClientPlayerTickManager.updateTickHandlerTime();
-        BlockPosCooldownManager.INSTANCE.tick();
+        CooldownUtils.INSTANCE.tick();
         InventoryUtils.tick();
         ZxyUtils.tick();
-        BreakUtils.INSTANCE.preprocess();
-        if (BreakUtils.INSTANCE.isNeedHandle()) {
-            BreakUtils.INSTANCE.onTick();
+        InteractionUtils.INSTANCE.preprocess();
+        if (InteractionUtils.INSTANCE.isNeedHandle()) {
+            InteractionUtils.INSTANCE.onTick();
         } else {
             ClientPlayerTickManager.tick();
         }

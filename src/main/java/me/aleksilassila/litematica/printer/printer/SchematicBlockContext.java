@@ -2,7 +2,7 @@ package me.aleksilassila.litematica.printer.printer;
 
 import fi.dy.masa.litematica.world.WorldSchematic;
 import lombok.ToString;
-import me.aleksilassila.litematica.printer.utils.BlockUtils;
+import me.aleksilassila.litematica.printer.utils.minecraft.BlockStateUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -32,35 +32,35 @@ public class SchematicBlockContext {
         this.requiredState = schematic.getBlockState(blockPos);
     }
 
-    public static <T extends Comparable<T>> Optional<T> getProperty(BlockState blockState, Property<T> property) {
-        return BlockUtils.getProperty(blockState, property);
+    public static <T extends Comparable<T>> Optional<T> property(BlockState blockState, Property<T> property) {
+        return BlockStateUtils.getProperty(blockState, property);
     }
 
     public SchematicBlockContext offset(Direction direction) {
         return new SchematicBlockContext(client, level, schematic, blockPos.relative(direction));
     }
 
-    public <T extends Comparable<T>> Optional<T> getRequiredStateProperty(Property<T> property) {
-        return getProperty(requiredState, property);
+    public <T extends Comparable<T>> Optional<T> requiredProperty(Property<T> property) {
+        return property(requiredState, property);
     }
 
-    public <T extends Comparable<T>> Optional<T> getCurrentStateProperty(Property<T> property) {
-        return getProperty(currentState, property);
+    public <T extends Comparable<T>> Optional<T> currentProperty(Property<T> property) {
+        return property(currentState, property);
     }
 
-    public Block getRequiredBlock() {
+    public Block requiredState() {
         return requiredState.getBlock();
     }
 
-    public Block getCurrentBlock() {
+    public Block currentState() {
         return currentState.getBlock();
     }
 
-    public MutableComponent getRequiredBlockName() {
+    public MutableComponent requiredBlockName() {
         return requiredState.getBlock().getName();
     }
 
-    public MutableComponent getCurrentBlockName() {
+    public MutableComponent currentBlockName() {
         return currentState.getBlock().getName();
     }
 }

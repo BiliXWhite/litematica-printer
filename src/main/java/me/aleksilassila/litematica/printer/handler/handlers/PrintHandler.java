@@ -4,7 +4,6 @@ import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import lombok.Getter;
 import lombok.Setter;
-import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
@@ -14,6 +13,8 @@ import me.aleksilassila.litematica.printer.printer.action.Action;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.printer.action.ClickAction;
 import me.aleksilassila.litematica.printer.utils.*;
+import me.aleksilassila.litematica.printer.utils.minecraft.MessageUtils;
+import me.aleksilassila.litematica.printer.utils.mods.LitematicaUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.Item;
@@ -56,23 +57,23 @@ public class PrintHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected int getMaxExecutions() {
+    protected int getMaxEffectiveExecutionsPerTick() {
         return Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue();
     }
 
     @Override
-    protected boolean isSchematicHandler() {
+    protected boolean isSchematicBlockHandler() {
         return true;
     }
 
     @Override
-    public boolean canProcessPos(BlockPos blockPos) {
+    public boolean canIterationBlockPos(BlockPos blockPos) {
         WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
         if (schematic == null) return false;
         this.ctx = new SchematicBlockContext(client, level, schematic, blockPos);
         if (Configs.Print.PRINT_SKIP.getBooleanValue()) {
             Set<String> skipSet = new HashSet<>(Configs.Print.PRINT_SKIP_LIST.getStrings()); // 转换为 HashSet
-            if (skipSet.stream().anyMatch(s -> PinYinSearchUtils.matchName(s, ctx.requiredState))) {
+            if (skipSet.stream().anyMatch(s -> FilterUtils.matchName(s, ctx.requiredState))) {
                 return false;
             }
         }
@@ -86,15 +87,13 @@ public class PrintHandler extends ClientPlayerTickHandler {
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         if (Configs.Placement.FALLING_CHECK.getBooleanValue() && ctx.requiredState.getBlock() instanceof FallingBlock) {
             BlockPos downPos = blockPos.below();
-
             if (FallingBlock.isFree(level.getBlockState(downPos))) {
-                MessageUtils.setOverlayMessage(I18n.BLOCK_NO_SUPPORT.getName(ctx.getRequiredBlockName().getString()));
+                MessageUtils.setOverlayMessage("方块 " + ctx.requiredBlockName().getString() + " 下方无支撑，跳过放置");
                 return;
             } else if (level.getBlockState(downPos) != ctx.schematic.getBlockState(downPos)) {
-                    MessageUtils.setOverlayMessage(I18n.BLOCK_MISMATCH.getName(ctx.getRequiredBlockName().getString()));
-                    return;
-                }
-
+                MessageUtils.setOverlayMessage("方块 " + ctx.requiredBlockName().getString() + " 下方方块不相符，跳过放置");
+                return;
+            }
         }
         Direction side = action.getValidSide(level, blockPos);
         if (side == null) return;
@@ -115,10 +114,10 @@ public class PrintHandler extends ClientPlayerTickHandler {
         }
         ActionManager.INSTANCE.setLook(action.getPlayerLook());
         ActionManager.INSTANCE.setNeedWaitModifyLookFromAction(action.getNeedWaitModifyLook());
-        boolean needWait = ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook;
-        if (needWait) {
+        if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook) {
             skipIteration.set(true);
         }
-        setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
+        setBlockPosCooldown(blockPos, ConfigUtils.getPlaceCooldown());
     }
 }
+

@@ -7,7 +7,7 @@ import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.HotkeysCallback;
-import me.aleksilassila.litematica.printer.utils.MessageUtils;
+import me.aleksilassila.litematica.printer.utils.minecraft.MessageUtils;
 import org.jetbrains.annotations.Nullable;
 
 public class HotkeyConfigBuilder extends BaseConfigBuilder<ConfigHotkey, HotkeyConfigBuilder> {

@@ -5,8 +5,8 @@ import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.printer.action.Action;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
+import me.aleksilassila.litematica.printer.utils.FilterUtils;
 import me.aleksilassila.litematica.printer.utils.InventoryUtils;
-import me.aleksilassila.litematica.printer.utils.PinYinSearchUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -39,7 +39,7 @@ public class FluidHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected int getMaxExecutions() {
+    protected int getMaxEffectiveExecutionsPerTick() {
         return Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue();
     }
 
@@ -52,7 +52,7 @@ public class FluidHandler extends ClientPlayerTickHandler {
             if (!fileBlocks.isEmpty()) {
                 fillItems = new ArrayList<>();
                 for (String itemName : fillBlocks) {
-                    List<Item> list = BuiltInRegistries.ITEM.stream().filter(item -> PinYinSearchUtils.matchName(itemName, new ItemStack(item))).toList();
+                    List<Item> list = BuiltInRegistries.ITEM.stream().filter(item -> FilterUtils.matchName(itemName, new ItemStack(item))).toList();
                     fillItems.addAll(list);
                 }
             }
@@ -64,7 +64,7 @@ public class FluidHandler extends ClientPlayerTickHandler {
             if (!fluidBlocks.isEmpty()) {
                 fluids = new ArrayList<>();
                 for (String itemName : this.fluidBlocks) {
-                    List<Fluid> list = BuiltInRegistries.FLUID.stream().filter(item -> PinYinSearchUtils.matchName(itemName, item.defaultFluidState().createLegacyBlock())).toList();
+                    List<Fluid> list = BuiltInRegistries.FLUID.stream().filter(item -> FilterUtils.matchName(itemName, item.defaultFluidState().createLegacyBlock())).toList();
                     fluids.addAll(list);
                 }
             }
@@ -90,9 +90,8 @@ public class FluidHandler extends ClientPlayerTickHandler {
             ActionManager.INSTANCE.setNeedWaitModifyLookFromAction(action.getNeedWaitModifyLook());
             if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook) {
                 skipIteration.set(true);
-            } else {
-                setCooldown(blockPos, Fluids.WATER.getTickDelay(level) * 2);
             }
+            setBlockPosCooldown(blockPos, Fluids.WATER.getTickDelay(level) * 2);
         }
     }
 }

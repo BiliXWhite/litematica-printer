@@ -3,16 +3,15 @@ package me.aleksilassila.litematica.printer.printer.zxy.utils;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
-import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.PrinterBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
-import me.aleksilassila.litematica.printer.utils.MessageUtils;
-import me.aleksilassila.litematica.printer.utils.ModUtils;
-import me.aleksilassila.litematica.printer.utils.PinYinSearchUtils;
-import me.aleksilassila.litematica.printer.utils.PlayerUtils;
+import me.aleksilassila.litematica.printer.utils.ConfigUtils;
+import me.aleksilassila.litematica.printer.utils.FilterUtils;
+import me.aleksilassila.litematica.printer.utils.minecraft.MessageUtils;
+import me.aleksilassila.litematica.printer.utils.mods.ModLoadUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -24,7 +23,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.monster.Shulker;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -79,16 +78,16 @@ public class ZxyUtils {
         if (printerMemoryAdding && !openIng && OpenInventoryPacket.key == null) {
             if (invBlockList.isEmpty()) {
                 printerMemoryAdding = false;
-                MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_ADDED.getName());
+                MessageUtils.setOverlayMessage(Component.nullToEmpty("打印机库存添加完成"), false);
                 return;
             }
-            MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_ADDING.getName());
+            MessageUtils.setOverlayMessage(Component.nullToEmpty("添加库存中"), false);
             for (BlockPos pos : invBlockList) {
                 if (client.level != null) {
                     //#if MC < 12001
                     //$$ MemoryUtils.setLatestPos(pos);
                     //#endif
-                    ModUtils.closeScreen++;
+                    ModLoadUtils.closeScreen++;
                     OpenInventoryPacket.sendOpenInventory(pos, client.level.dimension());
                 }
                 invBlockList.remove(pos);
@@ -132,13 +131,13 @@ public class ZxyUtils {
                                     //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(blockState.getValue(FACING), 0.0f, 0.5f).move(pos).deflate(1.0E-6)) &&
                                     //#endif
                                     entity.getAnimationStatus() == ShulkerBoxBlockEntity.AnimationStatus.CLOSED)) {
-                        MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_CONTAINER_CANNOT_OPEN.getName());
+                        MessageUtils.setOverlayMessage(Component.nullToEmpty("容器无法打开"), false);
                     } else if (!isInventory) {
-                        MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_NOT_CONTAINER.getName());
+                        MessageUtils.setOverlayMessage(Component.nullToEmpty("这不是容器 无法同步"), false);
                         return;
                     }
                 } catch (Exception e) {
-                    MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_NOT_CONTAINER.getName());
+                    MessageUtils.setOverlayMessage(Component.nullToEmpty("这不是容器 无法同步"), false);
                     return;
                 }
             }
@@ -152,7 +151,7 @@ public class ZxyUtils {
                     return;
                 }
                 highlightPosList.addAll(syncPosList);
-                ModUtils.closeScreen++;
+                ModLoadUtils.closeScreen++;
                 num = 1;
             }
         } else if (!syncPosList.isEmpty()) {
@@ -160,7 +159,7 @@ public class ZxyUtils {
             syncPosList = new LinkedList<>();
             if (client.player != null) client.player.clientSideCloseContainer();
             num = 0;
-            MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_CANCELLED.getName());
+            MessageUtils.setOverlayMessage(Component.nullToEmpty("已取消同步"), false);
         }
     }
 
@@ -169,9 +168,9 @@ public class ZxyUtils {
             OpenInventoryPacket.sendOpenInventory(pos, client.level.dimension());
             return true;
         } else {
-            if (client.player != null && !PlayerUtils.canInteracted(pos)) {
+            if (client.player != null && !ConfigUtils.canInteracted(pos)) {
                 if (!ignoreThePrompt)
-                    MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_TOO_FAR.getName());
+                    MessageUtils.setOverlayMessage(Component.nullToEmpty("距离过远无法打开容器"), false);
                 return false;
             }
             if (client.gameMode != null) {
@@ -225,7 +224,7 @@ public class ZxyUtils {
                 //打开列表中的容器 只要容器同步列表不为空 就会一直执行此处
                 if (client.player == null) return;
                 playerItemsCount = new HashMap<>();
-                MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_REMAINING.getName(syncPosList.size()));
+                MessageUtils.setOverlayMessage(Component.nullToEmpty("剩余 " + syncPosList.size() + " 个容器. 再次按下快捷键取消同步"), false);
                 if (!client.player.containerMenu.equals(client.player.inventoryMenu)) return;
                 NonNullList<Slot> slots = client.player.inventoryMenu.slots;
                 slots.forEach(slot -> itemsCount(playerItemsCount, slot.getItem()));
@@ -239,7 +238,7 @@ public class ZxyUtils {
                 if ((!Configs.Core.CLOUD_INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
                     for (BlockPos pos : syncPosList) {
                         if (!openInv(pos, true)) continue;
-                        ModUtils.closeScreen++;
+                        ModLoadUtils.closeScreen++;
                         blockPos = pos;
                         num = 3;
                         break;
@@ -247,7 +246,7 @@ public class ZxyUtils {
                 }
                 if (syncPosList.isEmpty()) {
                     num = 0;
-                    MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_COMPLETE.getName());
+                    MessageUtils.setOverlayMessage(Component.nullToEmpty("同步完成"), false);
                 }
             }
             case 3 -> {
@@ -268,12 +267,12 @@ public class ZxyUtils {
                     if (same) {
                         //有多
                         while (currNum > tarNum) {
-                            client.gameMode.handleInventoryMouseClick(sc.containerId, i, 0, ClickType.THROW, client.player);
+                            client.gameMode.handleContainerInput(sc.containerId, i, 0, ContainerInput.THROW, client.player);
                             currNum--;
                         }
                     } else {
                         //不同直接扔出
-                        client.gameMode.handleInventoryMouseClick(sc.containerId, i, 1, ClickType.THROW, client.player);
+                        client.gameMode.handleContainerInput(sc.containerId, i, 1, ContainerInput.THROW, client.player);
                         times++;
                     }
                     boolean thereAreItems = false;
@@ -285,12 +284,12 @@ public class ZxyUtils {
                         boolean same2 = thereAreItems = ItemStack.isSameItemSameComponents(item2, stack);
                         if (same2 && !stack.isEmpty()) {
                             int i2 = stack.getCount();
-                            client.gameMode.handleInventoryMouseClick(sc.containerId, i1, 0, ClickType.PICKUP, client.player);
+                            client.gameMode.handleContainerInput(sc.containerId, i1, 0, ContainerInput.PICKUP, client.player);
                             for (; currNum < tarNum && i2 > 0; i2--) {
-                                client.gameMode.handleInventoryMouseClick(sc.containerId, i, 1, ClickType.PICKUP, client.player);
+                                client.gameMode.handleContainerInput(sc.containerId, i, 1, ContainerInput.PICKUP, client.player);
                                 currNum++;
                             }
-                            client.gameMode.handleInventoryMouseClick(sc.containerId, i1, 0, ClickType.PICKUP, client.player);
+                            client.gameMode.handleContainerInput(sc.containerId, i1, 0, ContainerInput.PICKUP, client.player);
                         }
                         //这里判断没啥用，因为一个游戏刻操作背包太多次.getStack().getCount()获取的数量不准确 下次一定优化，
                         if (currNum != tarNum) times++;
@@ -357,7 +356,7 @@ public class ZxyUtils {
                 if (client.level != null) {
                     state = client.level.getBlockState(pos);
                 }
-                if (PinYinSearchUtils.matchName(blockName, state)) {
+                if (FilterUtils.matchName(blockName, state)) {
                     blocks.add(pos);
                 }
             }

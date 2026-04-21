@@ -33,7 +33,7 @@ public abstract class ChestTrackerScreenMixin extends Screen {
     @Shadow(remap = false)
     private VerticalScrollWidget scroll;
     @Shadow(remap = false)
-    private List<ItemStack> items = Collections.emptyList();
+    private List<ItemStack> items;
     @Shadow(remap = false)
     private Identifier currentMemoryKey;
 
@@ -47,12 +47,9 @@ public abstract class ChestTrackerScreenMixin extends Screen {
      */
     @Overwrite(remap = false)
     private void filter(String filter) {
-        ItemListWidget itemList = this.itemList;
-        VerticalScrollWidget scroll = this.scroll;
-        if (itemList == null || scroll == null) return;
-
-        List<ItemStack> itemsSnapshot = new ArrayList<>(this.items);
         new Thread(() -> {
+            List<ItemStack> itemsSnapshot = new ArrayList<>(this.items);
+            //濳影盒等搜索
             List<ItemStack> filtered = new ArrayList<>(itemsSnapshot.stream()
                     .filter(stack -> InventoryUtils
                             .getStoredItems(stack, -1)
@@ -61,11 +58,9 @@ public abstract class ChestTrackerScreenMixin extends Screen {
             );
             filtered.addAll(SearchablesUtil.ITEM_STACK.filterEntries(itemsSnapshot, filter.toLowerCase()));
             filtered = filtered.stream().distinct().toList();
-
-            if (Minecraft.getInstance().screen != this) return;
-            itemList.setItems(filtered);
+            this.itemList.setItems(filtered);
             ChestTrackerConfig.Gui guiConfig = ChestTrackerConfig.INSTANCE.instance().gui;
-            scroll.setDisabled(filtered.size() <= guiConfig.gridWidth * guiConfig.gridHeight);
+            this.scroll.setDisabled(filtered.size() <= guiConfig.gridWidth * guiConfig.gridHeight);
         }).start();
     }
 

@@ -3,7 +3,7 @@ package me.aleksilassila.litematica.printer.mixin.printer.malilib.config;
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.options.ConfigBase;
 import me.aleksilassila.litematica.printer.mixin_extension.ConfigExtension;
-import me.aleksilassila.litematica.printer.utils.MessageUtils;
+import me.aleksilassila.litematica.printer.utils.minecraft.StringUtils;
 import org.spongepowered.asm.mixin.Mixin;
 
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,7 +19,7 @@ public interface MixinIConfigBase {
             if (configBase instanceof ConfigExtension extension) {
                 if (extension.litematica_printer$getTranslateNameKey() != null) {
                     String translateKey = extension.litematica_printer$getTranslateNameKey();
-                    cir.setReturnValue(MessageUtils.translatable(translateKey).getString());
+                    cir.setReturnValue(StringUtils.translatable(translateKey).getString());
                 }
             }
         }

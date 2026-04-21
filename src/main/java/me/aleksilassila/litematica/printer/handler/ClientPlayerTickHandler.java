@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.handler;
 
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
+import fi.dy.masa.litematica.world.WorldSchematic;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import fi.dy.masa.malilib.config.options.ConfigOptionList;
 import lombok.Getter;
@@ -9,8 +10,9 @@ import me.aleksilassila.litematica.printer.enums.*;
 import me.aleksilassila.litematica.printer.printer.*;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
-import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
-import me.aleksilassila.litematica.printer.utils.PlayerUtils;
+import me.aleksilassila.litematica.printer.utils.CooldownUtils;
+import me.aleksilassila.litematica.printer.utils.mods.LitematicaUtils;
+import me.aleksilassila.litematica.printer.utils.minecraft.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -18,51 +20,32 @@ import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * 打印机客户端玩家Tick抽象处理器
- */
 public abstract class ClientPlayerTickHandler extends ConfigUtils {
-    // 交互盒引用：存储迭代范围，null表示不使用迭代功能
     @Getter
     @Nullable
-    public final AtomicReference<PrinterBox> boxRef;
-
+    public final AtomicReference<PrinterBox> playerInteractionBox;
     @Getter
     private final String id;
-
     @Getter
     @Nullable
     private final PrintModeType printMode;
-
     @Getter
     @Nullable
     private final ConfigBoolean enableConfig;
-
     @Getter
     @Nullable
     private final ConfigOptionList selectionType;
-
-    // 跳过迭代标志
     private final AtomicReference<Boolean> skipIteration = new AtomicReference<>(false);
-
-    // GUI信息队列（用于渲染）
-    private final Queue<GuiBlockInfo> guiQueue = new ConcurrentLinkedQueue<>();
-
-    // 迭代状态缓存（性能优化关键）
-    private Iterator<BlockPos> cachedIterator = null;
-    private final BlockPos lastBasePos = null;
-    private int expandRange = -1;
+    private final Queue<GuiBlockInfo> guiBlockInfoQueue = new ConcurrentLinkedQueue<>();
 
     protected Minecraft mc;
     protected ClientLevel level;
@@ -75,291 +58,256 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     @Nullable
     protected BlockHitResult blockHitResult;
     @Nullable
-    private PrinterBox lastBox;
+    private PrinterBox lastPlayerInteractionBox;
+
     @Nullable
-    private BlockPos lastPos;
+    private BlockPos lastPlayerPos;
 
     private long lastTickTime = -1L;
-
     @Getter
     private int renderIndex = 0;
-
-    private int guiCacheTicks;
+    private int guiBlockPosCacheTicks;
 
     protected ClientPlayerTickHandler(String id, @Nullable PrintModeType printMode, @Nullable ConfigBoolean enableConfig, @Nullable ConfigOptionList selectionType, boolean useBox) {
         this.id = id;
         this.printMode = printMode;
         this.enableConfig = enableConfig;
         this.selectionType = selectionType;
-        this.boxRef = useBox ? new AtomicReference<>() : null;
-        updateVariables();
+        this.playerInteractionBox = useBox ? new AtomicReference<>() : null;
+        this.updateVariables();
     }
 
     protected void updateVariables() {
-        mc = Minecraft.getInstance();
-        level = mc.level;
-        player = mc.player;
-        connection = mc.getConnection();
-        gameMode = mc.gameMode;
-        gameType = gameMode == null ? null : gameMode.getPlayerMode();
-        hitResult = mc.hitResult;
-        blockHitResult = (hitResult != null && hitResult.getType() == HitResult.Type.BLOCK)
-                ? (BlockHitResult) hitResult : null;
+        this.mc = Minecraft.getInstance();
+        this.level = mc.level;
+        this.player = mc.player;
+        this.connection = mc.getConnection();
+        this.gameMode = mc.gameMode;
+        this.gameType = mc.gameMode == null ? null : mc.gameMode.getPlayerMode();
+        this.hitResult = mc.hitResult;
+        if (mc.hitResult != null && mc.hitResult.getType() == HitResult.Type.BLOCK) {
+            this.blockHitResult = (BlockHitResult) mc.hitResult;
+        } else {
+            this.blockHitResult = null;
+        }
     }
 
-    /**
-     * 核心Tick方法：处理GUI缓存、间隔控制、迭代范围更新和方块迭代
-     */
     public void tick() {
-        // GUI缓存倒计时
-        if (guiCacheTicks > 0) {
-            guiCacheTicks--;
+        // GUI迭代信息缓存处理：每Tick递减缓存计数，计数为0时清空队列
+        if (this.guiBlockPosCacheTicks > 0) {
+            this.guiBlockPosCacheTicks--;
         } else {
-            guiQueue.clear();
-            renderIndex = 0;
+            this.guiBlockInfoQueue.clear(); // 缓存时间到，清空队列
+            this.renderIndex = 0; // 重置渲染索引
         }
-
-        // 执行间隔控制
-        int tickInterval = getTickInterval();
+        int tickInterval = this.getTickInterval(); // 工作间隔
         if (tickInterval > 0) {
             long currentTickTime = ClientPlayerTickManager.getCurrentHandlerTime();
-            if (lastTickTime != -1L && currentTickTime - lastTickTime < tickInterval) {
-                return;
+            if (this.lastTickTime != -1L) {
+                // 非首次执行
+                if (currentTickTime - this.lastTickTime < tickInterval) {
+                    return;
+                }
             }
-            lastTickTime = currentTickTime;
+            this.lastTickTime = currentTickTime; // 更新上次执行时间，首次执行也会初始化
         }
-
-        // 基础检查
-        if (!isPrinterEnable()) {
-            lastPos = null;
+        if (!isEnable()) {
+            this.lastPlayerPos = null;
             return;
         }
-
-        if (!isConfigAllowed()) {
-            lastPos = null;
+        this.updateVariables();
+        if (this.mc == null || this.level == null || this.player == null || this.connection == null || this.gameMode == null || this.gameType == null) {
+            this.lastPlayerPos = null;
             return;
         }
-
-        updateVariables();
-        if (mc == null || level == null || player == null || connection == null || gameMode == null || gameType == null) {
-            lastPos = null;
+        // 更新迭代范围
+        if (this.playerInteractionBox != null) {
+            //#if MC > 11802
+            BlockPos playerPos = new BlockPos((int) Math.round(player.getX()), (int) Math.round(player.getEyeY()), (int) Math.round(player.getZ()));
+            //#else
+            //$$ BlockPos playerPos = new BlockPos((int) Math.round(player.getX()), (int) Math.round(player.getY() + 1.5), (int) Math.round(player.getZ()));
+            //#endif
+            double threshold = getWorkRange() * 0.7; // 玩家移动阈值：工作范围的70%
+            @Nullable PrinterBox playerInteractionBox = this.playerInteractionBox.get();
+            if (playerInteractionBox == null
+                    || !playerInteractionBox.equals(this.lastPlayerInteractionBox)
+                    || this.lastPlayerPos == null
+                    || !this.lastPlayerPos.closerThan(playerPos, threshold)
+            ) {
+                this.lastPlayerPos = playerPos;
+                PrinterBox box = new PrinterBox(playerPos);
+                if (Configs.Core.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()) {
+                    playerInteractionBox = box.expand((int) Math.ceil(PlayerUtils.getPlayerBlockInteractionRange(5) + 3));
+                } else {
+                    playerInteractionBox = box.expand(getWorkRange());
+                }
+                this.lastPlayerInteractionBox = playerInteractionBox;
+                this.playerInteractionBox.set(playerInteractionBox);
+            }
+            // 同步交互盒的迭代配置：从全局配置读取迭代顺序、方向等
+            playerInteractionBox.iterationMode = (IterationOrderType) Configs.Core.ITERATION_ORDER.getOptionListValue();
+            playerInteractionBox.xIncrement = !Configs.Core.X_REVERSE.getBooleanValue();
+            playerInteractionBox.yIncrement = !Configs.Core.Y_REVERSE.getBooleanValue();
+            playerInteractionBox.zIncrement = !Configs.Core.Z_REVERSE.getBooleanValue();
+        }
+        this.preprocess(); // 运行前处理的事情
+        if (!this.isConfigAllowExecute()) {
+            this.lastPlayerPos = null;
             return;
         }
-
-        updateBox();
-        // 例如填充和拍流体等需要额外方块的模式，需要提前处理好转换
-        preprocess();
-
-        // 执行方块迭代
-        if (!iterateBlocks()) {
-            lastPos = null;
-        }
-    }
-
-    /**
-     * 更新交互盒：根据玩家位置和配置动态调整迭代范围
-     */
-    private void updateBox() {
-        if (boxRef == null) return;
-
-        BlockPos eyePos = new BlockPos(new Vec3i((int) Math.round(player.getX()), (int) Math.round(player.getEyeY()), (int) Math.round(player.getZ())));
-        PrinterBox box = boxRef.get();
-
-        int currentRange = Configs.Core.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()
-                ? (int) PlayerUtils.getInteractionRange(5)
-                : getWorkRange();
-
-        // 检查是否需要重建交互盒
-        boolean needRebuild = box == null
-                || !box.equals(lastBox)
-                || lastPos == null
-                || !lastPos.closerThan(eyePos, getWorkRange() * 0.4)
-                || expandRange != currentRange;
-
-        if (needRebuild) {
-            lastPos = eyePos;
-            expandRange = currentRange;
-
-            box = new PrinterBox(eyePos).expand(expandRange, expandRange, expandRange);
-            lastBox = box;
-            boxRef.set(box);
-
-            box.iterationMode = (IterationOrderType) Configs.Core.ITERATION_ORDER.getOptionListValue();
-            box.xIncrement = !Configs.Core.X_REVERSE.getBooleanValue();
-            box.yIncrement = !Configs.Core.Y_REVERSE.getBooleanValue();
-            box.zIncrement = !Configs.Core.Z_REVERSE.getBooleanValue();
-            
-            cachedIterator = null;
-        }
-    }
-
-    /**
-     * 执行方块迭代
-     * @return 是否被中断
-     */
-    private boolean iterateBlocks() {
-        if (boxRef == null || !canExecute()) return false;
-    
-        PrinterBox box = boxRef.get();
-        if (box == null || !canIterate()) return false;
-    
-        if (cachedIterator == null) {
-            cachedIterator = box.iterator();
-        }
-    
-        int maxExecs = getMaxExecutions();
-        int timeLimit = getIterationTimeLimit();
-        int execCount = 0;
-    
-        boolean debugMode = Configs.Core.DEBUG_OUTPUT.getBooleanValue();
-        boolean needRangeCheck = needsRangeCheck();
-        boolean isSchematic = isSchematicHandler();
-    
-        long startTime = timeLimit > 0 ? System.nanoTime() : 0;
-        long timeLimitNanos = timeLimit * 1_000_000L;
-        int checkInterval = 10;
-        int iterCount = 0;
-    
-        skipIteration.set(false);
-        guiQueue.clear();
-        renderIndex = 0;
-    
-        while (cachedIterator.hasNext()) {
-            if (timeLimit > 0 && ++iterCount % checkInterval == 0) {
-                if (System.nanoTime() - startTime >= timeLimitNanos) {
-                    stopIteration(true);
-                    return true;
+        boolean interrupt = false;
+        // 执行迭代业务任务：基于玩家交互盒的方块迭代处理（防主线程阻塞）
+        if (this.playerInteractionBox != null && this.canExecute()) {
+            PrinterBox playerInteractionBox = this.playerInteractionBox.get();
+            // 交互盒非空且满足迭代执行条件时，执行迭代逻辑
+            if (playerInteractionBox != null && canIterate()) {
+                int maxEffectiveExec = this.getMaxEffectiveExecutionsPerTick();
+                int maxTotalIter = this.getMaxTotalIterationsPerTick();
+                int totalIterCount = 0;
+                int effectiveExecCount = 0;
+                this.skipIteration.set(false);
+                this.guiBlockInfoQueue.clear(); // 重置渲染信息
+                this.renderIndex = 0;   // 重置渲染信息
+                for (BlockPos pos : playerInteractionBox) {
+                    // 单Tick迭代次数限制：达到最大次数则终止循环（防主线程阻塞）
+                    if (maxTotalIter > 0 && ++totalIterCount >= maxTotalIter) {
+                        interrupt = true;
+                        break;
+                    }
+                    if (this.skipIteration.get() || ActionManager.INSTANCE.needWaitModifyLook) {
+                        interrupt = true;
+                        break;
+                    }
+                    if (pos == null) continue;
+                    GuiBlockInfo gui;
+                    if (isSchematicBlockHandler()) {
+                        WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
+                        gui = new GuiBlockInfo(level, schematic, pos);
+                    } else {
+                        gui = new GuiBlockInfo(level, null, pos);
+                    }
+                    // 仅调试时候加入队列, 避免队列储存无用位置信息
+                    if (Configs.Core.DEBUG_OUTPUT.getBooleanValue()) {
+                        this.addGuiBlockInfoToQueue(gui);
+                    }
+                    if (ConfigUtils.canInteracted(pos)) {
+                        gui.interacted = true;
+                    } else {
+                        gui.interacted = false;
+                        continue;
+                    }
+                    if (isSchematicBlockHandler()) {
+                        if (!LitematicaUtils.isSchematicBlock(pos)) {
+                            continue;
+                        }
+                    } else if (!LitematicaUtils.isWithinSelection1ModeRange(pos)) {
+                        continue;
+                    }
+                    if (selectionType != null && !ConfigUtils.isPositionInSelectionRange(player, pos, selectionType)) {
+                        gui.posInSelectionRange = false;
+                        continue;
+                    }
+                    gui.posInSelectionRange = true;
+                    // 方块迭代权限校验：子类可重写实现自定义过滤逻辑
+                    if (this.canIterationBlockPos(pos) && !isBlockPosOnCooldown(pos)) {
+                        this.executeIteration(pos, this.skipIteration);
+                        gui.execute = true;
+                        if (this.skipIteration.get() || maxEffectiveExec > 0 && ++effectiveExecCount >= maxEffectiveExec) {
+                            interrupt = true;
+                        }
+                    }
+                    if (interrupt) {
+                        break;
+                    }
                 }
-            }
-    
-            if (skipIteration.get() || ActionManager.INSTANCE.needWaitModifyLook) {
-                stopIteration(true);
-                return true;
-            }
-    
-            BlockPos pos = cachedIterator.next();
-            if (pos == null) continue;
-    
-            if (!PlayerUtils.canInteracted(pos)) continue;
-    
-            if (needRangeCheck) {
-                if (isSchematic ? !LitematicaUtils.isSchematicBlock(pos)
-                        : !LitematicaUtils.isWithinSelection1ModeRange(pos)) {
-                    continue;
-                }
-    
-                if (selectionType != null && !PlayerUtils.isPositionInSelectionRange(player, pos, selectionType)) {
-                    continue;
-                }
-            }
-    
-            if (debugMode) {
-                GuiBlockInfo gui = isSchematic
-                        ? new GuiBlockInfo(level, SchematicWorldHandler.getSchematicWorld(), pos)
-                        : new GuiBlockInfo(level, null, pos);
-                gui.interacted = true;
-                gui.posInSelectionRange = true;
-                gui.execute = canProcessPos(pos) && !isOnCooldown(pos);
-                addGuiInfo(gui);
-            }
-    
-            if (canProcessPos(pos) && !isOnCooldown(pos)) {
-                executeIteration(pos, skipIteration);
-    
-                if (skipIteration.get() || (maxExecs > 0 && ++execCount >= maxExecs)) {
-                    stopIteration(true);
-                    return true;
-                }
+                stopIteration(interrupt);
             }
         }
-    
-        cachedIterator = null;
-        stopIteration(false);
-        return false;
+        if (!interrupt) {
+            this.lastPlayerPos = null;
+        }
     }
 
     protected void stopIteration(boolean interrupt) {
-        // 如果被打断，保留迭代器状态以便下次继续
-        // 如果完成迭代，cachedIterator 会在 iterateBlocks 中被置 null
     }
 
-    protected boolean isSchematicHandler() {
+    protected boolean isSchematicBlockHandler() {
         return false;
     }
 
-    /**
-     * 添加GUI信息到队列
-     */
-    private void addGuiInfo(GuiBlockInfo info) {
-        if (info != null) {
-            guiQueue.add(info);
-            guiCacheTicks = 20;
+
+    private void addGuiBlockInfoToQueue(GuiBlockInfo guiBlockInfo) {
+        if (guiBlockInfo != null) {
+            this.guiBlockInfoQueue.add(guiBlockInfo);
+            this.guiBlockPosCacheTicks = 20; // 重置缓存Tick数为20
         }
     }
 
-    /**
-     * 获取下一个GUI信息（渲染阶段调用）
-     */
     @Nullable
-    public GuiBlockInfo nextGuiInfo() {
-        if (guiQueue.isEmpty()) return null;
-
-        GuiBlockInfo[] arr = guiQueue.toArray(new GuiBlockInfo[0]);
-        if (renderIndex >= arr.length) {
-            renderIndex = 0;
-            return arr[arr.length - 1];
+    public GuiBlockInfo getCurrentRenderGuiBlockInfo() {
+        if (guiBlockInfoQueue.isEmpty()) {
+            return null;
         }
-        return arr[renderIndex++];
+        GuiBlockInfo[] infoArray = guiBlockInfoQueue.toArray(new GuiBlockInfo[0]);
+        // 渲染索引超出队列长度时，返回最后一个元素并重置索引
+        if (renderIndex >= infoArray.length) {
+            renderIndex = 0; // 循环展示（可选：也可返回null）
+            return infoArray[infoArray.length - 1];
+        }
+        // 获取当前帧的信息并推进索引
+        GuiBlockInfo currentInfo = infoArray[renderIndex];
+        renderIndex++;
+        return currentInfo;
     }
 
-    /**
-     * 获取最后一个GUI信息
-     */
     @Nullable
-    public GuiBlockInfo getLastGuiInfo() {
-        if (guiQueue.isEmpty()) return null;
-        GuiBlockInfo[] arr = guiQueue.toArray(new GuiBlockInfo[0]);
-        return arr[arr.length - 1];
+    public GuiBlockInfo getGuiBlockInfo() {
+        if (guiBlockInfoQueue.isEmpty()) {
+            return null;
+        }
+        // 返回队列最后一个元素（兼容原有逻辑）
+        return ((GuiBlockInfo[]) guiBlockInfoQueue.toArray(new GuiBlockInfo[0]))[guiBlockInfoQueue.size() - 1];
     }
 
-    public void setGuiInfo(@Nullable GuiBlockInfo info) {
-        addGuiInfo(info);
+    public void setGuiBlockInfo(@Nullable GuiBlockInfo guiBlockInfo) {
+        this.addGuiBlockInfoToQueue(guiBlockInfo);
     }
 
-    public int getGuiQueueSize() {
-        return guiQueue.size();
+    public int getGuiBlockInfoQueueSize() {
+        return guiBlockInfoQueue.size();
     }
 
-    /**
-     * 配置层面的执行权限校验
-     */
-    private boolean isConfigAllowed() {
-        if (!ConfigUtils.isPrinterEnable()) return false;
-
-        if (printMode != null && enableConfig != null) {
-            WorkingModeType mode = (WorkingModeType) Configs.Core.WORK_MODE.getOptionListValue();
-            return switch (mode) {
-                case SINGLE -> Configs.Core.WORK_MODE_TYPE.getOptionListValue().equals(printMode);
-                case MULTI -> enableConfig.getBooleanValue();
+    private boolean isConfigAllowExecute() {
+        // 全局打印机功能未启用，直接禁止所有处理器执行
+        if (!ConfigUtils.isEnable()) {
+            return false;
+        }
+        // 处理器绑定了模式和配置，按当前游戏模式校验
+        if (this.printMode != null && this.enableConfig != null) {
+            WorkingModeType modeType = (WorkingModeType) Configs.Core.WORK_MODE.getOptionListValue();
+            return switch (modeType) {
+                case SINGLE -> Configs.Core.WORK_MODE_TYPE.getOptionListValue().equals(this.printMode);
+                case MULTI -> this.enableConfig.getBooleanValue();
             };
         }
-
-        return enableConfig == null || enableConfig.getBooleanValue();
+        // 仅绑定了启用配置，直接校验配置是否启用
+        if (this.enableConfig != null) {
+            return this.enableConfig.getBooleanValue();
+        }
+        // 无任何配置绑定，默认允许执行（由全局配置控制）
+        return true;
     }
 
     protected int getTickInterval() {
         return -1;
     }
 
-    protected int getMaxExecutions() {
+    protected int getMaxEffectiveExecutionsPerTick() {
         return -1;
     }
 
-    /**
-     * 获取迭代时间限制（毫秒），0表示禁用
-     */
-    protected int getIterationTimeLimit() {
-        return Configs.Core.ITERATION_TIME_LIMIT.getIntegerValue();
+    protected int getMaxTotalIterationsPerTick() {
+        return Configs.Core.ITERATOR_TOTAL_PER_TICK.getIntegerValue();
     }
 
     protected void preprocess() {
@@ -373,52 +321,38 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         return true;
     }
 
-    public boolean canProcessPos(BlockPos pos) {
+    public boolean canIterationBlockPos(BlockPos pos) {
         return true;
     }
 
-    /**
-     * 单次方块迭代的核心执行方法，子类重写实现具体逻辑
-     */
     protected void executeIteration(BlockPos pos, AtomicReference<Boolean> skipIteration) {
     }
 
-    /**
-     * 判断方块是否处于冷却中
-     */
-    public boolean isOnCooldown(@Nullable BlockPos pos) {
-        if (level == null || pos == null) return true;
-        return BlockPosCooldownManager.INSTANCE.isOnCooldown(level, id, pos);
+    public boolean isBlockPosOnCooldown(@Nullable BlockPos pos) {
+        if (this.level == null || pos == null) return true;
+        return CooldownUtils.INSTANCE.isOnCooldown(this.level, this.getId(), pos);
     }
 
-    public boolean isOnCooldown(String name, @Nullable BlockPos pos) {
-        if (level == null || pos == null) return true;
-        return BlockPosCooldownManager.INSTANCE.isOnCooldown(level, id + "_" + name, pos);
+    public boolean isBlockPosOnCooldown(String name, @Nullable BlockPos pos) {
+        if (this.level == null || pos == null) return true;
+        return CooldownUtils.INSTANCE.isOnCooldown(this.level, this.getId() + "_" + name, pos);
     }
 
-    /**
-     * 设置方块冷却时间
-     */
-    public void setCooldown(@Nullable BlockPos pos, int ticks) {
-        if (level == null || pos == null || ticks < 1) return;
-        BlockPosCooldownManager.INSTANCE.setCooldown(level, id, pos, ticks);
+    public void setBlockPosCooldown(@Nullable BlockPos pos, int cooldownTicks) {
+        if (this.level == null || pos == null || cooldownTicks < 1) return;
+        CooldownUtils.INSTANCE.setCooldown(this.level, this.getId(), pos, cooldownTicks);
     }
 
-    public void setCooldown(String name, @Nullable BlockPos pos, int ticks) {
-        if (level == null || pos == null || ticks < 1) return;
-        BlockPosCooldownManager.INSTANCE.setCooldown(level, id + "_" + name, pos, ticks);
+    public void setBlockPosCooldown(String name, @Nullable BlockPos pos, int cooldownTicks) {
+        if (this.level == null || pos == null || cooldownTicks < 1) return;
+        CooldownUtils.INSTANCE.setCooldown(this.level, this.getId() + "_" + name, pos, cooldownTicks);
     }
-
 
     protected Direction[] getPlayerOrderedByNearest() {
         return Direction.orderedByNearest(player);
     }
 
     protected Direction getPlayerPlacementDirection() {
-        return Direction.orderedByNearest(player)[0].getOpposite();
-    }
-
-    protected boolean needsRangeCheck() {
-        return true;
+        return getPlayerOrderedByNearest()[0].getOpposite();
     }
 }
