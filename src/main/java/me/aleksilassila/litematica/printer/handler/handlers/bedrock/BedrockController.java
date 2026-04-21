@@ -243,8 +243,7 @@ public final class BedrockController {
     }
 
     private static boolean shouldRetireOutOfRange(BedrockTarget.Status status) {
-        return status == BedrockTarget.Status.UNINITIALIZED
-                || status == BedrockTarget.Status.RETRACTED
+        return status == BedrockTarget.Status.RETRACTED
                 || status == BedrockTarget.Status.FAILED
                 || status == BedrockTarget.Status.STUCK
                 || status == BedrockTarget.Status.EXTENDED
