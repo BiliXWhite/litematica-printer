@@ -60,8 +60,8 @@ jobs:
         run: ./gradlew build --stacktrace -Dorg.gradle.java.installations.auto-detect=true -Dorg.gradle.java.installations.paths="${{ steps.setup_java_17.outputs.path }},${{ steps.setup_java_21.outputs.path }},${{ steps.setup_java_25.outputs.path }}"
 
       - name: Capture build artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: Artifacts
           path: fabricWrapper/build/libs/*.jar
-          archive: false
+          retention-days: 1
