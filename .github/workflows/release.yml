@@ -38,48 +38,9 @@ jobs:
           - target_release_tag: \`${{ github.event.inputs.target_release_tag }}\`
           EOF
 
-  changelog:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - name: Checkout all
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Generate publish related information
-        id: release_info_for_changelog
-        run: |
-          if [ $GITHUB_EVENT_NAME == 'release' ]
-          then
-              # Leave an empty value here, so Kir-Antipov/mc-publish will infer the tag from the action context
-              echo "tag_name=" >> $GITHUB_OUTPUT
-          elif [ $GITHUB_EVENT_NAME == 'workflow_dispatch' ]
-          then
-              echo "tag_name=${{ github.event.inputs.target_release_tag }}" >> $GITHUB_OUTPUT
-          else
-              echo Unknown github event name $GITHUB_EVENT_NAME
-              exit 1
-          fi
-
-      - name: Install git-cliff
-        uses: taiki-e/install-action@git-cliff
-
-      - name: Generate changelog
-        run: git-cliff --latest -o CHANGELOG.md
-
-      - name: Upload changelog to release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.release_info_for_changelog.outputs.tag_name }}
-          body_path: CHANGELOG.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   # ensure the input release tag is valid
   validate_release:
     runs-on: ubuntu-latest
-    needs: changelog
     steps:
       - name: Get github release information
         uses: cardinalby/git-get-release-action@1.2.5
