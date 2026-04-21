@@ -77,7 +77,7 @@ public final class BedrockController {
                 BedrockTarget.Status status = target.refreshStatusOnly();
                 BedrockDebugLog.write("controller out_of_range bedrock=" + BedrockDebugLog.pos(target.getBedrockPos())
                         + " status=" + status);
-                if (status == BedrockTarget.Status.RETRACTED || status == BedrockTarget.Status.FAILED || status == BedrockTarget.Status.STUCK) {
+                if (shouldRetireOutOfRange(status)) {
                     BedrockDebugLog.write("controller cleanup start bedrock=" + BedrockDebugLog.pos(target.getBedrockPos())
                             + " status=" + status
                             + " cleanupCount=" + target.getCleanupPositions().size()
@@ -230,15 +230,27 @@ public final class BedrockController {
     }
 
     private static BedrockTarget findConflictTarget(BedrockTarget candidate) {
-        Set<BlockPos> candidateReserved = candidate.getReservedPositions();
+        Set<BlockPos> candidateFootprint = candidate.getMachineFootprint();
         for (BedrockTarget existing : TARGETS) {
-            for (BlockPos pos : candidateReserved) {
-                if (existing.getReservedPositions().contains(pos)) {
+            Set<BlockPos> existingFootprint = existing.getMachineFootprint();
+            for (BlockPos pos : candidateFootprint) {
+                if (existingFootprint.contains(pos)) {
                     return existing;
                 }
             }
         }
         return null;
+    }
+
+    private static boolean shouldRetireOutOfRange(BedrockTarget.Status status) {
+        return status == BedrockTarget.Status.RETRACTED
+                || status == BedrockTarget.Status.FAILED
+                || status == BedrockTarget.Status.STUCK
+                || status == BedrockTarget.Status.EXTENDED
+                || status == BedrockTarget.Status.RETRACTING
+                || status == BedrockTarget.Status.NEEDS_WAITING
+                || status == BedrockTarget.Status.UNEXTENDED_WITH_POWER_SOURCE
+                || status == BedrockTarget.Status.UNEXTENDED_WITHOUT_POWER_SOURCE;
     }
 
     private static void cleanupRejectedTarget(BedrockTarget target) {

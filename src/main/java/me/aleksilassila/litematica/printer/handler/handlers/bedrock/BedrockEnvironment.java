@@ -60,13 +60,20 @@ public final class BedrockEnvironment {
 
     public static List<BlockPos> findNearbyRedstoneTorches(ClientLevel level, BlockPos pistonPos) {
         List<BlockPos> result = new ArrayList<>();
+        for (BlockPos candidate : getTorchInfluencePositions(pistonPos)) {
+            if (level.getBlockState(candidate).is(Blocks.REDSTONE_TORCH)) {
+                result.add(candidate);
+            }
+        }
+        return result;
+    }
+
+    public static List<BlockPos> getTorchInfluencePositions(BlockPos pistonPos) {
+        List<BlockPos> result = new ArrayList<>();
         for (int yOffset : new int[]{0, 1, -1}) {
             BlockPos center = pistonPos.offset(0, yOffset, 0);
             for (Direction direction : new Direction[]{Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH}) {
-                BlockPos candidate = center.relative(direction);
-                if (level.getBlockState(candidate).is(Blocks.REDSTONE_TORCH)) {
-                    result.add(candidate);
-                }
+                result.add(center.relative(direction));
             }
         }
         return result;

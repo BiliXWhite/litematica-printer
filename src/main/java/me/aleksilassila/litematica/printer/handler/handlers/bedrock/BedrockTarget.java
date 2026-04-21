@@ -189,6 +189,12 @@ public class BedrockTarget {
         return positions;
     }
 
+    public Set<BlockPos> getMachineFootprint() {
+        LinkedHashSet<BlockPos> positions = new LinkedHashSet<>(getReservedPositions());
+        positions.addAll(BedrockEnvironment.getTorchInfluencePositions(this.pistonPos));
+        return positions;
+    }
+
     private void recordTemp(BlockPos pos) {
         if (pos != null) {
             this.tempBlocks.add(pos);
