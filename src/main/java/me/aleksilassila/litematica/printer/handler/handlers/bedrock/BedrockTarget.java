@@ -26,6 +26,7 @@ public class BedrockTarget {
     private final ClientLevel level;
     private final BlockPos bedrockPos;
     private final BlockPos pistonPos;
+    private final boolean conservativeSync;
     private BlockPos torchSupportPos;
     private BlockPos slimePos;
     private int tickTimes;
@@ -40,7 +41,11 @@ public class BedrockTarget {
         this.bedrockPos = bedrockPos;
         this.level = level;
         this.pistonPos = bedrockPos.above();
+        this.conservativeSync = BedrockTargetBlocks.requiresConservativeSync(level.getBlockState(bedrockPos));
         this.torchSupportPos = BedrockEnvironment.findTorchSupport(level, bedrockPos);
+        if (this.conservativeSync) {
+            BedrockDebugLog.write("target init conservative sync bedrock=" + BedrockDebugLog.pos(this.bedrockPos));
+        }
         if (this.torchSupportPos == null) {
             this.slimePos = BedrockEnvironment.findPossibleSlimeSupport(level, bedrockPos);
             if (this.slimePos != null) {
@@ -74,6 +79,10 @@ public class BedrockTarget {
         return status;
     }
 
+    public boolean usesConservativeSync() {
+        return this.conservativeSync;
+    }
+
     public Status tick() {
         return this.tick(true);
     }
@@ -100,10 +109,15 @@ public class BedrockTarget {
                             + " tick=" + this.tickTimes);
                     break;
                 }
-                for (BlockPos torchPos : BedrockEnvironment.findNearbyRedstoneTorches(level, pistonPos)) {
-                    BedrockBreaker.breakBlock(torchPos);
+                if (this.conservativeSync && this.hasTried) {
+                    BedrockDebugLog.write("target execute waiting sync bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                            + " tick=" + this.tickTimes);
+                    break;
                 }
-                BedrockBreaker.breakBlock(this.pistonPos);
+                for (BlockPos torchPos : BedrockEnvironment.findNearbyRedstoneTorches(level, pistonPos)) {
+                    BedrockBreaker.breakBlock(torchPos, !this.conservativeSync);
+                }
+                BedrockBreaker.breakBlock(this.pistonPos, !this.conservativeSync);
                 for (int offset = 1; offset < 6; offset++) {
                     recordTemp(this.pistonPos.above(offset));
                 }
@@ -195,6 +209,7 @@ public class BedrockTarget {
                 + " hasTried=" + this.hasTried
                 + " stuckTicks=" + this.stuckTicksCounter
                 + " torchCount=" + torchCount
+                + " conservativeSync=" + this.conservativeSync
                 + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
                 + " slime=" + BedrockDebugLog.pos(this.slimePos)
                 + " bedrockState=" + BedrockDebugLog.describeState(bedrockState)

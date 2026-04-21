@@ -14,6 +14,10 @@ public final class BedrockBreaker {
     }
 
     public static boolean breakBlock(BlockPos pos) {
+        return breakBlock(pos, true);
+    }
+
+    public static boolean breakBlock(BlockPos pos, boolean predictRemoval) {
         if (CLIENT.level == null || CLIENT.player == null) {
             BedrockDebugLog.write("break skipped pos=" + BedrockDebugLog.pos(pos) + " reason=no_level_or_player");
             return false;
@@ -29,7 +33,8 @@ public final class BedrockBreaker {
         }
 
         BedrockDebugLog.write("break start pos=" + BedrockDebugLog.pos(pos)
-                + " state=" + BedrockDebugLog.describeState(state));
+                + " state=" + BedrockDebugLog.describeState(state)
+                + " predictRemoval=" + predictRemoval);
 
         //#if MC >= 11900
         NetworkUtils.sendPacket(sequence -> new ServerboundPlayerActionPacket(
@@ -57,8 +62,11 @@ public final class BedrockBreaker {
         //$$ ));
         //#endif
 
-        // 本地强行移除预测：这是解开活塞状态机死锁，以及防止客户端认为回收失败的关键
-        CLIENT.level.removeBlock(pos, false);
+        // For sync-sensitive targets we wait for the server/chunk refresh instead of
+        // forcing the client state ahead, which can otherwise stall the state machine.
+        if (predictRemoval) {
+            CLIENT.level.removeBlock(pos, false);
+        }
 
         return true;
     }

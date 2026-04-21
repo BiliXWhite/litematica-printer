@@ -14,7 +14,9 @@ public final class BedrockDebugLog {
     }
 
     public static synchronized void write(String message) {
-        // Keep the helper in place for future debugging, but stay silent by default.
+        if (me.aleksilassila.litematica.printer.config.Configs.Core.DEBUG_OUTPUT.getBooleanValue()) {
+            me.aleksilassila.litematica.printer.Debug.alwaysWrite("BedrockDebug: " + message);
+        }
     }
 
     public static Path getLogPath() {

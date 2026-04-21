@@ -22,6 +22,14 @@ public final class BedrockTargetBlocks {
         return false;
     }
 
+    public static boolean requiresConservativeSync(BlockState state) {
+        //#if MC > 12004
+        return state.is(Blocks.VAULT) || state.is(Blocks.TRIAL_SPAWNER);
+        //#else
+        //$$ return false;
+        //#endif
+    }
+
     public static boolean isCleanupResidue(BlockState state) {
         return state.is(Blocks.PISTON)
                 || state.is(Blocks.MOVING_PISTON)

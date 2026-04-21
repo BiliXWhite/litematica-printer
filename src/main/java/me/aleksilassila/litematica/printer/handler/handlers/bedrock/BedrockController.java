@@ -18,6 +18,7 @@ public final class BedrockController {
     private static final Minecraft CLIENT = Minecraft.getInstance();
     private static final List<BedrockTarget> TARGETS = new ArrayList<>();
     private static final Set<BlockPos> CLEANUP_QUEUE = new LinkedHashSet<>();
+    private static final Set<BlockPos> CONSERVATIVE_CLEANUP = new LinkedHashSet<>();
     private static long nextAcceptTick = 0L;
     private static long nextExecuteTick = 0L;
     private static long lastProcessedTick = Long.MIN_VALUE;
@@ -31,6 +32,7 @@ public final class BedrockController {
         }
         TARGETS.clear();
         CLEANUP_QUEUE.clear();
+        CONSERVATIVE_CLEANUP.clear();
         nextAcceptTick = 0L;
         nextExecuteTick = 0L;
         lastProcessedTick = Long.MIN_VALUE;
@@ -81,7 +83,7 @@ public final class BedrockController {
                             + " cleanupCount=" + target.getCleanupPositions().size()
                             + " reason=out_of_range");
                     for (BlockPos tempPos : target.getCleanupPositions()) {
-                        addToCleanup(tempPos);
+                        addToCleanup(tempPos, !target.usesConservativeSync());
                     }
                     iterator.remove();
                 }
@@ -103,8 +105,8 @@ public final class BedrockController {
                         + " cleanupCount=" + target.getCleanupPositions().size());
                 for (BlockPos tempPos : target.getCleanupPositions()) {
                     // Try once immediately, then keep retrying via queue until gone.
-                    BedrockBreaker.breakBlock(tempPos);
-                    addToCleanup(tempPos);
+                    BedrockBreaker.breakBlock(tempPos, !target.usesConservativeSync());
+                    addToCleanup(tempPos, !target.usesConservativeSync());
                 }
                 iterator.remove();
             }
@@ -160,15 +162,23 @@ public final class BedrockController {
             BedrockDebugLog.write("submit accepted bedrock=" + BedrockDebugLog.pos(pos)
                     + " piston=" + BedrockDebugLog.pos(target.getPistonPos())
                     + " torchSupport=" + BedrockDebugLog.pos(target.getTorchSupportPos())
-                    + " slime=" + BedrockDebugLog.pos(target.getSlimePos()));
+                    + " slime=" + BedrockDebugLog.pos(target.getSlimePos())
+                    + " conservativeSync=" + target.usesConservativeSync());
             return true;
         }
         return false;
     }
 
     private static void addToCleanup(BlockPos pos) {
+        addToCleanup(pos, true);
+    }
+
+    private static void addToCleanup(BlockPos pos, boolean predictRemoval) {
         if (pos != null) {
             CLEANUP_QUEUE.add(pos);
+            if (!predictRemoval) {
+                CONSERVATIVE_CLEANUP.add(pos);
+            }
         }
     }
 
@@ -186,20 +196,25 @@ public final class BedrockController {
             var state = CLIENT.level.getBlockState(pos);
             if (state.isAir()) {
                 iterator.remove();
+                CONSERVATIVE_CLEANUP.remove(pos);
                 continue;
             }
 
             // Cleanup only touches machine residues to avoid touching user structures.
             if (!BedrockTargetBlocks.isCleanupResidue(state)) {
                 iterator.remove();
+                CONSERVATIVE_CLEANUP.remove(pos);
                 continue;
             }
 
             // 对未消失的方块，每 GT 重试一次强制数据包破坏
             if (!CooldownUtils.INSTANCE.isOnCooldown(CLIENT.level, "cleanup_retry", pos)) {
-                BedrockBreaker.breakBlock(pos);
+                boolean predictRemoval = !CONSERVATIVE_CLEANUP.contains(pos);
+                BedrockBreaker.breakBlock(pos, predictRemoval);
                 CooldownUtils.INSTANCE.setCooldown(CLIENT.level, "cleanup_retry", pos, 1);
-                BedrockDebugLog.write("cleanup retry pos=" + BedrockDebugLog.pos(pos) + " state=" + BedrockDebugLog.describeState(state));
+                BedrockDebugLog.write("cleanup retry pos=" + BedrockDebugLog.pos(pos)
+                        + " state=" + BedrockDebugLog.describeState(state)
+                        + " predictRemoval=" + predictRemoval);
                 count++;
             }
         }
@@ -229,7 +244,7 @@ public final class BedrockController {
     private static void cleanupRejectedTarget(BedrockTarget target) {
         for (BlockPos pos : target.getCleanupPositions()) {
             if (CLIENT.level != null && BedrockTargetBlocks.isCleanupResidue(CLIENT.level.getBlockState(pos))) {
-                BedrockBreaker.breakBlock(pos);
+                BedrockBreaker.breakBlock(pos, !target.usesConservativeSync());
             }
         }
     }
