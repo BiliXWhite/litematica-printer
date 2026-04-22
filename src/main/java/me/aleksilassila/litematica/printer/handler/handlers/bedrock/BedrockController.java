@@ -82,10 +82,10 @@ public final class BedrockController {
                             + " status=" + status
                             + " cleanupCount=" + target.getCleanupPositions().size()
                             + " reason=out_of_range");
-                    for (BlockPos tempPos : target.getCleanupPositions()) {
-                        addToCleanup(tempPos, !target.usesConservativeSync());
-                    }
                     iterator.remove();
+                    for (BlockPos tempPos : target.getCleanupPositions()) {
+                        cleanupBlockOrQueue(tempPos, !target.usesConservativeSync());
+                    }
                 }
                 continue;
             }
@@ -109,12 +109,10 @@ public final class BedrockController {
                         + " status=" + status
                         + " cleanupCount=" + target.getCleanupPositions().size()
                         + (retireOnSuccessfulRetracting ? " reason=retracting_bedrock_gone" : ""));
-                for (BlockPos tempPos : target.getCleanupPositions()) {
-                    // Try once immediately, then keep retrying via queue until gone.
-                    BedrockBreaker.breakBlock(tempPos, !target.usesConservativeSync());
-                    addToCleanup(tempPos, !target.usesConservativeSync());
-                }
                 iterator.remove();
+                for (BlockPos tempPos : target.getCleanupPositions()) {
+                    cleanupBlockOrQueue(tempPos, !target.usesConservativeSync());
+                }
             }
         }
     }
@@ -213,6 +211,10 @@ public final class BedrockController {
                 continue;
             }
 
+            if (isReservedByActiveTarget(pos)) {
+                continue;
+            }
+
             if (!CooldownUtils.INSTANCE.isOnCooldown(CLIENT.level, "cleanup_retry", pos)) {
                 boolean predictRemoval = !CONSERVATIVE_CLEANUP.contains(pos);
                 BedrockBreaker.breakBlock(pos, predictRemoval);
@@ -260,10 +262,35 @@ public final class BedrockController {
 
     private static void cleanupRejectedTarget(BedrockTarget target) {
         for (BlockPos pos : target.getCleanupPositions()) {
-            if (CLIENT.level != null && BedrockTargetBlocks.isCleanupResidue(CLIENT.level.getBlockState(pos))) {
-                BedrockBreaker.breakBlock(pos, !target.usesConservativeSync());
+            cleanupBlockOrQueue(pos, !target.usesConservativeSync());
+        }
+    }
+
+    private static void cleanupBlockOrQueue(BlockPos pos, boolean predictRemoval) {
+        if (pos == null) {
+            return;
+        }
+
+        addToCleanup(pos, predictRemoval);
+        if (CLIENT.level == null) {
+            return;
+        }
+        if (isReservedByActiveTarget(pos)) {
+            BedrockDebugLog.write("cleanup deferred pos=" + BedrockDebugLog.pos(pos) + " reason=reserved_by_active_target");
+            return;
+        }
+        if (BedrockTargetBlocks.isCleanupResidue(CLIENT.level.getBlockState(pos))) {
+            BedrockBreaker.breakBlock(pos, predictRemoval);
+        }
+    }
+
+    private static boolean isReservedByActiveTarget(BlockPos pos) {
+        for (BedrockTarget target : TARGETS) {
+            if (target.getReservedPositions().contains(pos)) {
+                return true;
             }
         }
+        return false;
     }
 
     private static void scheduleNextExecuteWindow() {
