@@ -20,7 +20,7 @@ public final class BedrockEnvironment {
         }
         BlockPos torchPos = supportPos.above();
         return BlockUtils.canSupportCenter(level, supportPos, Direction.UP)
-                && (isReplaceableOrResidue(level, torchPos) || isRedstoneTorch(level.getBlockState(torchPos)));
+                && (BlockUtils.isReplaceable(level.getBlockState(torchPos)) || isRedstoneTorch(level.getBlockState(torchPos)));
     }
 
     public static boolean isSlimeSupportUsable(ClientLevel level, BlockPos slimePos) {
@@ -28,9 +28,8 @@ public final class BedrockEnvironment {
             return false;
         }
         BlockPos torchPos = slimePos.above();
-        BlockState slimeState = level.getBlockState(slimePos);
-        return (slimeState.is(Blocks.SLIME_BLOCK) || isReplaceableOrResidue(level, slimePos))
-                && (isReplaceableOrResidue(level, torchPos) || isRedstoneTorch(level.getBlockState(torchPos)));
+        return (level.getBlockState(slimePos).is(Blocks.SLIME_BLOCK) || BlockUtils.isReplaceable(level.getBlockState(slimePos)))
+                && (BlockUtils.isReplaceable(level.getBlockState(torchPos)) || isRedstoneTorch(level.getBlockState(torchPos)));
     }
 
     public static BlockPos findTorchSupport(ClientLevel level, BlockPos bedrockPos) {
@@ -47,7 +46,7 @@ public final class BedrockEnvironment {
         for (Direction direction : new Direction[]{Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH}) {
             BlockPos slimePos = bedrockPos.relative(direction);
             BlockPos torchPos = slimePos.above();
-            if (isReplaceableOrResidue(level, slimePos) && isReplaceableOrResidue(level, torchPos)) {
+            if (BlockUtils.isReplaceable(level.getBlockState(slimePos)) && BlockUtils.isReplaceable(level.getBlockState(torchPos))) {
                 return slimePos;
             }
         }
@@ -57,7 +56,7 @@ public final class BedrockEnvironment {
     public static boolean hasRoomForPiston(ClientLevel level, BlockPos bedrockPos) {
         BlockPos pistonPos = bedrockPos.above();
         BlockPos headPos = pistonPos.above();
-        return isReplaceableOrResidue(level, pistonPos) && isReplaceableOrResidue(level, headPos);
+        return BlockUtils.isReplaceable(level.getBlockState(pistonPos)) && BlockUtils.isReplaceable(level.getBlockState(headPos));
     }
 
     public static List<BlockPos> findNearbyRedstoneTorches(ClientLevel level, BlockPos pistonPos) {
@@ -72,11 +71,6 @@ public final class BedrockEnvironment {
 
     private static boolean isRedstoneTorch(BlockState state) {
         return state.is(Blocks.REDSTONE_TORCH) || state.is(Blocks.REDSTONE_WALL_TORCH);
-    }
-
-    private static boolean isReplaceableOrResidue(ClientLevel level, BlockPos pos) {
-        BlockState state = level.getBlockState(pos);
-        return BlockUtils.isReplaceable(state) || BedrockTargetBlocks.isCleanupResidue(state);
     }
 
     public static List<BlockPos> getTorchInfluencePositions(BlockPos pistonPos) {

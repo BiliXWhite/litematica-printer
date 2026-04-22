@@ -35,7 +35,7 @@ public final class BedrockPlacer {
         }
         rememberLook(player);
         NetworkUtils.sendLookPacket(player, new PlayerLook(clickedFace.getOpposite()));
-        BlockHitResult hitResult = new BlockHitResult(Vec3.atCenterOf(supportPos), clickedFace, supportPos, false);
+        BlockHitResult hitResult = new BlockHitResult(new Vec3(supportPos.getX(), supportPos.getY(), supportPos.getZ()), clickedFace, supportPos, false);
         placeBlockAggressively(player, hitResult);
         restoreLook(player);
         BedrockDebugLog.write("placeSimple support=" + BedrockDebugLog.pos(supportPos)
@@ -64,7 +64,7 @@ public final class BedrockPlacer {
         rememberLook(player);
         NetworkUtils.sendLookPacket(player, yaw, pitch);
         BlockHitResult hitResult = new BlockHitResult(
-                Vec3.atCenterOf(pistonPos),
+                new Vec3(pistonPos.getX(), pistonPos.getY(), pistonPos.getZ()),
                 Direction.UP,
                 pistonPos,
                 false
@@ -81,8 +81,11 @@ public final class BedrockPlacer {
     }
 
     private static void placeBlockAggressively(LocalPlayer player, BlockHitResult hitResult) {
-        // Use true for local prediction to let gameMode handle both packet and local action.
-        InteractionUtils.INSTANCE.useItemOn(true, InteractionHand.OFF_HAND, hitResult);
+        InteractionUtils.INSTANCE.useItemOn(false, InteractionHand.OFF_HAND, hitResult);
+        ItemStack offhand = player.getOffhandItem();
+        if (!offhand.isEmpty()) {
+            offhand.useOn(new UseOnContext(player, InteractionHand.OFF_HAND, hitResult));
+        }
     }
 
     private static void rememberLook(LocalPlayer player) {
