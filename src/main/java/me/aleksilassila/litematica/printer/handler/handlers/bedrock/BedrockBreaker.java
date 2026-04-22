@@ -28,9 +28,14 @@ public final class BedrockBreaker {
             BedrockDebugLog.write("break skipped pos=" + BedrockDebugLog.pos(pos) + " reason=air");
             return false;
         }
-        if (!BedrockInventory.switchToItem(Items.DIAMOND_PICKAXE) && !BedrockInventory.switchToItem(Items.NETHERITE_PICKAXE)) {
-            BedrockDebugLog.write("break skipped pos=" + BedrockDebugLog.pos(pos) + " reason=missing_pickaxe");
-            return false;
+
+        // Optimization: Check if we are already holding a suitable pickaxe before switching
+        var heldItem = CLIENT.player.getMainHandItem().getItem();
+        if (heldItem != Items.DIAMOND_PICKAXE && heldItem != Items.NETHERITE_PICKAXE) {
+            if (!BedrockInventory.switchToItem(Items.DIAMOND_PICKAXE) && !BedrockInventory.switchToItem(Items.NETHERITE_PICKAXE)) {
+                BedrockDebugLog.write("break skipped pos=" + BedrockDebugLog.pos(pos) + " reason=missing_pickaxe");
+                return false;
+            }
         }
 
         BedrockDebugLog.write("break start pos=" + BedrockDebugLog.pos(pos)
