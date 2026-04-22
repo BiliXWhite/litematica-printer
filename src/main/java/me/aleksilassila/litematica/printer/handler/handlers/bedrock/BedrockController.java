@@ -93,10 +93,9 @@ public final class BedrockController {
             BedrockTarget.Status status = target.tick(executeBudget > 0);
             if (target.executedThisTick()) {
                 executeBudget--;
-                scheduleNextExecuteWindow();
+                // Remove scheduleNextExecuteWindow() from here to allow batching in the same tick
                 BedrockDebugLog.write("controller execute consumed bedrock=" + BedrockDebugLog.pos(target.getBedrockPos())
-                        + " remainingBudget=" + executeBudget
-                        + " nextExecuteTick=" + nextExecuteTick);
+                        + " remainingBudget=" + executeBudget);
             }
 
             boolean retireOnSuccessfulRetracting = status == BedrockTarget.Status.RETRACTING
@@ -107,13 +106,17 @@ public final class BedrockController {
                     || retireOnSuccessfulRetracting) {
                 BedrockDebugLog.write("controller cleanup start bedrock=" + BedrockDebugLog.pos(target.getBedrockPos())
                         + " status=" + status
-                        + " cleanupCount=" + target.getCleanupPositions().size()
-                        + (retireOnSuccessfulRetracting ? " reason=retracting_bedrock_gone" : ""));
+                        + " cleanupCount=" + target.getCleanupPositions().size());
                 iterator.remove();
                 for (BlockPos tempPos : target.getCleanupPositions()) {
                     cleanupBlockOrQueue(tempPos, !target.usesConservativeSync());
                 }
             }
+        }
+        
+        // Schedule the next window only AFTER processing all targets in this tick
+        if (executeBudget < getExecuteBudget()) {
+            scheduleNextExecuteWindow();
         }
     }
 

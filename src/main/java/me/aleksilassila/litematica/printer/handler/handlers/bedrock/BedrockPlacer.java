@@ -35,15 +35,14 @@ public final class BedrockPlacer {
         }
         rememberLook(player);
         NetworkUtils.sendLookPacket(player, new PlayerLook(clickedFace.getOpposite()));
-        BlockHitResult hitResult = new BlockHitResult(new Vec3(supportPos.getX(), supportPos.getY(), supportPos.getZ()), clickedFace, supportPos, false);
+        // Use center of the support block for more reliable interaction
+        BlockHitResult hitResult = new BlockHitResult(Vec3.atCenterOf(supportPos), clickedFace, supportPos, false);
         placeBlockAggressively(player, hitResult);
         restoreLook(player);
         BedrockDebugLog.write("placeSimple support=" + BedrockDebugLog.pos(supportPos)
                 + " face=" + clickedFace
                 + " item=" + item
-                + " hitPos=" + hitResult.getBlockPos()
-                + " playerYaw=" + player.getYRot()
-                + " playerPitch=" + player.getXRot());
+                + " hitPos=" + hitResult.getBlockPos());
         return true;
     }
 
@@ -57,25 +56,27 @@ public final class BedrockPlacer {
             BedrockDebugLog.write("placePiston skipped piston=" + BedrockDebugLog.pos(pistonPos) + " facing=" + facing + " reason=missing_piston");
             return false;
         }
-        // Align with the reference branch: piston direction is primarily derived
-        // from player pitch, while the hit result targets the placement cell itself.
+
         float yaw = player.getYRot();
         float pitch = facing == Direction.DOWN ? -90.0F : 90.0F;
         rememberLook(player);
         NetworkUtils.sendLookPacket(player, yaw, pitch);
+
+        // Crucial fix: Click the block BELOW the piston (the bedrock) to ensure we are clicking a solid surface.
+        // Clicking the pistonPos itself (which is air/moving_piston) often fails on servers.
+        BlockPos clickedPos = pistonPos.below();
         BlockHitResult hitResult = new BlockHitResult(
-                new Vec3(pistonPos.getX(), pistonPos.getY(), pistonPos.getZ()),
+                Vec3.atCenterOf(clickedPos),
                 Direction.UP,
-                pistonPos,
+                clickedPos,
                 false
         );
+
         placeBlockAggressively(player, hitResult);
         restoreLook(player);
         BedrockDebugLog.write("placePiston piston=" + BedrockDebugLog.pos(pistonPos)
                 + " facing=" + facing
-                + " hitFace=" + hitResult.getDirection()
-                + " hitPos=" + hitResult.getBlockPos()
-                + " sentYaw=" + yaw
+                + " clickedBlock=" + BedrockDebugLog.pos(clickedPos)
                 + " sentPitch=" + pitch);
         return true;
     }

@@ -94,11 +94,20 @@ public class BedrockTarget {
 
     public Status tick(boolean allowExecute) {
         this.executedThisTick = false;
-        this.tickTimes++;
+        
+        // Only increment tick counter if we are actually doing something or waiting for sync.
+        // This prevents tasks from failing while they are just queued in the controller.
+        if (this.status != Status.UNINITIALIZED && this.status != Status.EXTENDED) {
+            this.tickTimes++;
+        } else if (this.status == Status.EXTENDED && allowExecute) {
+            this.tickTimes++;
+        }
+
         updateStatus();
         logStatus();
         switch (this.status) {
             case UNINITIALIZED -> {
+                // Initial placement doesn't count towards the 40-tick limit until it finishes.
                 BedrockPlacer.placePiston(this.pistonPos, Direction.UP);
                 if (this.torchSupportPos != null) {
                     BedrockPlacer.placeSimple(this.torchSupportPos, Direction.UP, Blocks.REDSTONE_TORCH.asItem());
@@ -285,6 +294,10 @@ public class BedrockTarget {
         }
         if (level.getBlockState(this.pistonPos).is(Blocks.MOVING_PISTON)) {
             this.status = Status.RETRACTING;
+            // Immediate retirement if bedrock is gone to speed up throughput
+            if (!BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
+                this.status = Status.RETRACTED;
+            }
             return;
         }
         if (hasExceededSyncWaitTimeout()) {
