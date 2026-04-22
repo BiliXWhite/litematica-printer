@@ -9,12 +9,16 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 public final class BedrockPlacer {
     private static final Minecraft CLIENT = Minecraft.getInstance();
+    private static float lastYaw;
+    private static float lastPitch;
 
     private BedrockPlacer() {
     }
@@ -29,10 +33,11 @@ public final class BedrockPlacer {
             BedrockDebugLog.write("placeSimple skipped support=" + BedrockDebugLog.pos(supportPos) + " item=" + item + " reason=missing_item");
             return false;
         }
+        rememberLook(player);
         NetworkUtils.sendLookPacket(player, new PlayerLook(clickedFace.getOpposite()));
-        BlockHitResult hitResult = new BlockHitResult(Vec3.atCenterOf(supportPos), clickedFace, supportPos, false);
-        // Bedrock flow is sensitive to client prediction; force packet-only interaction.
-        InteractionUtils.INSTANCE.useItemOn(false, InteractionHand.OFF_HAND, hitResult);
+        BlockHitResult hitResult = new BlockHitResult(new Vec3(supportPos.getX(), supportPos.getY(), supportPos.getZ()), clickedFace, supportPos, false);
+        placeBlockAggressively(player, hitResult);
+        restoreLook(player);
         BedrockDebugLog.write("placeSimple support=" + BedrockDebugLog.pos(supportPos)
                 + " face=" + clickedFace
                 + " item=" + item
@@ -56,6 +61,7 @@ public final class BedrockPlacer {
         // from player pitch, while the hit result targets the placement cell itself.
         float yaw = player.getYRot();
         float pitch = facing == Direction.DOWN ? -90.0F : 90.0F;
+        rememberLook(player);
         NetworkUtils.sendLookPacket(player, yaw, pitch);
         BlockHitResult hitResult = new BlockHitResult(
                 new Vec3(pistonPos.getX(), pistonPos.getY(), pistonPos.getZ()),
@@ -63,7 +69,8 @@ public final class BedrockPlacer {
                 pistonPos,
                 false
         );
-        InteractionUtils.INSTANCE.useItemOn(false, InteractionHand.OFF_HAND, hitResult);
+        placeBlockAggressively(player, hitResult);
+        restoreLook(player);
         BedrockDebugLog.write("placePiston piston=" + BedrockDebugLog.pos(pistonPos)
                 + " facing=" + facing
                 + " hitFace=" + hitResult.getDirection()
@@ -71,5 +78,22 @@ public final class BedrockPlacer {
                 + " sentYaw=" + yaw
                 + " sentPitch=" + pitch);
         return true;
+    }
+
+    private static void placeBlockAggressively(LocalPlayer player, BlockHitResult hitResult) {
+        InteractionUtils.INSTANCE.useItemOn(false, InteractionHand.OFF_HAND, hitResult);
+        ItemStack offhand = player.getOffhandItem();
+        if (!offhand.isEmpty()) {
+            offhand.useOn(new UseOnContext(player, InteractionHand.OFF_HAND, hitResult));
+        }
+    }
+
+    private static void rememberLook(LocalPlayer player) {
+        lastYaw = player.getYRot();
+        lastPitch = player.getXRot();
+    }
+
+    private static void restoreLook(LocalPlayer player) {
+        NetworkUtils.sendLookPacket(player, lastYaw, lastPitch);
     }
 }

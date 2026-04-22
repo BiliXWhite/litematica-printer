@@ -36,6 +36,10 @@ public final class BedrockBreaker {
                 + " state=" + BedrockDebugLog.describeState(state)
                 + " predictRemoval=" + predictRemoval);
 
+        if (CLIENT.gameMode != null && !shouldPredictRemoval()) {
+            CLIENT.gameMode.attackBlock(pos, Direction.DOWN);
+        }
+
         //#if MC >= 11900
         NetworkUtils.sendPacket(sequence -> new ServerboundPlayerActionPacket(
                 ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,

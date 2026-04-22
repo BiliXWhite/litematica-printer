@@ -11,7 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class BedrockTarget {
-    private static final int REPOWER_INTERVAL_TICKS = 2;
+    private static final int REPOWER_INTERVAL_TICKS = 4;
 
     public enum Status {
         FAILED,
@@ -34,7 +34,7 @@ public class BedrockTarget {
     private int tickTimes;
     private boolean hasTried;
     private int stuckTicksCounter;
-    private int lastRepowerTick = Integer.MIN_VALUE;
+    private int lastRepowerTick = -1;
     private boolean executedThisTick;
     private Status status = Status.UNINITIALIZED;
     private Status lastLoggedStatus;
@@ -98,6 +98,10 @@ public class BedrockTarget {
         switch (this.status) {
             case UNINITIALIZED -> {
                 BedrockPlacer.placePiston(this.pistonPos, Direction.UP);
+                if (this.torchSupportPos != null) {
+                    BedrockPlacer.placeSimple(this.torchSupportPos, Direction.UP, Blocks.REDSTONE_TORCH.asItem());
+                    recordTemp(this.torchSupportPos.above());
+                }
                 BedrockDebugLog.write("target initialize bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                         + " piston=" + BedrockDebugLog.pos(this.pistonPos)
                         + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos));
@@ -322,13 +326,6 @@ public class BedrockTarget {
             this.status = Status.UNEXTENDED_WITHOUT_POWER_SOURCE;
             return;
         }
-        if (level.getBlockState(this.pistonPos).isAir()
-                && this.torchSupportPos != null
-                && level.getBlockState(this.torchSupportPos.above()).is(Blocks.REDSTONE_TORCH)
-                && BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
-            this.status = Status.UNINITIALIZED;
-            return;
-        }
         if (BedrockEnvironment.hasRoomForPiston(this.level, this.bedrockPos)) {
             this.status = Status.UNINITIALIZED;
             return;
@@ -380,12 +377,6 @@ public class BedrockTarget {
                 && BedrockEnvironment.findNearbyRedstoneTorches(this.level, this.pistonPos).isEmpty()
                 && BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
             return Status.UNEXTENDED_WITHOUT_POWER_SOURCE;
-        }
-        if (level.getBlockState(this.pistonPos).isAir()
-                && this.torchSupportPos != null
-                && level.getBlockState(this.torchSupportPos.above()).is(Blocks.REDSTONE_TORCH)
-                && BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
-            return Status.UNINITIALIZED;
         }
         if (BedrockEnvironment.hasRoomForPiston(this.level, this.bedrockPos)) {
             return Status.UNINITIALIZED;
