@@ -2,7 +2,6 @@ package me.aleksilassila.litematica.printer.handler.handlers.bedrock;
 
 import me.aleksilassila.litematica.printer.utils.minecraft.NetworkUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
@@ -78,7 +77,6 @@ public final class BedrockBreaker {
     }
 
     private static boolean shouldPredictRemoval() {
-        ClientPacketListener connection = CLIENT.getConnection();
-        return connection == null || connection.getServerData() == null;
+        return CLIENT.getConnection() == null || CLIENT.getSingleplayerServer() != null;
     }
 }
