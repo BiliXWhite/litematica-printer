@@ -123,14 +123,14 @@ public final class BedrockController {
             return false;
         }
 
-        int maxTotal = Configs.Break.BEDROCK_BLOCKS_PER_TICK.getIntegerValue();
-        if (maxTotal <= 0) maxTotal = 64;
+        // Increase task capacity to 128 to allow more concurrent preparations.
+        // The execution budget will still control the actual breaking frequency.
+        int maxTotal = 128;
 
         if (TARGETS.size() >= maxTotal) return false;
 
         for (BedrockTarget target : TARGETS) {
             if (target.getBedrockPos().equals(pos)) return false;
-            if (target.getPistonPos().equals(pos)) return false;
         }
         return true;
     }
