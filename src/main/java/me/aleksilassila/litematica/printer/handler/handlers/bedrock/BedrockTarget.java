@@ -141,9 +141,10 @@ public class BedrockTarget {
         }
 
         // Predictive EXTENDED transition:
-        // If we are in NEEDS_WAITING and haven't tried breaking yet, 
-        // it means we just placed the piston. If 1 tick has passed, assume it's extended.
-        if (this.status == Status.NEEDS_WAITING && !this.hasTried && this.stuckTicksCounter > 0) {
+        // Give 2 ticks of buffer to ensure server has processed the placement 
+        // and the piston has reached full extension. 1 tick is often too fast
+        // and results in 'breaking air' errors.
+        if (this.status == Status.NEEDS_WAITING && !this.hasTried && this.tickTimes - this.executeTick >= 2) {
             this.status = Status.EXTENDED;
             return;
         }
