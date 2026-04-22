@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.handler.handlers.bedrock;
 
 import me.aleksilassila.litematica.printer.utils.minecraft.NetworkUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
@@ -64,10 +65,20 @@ public final class BedrockBreaker {
 
         // For sync-sensitive targets we wait for the server/chunk refresh instead of
         // forcing the client state ahead, which can otherwise stall the state machine.
-        if (predictRemoval) {
+        boolean allowPrediction = predictRemoval && shouldPredictRemoval();
+        if (predictRemoval && !allowPrediction) {
+            BedrockDebugLog.write("break prediction suppressed pos=" + BedrockDebugLog.pos(pos)
+                    + " reason=server_connection");
+        }
+        if (allowPrediction) {
             CLIENT.level.removeBlock(pos, false);
         }
 
         return true;
+    }
+
+    private static boolean shouldPredictRemoval() {
+        ClientPacketListener connection = CLIENT.getConnection();
+        return connection == null || connection.getServerData() == null;
     }
 }

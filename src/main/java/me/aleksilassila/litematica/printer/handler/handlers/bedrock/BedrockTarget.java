@@ -11,6 +11,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class BedrockTarget {
+    private static final int REPOWER_INTERVAL_TICKS = 4;
+
     public enum Status {
         FAILED,
         UNINITIALIZED,
@@ -32,6 +34,7 @@ public class BedrockTarget {
     private int tickTimes;
     private boolean hasTried;
     private int stuckTicksCounter;
+    private int lastRepowerTick = Integer.MIN_VALUE;
     private boolean executedThisTick;
     private Status status = Status.UNINITIALIZED;
     private Status lastLoggedStatus;
@@ -109,7 +112,7 @@ public class BedrockTarget {
                             + " tick=" + this.tickTimes);
                     break;
                 }
-                if (this.conservativeSync && this.hasTried) {
+                if (this.hasTried) {
                     BedrockDebugLog.write("target execute waiting sync bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                             + " tick=" + this.tickTimes);
                     break;
@@ -130,10 +133,18 @@ public class BedrockTarget {
                         + " tick=" + this.tickTimes);
             }
             case UNEXTENDED_WITHOUT_POWER_SOURCE -> {
+                if (this.tickTimes - this.lastRepowerTick < REPOWER_INTERVAL_TICKS) {
+                    BedrockDebugLog.write("target repower delayed bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                            + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
+                            + " tick=" + this.tickTimes
+                            + " cooldown=" + REPOWER_INTERVAL_TICKS);
+                    break;
+                }
                 if (this.torchSupportPos != null) {
                     BedrockPlacer.placeSimple(this.torchSupportPos, Direction.UP, Blocks.REDSTONE_TORCH.asItem());
                     recordTemp(this.torchSupportPos.above());
                 }
+                this.lastRepowerTick = this.tickTimes;
                 BedrockDebugLog.write("target repower bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                         + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
                         + " tick=" + this.tickTimes);
@@ -278,6 +289,13 @@ public class BedrockTarget {
             this.stuckTicksCounter++;
             return;
         }
+        if (this.hasTried
+                && level.getBlockState(this.pistonPos).is(Blocks.PISTON)
+                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)) {
+            this.status = Status.NEEDS_WAITING;
+            this.stuckTicksCounter++;
+            return;
+        }
         if (level.getBlockState(this.pistonPos).is(Blocks.PISTON) && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)) {
             this.status = Status.EXTENDED;
             return;
@@ -331,6 +349,11 @@ public class BedrockTarget {
             return Status.RETRACTING;
         }
         if (this.hasTried && level.getBlockState(this.pistonPos).isAir() && level.getBlockState(this.pistonPos.above()).is(Blocks.PISTON_HEAD)) {
+            return Status.NEEDS_WAITING;
+        }
+        if (this.hasTried
+                && level.getBlockState(this.pistonPos).is(Blocks.PISTON)
+                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)) {
             return Status.NEEDS_WAITING;
         }
         if (level.getBlockState(this.pistonPos).is(Blocks.PISTON) && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)) {
