@@ -16,6 +16,9 @@ import java.util.Set;
 
 public final class BedrockController {
     private static final Minecraft CLIENT = Minecraft.getInstance();
+    private static final String RETRY_COOLDOWN_KEY = "bedrock_retry";
+    private static final int SUBMIT_RETRY_COOLDOWN_TICKS = 6;
+    private static final int FAILURE_RETRY_COOLDOWN_TICKS = 12;
     private static final List<BedrockTarget> TARGETS = new ArrayList<>();
     private static final Set<BlockPos> CLEANUP_QUEUE = new LinkedHashSet<>();
     private static final Set<BlockPos> CONSERVATIVE_CLEANUP = new LinkedHashSet<>();
@@ -78,6 +81,7 @@ public final class BedrockController {
     }
 
     public static boolean canAccept(BlockPos pos) {
+        if (isTargetOnRetryCooldown(pos)) return false;
         if (countActiveTargets() >= getActiveTargetCap()) return false;
 
         for (BedrockTarget target : TARGETS) {
@@ -97,18 +101,26 @@ public final class BedrockController {
 
         BedrockTarget target = new BedrockTarget(pos, level);
         if (target.getStatus() == BedrockTarget.Status.FAILED) {
+            setRetryCooldown(pos, SUBMIT_RETRY_COOLDOWN_TICKS);
             BedrockDebugLog.write("submit failed bedrock=" + BedrockDebugLog.pos(pos) + " reason=target_failed_on_create");
+            return false;
+        }
+
+        if (hasPendingCleanupConflict(target)) {
+            setRetryCooldown(pos, SUBMIT_RETRY_COOLDOWN_TICKS);
+            BedrockDebugLog.write("submit rejected bedrock=" + BedrockDebugLog.pos(pos)
+                    + " reason=pending_cleanup");
             return false;
         }
 
         BedrockTarget conflict = findConflictTarget(target);
         if (conflict != null) {
+            setRetryCooldown(pos, 2);
             BedrockDebugLog.write("submit rejected bedrock=" + BedrockDebugLog.pos(pos)
                     + " reason=machine_overlap"
                     + " conflictBedrock=" + BedrockDebugLog.pos(conflict.getBedrockPos())
                     + " torchSupport=" + BedrockDebugLog.pos(target.getTorchSupportPos())
                     + " piston=" + BedrockDebugLog.pos(target.getPistonPos()));
-            cleanupRejectedTarget(target);
             return false;
         }
 
@@ -200,6 +212,24 @@ public final class BedrockController {
         return null;
     }
 
+    private static boolean hasPendingCleanupConflict(BedrockTarget candidate) {
+        if (CLIENT.level == null) {
+            return false;
+        }
+        for (BlockPos pos : candidate.getReservedPositions()) {
+            if (pos.equals(candidate.getBedrockPos())) {
+                continue;
+            }
+            if (CLEANUP_QUEUE.contains(pos)) {
+                return true;
+            }
+            if (BedrockTargetBlocks.isCleanupResidue(CLIENT.level.getBlockState(pos))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static int processTargets(ClientLevel level, int executeBudget, boolean priorityOnly, Set<BedrockTarget> processedTargets) {
         Iterator<BedrockTarget> iterator = TARGETS.iterator();
         while (iterator.hasNext()) {
@@ -253,6 +283,11 @@ public final class BedrockController {
     }
 
     private static void cleanupTarget(Iterator<BedrockTarget> iterator, BedrockTarget target, String reason) {
+        if (target.getStatus() == BedrockTarget.Status.FAILED || target.getStatus() == BedrockTarget.Status.STUCK) {
+            setRetryCooldown(target.getBedrockPos(), FAILURE_RETRY_COOLDOWN_TICKS);
+        } else if ("out_of_range".equals(reason)) {
+            setRetryCooldown(target.getBedrockPos(), SUBMIT_RETRY_COOLDOWN_TICKS);
+        }
         BedrockDebugLog.write("controller cleanup start bedrock=" + BedrockDebugLog.pos(target.getBedrockPos())
                 + " status=" + target.getStatus()
                 + " cleanupCount=" + target.getCleanupPositions().size()
@@ -305,12 +340,6 @@ public final class BedrockController {
                 || status == BedrockTarget.Status.UNEXTENDED_WITHOUT_POWER_SOURCE;
     }
 
-    private static void cleanupRejectedTarget(BedrockTarget target) {
-        for (BlockPos pos : target.getCleanupPositions()) {
-            cleanupBlockOrQueue(pos, !target.usesConservativeSync());
-        }
-    }
-
     private static void cleanupBlockOrQueue(BlockPos pos, boolean predictRemoval) {
         if (pos == null) {
             return;
@@ -345,5 +374,15 @@ public final class BedrockController {
         }
         nextExecuteTick = ClientPlayerTickManager.getCurrentHandlerTime() + interval;
         BedrockDebugLog.write("controller schedule interval=" + interval + " nextExecuteTick=" + nextExecuteTick);
+    }
+
+    private static boolean isTargetOnRetryCooldown(BlockPos pos) {
+        return CLIENT.level != null && CooldownUtils.INSTANCE.isOnCooldown(CLIENT.level, RETRY_COOLDOWN_KEY, pos);
+    }
+
+    private static void setRetryCooldown(BlockPos pos, int ticks) {
+        if (CLIENT.level != null && pos != null && ticks > 0) {
+            CooldownUtils.INSTANCE.setCooldown(CLIENT.level, RETRY_COOLDOWN_KEY, pos, ticks);
+        }
     }
 }

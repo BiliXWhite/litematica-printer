@@ -107,10 +107,23 @@ public class BedrockTarget {
         logStatus();
         switch (this.status) {
             case UNINITIALIZED -> {
+                if (!canBuildInitialMachine()) {
+                    BedrockDebugLog.write("target initialize deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                            + " reason=missing_required_items");
+                    break;
+                }
                 // Initial placement doesn't count towards the 40-tick limit until it finishes.
-                BedrockPlacer.placePiston(this.pistonPos, Direction.UP);
+                if (!BedrockPlacer.placePiston(this.pistonPos, Direction.UP)) {
+                    BedrockDebugLog.write("target initialize deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                            + " reason=place_piston_failed");
+                    break;
+                }
                 if (this.torchSupportPos != null) {
-                    BedrockPlacer.placeSimple(this.torchSupportPos, Direction.UP, Blocks.REDSTONE_TORCH.asItem());
+                    if (!BedrockPlacer.placeSimple(this.torchSupportPos, Direction.UP, Blocks.REDSTONE_TORCH.asItem())) {
+                        BedrockDebugLog.write("target initialize deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                                + " reason=place_torch_failed");
+                        break;
+                    }
                     recordTemp(this.torchSupportPos.above());
                 }
                 BedrockDebugLog.write("target initialize bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
@@ -128,7 +141,7 @@ public class BedrockTarget {
                             + " tick=" + this.tickTimes);
                     break;
                 }
-                for (BlockPos torchPos : BedrockEnvironment.findNearbyRedstoneTorches(level, pistonPos)) {
+                for (BlockPos torchPos : getOwnedTorchPositions()) {
                     BedrockBreaker.breakBlock(torchPos, !this.conservativeSync);
                 }
                 BedrockBreaker.breakBlock(this.pistonPos, !this.conservativeSync);
@@ -145,6 +158,13 @@ public class BedrockTarget {
                         + " tick=" + this.tickTimes);
             }
             case UNEXTENDED_WITHOUT_POWER_SOURCE -> {
+                if (!BedrockInventory.hasAtLeast(Blocks.REDSTONE_TORCH.asItem(), 1)) {
+                    BedrockDebugLog.write("target repower deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                            + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
+                            + " tick=" + this.tickTimes
+                            + " reason=missing_redstone_torch");
+                    break;
+                }
                 if (this.lastRepowerTick >= 0 && this.tickTimes - this.lastRepowerTick < REPOWER_INTERVAL_TICKS) {
                     BedrockDebugLog.write("target repower delayed bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                             + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
@@ -153,7 +173,13 @@ public class BedrockTarget {
                     break;
                 }
                 if (this.torchSupportPos != null) {
-                    BedrockPlacer.placeSimple(this.torchSupportPos, Direction.UP, Blocks.REDSTONE_TORCH.asItem());
+                    if (!BedrockPlacer.placeSimple(this.torchSupportPos, Direction.UP, Blocks.REDSTONE_TORCH.asItem())) {
+                        BedrockDebugLog.write("target repower deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                                + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
+                                + " tick=" + this.tickTimes
+                                + " reason=place_torch_failed");
+                        break;
+                    }
                     recordTemp(this.torchSupportPos.above());
                 }
                 this.lastRepowerTick = this.tickTimes;
@@ -218,10 +244,35 @@ public class BedrockTarget {
         return positions;
     }
 
+    public Set<BlockPos> getOwnedTorchPositions() {
+        LinkedHashSet<BlockPos> positions = new LinkedHashSet<>();
+        if (this.torchSupportPos != null) {
+            BlockPos torchPos = this.torchSupportPos.above();
+            if (BedrockEnvironment.isRedstoneTorchAt(this.level, torchPos)) {
+                positions.add(torchPos);
+            }
+        }
+        return positions;
+    }
+
     private void recordTemp(BlockPos pos) {
         if (pos != null) {
             this.tempBlocks.add(pos);
         }
+    }
+
+    private boolean canBuildInitialMachine() {
+        if (!BedrockInventory.hasAtLeast(Blocks.PISTON.asItem(), 1)) {
+            return false;
+        }
+        if (!BedrockInventory.hasAtLeast(Blocks.REDSTONE_TORCH.asItem(), 1)) {
+            return false;
+        }
+        if (this.slimePos != null && !level.getBlockState(this.slimePos).is(Blocks.SLIME_BLOCK)
+                && !BedrockInventory.hasAtLeast(Blocks.SLIME_BLOCK.asItem(), 1)) {
+            return false;
+        }
+        return true;
     }
 
     private void logStatus() {

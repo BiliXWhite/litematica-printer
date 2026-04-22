@@ -59,6 +59,10 @@ public final class BedrockInventory {
         return InventoryUtils.setItemToOffhand(new ItemStack(item), CLIENT);
     }
 
+    public static boolean hasAtLeast(Item item, int count) {
+        return count(item) >= count;
+    }
+
     private static int count(Item item) {
         LocalPlayer player = CLIENT.player;
         return player == null ? 0 : player.getInventory().countItem(item);

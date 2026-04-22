@@ -69,8 +69,12 @@ public final class BedrockEnvironment {
         return result;
     }
 
-    private static boolean isRedstoneTorch(BlockState state) {
+    public static boolean isRedstoneTorch(BlockState state) {
         return state.is(Blocks.REDSTONE_TORCH) || state.is(Blocks.REDSTONE_WALL_TORCH);
+    }
+
+    public static boolean isRedstoneTorchAt(ClientLevel level, BlockPos pos) {
+        return pos != null && isRedstoneTorch(level.getBlockState(pos));
     }
 
     public static List<BlockPos> getTorchInfluencePositions(BlockPos pistonPos) {
