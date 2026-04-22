@@ -212,19 +212,14 @@ public final class BedrockController {
                 continue;
             }
 
-            // Increase cooldown to 10 ticks to avoid spamming failed cleanups
             if (!CooldownUtils.INSTANCE.isOnCooldown(CLIENT.level, "cleanup_retry", pos)) {
                 boolean predictRemoval = !CONSERVATIVE_CLEANUP.contains(pos);
                 BedrockBreaker.breakBlock(pos, predictRemoval);
-                CooldownUtils.INSTANCE.setCooldown(CLIENT.level, "cleanup_retry", pos, 10);
+                CooldownUtils.INSTANCE.setCooldown(CLIENT.level, "cleanup_retry", pos, 1);
                 BedrockDebugLog.write("cleanup retry pos=" + BedrockDebugLog.pos(pos)
                         + " state=" + BedrockDebugLog.describeState(state)
                         + " predictRemoval=" + predictRemoval);
                 count++;
-                
-                // Move stubborn item to back to avoid head-of-line blocking
-                iterator.remove();
-                CLEANUP_QUEUE.add(pos);
             }
         }
     }
