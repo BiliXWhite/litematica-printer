@@ -150,6 +150,16 @@ public final class BedrockController {
             return false;
         }
 
+        BlockPos dirtyResiduePos = findDirtyResidue(target);
+        if (dirtyResiduePos != null) {
+            BedrockDebugLog.write("submit rejected bedrock=" + BedrockDebugLog.pos(pos)
+                    + " reason=dirty_residue"
+                    + " residuePos=" + BedrockDebugLog.pos(dirtyResiduePos)
+                    + " residueState=" + BedrockDebugLog.describeState(level.getBlockState(dirtyResiduePos)));
+            cleanupDirtyResidue(target);
+            return false;
+        }
+
         BedrockTarget conflict = findConflictTarget(target);
         if (conflict != null) {
             BedrockDebugLog.write("submit rejected bedrock=" + BedrockDebugLog.pos(pos)
@@ -264,6 +274,35 @@ public final class BedrockController {
         for (BlockPos pos : target.getCleanupPositions()) {
             cleanupBlockOrQueue(pos, !target.usesConservativeSync());
         }
+    }
+
+    private static void cleanupDirtyResidue(BedrockTarget target) {
+        if (CLIENT.level == null) {
+            return;
+        }
+        for (BlockPos pos : target.getReservedPositions()) {
+            if (pos.equals(target.getBedrockPos())) {
+                continue;
+            }
+            if (BedrockTargetBlocks.isCleanupResidue(CLIENT.level.getBlockState(pos))) {
+                cleanupBlockOrQueue(pos, !target.usesConservativeSync());
+            }
+        }
+    }
+
+    private static BlockPos findDirtyResidue(BedrockTarget target) {
+        if (CLIENT.level == null) {
+            return null;
+        }
+        for (BlockPos pos : target.getReservedPositions()) {
+            if (pos.equals(target.getBedrockPos())) {
+                continue;
+            }
+            if (BedrockTargetBlocks.isCleanupResidue(CLIENT.level.getBlockState(pos))) {
+                return pos;
+            }
+        }
+        return null;
     }
 
     private static void cleanupBlockOrQueue(BlockPos pos, boolean predictRemoval) {
