@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.handler.handlers.bedrock;
 
-import me.aleksilassila.litematica.printer.mixin_extension.MultiPlayerGameModeExtension;
 import me.aleksilassila.litematica.printer.utils.minecraft.NetworkUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -20,12 +19,10 @@ public final class BedrockBreaker {
 
     public static boolean breakBlock(BlockPos pos, boolean predictRemoval) {
         if (CLIENT.level == null || CLIENT.player == null) {
-            BedrockDebugLog.write("break skipped pos=" + BedrockDebugLog.pos(pos) + " reason=no_level_or_player");
             return false;
         }
-        var state = CLIENT.level.getBlockState(pos);
 
-        // Optimization: Check if we are already holding a suitable pickaxe before switching
+        // Optimization: Check pickaxe
         var heldItem = CLIENT.player.getMainHandItem().getItem();
         if (heldItem != Items.DIAMOND_PICKAXE && heldItem != Items.NETHERITE_PICKAXE) {
             if (!BedrockInventory.switchToItem(Items.DIAMOND_PICKAXE) && !BedrockInventory.switchToItem(Items.NETHERITE_PICKAXE)) {
@@ -34,14 +31,9 @@ public final class BedrockBreaker {
             }
         }
 
-        BedrockDebugLog.write("break start pos=" + BedrockDebugLog.pos(pos)
-                + " state=" + BedrockDebugLog.describeState(state)
-                + " predictRemoval=" + predictRemoval);
+        BedrockDebugLog.write("break start pos=" + BedrockDebugLog.pos(pos) + " predict=" + predictRemoval);
 
-        if (CLIENT.gameMode instanceof MultiPlayerGameModeExtension gameModeExtension) {
-            gameModeExtension.litematica_printer$continueDestroyBlock(false, pos, Direction.DOWN);
-        }
-
+        // Send EXACTLY one pair of packets
         //#if MC >= 11900
         NetworkUtils.sendPacket(sequence -> new ServerboundPlayerActionPacket(
                 ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
@@ -73,9 +65,5 @@ public final class BedrockBreaker {
         }
 
         return true;
-    }
-
-    private static boolean shouldPredictRemoval() {
-        return CLIENT.getConnection() == null || CLIENT.getSingleplayerServer() != null;
     }
 }
