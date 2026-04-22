@@ -24,6 +24,10 @@ public final class BedrockBreaker {
             return false;
         }
         var state = CLIENT.level.getBlockState(pos);
+        if (state.isAir()) {
+            BedrockDebugLog.write("break skipped pos=" + BedrockDebugLog.pos(pos) + " reason=air");
+            return false;
+        }
 
         // Optimization: Check if we are already holding a suitable pickaxe before switching
         var heldItem = CLIENT.player.getMainHandItem().getItem();
@@ -38,7 +42,7 @@ public final class BedrockBreaker {
                 + " state=" + BedrockDebugLog.describeState(state)
                 + " predictRemoval=" + predictRemoval);
 
-        if (CLIENT.gameMode instanceof MultiPlayerGameModeExtension gameModeExtension) {
+        if (CLIENT.gameMode instanceof MultiPlayerGameModeExtension gameModeExtension && !shouldPredictRemoval()) {
             gameModeExtension.litematica_printer$continueDestroyBlock(false, pos, Direction.DOWN);
         }
 
@@ -68,7 +72,14 @@ public final class BedrockBreaker {
         //$$ ));
         //#endif
 
-        if (predictRemoval) {
+        // For sync-sensitive targets we wait for the server/chunk refresh instead of
+        // forcing the client state ahead, which can otherwise stall the state machine.
+        boolean allowPrediction = predictRemoval && shouldPredictRemoval();
+        if (predictRemoval && !allowPrediction) {
+            BedrockDebugLog.write("break prediction suppressed pos=" + BedrockDebugLog.pos(pos)
+                    + " reason=server_connection");
+        }
+        if (allowPrediction) {
             CLIENT.level.removeBlock(pos, false);
         }
 
