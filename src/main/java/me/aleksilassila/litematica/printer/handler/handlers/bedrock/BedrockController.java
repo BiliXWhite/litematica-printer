@@ -207,11 +207,12 @@ public final class BedrockController {
                 continue;
             }
 
-            // 对未消失的方块，每 GT 重试一次强制数据包破坏
+            // Server-side residue can linger for a few ticks; hammering every tick
+            // just burns throughput and amplifies desync.
             if (!CooldownUtils.INSTANCE.isOnCooldown(CLIENT.level, "cleanup_retry", pos)) {
                 boolean predictRemoval = !CONSERVATIVE_CLEANUP.contains(pos);
                 BedrockBreaker.breakBlock(pos, predictRemoval);
-                CooldownUtils.INSTANCE.setCooldown(CLIENT.level, "cleanup_retry", pos, 1);
+                CooldownUtils.INSTANCE.setCooldown(CLIENT.level, "cleanup_retry", pos, 3);
                 BedrockDebugLog.write("cleanup retry pos=" + BedrockDebugLog.pos(pos)
                         + " state=" + BedrockDebugLog.describeState(state)
                         + " predictRemoval=" + predictRemoval);
