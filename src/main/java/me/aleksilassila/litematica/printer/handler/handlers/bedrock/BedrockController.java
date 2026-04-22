@@ -229,9 +229,9 @@ public final class BedrockController {
     }
 
     private static BedrockTarget findConflictTarget(BedrockTarget candidate) {
-        Set<BlockPos> candidateFootprint = candidate.getMachineFootprint();
+        Set<BlockPos> candidateFootprint = candidate.getReservedPositions();
         for (BedrockTarget existing : TARGETS) {
-            Set<BlockPos> existingFootprint = existing.getMachineFootprint();
+            Set<BlockPos> existingFootprint = existing.getReservedPositions();
             for (BlockPos pos : candidateFootprint) {
                 if (existingFootprint.contains(pos)) {
                     return existing;
