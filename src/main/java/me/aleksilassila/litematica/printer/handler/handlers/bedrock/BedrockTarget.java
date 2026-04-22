@@ -12,6 +12,7 @@ import java.util.Set;
 
 public class BedrockTarget {
     private static final int REPOWER_INTERVAL_TICKS = 4;
+    private static final int POST_EXECUTE_SYNC_TIMEOUT_TICKS = 6;
 
     public enum Status {
         FAILED,
@@ -35,6 +36,7 @@ public class BedrockTarget {
     private boolean hasTried;
     private int stuckTicksCounter;
     private int lastRepowerTick = -1;
+    private int executeTick = -1;
     private boolean executedThisTick;
     private Status status = Status.UNINITIALIZED;
     private Status lastLoggedStatus;
@@ -126,6 +128,7 @@ public class BedrockTarget {
                 }
                 BedrockPlacer.placePiston(this.pistonPos, Direction.DOWN);
                 this.hasTried = true;
+                this.executeTick = this.tickTimes;
                 this.executedThisTick = true;
                 BedrockDebugLog.write("target execute bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                         + " piston=" + BedrockDebugLog.pos(this.pistonPos)
@@ -284,6 +287,14 @@ public class BedrockTarget {
             this.status = Status.RETRACTING;
             return;
         }
+        if (hasExceededSyncWaitTimeout()) {
+            this.status = Status.STUCK;
+            BedrockDebugLog.write("target sync timeout bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                    + " tick=" + this.tickTimes
+                    + " executeTick=" + this.executeTick
+                    + " pistonState=" + BedrockDebugLog.describePistonState(level.getBlockState(this.pistonPos)));
+            return;
+        }
         if (this.hasTried && level.getBlockState(this.pistonPos).isAir() && level.getBlockState(this.pistonPos.above()).is(Blocks.PISTON_HEAD)) {
             this.status = Status.NEEDS_WAITING;
             this.stuckTicksCounter++;
@@ -348,6 +359,9 @@ public class BedrockTarget {
         if (level.getBlockState(this.pistonPos).is(Blocks.MOVING_PISTON)) {
             return Status.RETRACTING;
         }
+        if (hasExceededSyncWaitTimeout()) {
+            return Status.STUCK;
+        }
         if (this.hasTried && level.getBlockState(this.pistonPos).isAir() && level.getBlockState(this.pistonPos.above()).is(Blocks.PISTON_HEAD)) {
             return Status.NEEDS_WAITING;
         }
@@ -387,5 +401,14 @@ public class BedrockTarget {
             return Status.UNINITIALIZED;
         }
         return this.status;
+    }
+
+    private boolean hasExceededSyncWaitTimeout() {
+        return this.hasTried
+                && this.executeTick >= 0
+                && this.tickTimes - this.executeTick >= POST_EXECUTE_SYNC_TIMEOUT_TICKS
+                && (level.getBlockState(this.pistonPos).is(Blocks.PISTON)
+                || level.getBlockState(this.pistonPos).isAir()
+                || level.getBlockState(this.pistonPos).is(Blocks.MOVING_PISTON));
     }
 }
