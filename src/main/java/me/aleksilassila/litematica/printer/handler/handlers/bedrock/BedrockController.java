@@ -120,7 +120,7 @@ public final class BedrockController {
         }
 
         int maxTotal = Configs.Break.BEDROCK_BLOCKS_PER_TICK.getIntegerValue();
-        if (maxTotal <= 0) maxTotal = 64; // 提供一个安全的默认上限防止内存溢出
+        if (maxTotal <= 0) maxTotal = 64;
 
         if (TARGETS.size() >= maxTotal) return false;
 
