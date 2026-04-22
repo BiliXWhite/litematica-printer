@@ -121,8 +121,9 @@ public final class BedrockController {
     }
 
     public static boolean canAccept(BlockPos pos) {
-        int maxTotal = Configs.Break.BEDROCK_BLOCKS_PER_TICK.getIntegerValue();
-        if (maxTotal <= 0) maxTotal = 64;
+        // Increase task capacity to 128 to allow more concurrent preparations.
+        // The execution budget will still control the actual breaking frequency.
+        int maxTotal = 128;
 
         if (TARGETS.size() >= maxTotal) return false;
 

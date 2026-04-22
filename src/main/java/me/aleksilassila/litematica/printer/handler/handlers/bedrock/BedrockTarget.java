@@ -12,7 +12,7 @@ import java.util.Set;
 
 public class BedrockTarget {
     private static final int REPOWER_INTERVAL_TICKS = 2;
-    private static final int POST_EXECUTE_SYNC_TIMEOUT_TICKS = 20;
+    private static final int POST_EXECUTE_SYNC_TIMEOUT_TICKS = 30;
 
     public enum Status {
         FAILED,
@@ -81,7 +81,7 @@ public class BedrockTarget {
                 }
                 // LOCK state to avoid re-initialization spam
                 this.status = Status.NEEDS_WAITING;
-                this.stuckTicksCounter = 1; 
+                this.executeTick = this.tickTimes; // Set start tick for prediction
                 BedrockDebugLog.write("target initialize bedrock=" + BedrockDebugLog.pos(this.bedrockPos));
             }
             case EXTENDED -> {
@@ -141,10 +141,9 @@ public class BedrockTarget {
         }
 
         // Predictive EXTENDED transition:
-        // Give 2 ticks of buffer to ensure server has processed the placement 
-        // and the piston has reached full extension. 1 tick is often too fast
-        // and results in 'breaking air' errors.
-        if (this.status == Status.NEEDS_WAITING && !this.hasTried && this.tickTimes - this.executeTick >= 2) {
+        // Give exactly 2 ticks of buffer to ensure server has processed the placement 
+        // and the piston has reached full extension. 
+        if (this.status == Status.NEEDS_WAITING && !this.hasTried && this.executeTick > 0 && this.tickTimes - this.executeTick >= 2) {
             this.status = Status.EXTENDED;
             return;
         }
@@ -164,7 +163,6 @@ public class BedrockTarget {
         }
     }
 
-    // (Remaining utility methods like logStatus, getCleanupPositions, etc. truncated for brevity but logically intact)
     private void logStatus() {
         if (this.lastLoggedStatus == this.status) return;
         this.lastLoggedStatus = this.status;
