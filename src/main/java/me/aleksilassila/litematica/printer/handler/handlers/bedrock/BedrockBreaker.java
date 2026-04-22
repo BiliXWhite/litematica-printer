@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.handler.handlers.bedrock;
 
+import me.aleksilassila.litematica.printer.mixin_extension.MultiPlayerGameModeExtension;
 import me.aleksilassila.litematica.printer.utils.minecraft.NetworkUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -36,8 +37,8 @@ public final class BedrockBreaker {
                 + " state=" + BedrockDebugLog.describeState(state)
                 + " predictRemoval=" + predictRemoval);
 
-        if (CLIENT.gameMode != null && !shouldPredictRemoval()) {
-            CLIENT.gameMode.attackBlock(pos, Direction.DOWN);
+        if (CLIENT.gameMode instanceof MultiPlayerGameModeExtension gameModeExtension && !shouldPredictRemoval()) {
+            gameModeExtension.litematica_printer$continueDestroyBlock(false, pos, Direction.DOWN);
         }
 
         //#if MC >= 11900
