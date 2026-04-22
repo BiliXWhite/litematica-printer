@@ -188,6 +188,7 @@ public final class BedrockController {
 
         int limit = 240; // push cleanup throughput to avoid residue accumulation
         int count = 0;
+        List<BlockPos> toBack = new ArrayList<>();
         Iterator<BlockPos> iterator = CLEANUP_QUEUE.iterator();
 
         while (iterator.hasNext() && count < limit) {
@@ -224,8 +225,12 @@ public final class BedrockController {
                 
                 // Move stubborn item to back to avoid head-of-line blocking
                 iterator.remove();
-                CLEANUP_QUEUE.add(pos);
+                toBack.add(pos);
             }
+        }
+        
+        if (!toBack.isEmpty()) {
+            CLEANUP_QUEUE.addAll(toBack);
         }
     }
 
