@@ -84,21 +84,21 @@ public class PrintHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
+    protected boolean executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         if (Configs.Placement.FALLING_CHECK.getBooleanValue() && ctx.requiredState.getBlock() instanceof FallingBlock) {
             BlockPos downPos = blockPos.below();
             if (FallingBlock.isFree(level.getBlockState(downPos))) {
                 MessageUtils.setOverlayMessage("方块 " + ctx.requiredBlockName().getString() + " 下方无支撑，跳过放置");
-                return;
+                return false;
             } else if (level.getBlockState(downPos) != ctx.schematic.getBlockState(downPos)) {
                 MessageUtils.setOverlayMessage("方块 " + ctx.requiredBlockName().getString() + " 下方方块不相符，跳过放置");
-                return;
+                return false;
             }
         }
         Direction side = action.getValidSide(level, blockPos);
-        if (side == null) return;
+        if (side == null) return false;
         Item[] reqItems = action.getRequiredItems(ctx.requiredState.getBlock());
-        if (!InventoryUtils.switchToItems(player, reqItems)) return;
+        if (!InventoryUtils.switchToItems(player, reqItems)) return false;
         boolean useShift;
         if (action.getShift() == null) {
             useShift = (Implementation.isInteractive(level.getBlockState(blockPos.relative(side)).getBlock()) && !(action instanceof ClickAction))
@@ -118,6 +118,7 @@ public class PrintHandler extends ClientPlayerTickHandler {
             skipIteration.set(true);
         }
         setBlockPosCooldown(blockPos, ConfigUtils.getPlaceCooldown());
+        return true;
     }
 }
 

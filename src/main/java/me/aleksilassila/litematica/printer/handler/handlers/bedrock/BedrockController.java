@@ -99,10 +99,16 @@ public final class BedrockController {
                         + " nextExecuteTick=" + nextExecuteTick);
             }
 
-            if (status == BedrockTarget.Status.RETRACTED || status == BedrockTarget.Status.FAILED || status == BedrockTarget.Status.STUCK) {
+            boolean retireOnSuccessfulRetracting = status == BedrockTarget.Status.RETRACTING
+                    && !BedrockTargetBlocks.isTargetBlock(level.getBlockState(target.getBedrockPos()));
+            if (status == BedrockTarget.Status.RETRACTED
+                    || status == BedrockTarget.Status.FAILED
+                    || status == BedrockTarget.Status.STUCK
+                    || retireOnSuccessfulRetracting) {
                 BedrockDebugLog.write("controller cleanup start bedrock=" + BedrockDebugLog.pos(target.getBedrockPos())
                         + " status=" + status
-                        + " cleanupCount=" + target.getCleanupPositions().size());
+                        + " cleanupCount=" + target.getCleanupPositions().size()
+                        + (retireOnSuccessfulRetracting ? " reason=retracting_bedrock_gone" : ""));
                 for (BlockPos tempPos : target.getCleanupPositions()) {
                     // Try once immediately, then keep retrying via queue until gone.
                     BedrockBreaker.breakBlock(tempPos, !target.usesConservativeSync());

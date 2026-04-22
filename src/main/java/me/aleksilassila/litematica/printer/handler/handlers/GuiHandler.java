@@ -38,7 +38,7 @@ public class GuiHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
+    protected boolean executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         if (ConfigUtils.isPrintMode()) {
             WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
             if (schematic != null) {
@@ -80,6 +80,7 @@ public class GuiHandler extends ClientPlayerTickHandler {
         for (Progress progress : progresses) {
             progress.calculateProgress();
         }
+        return true;
     }
 
     @Override

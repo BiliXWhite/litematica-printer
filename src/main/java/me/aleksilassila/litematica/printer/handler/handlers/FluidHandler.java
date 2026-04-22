@@ -77,14 +77,14 @@ public class FluidHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
+    protected boolean executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         FluidState fluidState = level.getBlockState(blockPos).getFluidState();
         if (fluids.contains(fluidState.getType())) {
             if (!Configs.Fluid.FILL_FLOWING_FLUID.getBooleanValue() && !fluidState.isSource()) {
-                return;
+                return false;
             }
             if (!InventoryUtils.switchToItems(player, fillItems.toArray(new Item[0]))) {
-                return;
+                return false;
             }
             Action action = new Action().queueAction(blockPos, Direction.UP, false, player);
             ActionManager.INSTANCE.setNeedWaitModifyLookFromAction(action.getNeedWaitModifyLook());
@@ -92,6 +92,8 @@ public class FluidHandler extends ClientPlayerTickHandler {
                 skipIteration.set(true);
             }
             setBlockPosCooldown(blockPos, Fluids.WATER.getTickDelay(level) * 2);
+            return true;
         }
+        return false;
     }
 }

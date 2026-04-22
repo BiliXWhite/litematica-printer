@@ -96,14 +96,14 @@ public class FillHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
+    protected boolean executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         if (Configs.Placement.FALLING_CHECK.getBooleanValue() &&
                 player.getMainHandItem().getItem() instanceof BlockItem item &&
                 item.getBlock() instanceof FallingBlock block &&
                 FallingBlock.isFree(level.getBlockState(blockPos.below()))
         ) {
             MessageUtils.setOverlayMessage("方块 " + block.getName().getString() + " 下方无支撑，跳过放置");
-            return;
+            return false;
         }
         boolean handheld = Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FillBlockModeType.HANDHELD;
         BlockState currentState = level.getBlockState(blockPos);
@@ -127,8 +127,10 @@ public class FillHandler extends ClientPlayerTickHandler {
                     skipIteration.set(true);
                 }
                 this.setBlockPosCooldown(blockPos, ConfigUtils.getPlaceCooldown());
+                return true;
             }
         }
+        return false;
     }
 
 }

@@ -57,11 +57,11 @@ public class BedrockHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
+    protected boolean executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         if (level == null || !BedrockTargetBlocks.isTargetBlock(level.getBlockState(blockPos))) {
-            return;
+            return false;
         }
-        BedrockController.submit(blockPos);
+        return BedrockController.submit(blockPos);
     }
 
     @Override

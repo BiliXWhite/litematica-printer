@@ -210,9 +210,12 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                     gui.posInSelectionRange = true;
                     // 方块迭代权限校验：子类可重写实现自定义过滤逻辑
                     if (this.canIterationBlockPos(pos) && !isBlockPosOnCooldown(pos)) {
-                        this.executeIteration(pos, this.skipIteration);
-                        gui.execute = true;
-                        if (this.skipIteration.get() || maxEffectiveExec > 0 && ++effectiveExecCount >= maxEffectiveExec) {
+                        boolean executed = this.executeIteration(pos, this.skipIteration);
+                        gui.execute = executed;
+                        if (executed && maxEffectiveExec > 0) {
+                            effectiveExecCount++;
+                        }
+                        if (this.skipIteration.get() || maxEffectiveExec > 0 && effectiveExecCount >= maxEffectiveExec) {
                             interrupt = true;
                         }
                     }
@@ -325,7 +328,8 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         return true;
     }
 
-    protected void executeIteration(BlockPos pos, AtomicReference<Boolean> skipIteration) {
+    protected boolean executeIteration(BlockPos pos, AtomicReference<Boolean> skipIteration) {
+        return false;
     }
 
     public boolean isBlockPosOnCooldown(@Nullable BlockPos pos) {
