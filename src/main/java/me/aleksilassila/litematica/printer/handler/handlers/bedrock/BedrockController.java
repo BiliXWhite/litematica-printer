@@ -123,7 +123,8 @@ public final class BedrockController {
             return false;
         }
 
-        int maxTotal = getMaxActiveTargets();
+        int maxTotal = Configs.Break.BEDROCK_BLOCKS_PER_TICK.getIntegerValue();
+        if (maxTotal <= 0) maxTotal = 64;
 
         if (TARGETS.size() >= maxTotal) return false;
 
@@ -233,14 +234,6 @@ public final class BedrockController {
         }
         int budget = Configs.Break.BEDROCK_BLOCKS_PER_TICK.getIntegerValue();
         return budget <= 0 ? 64 : budget;
-    }
-
-    private static int getMaxActiveTargets() {
-        int budget = Configs.Break.BEDROCK_BLOCKS_PER_TICK.getIntegerValue();
-        if (budget <= 0) {
-            return 64;
-        }
-        return budget + 2;
     }
 
     private static BedrockTarget findConflictTarget(BedrockTarget candidate) {
