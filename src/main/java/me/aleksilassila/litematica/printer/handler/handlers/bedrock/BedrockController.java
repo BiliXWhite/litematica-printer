@@ -59,72 +59,26 @@ public final class BedrockController {
         }
 
         int executeBudget = getExecuteBudget();
+        int initialExecuteBudget = executeBudget;
         if (!TARGETS.isEmpty()) {
             BedrockDebugLog.write("controller tick targets=" + TARGETS.size()
+                    + " active=" + countActiveTargets()
                     + " cleanup=" + CLEANUP_QUEUE.size()
                     + " budget=" + executeBudget
                     + " nextExecuteTick=" + nextExecuteTick
                     + " now=" + now);
         }
-        Iterator<BedrockTarget> iterator = TARGETS.iterator();
-        while (iterator.hasNext()) {
-            BedrockTarget target = iterator.next();
-            if (target == null) {
-                iterator.remove();
-                continue;
-            }
-            if (!ConfigUtils.canInteracted(target.getBedrockPos())) {
-                BedrockTarget.Status status = target.refreshStatusOnly();
-                BedrockDebugLog.write("controller out_of_range bedrock=" + BedrockDebugLog.pos(target.getBedrockPos())
-                        + " status=" + status);
-                if (shouldRetireOutOfRange(status)) {
-                    BedrockDebugLog.write("controller cleanup start bedrock=" + BedrockDebugLog.pos(target.getBedrockPos())
-                            + " status=" + status
-                            + " cleanupCount=" + target.getCleanupPositions().size()
-                            + " reason=out_of_range");
-                    iterator.remove();
-                    for (BlockPos tempPos : target.getCleanupPositions()) {
-                        cleanupBlockOrQueue(tempPos, !target.usesConservativeSync());
-                    }
-                }
-                continue;
-            }
-
-            BedrockTarget.Status status = target.tick(executeBudget > 0);
-            if (target.executedThisTick()) {
-                executeBudget--;
-                // Remove scheduleNextExecuteWindow() from here to allow batching in the same tick
-                BedrockDebugLog.write("controller execute consumed bedrock=" + BedrockDebugLog.pos(target.getBedrockPos())
-                        + " remainingBudget=" + executeBudget);
-            }
-
-            boolean retireOnSuccessfulRetracting = status == BedrockTarget.Status.RETRACTING
-                    && !BedrockTargetBlocks.isTargetBlock(level.getBlockState(target.getBedrockPos()));
-            if (status == BedrockTarget.Status.RETRACTED
-                    || status == BedrockTarget.Status.FAILED
-                    || status == BedrockTarget.Status.STUCK
-                    || retireOnSuccessfulRetracting) {
-                BedrockDebugLog.write("controller cleanup start bedrock=" + BedrockDebugLog.pos(target.getBedrockPos())
-                        + " status=" + status
-                        + " cleanupCount=" + target.getCleanupPositions().size());
-                iterator.remove();
-                for (BlockPos tempPos : target.getCleanupPositions()) {
-                    cleanupBlockOrQueue(tempPos, !target.usesConservativeSync());
-                }
-            }
-        }
+        Set<BedrockTarget> processedTargets = new LinkedHashSet<>();
+        executeBudget = processTargets(level, executeBudget, true, processedTargets);
+        executeBudget = processTargets(level, executeBudget, false, processedTargets);
         
-        // Schedule the next window only AFTER processing all targets in this tick
-        if (executeBudget < getExecuteBudget()) {
+        if (executeBudget < initialExecuteBudget) {
             scheduleNextExecuteWindow();
         }
     }
 
     public static boolean canAccept(BlockPos pos) {
-        int maxTotal = Configs.Break.BEDROCK_BLOCKS_PER_TICK.getIntegerValue();
-        if (maxTotal <= 0) maxTotal = 64;
-
-        if (TARGETS.size() >= maxTotal) return false;
+        if (countActiveTargets() >= getActiveTargetCap()) return false;
 
         for (BedrockTarget target : TARGETS) {
             if (target.getBedrockPos().equals(pos)) return false;
@@ -244,6 +198,99 @@ public final class BedrockController {
             }
         }
         return null;
+    }
+
+    private static int processTargets(ClientLevel level, int executeBudget, boolean priorityOnly, Set<BedrockTarget> processedTargets) {
+        Iterator<BedrockTarget> iterator = TARGETS.iterator();
+        while (iterator.hasNext()) {
+            BedrockTarget target = iterator.next();
+            if (target == null) {
+                iterator.remove();
+                continue;
+            }
+            if (processedTargets.contains(target)) {
+                continue;
+            }
+            if (!ConfigUtils.canInteracted(target.getBedrockPos())) {
+                BedrockTarget.Status status = target.refreshStatusOnly();
+                BedrockDebugLog.write("controller out_of_range bedrock=" + BedrockDebugLog.pos(target.getBedrockPos())
+                        + " status=" + status);
+                if (shouldRetireOutOfRange(status)) {
+                    cleanupTarget(iterator, target, "out_of_range");
+                }
+                processedTargets.add(target);
+                continue;
+            }
+
+            boolean fastLane = isFastLaneStatus(target.getStatus());
+            if (priorityOnly != fastLane) {
+                continue;
+            }
+
+            BedrockTarget.Status status = target.tick(priorityOnly || executeBudget > 0);
+            processedTargets.add(target);
+            if (target.executedThisTick()) {
+                if (priorityOnly) {
+                    BedrockDebugLog.write("controller fastlane execute bedrock=" + BedrockDebugLog.pos(target.getBedrockPos())
+                            + " status=" + status);
+                } else {
+                    executeBudget--;
+                    BedrockDebugLog.write("controller execute consumed bedrock=" + BedrockDebugLog.pos(target.getBedrockPos())
+                            + " remainingBudget=" + executeBudget);
+                }
+            }
+
+            boolean retireOnSuccessfulRetracting = status == BedrockTarget.Status.RETRACTING
+                    && !BedrockTargetBlocks.isTargetBlock(level.getBlockState(target.getBedrockPos()));
+            if (status == BedrockTarget.Status.RETRACTED
+                    || status == BedrockTarget.Status.FAILED
+                    || status == BedrockTarget.Status.STUCK
+                    || retireOnSuccessfulRetracting) {
+                cleanupTarget(iterator, target, null);
+            }
+        }
+        return executeBudget;
+    }
+
+    private static void cleanupTarget(Iterator<BedrockTarget> iterator, BedrockTarget target, String reason) {
+        BedrockDebugLog.write("controller cleanup start bedrock=" + BedrockDebugLog.pos(target.getBedrockPos())
+                + " status=" + target.getStatus()
+                + " cleanupCount=" + target.getCleanupPositions().size()
+                + (reason == null ? "" : " reason=" + reason));
+        iterator.remove();
+        for (BlockPos tempPos : target.getCleanupPositions()) {
+            cleanupBlockOrQueue(tempPos, !target.usesConservativeSync());
+        }
+    }
+
+    private static int countActiveTargets() {
+        int count = 0;
+        for (BedrockTarget target : TARGETS) {
+            if (target != null && countsTowardsActiveCap(target.getStatus())) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private static int getActiveTargetCap() {
+        int executeBudget = Configs.Break.BEDROCK_BLOCKS_PER_TICK.getIntegerValue();
+        if (executeBudget <= 0) {
+            executeBudget = 64;
+        }
+        return Math.max(12, executeBudget * 3);
+    }
+
+    private static boolean countsTowardsActiveCap(BedrockTarget.Status status) {
+        return status == BedrockTarget.Status.UNINITIALIZED
+                || status == BedrockTarget.Status.UNEXTENDED_WITH_POWER_SOURCE
+                || status == BedrockTarget.Status.UNEXTENDED_WITHOUT_POWER_SOURCE
+                || status == BedrockTarget.Status.EXTENDED;
+    }
+
+    private static boolean isFastLaneStatus(BedrockTarget.Status status) {
+        return status == BedrockTarget.Status.EXTENDED
+                || status == BedrockTarget.Status.UNEXTENDED_WITHOUT_POWER_SOURCE;
     }
 
     private static boolean shouldRetireOutOfRange(BedrockTarget.Status status) {
