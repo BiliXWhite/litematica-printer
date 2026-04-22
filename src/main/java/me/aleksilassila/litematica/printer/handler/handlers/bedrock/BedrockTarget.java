@@ -12,7 +12,7 @@ import java.util.Set;
 
 public class BedrockTarget {
     private static final int REPOWER_INTERVAL_TICKS = 2;
-    private static final int POST_EXECUTE_SYNC_TIMEOUT_TICKS = 6;
+    private static final int POST_EXECUTE_SYNC_TIMEOUT_TICKS = 10;
 
     public enum Status {
         FAILED,

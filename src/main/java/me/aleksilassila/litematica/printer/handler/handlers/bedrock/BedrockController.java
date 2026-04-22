@@ -123,14 +123,14 @@ public final class BedrockController {
             return false;
         }
 
-        // Increase task capacity to 128 to allow more concurrent preparations.
-        // The execution budget will still control the actual breaking frequency.
-        int maxTotal = 128;
+        int maxTotal = Configs.Break.BEDROCK_BLOCKS_PER_TICK.getIntegerValue();
+        if (maxTotal <= 0) maxTotal = 64;
 
         if (TARGETS.size() >= maxTotal) return false;
 
         for (BedrockTarget target : TARGETS) {
             if (target.getBedrockPos().equals(pos)) return false;
+            if (target.getPistonPos().equals(pos)) return false;
         }
         return true;
     }
@@ -250,7 +250,8 @@ public final class BedrockController {
     }
 
     private static boolean shouldRetireOutOfRange(BedrockTarget.Status status) {
-        return status == BedrockTarget.Status.RETRACTED
+        return status == BedrockTarget.Status.UNINITIALIZED
+                || status == BedrockTarget.Status.RETRACTED
                 || status == BedrockTarget.Status.FAILED
                 || status == BedrockTarget.Status.STUCK
                 || status == BedrockTarget.Status.EXTENDED
