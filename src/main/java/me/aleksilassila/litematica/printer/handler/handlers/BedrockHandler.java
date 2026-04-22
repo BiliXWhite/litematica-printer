@@ -25,7 +25,9 @@ public class BedrockHandler extends ClientPlayerTickHandler {
 
     @Override
     protected int getMaxEffectiveExecutionsPerTick() {
-        return Configs.Break.BEDROCK_BLOCKS_PER_TICK.getIntegerValue();
+        // Allow the scanner to submit as many targets as possible to the controller.
+        // The controller's internal TARGETS.size() and executeBudget will handle the actual throttling.
+        return -1;
     }
 
     @Override

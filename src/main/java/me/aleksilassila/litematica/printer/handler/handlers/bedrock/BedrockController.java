@@ -121,11 +121,6 @@ public final class BedrockController {
     }
 
     public static boolean canAccept(BlockPos pos) {
-        long now = ClientPlayerTickManager.getCurrentHandlerTime();
-        if (now < nextAcceptTick) {
-            return false;
-        }
-
         int maxTotal = Configs.Break.BEDROCK_BLOCKS_PER_TICK.getIntegerValue();
         if (maxTotal <= 0) maxTotal = 64;
 
@@ -143,7 +138,6 @@ public final class BedrockController {
         if (level == null || !BedrockTargetBlocks.isTargetBlock(level.getBlockState(pos))) return false;
 
         if (!canAccept(pos)) {
-            BedrockDebugLog.write("submit rejected bedrock=" + BedrockDebugLog.pos(pos) + " reason=cannot_accept");
             return false;
         }
 
