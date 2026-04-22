@@ -35,6 +35,7 @@ public final class BedrockTargetBlocks {
                 || state.is(Blocks.MOVING_PISTON)
                 || state.is(Blocks.PISTON_HEAD)
                 || state.is(Blocks.REDSTONE_TORCH)
+                || state.is(Blocks.REDSTONE_WALL_TORCH)
                 || state.is(Blocks.SLIME_BLOCK);
     }
 }
