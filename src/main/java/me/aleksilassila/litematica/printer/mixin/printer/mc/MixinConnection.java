@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
+import me.aleksilassila.litematica.printer.handler.handlers.MineDebugLog;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -22,6 +23,12 @@ public class MixinConnection {
     @Inject(method = "genericsFtw", at = @At("HEAD"), require = 1)
     private static void hookGenericsFtw(Packet<?> packet, PacketListener listener, CallbackInfo ci) {
         if (ConfigUtils.isEnable()) {
+            int previousPacketTick = ClientPlayerTickManager.getPacketTick();
+            if (previousPacketTick >= Configs.Core.LAG_CHECK_MAX.getIntegerValue()) {
+                MineDebugLog.write("network packet reset packetTick=" + previousPacketTick
+                        + " packet=" + packet.getClass().getSimpleName()
+                        + " listener=" + listener.getClass().getSimpleName());
+            }
             ClientPlayerTickManager.setPacketTick(0);   // 用于延迟检测
         }
     }
@@ -29,6 +36,7 @@ public class MixinConnection {
     @Inject(method = "disconnect*", at = {@At("HEAD")})
     public void disconnect(Component ignored, CallbackInfo ci) {
         exitGameReSet();    // 退出重置
+        MineDebugLog.reset();
         if (Configs.Core.AUTO_DISABLE_PRINTER.getBooleanValue() && Configs.Core.WORK_SWITCH.getBooleanValue()) {
             Configs.Core.WORK_SWITCH.setBooleanValue(false);
         }

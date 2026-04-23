@@ -28,33 +28,49 @@ public class ClientPlayerTickManager {
     private static int packetTick;
     @Getter
     private static long currentHandlerTime;
+    private static String lastPauseReason;
 
     public static final ImmutableList<ClientPlayerTickHandler> VALUES = ImmutableList.of(
             GUI, PRINT, FILL, FLUID, MINE, BEDROCK
     );
 
     public static void tick() {
+        boolean openHandler = isOpenHandler;
+        boolean switchingItem = switchItem();
+        boolean interactionBusy = InteractionUtils.INSTANCE.isNeedHandle();
         // 本次TICK共享部分预先检查
-        if (isOpenHandler || switchItem() || InteractionUtils.INSTANCE.isNeedHandle()) {
+        if (openHandler || switchingItem || interactionBusy) {
+            pause("shared_precheck openHandler=" + openHandler + " switchingItem=" + switchingItem + " interactionBusy=" + interactionBusy);
             return;
         }
         if (ActionManager.INSTANCE.sendQueue(mc.player).needWaitModifyLook) {
+            pause("send_queue_wait_modify_look");
             return;
         }
         if (Configs.Core.LAG_CHECK.getBooleanValue()) {
             if (packetTick > Configs.Core.LAG_CHECK_MAX.getIntegerValue()) {
+                pause("lag_check packetTick=" + packetTick + " max=" + Configs.Core.LAG_CHECK_MAX.getIntegerValue());
                 return;
             }
             packetTick++;
         }
+        resume();
         for (ClientPlayerTickHandler handler : VALUES) {
             if (!(handler instanceof GuiHandler)) {
+                openHandler = isOpenHandler;
+                switchingItem = switchItem();
+                interactionBusy = InteractionUtils.INSTANCE.isNeedHandle();
                 // 同TICK不同处理程序进行二次迭代检查, 避免独立的处理程序修改了内容没有及时跳出导致出现资源抢占问题
-                if (isOpenHandler || switchItem() || InteractionUtils.INSTANCE.isNeedHandle()) {
+                if (openHandler || switchingItem || interactionBusy) {
+                    pause("handler_precheck handler=" + handler.getId()
+                            + " openHandler=" + openHandler
+                            + " switchingItem=" + switchingItem
+                            + " interactionBusy=" + interactionBusy);
                     return;
                 }
                 // 有任务需要修改视角强制退出
                 if (ActionManager.INSTANCE.needWaitModifyLook) {
+                    pause("action_wait_modify_look handler=" + handler.getId());
                     return;
                 }
             }
@@ -64,5 +80,19 @@ public class ClientPlayerTickManager {
 
     public static void updateTickHandlerTime() {
         currentHandlerTime++;
+    }
+
+    private static void pause(String reason) {
+        if (!reason.equals(lastPauseReason)) {
+            MineDebugLog.write("scheduler pause reason=" + reason + " packetTick=" + packetTick);
+            lastPauseReason = reason;
+        }
+    }
+
+    private static void resume() {
+        if (lastPauseReason != null) {
+            MineDebugLog.write("scheduler resume after=" + lastPauseReason + " packetTick=" + packetTick);
+            lastPauseReason = null;
+        }
     }
 }
