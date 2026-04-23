@@ -78,11 +78,7 @@ public class MineHandler extends ClientPlayerTickHandler {
     @Override
     protected boolean executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         BlockBreakResult result = InteractionUtils.INSTANCE.continueDestroyBlock(blockPos);
-        if (result == BlockBreakResult.IN_PROGRESS || result == BlockBreakResult.COMPLETED_WAIT) {
-            this.setBlockPosCooldown(blockPos, 1);
-        } else if (result == BlockBreakResult.COMPLETED) {
-            this.setBlockPosCooldown(blockPos, getBreakCooldown());
-        }
+        this.setBlockPosCooldown(blockPos, getBreakCooldown());
         if (result == BlockBreakResult.IN_PROGRESS || result == BlockBreakResult.COMPLETED_WAIT) {
             skipIteration.set(true);    // 本 TICK 退出剩下位置迭代
         }
