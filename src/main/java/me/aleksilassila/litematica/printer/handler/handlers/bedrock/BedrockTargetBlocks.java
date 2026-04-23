@@ -11,7 +11,11 @@ public final class BedrockTargetBlocks {
         if (state.isAir()) {
             return false;
         }
-        if (state.is(Blocks.BEDROCK) || state.is(Blocks.OBSIDIAN) || state.is(Blocks.CRYING_OBSIDIAN)) {
+        if (state.is(Blocks.BEDROCK)
+                || state.is(Blocks.OBSIDIAN)
+                || state.is(Blocks.CRYING_OBSIDIAN)
+                || state.is(Blocks.END_PORTAL_FRAME)
+                || state.is(Blocks.END_PORTAL)) {
             return true;
         }
         //#if MC > 12004
