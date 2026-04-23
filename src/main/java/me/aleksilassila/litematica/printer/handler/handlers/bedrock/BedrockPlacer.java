@@ -35,6 +35,7 @@ public final class BedrockPlacer {
         }
         rememberLook(player);
         NetworkUtils.sendLookPacket(player, new PlayerLook(clickedFace.getOpposite()));
+        syncLocalLook(player, player.getYRot(), player.getXRot());
         // Use center of the support block for more reliable interaction
         BlockHitResult hitResult = new BlockHitResult(Vec3.atCenterOf(supportPos), clickedFace, supportPos, false);
         placeBlockAggressively(player, hitResult);
@@ -61,6 +62,7 @@ public final class BedrockPlacer {
         float pitch = facing == Direction.DOWN ? -90.0F : 90.0F;
         rememberLook(player);
         NetworkUtils.sendLookPacket(player, yaw, pitch);
+        syncLocalLook(player, yaw, pitch);
 
         // Crucial fix: Click the block BELOW the piston (the bedrock) to ensure we are clicking a solid surface.
         // Clicking the pistonPos itself (which is air/moving_piston) often fails on servers.
@@ -94,7 +96,14 @@ public final class BedrockPlacer {
         lastPitch = player.getXRot();
     }
 
+    private static void syncLocalLook(LocalPlayer player, float yaw, float pitch) {
+        player.setYRot(yaw);
+        player.setYHeadRot(yaw);
+        player.setXRot(pitch);
+    }
+
     private static void restoreLook(LocalPlayer player) {
+        syncLocalLook(player, lastYaw, lastPitch);
         NetworkUtils.sendLookPacket(player, lastYaw, lastPitch);
     }
 }
