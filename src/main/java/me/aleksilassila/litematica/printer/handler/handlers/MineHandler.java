@@ -22,6 +22,8 @@ import static fi.dy.masa.tweakeroo.tweaks.PlacementTweaks.BLOCK_TYPE_BREAK_RESTR
 
 public class MineHandler extends ClientPlayerTickHandler {
     public final static String NAME = "mine";
+    private BlockPos currentBreakPos;
+    private boolean skipMainIteration;
 
     public MineHandler() {
         super(NAME, PrintModeType.MINE, Configs.Core.MINE, Configs.Mine.MINE_SELECTION_TYPE, true);
@@ -77,11 +79,48 @@ public class MineHandler extends ClientPlayerTickHandler {
 
     @Override
     protected boolean executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
-        BlockBreakResult result = InteractionUtils.INSTANCE.continueDestroyBlock(blockPos);
-        this.setBlockPosCooldown(blockPos, getBreakCooldown());
-        if (result == BlockBreakResult.IN_PROGRESS || result == BlockBreakResult.COMPLETED_WAIT) {
-            skipIteration.set(true);    // 本 TICK 退出剩下位置迭代
+        BlockBreakResult result = InteractionUtils.INSTANCE.continueDestroyBlockWithoutTracking(blockPos);
+        this.handleBreakResult(blockPos, result);
+        if (result == BlockBreakResult.IN_PROGRESS) {
+            skipIteration.set(true);
         }
         return result != BlockBreakResult.FAILED;
+    }
+
+    @Override
+    protected void preprocess() {
+        this.skipMainIteration = false;
+        if (this.currentBreakPos == null || this.level == null) {
+            return;
+        }
+        if (!InteractionUtils.canBreakBlock(this.currentBreakPos) || !mineRestriction(this.level.getBlockState(this.currentBreakPos))) {
+            this.currentBreakPos = null;
+            return;
+        }
+        BlockBreakResult result = InteractionUtils.INSTANCE.continueDestroyBlockWithoutTracking(this.currentBreakPos);
+        this.handleBreakResult(this.currentBreakPos, result);
+        if (result == BlockBreakResult.IN_PROGRESS) {
+            this.skipMainIteration = true;
+        }
+    }
+
+    @Override
+    protected boolean canIterate() {
+        return !this.skipMainIteration;
+    }
+
+    private void handleBreakResult(BlockPos blockPos, BlockBreakResult result) {
+        if (result == BlockBreakResult.IN_PROGRESS) {
+            this.currentBreakPos = blockPos;
+            return;
+        }
+        if (this.currentBreakPos != null && this.currentBreakPos.equals(blockPos)) {
+            this.currentBreakPos = null;
+        }
+        if (result == BlockBreakResult.COMPLETED) {
+            this.setBlockPosCooldown(blockPos, getBreakCooldown());
+        } else if (result == BlockBreakResult.COMPLETED_WAIT) {
+            this.setBlockPosCooldown(blockPos, 2);
+        }
     }
 }

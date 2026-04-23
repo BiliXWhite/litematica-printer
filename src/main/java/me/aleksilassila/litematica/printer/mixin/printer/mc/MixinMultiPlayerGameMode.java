@@ -44,12 +44,6 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
     @Shadow
     @Final
     private Minecraft minecraft;
-    @Unique
-    private float delayedDestroyProgress;
-    @Unique
-    private BlockPos delayedDestroyPos;
-    @Unique
-    private boolean hasDelayedDestroy;
 
     @Shadow
     public abstract boolean destroyBlock(final BlockPos pos);
@@ -70,17 +64,6 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
 
     @Inject(at = @At("HEAD"), method = "tick")
     public void tick(CallbackInfo ci) {
-        if (this.hasDelayedDestroy) {
-            BlockState blockState = minecraft.level.getBlockState(this.delayedDestroyPos);
-            if (blockState.isAir()) {
-                this.hasDelayedDestroy = false;
-                return;
-            }
-            this.delayedDestroyProgress = this.delayedDestroyProgress + blockState.getDestroyProgress(minecraft.player, minecraft.level, this.delayedDestroyPos);
-            if (this.delayedDestroyProgress >= 1.0F) {
-                this.hasDelayedDestroy = false;
-            }
-        }
     }
 
     @Override
@@ -149,7 +132,6 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
             NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
             return BlockBreakResult.COMPLETED;
         }
-        boolean useDelayedDestroy = Configs.Break.BREAK_USE_DELAYED_DESTROY.getBooleanValue();
         BlockState blockState = level.getBlockState(blockPos);
         boolean isAir = blockState.isAir();
         if (isAir) {
@@ -168,10 +150,6 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
             } else {
                 return BlockBreakResult.COMPLETED_WAIT;
             }
-        }
-
-        if (this.hasDelayedDestroy && blockPos.equals(this.delayedDestroyPos)) {
-            return BlockBreakResult.COMPLETED;
         }
         if (this.sameDestroyTarget(blockPos)) {
             if (blockState.isAir()) {
@@ -192,17 +170,6 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
                     level.destroyBlockProgress(player.getId(), this.destroyBlockPos, this.litematica_printer$getDestroyStage());
                 }
                 return BlockBreakResult.COMPLETED;
-            }
-            if (useDelayedDestroy){
-                if (this.hasDelayedDestroy) {
-                    return BlockBreakResult.IN_PROGRESS;
-                }
-                this.isDestroying = false;
-                this.destroyProgress = 0.0F;
-                NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
-                if (localPrediction) {
-                    level.destroyBlockProgress(player.getId(), this.destroyBlockPos, this.litematica_printer$getDestroyStage());
-                }
             }
             return BlockBreakResult.IN_PROGRESS;
 
@@ -230,15 +197,14 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
                     level.destroyBlockProgress(player.getId(), this.destroyBlockPos, this.litematica_printer$getDestroyStage());
                 }
                 NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
-                if (!this.hasDelayedDestroy && useDelayedDestroy) {
-                    this.setDelayedDestroyBlock();
-                    NetworkUtils.sendPacket(sequence -> {
-                        if (localPrediction) {
-                            this.destroyBlock(this.delayedDestroyPos);
-                        }
-                        return litematica_printer$getServerboundPlayerActionPacket(Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence);
-                    });
-                    return BlockBreakResult.COMPLETED;
+                if (Configs.Break.BREAK_USE_DELAYED_DESTROY.getBooleanValue()) {
+                    this.isDestroying = false;
+                    this.destroyProgress = 0.0F;
+                    NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
+                    if (localPrediction) {
+                        level.destroyBlockProgress(player.getId(), this.destroyBlockPos, -1);
+                    }
+                    return BlockBreakResult.COMPLETED_WAIT;
                 }
             }
             if (destroyProgress >= 1.0F) {
@@ -248,15 +214,5 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
             }
         }
         return BlockBreakResult.FAILED;
-    }
-
-
-    @Unique
-    public void setDelayedDestroyBlock() {
-        this.hasDelayedDestroy = true;
-        this.delayedDestroyPos = destroyBlockPos;
-        this.delayedDestroyProgress = destroyProgress;
-        this.isDestroying = false;
-        this.destroyProgress = 0.0F;
     }
 }
