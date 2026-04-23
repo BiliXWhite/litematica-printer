@@ -5,37 +5,17 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.piston.PistonBaseBlock;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 public final class BedrockDebugLog {
     private static final Path LOG_PATH = Minecraft.getInstance().gameDirectory.toPath().resolve("logs").resolve("bedrock-printer-debug.log");
-    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     private BedrockDebugLog() {
     }
 
     public static synchronized void write(String message) {
-        if (!me.aleksilassila.litematica.printer.config.Configs.Core.DEBUG_OUTPUT.getBooleanValue()) {
-            return;
-        }
-
-        try {
-            Files.createDirectories(LOG_PATH.getParent());
-            Files.writeString(
-                    LOG_PATH,
-                    "[" + LocalDateTime.now().format(TIME_FORMAT) + "] " + message + System.lineSeparator(),
-                    StandardCharsets.UTF_8,
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.APPEND
-            );
-        } catch (IOException ignored) {
-        }
+        return;
     }
 
     public static Path getLogPath() {

@@ -372,13 +372,6 @@ public class BedrockTarget {
             return;
         }
         
-        // Fast-track transition: If we just initialized and placed everything, 
-        // give it 1 tick to 'settle' then force status to EXTENDED to trigger the break.
-        if (this.status == Status.UNINITIALIZED && this.tickTimes > 0) {
-             this.status = Status.EXTENDED;
-             return;
-        }
-
         if (!BedrockEnvironment.isTorchSupportUsable(level, this.torchSupportPos)) {
             if (BedrockEnvironment.isSlimeSupportUsable(level, this.slimePos)) {
                 if (!level.getBlockState(this.slimePos).is(Blocks.SLIME_BLOCK)) {

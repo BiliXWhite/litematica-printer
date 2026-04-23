@@ -31,14 +31,6 @@ public class BedrockHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    protected int getMaxTotalIterationsPerTick() {
-        // Sparse bedrock layouts suffer badly when sharing the global scan cap because most
-        // scanned positions are misses. Scan the whole interaction box every tick and let the
-        // controller perform the real throttling.
-        return -1;
-    }
-
-    @Override
     protected boolean canExecute() {
         if (player.isCreative()) {
             MessageUtils.setOverlayMessage("创造模式无法使用破基岩模式！");
