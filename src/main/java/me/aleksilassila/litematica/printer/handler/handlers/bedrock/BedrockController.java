@@ -76,6 +76,7 @@ public final class BedrockController {
         Set<BedrockTarget> processedTargets = new LinkedHashSet<>();
         executeBudget = processTargets(level, executeBudget, true, processedTargets);
         executeBudget = processTargets(level, executeBudget, false, processedTargets);
+        executeBudget = processTargets(level, executeBudget, true, processedTargets);
         
         if (executeBudget < initialExecuteBudget) {
             scheduleNextExecuteWindow();

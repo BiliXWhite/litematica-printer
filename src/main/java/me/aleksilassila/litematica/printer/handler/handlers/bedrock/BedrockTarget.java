@@ -12,6 +12,7 @@ import java.util.Set;
 
 public class BedrockTarget {
     private static final int REPOWER_INTERVAL_TICKS = 2;
+    private static final int POWERED_STALL_RECOVERY_TICKS = 2;
     private static final int POST_EXECUTE_SYNC_TIMEOUT_TICKS = 10;
 
     public enum Status {
@@ -158,36 +159,60 @@ public class BedrockTarget {
                         + " tick=" + this.tickTimes);
             }
             case UNEXTENDED_WITHOUT_POWER_SOURCE -> {
-                if (!BedrockInventory.hasAtLeast(Blocks.REDSTONE_TORCH.asItem(), 1)) {
-                    BedrockDebugLog.write("target repower deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
-                            + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
-                            + " tick=" + this.tickTimes
-                            + " reason=missing_redstone_torch");
+                if (!tryRepowerTorch("missing_power_source")) {
                     break;
                 }
+            }
+            case UNEXTENDED_WITH_POWER_SOURCE -> {
+                if (this.tickTimes < POWERED_STALL_RECOVERY_TICKS) {
+                    BedrockDebugLog.write("target powered stall waiting bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                            + " tick=" + this.tickTimes
+                            + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos));
+                    break;
+                }
+                if (!BedrockInventory.hasAtLeast(Blocks.PISTON.asItem(), 1)) {
+                    BedrockDebugLog.write("target powered stall deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                            + " tick=" + this.tickTimes
+                            + " reason=missing_piston");
+                    break;
+                }
+                if (!hasOwnedTorchPowerSource()) {
+                    if (!tryRepowerTorch("owned_torch_missing")) {
+                        break;
+                    }
+                    break;
+                }
+
                 if (this.lastRepowerTick >= 0 && this.tickTimes - this.lastRepowerTick < REPOWER_INTERVAL_TICKS) {
-                    BedrockDebugLog.write("target repower delayed bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
-                            + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
+                    BedrockDebugLog.write("target powered stall delayed bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                             + " tick=" + this.tickTimes
                             + " cooldown=" + REPOWER_INTERVAL_TICKS);
                     break;
                 }
-                if (this.torchSupportPos != null) {
-                    if (!BedrockPlacer.placeSimple(this.torchSupportPos, Direction.UP, Blocks.REDSTONE_TORCH.asItem())) {
-                        BedrockDebugLog.write("target repower deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
-                                + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
-                                + " tick=" + this.tickTimes
-                                + " reason=place_torch_failed");
-                        break;
-                    }
-                    recordTemp(this.torchSupportPos.above());
+
+                for (BlockPos torchPos : getOwnedTorchPositions()) {
+                    BedrockBreaker.breakBlock(torchPos, !this.conservativeSync);
                 }
+                if (!level.getBlockState(this.pistonPos).isAir()) {
+                    BedrockBreaker.breakBlock(this.pistonPos, !this.conservativeSync);
+                }
+                if (!BedrockPlacer.placePiston(this.pistonPos, Direction.UP)) {
+                    BedrockDebugLog.write("target powered stall deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                            + " tick=" + this.tickTimes
+                            + " reason=replace_piston_failed");
+                    break;
+                }
+                if (!tryRepowerTorch("powered_stall_rebuild")) {
+                    break;
+                }
+
                 this.lastRepowerTick = this.tickTimes;
-                BedrockDebugLog.write("target repower bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                BedrockDebugLog.write("target powered stall rebuild bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                        + " piston=" + BedrockDebugLog.pos(this.pistonPos)
                         + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
                         + " tick=" + this.tickTimes);
             }
-            case RETRACTED, FAILED, STUCK, NEEDS_WAITING, RETRACTING, UNEXTENDED_WITH_POWER_SOURCE -> {
+            case RETRACTED, FAILED, STUCK, NEEDS_WAITING, RETRACTING -> {
             }
         }
         return this.status;
@@ -272,6 +297,51 @@ public class BedrockTarget {
                 && !BedrockInventory.hasAtLeast(Blocks.SLIME_BLOCK.asItem(), 1)) {
             return false;
         }
+        return true;
+    }
+
+    private boolean hasOwnedTorchPowerSource() {
+        return !getOwnedTorchPositions().isEmpty();
+    }
+
+    private boolean tryRepowerTorch(String reason) {
+        if (!BedrockInventory.hasAtLeast(Blocks.REDSTONE_TORCH.asItem(), 1)) {
+            BedrockDebugLog.write("target repower deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                    + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
+                    + " tick=" + this.tickTimes
+                    + " reason=missing_redstone_torch"
+                    + " context=" + reason);
+            return false;
+        }
+        if (this.lastRepowerTick >= 0 && this.tickTimes - this.lastRepowerTick < REPOWER_INTERVAL_TICKS) {
+            BedrockDebugLog.write("target repower delayed bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                    + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
+                    + " tick=" + this.tickTimes
+                    + " cooldown=" + REPOWER_INTERVAL_TICKS
+                    + " context=" + reason);
+            return false;
+        }
+        if (this.torchSupportPos == null) {
+            BedrockDebugLog.write("target repower deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                    + " tick=" + this.tickTimes
+                    + " reason=no_torch_support"
+                    + " context=" + reason);
+            return false;
+        }
+        if (!BedrockPlacer.placeSimple(this.torchSupportPos, Direction.UP, Blocks.REDSTONE_TORCH.asItem())) {
+            BedrockDebugLog.write("target repower deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                    + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
+                    + " tick=" + this.tickTimes
+                    + " reason=place_torch_failed"
+                    + " context=" + reason);
+            return false;
+        }
+        recordTemp(this.torchSupportPos.above());
+        this.lastRepowerTick = this.tickTimes;
+        BedrockDebugLog.write("target repower bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
+                + " tick=" + this.tickTimes
+                + " context=" + reason);
         return true;
     }
 
@@ -390,7 +460,7 @@ public class BedrockTarget {
         }
         if (level.getBlockState(this.pistonPos).is(Blocks.PISTON)
                 && !level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)
-                && !BedrockEnvironment.findNearbyRedstoneTorches(this.level, this.pistonPos).isEmpty()
+                && hasOwnedTorchPowerSource()
                 && BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
             if (level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == Direction.DOWN) {
                 this.status = Status.STUCK;
@@ -404,7 +474,7 @@ public class BedrockTarget {
         if (level.getBlockState(this.pistonPos).is(Blocks.PISTON)
                 && !level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)
                 && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == Direction.UP
-                && BedrockEnvironment.findNearbyRedstoneTorches(this.level, this.pistonPos).isEmpty()
+                && !hasOwnedTorchPowerSource()
                 && BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
             this.status = Status.UNEXTENDED_WITHOUT_POWER_SOURCE;
             return;
@@ -450,7 +520,7 @@ public class BedrockTarget {
         }
         if (level.getBlockState(this.pistonPos).is(Blocks.PISTON)
                 && !level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)
-                && !BedrockEnvironment.findNearbyRedstoneTorches(this.level, this.pistonPos).isEmpty()
+                && hasOwnedTorchPowerSource()
                 && BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
             if (level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == Direction.DOWN) {
                 return Status.STUCK;
@@ -460,7 +530,7 @@ public class BedrockTarget {
         if (level.getBlockState(this.pistonPos).is(Blocks.PISTON)
                 && !level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)
                 && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == Direction.UP
-                && BedrockEnvironment.findNearbyRedstoneTorches(this.level, this.pistonPos).isEmpty()
+                && !hasOwnedTorchPowerSource()
                 && BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
             return Status.UNEXTENDED_WITHOUT_POWER_SOURCE;
         }
