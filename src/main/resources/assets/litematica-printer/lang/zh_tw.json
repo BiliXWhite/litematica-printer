@@ -4,6 +4,8 @@
   "litematica-printer.config.autoInventory.desc": "在伺服器允許的情況下自動開啟遠程容器互動功能，反之則自動關閉",
   "litematica-printer.config.bedrock": "破基岩",
   "litematica-printer.config.bedrock.desc": "調用BedrockMiner模組實現基岩挖掘，未安裝該模組則此功能不可用。",
+  "litematica-printer.config.bedrockWhitelist": "額外目標白名單",
+  "litematica-printer.config.bedrockWhitelist.desc": "額外允許進入破基岩狀態機的方塊列表。\n可輸入方塊ID或當前語言的翻譯名稱，範例：§bminecraft:obsidian§r §b黑曜石§r。\n前綴新增§b#§r表示標籤匹配，範例：§l#minecraft:dragon_immune§r。\n同時輸入文字和過濾條件(英文逗號分隔)，範例：§l深板岩,c§r。\n其中「c」表示包含匹配，優先嘗試拼音或直接匹配。",
   "litematica-printer.config.breakBlacklist": "自訂黑名單",
   "litematica-printer.config.breakBlacklist.desc": "禁止挖掘此列表中的方塊。\n可輸入物品ID或當前語言的翻譯名稱，範例：§bminecraft:stone§r §b砂岩§r。\n前綴新增§b#§r表示標籤匹配，範例：§l#minecraft:logs§r。\n同時輸入文字和過濾條件(英文逗號分隔)，範例：§l帶釉陶瓦,c§r。\n其中「c」表示包含匹配，優先嘗試拼音或直接匹配。",
   "litematica-printer.config.breakBlocksPerTick": "每刻破壞方塊數",

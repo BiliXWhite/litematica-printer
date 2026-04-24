@@ -78,6 +78,7 @@ public class ConfigUi extends GuiConfigsBase {
         CORE(I18n.of("category.core")),
         PLACEMENT(I18n.of("category.placement")),
         BREAK(I18n.of("category.break")),
+        BEDROCK(I18n.of("category.bedrock")),
         HOTKEYS(I18n.of("category.hotkeys")),
         PRINT(I18n.of("category.print")),
         EXCAVATE(I18n.of("category.mine")),
@@ -103,6 +104,7 @@ public class ConfigUi extends GuiConfigsBase {
                 case CORE -> Configs.Core.OPTIONS;
                 case PLACEMENT -> Configs.Placement.OPTIONS;
                 case BREAK -> Configs.Break.OPTIONS;
+                case BEDROCK -> Configs.Bedrock.OPTIONS;
                 case PRINT -> Configs.Print.OPTIONS;
                 case EXCAVATE -> Configs.Mine.OPTIONS;
                 case FILL -> Configs.Fill.OPTIONS;

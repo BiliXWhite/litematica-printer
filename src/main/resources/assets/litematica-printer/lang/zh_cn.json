@@ -16,6 +16,8 @@
   "litematica-printer.config.bedrockInterval.desc": "破基岩任务全局间隔时间(单位为游戏刻)。\n当间隔>0且每刻破坏数量=1时，进入严格串行：A完成并回收后等待间隔，再开始B。\n设为0则无间隔。",
   "litematica-printer.config.bedrockBlocksPerTick": "每刻破基岩方块数",
   "litematica-printer.config.bedrockBlocksPerTick.desc": "每次执行破基岩操作时可处理的基岩方块数量上限。",
+  "litematica-printer.config.bedrockWhitelist": "额外目标白名单",
+  "litematica-printer.config.bedrockWhitelist.desc": "额外允许进入破基岩状态机的方块列表。\n可输入方块ID或当前语言的翻译名称，示例：§bminecraft:obsidian§r §b黑曜石§r。\n前缀添加§b#§r表示标签匹配，示例：§l#minecraft:dragon_immune§r。\n同时输入文本和过滤条件(英文逗号分隔)，示例：§l深板岩,c§r。\n其中“c”表示包含匹配，优先尝试拼音或直接匹配。",
   "litematica-printer.config.breakInstantOnSameTick": "即时挖掘 (同Tick判定)",
   "litematica-printer.config.breakInstantOnSameTick.desc": "当挖掘进度超过 50% 时，尝试在同一个 Tick 内完成破坏，显著提升即时挖掘的响应速度。",
   "litematica-printer.config.breakInterval": "破坏间隔时间",

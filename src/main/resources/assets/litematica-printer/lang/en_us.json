@@ -16,6 +16,8 @@
   "litematica-printer.config.bedrockInterval.desc": "Global interval for bedrock tasks (in game ticks).\nWhen interval > 0 and tasks-per-tick is 1, bedrock runs in strict serial mode: finish+cleanup A, wait interval, then start B.\nSet to 0 for no interval.",
   "litematica-printer.config.bedrockBlocksPerTick": "Bedrock Tasks Per Tick",
   "litematica-printer.config.bedrockBlocksPerTick.desc": "Maximum number of bedrock blocks processed per tick.",
+  "litematica-printer.config.bedrockWhitelist": "Extra Target Whitelist",
+  "litematica-printer.config.bedrockWhitelist.desc": "Additional blocks allowed into the bedrock-breaking state machine.\nCan input block ID or translated name in current language, example: §bminecraft:obsidian§r §bobsidian§r.\nPrefix §b#§r for tag matching, example: §l#minecraft:dragon_immune§r.\nInput text and filter conditions simultaneously (separated by English comma), example: §ldeepslate,c§r.\nWhere \"c\" represents contains matching, prioritizing pinyin or direct matching.",
   "litematica-printer.config.breakInstantOnSameTick": "Instant Mine (Same Tick)",
   "litematica-printer.config.breakInstantOnSameTick.desc": "When mining progress exceeds 50%, attempt to complete destruction in the same Tick, improving instant mining response speed.",
   "litematica-printer.config.breakInterval": "Breaking Interval Time",

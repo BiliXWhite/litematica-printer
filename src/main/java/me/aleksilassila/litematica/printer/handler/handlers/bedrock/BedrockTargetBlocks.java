@@ -1,5 +1,7 @@
 package me.aleksilassila.litematica.printer.handler.handlers.bedrock;
 
+import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.utils.FilterUtils;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -23,6 +25,11 @@ public final class BedrockTargetBlocks {
             return true;
         }
         //#endif
+        for (String rule : Configs.Bedrock.BEDROCK_WHITELIST.getStrings()) {
+            if (FilterUtils.matchBlockName(rule, state)) {
+                return true;
+            }
+        }
         return false;
     }
 

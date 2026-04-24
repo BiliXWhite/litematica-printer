@@ -4,6 +4,8 @@
   "litematica-printer.config.autoInventory.desc": "若伺服器允隔空交互，則自啟乾坤挪移之術；否則自斂其能。",
   "litematica-printer.config.bedrock": "破基巖",
   "litematica-printer.config.bedrock.desc": "藉BedrockMiner妙法鑿穿基巖。若未修此術，則不可用。",
+  "litematica-printer.config.bedrockWhitelist": "額外允採冊",
+  "litematica-printer.config.bedrockWhitelist.desc": "額外允入破基巖機巧之方塊冊。\n可入方塊ID或今語譯名，例：§bminecraft:obsidian§r §b黑曜石§r。\n前加§b#§r則為標籤配，例：§l#minecraft:dragon_immune§r。\n亦可兼入文字與濾則（以逗號隔），例：§l深板岩,c§r。\n其中「c」謂含配，先試拼音或直配。",
   "litematica-printer.config.breakBlacklist": "自定禁採冊",
   "litematica-printer.config.breakBlacklist.desc": "禁採此冊所列之石。\n可入石之ID或今語譯名，例：§bminecraft:stone§r §b砂巖§r。\n前加§b#§r則為標籤配，例：§l#minecraft:logs§r。\n亦可兼入文字與濾則（以逗號隔），例：§l帶釉陶瓦,c§r。\n其中「c」謂含配，先試拼音或直配。",
   "litematica-printer.config.breakBlocksPerTick": "每刻破石數",

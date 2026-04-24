@@ -62,6 +62,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         optionSet.addAll(Mine.OPTIONS);           // 挖掘
         optionSet.addAll(Fill.OPTIONS);           // 填充
         optionSet.addAll(Fluid.OPTIONS);          // 排流体
+        optionSet.addAll(Bedrock.OPTIONS);        // 破基岩
         OPTIONS = ImmutableList.copyOf(optionSet);
 
         List<IHotkey> hotkeys = new ArrayList<>();
@@ -341,16 +342,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .range(0, 64)
                 .build();
 
-        public static final ConfigInteger BEDROCK_INTERVAL = integer("bedrockInterval")
-                .defaultValue(0)
-                .range(0, 20)
-                .build();
-
-        public static final ConfigInteger BEDROCK_BLOCKS_PER_TICK = integer("bedrockBlocksPerTick")
-                .defaultValue(1)
-                .range(1, 6)
-                .build();
-
         public static final ConfigBoolean BREAK_CHECK_HARDNESS = bool("breakCheckHardness")
                 .defaultValue(true)
                 .build();
@@ -388,8 +379,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 BREAK_INTERVAL,
                 BREAK_BLOCKS_PER_TICK,
                 BREAK_COOLDOWN,
-                BEDROCK_INTERVAL,
-                BEDROCK_BLOCKS_PER_TICK,
                 BREAK_PROGRESS_THRESHOLD,
                 BREAK_INSTANT_MINE,
                 // 限制器
@@ -397,6 +386,27 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 BREAK_LIMIT,
                 BREAK_WHITELIST,
                 BREAK_BLACKLIST
+        );
+    }
+
+    public static class Bedrock {
+        public static final ConfigInteger BEDROCK_INTERVAL = integer("bedrockInterval")
+                .defaultValue(0)
+                .range(0, 20)
+                .build();
+
+        public static final ConfigInteger BEDROCK_BLOCKS_PER_TICK = integer("bedrockBlocksPerTick")
+                .defaultValue(1)
+                .range(1, 6)
+                .build();
+
+        public static final ConfigStringList BEDROCK_WHITELIST = stringList("bedrockWhitelist")
+                .build();
+
+        public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
+                BEDROCK_INTERVAL,
+                BEDROCK_BLOCKS_PER_TICK,
+                BEDROCK_WHITELIST
         );
     }
 

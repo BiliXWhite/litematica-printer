@@ -201,7 +201,7 @@ public final class BedrockController {
         if (now < nextExecuteTick) {
             return 0;
         }
-        int budget = Configs.Break.BEDROCK_BLOCKS_PER_TICK.getIntegerValue();
+        int budget = Configs.Bedrock.BEDROCK_BLOCKS_PER_TICK.getIntegerValue();
         return budget <= 0 ? 64 : budget;
     }
 
@@ -330,7 +330,7 @@ public final class BedrockController {
     }
 
     private static int getActiveTargetCap() {
-        int executeBudget = Configs.Break.BEDROCK_BLOCKS_PER_TICK.getIntegerValue();
+        int executeBudget = Configs.Bedrock.BEDROCK_BLOCKS_PER_TICK.getIntegerValue();
         if (executeBudget <= 0) {
             executeBudget = 64;
         }
@@ -438,7 +438,7 @@ public final class BedrockController {
     }
 
     private static void scheduleNextExecuteWindow() {
-        int interval = Math.max(0, Configs.Break.BEDROCK_INTERVAL.getIntegerValue());
+        int interval = Math.max(0, Configs.Bedrock.BEDROCK_INTERVAL.getIntegerValue());
         if (interval <= 0) {
             return;
         }
