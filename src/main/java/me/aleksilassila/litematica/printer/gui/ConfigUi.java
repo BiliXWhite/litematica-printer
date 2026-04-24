@@ -78,12 +78,12 @@ public class ConfigUi extends GuiConfigsBase {
         CORE(I18n.of("category.core")),
         PLACEMENT(I18n.of("category.placement")),
         BREAK(I18n.of("category.break")),
-        BEDROCK(I18n.of("category.bedrock")),
         HOTKEYS(I18n.of("category.hotkeys")),
         PRINT(I18n.of("category.print")),
         EXCAVATE(I18n.of("category.mine")),
         FILL(I18n.of("category.fill")),
-        FLUID(I18n.of("category.fluid"));
+        FLUID(I18n.of("category.fluid")),
+        BEDROCK(I18n.of("category.bedrock"));
 
         private final I18n i18n;
 
