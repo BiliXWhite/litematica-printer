@@ -36,7 +36,8 @@ public class InteractionUtils {
     public static final Minecraft client = Minecraft.getInstance();
     public static final InteractionUtils INSTANCE = new InteractionUtils();
 
-    private final Queue<BlockPos> breakQueue = new LinkedList<>();
+    private final Deque<BlockPos> breakQueue = new ArrayDeque<>();
+    private final Set<BlockPos> queuedBreakPositions = new HashSet<>();
     private BlockPos breakPos;
 
     private InteractionUtils() {
@@ -87,7 +88,12 @@ public class InteractionUtils {
 
     public void add(BlockPos pos) {
         if (pos == null) return;
-        breakQueue.add(pos);
+        if (pos.equals(breakPos)) {
+            return;
+        }
+        if (queuedBreakPositions.add(pos)) {
+            breakQueue.addLast(pos);
+        }
     }
 
     public void add(SchematicBlockContext ctx) {
@@ -99,6 +105,9 @@ public class InteractionUtils {
         if (!ConfigUtils.isEnable()) {
             if (!breakQueue.isEmpty()) {
                 breakQueue.clear();
+            }
+            if (!queuedBreakPositions.isEmpty()) {
+                queuedBreakPositions.clear();
             }
             if (breakPos != null) {
                 breakPos = null;
@@ -119,29 +128,38 @@ public class InteractionUtils {
         if (breakPos == null && breakQueue.isEmpty()) {
             return;
         }
-        if (breakPos == null) {
-            while (!breakQueue.isEmpty()) {
-                BlockPos pos = breakQueue.poll();
-                if (pos == null) {
-                    continue;
+        while (true) {
+            if (breakPos != null) {
+                if (continueDestroyBlock(breakPos, Direction.DOWN) == BlockBreakResult.IN_PROGRESS) {
+                    return;
                 }
-                if (!ConfigUtils.canInteracted(pos) || !canBreakBlock(pos) || !breakRestriction(level.getBlockState(pos))) {
-                    continue;
-                }
-                if (ModLoadUtils.isTweakerooLoaded()) {
-                    if (TweakerooUtils.isToolSwitchEnabled()) {
-                        TweakerooUtils.trySwitchToEffectiveTool(pos);
-                    }
-                }
-                if (continueDestroyBlock(pos, Direction.DOWN) == BlockBreakResult.IN_PROGRESS) {
-                    breakPos = pos;
-                    break;
-                }
+                breakPos = null;
             }
-        } else if (continueDestroyBlock(breakPos, Direction.DOWN) != BlockBreakResult.IN_PROGRESS) {
-            breakPos = null;
-            onTick();
+
+            BlockPos pos = pollNextBreakPos();
+            if (pos == null) {
+                return;
+            }
+            if (!ConfigUtils.canInteracted(pos) || !canBreakBlock(pos) || !breakRestriction(level.getBlockState(pos))) {
+                continue;
+            }
+            if (ModLoadUtils.isTweakerooLoaded() && TweakerooUtils.isToolSwitchEnabled()) {
+                TweakerooUtils.trySwitchToEffectiveTool(pos);
+            }
+            if (continueDestroyBlock(pos, Direction.DOWN) == BlockBreakResult.IN_PROGRESS) {
+                breakPos = pos;
+                return;
+            }
         }
+    }
+
+    @Nullable
+    private BlockPos pollNextBreakPos() {
+        BlockPos pos = breakQueue.pollFirst();
+        if (pos != null) {
+            queuedBreakPositions.remove(pos);
+        }
+        return pos;
     }
 
     public BlockBreakResult continueDestroyBlock(final BlockPos blockPos, Direction direction, boolean localPrediction) {
