@@ -77,6 +77,16 @@ public class FluidHandler extends ClientPlayerTickHandler {
     }
 
     @Override
+    protected boolean shouldPauseForInventoryActivity() {
+        return true;
+    }
+
+    @Override
+    protected boolean shouldPauseForActionQueue() {
+        return true;
+    }
+
+    @Override
     protected boolean executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         FluidState fluidState = level.getBlockState(blockPos).getFluidState();
         if (fluids.contains(fluidState.getType())) {

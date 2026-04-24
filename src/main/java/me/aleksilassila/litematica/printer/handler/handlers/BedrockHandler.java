@@ -51,6 +51,11 @@ public class BedrockHandler extends ClientPlayerTickHandler {
     }
 
     @Override
+    protected boolean shouldPauseForInventoryActivity() {
+        return true;
+    }
+
+    @Override
     public boolean canIterationBlockPos(BlockPos pos) {
         if (level == null || !BedrockTargetBlocks.isTargetBlock(level.getBlockState(pos))) {
             return false;

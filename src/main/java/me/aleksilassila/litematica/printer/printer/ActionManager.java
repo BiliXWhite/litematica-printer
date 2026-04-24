@@ -123,6 +123,10 @@ public class ActionManager {
         this.actionRequiresWaitModifyLook = needWaitModifyLook;
     }
 
+    public boolean isBusy() {
+        return this.target != null || this.side != null || this.hitModifier != null || this.needWaitModifyLook;
+    }
+
     public void setShift(LocalPlayer player, boolean shift) {
         //#if MC > 12105
         Input input = new Input(player.input.keyPresses.forward(), player.input.keyPresses.backward(), player.input.keyPresses.left(), player.input.keyPresses.right(), player.input.keyPresses.jump(), shift, player.input.keyPresses.sprint());

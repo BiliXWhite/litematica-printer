@@ -174,7 +174,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                         interrupt = true;
                         break;
                     }
-                    if (this.skipIteration.get() || ActionManager.INSTANCE.needWaitModifyLook) {
+                    if (this.skipIteration.get() || this.shouldPauseForActionQueue() && ActionManager.INSTANCE.isBusy()) {
                         interrupt = true;
                         break;
                     }
@@ -322,6 +322,18 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
 
     protected boolean canIterate() {
         return true;
+    }
+
+    protected boolean shouldPauseForInventoryActivity() {
+        return false;
+    }
+
+    protected boolean shouldPauseForInteractionQueue() {
+        return false;
+    }
+
+    protected boolean shouldPauseForActionQueue() {
+        return false;
     }
 
     public boolean canIterationBlockPos(BlockPos pos) {

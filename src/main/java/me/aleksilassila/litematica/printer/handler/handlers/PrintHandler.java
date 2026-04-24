@@ -67,6 +67,16 @@ public class PrintHandler extends ClientPlayerTickHandler {
     }
 
     @Override
+    protected boolean shouldPauseForInventoryActivity() {
+        return true;
+    }
+
+    @Override
+    protected boolean shouldPauseForActionQueue() {
+        return true;
+    }
+
+    @Override
     public boolean canIterationBlockPos(BlockPos blockPos) {
         WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
         if (schematic == null) return false;

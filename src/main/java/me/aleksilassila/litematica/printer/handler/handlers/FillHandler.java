@@ -87,6 +87,16 @@ public class FillHandler extends ClientPlayerTickHandler {
     }
 
     @Override
+    protected boolean shouldPauseForInventoryActivity() {
+        return true;
+    }
+
+    @Override
+    protected boolean shouldPauseForActionQueue() {
+        return true;
+    }
+
+    @Override
     public boolean canIterationBlockPos(BlockPos blockPos) {
         if (Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FillBlockModeType.HANDHELD) {
             ItemStack heldStack = player.getMainHandItem(); // 获取主手物品

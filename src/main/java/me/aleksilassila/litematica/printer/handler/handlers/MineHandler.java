@@ -68,6 +68,11 @@ public class MineHandler extends ClientPlayerTickHandler {
     }
 
     @Override
+    protected boolean shouldPauseForInteractionQueue() {
+        return true;
+    }
+
+    @Override
     public boolean canIterationBlockPos(BlockPos pos) {
         if (isBlockPosOnCooldown(pos) || CooldownUtils.INSTANCE.isOnCooldown(level, FluidHandler.NAME, pos)) {
             return false;
@@ -78,8 +83,10 @@ public class MineHandler extends ClientPlayerTickHandler {
     @Override
     protected boolean executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         BlockBreakResult result = InteractionUtils.INSTANCE.continueDestroyBlock(blockPos);
-        this.setBlockPosCooldown(blockPos, getBreakCooldown());
-        if (result == BlockBreakResult.IN_PROGRESS || result == BlockBreakResult.COMPLETED_WAIT) {
+        if (result != BlockBreakResult.FAILED) {
+            this.setBlockPosCooldown(blockPos, getBreakCooldown());
+        }
+        if (result == BlockBreakResult.IN_PROGRESS) {
             skipIteration.set(true);    // 本 TICK 退出剩下位置迭代
         }
         return result != BlockBreakResult.FAILED;

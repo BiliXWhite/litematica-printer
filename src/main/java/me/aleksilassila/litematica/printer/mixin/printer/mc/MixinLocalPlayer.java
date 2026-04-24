@@ -83,11 +83,8 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
         InventoryUtils.tick();
         ZxyUtils.tick();
         InteractionUtils.INSTANCE.preprocess();
-        if (InteractionUtils.INSTANCE.isNeedHandle()) {
-            InteractionUtils.INSTANCE.onTick();
-        } else {
-            ClientPlayerTickManager.tick();
-        }
+        InteractionUtils.INSTANCE.onTick();
+        ClientPlayerTickManager.tick();
     }
 
     @Inject(method = "openTextEdit", at = @At("HEAD"), cancellable = true)

@@ -34,31 +34,31 @@ public class ClientPlayerTickManager {
     );
 
     public static void tick() {
-        // 本次TICK共享部分预先检查
-        if (isOpenHandler || switchItem() || InteractionUtils.INSTANCE.isNeedHandle()) {
-            return;
-        }
-        if (ActionManager.INSTANCE.sendQueue(mc.player).needWaitModifyLook) {
-            return;
-        }
         if (Configs.Core.LAG_CHECK.getBooleanValue()) {
             if (packetTick > Configs.Core.LAG_CHECK_MAX.getIntegerValue()) {
                 return;
             }
             packetTick++;
         }
+        boolean inventoryBusy = isOpenHandler || switchItem();
+        if (!inventoryBusy && mc.player != null) {
+            ActionManager.INSTANCE.sendQueue(mc.player);
+        }
         for (ClientPlayerTickHandler handler : VALUES) {
-            if (!(handler instanceof GuiHandler)) {
-                // 同TICK不同处理程序进行二次迭代检查, 避免独立的处理程序修改了内容没有及时跳出导致出现资源抢占问题
-                if (isOpenHandler || switchItem() || InteractionUtils.INSTANCE.isNeedHandle()) {
-                    return;
-                }
-                // 有任务需要修改视角强制退出
-                if (ActionManager.INSTANCE.needWaitModifyLook) {
-                    return;
-                }
+            if (handler.shouldPauseForInventoryActivity() && inventoryBusy) {
+                continue;
+            }
+            if (handler.shouldPauseForInteractionQueue() && InteractionUtils.INSTANCE.isNeedHandle()) {
+                continue;
+            }
+            if (handler.shouldPauseForActionQueue() && ActionManager.INSTANCE.isBusy()) {
+                continue;
             }
             handler.tick();
+            inventoryBusy = isOpenHandler || switchItem();
+            if (!inventoryBusy && mc.player != null) {
+                ActionManager.INSTANCE.sendQueue(mc.player);
+            }
         }
     }
 
