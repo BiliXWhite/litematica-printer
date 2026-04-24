@@ -144,17 +144,13 @@ public class InteractionUtils {
         }
     }
 
-    public BlockBreakResult continueDestroyBlock(final BlockPos blockPos, Direction direction, boolean localPrediction, boolean trackBreakPos) {
+    public BlockBreakResult continueDestroyBlock(final BlockPos blockPos, Direction direction, boolean localPrediction) {
         MultiPlayerGameModeExtension gameMode = (@Nullable MultiPlayerGameModeExtension) client.gameMode;
         BlockBreakResult result = gameMode.litematica_printer$continueDestroyBlock(localPrediction, blockPos, direction);
-        if (trackBreakPos && result == BlockBreakResult.IN_PROGRESS) {
+        if (result == BlockBreakResult.IN_PROGRESS) {
             breakPos = blockPos;
         }
         return result;
-    }
-
-    public BlockBreakResult continueDestroyBlock(final BlockPos blockPos, Direction direction, boolean localPrediction) {
-        return this.continueDestroyBlock(blockPos, direction, localPrediction, true);
     }
 
     public BlockBreakResult continueDestroyBlock(BlockPos blockPos, Direction direction) {
@@ -163,14 +159,6 @@ public class InteractionUtils {
 
     public BlockBreakResult continueDestroyBlock(BlockPos blockPos) {
         return this.continueDestroyBlock(blockPos, Direction.DOWN);
-    }
-
-    public BlockBreakResult continueDestroyBlockWithoutTracking(BlockPos blockPos, Direction direction) {
-        return this.continueDestroyBlock(blockPos, direction, !Configs.Break.BREAK_USE_PACKET.getBooleanValue(), false);
-    }
-
-    public BlockBreakResult continueDestroyBlockWithoutTracking(BlockPos blockPos) {
-        return this.continueDestroyBlockWithoutTracking(blockPos, Direction.DOWN);
     }
 
     public InteractionResult useItemOn(boolean localPrediction, InteractionHand hand, BlockHitResult blockHit) {
