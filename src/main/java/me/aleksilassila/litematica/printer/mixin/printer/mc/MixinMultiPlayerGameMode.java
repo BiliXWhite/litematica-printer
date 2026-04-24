@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
 import me.aleksilassila.litematica.printer.mixin_extension.BlockBreakResult;
 import me.aleksilassila.litematica.printer.handler.handlers.MineDebugLog;
 import me.aleksilassila.litematica.printer.utils.*;
@@ -64,6 +65,10 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
     private BlockPos litematica_printer$lastLoggedInProgressPos;
     @Unique
     private long litematica_printer$lastLoggedInProgressTick = Long.MIN_VALUE;
+    @Unique
+    private long litematica_printer$serverDrivenDestroyStartTick = Long.MIN_VALUE;
+    @Unique
+    private long litematica_printer$serverDrivenLastStopTick = Long.MIN_VALUE;
 
     // @formatter:on
 
@@ -108,6 +113,91 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
         //#endif
     }
 
+    @Unique
+    private void litematica_printer$clearServerDrivenDestroyState() {
+        this.isDestroying = false;
+        this.destroyProgress = 0.0F;
+        this.litematica_printer$serverDrivenDestroyStartTick = Long.MIN_VALUE;
+        this.litematica_printer$serverDrivenLastStopTick = Long.MIN_VALUE;
+    }
+
+    @Unique
+    private int litematica_printer$getServerDrivenTimeoutTicks(LocalPlayer player, ClientLevel level, BlockPos blockPos, BlockState blockState) {
+        float localDestroyProgress = blockState.getDestroyProgress(player, level, blockPos);
+        if (localDestroyProgress <= 0.0F) {
+            return 200;
+        }
+        int estimatedTicks = (int) Math.ceil(1.0F / localDestroyProgress);
+        return Math.max(8, Math.min(estimatedTicks + 10, 200));
+    }
+
+    @Unique
+    private BlockBreakResult litematica_printer$continueServerDrivenDestroy(LocalPlayer player, ClientLevel level, BlockPos blockPos, Direction direction, BlockState blockState) {
+        long currentTick = ClientPlayerTickManager.getCurrentHandlerTime();
+        if (this.sameDestroyTarget(blockPos)) {
+            if (blockState.isAir()) {
+                long waitedTicks = this.litematica_printer$serverDrivenDestroyStartTick == Long.MIN_VALUE
+                        ? 0
+                        : currentTick - this.litematica_printer$serverDrivenDestroyStartTick;
+                this.litematica_printer$clearServerDrivenDestroyState();
+                MineDebugLog.write("mine break completed pos=" + MineDebugLog.pos(blockPos)
+                        + " path=fast_break_server waitedTicks=" + waitedTicks);
+                return BlockBreakResult.COMPLETED;
+            }
+
+            int timeoutTicks = this.litematica_printer$getServerDrivenTimeoutTicks(player, level, blockPos, blockState);
+            if (this.litematica_printer$serverDrivenDestroyStartTick != Long.MIN_VALUE
+                    && currentTick - this.litematica_printer$serverDrivenDestroyStartTick >= timeoutTicks) {
+                NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.ABORT_DESTROY_BLOCK, blockPos, direction, sequence));
+                this.litematica_printer$clearServerDrivenDestroyState();
+                MineDebugLog.write("mine break completed_wait pos=" + MineDebugLog.pos(blockPos)
+                        + " path=fast_break_server_timeout timeoutTicks=" + timeoutTicks
+                        + " state=" + MineDebugLog.describeState(blockState));
+                return BlockBreakResult.COMPLETED_WAIT;
+            }
+
+            if (this.litematica_printer$serverDrivenLastStopTick != currentTick) {
+                NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
+                this.litematica_printer$serverDrivenLastStopTick = currentTick;
+            }
+            if (!blockPos.equals(this.litematica_printer$lastLoggedInProgressPos)
+                    || currentTick - this.litematica_printer$lastLoggedInProgressTick >= 10) {
+                long waitedTicks = this.litematica_printer$serverDrivenDestroyStartTick == Long.MIN_VALUE
+                        ? 0
+                        : currentTick - this.litematica_printer$serverDrivenDestroyStartTick;
+                MineDebugLog.write("mine break in_progress pos=" + MineDebugLog.pos(blockPos)
+                        + " path=fast_break_server waitedTicks=" + waitedTicks
+                        + " timeoutTicks=" + timeoutTicks
+                        + " state=" + MineDebugLog.describeState(blockState));
+                this.litematica_printer$lastLoggedInProgressPos = blockPos;
+                this.litematica_printer$lastLoggedInProgressTick = currentTick;
+            }
+            return BlockBreakResult.IN_PROGRESS;
+        }
+
+        if (this.isDestroying) {
+            MineDebugLog.write("mine break abort previous=" + MineDebugLog.pos(this.destroyBlockPos)
+                    + " next=" + MineDebugLog.pos(blockPos)
+                    + " path=fast_break_server_switch");
+            NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.ABORT_DESTROY_BLOCK, this.destroyBlockPos, direction, sequence));
+            this.litematica_printer$clearServerDrivenDestroyState();
+        }
+
+        this.isDestroying = true;
+        this.destroyBlockPos = blockPos;
+        this.destroyProgress = 0.0F;
+        this.destroyingItem = player.getMainHandItem();
+        this.litematica_printer$serverDrivenDestroyStartTick = currentTick;
+        this.litematica_printer$serverDrivenLastStopTick = currentTick;
+        NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
+        NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
+        MineDebugLog.write("mine break start pos=" + MineDebugLog.pos(blockPos)
+                + " path=fast_break_server"
+                + " timeoutTicks=" + this.litematica_printer$getServerDrivenTimeoutTicks(player, level, blockPos, blockState)
+                + " state=" + MineDebugLog.describeState(blockState));
+        return BlockBreakResult.IN_PROGRESS;
+    }
+
     @Override
     public BlockBreakResult litematica_printer$continueDestroyBlock(boolean localPrediction, BlockPos blockPos, Direction direction) {
         LocalPlayer player = minecraft.player;
@@ -134,17 +224,14 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
         } else {
             ensureHasSentCarriedItem();
         }
-        if (Configs.Break.FAST_BREAK.getBooleanValue()) {
-            NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
-            NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
-            MineDebugLog.write("mine break completed pos=" + MineDebugLog.pos(blockPos) + " path=fast_break");
-            return BlockBreakResult.COMPLETED;
-        }
         BlockState blockState = level.getBlockState(blockPos);
         boolean isAir = blockState.isAir();
         if (isAir) {
             MineDebugLog.write("mine break completed pos=" + MineDebugLog.pos(blockPos) + " path=air");
             return BlockBreakResult.COMPLETED;
+        }
+        if (Configs.Break.FAST_BREAK.getBooleanValue()) {
+            return this.litematica_printer$continueServerDrivenDestroy(player, level, blockPos, direction, blockState);
         }
 
         float currentDestroyProgress = blockState.getDestroyProgress(player, level, blockPos);
