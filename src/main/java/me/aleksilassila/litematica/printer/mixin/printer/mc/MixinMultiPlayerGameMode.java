@@ -2,7 +2,6 @@ package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.mixin_extension.BlockBreakResult;
-import me.aleksilassila.litematica.printer.handler.handlers.MineDebugLog;
 import me.aleksilassila.litematica.printer.utils.*;
 import me.aleksilassila.litematica.printer.mixin_extension.MultiPlayerGameModeExtension;
 import me.aleksilassila.litematica.printer.utils.minecraft.NetworkUtils;
@@ -60,10 +59,6 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
     //#else
     //$$ @Shadow public abstract InteractionResult useItemOn(LocalPlayer player,ClientLevel level, InteractionHand hand, BlockHitResult blockHitResult);
     //#endif
-    @Unique
-    private BlockPos litematica_printer$lastLoggedInProgressPos;
-    @Unique
-    private long litematica_printer$lastLoggedInProgressTick = Long.MIN_VALUE;
 
     // @formatter:on
 
@@ -114,7 +109,6 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
         ClientLevel level = minecraft.level;
         MultiPlayerGameMode gameMode = minecraft.gameMode;
         if (player == null || level == null || gameMode == null) {
-            MineDebugLog.write("mine break failed pos=" + MineDebugLog.pos(blockPos) + " reason=missing_player_or_level_or_gamemode");
             return BlockBreakResult.FAILED;
         }
         if (player.getAbilities().instabuild && level.getWorldBorder().isWithinBounds(blockPos)) {
@@ -124,7 +118,6 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
                 }
                 return litematica_printer$getServerboundPlayerActionPacket(Action.START_DESTROY_BLOCK, blockPos, direction, sequence);
             });
-            MineDebugLog.write("mine break completed pos=" + MineDebugLog.pos(blockPos) + " path=instabuild");
             return BlockBreakResult.COMPLETED;
         }
         if (ModLoadUtils.isTweakerooLoaded()) {
@@ -137,13 +130,11 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
         if (Configs.Break.FAST_BREAK.getBooleanValue()) {
             NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
             NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
-            MineDebugLog.write("mine break completed pos=" + MineDebugLog.pos(blockPos) + " path=fast_break");
             return BlockBreakResult.COMPLETED;
         }
         BlockState blockState = level.getBlockState(blockPos);
         boolean isAir = blockState.isAir();
         if (isAir) {
-            MineDebugLog.write("mine break completed pos=" + MineDebugLog.pos(blockPos) + " path=air");
             return BlockBreakResult.COMPLETED;
         }
 
@@ -155,19 +146,14 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
             NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
             NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
             if (currentDestroyProgress > 0.6F) {
-                MineDebugLog.write("mine break completed pos=" + MineDebugLog.pos(blockPos)
-                        + " path=instant_progress localProgress=" + currentDestroyProgress);
                 return BlockBreakResult.COMPLETED;
             } else {
-                MineDebugLog.write("mine break completed_wait pos=" + MineDebugLog.pos(blockPos)
-                        + " path=instant_progress localProgress=" + currentDestroyProgress);
                 return BlockBreakResult.COMPLETED_WAIT;
             }
         }
         if (this.sameDestroyTarget(blockPos)) {
             if (blockState.isAir()) {
                 this.isDestroying = false;
-                MineDebugLog.write("mine break completed pos=" + MineDebugLog.pos(blockPos) + " path=same_target_became_air");
                 return BlockBreakResult.COMPLETED;
             }
             this.destroyProgress = this.destroyProgress + blockState.getDestroyProgress(player, level, blockPos);
@@ -183,26 +169,12 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
                 if (localPrediction) {
                     level.destroyBlockProgress(player.getId(), this.destroyBlockPos, this.litematica_printer$getDestroyStage());
                 }
-                MineDebugLog.write("mine break completed pos=" + MineDebugLog.pos(blockPos)
-                        + " path=same_target_threshold destroyProgress=" + this.destroyProgress
-                        + " threshold=" + ConfigUtils.getBreakProgressThreshold());
                 return BlockBreakResult.COMPLETED;
-            }
-            long currentTick = me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager.getCurrentHandlerTime();
-            if (!blockPos.equals(this.litematica_printer$lastLoggedInProgressPos)
-                    || currentTick - this.litematica_printer$lastLoggedInProgressTick >= 10) {
-                MineDebugLog.write("mine break in_progress pos=" + MineDebugLog.pos(blockPos)
-                        + " path=same_target destroyProgress=" + this.destroyProgress
-                        + " threshold=" + ConfigUtils.getBreakProgressThreshold());
-                this.litematica_printer$lastLoggedInProgressPos = blockPos;
-                this.litematica_printer$lastLoggedInProgressTick = currentTick;
             }
             return BlockBreakResult.IN_PROGRESS;
 
         } else if (!this.isDestroying || !this.sameDestroyTarget(blockPos)) {
             if (this.isDestroying) {
-                MineDebugLog.write("mine break abort previous=" + MineDebugLog.pos(this.destroyBlockPos)
-                        + " next=" + MineDebugLog.pos(blockPos));
                 NetworkUtils.sendPacket(litematica_printer$getServerboundPlayerActionPacket(Action.ABORT_DESTROY_BLOCK, this.destroyBlockPos, direction, 0));
             }
             if (this.destroyProgress == 0.0F) {
@@ -216,8 +188,6 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
                     destroyBlock(blockPos);
                 }
                 NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
-                MineDebugLog.write("mine break completed pos=" + MineDebugLog.pos(blockPos)
-                        + " path=start_only destroyProgress=" + destroyProgress);
             } else {
                 this.isDestroying = true;
                 this.destroyBlockPos = blockPos;
@@ -234,14 +204,8 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
                     if (localPrediction) {
                         level.destroyBlockProgress(player.getId(), this.destroyBlockPos, -1);
                     }
-                    MineDebugLog.write("mine break completed_wait pos=" + MineDebugLog.pos(blockPos)
-                            + " path=delayed_destroy destroyProgress=" + destroyProgress);
                     return BlockBreakResult.COMPLETED_WAIT;
                 }
-                MineDebugLog.write("mine break start pos=" + MineDebugLog.pos(blockPos)
-                        + " path=new_target destroyProgress=" + destroyProgress
-                        + " localPrediction=" + localPrediction
-                        + " state=" + MineDebugLog.describeState(blockState));
             }
             if (destroyProgress >= 1.0F) {
                 return BlockBreakResult.COMPLETED;
@@ -249,7 +213,6 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
                 return BlockBreakResult.IN_PROGRESS;
             }
         }
-        MineDebugLog.write("mine break failed pos=" + MineDebugLog.pos(blockPos) + " reason=fell_through_state_machine");
         return BlockBreakResult.FAILED;
     }
 }

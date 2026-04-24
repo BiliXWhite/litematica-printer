@@ -4,7 +4,6 @@ import fi.dy.masa.malilib.interfaces.IInitializationHandler;
 import me.aleksilassila.litematica.printer.gui.ConfigUi;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
-import me.aleksilassila.litematica.printer.handler.handlers.MineDebugLog;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.handler.handlers.bedrock.BedrockController;
 import me.aleksilassila.litematica.printer.printer.zxy.utils.HighlightBlockRenderer;
@@ -51,7 +50,6 @@ public class InitHandler implements IInitializationHandler {
         // 工作开关
         Core.WORK_SWITCH.setValueChangeCallback(b -> {
             if (!b.getBooleanValue()) {
-                MineDebugLog.reset();
                 ActionManager.INSTANCE.clearQueue();
                 BedrockController.reset();
                 if (ModLoadUtils.isBedrockMinerLoaded() || ModLoadUtils.isBlockMinerLoaded()) {

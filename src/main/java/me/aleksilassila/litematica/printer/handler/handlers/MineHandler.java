@@ -6,7 +6,6 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.ExcavateListMode;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
-import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
 import me.aleksilassila.litematica.printer.utils.CooldownUtils;
 import me.aleksilassila.litematica.printer.mixin_extension.BlockBreakResult;
 import me.aleksilassila.litematica.printer.utils.FilterUtils;
@@ -25,8 +24,6 @@ public class MineHandler extends ClientPlayerTickHandler {
     public final static String NAME = "mine";
     private BlockPos currentBreakPos;
     private boolean skipMainIteration;
-    private BlockPos lastInProgressLogPos;
-    private long lastInProgressLogTick = Long.MIN_VALUE;
 
     public MineHandler() {
         super(NAME, PrintModeType.MINE, Configs.Core.MINE, Configs.Mine.MINE_SELECTION_TYPE, true);
@@ -97,9 +94,6 @@ public class MineHandler extends ClientPlayerTickHandler {
             return;
         }
         if (!InteractionUtils.canBreakBlock(this.currentBreakPos) || !mineRestriction(this.level.getBlockState(this.currentBreakPos))) {
-            MineDebugLog.write("mine current target cleared pos=" + MineDebugLog.pos(this.currentBreakPos)
-                    + " reason=invalid_or_filtered"
-                    + " state=" + MineDebugLog.describeState(this.level.getBlockState(this.currentBreakPos)));
             this.currentBreakPos = null;
             return;
         }
@@ -118,34 +112,15 @@ public class MineHandler extends ClientPlayerTickHandler {
     private void handleBreakResult(BlockPos blockPos, BlockBreakResult result) {
         if (result == BlockBreakResult.IN_PROGRESS) {
             this.currentBreakPos = blockPos;
-            long currentTick = ClientPlayerTickManager.getCurrentHandlerTime();
-            if (!blockPos.equals(this.lastInProgressLogPos) || currentTick - this.lastInProgressLogTick >= 10) {
-                MineDebugLog.write("mine in_progress pos=" + MineDebugLog.pos(blockPos)
-                        + " breakCooldown=" + getBreakCooldown());
-                this.lastInProgressLogPos = blockPos;
-                this.lastInProgressLogTick = currentTick;
-            }
             return;
         }
-
-        if (blockPos.equals(this.lastInProgressLogPos)) {
-            this.lastInProgressLogPos = null;
-            this.lastInProgressLogTick = Long.MIN_VALUE;
-        }
-
         if (this.currentBreakPos != null && this.currentBreakPos.equals(blockPos)) {
             this.currentBreakPos = null;
         }
         if (result == BlockBreakResult.COMPLETED) {
             this.setBlockPosCooldown(blockPos, getBreakCooldown());
-            MineDebugLog.write("mine completed pos=" + MineDebugLog.pos(blockPos)
-                    + " cooldown=" + getBreakCooldown());
         } else if (result == BlockBreakResult.COMPLETED_WAIT) {
             this.setBlockPosCooldown(blockPos, 2);
-            MineDebugLog.write("mine completed_wait pos=" + MineDebugLog.pos(blockPos)
-                    + " cooldown=2");
-        } else if (result == BlockBreakResult.FAILED) {
-            MineDebugLog.write("mine failed pos=" + MineDebugLog.pos(blockPos));
         }
     }
 }
