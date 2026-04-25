@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.handler.handlers.bedrock;
 
+import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.printer.PlayerLook;
 import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import me.aleksilassila.litematica.printer.utils.minecraft.NetworkUtils;
@@ -84,10 +85,21 @@ public final class BedrockPlacer {
     }
 
     private static void placeBlockAggressively(LocalPlayer player, BlockHitResult hitResult) {
-        InteractionUtils.INSTANCE.useItemOn(false, InteractionHand.OFF_HAND, hitResult);
-        ItemStack offhand = player.getOffhandItem();
-        if (!offhand.isEmpty()) {
-            offhand.useOn(new UseOnContext(player, InteractionHand.OFF_HAND, hitResult));
+        boolean useShift = CLIENT.level != null && BedrockTargetBlocks.requiresSneakPlacement(CLIENT.level.getBlockState(hitResult.getBlockPos()));
+        boolean wasSneak = player.isShiftKeyDown();
+        if (useShift && !wasSneak) {
+            ActionManager.INSTANCE.setShift(player, true);
+        }
+        try {
+            InteractionUtils.INSTANCE.useItemOn(false, InteractionHand.OFF_HAND, hitResult);
+            ItemStack offhand = player.getOffhandItem();
+            if (!offhand.isEmpty()) {
+                offhand.useOn(new UseOnContext(player, InteractionHand.OFF_HAND, hitResult));
+            }
+        } finally {
+            if (useShift && !wasSneak) {
+                ActionManager.INSTANCE.setShift(player, false);
+            }
         }
     }
 

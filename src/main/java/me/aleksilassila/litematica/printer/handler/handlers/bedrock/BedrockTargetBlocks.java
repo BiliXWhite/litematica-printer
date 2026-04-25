@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.handler.handlers.bedrock;
 
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.interfaces.Implementation;
 import me.aleksilassila.litematica.printer.utils.FilterUtils;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -48,5 +49,9 @@ public final class BedrockTargetBlocks {
                 || state.is(Blocks.REDSTONE_TORCH)
                 || state.is(Blocks.REDSTONE_WALL_TORCH)
                 || state.is(Blocks.SLIME_BLOCK);
+    }
+
+    public static boolean requiresSneakPlacement(BlockState state) {
+        return Implementation.isInteractive(state.getBlock());
     }
 }

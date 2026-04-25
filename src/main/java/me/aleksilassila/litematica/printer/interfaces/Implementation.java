@@ -48,7 +48,10 @@ public class Implementation {
             SmokerBlock.class,              // 烟熏炉
             BlastFurnaceBlock.class,        // 高炉
             //#if MC >= 12003
-            CrafterBlock.class              // 合成器（自动合成台）
+            CrafterBlock.class,             // 合成器（自动合成台）
+            //#endif
+            //#if MC > 12004
+            VaultBlock.class                // 宝库
             //#endif
     };
 
