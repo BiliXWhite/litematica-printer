@@ -89,6 +89,10 @@ public class BedrockTarget {
         return pistonPos;
     }
 
+    public BlockPos getHeadPos() {
+        return headPos;
+    }
+
     public BlockPos getTorchSupportPos() {
         return torchSupportPos;
     }

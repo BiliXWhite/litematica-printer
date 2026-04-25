@@ -25,6 +25,9 @@ public final class BedrockEnvironment {
         if (torchPos == null) {
             return false;
         }
+        if (!isWithinBuildHeight(level, supportPos) || !isWithinBuildHeight(level, torchPos)) {
+            return false;
+        }
         boolean supportOk = clickedFace == Direction.UP
                 ? BlockUtils.canSupportCenter(level, supportPos, Direction.UP)
                 : level.getBlockState(supportPos).isFaceSturdy(level, supportPos, clickedFace);
@@ -54,12 +57,18 @@ public final class BedrockEnvironment {
             return false;
         }
         BlockPos torchPos = slimePos.above();
+        if (!isWithinBuildHeight(level, slimePos) || !isWithinBuildHeight(level, torchPos)) {
+            return false;
+        }
         return (level.getBlockState(slimePos).is(Blocks.SLIME_BLOCK) || BlockUtils.isReplaceable(level.getBlockState(slimePos)))
                 && (BlockUtils.isReplaceable(level.getBlockState(torchPos)) || isRedstoneTorch(level.getBlockState(torchPos)));
     }
 
     public static boolean isSlimePlacementUsable(ClientLevel level, BedrockTorchPlacement placement) {
         if (placement == null || placement.getSupportPos() == null || placement.getTorchPos() == null) {
+            return false;
+        }
+        if (!isWithinBuildHeight(level, placement.getSupportPos()) || !isWithinBuildHeight(level, placement.getTorchPos())) {
             return false;
         }
         BlockState supportState = level.getBlockState(placement.getSupportPos());
@@ -199,6 +208,9 @@ public final class BedrockEnvironment {
             }
             BlockPos slimePos = centerPos.relative(direction);
             BlockPos torchPos = slimePos.above();
+            if (!isWithinBuildHeight(level, slimePos) || !isWithinBuildHeight(level, torchPos)) {
+                continue;
+            }
             if (BlockUtils.isReplaceable(level.getBlockState(slimePos)) && BlockUtils.isReplaceable(level.getBlockState(torchPos))) {
                 return slimePos;
             }
@@ -212,7 +224,14 @@ public final class BedrockEnvironment {
 
     public static boolean hasRoomForPiston(ClientLevel level, BlockPos pistonPos, Direction facing) {
         BlockPos headPos = pistonPos.relative(facing);
+        if (!isWithinBuildHeight(level, pistonPos) || !isWithinBuildHeight(level, headPos)) {
+            return false;
+        }
         return BlockUtils.isReplaceable(level.getBlockState(pistonPos)) && BlockUtils.isReplaceable(level.getBlockState(headPos));
+    }
+
+    private static boolean isWithinBuildHeight(ClientLevel level, BlockPos pos) {
+        return pos.getY() >= level.getMinBuildHeight() && pos.getY() < level.getMaxBuildHeight();
     }
 
     public static List<BlockPos> findNearbyRedstoneTorches(ClientLevel level, BlockPos pistonPos) {

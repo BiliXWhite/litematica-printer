@@ -109,10 +109,13 @@ public final class BedrockController {
             return false;
         }
 
-        if (hasPendingCleanupConflict(target)) {
+        BlockPos pendingCleanupPos = findPendingCleanupConflict(target);
+        if (pendingCleanupPos != null) {
             setRetryCooldown(pos, SUBMIT_RETRY_COOLDOWN_TICKS);
             BedrockDebugLog.write("submit rejected bedrock=" + BedrockDebugLog.pos(pos)
-                    + " reason=pending_cleanup");
+                    + " reason=pending_cleanup"
+                    + " blockingPos=" + BedrockDebugLog.pos(pendingCleanupPos)
+                    + " blockingState=" + BedrockDebugLog.describeState(level.getBlockState(pendingCleanupPos)));
             return false;
         }
 
@@ -220,28 +223,32 @@ public final class BedrockController {
         return null;
     }
 
-    private static boolean hasPendingCleanupConflict(BedrockTarget candidate) {
+    private static BlockPos findPendingCleanupConflict(BedrockTarget candidate) {
         if (CLIENT.level == null) {
-            return false;
+            return null;
         }
         for (BlockPos pos : getBlockingCleanupPositions(candidate)) {
             if (pos.equals(candidate.getBedrockPos())) {
                 continue;
             }
             if (CLEANUP_QUEUE.contains(pos)) {
-                return true;
+                return pos;
             }
-            if (BedrockTargetBlocks.isCleanupResidue(CLIENT.level.getBlockState(pos))) {
-                return true;
+            var state = CLIENT.level.getBlockState(pos);
+            if (BedrockTargetBlocks.isCleanupResidue(state)) {
+                if (!isReservedByActiveTarget(pos)) {
+                    addToCleanup(pos, false);
+                }
+                return pos;
             }
         }
-        return false;
+        return null;
     }
 
     private static Set<BlockPos> getBlockingCleanupPositions(BedrockTarget candidate) {
         LinkedHashSet<BlockPos> positions = new LinkedHashSet<>();
         positions.add(candidate.getPistonPos());
-        positions.add(candidate.getPistonPos().above());
+        positions.add(candidate.getHeadPos());
         if (candidate.getTorchSupportPos() != null) {
             positions.add(candidate.getTorchSupportPos());
         }
@@ -318,7 +325,7 @@ public final class BedrockController {
                 + (reason == null ? "" : " reason=" + reason));
         iterator.remove();
         for (BlockPos tempPos : target.getCleanupPositions()) {
-            cleanupBlockOrQueue(tempPos, !target.usesConservativeSync());
+            cleanupBlockOrQueue(tempPos, false);
         }
     }
 
