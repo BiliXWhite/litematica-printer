@@ -13,7 +13,7 @@ import java.util.Set;
 public class BedrockTarget {
     private static final int REPOWER_INTERVAL_TICKS = 2;
     private static final int POWERED_STALL_RECOVERY_TICKS = 2;
-    private static final int POST_EXECUTE_SYNC_TIMEOUT_TICKS = 10;
+    private static final int POST_EXECUTE_SYNC_TIMEOUT_TICKS = 16;
 
     public enum Status {
         FAILED,
@@ -449,6 +449,11 @@ public class BedrockTarget {
             }
             return;
         }
+        if (!BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))
+                && hasMachineCleanupResidue()) {
+            this.status = Status.RETRACTED;
+            return;
+        }
         if (hasExceededSyncWaitTimeout()) {
             this.status = Status.STUCK;
             BedrockDebugLog.write("target sync timeout bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
@@ -500,6 +505,11 @@ public class BedrockTarget {
             this.stuckTicksCounter++;
             return;
         }
+        if (this.hasTried && hasPostExecuteSyncResidue()) {
+            this.status = Status.NEEDS_WAITING;
+            this.stuckTicksCounter++;
+            return;
+        }
         if (level.getBlockState(this.pistonPos).is(Blocks.PISTON)
                 && !level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)
                 && hasOwnedTorchPowerSource()
@@ -543,6 +553,10 @@ public class BedrockTarget {
         if (level.getBlockState(this.pistonPos).is(Blocks.MOVING_PISTON)) {
             return Status.RETRACTING;
         }
+        if (!BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))
+                && hasMachineCleanupResidue()) {
+            return Status.RETRACTED;
+        }
         if (hasExceededSyncWaitTimeout()) {
             return Status.STUCK;
         }
@@ -571,6 +585,9 @@ public class BedrockTarget {
             return Status.UNEXTENDED_WITHOUT_POWER_SOURCE;
         }
         if (this.hasTried && (level.getBlockState(this.pistonPos).is(Blocks.PISTON) || level.getBlockState(this.pistonPos).isAir()) && this.stuckTicksCounter < 15) {
+            return Status.NEEDS_WAITING;
+        }
+        if (this.hasTried && hasPostExecuteSyncResidue()) {
             return Status.NEEDS_WAITING;
         }
         if (level.getBlockState(this.pistonPos).is(Blocks.PISTON)
@@ -604,9 +621,22 @@ public class BedrockTarget {
         return this.hasTried
                 && this.executeTick >= 0
                 && this.tickTimes - this.executeTick >= POST_EXECUTE_SYNC_TIMEOUT_TICKS
-                && (level.getBlockState(this.pistonPos).is(Blocks.PISTON)
-                || level.getBlockState(this.pistonPos).isAir()
-                || level.getBlockState(this.pistonPos).is(Blocks.MOVING_PISTON));
+                && (level.getBlockState(this.pistonPos).isAir() || hasPostExecuteSyncResidue());
+    }
+
+    private boolean hasMachineCleanupResidue() {
+        return hasCleanupResidue(this.pistonPos)
+                || hasCleanupResidue(this.headPos)
+                || hasCleanupResidue(this.slimePos)
+                || hasCleanupResidue(getTorchPos());
+    }
+
+    private boolean hasPostExecuteSyncResidue() {
+        return hasCleanupResidue(this.pistonPos) || hasCleanupResidue(this.headPos);
+    }
+
+    private boolean hasCleanupResidue(BlockPos pos) {
+        return pos != null && BedrockTargetBlocks.isCleanupResidue(level.getBlockState(pos));
     }
 
     private boolean placeTorch() {
