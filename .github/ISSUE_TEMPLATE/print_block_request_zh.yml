@@ -1,4 +1,4 @@
-name: 打印方块请求
+name: Print Block Request ZH
 description: 请求添加新的可打印方块。
 title: "[方块请求] （将此位置【替换】为方块名称）"
 labels: ["enhancement", "block-request"]
