@@ -455,11 +455,17 @@ public class BedrockTarget {
             return;
         }
         if (hasExceededSyncWaitTimeout()) {
-            this.status = Status.STUCK;
-            BedrockDebugLog.write("target sync timeout bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
-                    + " tick=" + this.tickTimes
-                    + " executeTick=" + this.executeTick
-                    + " pistonState=" + BedrockDebugLog.describePistonState(level.getBlockState(this.pistonPos)));
+            Status recoveryStatus = getRecoverablePostExecuteStatus();
+            if (recoveryStatus != null) {
+                resetPostExecuteAttempt("sync_timeout_recover", recoveryStatus);
+                this.status = recoveryStatus;
+            } else {
+                this.status = Status.STUCK;
+                BedrockDebugLog.write("target sync timeout bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                        + " tick=" + this.tickTimes
+                        + " executeTick=" + this.executeTick
+                        + " pistonState=" + BedrockDebugLog.describePistonState(level.getBlockState(this.pistonPos)));
+            }
             return;
         }
         if (this.hasTried && level.getBlockState(this.pistonPos).isAir() && level.getBlockState(this.headPos).is(Blocks.PISTON_HEAD)) {
@@ -510,25 +516,9 @@ public class BedrockTarget {
             this.stuckTicksCounter++;
             return;
         }
-        if (level.getBlockState(this.pistonPos).is(Blocks.PISTON)
-                && !level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)
-                && hasOwnedTorchPowerSource()
-                && BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
-            if (level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == this.layout.getExecuteFacing()) {
-                this.status = Status.STUCK;
-                this.hasTried = false;
-                this.stuckTicksCounter = 0;
-            } else {
-                this.status = Status.UNEXTENDED_WITH_POWER_SOURCE;
-            }
-            return;
-        }
-        if (level.getBlockState(this.pistonPos).is(Blocks.PISTON)
-                && !level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)
-                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == this.layout.getPrimingFacing()
-                && !hasOwnedTorchPowerSource()
-                && BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
-            this.status = Status.UNEXTENDED_WITHOUT_POWER_SOURCE;
+        Status recoverableUnextendedStatus = getRecoverableUnextendedStatus();
+        if (recoverableUnextendedStatus != null) {
+            this.status = recoverableUnextendedStatus;
             return;
         }
         if (BedrockEnvironment.hasRoomForPiston(this.level, this.pistonPos, this.layout.getPistonOffset())) {
@@ -558,6 +548,10 @@ public class BedrockTarget {
             return Status.RETRACTED;
         }
         if (hasExceededSyncWaitTimeout()) {
+            Status recoveryStatus = getRecoverablePostExecuteStatus();
+            if (recoveryStatus != null) {
+                return recoveryStatus;
+            }
             return Status.STUCK;
         }
         if (this.hasTried && level.getBlockState(this.pistonPos).isAir() && level.getBlockState(this.headPos).is(Blocks.PISTON_HEAD)) {
@@ -590,21 +584,9 @@ public class BedrockTarget {
         if (this.hasTried && hasPostExecuteSyncResidue()) {
             return Status.NEEDS_WAITING;
         }
-        if (level.getBlockState(this.pistonPos).is(Blocks.PISTON)
-                && !level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)
-                && hasOwnedTorchPowerSource()
-                && BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
-            if (level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == this.layout.getExecuteFacing()) {
-                return Status.STUCK;
-            }
-            return Status.UNEXTENDED_WITH_POWER_SOURCE;
-        }
-        if (level.getBlockState(this.pistonPos).is(Blocks.PISTON)
-                && !level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)
-                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == this.layout.getPrimingFacing()
-                && !hasOwnedTorchPowerSource()
-                && BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
-            return Status.UNEXTENDED_WITHOUT_POWER_SOURCE;
+        Status recoverableUnextendedStatus = getRecoverableUnextendedStatus();
+        if (recoverableUnextendedStatus != null) {
+            return recoverableUnextendedStatus;
         }
         if (BedrockEnvironment.hasRoomForPiston(this.level, this.pistonPos, this.layout.getPistonOffset())) {
             return Status.UNINITIALIZED;
@@ -622,6 +604,43 @@ public class BedrockTarget {
                 && this.executeTick >= 0
                 && this.tickTimes - this.executeTick >= POST_EXECUTE_SYNC_TIMEOUT_TICKS
                 && (level.getBlockState(this.pistonPos).isAir() || hasPostExecuteSyncResidue());
+    }
+
+    private Status getRecoverablePostExecuteStatus() {
+        if (!this.hasTried || this.executeTick < 0) {
+            return null;
+        }
+        return getRecoverableUnextendedStatus();
+    }
+
+    private Status getRecoverableUnextendedStatus() {
+        if (!BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
+            return null;
+        }
+        if (!level.getBlockState(this.pistonPos).is(Blocks.PISTON)
+                || level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)) {
+            return null;
+        }
+
+        Direction facing = level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING);
+        if (facing != this.layout.getPrimingFacing() && facing != this.layout.getExecuteFacing()) {
+            return null;
+        }
+        if (hasOwnedTorchPowerSource()) {
+            return Status.UNEXTENDED_WITH_POWER_SOURCE;
+        }
+        return Status.UNEXTENDED_WITHOUT_POWER_SOURCE;
+    }
+
+    private void resetPostExecuteAttempt(String reason, Status recoveryStatus) {
+        this.hasTried = false;
+        this.stuckTicksCounter = 0;
+        this.executeTick = -1;
+        BedrockDebugLog.write("target recover bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                + " tick=" + this.tickTimes
+                + " status=" + recoveryStatus
+                + " reason=" + reason
+                + " pistonState=" + BedrockDebugLog.describePistonState(level.getBlockState(this.pistonPos)));
     }
 
     private boolean hasMachineCleanupResidue() {
