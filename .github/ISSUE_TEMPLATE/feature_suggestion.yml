@@ -1,0 +1,61 @@
+name: Feature Suggestion
+description: Propose new features for mods
+title: "[Suggested] (Replace this column with the suggested name)"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting new features for the mod. Please describe your idea in detail, it will help us better understand and implement it.
+        However, this mod does not accept feature integration suggestions with other mods that do not conflict.
+
+  - type: textarea
+    id: feature_description
+    attributes:
+      label: Function description
+      description: Please describe in detail what new features you want
+      placeholder: |
+        For example: 
+        - Add a shortcut key to toggle the print mode
+        - Displays the percentage of the current print progress on the interface
+    validations:
+      required: true
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Usage scenarios
+      description: Describe when this feature will be useful
+      placeholder: |
+        For example, when building a reclamation building, you need to switch between printing modes frequently, and using shortcut keys can improve efficiency
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important do you think this feature is?
+      options:
+        - Low (can take your time)
+        - Medium (more needed)
+        - High (much needed)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmation
+      options:
+        - label: I've checked the existing issue to confirm that this is not a duplicate suggestion
+          required: true
+        - label: This feature aligns with the main goals and uses of the mod
+          required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Notes
+      description: Is there anything else you'd like to add? (Optional)
+      placeholder: 'For example: refer to screenshots, examples of similar functions of other mods, etc'

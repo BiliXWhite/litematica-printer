@@ -1,0 +1,52 @@
+name: Print Block Request
+description: Request to add a new printable square.
+title: "[Block Request] ([Replace] this position with the block name)"
+labels: ["enhancement", "block-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for your request to print the squares. Please provide the details of the boxes below so we can add them to the support list. 
+        You can fill out multiple block requests without having to submit multiple issues.
+
+  - type: input
+    id: block_name
+    attributes:
+      label: Block name
+      description: Please fill in the name of the block that appears in the game
+      placeholder: "For example: oak slab"
+    validations:
+      required: true
+
+  - type: input
+    id: block_id
+    attributes:
+      label: Block namespace ID
+      description: Please fill in the full namespace ID of the square
+      placeholder: "For example: minecraft:oak_slab"
+    validations:
+      required: true
+
+  - type: textarea
+    id: block_nbt
+    attributes:
+      label: NBT Data Label
+      description: If this box requires special NBT data, please fill it in here (optional)
+      placeholder: |
+        Such as：
+        {
+          BlockState: {
+            type: "double"
+          }
+        }
+    validations:
+      required: false
+
+  - type: input
+    id: block_class
+    attributes:
+      label: Block class name (optional)
+      description: If you know the class name of this block and the inheritance class, you can fill it in here
+      placeholder: "For example: SlabBlock"
+    validations:
+      required: false
