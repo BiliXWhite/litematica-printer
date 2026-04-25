@@ -7,6 +7,7 @@ import me.aleksilassila.litematica.printer.enums.ExcavateListMode;
 import me.aleksilassila.litematica.printer.mixin_extension.BlockBreakResult;
 import me.aleksilassila.litematica.printer.mixin_extension.MultiPlayerGameModeExtension;
 import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
+import me.aleksilassila.litematica.printer.utils.minecraft.PlayerUtils;
 import me.aleksilassila.litematica.printer.utils.mods.ModLoadUtils;
 import me.aleksilassila.litematica.printer.utils.mods.TweakerooUtils;
 import net.fabricmc.api.EnvType;
@@ -18,6 +19,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -144,7 +147,7 @@ public class InteractionUtils {
                 continue;
             }
             if (ModLoadUtils.isTweakerooLoaded() && TweakerooUtils.isToolSwitchEnabled()) {
-                TweakerooUtils.trySwitchToEffectiveTool(pos);
+                switchToBestTool(player, level.getBlockState(pos));
             }
             if (continueDestroyBlock(pos, Direction.DOWN) == BlockBreakResult.IN_PROGRESS) {
                 breakPos = pos;
@@ -160,6 +163,28 @@ public class InteractionUtils {
             queuedBreakPositions.remove(pos);
         }
         return pos;
+    }
+
+    private void switchToBestTool(LocalPlayer player, BlockState blockState) {
+        Inventory inventory = player.getInventory();
+        int bestSlot = InventoryUtils.getSelectedSlot(inventory);
+        float bestSpeed = PlayerUtils.getBlockBreakingSpeed(player, blockState, player.getMainHandItem());
+
+        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+            ItemStack candidate = inventory.getItem(slot);
+            if (candidate.isEmpty()) {
+                continue;
+            }
+            float speed = PlayerUtils.getBlockBreakingSpeed(player, blockState, candidate);
+            if (speed > bestSpeed) {
+                bestSpeed = speed;
+                bestSlot = slot;
+            }
+        }
+
+        if (bestSlot != InventoryUtils.getSelectedSlot(inventory)) {
+            InventoryUtils.setPickedItemToHand(bestSlot, inventory.getItem(bestSlot), client);
+        }
     }
 
     public BlockBreakResult continueDestroyBlock(final BlockPos blockPos, Direction direction, boolean localPrediction) {

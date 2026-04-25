@@ -28,8 +28,10 @@ public class BedrockTarget {
     }
 
     private final ClientLevel level;
+    private final BedrockMachineLayout layout;
     private final BlockPos bedrockPos;
     private final BlockPos pistonPos;
+    private final BlockPos headPos;
     private final boolean conservativeSync;
     private BlockPos torchSupportPos;
     private BlockPos slimePos;
@@ -46,14 +48,24 @@ public class BedrockTarget {
     public BedrockTarget(BlockPos bedrockPos, ClientLevel level) {
         this.bedrockPos = bedrockPos;
         this.level = level;
-        this.pistonPos = bedrockPos.above();
+        this.layout = BedrockMachineLayout.find(level, bedrockPos);
+        if (this.layout == null) {
+            this.pistonPos = bedrockPos.above();
+            this.headPos = this.pistonPos.above();
+            this.status = Status.FAILED;
+            BedrockDebugLog.write("target init failed bedrock=" + BedrockDebugLog.pos(this.bedrockPos) + " reason=no_machine_layout");
+            this.conservativeSync = BedrockTargetBlocks.requiresConservativeSync(level.getBlockState(bedrockPos));
+            return;
+        }
+        this.pistonPos = this.layout.getPistonPos();
+        this.headPos = this.layout.getHeadPos();
         this.conservativeSync = BedrockTargetBlocks.requiresConservativeSync(level.getBlockState(bedrockPos));
-        this.torchSupportPos = BedrockEnvironment.findTorchSupport(level, bedrockPos);
+        this.torchSupportPos = BedrockEnvironment.findTorchSupport(level, this.pistonPos, this.layout.getPistonOffset().getOpposite());
         if (this.conservativeSync) {
             BedrockDebugLog.write("target init conservative sync bedrock=" + BedrockDebugLog.pos(this.bedrockPos));
         }
         if (this.torchSupportPos == null) {
-            this.slimePos = BedrockEnvironment.findPossibleSlimeSupport(level, bedrockPos);
+            this.slimePos = BedrockEnvironment.findPossibleSlimeSupport(level, this.pistonPos, this.layout.getPistonOffset().getOpposite());
             if (this.slimePos != null) {
                 this.torchSupportPos = this.slimePos;
                 BedrockDebugLog.write("target init reserved slime support bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
@@ -114,7 +126,7 @@ public class BedrockTarget {
                     break;
                 }
                 // Initial placement doesn't count towards the 40-tick limit until it finishes.
-                if (!BedrockPlacer.placePiston(this.pistonPos, Direction.UP)) {
+                if (!BedrockPlacer.placePiston(this.pistonPos, this.layout.getPrimingFacing())) {
                     BedrockDebugLog.write("target initialize deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                             + " reason=place_piston_failed");
                     break;
@@ -143,13 +155,13 @@ public class BedrockTarget {
                     break;
                 }
                 for (BlockPos torchPos : getOwnedTorchPositions()) {
-                    BedrockBreaker.breakBlock(torchPos, !this.conservativeSync);
+                    BedrockBreaker.breakBlock(torchPos, Direction.DOWN, !this.conservativeSync);
                 }
-                BedrockBreaker.breakBlock(this.pistonPos, !this.conservativeSync);
+                BedrockBreaker.breakBlock(this.pistonPos, this.layout.getExecuteFacing(), !this.conservativeSync);
                 for (int offset = 1; offset < 6; offset++) {
-                    recordTemp(this.pistonPos.above(offset));
+                    recordTemp(this.pistonPos.relative(this.layout.getPistonOffset(), offset));
                 }
-                BedrockPlacer.placePiston(this.pistonPos, Direction.DOWN);
+                BedrockPlacer.placePiston(this.pistonPos, this.layout.getExecuteFacing());
                 this.hasTried = true;
                 this.executeTick = this.tickTimes;
                 this.executedThisTick = true;
@@ -191,12 +203,12 @@ public class BedrockTarget {
                 }
 
                 for (BlockPos torchPos : getOwnedTorchPositions()) {
-                    BedrockBreaker.breakBlock(torchPos, !this.conservativeSync);
+                    BedrockBreaker.breakBlock(torchPos, Direction.DOWN, !this.conservativeSync);
                 }
                 if (!level.getBlockState(this.pistonPos).isAir()) {
-                    BedrockBreaker.breakBlock(this.pistonPos, !this.conservativeSync);
+                    BedrockBreaker.breakBlock(this.pistonPos, this.layout.getPrimingFacing(), !this.conservativeSync);
                 }
-                if (!BedrockPlacer.placePiston(this.pistonPos, Direction.UP)) {
+                if (!BedrockPlacer.placePiston(this.pistonPos, this.layout.getPrimingFacing())) {
                     BedrockDebugLog.write("target powered stall deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                             + " tick=" + this.tickTimes
                             + " reason=replace_piston_failed");
@@ -238,7 +250,7 @@ public class BedrockTarget {
     public Set<BlockPos> getCleanupPositions() {
         LinkedHashSet<BlockPos> positions = new LinkedHashSet<>();
         positions.add(this.pistonPos);
-        positions.add(this.pistonPos.above());
+        positions.add(this.headPos);
         if (this.slimePos != null) {
             positions.add(this.slimePos);
         }
@@ -250,7 +262,7 @@ public class BedrockTarget {
         LinkedHashSet<BlockPos> positions = new LinkedHashSet<>();
         positions.add(this.bedrockPos);
         positions.add(this.pistonPos);
-        positions.add(this.pistonPos.above());
+        positions.add(this.headPos);
         if (this.torchSupportPos != null) {
             positions.add(this.torchSupportPos);
             positions.add(this.torchSupportPos.above());
@@ -380,7 +392,7 @@ public class BedrockTarget {
                 }
                 this.torchSupportPos = this.slimePos;
             } else {
-                BlockPos naturalSupport = BedrockEnvironment.findTorchSupport(level, bedrockPos);
+                BlockPos naturalSupport = BedrockEnvironment.findTorchSupport(level, this.pistonPos, this.layout.getPistonOffset().getOpposite());
                 if (naturalSupport != null) {
                     this.torchSupportPos = naturalSupport;
                     if (this.slimePos != null && !level.getBlockState(this.slimePos).is(Blocks.SLIME_BLOCK)) {
@@ -389,7 +401,7 @@ public class BedrockTarget {
                 } else {
                     BlockPos newSlimePos = this.slimePos;
                     if (newSlimePos == null || !BedrockEnvironment.isSlimeSupportUsable(level, newSlimePos)) {
-                        newSlimePos = BedrockEnvironment.findPossibleSlimeSupport(level, bedrockPos);
+                        newSlimePos = BedrockEnvironment.findPossibleSlimeSupport(level, this.pistonPos, this.layout.getPistonOffset().getOpposite());
                     }
                     if (newSlimePos != null) {
                         this.slimePos = newSlimePos;
@@ -430,7 +442,7 @@ public class BedrockTarget {
                     + " pistonState=" + BedrockDebugLog.describePistonState(level.getBlockState(this.pistonPos)));
             return;
         }
-        if (this.hasTried && level.getBlockState(this.pistonPos).isAir() && level.getBlockState(this.pistonPos.above()).is(Blocks.PISTON_HEAD)) {
+        if (this.hasTried && level.getBlockState(this.pistonPos).isAir() && level.getBlockState(this.headPos).is(Blocks.PISTON_HEAD)) {
             this.status = Status.NEEDS_WAITING;
             this.stuckTicksCounter++;
             return;
@@ -455,7 +467,7 @@ public class BedrockTarget {
                 && !level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)
                 && hasOwnedTorchPowerSource()
                 && BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
-            if (level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == Direction.DOWN) {
+            if (level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == this.layout.getExecuteFacing()) {
                 this.status = Status.STUCK;
                 this.hasTried = false;
                 this.stuckTicksCounter = 0;
@@ -466,19 +478,19 @@ public class BedrockTarget {
         }
         if (level.getBlockState(this.pistonPos).is(Blocks.PISTON)
                 && !level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)
-                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == Direction.UP
+                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == this.layout.getPrimingFacing()
                 && !hasOwnedTorchPowerSource()
                 && BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
             this.status = Status.UNEXTENDED_WITHOUT_POWER_SOURCE;
             return;
         }
-        if (BedrockEnvironment.hasRoomForPiston(this.level, this.bedrockPos)) {
+        if (BedrockEnvironment.hasRoomForPiston(this.level, this.pistonPos, this.layout.getPistonOffset())) {
             this.status = Status.UNINITIALIZED;
             return;
         }
         if (level.getBlockState(this.pistonPos).is(Blocks.PISTON)
-                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) != Direction.UP
-                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) != Direction.DOWN) {
+                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) != this.layout.getPrimingFacing()
+                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) != this.layout.getExecuteFacing()) {
             this.status = Status.UNINITIALIZED;
             return;
         }
@@ -497,7 +509,7 @@ public class BedrockTarget {
         if (hasExceededSyncWaitTimeout()) {
             return Status.STUCK;
         }
-        if (this.hasTried && level.getBlockState(this.pistonPos).isAir() && level.getBlockState(this.pistonPos.above()).is(Blocks.PISTON_HEAD)) {
+        if (this.hasTried && level.getBlockState(this.pistonPos).isAir() && level.getBlockState(this.headPos).is(Blocks.PISTON_HEAD)) {
             return Status.NEEDS_WAITING;
         }
         if (this.hasTried
@@ -515,24 +527,24 @@ public class BedrockTarget {
                 && !level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)
                 && hasOwnedTorchPowerSource()
                 && BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
-            if (level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == Direction.DOWN) {
+            if (level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == this.layout.getExecuteFacing()) {
                 return Status.STUCK;
             }
             return Status.UNEXTENDED_WITH_POWER_SOURCE;
         }
         if (level.getBlockState(this.pistonPos).is(Blocks.PISTON)
                 && !level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)
-                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == Direction.UP
+                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == this.layout.getPrimingFacing()
                 && !hasOwnedTorchPowerSource()
                 && BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
             return Status.UNEXTENDED_WITHOUT_POWER_SOURCE;
         }
-        if (BedrockEnvironment.hasRoomForPiston(this.level, this.bedrockPos)) {
+        if (BedrockEnvironment.hasRoomForPiston(this.level, this.pistonPos, this.layout.getPistonOffset())) {
             return Status.UNINITIALIZED;
         }
         if (level.getBlockState(this.pistonPos).is(Blocks.PISTON)
-                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) != Direction.UP
-                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) != Direction.DOWN) {
+                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) != this.layout.getPrimingFacing()
+                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) != this.layout.getExecuteFacing()) {
             return Status.UNINITIALIZED;
         }
         return this.status;

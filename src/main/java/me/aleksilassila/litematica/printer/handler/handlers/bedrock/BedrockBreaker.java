@@ -15,10 +15,14 @@ public final class BedrockBreaker {
     }
 
     public static boolean breakBlock(BlockPos pos) {
-        return breakBlock(pos, true);
+        return breakBlock(pos, Direction.DOWN, true);
     }
 
     public static boolean breakBlock(BlockPos pos, boolean predictRemoval) {
+        return breakBlock(pos, Direction.DOWN, predictRemoval);
+    }
+
+    public static boolean breakBlock(BlockPos pos, Direction direction, boolean predictRemoval) {
         if (CLIENT.level == null || CLIENT.player == null) {
             BedrockDebugLog.write("break skipped pos=" + BedrockDebugLog.pos(pos) + " reason=no_level_or_player");
             return false;
@@ -40,23 +44,24 @@ public final class BedrockBreaker {
 
         BedrockDebugLog.write("break start pos=" + BedrockDebugLog.pos(pos)
                 + " state=" + BedrockDebugLog.describeState(state)
+                + " face=" + direction
                 + " predictRemoval=" + predictRemoval);
 
         if (CLIENT.gameMode instanceof MultiPlayerGameModeExtension gameModeExtension && !shouldPredictRemoval()) {
-            gameModeExtension.litematica_printer$continueDestroyBlock(false, pos, Direction.DOWN);
+            gameModeExtension.litematica_printer$continueDestroyBlock(false, pos, direction);
         }
 
         //#if MC >= 11900
         NetworkUtils.sendPacket(sequence -> new ServerboundPlayerActionPacket(
                 ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
                 pos,
-                Direction.DOWN,
+                direction,
                 sequence
         ));
         NetworkUtils.sendPacket(sequence -> new ServerboundPlayerActionPacket(
                 ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK,
                 pos,
-                Direction.DOWN,
+                direction,
                 sequence
         ));
         //#else

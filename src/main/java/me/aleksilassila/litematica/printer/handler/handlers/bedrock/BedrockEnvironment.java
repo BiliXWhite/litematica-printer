@@ -33,8 +33,15 @@ public final class BedrockEnvironment {
     }
 
     public static BlockPos findTorchSupport(ClientLevel level, BlockPos bedrockPos) {
+        return findTorchSupport(level, bedrockPos, null);
+    }
+
+    public static BlockPos findTorchSupport(ClientLevel level, BlockPos centerPos, Direction excludedAxis) {
         for (Direction direction : new Direction[]{Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH}) {
-            BlockPos support = bedrockPos.relative(direction);
+            if (excludedAxis != null && direction == excludedAxis) {
+                continue;
+            }
+            BlockPos support = centerPos.relative(direction);
             if (isTorchSupportUsable(level, support)) {
                 return support;
             }
@@ -43,8 +50,15 @@ public final class BedrockEnvironment {
     }
 
     public static BlockPos findPossibleSlimeSupport(ClientLevel level, BlockPos bedrockPos) {
+        return findPossibleSlimeSupport(level, bedrockPos, null);
+    }
+
+    public static BlockPos findPossibleSlimeSupport(ClientLevel level, BlockPos centerPos, Direction excludedAxis) {
         for (Direction direction : new Direction[]{Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH}) {
-            BlockPos slimePos = bedrockPos.relative(direction);
+            if (excludedAxis != null && direction == excludedAxis) {
+                continue;
+            }
+            BlockPos slimePos = centerPos.relative(direction);
             BlockPos torchPos = slimePos.above();
             if (BlockUtils.isReplaceable(level.getBlockState(slimePos)) && BlockUtils.isReplaceable(level.getBlockState(torchPos))) {
                 return slimePos;
@@ -54,8 +68,11 @@ public final class BedrockEnvironment {
     }
 
     public static boolean hasRoomForPiston(ClientLevel level, BlockPos bedrockPos) {
-        BlockPos pistonPos = bedrockPos.above();
-        BlockPos headPos = pistonPos.above();
+        return hasRoomForPiston(level, bedrockPos.above(), Direction.UP);
+    }
+
+    public static boolean hasRoomForPiston(ClientLevel level, BlockPos pistonPos, Direction facing) {
+        BlockPos headPos = pistonPos.relative(facing);
         return BlockUtils.isReplaceable(level.getBlockState(pistonPos)) && BlockUtils.isReplaceable(level.getBlockState(headPos));
     }
 

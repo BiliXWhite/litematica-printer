@@ -59,18 +59,15 @@ public final class BedrockPlacer {
             return false;
         }
 
-        float yaw = player.getYRot();
-        float pitch = facing == Direction.DOWN ? -90.0F : 90.0F;
+        PlayerLook look = new PlayerLook(facing);
         rememberLook(player);
-        NetworkUtils.sendLookPacket(player, yaw, pitch);
-        syncLocalLook(player, yaw, pitch);
+        NetworkUtils.sendLookPacket(player, look);
+        syncLocalLook(player, look.getYaw(), look.getPitch());
 
-        // Crucial fix: Click the block BELOW the piston (the bedrock) to ensure we are clicking a solid surface.
-        // Clicking the pistonPos itself (which is air/moving_piston) often fails on servers.
-        BlockPos clickedPos = pistonPos.below();
+        BlockPos clickedPos = pistonPos.relative(facing.getOpposite());
         BlockHitResult hitResult = new BlockHitResult(
                 Vec3.atCenterOf(clickedPos),
-                Direction.UP,
+                facing,
                 clickedPos,
                 false
         );
@@ -80,7 +77,8 @@ public final class BedrockPlacer {
         BedrockDebugLog.write("placePiston piston=" + BedrockDebugLog.pos(pistonPos)
                 + " facing=" + facing
                 + " clickedBlock=" + BedrockDebugLog.pos(clickedPos)
-                + " sentPitch=" + pitch);
+                + " sentYaw=" + look.getYaw()
+                + " sentPitch=" + look.getPitch());
         return true;
     }
 
