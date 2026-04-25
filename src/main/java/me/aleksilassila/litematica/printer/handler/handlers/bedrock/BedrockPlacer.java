@@ -59,7 +59,9 @@ public final class BedrockPlacer {
             return false;
         }
 
-        PlayerLook look = new PlayerLook(facing);
+        // Pistons face opposite to the direction the player is looking when placed.
+        // We want the resulting piston facing to match `facing`, so look at the opposite side.
+        PlayerLook look = new PlayerLook(facing.getOpposite());
         rememberLook(player);
         NetworkUtils.sendLookPacket(player, look);
         syncLocalLook(player, look.getYaw(), look.getPitch());
