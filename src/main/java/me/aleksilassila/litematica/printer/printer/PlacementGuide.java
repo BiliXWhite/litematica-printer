@@ -1,6 +1,6 @@
 package me.aleksilassila.litematica.printer.printer;
 
-import me.aleksilassila.litematica.printer.Debug;
+import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.printer.action.Action;
 import me.aleksilassila.litematica.printer.printer.action.ClickAction;
@@ -32,7 +32,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("IfCanBeSwitch")
-public class PlacementGuide extends PrinterUtils {
+public class PlacementGuide {
     @SuppressWarnings("all")
     protected static final Map<Block, Block> STRIPPED_LOGS = AxeItemAccessor.getStrippedBlocks();
     protected static List<String> compostWhitelistCache = new ArrayList<>();      // 缓存堆肥桶白名单的字符串列表（用于判断是否修改）
@@ -80,7 +80,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (BlockPosCooldownManager.INSTANCE.isOnCooldown(ctx.level, "print_water", ctx.blockPos)) {
                     return null;
                 } else {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                     BlockPosCooldownManager.INSTANCE.setCooldown(ctx.level, "print_water", ctx.blockPos, 20);
                 }
                 return null;
@@ -88,7 +88,7 @@ public class PlacementGuide extends PrinterUtils {
             if (!BlockUtils.isCorrectWaterLevel(ctx.requiredState, ctx.currentState)) {
                 if (!ctx.currentState.isAir() && !(ctx.currentState.getBlock() instanceof LiquidBlock)) {
                     if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue()) {
-                        LitematicaUtils.INSTANCE.add(ctx);
+                        BreakUtils.INSTANCE.add(ctx);
                     }
                     return null;
                 }
@@ -125,7 +125,7 @@ public class PlacementGuide extends PrinterUtils {
                 return new Action().setSides(lookDirection).setRequiresSupport();
             }
             case SLAB -> {
-                Map<Direction, Vec3> slabSides = getSlabSides(ctx.level, ctx.blockPos, ctx.requiredState.getValue(SlabBlock.TYPE));
+                Map<Direction, Vec3> slabSides = BlockUtils.getSlabSides(ctx.level, ctx.blockPos, ctx.requiredState.getValue(SlabBlock.TYPE));
                 return new Action().setSides(slabSides);
             }
             case STAIR -> {
@@ -185,11 +185,11 @@ public class PlacementGuide extends PrinterUtils {
                 Direction facing = frontAndTop.front().getOpposite();
                 Direction rotation = frontAndTop.top().getOpposite();
                 if (facing == Direction.UP) {
-                    return new Action().setLookDirection(rotation, Direction.UP);
+                    return new Action().setLookDirection(rotation, Direction.UP).setNeedWaitModifyLook(true);
                 } else if (facing == Direction.DOWN) {
-                    return new Action().setLookDirection(rotation.getOpposite(), Direction.DOWN);
+                    return new Action().setLookDirection(rotation.getOpposite(), Direction.DOWN).setNeedWaitModifyLook(true);
                 } else {
-                    return new Action().setLookDirection(facing, facing);
+                    return new Action().setLookDirection(facing, facing).setNeedWaitModifyLook(true);
                 }
             }
             //#endif
@@ -295,7 +295,7 @@ public class PlacementGuide extends PrinterUtils {
             case VINES, GLOW_LICHEN -> {
                 for (Direction direction : Direction.values()) {
                     if (direction == Direction.DOWN && ctx.requiredState.getBlock() == Blocks.VINE) continue;
-                    if ((Boolean) getPropertyByName(ctx.requiredState, direction.name())) {
+                    if ((Boolean) BlockUtils.getPropertyByName(ctx.requiredState, direction.name())) {
                         return new Action().setSides(direction);
                     }
                 }
@@ -331,51 +331,43 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
                 for (Direction direction : Direction.values()) {
                     if (direction == Direction.DOWN) continue;
-                    if ((Boolean) getPropertyByName(ctx.requiredState, direction.name())) {
+                    if ((Boolean) BlockUtils.getPropertyByName(ctx.requiredState, direction.name())) {
                         return new Action().setSides(direction).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
                     }
                 }
                 return new Action().setSides(Direction.DOWN).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
             }
             case OBSERVER -> {
-                @Nullable Direction facing = ctx.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
+                @Nullable
+                Direction facing = ctx.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
                 if (facing == null) {
                     return null;
                 }
-                SchematicBlockContext input = ctx.offset(facing);                    // 输入端(侦测面)
-                SchematicBlockContext output = ctx.offset(facing.getOpposite());     // 输出端(红点面)
-                if (Configs.Print.SAFELY_OBSERVER.getBooleanValue()) {        // 安全放置
 
-                    // 获取输入端方块属性
+                SchematicBlockContext input = ctx.offset(facing);
+                SchematicBlockContext output = ctx.offset(facing.getOpposite());
+
+                if (Configs.Print.SAFELY_OBSERVER.getBooleanValue()) {
                     List<Property<?>> inputPropertiesToIgnore = new ArrayList<>();
-                    // 如果是侦测面是墙, 忽略侦测面墙方向属性
                     if (input.requiredState.getBlock() instanceof WallBlock) {
-                        BlockUtils.getWallFacingProperty(facing.getOpposite()).ifPresent(inputPropertiesToIgnore::add);
+                        BlockUtils.getWallFacingProperty(facing.getOpposite())
+                                .ifPresent(inputPropertiesToIgnore::add);
                     }
-                    // 如果是侦测面是墙, 忽略侦测面墙方向属性
                     if (output.requiredState.getBlock() instanceof CrossCollisionBlock) {
-                        BlockUtils.getCrossCollisionBlock(facing.getOpposite()).ifPresent(inputPropertiesToIgnore::add);
+                        BlockUtils.getCrossCollisionBlock(facing.getOpposite())
+                                .ifPresent(inputPropertiesToIgnore::add);
                     }
 
-                    // 输入端与输出端放置状态一致情况下
                     BlockPrintState inputState = BlockPrintState.get(input, inputPropertiesToIgnore.toArray(new Property<?>[0]));
                     BlockPrintState outputState = BlockPrintState.get(output);
+
                     if (inputState == BlockPrintState.CORRECT && outputState == BlockPrintState.CORRECT) {
-                        // 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
-                        SchematicBlockContext temp = input;
-                        while (temp.requiredState.getBlock() instanceof ObserverBlock) {
-                            @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
-                            // 查找下一个侦测器并检查并检查状态是否正确
-                            SchematicBlockContext offset = temp.offset(tempObserverFacing);
-                            if (tempObserverFacing != null && BlockPrintState.get(offset) != BlockPrintState.CORRECT) {
-                                return null;
-                            }
-                            // 传递检查
-                            temp = offset;
+                        if (BlockUtils.checkObserverChain(input)) {
+                            return new Action().setLookDirection(facing).setNeedWaitModifyLook(true);
                         }
-                        return new Action().setLookDirection(facing);
+                        return null;
                     }
-                    // 输入端已放置成功，并状态一致
+
                     if (inputState == BlockPrintState.CORRECT) {
                         SchematicBlockContext temp = input;
                         while (temp.requiredState.getBlock() instanceof FallingBlock) {
@@ -385,49 +377,43 @@ public class PlacementGuide extends PrinterUtils {
                             }
                             temp = offset;
                         }
-                        if (!output.requiredState.isAir()) {
-                            // 检查输入端方块是侦测器的情况同时是侦测链, 查找源头状态
-                            temp = input;
-                            while (temp.requiredState.getBlock() instanceof ObserverBlock) {
-                                @Nullable Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
-                                // 查找下一个侦测器并检查并检查状态是否正确
-                                SchematicBlockContext offset = temp.offset(tempObserverFacing);
-                                if (tempObserverFacing != null && BlockPrintState.get(offset) != BlockPrintState.CORRECT) {
-                                    return null;
-                                }
-                                // 传递检查
-                                temp = offset;
+
+                        if (!output.requiredState.isAir() && !BlockUtils.checkObserverChain(input)) {
+                            return null;
+                        }
+
+                        for (Direction d : Direction.values()) {
+                            SchematicBlockContext offset = output.offset(d);
+                            if (offset.blockPos.equals(output.blockPos) || offset.blockPos.equals(input.blockPos) || offset.blockPos.equals(ctx.blockPos)) {
+                                continue;
+                            }
+                            if (offset.requiredState.getBlock() instanceof PistonBaseBlock && !offset.currentState.isAir()) {
+                                return null;
                             }
                         }
 
-                        // 侦测器隔空激活活塞
-                        for (Direction direction : Direction.values()) {
-                            SchematicBlockContext offset = output.offset(direction);
-                            if (offset.blockPos.equals(output.blockPos)) {
-                                continue;
-                            }
-                            if (offset.blockPos.equals(input.blockPos)) {
-                                continue;
-                            }
-                            if (offset.blockPos.equals(ctx.blockPos)) {
-                                continue;
-                            }
-                            if (offset.requiredState.getBlock() instanceof PistonBaseBlock) {
-                                if (!offset.currentState.isAir()) {
-                                    return null;
-                                }
-                            }
-                        }
-
-                    } else if (inputState == BlockPrintState.ERROR_BLOCK_STATE) {  // 方块类型相同，但方块状态不一致
+                    } else if (inputState == BlockPrintState.ERROR_BLOCK_STATE) {
                         return null;
                     } else {
                         if (!output.requiredState.isAir()) {
+                            if (output.currentState.isAir() && input.requiredState.getBlock() instanceof WallBlock) {
+                                BlockPosCooldownManager.INSTANCE.setCooldown(ctx.level, "observer", ctx.blockPos, 2);
+                                return new Action().setLookDirection(facing).setNeedWaitModifyLook(true);
+                            }
                             return null;
+                        } else {
+                            // 检查是否被其他侦测器侦测
+                            if (BlockUtils.checkObserverChain(input)) {
+                                return new Action().setLookDirection(facing).setNeedWaitModifyLook(true);
+                            }
+                            if (!BlockUtils.checkObserverChain(output)) {
+                                return null;
+                            }
                         }
                     }
                 }
-                return new Action().setLookDirection(facing);
+
+                return new Action().setLookDirection(facing).setNeedWaitModifyLook(true);
             }
             case LADDER -> {
                 Direction facing = ctx.requiredState.getValue(LadderBlock.FACING);
@@ -508,7 +494,7 @@ public class PlacementGuide extends PrinterUtils {
                     }
 
                 }
-                return new Action().setLookDirection(facing.getOpposite());
+                return new Action().setLookDirection(facing.getOpposite()).setNeedWaitModifyLook();
             }
             case SIGN -> {
                 Block signBlock = ctx.requiredState.getBlock();
@@ -659,6 +645,8 @@ public class PlacementGuide extends PrinterUtils {
                         if (ctx.requiredState.getBlock() instanceof BarrelBlock)
                             action.setNeedWaitModifyLook();
                         action.setSides(facing).setLookDirection(facing.getOpposite());
+                        if (block instanceof DispenserBlock)
+                            action.setNeedWaitModifyLook();
                     }
                 }
                 //方块型珊瑚的替换
@@ -691,7 +679,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new Action().setSides(requiredHalf);
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case SNOW -> {
@@ -703,7 +691,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setItem(Items.SNOW).setSides(sides);
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case DOOR, TRAPDOOR -> {
@@ -715,7 +703,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction();
                 }
                 if (printBreakWrongStateBlock && ctx.requiredState.getValue(DoorBlock.FACING) != ctx.currentState.getValue(DoorBlock.FACING)) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case FENCE_GATE -> {
@@ -726,7 +714,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setSides(facing.getOpposite()).setLookDirection(facing);
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case LEVER -> {
@@ -734,7 +722,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction();
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case CANDLES -> {
@@ -748,7 +736,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction();
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case PICKLES -> {
@@ -756,7 +744,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setItem(Items.SEA_PICKLE);
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case REPEATER -> {
@@ -767,7 +755,7 @@ public class PlacementGuide extends PrinterUtils {
                         ctx.requiredState.getValue(RepeaterBlock.POWERED) == ctx.currentState.getValue(RepeaterBlock.POWERED) &&
                         ctx.requiredState.getValue(RepeaterBlock.LOCKED) == ctx.currentState.getValue(RepeaterBlock.LOCKED)
                 ) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case COMPARATOR -> {
@@ -806,7 +794,7 @@ public class PlacementGuide extends PrinterUtils {
                             }
                         }
                     }
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case CROPS -> {
@@ -837,7 +825,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE);
                 }
                 if (printBreakWrongStateBlock && ctx.requiredState.getValue(CampfireBlock.FACING) != ctx.currentState.getValue(CampfireBlock.FACING)) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case END_PORTAL_FRAME -> {
@@ -845,7 +833,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setItem(Items.ENDER_EYE);
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             //#if MC >= 11904
@@ -854,7 +842,7 @@ public class PlacementGuide extends PrinterUtils {
                     return new ClickAction().setItem(ctx.requiredState.getBlock().asItem());
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             //#endif
@@ -877,12 +865,12 @@ public class PlacementGuide extends PrinterUtils {
             case VINES, GLOW_LICHEN -> {
                 for (Direction direction : Direction.values()) {
                     if (direction == Direction.DOWN) continue;
-                    if ((Boolean) getPropertyByName(ctx.requiredState, direction.name())) {
+                    if ((Boolean) BlockUtils.getPropertyByName(ctx.requiredState, direction.name())) {
                         return new Action().setSides(direction).setLookDirection(direction);
                     }
                 }
                 if (printBreakWrongStateBlock) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case CAULDRON -> {
@@ -890,16 +878,14 @@ public class PlacementGuide extends PrinterUtils {
                     if (InventoryUtils.playerHasAccessToItem(mc.player, Items.GLASS_BOTTLE)) {
                         return new ClickAction().setItem(Items.GLASS_BOTTLE);
                     } else {
-                        //TODO: 未I18n
-                        MessageUtils.setOverlayMessage(Component.nullToEmpty("降低炼药锅内水位需要 §l§6" + getNameFromItem(Items.GLASS_BOTTLE)), false);
+                        MessageUtils.setOverlayMessage(I18n.BREWINGSTAND_LOWER.getName(getNameFromItem(Items.GLASS_BOTTLE)));
                     }
                 }
                 if (ctx.currentState.getValue(LayeredCauldronBlock.LEVEL) < ctx.requiredState.getValue(LayeredCauldronBlock.LEVEL))
                     if (InventoryUtils.playerHasAccessToItem(mc.player, Items.POTION)) {
                         return new ClickAction().setItem(Items.POTION);
                     } else {
-                        //TODO: 未I18n
-                        MessageUtils.setOverlayMessage(Component.nullToEmpty("增加炼药锅内水位需要 §l§6" + getNameFromItem(Items.GLASS_BOTTLE)), false);
+                        MessageUtils.setOverlayMessage(I18n.BREWINGSTAND_RAISE.getName(getNameFromItem(Items.GLASS_BOTTLE)));
                     }
             }
             case DAYLIGHT_DETECTOR -> {
@@ -914,7 +900,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (ctx.requiredState.getBlock() instanceof SoulFireBlock) return null;
                 for (Direction direction : Direction.values()) {
                     if (direction == Direction.DOWN) continue;
-                    if ((Boolean) getPropertyByName(ctx.requiredState, direction.name())) {
+                    if ((Boolean) BlockUtils.getPropertyByName(ctx.requiredState, direction.name())) {
                         return new Action().setSides(direction).setItems(Items.FLINT_AND_STEEL, Items.FIRE_CHARGE).setRequiresSupport();
                     }
                 }
@@ -933,7 +919,7 @@ public class PlacementGuide extends PrinterUtils {
                     List<Item> whitelistItems = new ArrayList<>();
                     for (Item item : Reference.COMPOSTABLE_ITEMS) {
                         for (String rule : whitelist) {
-                            if (LitematicaUtils.matchName(rule, new ItemStack(item))) {
+                            if (PinYinSearchUtils.matchName(rule, new ItemStack(item))) {
                                 whitelistItems.add(item);
                                 break;
                             }
@@ -950,7 +936,7 @@ public class PlacementGuide extends PrinterUtils {
                 if (printBreakWrongStateBlock &&
                         (ctx.requiredState.getValue(StairBlock.FACING) != ctx.currentState.getValue(StairBlock.FACING) ||
                                 ctx.requiredState.getValue(StairBlock.HALF) != ctx.currentState.getValue(StairBlock.HALF))) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case DEFAULT -> {
@@ -961,7 +947,7 @@ public class PlacementGuide extends PrinterUtils {
                                 PressurePlateBlock.class,
                         };
                 if (printBreakWrongStateBlock && !Arrays.asList(ignored).contains(ctx.requiredState.getBlock().getClass())) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
         }
@@ -999,8 +985,8 @@ public class PlacementGuide extends PrinterUtils {
                 if (Arrays.asList(requiredType.classes).contains(ctx.currentState.getBlock().getClass())) {
                     return null;
                 }
-                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && LitematicaUtils.canBreakBlock(ctx.blockPos)) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && BreakUtils.canBreakBlock(ctx.blockPos)) {
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             case STRIP_LOG -> {
@@ -1010,7 +996,7 @@ public class PlacementGuide extends PrinterUtils {
                 }
             }
             case SIGN -> {
-                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && LitematicaUtils.canBreakBlock(ctx.blockPos)) {
+                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && BreakUtils.canBreakBlock(ctx.blockPos)) {
                     boolean isLegitimateSign = ctx.currentState.getBlock() instanceof StandingSignBlock
                             || ctx.currentState.getBlock() instanceof WallSignBlock
                             //#if MC >= 12002
@@ -1019,7 +1005,7 @@ public class PlacementGuide extends PrinterUtils {
                             //#endif
                             ;
                     if (!isLegitimateSign) {
-                        LitematicaUtils.INSTANCE.add(ctx);
+                        BreakUtils.INSTANCE.add(ctx);
                     }
                 }
             }
@@ -1027,9 +1013,9 @@ public class PlacementGuide extends PrinterUtils {
                 String requiredBlockKey = BlockUtils.getKeyString(ctx.requiredState.getBlock());
                 String currentBlockKey = BlockUtils.getKeyString(ctx.currentState.getBlock());
                 if (requiredBlockKey.contains("pumpkin_stem") && !currentBlockKey.contains("pumpkin_stem")) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 } else if (requiredBlockKey.contains("melon_stem") && !currentBlockKey.contains("melon_stem")) {
-                    LitematicaUtils.INSTANCE.add(ctx);
+                    BreakUtils.INSTANCE.add(ctx);
                 }
             }
             default -> {
@@ -1039,11 +1025,11 @@ public class PlacementGuide extends PrinterUtils {
                 boolean printBreakWrongBlock = Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue();
                 boolean printBreakExtraBlock = Configs.Print.BREAK_EXTRA_BLOCK.getBooleanValue();
                 if (printBreakWrongBlock || printBreakExtraBlock) {
-                    if (LitematicaUtils.canBreakBlock(ctx.blockPos)) {
+                    if (BreakUtils.canBreakBlock(ctx.blockPos)) {
                         if (printBreakWrongBlock && !ctx.requiredState.isAir()) {
-                            LitematicaUtils.INSTANCE.add(ctx);
+                            BreakUtils.INSTANCE.add(ctx);
                         } else if (printBreakExtraBlock && ctx.requiredState.isAir()) {
-                            LitematicaUtils.INSTANCE.add(ctx);
+                            BreakUtils.INSTANCE.add(ctx);
                         }
                     }
                 }

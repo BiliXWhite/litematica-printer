@@ -3,14 +3,16 @@ package me.aleksilassila.litematica.printer.printer.zxy.utils;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
+import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.PrinterBox;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.SwitchItem;
-import me.aleksilassila.litematica.printer.utils.ConfigUtils;
-import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
+import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import me.aleksilassila.litematica.printer.utils.ModUtils;
+import me.aleksilassila.litematica.printer.utils.PinYinSearchUtils;
+import me.aleksilassila.litematica.printer.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -77,10 +79,10 @@ public class ZxyUtils {
         if (printerMemoryAdding && !openIng && OpenInventoryPacket.key == null) {
             if (invBlockList.isEmpty()) {
                 printerMemoryAdding = false;
-                client.gui.setOverlayMessage(Component.nullToEmpty("打印机库存添加完成"), false);
+                MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_ADDED.getName());
                 return;
             }
-            client.gui.setOverlayMessage(Component.nullToEmpty("添加库存中"), false);
+            MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_ADDING.getName());
             for (BlockPos pos : invBlockList) {
                 if (client.level != null) {
                     //#if MC < 12001
@@ -130,13 +132,13 @@ public class ZxyUtils {
                                     //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(blockState.getValue(FACING), 0.0f, 0.5f).move(pos).deflate(1.0E-6)) &&
                                     //#endif
                                     entity.getAnimationStatus() == ShulkerBoxBlockEntity.AnimationStatus.CLOSED)) {
-                        client.gui.setOverlayMessage(Component.nullToEmpty("容器无法打开"), false);
+                        MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_CONTAINER_CANNOT_OPEN.getName());
                     } else if (!isInventory) {
-                        client.gui.setOverlayMessage(Component.nullToEmpty("这不是容器 无法同步"), false);
+                        MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_NOT_CONTAINER.getName());
                         return;
                     }
                 } catch (Exception e) {
-                    client.gui.setOverlayMessage(Component.nullToEmpty("这不是容器 无法同步"), false);
+                    MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_NOT_CONTAINER.getName());
                     return;
                 }
             }
@@ -158,7 +160,7 @@ public class ZxyUtils {
             syncPosList = new LinkedList<>();
             if (client.player != null) client.player.clientSideCloseContainer();
             num = 0;
-            client.gui.setOverlayMessage(Component.nullToEmpty("已取消同步"), false);
+            MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_CANCELLED.getName());
         }
     }
 
@@ -167,9 +169,9 @@ public class ZxyUtils {
             OpenInventoryPacket.sendOpenInventory(pos, client.level.dimension());
             return true;
         } else {
-            if (client.player != null && !ConfigUtils.canInteracted(pos)) {
+            if (client.player != null && !PlayerUtils.canInteracted(pos)) {
                 if (!ignoreThePrompt)
-                    client.gui.setOverlayMessage(Component.nullToEmpty("距离过远无法打开容器"), false);
+                    MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_TOO_FAR.getName());
                 return false;
             }
             if (client.gameMode != null) {
@@ -223,7 +225,7 @@ public class ZxyUtils {
                 //打开列表中的容器 只要容器同步列表不为空 就会一直执行此处
                 if (client.player == null) return;
                 playerItemsCount = new HashMap<>();
-                client.gui.setOverlayMessage(Component.nullToEmpty("剩余 " + syncPosList.size() + " 个容器. 再次按下快捷键取消同步"), false);
+                MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_REMAINING.getName(syncPosList.size()));
                 if (!client.player.containerMenu.equals(client.player.inventoryMenu)) return;
                 NonNullList<Slot> slots = client.player.inventoryMenu.slots;
                 slots.forEach(slot -> itemsCount(playerItemsCount, slot.getItem()));
@@ -245,7 +247,7 @@ public class ZxyUtils {
                 }
                 if (syncPosList.isEmpty()) {
                     num = 0;
-                    client.gui.setOverlayMessage(Component.nullToEmpty("同步完成"), false);
+                    MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_COMPLETE.getName());
                 }
             }
             case 3 -> {
@@ -355,7 +357,7 @@ public class ZxyUtils {
                 if (client.level != null) {
                     state = client.level.getBlockState(pos);
                 }
-                if (LitematicaUtils.matchName(blockName, state)) {
+                if (PinYinSearchUtils.matchName(blockName, state)) {
                     blocks.add(pos);
                 }
             }

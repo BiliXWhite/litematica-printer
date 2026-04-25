@@ -30,7 +30,7 @@ tasks {
     val collectSubModules by registering {
         val destDir = layout.buildDirectory.dir("tmp/submods/META-INF/jars")
 
-        outputs.dir(destDir)
+        outputs.upToDateWhen { false }
 
         dependsOn(fabricSubprojects.map { it.tasks.named("build") })
 

@@ -9,11 +9,10 @@ import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.printer.BlockPosCooldownManager;
 import me.aleksilassila.litematica.printer.mixin_extension.BlockBreakResult;
-import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
+import me.aleksilassila.litematica.printer.utils.BreakUtils;
 import me.aleksilassila.litematica.printer.utils.ModUtils;
+import me.aleksilassila.litematica.printer.utils.PinYinSearchUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -26,7 +25,7 @@ public class MineHandler extends ClientPlayerTickHandler {
     }
 
     public static boolean mineRestriction(BlockState blockState) {
-        if (!LitematicaUtils.breakRestriction(blockState)) {
+        if (!BreakUtils.breakRestriction(blockState)) {
             return false;
         }
         if (Configs.Mine.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
@@ -34,10 +33,10 @@ public class MineHandler extends ClientPlayerTickHandler {
             UsageRestriction.ListType listType = PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
                 return fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> LitematicaUtils.matchBlockName(string, blockState));
+                        .noneMatch(string -> PinYinSearchUtils.matchBlockName(string, blockState));
             } else if (listType == UsageRestriction.ListType.WHITELIST) {
                 return fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> LitematicaUtils.matchBlockName(string, blockState));
+                        .anyMatch(string -> PinYinSearchUtils.matchBlockName(string, blockState));
             } else {
                 return true;
             }
@@ -45,10 +44,10 @@ public class MineHandler extends ClientPlayerTickHandler {
             IConfigOptionListEntry optionListValue = Configs.Mine.EXCAVATE_LIMIT.getOptionListValue();
             if (optionListValue == UsageRestriction.ListType.BLACKLIST) {
                 return Configs.Mine.EXCAVATE_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> LitematicaUtils.matchBlockName(string, blockState));
+                        .noneMatch(string -> PinYinSearchUtils.matchBlockName(string, blockState));
             } else if (optionListValue == UsageRestriction.ListType.WHITELIST) {
                 return Configs.Mine.EXCAVATE_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> LitematicaUtils.matchBlockName(string, blockState));
+                        .anyMatch(string -> PinYinSearchUtils.matchBlockName(string, blockState));
             } else {
                 return true;
             }
@@ -70,18 +69,14 @@ public class MineHandler extends ClientPlayerTickHandler {
         if (isOnCooldown(pos) || BlockPosCooldownManager.INSTANCE.isOnCooldown(level, FluidHandler.NAME, pos)) {
             return false;
         }
-        return LitematicaUtils.canBreakBlock(pos) && mineRestriction(level.getBlockState(pos));
+        return BreakUtils.canBreakBlock(pos) && mineRestriction(level.getBlockState(pos));
     }
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
-        // 继续挖掘（规律是每tick发一次包）
-
-        BlockBreakResult result = LitematicaUtils.INSTANCE.continueDestroyBlock(blockPos);
-        if (result == BlockBreakResult.IN_PROGRESS) {
+        BlockBreakResult result = BreakUtils.INSTANCE.continueDestroyBlock(blockPos);
+        if (result == BlockBreakResult.IN_PROGRESS || result == BlockBreakResult.COMPLETED_WAIT) {
             skipIteration.set(true);
-            this.setCooldown(blockPos, getBreakCooldown());
-            return;
         }
         this.setCooldown(blockPos, getBreakCooldown());
     }

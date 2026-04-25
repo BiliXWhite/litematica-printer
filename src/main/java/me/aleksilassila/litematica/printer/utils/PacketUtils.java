@@ -9,7 +9,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ServerGamePacketListener;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 
-public class NetworkUtils {
+public class PacketUtils {
 
     private static final Minecraft client = Minecraft.getInstance();
 
@@ -24,7 +24,7 @@ public class NetworkUtils {
         if (client.level instanceof SequenceExtension sequenceExtension) {
             int currentSequence = sequenceExtension.litematica_printer3$getSequence();
             Packet<ServerGamePacketListener> packet = packetCreator.predict(currentSequence);
-            NetworkUtils.sendPacket(packet);
+            PacketUtils.sendPacket(packet);
         }
     }
 

@@ -4,6 +4,7 @@ import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import lombok.Getter;
 import lombok.Setter;
+import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
@@ -71,7 +72,7 @@ public class PrintHandler extends ClientPlayerTickHandler {
         this.ctx = new SchematicBlockContext(client, level, schematic, blockPos);
         if (Configs.Print.PRINT_SKIP.getBooleanValue()) {
             Set<String> skipSet = new HashSet<>(Configs.Print.PRINT_SKIP_LIST.getStrings()); // 转换为 HashSet
-            if (skipSet.stream().anyMatch(s -> LitematicaUtils.matchName(s, ctx.requiredState))) {
+            if (skipSet.stream().anyMatch(s -> PinYinSearchUtils.matchName(s, ctx.requiredState))) {
                 return false;
             }
         }
@@ -83,16 +84,14 @@ public class PrintHandler extends ClientPlayerTickHandler {
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
-        if (Configs.Print.FALLING_CHECK.getBooleanValue() && ctx.requiredState.getBlock() instanceof FallingBlock) {
+        if (Configs.Placement.FALLING_CHECK.getBooleanValue() && ctx.requiredState.getBlock() instanceof FallingBlock) {
             BlockPos downPos = blockPos.below();
 
-            if (level.getBlockState(downPos).isAir()) {
-                MessageUtils.setOverlayMessage("方块 " + ctx.getRequiredBlockName().getString() + " 下方无支撑，跳过放置");
+            if (FallingBlock.isFree(level.getBlockState(downPos))) {
+                MessageUtils.setOverlayMessage(I18n.BLOCK_NO_SUPPORT.getName(ctx.getRequiredBlockName().getString()));
                 return;
-            }
-
-            if (!ctx.schematic.getBlockState(downPos).isAir() && level.getBlockState(downPos) != ctx.schematic.getBlockState(downPos)) {
-                    MessageUtils.setOverlayMessage("方块 " + ctx.getRequiredBlockName().getString() + " 下方方块不相符，跳过放置");
+            } else if (level.getBlockState(downPos) != ctx.schematic.getBlockState(downPos)) {
+                    MessageUtils.setOverlayMessage(I18n.BLOCK_MISMATCH.getName(ctx.getRequiredBlockName().getString()));
                     return;
                 }
 
@@ -115,13 +114,11 @@ public class PrintHandler extends ClientPlayerTickHandler {
             ActionManager.INSTANCE.useProtocol = true;
         }
         ActionManager.INSTANCE.setLook(action.getPlayerLook());
-        if (action.getNeedWaitModifyLook()) {
-            skipIteration.set(true);
-        }
-        if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook) {
+        ActionManager.INSTANCE.setNeedWaitModifyLookFromAction(action.getNeedWaitModifyLook());
+        boolean needWait = ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook;
+        if (needWait) {
             skipIteration.set(true);
         }
         setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
     }
 }
-

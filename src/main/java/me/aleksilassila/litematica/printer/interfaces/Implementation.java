@@ -41,6 +41,7 @@ public class Implementation {
             CartographyTableBlock.class,    // 制图台
             GrindstoneBlock.class,          // 砂轮
             StonecutterBlock.class,         // 切石机
+            ChestBlock.class,               // 箱子
             //#if MC < 12109
             //$$ FletchingTableBlock.class, // 制箭台
             //#endif

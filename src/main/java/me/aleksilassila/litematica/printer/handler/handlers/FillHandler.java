@@ -1,19 +1,20 @@
 package me.aleksilassila.litematica.printer.handler.handlers;
 
 import lombok.Getter;
+import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.FillBlockModeType;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.printer.action.Action;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
-import me.aleksilassila.litematica.printer.utils.ConfigUtils;
-import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
-import me.aleksilassila.litematica.printer.utils.InventoryUtils;
+import me.aleksilassila.litematica.printer.utils.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -58,7 +59,7 @@ public class FillHandler extends ClientPlayerTickHandler {
                     for (String itemName : fillCacheBlocklist) {
                         items.addAll(BuiltInRegistries.ITEM
                                 .stream()
-                                .filter(item -> LitematicaUtils.matchName(itemName, new ItemStack(item)))
+                                .filter(item -> PinYinSearchUtils.matchName(itemName, new ItemStack(item)))
                                 .toList()
                         );
                     }
@@ -94,26 +95,37 @@ public class FillHandler extends ClientPlayerTickHandler {
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
-        boolean handheld = Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FillBlockModeType.HANDHELD;
         BlockState currentState = level.getBlockState(blockPos);
         if (currentState.isAir()
                 || (currentState.getBlock() instanceof LiquidBlock)
-                || Configs.Print.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> LitematicaUtils.matchName(s, currentState))
+                || Configs.Print.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> PinYinSearchUtils.matchName(s, currentState))
         ) {
-            if (handheld || InventoryUtils.switchToItems(player, this.fillModeItemList)) {
-                Action action;
-                if (ConfigUtils.getFillModeFacing() != null) {
-                    action = new Action()
-                            .setLookDirection(ConfigUtils.getFillModeFacing().getOpposite())
-                            .queueAction(blockPos, ConfigUtils.getFillModeFacing(), false, player);
-                } else {
-                    action = new Action()
-                            .queueAction(blockPos, getPlayerPlacementDirection(), false, player);
-                }
-                ActionManager.INSTANCE.setLook(action.getPlayerLook());
-                if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook){
-                    skipIteration.set(true);
-                }
+            if (!InventoryUtils.switchToItems(player, this.fillModeItemList)) {
+                return;
+            }
+            if (Configs.Placement.FALLING_CHECK.getBooleanValue() &&
+                player.getMainHandItem().getItem() instanceof BlockItem item &&
+                item.getBlock() instanceof FallingBlock block &&
+                FallingBlock.isFree(level.getBlockState(blockPos.below()))
+            ) {
+                MessageUtils.setOverlayMessage(I18n.BLOCK_NO_SUPPORT.getName(block.getName().getString()));
+                return;
+            }
+
+            Action action;
+            if (ConfigUtils.getFillModeFacing() != null) {
+                action = new Action()
+                        .setLookDirection(ConfigUtils.getFillModeFacing().getOpposite())
+                        .queueAction(blockPos, ConfigUtils.getFillModeFacing(), false, player);
+            } else {
+                action = new Action()
+                        .queueAction(blockPos, getPlayerPlacementDirection(), false, player);
+            }
+            ActionManager.INSTANCE.setLook(action.getPlayerLook());
+            ActionManager.INSTANCE.setNeedWaitModifyLookFromAction(action.getNeedWaitModifyLook());
+            if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook){
+                skipIteration.set(true);
+            } else {
                 this.setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
             }
         }
