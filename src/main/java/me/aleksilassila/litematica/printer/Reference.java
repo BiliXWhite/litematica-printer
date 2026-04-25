@@ -16,7 +16,7 @@ import java.util.Arrays;
  */
 public class Reference {
     public static final Minecraft MINECRAFT = Minecraft.getInstance();
-    public static final String MOD_ID = "litematica_printer";
+    public static final String MOD_ID = "litematica-printer";
     public static final String MOD_NAME = "Litematica Printer";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
