@@ -231,7 +231,7 @@ public final class BedrockEnvironment {
     }
 
     private static boolean isWithinBuildHeight(ClientLevel level, BlockPos pos) {
-        return pos.getY() >= level.getMinBuildHeight() && pos.getY() < level.getMaxBuildHeight();
+        return !level.isOutsideBuildHeight(pos);
     }
 
     public static List<BlockPos> findNearbyRedstoneTorches(ClientLevel level, BlockPos pistonPos) {
