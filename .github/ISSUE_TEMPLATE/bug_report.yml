@@ -1,0 +1,80 @@
+name: Bug Report
+description: I encountered a bug while using the projection printer.
+title: Replace this column with your title
+labels: ["Bug", "bug-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for your bug feedback. Please include ⬆️ a title in the text above that clearly describes your issue so that developers can resolve your issue.
+        
+        > [!important]
+        > Important: If you are raising multiple bugs, open a separate issue for each bug.
+        >
+        > If you don't know how to articulate it effectively and accurately, we recommend that you start by reading <The Wisdom of Asking Questions> ([link](http://www.catb.org/~esr/faqs/smart-questions.html))).
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: 'Before you start feedback on this issue, check:'
+      options:
+        - label: I've updated to the latest version! [Latest version number] (https://img.shields.io/github/v/release/BiliXWhite/litematica-printer?include_prereleases&style=flat-square&label=) and retrieved in [Issues](https://github.com/BiliXWhite/litematica-printer/issues?q=type%3ABug) to confirm that this bug has not been filed and that there is no solution in [FAQ](https://github.com/BiliXWhite/litematica-printer#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98).
+          required: false
+        - label: I've read the options carefully and know that this option doesn't need to be checked.
+          required: false
+  - type: markdown
+    attributes:
+      value: |
+        ### Bug Information
+        
+        Describe the bug you encountered. You can attach screenshots, screen recordings, Minecraft logs, and other materials to help developers track down issues.
+        
+        > [!note]
+        > When uploading attachments, please use GitHub's attachment system to upload attachments first, and paste or drag the attachments you need to upload to the compose area to upload them. Multiple files can be packaged in zip format and uploaded. Avoid uploading attachments from network disks that require logging in or installing a client to receive attachments (such as Google Drive or ...), to avoid delaying problem diagnosis due to the lack of a corresponding network disk client or account.
+  - type: textarea
+    id: excepted
+    attributes:
+      label: Desired behavior
+      description: Describe in detail the behavior you expect to occur, highlighting differences from the current (and possibly incorrect) behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Actual results
+      description: Actual behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce-steps
+    attributes:
+      label: Reproduce the steps
+      description: |
+        Detail what to do to trigger this bug again.
+      placeholder: |
+        1. Firstly...
+        2. Then...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: crash-report
+    attributes:
+      label: Error Reporting (Optional)
+      description: If you encounter a crash when you encounter this bug, please paste the full content of the error log here to help developers locate the bug.
+      render: shell
+  - type: input
+    id: java_version
+    attributes:
+      label: Java Version
+      description: Please fill in the version of Java you are using.
+      placeholder: 'Example: Java 17'
+  - type: checkboxes
+    id: revision
+    attributes:
+      label: The last step
+      description: Review your answers
+      options:
+        - label: I think the above description is detailed enough to allow developers to reproduce the issue. If my issue is not filled out as described above, it may be closed unconditionally.
+          required: false
