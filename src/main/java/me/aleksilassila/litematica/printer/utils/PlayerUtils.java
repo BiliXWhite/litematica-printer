@@ -1,5 +1,9 @@
 package me.aleksilassila.litematica.printer.utils;
 
+import fi.dy.masa.malilib.config.options.ConfigOptionList;
+import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.enums.RadiusShapeType;
+import me.aleksilassila.litematica.printer.enums.SelectionType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -11,12 +15,14 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Abilities;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -44,11 +50,6 @@ public class PlayerUtils {
         //$$ }
         //#endif
         return defaultRange;
-    }
-
-    public static double getInteractionRange() {
-        boolean creative = client.gameMode != null && client.gameMode.getPlayerMode().isCreative();
-        return getInteractionRange(creative ? 5.0F : 4.5F);
     }
 
     public static boolean isWithinBlockInteractionRange(LocalPlayer player, BlockPos blockPos, double additionalRange) {
@@ -193,5 +194,37 @@ public class PlayerUtils {
             f /= 5.0F;
         }
         return f;
+    }
+
+    public static boolean canInteracted(BlockPos blockPos) {
+        double workRange = ConfigUtils.getWorkRange();
+        if (Configs.Core.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()) {
+            if (ConfigUtils.client.player != null && !isWithinBlockInteractionRange(ConfigUtils.client.player, blockPos, 1F)) {
+                return false;
+            }
+        }
+        if (Configs.Core.ITERATOR_SHAPE.getOptionListValue() instanceof RadiusShapeType radiusShapeType) {
+            return switch (radiusShapeType) {
+                case SPHERE -> isWithinWorkInteractedEuclideanRange(blockPos, workRange);
+                case OCTAHEDRON -> isWithinWorkInteractedManhattanRange(blockPos, workRange);
+                case CUBE -> isWithinWorkInteractedCubeRange(blockPos, workRange);
+            };
+        }
+        return true;
+    }
+
+    public static boolean isPositionInSelectionRange(Player player, @NotNull BlockPos pos, ConfigOptionList selectionTypeConfig) {
+        if (player == null || selectionTypeConfig == null) {
+            return false;
+        }
+        if (!(selectionTypeConfig.getOptionListValue() instanceof SelectionType selectionType)) {
+            return false;
+        }
+        return switch (selectionType) {
+            case LITEMATICA_RENDER_LAYER -> LitematicaUtils.isPositionWithinRange(pos);
+            case LITEMATICA_SELECTION_BELOW_PLAYER -> pos.getY() <= Math.floor(player.getY());
+            case LITEMATICA_SELECTION_ABOVE_PLAYER -> pos.getY() >= Math.ceil(player.getY());
+            default -> true;
+        };
     }
 }

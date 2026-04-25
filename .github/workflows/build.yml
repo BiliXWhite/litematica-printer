@@ -35,6 +35,7 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
             ./.gradle
+            ./libs
           key: ${{ runner.os }}-gradle-common
           restore-keys: |
             ${{ runner.os }}-gradle-common
@@ -49,7 +50,7 @@ jobs:
         run: ./gradlew dependencies --stacktrace
 
       - name: Build fabricWrapper subproject
-        run: ./gradlew :fabricWrapper:build --stacktrace
+        run: ./gradlew :fabricWrapper:build
 
       - name: Capture build artifacts
         uses: actions/upload-artifact@v7

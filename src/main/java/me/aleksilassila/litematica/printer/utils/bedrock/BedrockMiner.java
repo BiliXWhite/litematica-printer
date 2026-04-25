@@ -10,11 +10,9 @@ public class BedrockMiner implements Miner {
     public final Object instance;
 
     private final Method addBlockTaskMethod;
-    private final Method addRegionTaskMethod;
     private final Method clearTaskMethod;
     private final Method isRunningMethod;
     private final Method setRunningMethod;
-    private final Method isInTasksMethod;
     private final Method isBedrockMinerFeatureEnableMethod;
     private final Method setBedrockMinerFeatureEnableMethod;
 
@@ -23,11 +21,9 @@ public class BedrockMiner implements Miner {
         Method getInstanceMethod = taskManagerClass.getDeclaredMethod("getInstance");
         this.instance = getInstanceMethod.invoke(null);
         this.addBlockTaskMethod = taskManagerClass.getDeclaredMethod("addBlockTask", ClientLevel.class, BlockPos.class, Block.class);
-        this.addRegionTaskMethod = taskManagerClass.getDeclaredMethod("addRegionTask", String.class, ClientLevel.class, BlockPos.class, BlockPos.class);
         this.clearTaskMethod = taskManagerClass.getDeclaredMethod("clearTask");
         this.isRunningMethod = taskManagerClass.getDeclaredMethod("isRunning");
         this.setRunningMethod = taskManagerClass.getDeclaredMethod("setRunning", boolean.class, boolean.class);
-        this.isInTasksMethod = taskManagerClass.getDeclaredMethod("isInTasks", ClientLevel.class, BlockPos.class);
         this.isBedrockMinerFeatureEnableMethod = taskManagerClass.getDeclaredMethod("isBedrockMinerFeatureEnable");
         this.setBedrockMinerFeatureEnableMethod = taskManagerClass.getDeclaredMethod("setBedrockMinerFeatureEnable", boolean.class);
     }
@@ -38,12 +34,6 @@ public class BedrockMiner implements Miner {
         if (this.instance == null) return;
         Block block = world.getBlockState(pos).getBlock();
         this.addBlockTaskMethod.invoke(this.instance, world, pos, block);
-    }
-
-    @Override
-    public void addRegionTask(String name, ClientLevel world, BlockPos pos1, BlockPos pos2) throws Exception {
-        if (this.instance == null) return;
-        this.addRegionTaskMethod.invoke(this.instance, name, world, pos1, pos2);
     }
 
     @Override
@@ -74,11 +64,5 @@ public class BedrockMiner implements Miner {
     public void setBedrockMinerFeatureEnable(boolean bedrockMinerFeatureEnable) throws Exception {
         if (this.instance == null) return;
         this.setBedrockMinerFeatureEnableMethod.invoke(this.instance, bedrockMinerFeatureEnable);
-    }
-
-    @Override
-    public boolean isInTasks(ClientLevel world, BlockPos blockPos) throws Exception { // 修正方法名和参数
-        if (this.instance == null) return false;
-        return (boolean) this.isInTasksMethod.invoke(this.instance, world, blockPos);
     }
 }

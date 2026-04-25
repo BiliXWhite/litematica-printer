@@ -1,10 +1,9 @@
 package me.aleksilassila.litematica.printer.utils;
 
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.enums.BlockPrintState;
 import me.aleksilassila.litematica.printer.enums.QuickShulkerModeType;
-import me.aleksilassila.litematica.printer.utils.bedrock.BedrockMiner;
-import me.aleksilassila.litematica.printer.utils.bedrock.BlockMiner;
-import me.aleksilassila.litematica.printer.utils.bedrock.Miner;
+import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
 import net.kyrptonaught.quickshulker.client.ClientUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -13,27 +12,31 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Util;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.*;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jetbrains.annotations.NotNull;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class BlockUtils {
-    private final static BooleanProperty wallUpProperty = WallBlock.UP;
+    @NotNull public static final Minecraft client = Minecraft.getInstance();
+    private static final BooleanProperty wallUpProperty = WallBlock.UP;
     //#if MC > 12104
-    private final static EnumProperty<WallSide> wallNorthProperty = WallBlock.NORTH;
-    private final static EnumProperty<WallSide> wallSouthProperty = WallBlock.SOUTH;
-    private final static EnumProperty<WallSide> wallWestProperty = WallBlock.WEST;
-    private final static EnumProperty<WallSide> wallEastProperty = WallBlock.EAST;
+    private static final EnumProperty<WallSide> wallNorthProperty = WallBlock.NORTH;
+    private static final EnumProperty<WallSide> wallSouthProperty = WallBlock.SOUTH;
+    private static final EnumProperty<WallSide> wallWestProperty = WallBlock.WEST;
+    private static final EnumProperty<WallSide> wallEastProperty = WallBlock.EAST;
     //#else
     //$$ private final static EnumProperty<WallSide> wallNorthProperty = WallBlock.NORTH_WALL;
     //$$ private final static EnumProperty<WallSide> wallSouthProperty = WallBlock.SOUTH_WALL;
@@ -46,29 +49,9 @@ public class BlockUtils {
     private static final int ROTATION_MIN = 0;
     private static final int ROTATION_MAX = 15;
     private static final float ROTATION_TO_YAW_FACTOR = 22.5F;
-    private static final float[] SIN = Util.make(new float[65536], fs -> {
-        for (int ix = 0; ix < fs.length; ix++) {
-            fs[ix] = (float) Math.sin(ix / 10430.378350470453);
-        }
-    });
 
-    private static final Minecraft client = Minecraft.getInstance();
-    private static Miner bedrockMiner;
-
-    static {
-        try {
-            if (ModUtils.isBlockMinerLoaded()) {
-                bedrockMiner = new BlockMiner();
-            } else if (ModUtils.isBedrockMinerLoaded()) {
-                bedrockMiner = new BedrockMiner();
-            } else {
-                bedrockMiner = null;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            bedrockMiner = null;
-        }
-    }
+    public static Direction[] horizontalDirections =
+            new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
 
     public static boolean isReplaceable(BlockState blockState) {
         //#if MC > 11902
@@ -86,10 +69,6 @@ public class BlockUtils {
         //#endif
     }
 
-    public static String getBlockName(Block block) {
-        return block.getName().getString();
-    }
-
     public static Identifier getKey(Block block) {
         return BuiltInRegistries.BLOCK.getKey(block);
     }
@@ -98,17 +77,15 @@ public class BlockUtils {
         return getKey(block).toString();
     }
 
-    public static boolean canSupportCenter(LevelReader levelReader, BlockPos blockPos, Direction direction) {
-        return Block.canSupportCenter(levelReader, blockPos, direction);
-    }
-
-    public static boolean statesEqualIgnoreProperties(BlockState state1, BlockState state2, Property<?>... propertiesToIgnore) {
+    public static boolean statesEqualIgnoreProperties(
+            BlockState state1, BlockState state2, Property<?>... propertiesToIgnore) {
         if (state1.getBlock() != state2.getBlock()) {
             return false;
         }
         loop:
         for (Property<?> property : state1.getProperties()) {
-            if (property == BlockStateProperties.WATERLOGGED && !(state1.getBlock() instanceof CoralPlantBlock)) {
+            if (property == BlockStateProperties.WATERLOGGED
+                    && !(state1.getBlock() instanceof CoralPlantBlock)) {
                 continue;
             }
             for (Property<?> ignoredProperty : propertiesToIgnore) {
@@ -127,27 +104,21 @@ public class BlockUtils {
         return true;
     }
 
-    public static <T extends Comparable<T>> Optional<T> getProperty(BlockState blockState, Property<T> property) {
+    public static <T extends Comparable<T>> Optional<T> getProperty(
+            BlockState blockState, Property<T> property) {
         if (blockState.hasProperty(property)) {
             return Optional.of(blockState.getValue(property));
         }
         return Optional.empty();
     }
 
-    public static boolean statesEqual(BlockState state1, BlockState state2) {
-        return statesEqualIgnoreProperties(state1, state2);
-    }
-
-    protected static boolean canBeClicked(Level world, BlockPos pos) {
-        return getOutlineShape(world, pos) != Shapes.empty();
-    }
-
-    private static VoxelShape getOutlineShape(Level level, BlockPos pos) {
-        return level.getBlockState(pos).getShape(level, pos);
-    }
-
-    private static VoxelShape getOutlineShape(BlockState state, Level level, BlockPos pos) {
-        return state.getShape(level, pos);
+    public static Comparable<?> getPropertyByName(BlockState state, String name) {
+        for (Property<?> prop : state.getProperties()) {
+            if (prop.getName().equalsIgnoreCase(name)) {
+                return state.getValue(prop);
+            }
+        }
+        return null;
     }
 
     public static Optional<Property<?>> getWallFacingProperty(Direction wallFacing) {
@@ -188,21 +159,24 @@ public class BlockUtils {
      */
     public static boolean isWaterBlock(BlockState blockState) {
         return blockState.is(Blocks.WATER) && blockState.getValue(LiquidBlock.LEVEL) == 0
-                || (blockState.getProperties().contains(BlockStateProperties.WATERLOGGED) && blockState.getValue(BlockStateProperties.WATERLOGGED))
+                || (blockState.getProperties().contains(BlockStateProperties.WATERLOGGED)
+                        && blockState.getValue(BlockStateProperties.WATERLOGGED))
                 || blockState.getBlock() instanceof BubbleColumnBlock
                 || blockState.getBlock() instanceof SeagrassBlock;
     }
 
     public static boolean isCorrectWaterLevel(BlockState requiredState, BlockState currentState) {
         if (!currentState.is(Blocks.WATER)) return false;
-        if (requiredState.is(Blocks.WATER) && currentState.getValue(LiquidBlock.LEVEL).equals(requiredState.getValue(LiquidBlock.LEVEL))) {
+        if (requiredState.is(Blocks.WATER)
+                && currentState
+                        .getValue(LiquidBlock.LEVEL)
+                        .equals(requiredState.getValue(LiquidBlock.LEVEL))) {
             return true;
         } else {
             return currentState.getValue(LiquidBlock.LEVEL) == 0;
         }
     }
 
-    // Add methods from BlockUtils
     public static float getRequiredYaw(Direction playerShouldBeFacing) {
         if (playerShouldBeFacing != null && playerShouldBeFacing.getAxis().isHorizontal()) {
             return playerShouldBeFacing.toYRot();
@@ -227,33 +201,13 @@ public class BlockUtils {
         //#endif
     }
 
-    public static Direction getFacingAxisX(float yaw) {
-        return Direction.EAST.isFacingAngle(yaw) ? Direction.EAST : Direction.WEST;
-    }
-
-    public static Direction getFacingAxisY(float pitch) {
-        return pitch < 0.0F ? Direction.UP : Direction.DOWN;
-    }
-
-    public static Direction getFacingAxisZ(float yaw) {
-        return Direction.SOUTH.isFacingAngle(yaw) ? Direction.SOUTH : Direction.NORTH;
-    }
-
-    public static float sin(double d) {
-        return SIN[(int) ((long) (d * 10430.378350470453) & 65535L)];
-    }
-
-    public static float cos(double d) {
-        return SIN[(int) ((long) (d * 10430.378350470453 + 16384.0) & 65535L)];
-    }
-
     public static Direction[] orderedByNearest(float yaw, float pitch) {
         double pitchRad = pitch * (Math.PI / 180.0);
         double yawRad = -yaw * (Math.PI / 180.0);
-        float sinPitch = sin(pitchRad);
-        float cosPitch = cos(pitchRad);
-        float sinYaw = sin(yawRad);
-        float cosYaw = cos(yawRad);
+        float sinPitch = (float) Math.sin(pitchRad);
+        float cosPitch = (float) Math.cos(pitchRad);
+        float sinYaw = (float) Math.sin(yawRad);
+        float cosYaw = (float) Math.cos(yawRad);
         boolean isEastFacing = sinYaw > 0.0F;
         boolean isUpFacing = sinPitch < 0.0F;
         boolean isSouthFacing = cosYaw > 0.0F;
@@ -378,102 +332,70 @@ public class BlockUtils {
         return rotation;
     }
 
-    // Add methods from BlockUtils
-    public static void addToBreakList(BlockPos pos, ClientLevel world) {
-        if (bedrockMiner == null) return;
-        try {
-            bedrockMiner.addToBreakList(pos, world);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void addRegionTask(String name, ClientLevel world, BlockPos pos1, BlockPos pos2) {
-        if (bedrockMiner == null) return;
-        try {
-            bedrockMiner.addRegionTask(name, world, pos1, pos2);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void clearTask() {
-        if (bedrockMiner == null) return;
-        try {
-            bedrockMiner.clearTask();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static boolean isWorking() {
-        if (bedrockMiner == null) return false;
-        try {
-            return bedrockMiner.isWorking();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public static void setWorking(boolean running) {
-        BlockUtils.setWorking(running, false);
-    }
-
-    public static void setWorking(boolean running, boolean showMessage) {
-        if (client.player != null && client.player.isCreative() && running) {
-            MessageUtils.setOverlayMessage("创造模式下不支持破基岩！");
-            return;
-        }
-        if (bedrockMiner == null) return;
-        try {
-            bedrockMiner.setWorking(running, showMessage);
-            if (!running) clearTask();  // 忘记加了
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static boolean isBedrockMinerFeatureEnable() {
-        if (bedrockMiner == null) return false;
-        try {
-            return bedrockMiner.isBedrockMinerFeatureEnable();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public static void setBedrockMinerFeatureEnable(boolean bedrockMinerFeatureEnable) {
-        if (bedrockMiner == null) return;
-        try {
-            bedrockMiner.setBedrockMinerFeatureEnable(bedrockMinerFeatureEnable);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    // 待测试
-    public static boolean isInTasks(ClientLevel world, BlockPos blockPos) { // 修正方法名和参数
-        if (bedrockMiner == null) return false;
-        try {
-            return bedrockMiner.isInTasks(world, blockPos);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    // Add methods from BlockUtils
     public static void openShulker(ItemStack stack, int shulkerBoxSlot) {
-        if (Configs.Placement.QUICK_SHULKER_MODE.getOptionListValue() == QuickShulkerModeType.CLICK_SLOT) {
-            client.gameMode.handleInventoryMouseClick(client.player.containerMenu.containerId, shulkerBoxSlot, 1, ClickType.PICKUP, client.player);
-        } else if (Configs.Placement.QUICK_SHULKER_MODE.getOptionListValue() == QuickShulkerModeType.INVOKE) {
+        if (Configs.Placement.QUICK_SHULKER_MODE.getOptionListValue()
+                == QuickShulkerModeType.CLICK_SLOT) {
+            client.gameMode.handleInventoryMouseClick(
+                    client.player.containerMenu.containerId,
+                    shulkerBoxSlot,
+                    1,
+                    ClickType.PICKUP,
+                    client.player);
+        } else if (Configs.Placement.QUICK_SHULKER_MODE.getOptionListValue()
+                == QuickShulkerModeType.INVOKE) {
             if (ModUtils.isQuickShulkerLoaded()) {
                 try {
                     ClientUtil.CheckAndSend(stack, shulkerBoxSlot);
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             } else MessageUtils.addMessage(MessageUtils.literal("快捷潜影盒模组未加载！"));
         }
+    }
+
+    public static boolean canBeClicked(ClientLevel world, BlockPos pos) {
+        return getOutlineShape(world, pos) != Shapes.empty();
+    }
+
+    public static VoxelShape getOutlineShape(ClientLevel world, BlockPos pos) {
+        return world.getBlockState(pos).getShape(world, pos);
+    }
+
+    public static Map<Direction, Vec3> getSlabSides(
+            Level world, BlockPos pos, SlabType requiredHalf) {
+        if (requiredHalf == SlabType.DOUBLE) requiredHalf = SlabType.BOTTOM;
+        Direction requiredDir = requiredHalf == SlabType.TOP ? Direction.UP : Direction.DOWN;
+        Map<Direction, Vec3> sides = new HashMap<>();
+        sides.put(requiredDir, new Vec3(0, 0, 0));
+        if (world.getBlockState(pos).hasProperty(SlabBlock.TYPE)) {
+            sides.put(
+                    requiredDir.getOpposite(),
+                    Vec3.atLowerCornerOf(getVector(requiredDir)).scale(0.5));
+        }
+        for (Direction side : horizontalDirections) {
+            BlockState neighborCurrentState = world.getBlockState(pos.relative(side));
+            if (neighborCurrentState.hasProperty(SlabBlock.TYPE)
+                    && neighborCurrentState.getValue(SlabBlock.TYPE) != SlabType.DOUBLE) {
+                if (neighborCurrentState.getValue(SlabBlock.TYPE) != requiredHalf) {
+                    continue;
+                }
+            }
+            sides.put(side, Vec3.atLowerCornerOf(getVector(requiredDir)).scale(0.25));
+        }
+        return sides;
+    }
+
+
+    public static boolean checkObserverChain(SchematicBlockContext start) {
+        SchematicBlockContext temp = start;
+        while (temp.requiredState.getBlock() instanceof ObserverBlock) {
+            @Nullable
+            Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
+            SchematicBlockContext offset = temp.offset(tempObserverFacing);
+            if (tempObserverFacing != null && BlockPrintState.get(offset) != BlockPrintState.CORRECT) {
+                return false;
+            }
+            temp = offset;
+        }
+        return true;
     }
 }

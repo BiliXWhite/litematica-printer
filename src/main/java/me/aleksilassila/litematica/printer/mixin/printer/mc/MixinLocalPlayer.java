@@ -7,6 +7,7 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
 import me.aleksilassila.litematica.printer.printer.BlockPosCooldownManager;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
+import me.aleksilassila.litematica.printer.utils.BreakUtils;
 import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
 import me.aleksilassila.litematica.printer.utils.ModUtils;
 import net.minecraft.client.Minecraft;
@@ -46,7 +47,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     protected Minecraft minecraft;
 
     @Unique
-    private boolean updateChecked;
+    private static boolean updateChecked;
 
     //#if MC == 11902
     //$$ public MixinLocalPlayer(ClientLevel world, GameProfile profile, @Nullable PlayerPublicKey publicKey) {
@@ -82,9 +83,9 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
         BlockPosCooldownManager.INSTANCE.tick();
         InventoryUtils.tick();
         ZxyUtils.tick();
-        LitematicaUtils.INSTANCE.preprocess();
-        if (LitematicaUtils.INSTANCE.isNeedHandle()) {
-            LitematicaUtils.INSTANCE.onTick();
+        BreakUtils.INSTANCE.preprocess();
+        if (BreakUtils.INSTANCE.isNeedHandle()) {
+            BreakUtils.INSTANCE.onTick();
         } else {
             ClientPlayerTickManager.tick();
         }

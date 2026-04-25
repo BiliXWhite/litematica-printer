@@ -162,7 +162,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     private void updateBox() {
         if (boxRef == null) return;
 
-        BlockPos eyePos = new BlockPos(new Vec3i((int) player.getX(), (int) player.getEyeY(), (int) player.getZ()));
+        BlockPos eyePos = new BlockPos(new Vec3i((int) Math.round(player.getX()), (int) Math.round(player.getEyeY()), (int) Math.round(player.getZ())));
         PrinterBox box = boxRef.get();
 
         int currentRange = Configs.Core.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()
@@ -240,7 +240,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             BlockPos pos = cachedIterator.next();
             if (pos == null) continue;
     
-            if (!ConfigUtils.canInteracted(pos)) continue;
+            if (!PlayerUtils.canInteracted(pos)) continue;
     
             if (needRangeCheck) {
                 if (isSchematic ? !LitematicaUtils.isSchematicBlock(pos)
@@ -248,7 +248,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                     continue;
                 }
     
-                if (selectionType != null && !ConfigUtils.isPositionInSelectionRange(player, pos, selectionType)) {
+                if (selectionType != null && !PlayerUtils.isPositionInSelectionRange(player, pos, selectionType)) {
                     continue;
                 }
             }

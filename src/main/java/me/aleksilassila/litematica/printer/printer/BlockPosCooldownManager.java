@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class BlockPosCooldownManager {
-    public static BlockPosCooldownManager INSTANCE = new BlockPosCooldownManager();
+    public static final BlockPosCooldownManager INSTANCE = new BlockPosCooldownManager();
 
     private final Map<Info, Integer> cooldownMap = new HashMap<>();
 
