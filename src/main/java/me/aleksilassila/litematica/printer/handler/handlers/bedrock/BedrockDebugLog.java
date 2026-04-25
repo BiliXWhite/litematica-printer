@@ -7,6 +7,7 @@ import net.minecraft.world.level.block.piston.PistonBaseBlock;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 public final class BedrockDebugLog {
     private static final Path LOG_PATH = Minecraft.getInstance().gameDirectory.toPath().resolve("logs").resolve("bedrock-printer-debug.log");
@@ -15,7 +16,20 @@ public final class BedrockDebugLog {
     }
 
     public static synchronized void write(String message) {
-        return;
+        try {
+            Path parent = LOG_PATH.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            Files.writeString(
+                    LOG_PATH,
+                    message + System.lineSeparator(),
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.WRITE,
+                    StandardOpenOption.APPEND
+            );
+        } catch (Exception ignored) {
+        }
     }
 
     public static Path getLogPath() {
