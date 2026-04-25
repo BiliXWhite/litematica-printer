@@ -123,6 +123,7 @@ public final class BedrockController {
                     + " reason=machine_overlap"
                     + " conflictBedrock=" + BedrockDebugLog.pos(conflict.getBedrockPos())
                     + " torchSupport=" + BedrockDebugLog.pos(target.getTorchSupportPos())
+                    + " torch=" + BedrockDebugLog.pos(target.getTorchPos())
                     + " piston=" + BedrockDebugLog.pos(target.getPistonPos()));
             return false;
         }
@@ -132,6 +133,7 @@ public final class BedrockController {
             BedrockDebugLog.write("submit accepted bedrock=" + BedrockDebugLog.pos(pos)
                     + " piston=" + BedrockDebugLog.pos(target.getPistonPos())
                     + " torchSupport=" + BedrockDebugLog.pos(target.getTorchSupportPos())
+                    + " torch=" + BedrockDebugLog.pos(target.getTorchPos())
                     + " slime=" + BedrockDebugLog.pos(target.getSlimePos())
                     + " conservativeSync=" + target.usesConservativeSync());
             return true;
@@ -242,11 +244,12 @@ public final class BedrockController {
         positions.add(candidate.getPistonPos().above());
         if (candidate.getTorchSupportPos() != null) {
             positions.add(candidate.getTorchSupportPos());
-            positions.add(candidate.getTorchSupportPos().above());
+        }
+        if (candidate.getTorchPos() != null) {
+            positions.add(candidate.getTorchPos());
         }
         if (candidate.getSlimePos() != null) {
             positions.add(candidate.getSlimePos());
-            positions.add(candidate.getSlimePos().above());
         }
         return positions;
     }

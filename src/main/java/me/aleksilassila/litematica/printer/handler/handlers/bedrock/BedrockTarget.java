@@ -33,6 +33,7 @@ public class BedrockTarget {
     private final BlockPos pistonPos;
     private final BlockPos headPos;
     private final boolean conservativeSync;
+    private BedrockTorchPlacement torchPlacement;
     private BlockPos torchSupportPos;
     private BlockPos slimePos;
     private int tickTimes;
@@ -60,14 +61,17 @@ public class BedrockTarget {
         this.pistonPos = this.layout.getPistonPos();
         this.headPos = this.layout.getHeadPos();
         this.conservativeSync = BedrockTargetBlocks.requiresConservativeSync(level.getBlockState(bedrockPos));
-        this.torchSupportPos = BedrockEnvironment.findTorchSupport(level, this.pistonPos, this.layout.getPistonOffset().getOpposite());
+        this.torchPlacement = BedrockEnvironment.findTorchPlacement(level, this.pistonPos, this.layout.getPistonOffset().getOpposite(), this.bedrockPos, this.pistonPos, this.headPos);
+        this.torchSupportPos = getTorchSupportFromPlacement();
         if (this.conservativeSync) {
             BedrockDebugLog.write("target init conservative sync bedrock=" + BedrockDebugLog.pos(this.bedrockPos));
         }
-        if (this.torchSupportPos == null) {
-            this.slimePos = BedrockEnvironment.findPossibleSlimeSupport(level, this.pistonPos, this.layout.getPistonOffset().getOpposite());
-            if (this.slimePos != null) {
-                this.torchSupportPos = this.slimePos;
+        if (this.torchPlacement == null) {
+            BedrockTorchPlacement slimePlacement = BedrockEnvironment.findPossibleSlimeTorchPlacement(level, this.pistonPos, this.layout.getPistonOffset().getOpposite(), this.bedrockPos, this.pistonPos, this.headPos);
+            if (slimePlacement != null) {
+                this.slimePos = slimePlacement.getSupportPos();
+                this.torchPlacement = slimePlacement;
+                this.torchSupportPos = getTorchSupportFromPlacement();
                 BedrockDebugLog.write("target init reserved slime support bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                         + " slime=" + BedrockDebugLog.pos(this.slimePos));
             } else {
@@ -87,6 +91,10 @@ public class BedrockTarget {
 
     public BlockPos getTorchSupportPos() {
         return torchSupportPos;
+    }
+
+    public BlockPos getTorchPos() {
+        return this.torchPlacement == null ? null : this.torchPlacement.getTorchPos();
     }
 
     public BlockPos getSlimePos() {
@@ -132,16 +140,16 @@ public class BedrockTarget {
                     break;
                 }
                 if (this.torchSupportPos != null) {
-                    if (!BedrockPlacer.placeSimple(this.torchSupportPos, Direction.UP, Blocks.REDSTONE_TORCH.asItem())) {
+                    if (!placeTorch()) {
                         BedrockDebugLog.write("target initialize deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                                 + " reason=place_torch_failed");
                         break;
                     }
-                    recordTemp(this.torchSupportPos.above());
                 }
                 BedrockDebugLog.write("target initialize bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                         + " piston=" + BedrockDebugLog.pos(this.pistonPos)
-                        + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos));
+                        + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
+                        + " torch=" + BedrockDebugLog.pos(getTorchPos()));
             }
             case EXTENDED -> {
                 if (!allowExecute) {
@@ -265,11 +273,12 @@ public class BedrockTarget {
         positions.add(this.headPos);
         if (this.torchSupportPos != null) {
             positions.add(this.torchSupportPos);
-            positions.add(this.torchSupportPos.above());
+        }
+        if (getTorchPos() != null) {
+            positions.add(getTorchPos());
         }
         if (this.slimePos != null) {
             positions.add(this.slimePos);
-            positions.add(this.slimePos.above());
         }
         positions.addAll(this.tempBlocks);
         return positions;
@@ -283,11 +292,9 @@ public class BedrockTarget {
 
     public Set<BlockPos> getOwnedTorchPositions() {
         LinkedHashSet<BlockPos> positions = new LinkedHashSet<>();
-        if (this.torchSupportPos != null) {
-            BlockPos torchPos = this.torchSupportPos.above();
-            if (BedrockEnvironment.isRedstoneTorchAt(this.level, torchPos)) {
-                positions.add(torchPos);
-            }
+        BlockPos torchPos = getTorchPos();
+        if (torchPos != null && BedrockEnvironment.isRedstoneTorchAt(this.level, torchPos)) {
+            positions.add(torchPos);
         }
         return positions;
     }
@@ -340,7 +347,7 @@ public class BedrockTarget {
                     + " context=" + reason);
             return false;
         }
-        if (!BedrockPlacer.placeSimple(this.torchSupportPos, Direction.UP, Blocks.REDSTONE_TORCH.asItem())) {
+        if (!placeTorch()) {
             BedrockDebugLog.write("target repower deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                     + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
                     + " tick=" + this.tickTimes
@@ -348,10 +355,10 @@ public class BedrockTarget {
                     + " context=" + reason);
             return false;
         }
-        recordTemp(this.torchSupportPos.above());
         this.lastRepowerTick = this.tickTimes;
         BedrockDebugLog.write("target repower bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                 + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
+                + " torch=" + BedrockDebugLog.pos(getTorchPos())
                 + " tick=" + this.tickTimes
                 + " context=" + reason);
         return true;
@@ -373,6 +380,7 @@ public class BedrockTarget {
                 + " torchCount=" + torchCount
                 + " conservativeSync=" + this.conservativeSync
                 + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
+                + " torch=" + BedrockDebugLog.pos(getTorchPos())
                 + " slime=" + BedrockDebugLog.pos(this.slimePos)
                 + " bedrockState=" + BedrockDebugLog.describeState(bedrockState)
                 + " pistonState=" + BedrockDebugLog.describePistonState(pistonState));
@@ -384,27 +392,30 @@ public class BedrockTarget {
             return;
         }
         
-        if (!BedrockEnvironment.isTorchSupportUsable(level, this.torchSupportPos)) {
-            if (BedrockEnvironment.isSlimeSupportUsable(level, this.slimePos)) {
+        if (!BedrockEnvironment.isTorchPlacementUsable(level, this.torchPlacement)) {
+            if (this.slimePos != null && this.torchPlacement != null && this.slimePos.equals(this.torchPlacement.getSupportPos())
+                    && BedrockEnvironment.isSlimePlacementUsable(level, this.torchPlacement)) {
                 if (!level.getBlockState(this.slimePos).is(Blocks.SLIME_BLOCK)) {
                     BedrockPlacer.placeSimple(this.slimePos, Direction.UP, Blocks.SLIME_BLOCK.asItem());
                     recordTemp(this.slimePos);
                 }
-                this.torchSupportPos = this.slimePos;
+                this.torchSupportPos = getTorchSupportFromPlacement();
             } else {
-                BlockPos naturalSupport = BedrockEnvironment.findTorchSupport(level, this.pistonPos, this.layout.getPistonOffset().getOpposite());
-                if (naturalSupport != null) {
-                    this.torchSupportPos = naturalSupport;
-                    if (this.slimePos != null && !level.getBlockState(this.slimePos).is(Blocks.SLIME_BLOCK)) {
+                BedrockTorchPlacement naturalPlacement = BedrockEnvironment.findTorchPlacement(level, this.pistonPos, this.layout.getPistonOffset().getOpposite(), this.bedrockPos, this.pistonPos, this.headPos);
+                if (naturalPlacement != null) {
+                    this.torchPlacement = naturalPlacement;
+                    this.torchSupportPos = getTorchSupportFromPlacement();
+                    if (this.slimePos != null && !level.getBlockState(this.slimePos).is(Blocks.SLIME_BLOCK) && !this.slimePos.equals(this.torchSupportPos)) {
                         this.slimePos = null;
                     }
                 } else {
-                    BlockPos newSlimePos = this.slimePos;
-                    if (newSlimePos == null || !BedrockEnvironment.isSlimeSupportUsable(level, newSlimePos)) {
-                        newSlimePos = BedrockEnvironment.findPossibleSlimeSupport(level, this.pistonPos, this.layout.getPistonOffset().getOpposite());
+                    BedrockTorchPlacement slimePlacement = this.torchPlacement;
+                    if (slimePlacement == null || !BedrockEnvironment.isSlimePlacementUsable(level, slimePlacement) || !slimePlacement.getSupportPos().equals(this.slimePos)) {
+                        slimePlacement = BedrockEnvironment.findPossibleSlimeTorchPlacement(level, this.pistonPos, this.layout.getPistonOffset().getOpposite(), this.bedrockPos, this.pistonPos, this.headPos);
                     }
-                    if (newSlimePos != null) {
-                        this.slimePos = newSlimePos;
+                    if (slimePlacement != null) {
+                        this.torchPlacement = slimePlacement;
+                        this.slimePos = slimePlacement.getSupportPos();
                         if (!level.getBlockState(this.slimePos).is(Blocks.SLIME_BLOCK)) {
                             BedrockPlacer.placeSimple(this.slimePos, Direction.UP, Blocks.SLIME_BLOCK.asItem());
                             recordTemp(this.slimePos);
@@ -412,7 +423,7 @@ public class BedrockTarget {
                                     + " slime=" + BedrockDebugLog.pos(this.slimePos)
                                     + " tick=" + this.tickTimes);
                         }
-                        this.torchSupportPos = this.slimePos;
+                        this.torchSupportPos = getTorchSupportFromPlacement();
                     } else {
                         this.status = Status.FAILED;
                         BedrockMessages.actionBar("bedrockminer.fail.place.redstonetorch");
@@ -456,6 +467,28 @@ public class BedrockTarget {
         }
         if (level.getBlockState(this.pistonPos).is(Blocks.PISTON) && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)) {
             this.status = Status.EXTENDED;
+            return;
+        }
+        if (this.hasTried && level.getBlockState(this.pistonPos).isAir() && !level.getBlockState(this.headPos).is(Blocks.PISTON_HEAD)) {
+            this.status = Status.UNINITIALIZED;
+            this.hasTried = false;
+            this.stuckTicksCounter = 0;
+            this.executeTick = -1;
+            return;
+        }
+        if (this.hasTried
+                && level.getBlockState(this.pistonPos).is(Blocks.PISTON)
+                && !level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)
+                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == this.layout.getPrimingFacing()
+                && BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
+            if (hasOwnedTorchPowerSource()) {
+                this.status = Status.UNEXTENDED_WITH_POWER_SOURCE;
+            } else {
+                this.status = Status.UNEXTENDED_WITHOUT_POWER_SOURCE;
+            }
+            this.hasTried = false;
+            this.stuckTicksCounter = 0;
+            this.executeTick = -1;
             return;
         }
         if (this.hasTried && (level.getBlockState(this.pistonPos).is(Blocks.PISTON) || level.getBlockState(this.pistonPos).isAir()) && this.stuckTicksCounter < 15) {
@@ -520,6 +553,19 @@ public class BedrockTarget {
         if (level.getBlockState(this.pistonPos).is(Blocks.PISTON) && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)) {
             return Status.EXTENDED;
         }
+        if (this.hasTried && level.getBlockState(this.pistonPos).isAir() && !level.getBlockState(this.headPos).is(Blocks.PISTON_HEAD)) {
+            return Status.UNINITIALIZED;
+        }
+        if (this.hasTried
+                && level.getBlockState(this.pistonPos).is(Blocks.PISTON)
+                && !level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.EXTENDED)
+                && level.getBlockState(this.pistonPos).getValue(PistonBaseBlock.FACING) == this.layout.getPrimingFacing()
+                && BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))) {
+            if (hasOwnedTorchPowerSource()) {
+                return Status.UNEXTENDED_WITH_POWER_SOURCE;
+            }
+            return Status.UNEXTENDED_WITHOUT_POWER_SOURCE;
+        }
         if (this.hasTried && (level.getBlockState(this.pistonPos).is(Blocks.PISTON) || level.getBlockState(this.pistonPos).isAir()) && this.stuckTicksCounter < 15) {
             return Status.NEEDS_WAITING;
         }
@@ -557,5 +603,20 @@ public class BedrockTarget {
                 && (level.getBlockState(this.pistonPos).is(Blocks.PISTON)
                 || level.getBlockState(this.pistonPos).isAir()
                 || level.getBlockState(this.pistonPos).is(Blocks.MOVING_PISTON));
+    }
+
+    private boolean placeTorch() {
+        if (this.torchPlacement == null || this.torchSupportPos == null) {
+            return false;
+        }
+        if (!BedrockPlacer.placeSimple(this.torchSupportPos, this.torchPlacement.getClickedFace(), Blocks.REDSTONE_TORCH.asItem())) {
+            return false;
+        }
+        recordTemp(getTorchPos());
+        return true;
+    }
+
+    private BlockPos getTorchSupportFromPlacement() {
+        return this.torchPlacement == null ? null : this.torchPlacement.getSupportPos();
     }
 }

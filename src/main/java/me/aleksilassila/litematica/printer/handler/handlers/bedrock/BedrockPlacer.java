@@ -34,9 +34,10 @@ public final class BedrockPlacer {
             BedrockDebugLog.write("placeSimple skipped support=" + BedrockDebugLog.pos(supportPos) + " item=" + item + " reason=missing_item");
             return false;
         }
+        PlayerLook look = new PlayerLook(clickedFace.getOpposite());
         rememberLook(player);
-        NetworkUtils.sendLookPacket(player, new PlayerLook(clickedFace.getOpposite()));
-        syncLocalLook(player, player.getYRot(), player.getXRot());
+        NetworkUtils.sendLookPacket(player, look);
+        syncLocalLook(player, look.getYaw(), look.getPitch());
         // Use center of the support block for more reliable interaction
         BlockHitResult hitResult = new BlockHitResult(Vec3.atCenterOf(supportPos), clickedFace, supportPos, false);
         placeBlockAggressively(player, hitResult);

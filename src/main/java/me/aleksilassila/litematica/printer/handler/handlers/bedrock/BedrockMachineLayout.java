@@ -35,8 +35,8 @@ public final class BedrockMachineLayout {
             if (!BedrockEnvironment.hasRoomForPiston(level, layout.getPistonPos(), layout.getPistonOffset())) {
                 continue;
             }
-            if (BedrockEnvironment.findTorchSupport(level, layout.getPistonPos()) != null
-                    || BedrockEnvironment.findPossibleSlimeSupport(level, layout.getPistonPos()) != null) {
+            if (BedrockEnvironment.findTorchPlacement(level, layout.getPistonPos(), layout.getPistonOffset().getOpposite(), bedrockPos, layout.getPistonPos(), layout.getHeadPos()) != null
+                    || BedrockEnvironment.findPossibleSlimeTorchPlacement(level, layout.getPistonPos(), layout.getPistonOffset().getOpposite(), bedrockPos, layout.getPistonPos(), layout.getHeadPos()) != null) {
                 return layout;
             }
         }
