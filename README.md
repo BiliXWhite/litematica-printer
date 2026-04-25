@@ -1,14 +1,11 @@
-> [!WARNING]  
-> 该README正在重构，目前的内容可能不完整或有误。请耐心等待更新或者贡献这个项目。
-
 Litematica Printer
 ==================
 
-该模组为 投影 的 Minecraft Fabric 1.18.2 至 1.21.10 版本添加了自动建造功能。允许玩家通过自动放置周围正确方块来快速还原投影。
+该模组为 投影 的 Minecraft Fabric 1.18.2 至 26.1 版本添加了自动建造功能。允许玩家通过自动放置周围正确方块来快速还原投影。
 
 这个版本基于[宅咸鱼二改版](https://github.com/zhaixianyu/litematica-printer)修改，添加了一些实用的功能。
 
-如果你觉得好用，可以给该项目点个 Star ⭐️ 来以支持我们。
+如果你觉得好用，可以给该项目点个 Star ⭐️ 来以支持我。
 
 该分支始终保持开源免费，不会存在任何收费内容。当然条件允许的话可以给作者[买瓶脉动](https://ifdian.net/a/BlinkWhite)哦！
 
@@ -16,8 +13,8 @@ Litematica Printer
 ----------
 
 官方提供的下载渠道有两种: 
-- [**Github Releases**](https://github.com/BiliXWhite/litematica-printer/releases)
-- [**蓝奏云分流(密码cgxw 仅发布正式版+测试版)**](https://xeno.lanzoue.com/b00l1v20vi)
+- [**Github Releases**](https://github.com/Yur1Ca/litematica-printer/releases)
+- [**OpenList**](https://openlist.hanauta.icu/Minecraft/Litematica-Printer)
 
 ### 支持的游戏版本
 
@@ -33,7 +30,8 @@ Litematica Printer
 - 1.21.4
 - 1.21.5
 - 1.21.6~8
-- 1.21.9~10
+- 1.21.9~11
+- 26.1
 
 暂不接受1.18.2以下版本的更新，之间的小版本是否可用请自行尝试，一般版本进度会跟进上游分支
 
@@ -106,14 +104,14 @@ Litematica Printer
 
 ## 推荐加入QQ群聊
 - 毕竟不是人人都有能力在 GitHub 上提交 Issue ，您可以加入我们的QQ群聊，以便更好的反馈问题，获取更新和获得帮助。
-[点击此处加入QQ群聊](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=ttinzrJB3jYRLSTJM8R2YfwYdCm4Zo90&authKey=vfwF)
+[点击此处加入QQ群聊](https://qm.qq.com/q/L8wglHf3GI)
 
 ### 为什么开启打印后，打印机不工作？
 - 由于投影打印机是基于发送静默看向的方式进行打印的，不会考虑点击面合法化，所以会被服务器反作弊检测。
 - `打印机工作间隔`设置过小，导致类似于 Luminol 等有放置速率限制的服务器不会及时响应，请尝试开启`使用数据包打印`功能打印或者调高`打印机工作间隔`。 
 - 某些玄学问题，在开启正版验证的服务器里打印数据交互不正常。可尝试重新登陆游戏账号。（推荐使用[AuthMe](https://modrinth.com/mod/auth-me)模组） 
 
-如果以上方法都无法解决问题，请尝试提交 [Issue](https://github.com/BiliXWhite/litematica-printer/issues/new?template=bug%E6%8A%A5%E5%91%8A.yml) ，开发者会协助您解决问题。
+如果以上方法都无法解决问题，请尝试提交 [Issue](https://github.com/Yur1Ca/litematica-printer/issues) ，开发者会协助您解决问题。
 
 ### 为什么打印机放置的方块是错的？
 
