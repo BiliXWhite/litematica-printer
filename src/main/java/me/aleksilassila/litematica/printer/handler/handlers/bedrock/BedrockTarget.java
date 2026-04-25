@@ -42,6 +42,7 @@ public class BedrockTarget {
     private int lastRepowerTick = -1;
     private int executeTick = -1;
     private boolean executedThisTick;
+    private boolean initializedThisTick;
     private Status status = Status.UNINITIALIZED;
     private Status lastLoggedStatus;
     public final Set<BlockPos> tempBlocks = new LinkedHashSet<>();
@@ -114,11 +115,16 @@ public class BedrockTarget {
     }
 
     public Status tick() {
-        return this.tick(true);
+        return this.tick(true, true);
     }
 
     public Status tick(boolean allowExecute) {
+        return this.tick(allowExecute, true);
+    }
+
+    public Status tick(boolean allowExecute, boolean allowInitialize) {
         this.executedThisTick = false;
+        this.initializedThisTick = false;
         
         // Only increment tick counter if we are actually doing something or waiting for sync.
         // This prevents tasks from failing while they are just queued in the controller.
@@ -132,6 +138,12 @@ public class BedrockTarget {
         logStatus();
         switch (this.status) {
             case UNINITIALIZED -> {
+                if (!allowInitialize) {
+                    BedrockDebugLog.write("target initialize delayed bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                            + " tick=" + this.tickTimes
+                            + " reason=init_budget");
+                    break;
+                }
                 if (!canBuildInitialMachine()) {
                     BedrockDebugLog.write("target initialize deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                             + " reason=missing_required_items");
@@ -154,6 +166,7 @@ public class BedrockTarget {
                         + " piston=" + BedrockDebugLog.pos(this.pistonPos)
                         + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
                         + " torch=" + BedrockDebugLog.pos(getTorchPos()));
+                this.initializedThisTick = true;
             }
             case EXTENDED -> {
                 if (!allowExecute) {
@@ -257,6 +270,10 @@ public class BedrockTarget {
 
     public boolean executedThisTick() {
         return this.executedThisTick;
+    }
+
+    public boolean initializedThisTick() {
+        return this.initializedThisTick;
     }
 
     public Set<BlockPos> getCleanupPositions() {

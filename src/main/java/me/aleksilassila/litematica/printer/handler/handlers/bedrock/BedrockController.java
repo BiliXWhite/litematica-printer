@@ -288,8 +288,19 @@ public final class BedrockController {
                 continue;
             }
 
-            BedrockTarget.Status status = target.tick(priorityOnly || executeBudget > 0);
+            boolean allowInitialize = priorityOnly || executeBudget > 0;
+            BedrockTarget.Status status = target.tick(priorityOnly || executeBudget > 0, allowInitialize);
             processedTargets.add(target);
+            if (target.initializedThisTick()) {
+                if (!priorityOnly) {
+                    executeBudget--;
+                    BedrockDebugLog.write("controller init consumed bedrock=" + BedrockDebugLog.pos(target.getBedrockPos())
+                            + " remainingBudget=" + executeBudget);
+                } else {
+                    BedrockDebugLog.write("controller fastlane init bedrock=" + BedrockDebugLog.pos(target.getBedrockPos())
+                            + " status=" + status);
+                }
+            }
             if (target.executedThisTick()) {
                 if (priorityOnly) {
                     BedrockDebugLog.write("controller fastlane execute bedrock=" + BedrockDebugLog.pos(target.getBedrockPos())
@@ -344,7 +355,7 @@ public final class BedrockController {
         if (executeBudget <= 0) {
             executeBudget = 64;
         }
-        return Math.max(12, executeBudget * 3);
+        return Math.max(8, executeBudget * 2);
     }
 
     private static boolean countsTowardsActiveCap(BedrockTarget.Status status) {
