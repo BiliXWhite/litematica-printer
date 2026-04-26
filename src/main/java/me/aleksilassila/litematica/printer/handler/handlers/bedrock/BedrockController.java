@@ -342,14 +342,16 @@ public final class BedrockController {
         if (executeBudget <= 0) {
             executeBudget = 64;
         }
-        return Math.max(8, executeBudget * 2);
+        return Math.max(4, executeBudget);
     }
 
     private static boolean countsTowardsActiveCap(BedrockTarget.Status status) {
         return status == BedrockTarget.Status.UNINITIALIZED
                 || status == BedrockTarget.Status.UNEXTENDED_WITH_POWER_SOURCE
                 || status == BedrockTarget.Status.UNEXTENDED_WITHOUT_POWER_SOURCE
-                || status == BedrockTarget.Status.EXTENDED;
+                || status == BedrockTarget.Status.EXTENDED
+                || status == BedrockTarget.Status.NEEDS_WAITING
+                || status == BedrockTarget.Status.RETRACTING;
     }
 
     private static boolean isFastLaneStatus(BedrockTarget.Status status) {

@@ -424,7 +424,9 @@ public class BedrockTarget {
             if (this.slimePos != null && this.torchPlacement != null && this.slimePos.equals(this.torchPlacement.getSupportPos())
                     && BedrockEnvironment.isSlimePlacementUsable(level, this.torchPlacement)) {
                 if (!level.getBlockState(this.slimePos).is(Blocks.SLIME_BLOCK)) {
-                    BedrockPlacer.placeSimple(this.slimePos, Direction.UP, Blocks.SLIME_BLOCK.asItem());
+                    if (!BedrockPlacer.placeSimple(this.slimePos, Direction.UP, Blocks.SLIME_BLOCK.asItem())) {
+                        return;
+                    }
                     recordTemp(this.slimePos);
                 }
                 this.torchSupportPos = getTorchSupportFromPlacement();
@@ -445,7 +447,9 @@ public class BedrockTarget {
                         this.torchPlacement = slimePlacement;
                         this.slimePos = slimePlacement.getSupportPos();
                         if (!level.getBlockState(this.slimePos).is(Blocks.SLIME_BLOCK)) {
-                            BedrockPlacer.placeSimple(this.slimePos, Direction.UP, Blocks.SLIME_BLOCK.asItem());
+                            if (!BedrockPlacer.placeSimple(this.slimePos, Direction.UP, Blocks.SLIME_BLOCK.asItem())) {
+                                return;
+                            }
                             recordTemp(this.slimePos);
                             BedrockDebugLog.write("target materialized slime support bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                                     + " slime=" + BedrockDebugLog.pos(this.slimePos)
