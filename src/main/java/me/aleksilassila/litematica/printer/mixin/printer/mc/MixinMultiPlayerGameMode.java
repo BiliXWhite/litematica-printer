@@ -16,9 +16,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket.Action;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.spongepowered.asm.mixin.Final;
@@ -50,6 +52,10 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
     private BlockPos delayedDestroyPos;
     @Unique
     private boolean hasDelayedDestroy;
+    @Unique
+    private BlockPos litematica_printer$lastHitSoundPos;
+    @Unique
+    private int litematica_printer$lastHitSoundStage = Integer.MIN_VALUE;
 
     @Shadow
     public abstract boolean destroyBlock(final BlockPos pos);
@@ -120,6 +126,39 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
         //#endif
     }
 
+    @Unique
+    private void litematica_printer$resetHitSoundState() {
+        this.litematica_printer$lastHitSoundPos = null;
+        this.litematica_printer$lastHitSoundStage = Integer.MIN_VALUE;
+    }
+
+    @Unique
+    private void litematica_printer$playBlockHitSound(ClientLevel level, BlockState blockState, BlockPos blockPos, boolean force) {
+        if (blockState.isAir()) {
+            return;
+        }
+        int stage = this.litematica_printer$getDestroyStage();
+        if (!force && blockPos.equals(this.litematica_printer$lastHitSoundPos) && stage == this.litematica_printer$lastHitSoundStage) {
+            return;
+        }
+        this.litematica_printer$lastHitSoundPos = blockPos;
+        this.litematica_printer$lastHitSoundStage = stage;
+
+        SoundType soundType = blockState.getSoundType();
+        float volume = (soundType.getVolume() + 1.0F) / 8.0F;
+        float pitch = soundType.getPitch() * 0.5F;
+        level.playLocalSound(
+                blockPos.getX() + 0.5D,
+                blockPos.getY() + 0.5D,
+                blockPos.getZ() + 0.5D,
+                soundType.getHitSound(),
+                SoundSource.BLOCKS,
+                volume,
+                pitch,
+                false
+        );
+    }
+
     @Override
     public BlockBreakResult litematica_printer$continueDestroyBlock(boolean localPrediction, BlockPos blockPos, Direction direction) {
         LocalPlayer player = minecraft.player;
@@ -129,12 +168,14 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
             return BlockBreakResult.FAILED;
         }
         if (player.getAbilities().instabuild && level.getWorldBorder().isWithinBounds(blockPos)) {
+            this.litematica_printer$playBlockHitSound(level, level.getBlockState(blockPos), blockPos, true);
             NetworkUtils.sendPacket(sequence -> {
                 if (localPrediction) {
                     destroyBlock(blockPos);
                 }
                 return litematica_printer$getServerboundPlayerActionPacket(Action.START_DESTROY_BLOCK, blockPos, direction, sequence);
             });
+            this.litematica_printer$resetHitSoundState();
             return BlockBreakResult.COMPLETED;
         }
         if (ModLoadUtils.isTweakerooLoaded()) {
@@ -145,24 +186,29 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
             ensureHasSentCarriedItem();
         }
         if (Configs.Break.FAST_BREAK.getBooleanValue()) {
+            this.litematica_printer$playBlockHitSound(level, level.getBlockState(blockPos), blockPos, true);
             NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
             NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
+            this.litematica_printer$resetHitSoundState();
             return BlockBreakResult.COMPLETED;
         }
         boolean useDelayedDestroy = Configs.Break.BREAK_USE_DELAYED_DESTROY.getBooleanValue();
         BlockState blockState = level.getBlockState(blockPos);
         boolean isAir = blockState.isAir();
         if (isAir) {
+            this.litematica_printer$resetHitSoundState();
             return BlockBreakResult.COMPLETED;
         }
 
         float currentDestroyProgress = blockState.getDestroyProgress(player, level, blockPos);
         if (currentDestroyProgress >= 1.0F || (Configs.Break.BREAK_INSTANT_MINE.getBooleanValue() && currentDestroyProgress > 0.5F)) {
+            this.litematica_printer$playBlockHitSound(level, blockState, blockPos, true);
             if (localPrediction) {
                 destroyBlock(blockPos);
             }
             NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
             NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
+            this.litematica_printer$resetHitSoundState();
             if (currentDestroyProgress > 0.6F) {
                 return BlockBreakResult.COMPLETED;
             } else {
@@ -176,9 +222,11 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
         if (this.sameDestroyTarget(blockPos)) {
             if (blockState.isAir()) {
                 this.isDestroying = false;
+                this.litematica_printer$resetHitSoundState();
                 return BlockBreakResult.COMPLETED;
             }
             this.destroyProgress = this.destroyProgress + blockState.getDestroyProgress(player, level, blockPos);
+            this.litematica_printer$playBlockHitSound(level, blockState, blockPos, false);
             if (this.destroyProgress >= ConfigUtils.getBreakProgressThreshold()) {
                 this.isDestroying = false;
                 this.destroyProgress = 0.0F;
@@ -191,6 +239,7 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
                 if (localPrediction) {
                     level.destroyBlockProgress(player.getId(), this.destroyBlockPos, this.litematica_printer$getDestroyStage());
                 }
+                this.litematica_printer$resetHitSoundState();
                 return BlockBreakResult.COMPLETED;
             }
             if (useDelayedDestroy){
@@ -203,17 +252,20 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
                 if (localPrediction) {
                     level.destroyBlockProgress(player.getId(), this.destroyBlockPos, this.litematica_printer$getDestroyStage());
                 }
+                this.litematica_printer$resetHitSoundState();
             }
             return BlockBreakResult.IN_PROGRESS;
 
         } else if (!this.isDestroying || !this.sameDestroyTarget(blockPos)) {
             if (this.isDestroying) {
                 NetworkUtils.sendPacket(litematica_printer$getServerboundPlayerActionPacket(Action.ABORT_DESTROY_BLOCK, this.destroyBlockPos, direction, 0));
+                this.litematica_printer$resetHitSoundState();
             }
             if (this.destroyProgress == 0.0F) {
                 if (localPrediction) {
                     blockState.attack(level, blockPos, player);
                 }
+                this.litematica_printer$playBlockHitSound(level, blockState, blockPos, true);
             }
             float destroyProgress = blockState.getDestroyProgress(player, level, blockPos);
             if (destroyProgress >= 1.0F) {
@@ -221,6 +273,7 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
                     destroyBlock(blockPos);
                 }
                 NetworkUtils.sendPacket(sequence -> litematica_printer$getServerboundPlayerActionPacket(Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
+                this.litematica_printer$resetHitSoundState();
             } else {
                 this.isDestroying = true;
                 this.destroyBlockPos = blockPos;

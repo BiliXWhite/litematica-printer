@@ -38,7 +38,7 @@
   "litematica-printer.config.breakWhitelist.desc": "仅允许打印过程中的自动破坏处理此列表中的方块。\n主要影响打印模式里的错误方块/多余方块自动破坏，不影响挖掘模式。\n可输入物品ID或当前语言的翻译名称，示例：§bminecraft:stone§r §b砂岩§r。\n前缀添加§b#§r表示标签匹配，示例：§l#minecraft:logs§r。\n同时输入文本和过滤条件(英文逗号分隔)，示例：§l带釉陶瓦,c§r。\n其中“c”表示包含匹配，优先尝试拼音或直接匹配。",
   "litematica-printer.config.category.bedrock": "§6破基岩",
   "litematica-printer.config.category.bedrock.desc": "基岩挖掘模式相关设置",
-  "litematica-printer.config.category.break": "共享破坏引擎",
+  "litematica-printer.config.category.break": "通用破坏引擎",
   "litematica-printer.config.category.break.desc": "底层破坏协议与进度判定设置，供挖掘与其他破坏流程共用",
   "litematica-printer.config.category.core": "核心",
   "litematica-printer.config.category.core.desc": "一些主要的设置",
