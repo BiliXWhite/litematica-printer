@@ -431,21 +431,22 @@ public final class BedrockController {
     }
 
     private static int getCleanupRetryDelay(net.minecraft.world.level.block.state.BlockState state) {
+        boolean fastProfile = BedrockInventory.shouldUseFastBreakProfile();
         if (state.is(net.minecraft.world.level.block.Blocks.REDSTONE_TORCH)
                 || state.is(net.minecraft.world.level.block.Blocks.REDSTONE_WALL_TORCH)) {
-            return 3;
+            return fastProfile ? 2 : 3;
         }
         if (state.is(net.minecraft.world.level.block.Blocks.PISTON_HEAD)
                 || state.is(net.minecraft.world.level.block.Blocks.PISTON)) {
-            return 4;
+            return fastProfile ? 3 : 4;
         }
         if (state.is(net.minecraft.world.level.block.Blocks.MOVING_PISTON)) {
-            return 8;
+            return fastProfile ? 6 : 8;
         }
         if (state.is(net.minecraft.world.level.block.Blocks.SLIME_BLOCK)) {
-            return 10;
+            return fastProfile ? 8 : 10;
         }
-        return 6;
+        return fastProfile ? 5 : 6;
     }
 
     private static boolean isReservedByActiveTarget(BlockPos pos) {
