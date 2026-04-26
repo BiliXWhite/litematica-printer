@@ -130,10 +130,10 @@ public final class BedrockInventory {
                 return EnchantmentHelper.getItemEnchantmentLevel(entry.getKey(), itemStack);
             }
         }
+        return 0;
         //#else
         //$$ return EnchantmentHelper.getItemEnchantmentLevel(Enchantments.EFFICIENCY, itemStack);
         //#endif
-        return 0;
     }
 
     private static float getBlockBreakingSpeed(LocalPlayer player, BlockState blockState, ItemStack itemStack) {
