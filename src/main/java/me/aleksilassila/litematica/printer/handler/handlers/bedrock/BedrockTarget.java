@@ -48,7 +48,6 @@ public class BedrockTarget {
     private boolean initializedThisTick;
     private Status status = Status.UNINITIALIZED;
     private Status lastLoggedStatus;
-    private boolean allowWorldMutationInStatusUpdate;
     public final Set<BlockPos> tempBlocks = new LinkedHashSet<>();
 
     public BedrockTarget(BlockPos bedrockPos, ClientLevel level) {
@@ -129,7 +128,6 @@ public class BedrockTarget {
     public Status tick(boolean allowExecute, boolean allowInitialize) {
         this.executedThisTick = false;
         this.initializedThisTick = false;
-        this.allowWorldMutationInStatusUpdate = allowInitialize;
         
         // Only increment tick counter if we are actually doing something or waiting for sync.
         // This prevents tasks from failing while they are just queued in the controller.
@@ -426,12 +424,7 @@ public class BedrockTarget {
             if (this.slimePos != null && this.torchPlacement != null && this.slimePos.equals(this.torchPlacement.getSupportPos())
                     && BedrockEnvironment.isSlimePlacementUsable(level, this.torchPlacement)) {
                 if (!level.getBlockState(this.slimePos).is(Blocks.SLIME_BLOCK)) {
-                    if (!this.allowWorldMutationInStatusUpdate) {
-                        return;
-                    }
-                    if (!BedrockPlacer.placeSimple(this.slimePos, Direction.UP, Blocks.SLIME_BLOCK.asItem())) {
-                        return;
-                    }
+                    BedrockPlacer.placeSimple(this.slimePos, Direction.UP, Blocks.SLIME_BLOCK.asItem());
                     recordTemp(this.slimePos);
                 }
                 this.torchSupportPos = getTorchSupportFromPlacement();
@@ -452,12 +445,7 @@ public class BedrockTarget {
                         this.torchPlacement = slimePlacement;
                         this.slimePos = slimePlacement.getSupportPos();
                         if (!level.getBlockState(this.slimePos).is(Blocks.SLIME_BLOCK)) {
-                            if (!this.allowWorldMutationInStatusUpdate) {
-                                return;
-                            }
-                            if (!BedrockPlacer.placeSimple(this.slimePos, Direction.UP, Blocks.SLIME_BLOCK.asItem())) {
-                                return;
-                            }
+                            BedrockPlacer.placeSimple(this.slimePos, Direction.UP, Blocks.SLIME_BLOCK.asItem());
                             recordTemp(this.slimePos);
                             BedrockDebugLog.write("target materialized slime support bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                                     + " slime=" + BedrockDebugLog.pos(this.slimePos)

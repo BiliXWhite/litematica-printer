@@ -20,8 +20,6 @@ public final class BedrockPlacer {
     private static final Minecraft CLIENT = Minecraft.getInstance();
     private static float lastYaw;
     private static float lastPitch;
-    private static Item pendingOffhandItem;
-    private static long offhandReadyTick = Long.MIN_VALUE;
 
     private BedrockPlacer() {
     }
@@ -32,8 +30,8 @@ public final class BedrockPlacer {
             BedrockDebugLog.write("placeSimple skipped support=" + BedrockDebugLog.pos(supportPos) + " item=" + item + " reason=no_player_or_gamemode");
             return false;
         }
-        if (!ensureOffhandItem(item)) {
-            BedrockDebugLog.write("placeSimple skipped support=" + BedrockDebugLog.pos(supportPos) + " item=" + item + " reason=offhand_not_ready");
+        if (!BedrockInventory.switchToOffhand(item)) {
+            BedrockDebugLog.write("placeSimple skipped support=" + BedrockDebugLog.pos(supportPos) + " item=" + item + " reason=missing_item");
             return false;
         }
         PlayerLook look = new PlayerLook(clickedFace.getOpposite());
@@ -57,8 +55,8 @@ public final class BedrockPlacer {
             BedrockDebugLog.write("placePiston skipped piston=" + BedrockDebugLog.pos(pistonPos) + " facing=" + facing + " reason=no_player_or_gamemode");
             return false;
         }
-        if (!ensureOffhandItem(Blocks.PISTON.asItem())) {
-            BedrockDebugLog.write("placePiston skipped piston=" + BedrockDebugLog.pos(pistonPos) + " facing=" + facing + " reason=offhand_not_ready");
+        if (!BedrockInventory.switchToOffhand(Blocks.PISTON.asItem())) {
+            BedrockDebugLog.write("placePiston skipped piston=" + BedrockDebugLog.pos(pistonPos) + " facing=" + facing + " reason=missing_piston");
             return false;
         }
 
@@ -104,46 +102,6 @@ public final class BedrockPlacer {
                 ActionManager.INSTANCE.setShift(player, false);
             }
         }
-    }
-
-    private static boolean ensureOffhandItem(Item item) {
-        LocalPlayer player = CLIENT.player;
-        if (player == null) {
-            return false;
-        }
-        long currentTick = CLIENT.level != null ? CLIENT.level.getGameTime() : 0L;
-        boolean multiplayer = CLIENT.getConnection() != null && CLIENT.getSingleplayerServer() == null;
-
-        if (multiplayer && pendingOffhandItem == item && currentTick < offhandReadyTick) {
-            BedrockDebugLog.write("offhand wait item=" + item
-                    + " now=" + currentTick
-                    + " readyTick=" + offhandReadyTick);
-            return false;
-        }
-
-        if (player.getOffhandItem().getItem() == item) {
-            pendingOffhandItem = item;
-            if (!multiplayer || currentTick >= offhandReadyTick) {
-                offhandReadyTick = currentTick;
-            }
-            return true;
-        }
-
-        if (!BedrockInventory.switchToOffhand(item)) {
-            return false;
-        }
-
-        pendingOffhandItem = item;
-        if (multiplayer) {
-            offhandReadyTick = currentTick + 1L;
-            BedrockDebugLog.write("offhand switch queued item=" + item
-                    + " now=" + currentTick
-                    + " readyTick=" + offhandReadyTick);
-            return false;
-        }
-
-        offhandReadyTick = currentTick;
-        return true;
     }
 
     private static void rememberLook(LocalPlayer player) {
