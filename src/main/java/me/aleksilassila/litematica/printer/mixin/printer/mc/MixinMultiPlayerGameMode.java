@@ -56,6 +56,8 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
     private BlockPos litematica_printer$lastHitSoundPos;
     @Unique
     private long litematica_printer$lastHitSoundGameTime = Long.MIN_VALUE;
+    @Unique
+    private long litematica_printer$lastGlobalHitSoundGameTime = Long.MIN_VALUE;
 
     @Shadow
     public abstract boolean destroyBlock(final BlockPos pos);
@@ -145,6 +147,9 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
             return;
         }
         long gameTime = level.getGameTime();
+        if (gameTime == this.litematica_printer$lastGlobalHitSoundGameTime) {
+            return;
+        }
         if (!force
                 && blockPos.equals(this.litematica_printer$lastHitSoundPos)
                 && gameTime - this.litematica_printer$lastHitSoundGameTime < this.litematica_printer$getHitSoundIntervalTicks(player, level, blockState, blockPos)) {
@@ -152,6 +157,7 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
         }
         this.litematica_printer$lastHitSoundPos = blockPos;
         this.litematica_printer$lastHitSoundGameTime = gameTime;
+        this.litematica_printer$lastGlobalHitSoundGameTime = gameTime;
 
         SoundType soundType = blockState.getSoundType();
         float volume = (soundType.getVolume() + 1.0F) / 8.0F;
