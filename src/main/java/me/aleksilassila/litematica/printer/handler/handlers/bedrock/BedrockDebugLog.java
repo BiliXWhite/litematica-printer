@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.handler.handlers.bedrock;
 
+import me.aleksilassila.litematica.printer.config.Configs;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
@@ -16,8 +17,7 @@ public final class BedrockDebugLog {
     }
 
     public static synchronized void write(String message) {
-        // Keep the call sites intact so file logging can be re-enabled from one place later.
-        if (true) {
+        if (!Configs.Core.DEBUG_OUTPUT.getBooleanValue()) {
             return;
         }
         try {

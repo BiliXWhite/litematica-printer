@@ -56,7 +56,6 @@ public final class BedrockController {
         }
         lastProcessedTick = now;
 
-        // 强力清理队列：死磕到底，变空气才移除
         processCleanupQueue();
 
         if (BedrockInventory.warningMessage() != null) {
