@@ -11,9 +11,12 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class BedrockTarget {
-    private static final int REPOWER_INTERVAL_TICKS = 2;
-    private static final int POWERED_STALL_RECOVERY_TICKS = 2;
-    private static final int POST_EXECUTE_SYNC_TIMEOUT_TICKS = 16;
+    private static final int BASE_REPOWER_INTERVAL_TICKS = 2;
+    private static final int FAST_REPOWER_INTERVAL_TICKS = 1;
+    private static final int BASE_POWERED_STALL_RECOVERY_TICKS = 2;
+    private static final int FAST_POWERED_STALL_RECOVERY_TICKS = 1;
+    private static final int BASE_POST_EXECUTE_SYNC_TIMEOUT_TICKS = 16;
+    private static final int FAST_POST_EXECUTE_SYNC_TIMEOUT_TICKS = 12;
 
     public enum Status {
         FAILED,
@@ -201,10 +204,12 @@ public class BedrockTarget {
                 }
             }
             case UNEXTENDED_WITH_POWER_SOURCE -> {
-                if (this.tickTimes < POWERED_STALL_RECOVERY_TICKS) {
+                int poweredStallRecoveryTicks = getPoweredStallRecoveryTicks();
+                if (this.tickTimes < poweredStallRecoveryTicks) {
                     BedrockDebugLog.write("target powered stall waiting bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                             + " tick=" + this.tickTimes
-                            + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos));
+                            + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
+                            + " recoveryTicks=" + poweredStallRecoveryTicks);
                     break;
                 }
                 if (!BedrockInventory.hasAtLeast(Blocks.PISTON.asItem(), 1)) {
@@ -220,10 +225,11 @@ public class BedrockTarget {
                     break;
                 }
 
-                if (this.lastRepowerTick >= 0 && this.tickTimes - this.lastRepowerTick < REPOWER_INTERVAL_TICKS) {
+                int repowerIntervalTicks = getRepowerIntervalTicks();
+                if (this.lastRepowerTick >= 0 && this.tickTimes - this.lastRepowerTick < repowerIntervalTicks) {
                     BedrockDebugLog.write("target powered stall delayed bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                             + " tick=" + this.tickTimes
-                            + " cooldown=" + REPOWER_INTERVAL_TICKS);
+                            + " cooldown=" + repowerIntervalTicks);
                     break;
                 }
 
@@ -353,11 +359,12 @@ public class BedrockTarget {
                     + " context=" + reason);
             return false;
         }
-        if (this.lastRepowerTick >= 0 && this.tickTimes - this.lastRepowerTick < REPOWER_INTERVAL_TICKS) {
+        int repowerIntervalTicks = getRepowerIntervalTicks();
+        if (this.lastRepowerTick >= 0 && this.tickTimes - this.lastRepowerTick < repowerIntervalTicks) {
             BedrockDebugLog.write("target repower delayed bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
                     + " torchSupport=" + BedrockDebugLog.pos(this.torchSupportPos)
                     + " tick=" + this.tickTimes
-                    + " cooldown=" + REPOWER_INTERVAL_TICKS
+                    + " cooldown=" + repowerIntervalTicks
                     + " context=" + reason);
             return false;
         }
@@ -617,10 +624,23 @@ public class BedrockTarget {
     }
 
     private boolean hasExceededSyncWaitTimeout() {
+        int syncTimeoutTicks = getPostExecuteSyncTimeoutTicks();
         return this.hasTried
                 && this.executeTick >= 0
-                && this.tickTimes - this.executeTick >= POST_EXECUTE_SYNC_TIMEOUT_TICKS
+                && this.tickTimes - this.executeTick >= syncTimeoutTicks
                 && (level.getBlockState(this.pistonPos).isAir() || hasPostExecuteSyncResidue());
+    }
+
+    private int getRepowerIntervalTicks() {
+        return BedrockInventory.shouldUseFastBreakProfile() ? FAST_REPOWER_INTERVAL_TICKS : BASE_REPOWER_INTERVAL_TICKS;
+    }
+
+    private int getPoweredStallRecoveryTicks() {
+        return BedrockInventory.shouldUseFastBreakProfile() ? FAST_POWERED_STALL_RECOVERY_TICKS : BASE_POWERED_STALL_RECOVERY_TICKS;
+    }
+
+    private int getPostExecuteSyncTimeoutTicks() {
+        return BedrockInventory.shouldUseFastBreakProfile() ? FAST_POST_EXECUTE_SYNC_TIMEOUT_TICKS : BASE_POST_EXECUTE_SYNC_TIMEOUT_TICKS;
     }
 
     private Status getRecoverablePostExecuteStatus() {
