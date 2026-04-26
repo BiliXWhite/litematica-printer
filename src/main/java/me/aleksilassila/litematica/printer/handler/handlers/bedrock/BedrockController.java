@@ -210,9 +210,9 @@ public final class BedrockController {
     }
 
     private static BedrockTarget findConflictTarget(BedrockTarget candidate) {
-        Set<BlockPos> candidateFootprint = candidate.getReservedPositions();
+        Set<BlockPos> candidateFootprint = candidate.getMachineFootprint();
         for (BedrockTarget existing : TARGETS) {
-            Set<BlockPos> existingFootprint = existing.getReservedPositions();
+            Set<BlockPos> existingFootprint = existing.getMachineFootprint();
             for (BlockPos pos : candidateFootprint) {
                 if (existingFootprint.contains(pos)) {
                     return existing;
@@ -245,19 +245,7 @@ public final class BedrockController {
     }
 
     private static Set<BlockPos> getBlockingCleanupPositions(BedrockTarget candidate) {
-        LinkedHashSet<BlockPos> positions = new LinkedHashSet<>();
-        positions.add(candidate.getPistonPos());
-        positions.add(candidate.getHeadPos());
-        if (candidate.getTorchSupportPos() != null) {
-            positions.add(candidate.getTorchSupportPos());
-        }
-        if (candidate.getTorchPos() != null) {
-            positions.add(candidate.getTorchPos());
-        }
-        if (candidate.getSlimePos() != null) {
-            positions.add(candidate.getSlimePos());
-        }
-        return positions;
+        return new LinkedHashSet<>(candidate.getMachineFootprint());
     }
 
     private static int processTargets(ClientLevel level, int executeBudget, boolean priorityOnly, Set<BedrockTarget> processedTargets) {
