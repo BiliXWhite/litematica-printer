@@ -210,9 +210,9 @@ public final class BedrockController {
     }
 
     private static BedrockTarget findConflictTarget(BedrockTarget candidate) {
-        Set<BlockPos> candidateFootprint = candidate.getMachineFootprint();
+        Set<BlockPos> candidateFootprint = candidate.getReservedPositions();
         for (BedrockTarget existing : TARGETS) {
-            Set<BlockPos> existingFootprint = existing.getMachineFootprint();
+            Set<BlockPos> existingFootprint = existing.getReservedPositions();
             for (BlockPos pos : candidateFootprint) {
                 if (existingFootprint.contains(pos)) {
                     return existing;
@@ -245,7 +245,19 @@ public final class BedrockController {
     }
 
     private static Set<BlockPos> getBlockingCleanupPositions(BedrockTarget candidate) {
-        return new LinkedHashSet<>(candidate.getMachineFootprint());
+        LinkedHashSet<BlockPos> positions = new LinkedHashSet<>();
+        positions.add(candidate.getPistonPos());
+        positions.add(candidate.getHeadPos());
+        if (candidate.getTorchSupportPos() != null) {
+            positions.add(candidate.getTorchSupportPos());
+        }
+        if (candidate.getTorchPos() != null) {
+            positions.add(candidate.getTorchPos());
+        }
+        if (candidate.getSlimePos() != null) {
+            positions.add(candidate.getSlimePos());
+        }
+        return positions;
     }
 
     private static int processTargets(ClientLevel level, int executeBudget, boolean priorityOnly, Set<BedrockTarget> processedTargets) {
@@ -342,16 +354,14 @@ public final class BedrockController {
         if (executeBudget <= 0) {
             executeBudget = 64;
         }
-        return Math.max(4, executeBudget);
+        return Math.max(8, executeBudget * 2);
     }
 
     private static boolean countsTowardsActiveCap(BedrockTarget.Status status) {
         return status == BedrockTarget.Status.UNINITIALIZED
                 || status == BedrockTarget.Status.UNEXTENDED_WITH_POWER_SOURCE
                 || status == BedrockTarget.Status.UNEXTENDED_WITHOUT_POWER_SOURCE
-                || status == BedrockTarget.Status.EXTENDED
-                || status == BedrockTarget.Status.NEEDS_WAITING
-                || status == BedrockTarget.Status.RETRACTING;
+                || status == BedrockTarget.Status.EXTENDED;
     }
 
     private static boolean isFastLaneStatus(BedrockTarget.Status status) {
@@ -421,22 +431,21 @@ public final class BedrockController {
     }
 
     private static int getCleanupRetryDelay(net.minecraft.world.level.block.state.BlockState state) {
-        boolean fastProfile = BedrockInventory.shouldUseFastBreakProfile();
         if (state.is(net.minecraft.world.level.block.Blocks.REDSTONE_TORCH)
                 || state.is(net.minecraft.world.level.block.Blocks.REDSTONE_WALL_TORCH)) {
-            return fastProfile ? 2 : 3;
+            return 3;
         }
         if (state.is(net.minecraft.world.level.block.Blocks.PISTON_HEAD)
                 || state.is(net.minecraft.world.level.block.Blocks.PISTON)) {
-            return fastProfile ? 3 : 4;
+            return 4;
         }
         if (state.is(net.minecraft.world.level.block.Blocks.MOVING_PISTON)) {
-            return fastProfile ? 6 : 8;
+            return 8;
         }
         if (state.is(net.minecraft.world.level.block.Blocks.SLIME_BLOCK)) {
-            return fastProfile ? 8 : 10;
+            return 10;
         }
-        return fastProfile ? 5 : 6;
+        return 6;
     }
 
     private static boolean isReservedByActiveTarget(BlockPos pos) {

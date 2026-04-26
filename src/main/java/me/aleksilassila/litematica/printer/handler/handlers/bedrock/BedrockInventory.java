@@ -23,11 +23,7 @@ import java.util.Optional;
 
 public final class BedrockInventory {
     private static final Minecraft CLIENT = Minecraft.getInstance();
-    private static final float INSTANT_MINE_THRESHOLD = 20.0F;
-    private static final float FAST_INSTANT_MINE_THRESHOLD = 45.0F;
     private static String lastInstantMineDebugLine;
-    private static long cachedInstantMineTick = Long.MIN_VALUE;
-    private static BedrockInstantMineInfo cachedInstantMineInfo;
 
     private BedrockInventory() {
     }
@@ -49,10 +45,8 @@ public final class BedrockInventory {
         if (count(Items.SLIME_BLOCK) < 1) {
             return "bedrockminer.fail.missing.slime";
         }
-        BedrockInstantMineInfo info = getBestInstantMineInfo(player);
-        writeInstantMineDebug(player, info);
-        if (!canInstantMinePiston(info)) {
-            BedrockDebugLog.write("instantmine requirement failed threshold=" + formatSpeed(INSTANT_MINE_THRESHOLD));
+        writeInstantMineDebug(player);
+        if (!canInstantMinePiston(player)) {
             return "bedrockminer.fail.missing.instantmine";
         }
         return null;
@@ -76,30 +70,27 @@ public final class BedrockInventory {
         return player == null ? 0 : player.getInventory().countItem(item);
     }
 
-    public static boolean shouldUseFastBreakProfile() {
-        LocalPlayer player = CLIENT.player;
-        BedrockInstantMineInfo info = player == null ? null : getBestInstantMineInfo(player);
-        return isFastGroundedInstantMine(info, player);
+    private static boolean canInstantMinePiston(LocalPlayer player) {
+        Inventory inventory = player.getInventory();
+        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+            if (getBlockBreakingSpeed(player, Blocks.PISTON.defaultBlockState(), inventory.getItem(slot)) > 20.0F) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    private static boolean canInstantMinePiston(BedrockInstantMineInfo info) {
-        return info != null && info.breakSpeed() > INSTANT_MINE_THRESHOLD;
-    }
-
-    private static void writeInstantMineDebug(LocalPlayer player, BedrockInstantMineInfo info) {
+    private static void writeInstantMineDebug(LocalPlayer player) {
+        BedrockInstantMineInfo info = getBestInstantMineInfo(player);
         if (info == null) {
             return;
         }
-        String line = "instantmine check"
+        String line = "instantmine observe"
                 + " slot=" + info.slot()
                 + " item=" + BuiltInRegistries.ITEM.getKey(info.stack().getItem())
                 + " speed=" + formatSpeed(info.breakSpeed())
-                + " threshold=" + formatSpeed(INSTANT_MINE_THRESHOLD)
-                + " instant=" + info.instantMine()
-                + " profile=" + getInstantMineProfile(info, player)
                 + " efficiency=" + info.efficiencyLevel()
                 + " haste=" + info.hasteLevel()
-                + " fatigue=" + info.fatigueLevel()
                 + " onGround=" + player.onGround();
         if (!line.equals(lastInstantMineDebugLine)) {
             lastInstantMineDebugLine = line;
@@ -108,19 +99,6 @@ public final class BedrockInventory {
     }
 
     private static BedrockInstantMineInfo getBestInstantMineInfo(LocalPlayer player) {
-        if (CLIENT.level != null) {
-            long currentTick = CLIENT.level.getGameTime();
-            if (cachedInstantMineTick == currentTick) {
-                return cachedInstantMineInfo;
-            }
-            cachedInstantMineTick = currentTick;
-            cachedInstantMineInfo = computeBestInstantMineInfo(player);
-            return cachedInstantMineInfo;
-        }
-        return computeBestInstantMineInfo(player);
-    }
-
-    private static BedrockInstantMineInfo computeBestInstantMineInfo(LocalPlayer player) {
         Inventory inventory = player.getInventory();
         BedrockInstantMineInfo best = null;
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
@@ -131,30 +109,12 @@ public final class BedrockInventory {
             float speed = getBlockBreakingSpeed(player, Blocks.PISTON.defaultBlockState(), stack);
             int efficiencyLevel = getEfficiencyLevel(stack);
             int hasteLevel = MobEffectUtil.hasDigSpeed(player) ? MobEffectUtil.getDigSpeedAmplification(player) + 1 : 0;
-            int fatigueLevel = player.hasEffect(MobEffects.MINING_FATIGUE) ? player.getEffect(MobEffects.MINING_FATIGUE).getAmplifier() + 1 : 0;
-            BedrockInstantMineInfo current = new BedrockInstantMineInfo(slot, stack, speed, speed > INSTANT_MINE_THRESHOLD, efficiencyLevel, hasteLevel, fatigueLevel);
+            BedrockInstantMineInfo current = new BedrockInstantMineInfo(slot, stack, speed, efficiencyLevel, hasteLevel);
             if (best == null || current.breakSpeed() > best.breakSpeed()) {
                 best = current;
             }
         }
         return best;
-    }
-
-    private static boolean isFastGroundedInstantMine(BedrockInstantMineInfo info, LocalPlayer player) {
-        return player != null
-                && player.onGround()
-                && info != null
-                && info.breakSpeed() >= FAST_INSTANT_MINE_THRESHOLD;
-    }
-
-    private static String getInstantMineProfile(BedrockInstantMineInfo info, LocalPlayer player) {
-        if (isFastGroundedInstantMine(info, player)) {
-            return "fast";
-        }
-        if (canInstantMinePiston(info)) {
-            return "baseline";
-        }
-        return player != null && player.onGround() ? "blocked" : "airborne";
     }
 
     private static String formatSpeed(float speed) {
@@ -225,10 +185,8 @@ public final class BedrockInventory {
             int slot,
             ItemStack stack,
             float breakSpeed,
-            boolean instantMine,
             int efficiencyLevel,
-            int hasteLevel,
-            int fatigueLevel
+            int hasteLevel
     ) {
     }
 }
