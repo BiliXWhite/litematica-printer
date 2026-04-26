@@ -28,9 +28,6 @@ public class MineHandler extends ClientPlayerTickHandler {
     }
 
     public static boolean mineRestriction(BlockState blockState) {
-        if (!InteractionUtils.breakRestriction(blockState)) {
-            return false;
-        }
         if (Configs.Mine.EXCAVATE_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
             if (!ModLoadUtils.isTweakerooLoaded()) return true;
             UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();

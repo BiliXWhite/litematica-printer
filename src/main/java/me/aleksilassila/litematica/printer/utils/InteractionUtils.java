@@ -63,7 +63,7 @@ public class InteractionUtils {
     }
 
     public static boolean breakRestriction(BlockState blockState) {
-        if (Configs.Break.BREAK_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
+        if (Configs.Print.BREAK_LIMITER.getOptionListValue().equals(ExcavateListMode.TWEAKEROO)) {
             if (!ModLoadUtils.isTweakerooLoaded()) return true;
             UsageRestriction.ListType listType = BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
@@ -76,12 +76,12 @@ public class InteractionUtils {
                 return true;
             }
         } else {
-            IConfigOptionListEntry optionListValue = Configs.Break.BREAK_LIMIT.getOptionListValue();
+            IConfigOptionListEntry optionListValue = Configs.Print.BREAK_LIMIT.getOptionListValue();
             if (optionListValue == UsageRestriction.ListType.BLACKLIST) {
-                return Configs.Break.BREAK_BLACKLIST.getStrings().stream()
+                return Configs.Print.BREAK_BLACKLIST.getStrings().stream()
                         .noneMatch(string -> FilterUtils.matchBlockName(string, blockState));
             } else if (optionListValue == UsageRestriction.ListType.WHITELIST) {
-                return Configs.Break.BREAK_WHITELIST.getStrings().stream()
+                return Configs.Print.BREAK_WHITELIST.getStrings().stream()
                         .anyMatch(string -> FilterUtils.matchBlockName(string, blockState));
             } else {
                 return true;
