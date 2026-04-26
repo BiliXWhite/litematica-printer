@@ -1,7 +1,5 @@
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
-import java.text.SimpleDateFormat
-import java.util.*
 
 plugins {
     id("java-library")
@@ -15,71 +13,11 @@ repositories {
     gradlePluginPortal()
 }
 
-val localBuildInfoFile = file(".local_build_counter.json")
-val jsonSlurper = JsonSlurper()
-
-fun getNextLocalBuildNumber(currentModVersion: String, currentTime: String): Int {
-    var buildNumber = 1
-    var lastModVersion = ""
-    var lastTime = ""
-    if (localBuildInfoFile.exists()) {
-        try {
-            val parsedObject = jsonSlurper.parse(localBuildInfoFile)
-            if (parsedObject is Map<*, *>) {
-                lastModVersion = parsedObject["lastModVersion"]?.toString() ?: ""
-                lastTime = parsedObject["lastTime"]?.toString() ?: ""
-                buildNumber = parsedObject["buildNumber"]?.toString()?.toIntOrNull() ?: 1
-            } else {
-                println("⚠ 本地构建号JSON文件格式错误（非Map结构），将重置为1")
-            }
-        } catch (e: Exception) {
-            println("⚠ 读取本地构建号JSON文件失败，将重置为1: ${e.message ?: "未知错误"}")
-        }
-    }
-    if (lastModVersion != currentModVersion || lastTime != currentTime) {
-        buildNumber = 1
-    } else {
-        buildNumber++
-    }
-    try {
-        val jsonBuilder = JsonBuilder(
-            mapOf(
-                "lastModVersion" to currentModVersion,
-                "lastTime" to currentTime,
-                "buildNumber" to buildNumber
-            )
-        )
-        localBuildInfoFile.writeText(jsonBuilder.toPrettyString()) // 格式化输出，方便阅读
-    } catch (e: Exception) {
-        println("⚠ 写入本地构建号JSON文件失败: ${e.message ?: "未知错误"}")
-    }
-    return buildNumber
-}
-
-
-// 生成时间戳
-val time = SimpleDateFormat("yyMMdd")
-    .apply { timeZone = TimeZone.getTimeZone("GMT+08:00") }
-    .format(Date())
-    .toString()
-
-var fullProjectVersion = "$modVersion+$time"
-if (System.getenv("IS_THIS_RELEASE") == "false") {
-    val buildNumber: String? = System.getenv("GITHUB_RUN_NUMBER")
-    if (buildNumber != null) {
-        fullProjectVersion += "+build.$buildNumber"
-    }
-} else {
-    val localBuildNum = getNextLocalBuildNumber(modVersion, time)
-    fullProjectVersion += "+local.$localBuildNum"
-    println("✅ 本地构建版本号生成: $fullProjectVersion")
-}
-
 group = modMavenGroup
 version = fullProjectVersion
 
 base {
-    archivesName.set("$modArchivesBaseName-versionpack")
+    archivesName.set(modArchivesBaseName)
 }
 
 // 获取所有子项目（排除当前项目）

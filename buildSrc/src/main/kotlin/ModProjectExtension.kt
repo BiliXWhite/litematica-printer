@@ -2,8 +2,6 @@ import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
 
 fun Project.propOrNull(key: String) = findProperty(key)
 fun Project.prop(key: String) = propOrNull(key) ?: throw GradleException("buildSrc: 属性 $key 未配置/值为空")
@@ -42,6 +40,8 @@ val Project.malilib get() = propStrOrNull("malilib")
 val Project.litematica get() = propStrOrNull("litematica")
 
 val Project.lombokVersion get() = propStr("lombok_version")
+val Project.githubRunNumber get() = System.getenv("GITHUB_RUN_NUMBER")?.takeIf { it.isNotBlank() }
+val Project.isReleaseWorkflow get() = System.getenv("IS_THIS_RELEASE")?.equals("true", ignoreCase = true) == true
 
 val Project.javaVersion
     get() = when {
@@ -54,18 +54,12 @@ val Project.javaVersion
 val Project.mixinJavaVersion get() = "JAVA_${javaVersion}"
 
 val Project.fullProjectVersion: String get() {
-    val time = SimpleDateFormat("yyMMdd")
-        .apply { timeZone = TimeZone.getTimeZone("GMT+08:00") }
-        .format(Date())
-        .toString()
-    var version = "$modVersion+$time"
-    if (System.getenv("IS_THIS_RELEASE") == "false") {
-        val buildNumber: String? = System.getenv("GITHUB_RUN_NUMBER")
-        if (buildNumber != null) {
-            version += "+build.$buildNumber"
-        }
+    val buildNumber = githubRunNumber
+    return when {
+        buildNumber != null && isReleaseWorkflow -> "$modVersion-beta$buildNumber"
+        buildNumber != null -> "$modVersion-dev$buildNumber"
+        else -> "$modVersion-local"
     }
-    return version
 }
 
 val Project.placeholderProps: Map<String, Any?>
