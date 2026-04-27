@@ -56,6 +56,7 @@ public final class BedrockController {
         }
         lastProcessedTick = now;
 
+        // 强力清理队列：死磕到底，变空气才移除
         processCleanupQueue();
 
         if (BedrockInventory.warningMessage() != null) {
@@ -98,20 +99,6 @@ public final class BedrockController {
         if (level == null || !BedrockTargetBlocks.isTargetBlock(level.getBlockState(pos))) return false;
 
         if (!canAccept(pos)) {
-            return false;
-        }
-
-        Set<BlockPos> cleanupBlockers = BedrockMachineLayout.findCleanupBlockers(level, pos);
-        if (cleanupBlockers != null && !cleanupBlockers.isEmpty()) {
-            for (BlockPos cleanupPos : cleanupBlockers) {
-                if (!isReservedByActiveTarget(cleanupPos)) {
-                    addToCleanup(cleanupPos, false);
-                }
-            }
-            setRetryCooldown(pos, SUBMIT_RETRY_COOLDOWN_TICKS);
-            BedrockDebugLog.write("submit rejected bedrock=" + BedrockDebugLog.pos(pos)
-                    + " reason=pending_cleanup"
-                    + " blocking=" + BedrockDebugLog.posList(cleanupBlockers));
             return false;
         }
 
@@ -244,14 +231,10 @@ public final class BedrockController {
             if (pos.equals(candidate.getBedrockPos())) {
                 continue;
             }
-            var state = CLIENT.level.getBlockState(pos);
             if (CLEANUP_QUEUE.contains(pos)) {
-                if (BedrockTargetBlocks.isCleanupResidue(state)) {
-                    return pos;
-                }
-                CLEANUP_QUEUE.remove(pos);
-                CONSERVATIVE_CLEANUP.remove(pos);
+                return pos;
             }
+            var state = CLIENT.level.getBlockState(pos);
             if (BedrockTargetBlocks.isCleanupResidue(state)) {
                 if (!isReservedByActiveTarget(pos)) {
                     addToCleanup(pos, false);
@@ -372,7 +355,7 @@ public final class BedrockController {
         if (executeBudget <= 0) {
             executeBudget = 64;
         }
-        return Math.max(1, executeBudget);
+        return Math.max(8, executeBudget * 2);
     }
 
     private static boolean countsTowardsActiveCap(BedrockTarget.Status status) {

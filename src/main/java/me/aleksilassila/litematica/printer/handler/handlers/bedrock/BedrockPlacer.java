@@ -9,8 +9,9 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -39,15 +40,8 @@ public final class BedrockPlacer {
         syncLocalLook(player, look.getYaw(), look.getPitch());
         // Use center of the support block for more reliable interaction
         BlockHitResult hitResult = new BlockHitResult(Vec3.atCenterOf(supportPos), clickedFace, supportPos, false);
-        boolean placed = placeBlockAggressively(player, hitResult);
+        placeBlockAggressively(player, hitResult);
         restoreLook(player);
-        if (!placed) {
-            BedrockDebugLog.write("placeSimple failed support=" + BedrockDebugLog.pos(supportPos)
-                    + " face=" + clickedFace
-                    + " item=" + item
-                    + " reason=interaction_rejected");
-            return false;
-        }
         BedrockDebugLog.write("placeSimple support=" + BedrockDebugLog.pos(supportPos)
                 + " face=" + clickedFace
                 + " item=" + item
@@ -81,15 +75,8 @@ public final class BedrockPlacer {
                 false
         );
 
-        boolean placed = placeBlockAggressively(player, hitResult);
+        placeBlockAggressively(player, hitResult);
         restoreLook(player);
-        if (!placed) {
-            BedrockDebugLog.write("placePiston failed piston=" + BedrockDebugLog.pos(pistonPos)
-                    + " facing=" + facing
-                    + " clickedBlock=" + BedrockDebugLog.pos(clickedPos)
-                    + " reason=interaction_rejected");
-            return false;
-        }
         BedrockDebugLog.write("placePiston piston=" + BedrockDebugLog.pos(pistonPos)
                 + " facing=" + facing
                 + " clickedBlock=" + BedrockDebugLog.pos(clickedPos)
@@ -98,15 +85,18 @@ public final class BedrockPlacer {
         return true;
     }
 
-    private static boolean placeBlockAggressively(LocalPlayer player, BlockHitResult hitResult) {
+    private static void placeBlockAggressively(LocalPlayer player, BlockHitResult hitResult) {
         boolean useShift = CLIENT.level != null && BedrockTargetBlocks.requiresSneakPlacement(CLIENT.level.getBlockState(hitResult.getBlockPos()));
         boolean wasSneak = player.isShiftKeyDown();
         if (useShift && !wasSneak) {
             ActionManager.INSTANCE.setShift(player, true);
         }
         try {
-            InteractionResult result = InteractionUtils.INSTANCE.useItemOn(false, InteractionHand.OFF_HAND, hitResult);
-            return result.consumesAction() || result == InteractionResult.SUCCESS;
+            InteractionUtils.INSTANCE.useItemOn(false, InteractionHand.OFF_HAND, hitResult);
+            ItemStack offhand = player.getOffhandItem();
+            if (!offhand.isEmpty()) {
+                offhand.useOn(new UseOnContext(player, InteractionHand.OFF_HAND, hitResult));
+            }
         } finally {
             if (useShift && !wasSneak) {
                 ActionManager.INSTANCE.setShift(player, false);

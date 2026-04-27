@@ -23,7 +23,6 @@ import java.util.Optional;
 
 public final class BedrockInventory {
     private static final Minecraft CLIENT = Minecraft.getInstance();
-    private static String lastInstantMineDebugLine;
 
     private BedrockInventory() {
     }
@@ -45,7 +44,6 @@ public final class BedrockInventory {
         if (count(Items.SLIME_BLOCK) < 1) {
             return "bedrockminer.fail.missing.slime";
         }
-        writeInstantMineDebug(player);
         if (!canInstantMinePiston(player)) {
             return "bedrockminer.fail.missing.instantmine";
         }
@@ -78,61 +76,6 @@ public final class BedrockInventory {
             }
         }
         return false;
-    }
-
-    private static void writeInstantMineDebug(LocalPlayer player) {
-        BedrockInstantMineInfo info = getBestInstantMineInfo(player);
-        if (info == null) {
-            return;
-        }
-        String line = "instantmine observe"
-                + " slot=" + info.slot()
-                + " item=" + BuiltInRegistries.ITEM.getKey(info.stack().getItem())
-                + " speed=" + formatSpeed(info.breakSpeed())
-                + " efficiency=" + info.efficiencyLevel()
-                + " haste=" + info.hasteLevel()
-                + " onGround=" + player.onGround();
-        if (!line.equals(lastInstantMineDebugLine)) {
-            lastInstantMineDebugLine = line;
-            BedrockDebugLog.write(line);
-        }
-    }
-
-    private static BedrockInstantMineInfo getBestInstantMineInfo(LocalPlayer player) {
-        Inventory inventory = player.getInventory();
-        BedrockInstantMineInfo best = null;
-        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
-            ItemStack stack = inventory.getItem(slot);
-            if (stack.isEmpty()) {
-                continue;
-            }
-            float speed = getBlockBreakingSpeed(player, Blocks.PISTON.defaultBlockState(), stack);
-            int efficiencyLevel = getEfficiencyLevel(stack);
-            int hasteLevel = MobEffectUtil.hasDigSpeed(player) ? MobEffectUtil.getDigSpeedAmplification(player) + 1 : 0;
-            BedrockInstantMineInfo current = new BedrockInstantMineInfo(slot, stack, speed, efficiencyLevel, hasteLevel);
-            if (best == null || current.breakSpeed() > best.breakSpeed()) {
-                best = current;
-            }
-        }
-        return best;
-    }
-
-    private static String formatSpeed(float speed) {
-        return String.format("%.3f", speed);
-    }
-
-    private static int getEfficiencyLevel(ItemStack itemStack) {
-        //#if MC > 12006
-        for (var entry : itemStack.getEnchantments().entrySet()) {
-            Optional<net.minecraft.resources.ResourceKey<Enchantment>> key = entry.getKey().unwrapKey();
-            if (key.isPresent() && key.get() == Enchantments.EFFICIENCY) {
-                return EnchantmentHelper.getItemEnchantmentLevel(entry.getKey(), itemStack);
-            }
-        }
-        return 0;
-        //#else
-        //$$ return EnchantmentHelper.getItemEnchantmentLevel(Enchantments.EFFICIENCY, itemStack);
-        //#endif
     }
 
     private static float getBlockBreakingSpeed(LocalPlayer player, BlockState blockState, ItemStack itemStack) {
@@ -179,14 +122,5 @@ public final class BedrockInventory {
             speed /= 5.0F;
         }
         return speed;
-    }
-
-    private record BedrockInstantMineInfo(
-            int slot,
-            ItemStack stack,
-            float breakSpeed,
-            int efficiencyLevel,
-            int hasteLevel
-    ) {
     }
 }

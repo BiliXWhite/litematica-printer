@@ -412,11 +412,46 @@ public class BedrockTarget {
             this.status = Status.FAILED;
             return;
         }
-
-        if (!hasResolvableTorchPlacement()) {
-            this.status = Status.FAILED;
-            BedrockMessages.actionBar("bedrockminer.fail.place.redstonetorch");
-            return;
+        
+        if (!BedrockEnvironment.isTorchPlacementUsable(level, this.torchPlacement)) {
+            if (this.slimePos != null && this.torchPlacement != null && this.slimePos.equals(this.torchPlacement.getSupportPos())
+                    && BedrockEnvironment.isSlimePlacementUsable(level, this.torchPlacement)) {
+                if (!level.getBlockState(this.slimePos).is(Blocks.SLIME_BLOCK)) {
+                    BedrockPlacer.placeSimple(this.slimePos, Direction.UP, Blocks.SLIME_BLOCK.asItem());
+                    recordTemp(this.slimePos);
+                }
+                this.torchSupportPos = getTorchSupportFromPlacement();
+            } else {
+                BedrockTorchPlacement naturalPlacement = BedrockEnvironment.findTorchPlacement(level, this.pistonPos, this.layout.getPistonOffset().getOpposite(), this.bedrockPos, this.pistonPos, this.headPos);
+                if (naturalPlacement != null) {
+                    this.torchPlacement = naturalPlacement;
+                    this.torchSupportPos = getTorchSupportFromPlacement();
+                    if (this.slimePos != null && !level.getBlockState(this.slimePos).is(Blocks.SLIME_BLOCK) && !this.slimePos.equals(this.torchSupportPos)) {
+                        this.slimePos = null;
+                    }
+                } else {
+                    BedrockTorchPlacement slimePlacement = this.torchPlacement;
+                    if (slimePlacement == null || !BedrockEnvironment.isSlimePlacementUsable(level, slimePlacement) || !slimePlacement.getSupportPos().equals(this.slimePos)) {
+                        slimePlacement = BedrockEnvironment.findPossibleSlimeTorchPlacement(level, this.pistonPos, this.layout.getPistonOffset().getOpposite(), this.bedrockPos, this.pistonPos, this.headPos);
+                    }
+                    if (slimePlacement != null) {
+                        this.torchPlacement = slimePlacement;
+                        this.slimePos = slimePlacement.getSupportPos();
+                        if (!level.getBlockState(this.slimePos).is(Blocks.SLIME_BLOCK)) {
+                            BedrockPlacer.placeSimple(this.slimePos, Direction.UP, Blocks.SLIME_BLOCK.asItem());
+                            recordTemp(this.slimePos);
+                            BedrockDebugLog.write("target materialized slime support bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
+                                    + " slime=" + BedrockDebugLog.pos(this.slimePos)
+                                    + " tick=" + this.tickTimes);
+                        }
+                        this.torchSupportPos = getTorchSupportFromPlacement();
+                    } else {
+                        this.status = Status.FAILED;
+                        BedrockMessages.actionBar("bedrockminer.fail.place.redstonetorch");
+                        return;
+                    }
+                }
+            }
         }
         if (!BedrockTargetBlocks.isTargetBlock(level.getBlockState(this.bedrockPos))
                 && level.getBlockState(this.pistonPos).is(Blocks.PISTON)) {
@@ -640,40 +675,9 @@ public class BedrockTarget {
         return pos != null && BedrockTargetBlocks.isCleanupResidue(level.getBlockState(pos));
     }
 
-    private boolean hasResolvableTorchPlacement() {
-        if (BedrockEnvironment.isTorchPlacementUsable(level, this.torchPlacement)) {
-            this.torchSupportPos = getTorchSupportFromPlacement();
-            return true;
-        }
-        if (this.slimePos != null
-                && this.torchPlacement != null
-                && this.slimePos.equals(this.torchPlacement.getSupportPos())
-                && BedrockEnvironment.isSlimePlacementUsable(level, this.torchPlacement)) {
-            this.torchSupportPos = getTorchSupportFromPlacement();
-            return true;
-        }
-        return false;
-    }
-
     private boolean placeTorch() {
         if (this.torchPlacement == null || this.torchSupportPos == null) {
             return false;
-        }
-        if (this.slimePos != null
-                && this.torchPlacement.getSupportPos() != null
-                && this.torchPlacement.getSupportPos().equals(this.slimePos)
-                && !level.getBlockState(this.slimePos).is(Blocks.SLIME_BLOCK)) {
-            if (!BedrockPlacer.placeSimple(this.slimePos, Direction.UP, Blocks.SLIME_BLOCK.asItem())) {
-                BedrockDebugLog.write("target slime support deferred bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
-                        + " slime=" + BedrockDebugLog.pos(this.slimePos)
-                        + " tick=" + this.tickTimes
-                        + " reason=place_slime_failed");
-                return false;
-            }
-            recordTemp(this.slimePos);
-            BedrockDebugLog.write("target materialized slime support bedrock=" + BedrockDebugLog.pos(this.bedrockPos)
-                    + " slime=" + BedrockDebugLog.pos(this.slimePos)
-                    + " tick=" + this.tickTimes);
         }
         if (!BedrockPlacer.placeSimple(this.torchSupportPos, this.torchPlacement.getClickedFace(), Blocks.REDSTONE_TORCH.asItem())) {
             return false;

@@ -1,6 +1,5 @@
 package me.aleksilassila.litematica.printer.handler.handlers.bedrock;
 
-import me.aleksilassila.litematica.printer.config.Configs;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
@@ -17,7 +16,8 @@ public final class BedrockDebugLog {
     }
 
     public static synchronized void write(String message) {
-        if (!Configs.Core.DEBUG_OUTPUT.getBooleanValue()) {
+        // Keep the call sites intact so file logging can be re-enabled from one place later.
+        if (true) {
             return;
         }
         try {
@@ -45,23 +45,6 @@ public final class BedrockDebugLog {
             return "null";
         }
         return pos.getX() + "," + pos.getY() + "," + pos.getZ();
-    }
-
-    public static String posList(Iterable<BlockPos> positions) {
-        if (positions == null) {
-            return "[]";
-        }
-        StringBuilder builder = new StringBuilder("[");
-        boolean first = true;
-        for (BlockPos pos : positions) {
-            if (!first) {
-                builder.append("; ");
-            }
-            builder.append(pos(pos));
-            first = false;
-        }
-        builder.append(']');
-        return builder.toString();
     }
 
     public static String describeState(BlockState state) {
