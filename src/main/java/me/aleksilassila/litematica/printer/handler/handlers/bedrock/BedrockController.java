@@ -244,10 +244,14 @@ public final class BedrockController {
             if (pos.equals(candidate.getBedrockPos())) {
                 continue;
             }
-            if (CLEANUP_QUEUE.contains(pos)) {
-                return pos;
-            }
             var state = CLIENT.level.getBlockState(pos);
+            if (CLEANUP_QUEUE.contains(pos)) {
+                if (BedrockTargetBlocks.isCleanupResidue(state)) {
+                    return pos;
+                }
+                CLEANUP_QUEUE.remove(pos);
+                CONSERVATIVE_CLEANUP.remove(pos);
+            }
             if (BedrockTargetBlocks.isCleanupResidue(state)) {
                 if (!isReservedByActiveTarget(pos)) {
                     addToCleanup(pos, false);
@@ -368,7 +372,7 @@ public final class BedrockController {
         if (executeBudget <= 0) {
             executeBudget = 64;
         }
-        return Math.max(8, executeBudget * 2);
+        return Math.max(1, executeBudget);
     }
 
     private static boolean countsTowardsActiveCap(BedrockTarget.Status status) {
