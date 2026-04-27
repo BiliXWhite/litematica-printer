@@ -47,6 +47,23 @@ public final class BedrockDebugLog {
         return pos.getX() + "," + pos.getY() + "," + pos.getZ();
     }
 
+    public static String posList(Iterable<BlockPos> positions) {
+        if (positions == null) {
+            return "[]";
+        }
+        StringBuilder builder = new StringBuilder("[");
+        boolean first = true;
+        for (BlockPos pos : positions) {
+            if (!first) {
+                builder.append("; ");
+            }
+            builder.append(pos(pos));
+            first = false;
+        }
+        builder.append(']');
+        return builder.toString();
+    }
+
     public static String describeState(BlockState state) {
         return state.getBlock().toString() + " " + state.toString();
     }

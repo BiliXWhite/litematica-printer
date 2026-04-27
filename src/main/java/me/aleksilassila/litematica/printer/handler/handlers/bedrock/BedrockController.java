@@ -101,6 +101,20 @@ public final class BedrockController {
             return false;
         }
 
+        Set<BlockPos> cleanupBlockers = BedrockMachineLayout.findCleanupBlockers(level, pos);
+        if (cleanupBlockers != null && !cleanupBlockers.isEmpty()) {
+            for (BlockPos cleanupPos : cleanupBlockers) {
+                if (!isReservedByActiveTarget(cleanupPos)) {
+                    addToCleanup(cleanupPos, false);
+                }
+            }
+            setRetryCooldown(pos, SUBMIT_RETRY_COOLDOWN_TICKS);
+            BedrockDebugLog.write("submit rejected bedrock=" + BedrockDebugLog.pos(pos)
+                    + " reason=pending_cleanup"
+                    + " blocking=" + BedrockDebugLog.posList(cleanupBlockers));
+            return false;
+        }
+
         BedrockTarget target = new BedrockTarget(pos, level);
         if (target.getStatus() == BedrockTarget.Status.FAILED) {
             setRetryCooldown(pos, SUBMIT_RETRY_COOLDOWN_TICKS);

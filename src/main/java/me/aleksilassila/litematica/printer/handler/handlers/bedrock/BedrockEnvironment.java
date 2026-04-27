@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.RedstoneWallTorchBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 public final class BedrockEnvironment {
@@ -116,6 +117,22 @@ public final class BedrockEnvironment {
         return findPossibleWallSlimeTorchPlacement(level, centerPos, excludedAxis, blockedPositions);
     }
 
+    public static LinkedHashSet<BlockPos> findCleanupAwareTorchPlacementBlockers(ClientLevel level, BlockPos centerPos, Direction excludedAxis, BlockPos... blockedPositions) {
+        LinkedHashSet<BlockPos> topPlacement = findCleanupAwareTopTorchPlacement(level, centerPos, excludedAxis, blockedPositions);
+        if (topPlacement != null) {
+            return topPlacement;
+        }
+        return findCleanupAwareWallTorchPlacement(level, centerPos, excludedAxis, blockedPositions);
+    }
+
+    public static LinkedHashSet<BlockPos> findCleanupAwareSlimeTorchPlacementBlockers(ClientLevel level, BlockPos centerPos, Direction excludedAxis, BlockPos... blockedPositions) {
+        LinkedHashSet<BlockPos> topPlacement = findCleanupAwareTopSlimeTorchPlacement(level, centerPos, excludedAxis, blockedPositions);
+        if (topPlacement != null) {
+            return topPlacement;
+        }
+        return findCleanupAwareWallSlimeTorchPlacement(level, centerPos, excludedAxis, blockedPositions);
+    }
+
     private static BedrockTorchPlacement findTopTorchPlacement(ClientLevel level, BlockPos centerPos, Direction excludedAxis, BlockPos... blockedPositions) {
         for (Direction direction : new Direction[]{Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH}) {
             if (excludedAxis != null && direction == excludedAxis) {
@@ -124,6 +141,19 @@ public final class BedrockEnvironment {
             BedrockTorchPlacement placement = new BedrockTorchPlacement(centerPos.relative(direction), Direction.UP);
             if (!conflictsWithBlockedPositions(placement, blockedPositions) && isTorchPlacementUsable(level, placement)) {
                 return placement;
+            }
+        }
+        return null;
+    }
+
+    private static LinkedHashSet<BlockPos> findCleanupAwareTopTorchPlacement(ClientLevel level, BlockPos centerPos, Direction excludedAxis, BlockPos... blockedPositions) {
+        for (Direction direction : new Direction[]{Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH}) {
+            if (excludedAxis != null && direction == excludedAxis) {
+                continue;
+            }
+            LinkedHashSet<BlockPos> blockers = getCleanupAwareTorchPlacementBlockers(level, new BedrockTorchPlacement(centerPos.relative(direction), Direction.UP), blockedPositions);
+            if (blockers != null) {
+                return blockers;
             }
         }
         return null;
@@ -148,6 +178,26 @@ public final class BedrockEnvironment {
         return null;
     }
 
+    private static LinkedHashSet<BlockPos> findCleanupAwareWallTorchPlacement(ClientLevel level, BlockPos centerPos, Direction excludedAxis, BlockPos... blockedPositions) {
+        for (Direction direction : new Direction[]{Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH}) {
+            if (excludedAxis != null && direction == excludedAxis) {
+                continue;
+            }
+            BlockPos torchPos = centerPos.relative(direction);
+            for (Direction attachedFace : new Direction[]{Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH}) {
+                if (excludedAxis != null && attachedFace == excludedAxis) {
+                    continue;
+                }
+                BedrockTorchPlacement placement = new BedrockTorchPlacement(torchPos.relative(attachedFace.getOpposite()), attachedFace);
+                LinkedHashSet<BlockPos> blockers = getCleanupAwareTorchPlacementBlockers(level, placement, blockedPositions);
+                if (blockers != null) {
+                    return blockers;
+                }
+            }
+        }
+        return null;
+    }
+
     private static BedrockTorchPlacement findPossibleTopSlimeTorchPlacement(ClientLevel level, BlockPos centerPos, Direction excludedAxis, BlockPos... blockedPositions) {
         for (Direction direction : new Direction[]{Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH}) {
             if (excludedAxis != null && direction == excludedAxis) {
@@ -156,6 +206,19 @@ public final class BedrockEnvironment {
             BedrockTorchPlacement placement = new BedrockTorchPlacement(centerPos.relative(direction), Direction.UP);
             if (!conflictsWithBlockedPositions(placement, blockedPositions) && isSlimePlacementUsable(level, placement)) {
                 return placement;
+            }
+        }
+        return null;
+    }
+
+    private static LinkedHashSet<BlockPos> findCleanupAwareTopSlimeTorchPlacement(ClientLevel level, BlockPos centerPos, Direction excludedAxis, BlockPos... blockedPositions) {
+        for (Direction direction : new Direction[]{Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH}) {
+            if (excludedAxis != null && direction == excludedAxis) {
+                continue;
+            }
+            LinkedHashSet<BlockPos> blockers = getCleanupAwareSlimePlacementBlockers(level, new BedrockTorchPlacement(centerPos.relative(direction), Direction.UP), blockedPositions);
+            if (blockers != null) {
+                return blockers;
             }
         }
         return null;
@@ -174,6 +237,26 @@ public final class BedrockEnvironment {
                 BedrockTorchPlacement placement = new BedrockTorchPlacement(torchPos.relative(attachedFace.getOpposite()), attachedFace);
                 if (!conflictsWithBlockedPositions(placement, blockedPositions) && isSlimePlacementUsable(level, placement)) {
                     return placement;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static LinkedHashSet<BlockPos> findCleanupAwareWallSlimeTorchPlacement(ClientLevel level, BlockPos centerPos, Direction excludedAxis, BlockPos... blockedPositions) {
+        for (Direction direction : new Direction[]{Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH}) {
+            if (excludedAxis != null && direction == excludedAxis) {
+                continue;
+            }
+            BlockPos torchPos = centerPos.relative(direction);
+            for (Direction attachedFace : new Direction[]{Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH}) {
+                if (excludedAxis != null && attachedFace == excludedAxis) {
+                    continue;
+                }
+                BedrockTorchPlacement placement = new BedrockTorchPlacement(torchPos.relative(attachedFace.getOpposite()), attachedFace);
+                LinkedHashSet<BlockPos> blockers = getCleanupAwareSlimePlacementBlockers(level, placement, blockedPositions);
+                if (blockers != null) {
+                    return blockers;
                 }
             }
         }
@@ -228,6 +311,82 @@ public final class BedrockEnvironment {
             return false;
         }
         return BlockUtils.isReplaceable(level.getBlockState(pistonPos)) && BlockUtils.isReplaceable(level.getBlockState(headPos));
+    }
+
+    private static LinkedHashSet<BlockPos> getCleanupAwareTorchPlacementBlockers(ClientLevel level, BedrockTorchPlacement placement, BlockPos... blockedPositions) {
+        if (placement == null || conflictsWithBlockedPositions(placement, blockedPositions)) {
+            return null;
+        }
+        BlockPos supportPos = placement.getSupportPos();
+        BlockPos torchPos = placement.getTorchPos();
+        Direction clickedFace = placement.getClickedFace();
+        if (supportPos == null || torchPos == null || clickedFace == null) {
+            return null;
+        }
+        if (!isWithinBuildHeight(level, supportPos) || !isWithinBuildHeight(level, torchPos)) {
+            return null;
+        }
+
+        boolean supportOk = clickedFace == Direction.UP
+                ? BlockUtils.canSupportCenter(level, supportPos, Direction.UP)
+                : level.getBlockState(supportPos).isFaceSturdy(level, supportPos, clickedFace);
+        if (!supportOk) {
+            return null;
+        }
+
+        BlockState torchState = level.getBlockState(torchPos);
+        if (BlockUtils.isReplaceable(torchState)) {
+            return new LinkedHashSet<>();
+        }
+        if (clickedFace == Direction.UP && torchState.is(Blocks.REDSTONE_TORCH)) {
+            return new LinkedHashSet<>();
+        }
+        if (clickedFace != Direction.UP
+                && torchState.is(Blocks.REDSTONE_WALL_TORCH)
+                && torchState.getValue(RedstoneWallTorchBlock.FACING) == clickedFace) {
+            return new LinkedHashSet<>();
+        }
+        if (BedrockTargetBlocks.isCleanupResidue(torchState)) {
+            LinkedHashSet<BlockPos> blockers = new LinkedHashSet<>();
+            blockers.add(torchPos);
+            return blockers;
+        }
+        return null;
+    }
+
+    private static LinkedHashSet<BlockPos> getCleanupAwareSlimePlacementBlockers(ClientLevel level, BedrockTorchPlacement placement, BlockPos... blockedPositions) {
+        if (placement == null || conflictsWithBlockedPositions(placement, blockedPositions)) {
+            return null;
+        }
+        BlockPos supportPos = placement.getSupportPos();
+        BlockPos torchPos = placement.getTorchPos();
+        if (supportPos == null || torchPos == null) {
+            return null;
+        }
+        if (!isWithinBuildHeight(level, supportPos) || !isWithinBuildHeight(level, torchPos)) {
+            return null;
+        }
+
+        LinkedHashSet<BlockPos> blockers = new LinkedHashSet<>();
+        BlockState supportState = level.getBlockState(supportPos);
+        if (!supportState.is(Blocks.SLIME_BLOCK) && !BlockUtils.isReplaceable(supportState)) {
+            if (BedrockTargetBlocks.isCleanupResidue(supportState)) {
+                blockers.add(supportPos);
+            } else {
+                return null;
+            }
+        }
+
+        BlockState torchState = level.getBlockState(torchPos);
+        if (!BlockUtils.isReplaceable(torchState) && !isRedstoneTorch(torchState)) {
+            if (BedrockTargetBlocks.isCleanupResidue(torchState)) {
+                blockers.add(torchPos);
+            } else {
+                return null;
+            }
+        }
+
+        return blockers;
     }
 
     private static boolean isWithinBuildHeight(ClientLevel level, BlockPos pos) {
