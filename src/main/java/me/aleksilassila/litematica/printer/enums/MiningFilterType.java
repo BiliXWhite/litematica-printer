@@ -3,13 +3,13 @@ package me.aleksilassila.litematica.printer.enums;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.ConfigOptionListEntry;
 
-public enum ExcavateListMode implements ConfigOptionListEntry<ExcavateListMode> {
+public enum MiningFilterType implements ConfigOptionListEntry<MiningFilterType> {
     TWEAKEROO("excavateListMode.tweakeroo"),
     CUSTOM("excavateListMode.custom");
 
     private final I18n i18n;
 
-    ExcavateListMode(String translateKey) {
+    MiningFilterType(String translateKey) {
         this.i18n = I18n.of(translateKey);
     }
 

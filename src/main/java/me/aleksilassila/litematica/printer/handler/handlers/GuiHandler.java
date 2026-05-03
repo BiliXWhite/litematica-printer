@@ -5,7 +5,7 @@ import fi.dy.masa.litematica.world.WorldSchematic;
 import fi.dy.masa.malilib.config.options.ConfigBase;
 import lombok.Getter;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.enums.BlockPrintState;
+import me.aleksilassila.litematica.printer.enums.BlockMatchingType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
 import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
@@ -51,7 +51,7 @@ public class GuiHandler extends ClientPlayerTickHandler {
             if (schematic != null) {
                 SchematicBlockContext context = new SchematicBlockContext(client, level, schematic, blockPos);
                 if (!context.requiredState.isAir()) {
-                    if (BlockPrintState.get(context) == BlockPrintState.CORRECT) {
+                    if (BlockMatchingType.get(context) == BlockMatchingType.CORRECT) {
                         printProgress.finished++;
                         totalProgress.finished++;
                     }
