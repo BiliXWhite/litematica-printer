@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.state.properties.Property;
 import java.util.HashSet;
 import java.util.Set;
 
-public enum BlockPrintState {
+public enum BlockMatchingType {
     /**
      * 缺失方块：实际位置为空，或当前方块在可替换列表中且启用了替换功能
      */
@@ -37,7 +37,7 @@ public enum BlockPrintState {
 
 
 
-    public static BlockPrintState get(BlockState requiredState, BlockState currentState, Property<?>... propertiesToIgnore) {
+    public static BlockMatchingType get(BlockState requiredState, BlockState currentState, Property<?>... propertiesToIgnore) {
         Set<String> replaceSet = new HashSet<>(Configs.Print.REPLACEABLE_LIST.getStrings());
 
         // 如果两个方块状态完全相同，则返回正确状态
@@ -72,11 +72,11 @@ public enum BlockPrintState {
         return ERROR_BLOCK;
     }
 
-    public static BlockPrintState get(SchematicBlockContext context, Property<?>... propertiesToIgnore) {
+    public static BlockMatchingType get(SchematicBlockContext context, Property<?>... propertiesToIgnore) {
         return get(context.requiredState, context.currentState, propertiesToIgnore);
     }
 
-    public static BlockPrintState get(BlockPos pos, Property<?>... propertiesToIgnore) {
+    public static BlockMatchingType get(BlockPos pos, Property<?>... propertiesToIgnore) {
         BlockState requiredState = SchematicWorldHandler.getSchematicWorld().getBlockState(pos);
         BlockState currentState = Minecraft.getInstance().level.getBlockState(pos);
         return get(requiredState, currentState, propertiesToIgnore);

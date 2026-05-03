@@ -5,7 +5,7 @@ import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.printer.action.Action;
 import me.aleksilassila.litematica.printer.printer.action.ClickAction;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.enums.BlockPrintState;
+import me.aleksilassila.litematica.printer.enums.BlockMatchingType;
 import me.aleksilassila.litematica.printer.utils.*;
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 import net.minecraft.client.Minecraft;
@@ -46,8 +46,8 @@ public class PlacementGuide {
     }
 
     public @Nullable Action getAction(SchematicBlockContext ctx) {
-        BlockPrintState state = BlockPrintState.get(ctx);
-        if (!ctx.requiredState.canSurvive(ctx.level, ctx.blockPos) || state == BlockPrintState.CORRECT) {
+        BlockMatchingType state = BlockMatchingType.get(ctx);
+        if (!ctx.requiredState.canSurvive(ctx.level, ctx.blockPos) || state == BlockMatchingType.CORRECT) {
             return null;
         }
         for (ClassHook hook : ClassHook.values()) {
@@ -66,7 +66,7 @@ public class PlacementGuide {
     }
 
     @SuppressWarnings("EnhancedSwitchMigration")
-    private @Nullable Action buildAction(SchematicBlockContext ctx, ClassHook requiredType, BlockPrintState state, AtomicReference<Boolean> skip) {
+    private @Nullable Action buildAction(SchematicBlockContext ctx, ClassHook requiredType, BlockMatchingType state, AtomicReference<Boolean> skip) {
         // 跳过含水方块
         if (Configs.Print.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && BlockUtils.isWaterBlock(ctx.requiredState)) {
             return null;
@@ -358,21 +358,21 @@ public class PlacementGuide {
                                 .ifPresent(inputPropertiesToIgnore::add);
                     }
 
-                    BlockPrintState inputState = BlockPrintState.get(input, inputPropertiesToIgnore.toArray(new Property<?>[0]));
-                    BlockPrintState outputState = BlockPrintState.get(output);
+                    BlockMatchingType inputState = BlockMatchingType.get(input, inputPropertiesToIgnore.toArray(new Property<?>[0]));
+                    BlockMatchingType outputState = BlockMatchingType.get(output);
 
-                    if (inputState == BlockPrintState.CORRECT && outputState == BlockPrintState.CORRECT) {
+                    if (inputState == BlockMatchingType.CORRECT && outputState == BlockMatchingType.CORRECT) {
                         if (BlockUtils.checkObserverChain(input)) {
                             return new Action().setLookDirection(facing).setNeedWaitModifyLook(true);
                         }
                         return null;
                     }
 
-                    if (inputState == BlockPrintState.CORRECT) {
+                    if (inputState == BlockMatchingType.CORRECT) {
                         SchematicBlockContext temp = input;
                         while (temp.requiredState.getBlock() instanceof FallingBlock) {
                             SchematicBlockContext offset = temp.offset(Direction.DOWN);
-                            if (BlockPrintState.get(offset) != BlockPrintState.CORRECT) {
+                            if (BlockMatchingType.get(offset) != BlockMatchingType.CORRECT) {
                                 return null;
                             }
                             temp = offset;
@@ -392,7 +392,7 @@ public class PlacementGuide {
                             }
                         }
 
-                    } else if (inputState == BlockPrintState.ERROR_BLOCK_STATE) {
+                    } else if (inputState == BlockMatchingType.ERROR_BLOCK_STATE) {
                         return null;
                     } else {
                         if (!output.requiredState.isAir()) {
@@ -484,7 +484,7 @@ public class PlacementGuide {
                             if (tempObserverFacing != null) {
                                 SchematicBlockContext offset = temp.offset(tempObserverFacing);
                                 if (tempObserverFacing == direction) {
-                                    if (BlockPrintState.get(offset) != BlockPrintState.CORRECT) {
+                                    if (BlockMatchingType.get(offset) != BlockMatchingType.CORRECT) {
                                         return null;
                                     }
                                 }

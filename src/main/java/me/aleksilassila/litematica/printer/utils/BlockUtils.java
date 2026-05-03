@@ -1,7 +1,7 @@
 package me.aleksilassila.litematica.printer.utils;
 
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.enums.BlockPrintState;
+import me.aleksilassila.litematica.printer.enums.BlockMatchingType;
 import me.aleksilassila.litematica.printer.enums.QuickShulkerModeType;
 import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
 import net.kyrptonaught.quickshulker.client.ClientUtil;
@@ -391,7 +391,7 @@ public class BlockUtils {
             @Nullable
             Direction tempObserverFacing = temp.getRequiredStateProperty(ObserverBlock.FACING).orElse(null);
             SchematicBlockContext offset = temp.offset(tempObserverFacing);
-            if (tempObserverFacing != null && BlockPrintState.get(offset) != BlockPrintState.CORRECT) {
+            if (tempObserverFacing != null && BlockMatchingType.get(offset) != BlockMatchingType.CORRECT) {
                 return false;
             }
             temp = offset;
