@@ -87,7 +87,8 @@ public class PlayerUtils {
     public static boolean isWithinWorkInteractedManhattanRange(BlockPos blockPos, double range) {
         LocalPlayer player = client.player;
         if (player == null || blockPos == null) return false;
-        BlockPos eyeBlockPos = BlockPos.containing(player.getEyePosition());
+        Vec3 eyePos = player.getEyePosition();
+        BlockPos eyeBlockPos = new BlockPos((int) Math.floor(eyePos.x), (int) Math.floor(eyePos.y), (int) Math.floor(eyePos.z));
         int dx = Math.abs(blockPos.getX() - eyeBlockPos.getX());
         int dy = Math.abs(blockPos.getY() - eyeBlockPos.getY());
         int dz = Math.abs(blockPos.getZ() - eyeBlockPos.getZ());
@@ -97,7 +98,8 @@ public class PlayerUtils {
     public static boolean isWithinWorkInteractedCubeRange(BlockPos blockPos, double range) {
         LocalPlayer player = client.player;
         if (player == null || blockPos == null) return false;
-        BlockPos eyeBlockPos = BlockPos.containing(player.getEyePosition());
+        Vec3 eyePos = player.getEyePosition();
+        BlockPos eyeBlockPos = new BlockPos((int) Math.floor(eyePos.x), (int) Math.floor(eyePos.y), (int) Math.floor(eyePos.z));
         int dx = Math.abs(blockPos.getX() - eyeBlockPos.getX());
         int dy = Math.abs(blockPos.getY() - eyeBlockPos.getY());
         int dz = Math.abs(blockPos.getZ() - eyeBlockPos.getZ());
