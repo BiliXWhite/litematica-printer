@@ -165,15 +165,12 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         BlockPos eyePos = new BlockPos(new Vec3i((int) Math.round(player.getX()), (int) Math.round(player.getEyeY()), (int) Math.round(player.getZ())));
         PrinterBox box = boxRef.get();
 
-        int currentRange = Configs.Core.CHECK_PLAYER_INTERACTION_RANGE.getBooleanValue()
-                ? (int) PlayerUtils.getInteractionRange(5)
-                : getWorkRange();
+        int currentRange = (int) Math.ceil(ConfigUtils.getEffectiveRange());
 
-        // 检查是否需要重建交互盒
         boolean needRebuild = box == null
                 || !box.equals(lastBox)
                 || lastPos == null
-                || !lastPos.closerThan(eyePos, getWorkRange() * 0.4)
+                || !lastPos.closerThan(eyePos, ConfigUtils.getEffectiveRange() * 0.4)
                 || expandRange != currentRange;
 
         if (needRebuild) {

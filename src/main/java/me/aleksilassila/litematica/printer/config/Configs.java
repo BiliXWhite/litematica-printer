@@ -126,15 +126,15 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .range(1, 256)
                 .build();
 
+        // 核心 - 使用手长距离
+        public static final ConfigBoolean USE_REACH_DISTANCE = bool("useReachDistance")
+                .defaultValue(true)
+                .build();
+
         // 核心 - 迭代占用时长（毫秒）
         public static final ConfigInteger ITERATION_TIME_LIMIT = integer("iterationTimeLimit")
                 .defaultValue(8)
                 .range(0, 32)
-                .build();
-
-        // 核心 - 检查玩家方块交互范围
-        public static final ConfigBoolean CHECK_PLAYER_INTERACTION_RANGE = bool("checkPlayerInteractionRange")
-                .defaultValue(true)
                 .build();
 
         // 核心 - 延迟检测
@@ -226,11 +226,11 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 FILL,
                 FLUID,
                 WORK_RANGE,
+                USE_REACH_DISTANCE,
                 ITERATION_TIME_LIMIT,
                 RENDER_HUD,
                 LAG_CHECK,
                 LAG_CHECK_MAX,
-                CHECK_PLAYER_INTERACTION_RANGE,
                 ITERATOR_SHAPE,
                 ITERATION_ORDER,
                 X_REVERSE,

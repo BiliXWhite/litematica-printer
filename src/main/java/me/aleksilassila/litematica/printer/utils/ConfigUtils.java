@@ -63,6 +63,13 @@ public class ConfigUtils {
         return Configs.Core.WORK_RANGE.getIntegerValue();
     }
 
+    public static double getEffectiveRange() {
+        if (Configs.Core.USE_REACH_DISTANCE.getBooleanValue()) {
+            return PlayerUtils.getInteractionRange(5);
+        }
+        return Configs.Core.WORK_RANGE.getIntegerValue();
+    }
+
     public static Direction getFillModeFacing() {
         if (Configs.Fill.FILL_BLOCK_FACING.getOptionListValue() instanceof FillModeFacingType fillModeFacingType) {
             return switch (fillModeFacingType) {
