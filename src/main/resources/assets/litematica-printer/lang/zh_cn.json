@@ -2,6 +2,7 @@
   "litematica-printer.auto_disable_notice": "打印机已自动关闭",
   "litematica-printer.bedrock.creative_mode": "创造模式无法使用破基岩模式！",
   "litematica-printer.bedrock.mod_missing": "未安装 Fabric-Bedrock-Miner/Block-Miner 模组，无法破基岩！",
+  "litematica-printer.ice.creative_mode": "创造模式破坏冰不会产生水！",
   "litematica-printer.inventory.sync.added": "打印机库存添加完成",
   "litematica-printer.inventory.sync.adding": "添加库存中",
   "litematica-printer.inventory.sync.cancelled": "已取消同步",

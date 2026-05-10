@@ -73,26 +73,34 @@ public class PlacementGuide {
         }
         // 破冰放水
         if (Configs.Print.PRINT_ICE_FOR_WATER.getBooleanValue() && BlockUtils.isWaterBlock(ctx.requiredState)) {
-            if (mc.gameMode == null || mc.gameMode.getPlayerMode().isCreative()) {
+            if (mc.gameMode == null) {
                 return null;
             }
-            if (ctx.currentState.getBlock() instanceof IceBlock) {  // 冰块
-                if (BlockPosCooldownManager.INSTANCE.isOnCooldown(ctx.level, "print_water", ctx.blockPos)) {
-                    return null;
-                } else {
-                    BreakUtils.INSTANCE.add(ctx);
-                    BlockPosCooldownManager.INSTANCE.setCooldown(ctx.level, "print_water", ctx.blockPos, 20);
-                }
+            if (mc.gameMode.getPlayerMode().isCreative()) {
+                MessageUtils.setOverlayMessage(I18n.ICE_CREATIVE_MODE.getName());
                 return null;
             }
-            if (!BlockUtils.isCorrectWaterLevel(ctx.requiredState, ctx.currentState)) {
-                if (!ctx.currentState.isAir() && !(ctx.currentState.getBlock() instanceof LiquidBlock)) {
-                    if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue()) {
+                if (ctx.currentState.getBlock() instanceof IceBlock) {  // 冰块
+                    if (BreakUtils.INSTANCE.inQueue(ctx)) {
+                        return null;
+                    } else {
                         BreakUtils.INSTANCE.add(ctx);
                     }
                     return null;
                 }
-                return new Action().setItem(Items.ICE);
+                if (!BlockUtils.isCorrectWaterLevel(ctx.requiredState, ctx.currentState)) {
+                    if (!ctx.currentState.isAir() && !(ctx.currentState.getBlock() instanceof LiquidBlock)) {
+                        if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue()) {
+                            BreakUtils.INSTANCE.add(ctx);
+                        }
+                        return null;
+                    }
+                    // 冰刚被破坏后客户端预测为空气，等待服务端方块更新到达
+                    // 避免同一tick内重新放置冰块导致死循环
+                    if (BreakUtils.INSTANCE.isRecentlyBroken(ctx.blockPos)) {
+                        return null;
+                    }
+                    return new Action().setItem(Items.ICE);
             }
         }
         Action action;
@@ -606,7 +614,7 @@ public class PlacementGuide {
                     if (face != AttachFace.WALL) {
                         side = side.getOpposite();
                     }
-                    return new Action().setSides(side).setLookDirection(side.getOpposite(), sidePitch);
+                    return new Action().setSides(side).setLookDirection(side.getOpposite(), sidePitch).setNeedWaitModifyLook();
                 }
                 if (block instanceof HorizontalDirectionalBlock || block instanceof StonecutterBlock
                         // @formatter:off

@@ -2,6 +2,7 @@
   "litematica-printer.auto_disable_notice": "Printer automatically disabled",
   "litematica-printer.bedrock.creative_mode": "Bedrock mode cannot be used in creative mode!",
   "litematica-printer.bedrock.mod_missing": "Fabric-Bedrock-Miner/Block-Miner mod not installed, cannot break bedrock!",
+  "litematica-printer.ice.creative_mode": "Breaking ice in creative mode will not produce water!",
   "litematica-printer.inventory.sync.added": "Printer inventory added",
   "litematica-printer.inventory.sync.adding": "Adding to inventory...",
   "litematica-printer.inventory.sync.cancelled": "Sync cancelled",

@@ -17,6 +17,8 @@ public class I18n {
     public static final I18n BEDROCK_CREATIVE_MODE = of("bedrock.creative_mode");
     public static final I18n BEDROCK_MOD_MISSING = of("bedrock.mod_missing");
 
+    public static final I18n ICE_CREATIVE_MODE = of("ice.creative_mode");
+
     public static final I18n INVENTORY_SYNC_ADDED = of("inventory.sync.added");
     public static final I18n INVENTORY_SYNC_ADDING = of("inventory.sync.adding");
     public static final I18n INVENTORY_SYNC_CANCELLED = of("inventory.sync.cancelled");

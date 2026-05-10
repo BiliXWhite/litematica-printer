@@ -85,7 +85,8 @@ public class BlockUtils {
         loop:
         for (Property<?> property : state1.getProperties()) {
             if (property == BlockStateProperties.WATERLOGGED
-                    && !(state1.getBlock() instanceof CoralPlantBlock)) {
+                    && !(state1.getBlock() instanceof CoralPlantBlock)
+                    && state2.getValue(BlockStateProperties.WATERLOGGED)) {
                 continue;
             }
             for (Property<?> ignoredProperty : propertiesToIgnore) {
