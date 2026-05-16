@@ -1,6 +1,9 @@
 package me.aleksilassila.litematica.printer.printer.zxy.chesttracker;
 
 //#if MC >= 12001
+
+import fi.dy.masa.litematica.materials.MaterialListUtils;
+import fi.dy.masa.malilib.util.InventoryUtils;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
@@ -15,7 +18,11 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.BundleItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -223,7 +230,30 @@ public class MemoryUtils {
                 continue;
             }
 
-            result.addTo(new ItemType(stack, false, false), stack.getCount());
+            // From `MaterialListUtils.getInventoryItemCounts#L174-L203`
+            Item item = stack.getItem();
+            if (item instanceof BlockItem blockItem &&
+                blockItem.getBlock() instanceof ShulkerBoxBlock &&
+                InventoryUtils.shulkerBoxHasItems(stack)
+            ) {
+                Object2IntOpenHashMap<ItemType> boxCounts = MaterialListUtils.getStoredItemCounts(stack);
+
+                for (ItemType boxType : boxCounts.keySet()) {
+                    result.addTo(boxType, boxCounts.getInt(boxType));
+                }
+
+                boxCounts.clear();
+            } else if (item instanceof BundleItem && InventoryUtils.bundleHasItems(stack)) {
+                Object2IntOpenHashMap<ItemType> bundleCounts = MaterialListUtils.getBundleItemCounts(stack);
+
+                for (ItemType bundleType : bundleCounts.keySet()) {
+                    result.addTo(bundleType, bundleCounts.getInt(bundleType));
+                }
+
+                bundleCounts.clear();
+            } else {
+                result.addTo(new ItemType(stack, true, false), stack.getCount());
+            }
         }
 
         return result;

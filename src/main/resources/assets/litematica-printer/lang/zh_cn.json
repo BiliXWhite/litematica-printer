@@ -241,6 +241,8 @@
   "litematica-printer.config.renderHud.desc": "打印机工作时，在操作页面显示当前模式和范围内工作进度；\n如果开启了§6§l延迟检测§r，那么会在延迟过大时显示提示。",
   "litematica-printer.config.renderLayerLimit": "渲染层数限制",
   "litematica-printer.config.renderLayerLimit.desc": "将打印机工作范围限制为Litematica当前渲染的图层范围。",
+  "litematica-printer.config.selectionMaterials": "选区算作材料列表",
+  "litematica-printer.config.selectionMaterials.desc": "将选区内容器中的物品算做材料列表中的已有物品。 (需要 ChestTracker)",
   "litematica-printer.config.selectionType.litematica.renderLayer": "投影渲染层",
   "litematica-printer.config.selectionType.litematica.selection": "投影选区",
   "litematica-printer.config.selectionType.litematica.selection.abovePlayer": "投影选区(玩家之上)",
