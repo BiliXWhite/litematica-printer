@@ -273,5 +273,9 @@
   "litematica-printer.update.failed": "更新检查失败，请稍后重试。",
   "litematica-printer.update.password": "下载密码：%s",
   "litematica-printer.update.recommendation": "强烈建议升级至最新版本，以修复潜在的严重问题。",
-  "litematica-printer.update.repository": "代码仓库："
+  "litematica-printer.update.repository": "代码仓库：",
+  "litematica-printer.config.missingMaterialHud": "缺失材料 HUD",
+  "litematica-printer.config.missingMaterialHud.desc": "在投影的材料列表区域显示缺失材料 HUD 叠加层",
+  "litematica-printer.hud.missing.title": "§c缺失材料: §e%d §7种",
+  "litematica-printer.hud.missing.overflow": "§7...还有 %d 种"
 }

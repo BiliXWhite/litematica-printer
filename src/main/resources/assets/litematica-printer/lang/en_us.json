@@ -273,5 +273,9 @@
   "litematica-printer.update.failed": "Update check failed, please try again later.",
   "litematica-printer.update.password": "Download password: %s",
   "litematica-printer.update.recommendation": "Strongly recommend upgrading to latest version to fix potential serious issues.",
-  "litematica-printer.update.repository": "Code repository:"
+  "litematica-printer.update.repository": "Code repository:",
+  "litematica-printer.config.missingMaterialHud": "Missing Material HUD",
+  "litematica-printer.config.missingMaterialHud.desc": "Show missing materials HUD overlay in Litematica's material list area",
+  "litematica-printer.hud.missing.title": "§cMissing: §e%d §7types",
+  "litematica-printer.hud.missing.overflow": "§7...and %d more"
 }

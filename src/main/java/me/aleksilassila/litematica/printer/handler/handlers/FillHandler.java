@@ -6,6 +6,7 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.FillBlockModeType;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
+import me.aleksilassila.litematica.printer.printer.*;
 import me.aleksilassila.litematica.printer.printer.action.Action;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.utils.*;
@@ -101,6 +102,17 @@ public class FillHandler extends ClientPlayerTickHandler {
                 || Configs.Print.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> PinYinSearchUtils.matchName(s, currentState))
         ) {
             if (!InventoryUtils.switchToItems(player, this.fillModeItemList)) {
+                if (this.fillModeItemList != null && this.fillModeItemList.length > 0 && this.fillModeItemList[0] != null) {
+                    MissingMaterialTracker.getInstance().recordMissing(this.fillModeItemList[0],
+                            //#if MC >= 260100
+                            //$$ this.fillModeItemList[0].getName(this.fillModeItemList[0].getDefaultInstance())
+                            //#elseif MC > 12101
+                            this.fillModeItemList[0].getName()
+                            //#else
+                            //$$ this.fillModeItemList[0].getDescription()
+                            //#endif
+                    );
+                }
                 return;
             }
             if (Configs.Placement.FALLING_CHECK.getBooleanValue() &&
