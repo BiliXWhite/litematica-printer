@@ -243,6 +243,7 @@ public class MemoryUtils {
                 }
 
                 boxCounts.clear();
+            //#if MC > 12004
             } else if (item instanceof BundleItem && InventoryUtils.bundleHasItems(stack)) {
                 Object2IntOpenHashMap<ItemType> bundleCounts = MaterialListUtils.getBundleItemCounts(stack);
 
@@ -251,6 +252,7 @@ public class MemoryUtils {
                 }
 
                 bundleCounts.clear();
+            //#endif
             } else {
                 result.addTo(new ItemType(stack, true, false), stack.getCount());
             }
