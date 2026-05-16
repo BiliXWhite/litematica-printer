@@ -4,13 +4,10 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import fi.dy.masa.litematica.materials.MaterialListUtils;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
 import net.minecraft.world.Container;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-
-import java.util.List;
 
 //#if MC >= 260000
 //$$ import fi.dy.masa.malilib.util.data.ItemType;
