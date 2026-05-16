@@ -120,13 +120,13 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .setVisible(isSingle) // 仅单模式时显示
                 .build();
 
-        // 核心 - 工作半径
+        // 核心 - 工作半径（0 = 自动使用最大可用交互距离）
         public static final ConfigInteger WORK_RANGE = integer("workRange")
-                .defaultValue(6)
-                .range(1, 256)
+                .defaultValue(0)
+                .range(0, 256)
                 .build();
 
-        // 核心 - 使用手长距离
+        // 核心 - 使用手长距离（已弃用，由工作半径=0自动使用最大交互距离替代）
         public static final ConfigBoolean USE_REACH_DISTANCE = bool("useReachDistance")
                 .defaultValue(true)
                 .build();

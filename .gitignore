@@ -92,3 +92,4 @@ $RECYCLE.BIN/
 .github/copilot-instructions.md
 .trae/
 AGENTS.md
+*.factorypath

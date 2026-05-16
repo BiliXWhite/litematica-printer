@@ -64,10 +64,11 @@ public class ConfigUtils {
     }
 
     public static double getEffectiveRange() {
-        if (Configs.Core.USE_REACH_DISTANCE.getBooleanValue()) {
-            return PlayerUtils.getInteractionRange(5);
+        int configRange = Configs.Core.WORK_RANGE.getIntegerValue();
+        if (configRange <= 0) {
+            return PlayerUtils.getInteractionRange(6);
         }
-        return Configs.Core.WORK_RANGE.getIntegerValue();
+        return configRange;
     }
 
     public static Direction getFillModeFacing() {

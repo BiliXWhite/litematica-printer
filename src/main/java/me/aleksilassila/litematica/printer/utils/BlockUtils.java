@@ -167,6 +167,13 @@ public class BlockUtils {
     }
 
     public static boolean isCorrectWaterLevel(BlockState requiredState, BlockState currentState) {
+        // 处理含水方块（如台阶、楼梯等 waterlogged=true）
+        if (currentState.getProperties().contains(BlockStateProperties.WATERLOGGED)) {
+            return requiredState.getProperties().contains(BlockStateProperties.WATERLOGGED)
+                    && currentState.getValue(BlockStateProperties.WATERLOGGED)
+                            .equals(requiredState.getValue(BlockStateProperties.WATERLOGGED));
+        }
+
         if (!currentState.is(Blocks.WATER)) return false;
         if (requiredState.is(Blocks.WATER)
                 && currentState
