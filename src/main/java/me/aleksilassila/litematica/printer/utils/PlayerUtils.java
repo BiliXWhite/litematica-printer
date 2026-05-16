@@ -77,18 +77,22 @@ public class PlayerUtils {
         //#endif
     }
 
-    // 球面（欧几里得距离）
+    // 球面（碰撞箱最近点距离，与 Minecraft 实际交互距离检查一致）
     public static boolean isWithinWorkInteractedEuclideanRange(BlockPos blockPos, double range) {
         LocalPlayer player = client.player;
         if (player == null || blockPos == null) return false;
-        return player.getEyePosition().distanceToSqr(Vec3.atCenterOf(blockPos)) <= range * range;
+        Vec3 eyePos = player.getEyePosition();
+        double dx = Math.max(Math.max(blockPos.getX() - eyePos.x, eyePos.x - (blockPos.getX() + 1)), 0);
+        double dy = Math.max(Math.max(blockPos.getY() - eyePos.y, eyePos.y - (blockPos.getY() + 1)), 0);
+        double dz = Math.max(Math.max(blockPos.getZ() - eyePos.z, eyePos.z - (blockPos.getZ() + 1)), 0);
+        return dx * dx + dy * dy + dz * dz <= range * range;
     }
 
     public static boolean isWithinWorkInteractedManhattanRange(BlockPos blockPos, double range) {
         LocalPlayer player = client.player;
         if (player == null || blockPos == null) return false;
         Vec3 eyePos = player.getEyePosition();
-        BlockPos eyeBlockPos = new BlockPos((int) Math.floor(eyePos.x), (int) Math.floor(eyePos.y), (int) Math.floor(eyePos.z));
+        BlockPos eyeBlockPos = new BlockPos((int) Math.round(eyePos.x), (int) Math.round(eyePos.y), (int) Math.round(eyePos.z));
         int dx = Math.abs(blockPos.getX() - eyeBlockPos.getX());
         int dy = Math.abs(blockPos.getY() - eyeBlockPos.getY());
         int dz = Math.abs(blockPos.getZ() - eyeBlockPos.getZ());
@@ -99,7 +103,7 @@ public class PlayerUtils {
         LocalPlayer player = client.player;
         if (player == null || blockPos == null) return false;
         Vec3 eyePos = player.getEyePosition();
-        BlockPos eyeBlockPos = new BlockPos((int) Math.floor(eyePos.x), (int) Math.floor(eyePos.y), (int) Math.floor(eyePos.z));
+        BlockPos eyeBlockPos = new BlockPos((int) Math.round(eyePos.x), (int) Math.round(eyePos.y), (int) Math.round(eyePos.z));
         int dx = Math.abs(blockPos.getX() - eyeBlockPos.getX());
         int dy = Math.abs(blockPos.getY() - eyeBlockPos.getY());
         int dz = Math.abs(blockPos.getZ() - eyeBlockPos.getZ());
@@ -199,19 +203,15 @@ public class PlayerUtils {
     public static boolean canInteracted(BlockPos blockPos) {
         if (ConfigUtils.client.player == null || blockPos == null) return false;
 
-        if (Configs.Core.USE_REACH_DISTANCE.getBooleanValue()) {
-            return isWithinBlockInteractionRange(ConfigUtils.client.player, blockPos, 0F);
-        }
-
-        double workRange = ConfigUtils.getWorkRange();
+        double effectiveRange = ConfigUtils.getEffectiveRange();
         if (Configs.Core.ITERATOR_SHAPE.getOptionListValue() instanceof RadiusShapeType radiusShapeType) {
             return switch (radiusShapeType) {
-                case SPHERE -> isWithinWorkInteractedEuclideanRange(blockPos, workRange);
-                case OCTAHEDRON -> isWithinWorkInteractedManhattanRange(blockPos, workRange);
-                case CUBE -> isWithinWorkInteractedCubeRange(blockPos, workRange);
+                case SPHERE -> isWithinWorkInteractedEuclideanRange(blockPos, effectiveRange);
+                case OCTAHEDRON -> isWithinWorkInteractedManhattanRange(blockPos, effectiveRange);
+                case CUBE -> isWithinWorkInteractedCubeRange(blockPos, effectiveRange);
             };
         }
-        return isWithinWorkInteractedEuclideanRange(blockPos, workRange);
+        return isWithinWorkInteractedEuclideanRange(blockPos, effectiveRange);
     }
 
     public static boolean isPositionInSelectionRange(Player player, @NotNull BlockPos pos, ConfigOptionList selectionTypeConfig) {

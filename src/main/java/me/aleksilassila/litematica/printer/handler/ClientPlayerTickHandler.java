@@ -158,6 +158,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
 
     /**
      * 更新交互盒：根据玩家位置和配置动态调整迭代范围
+     * 使用 exact range 计算盒边界 (floor/ceil)，避免 round() 偏移导致边界方块丢失
      */
     private void updateBox() {
         if (boxRef == null) return;
@@ -165,19 +166,27 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         BlockPos eyePos = new BlockPos(new Vec3i((int) Math.round(player.getX()), (int) Math.round(player.getEyeY()), (int) Math.round(player.getZ())));
         PrinterBox box = boxRef.get();
 
-        int currentRange = (int) Math.ceil(ConfigUtils.getEffectiveRange());
+        double effectiveRange = ConfigUtils.getEffectiveRange();
+        int currentRange = (int) Math.ceil(effectiveRange);
 
         boolean needRebuild = box == null
                 || !box.equals(lastBox)
                 || lastPos == null
-                || !lastPos.closerThan(eyePos, ConfigUtils.getEffectiveRange() * 0.4)
+                || !lastPos.closerThan(eyePos, effectiveRange * 0.4)
                 || expandRange != currentRange;
 
         if (needRebuild) {
             lastPos = eyePos;
             expandRange = currentRange;
 
-            box = new PrinterBox(eyePos).expand(expandRange, expandRange, expandRange);
+            // 直接用 player 精确位置 ±range 算盒子的整数边界，避免 round() 偏移导致边界方块丢失
+            int minX = (int) Math.floor(player.getX() - effectiveRange);
+            int maxX = (int) Math.ceil(player.getX() + effectiveRange);
+            int minY = (int) Math.floor(player.getEyeY() - effectiveRange);
+            int maxY = (int) Math.ceil(player.getEyeY() + effectiveRange);
+            int minZ = (int) Math.floor(player.getZ() - effectiveRange);
+            int maxZ = (int) Math.ceil(player.getZ() + effectiveRange);
+            box = new PrinterBox(minX, minY, minZ, maxX, maxY, maxZ);
             lastBox = box;
             boxRef.set(box);
 
