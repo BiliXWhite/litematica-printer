@@ -193,6 +193,10 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(false)
                 .build();
 
+        public static final ConfigBoolean SELECTION_MATERIALS = bool("selectionMaterials")
+                .defaultValue(false)
+                .build();
+
         // 远程交互 - 开关
         public static final ConfigBoolean CLOUD_INVENTORY = bool("cloudInventory")
                 .defaultValue(false)
@@ -239,6 +243,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 AUTO_DISABLE_PRINTER,
                 UPDATE_CHECK,
                 DEBUG_OUTPUT,
+                SELECTION_MATERIALS,
                 CLOUD_INVENTORY,
                 AUTO_INVENTORY,
                 INVENTORY_LIST,

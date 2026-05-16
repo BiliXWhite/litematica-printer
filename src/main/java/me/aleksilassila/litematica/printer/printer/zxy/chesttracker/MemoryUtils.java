@@ -7,10 +7,10 @@ import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
 import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
 import me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
+import me.aleksilassila.litematica.printer.printer.PrinterBox;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -18,8 +18,10 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import red.jackf.chesttracker.api.memory.Memory;
 import red.jackf.chesttracker.api.memory.MemoryBank;
+import red.jackf.chesttracker.api.memory.MemoryKey;
 import red.jackf.chesttracker.api.providers.MemoryBuilder;
 import red.jackf.chesttracker.api.providers.ProviderUtils;
 import red.jackf.chesttracker.impl.events.AfterPlayerDestroyBlock;
@@ -34,7 +36,14 @@ import red.jackf.whereisit.api.search.ConnectedBlocksGrabber;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
+//#if MC >= 260000
+//$$ import fi.dy.masa.malilib.util.data.ItemType;
+//#else
+import fi.dy.masa.malilib.util.ItemType;
+//#endif
 
 public class MemoryUtils {
     @NotNull
@@ -69,7 +78,7 @@ public class MemoryUtils {
         // 破坏方块后清除打印机库存的该记录
         AfterPlayerDestroyBlock.EVENT.register(cbs -> {
             if (PRINTER_MEMORY != null
-                    && PRINTER_MEMORY.getMetadata().getIntegritySettings().removeOnPlayerBlockBreak
+                && PRINTER_MEMORY.getMetadata().getIntegritySettings().removeOnPlayerBlockBreak
             ) {
                 ProviderUtils.getPlayersCurrentKey().ifPresent(currentKey -> PRINTER_MEMORY.removeMemory(currentKey, cbs.pos()));
             }
@@ -89,13 +98,15 @@ public class MemoryUtils {
         //保存打印机库存
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> unLoad());
     }
-    public static void saveMemory(AbstractContainerMenu sc){
-        if(PRINTER_MEMORY != null && ZxyUtils.printerMemoryAdding || ClientPlayerTickManager.PRINT.isPrinterMemorySync())
-            save(sc , PRINTER_MEMORY);
+
+    public static void saveMemory(AbstractContainerMenu sc) {
+        if (PRINTER_MEMORY != null && ZxyUtils.printerMemoryAdding || ClientPlayerTickManager.PRINT.isPrinterMemorySync())
+            save(sc, PRINTER_MEMORY);
         MemoryBankAccessImpl.INSTANCE.getLoadedInternal().ifPresent(memoryBank -> save(sc, memoryBank));
         ClientPlayerTickManager.PRINT.setPrinterMemorySync(false);
     }
-    public static void createPrinterMemory(){
+
+    public static void createPrinterMemory() {
         Optional<Coordinate> current = Coordinate.getCurrent();
         if (current.isPresent()) {
             Coordinate coordinate = current.get();
@@ -110,7 +121,7 @@ public class MemoryUtils {
                 bank.setId(s1);
                 return bank;
             });
-            if(printerMetadata != null){
+            if (printerMetadata != null) {
                 PRINTER_MEMORY.setMetadata(printerMetadata);
             }
 //            Metadata metadata = PRINTER_MEMORY.getMetadata();
@@ -136,29 +147,86 @@ public class MemoryUtils {
         Storage.save(PRINTER_MEMORY);
     }
 
-    public static void save(AbstractContainerMenu screen , MemoryBank memoryBank) {
-        if (memoryBank == null || OpenInventoryPacket.key == null || blockState == null || !Configs.Core.CLOUD_INVENTORY.getBooleanValue()) return;
+    public static void save(AbstractContainerMenu screen, MemoryBank memoryBank) {
+        if (memoryBank == null || OpenInventoryPacket.key == null || blockState == null || !Configs.Core.CLOUD_INVENTORY.getBooleanValue())
+            return;
         List<BlockPos> connected;
         if (ZxyUtils.printerMemoryAdding && client.level != null) {
             connected = ConnectedBlocksGrabber.getConnected(client.level, client.level.getBlockState(OpenInventoryPacket.pos), OpenInventoryPacket.pos);
         } else connected = null;
         List<ItemStack> items;
-        if (screen !=null)
+        if (screen != null)
             items = screen.slots.stream()
-                    .filter(slot -> !(slot.container instanceof Inventory))
-                    .map(Slot::getItem)
-                    .toList();
+                .filter(slot -> !(slot.container instanceof Inventory))
+                .map(Slot::getItem)
+                .toList();
         else return;
 
         Memory memory = MemoryBuilder.create(items)
-                .inContainer(blockState.getBlock())
-                .otherPositions(connected != null ? connected.stream()
-                        .filter(pos -> !pos.equals(connected.get(0)))
-                        .toList() : List.of(OpenInventoryPacket.pos)
-                ).build();
+            .inContainer(blockState.getBlock())
+            .otherPositions(connected != null ? connected.stream()
+                                                .filter(pos -> !pos.equals(connected.get(0)))
+                                                .toList() : List.of(OpenInventoryPacket.pos)
+            ).build();
         if (memory != null) {
-            memoryBank.addMemory(OpenInventoryPacket.key.identifier(),OpenInventoryPacket.pos,memory);
+            memoryBank.addMemory(OpenInventoryPacket.key.identifier(), OpenInventoryPacket.pos, memory);
         }
+    }
+
+    @SuppressWarnings("deprecation")
+    public static void getSelectionContainerItems(List<PrinterBox> boxes, List<Object2IntOpenHashMap<ItemType>> result) {
+        if (boxes == null || result == null || boxes.isEmpty() || client.level == null) {
+            return;
+        }
+
+        MemoryBankImpl bank = MemoryBankAccessImpl.INSTANCE.getLoadedInternal().orElse(null);
+        if (bank == null) {
+            return;
+        }
+
+        Identifier dimensionKey = client.level.dimension().identifier();
+        Optional<MemoryKey> optional = bank.getKey(dimensionKey);
+        if (optional.isEmpty()) {
+            return;
+        }
+        Map<BlockPos, Memory> memories = optional.get().getMemories();
+
+        if (memories == null || memories.isEmpty()) {
+            return;
+        }
+
+        for (PrinterBox box : boxes) {
+            if (box == null) {
+                continue;
+            }
+
+            for (BlockPos pos : box) {
+                Memory memory = memories.get(pos);
+                if (memory == null) {
+                    continue;
+                }
+
+                result.add(convertChestTrackerItems(memory));
+            }
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private static Object2IntOpenHashMap<ItemType> convertChestTrackerItems(Memory memory) {
+        Object2IntOpenHashMap<ItemType> result = new Object2IntOpenHashMap<>();
+        if (memory == null || memory.items() == null) {
+            return result;
+        }
+
+        for (ItemStack stack : memory.items()) {
+            if (stack == null || stack.isEmpty()) {
+                continue;
+            }
+
+            result.addTo(new ItemType(stack, false, false), stack.getCount());
+        }
+
+        return result;
     }
 }
 //#endif
