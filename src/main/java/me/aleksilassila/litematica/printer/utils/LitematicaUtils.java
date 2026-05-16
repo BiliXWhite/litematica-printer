@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.utils;
 
 import fi.dy.masa.litematica.data.DataManager;
+import fi.dy.masa.litematica.materials.MaterialListUtils;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
@@ -8,12 +9,18 @@ import fi.dy.masa.litematica.selection.SelectionMode;
 import fi.dy.masa.litematica.util.EasyPlaceProtocol;
 import fi.dy.masa.litematica.util.PlacementHandler;
 import fi.dy.masa.litematica.util.WorldUtils;
+import fi.dy.masa.litematica.world.SchematicWorldHandler;
+import fi.dy.masa.litematica.world.WorldSchematic;
+import fi.dy.masa.malilib.util.ItemType;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.PrinterBox;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.Container;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
@@ -92,6 +99,47 @@ public class LitematicaUtils {
         if (box == null || box.getPos1() == null || box.getPos2() == null || pos == null) return false;
         PrinterBox printerBox = new PrinterBox(box.getPos1(), box.getPos2());
         return printerBox.contains(pos);
+    }
+
+    /**
+     * 获取当前 Litematica 选区内所有容器方块的物品内容。
+     * <p>
+     * 返回结构：容器方块位置 -> (槽位 -> 物品)
+     * 数据来源是投影世界（schematic world），不是主世界容器实时库存。
+     */
+    public static List<Object2IntOpenHashMap<ItemType>> getSelectionContainerItems() {
+        List<Object2IntOpenHashMap<ItemType>> result = new ObjectArrayList<>();
+
+        AreaSelection selection = DataManager.getSelectionManager().getCurrentSelection();
+        WorldSchematic schematicWorld = SchematicWorldHandler.getSchematicWorld();
+        if (selection == null || schematicWorld == null) {
+            return result;
+        }
+
+        List<Box> boxes;
+        if (DataManager.getSelectionManager().getSelectionMode() == SelectionMode.NORMAL) {
+            boxes = selection.getAllSubRegionBoxes();
+        } else {
+            Box box = selection.getSubRegionBox(DataManager.getSimpleArea().getName());
+            boxes = box != null ? Collections.singletonList(box) : Collections.emptyList();
+        }
+
+        for (Box box : boxes) {
+            if (box == null || box.getPos1() == null || box.getPos2() == null) {
+                continue;
+            }
+
+            PrinterBox printerBox = new PrinterBox(box.getPos1(), box.getPos2());
+            for (BlockPos pos : printerBox) {
+                if (!(schematicWorld.getBlockEntity(pos) instanceof Container container)) {
+                    continue;
+                }
+
+                result.add(MaterialListUtils.getInventoryItemCounts(container));
+            }
+        }
+
+        return result;
     }
 
 }
