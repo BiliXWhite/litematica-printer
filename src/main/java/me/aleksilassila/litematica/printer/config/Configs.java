@@ -195,6 +195,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         public static final ConfigBoolean SELECTION_MATERIALS = bool("selectionMaterials")
                 .defaultValue(false)
+                .setVisible(isLoadChestTrackerLoaded)
                 .build();
 
         // 远程交互 - 开关

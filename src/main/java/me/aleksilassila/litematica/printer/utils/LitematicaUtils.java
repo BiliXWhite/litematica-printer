@@ -120,6 +120,7 @@ public class LitematicaUtils {
             return;
         }
 
+        //#if MC >= 12001
         if (ModUtils.isChestTrackerLoaded()) {
             List<Object2IntOpenHashMap<ItemType>> containerItems = new ObjectArrayList<>();
             me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.getSelectionContainerItems(boxes, containerItems);
@@ -127,6 +128,7 @@ public class LitematicaUtils {
                 map.forEach(items::addTo);
             }
         }
+        //#endif
 
     }
 
