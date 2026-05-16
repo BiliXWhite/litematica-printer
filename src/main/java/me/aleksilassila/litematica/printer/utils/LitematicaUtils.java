@@ -99,6 +99,9 @@ public class LitematicaUtils {
         return printerBox.contains(pos);
     }
 
+    /**
+     * 获取当前 Litematica 选区内所有容器方块的物品内容。
+     */
     //#if MC == 12111
     @SuppressWarnings("deprecation")
     //#endif
@@ -106,44 +109,25 @@ public class LitematicaUtils {
         if (!Configs.Core.SELECTION_MATERIALS.getBooleanValue()) {
             return;
         }
-        List<Object2IntOpenHashMap<ItemType>> selection = LitematicaUtils.getSelectionContainerItems();
-        for (Object2IntOpenHashMap<ItemType> map : selection) {
-            map.forEach(items::addTo);
-        }
-    }
 
-    /**
-     * 获取当前 Litematica 选区内所有容器方块的物品内容。
-     * <p>
-     * 规则：
-     * <ul>
-     *   <li>单人模式：直接从 schematicWorld 读取容器内容</li>
-     *   <li>多人模式：Chest Tracker 已加载时，交给 `MemoryUtils` 读取</li>
-     *   <li>Chest Tracker 未加载：直接返回空</li>
-     * </ul>
-     */
-    //#if MC == 12111
-    @SuppressWarnings("deprecation")
-    //#endif
-    public static List<Object2IntOpenHashMap<ItemType>> getSelectionContainerItems() {
-        List<Object2IntOpenHashMap<ItemType>> result = new ObjectArrayList<>();
-        //#if MC >= 12001
         AreaSelection selection = DataManager.getSelectionManager().getCurrentSelection();
         if (selection == null) {
-            return result;
+            return;
         }
 
         List<PrinterBox> boxes = getSelectionBoxes(selection);
         if (boxes.isEmpty()) {
-            return result;
+            return;
         }
 
         if (ModUtils.isChestTrackerLoaded()) {
-            me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.getSelectionContainerItems(boxes, result);
+            List<Object2IntOpenHashMap<ItemType>> containerItems = new ObjectArrayList<>();
+            me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.getSelectionContainerItems(boxes, containerItems);
+            for (Object2IntOpenHashMap<ItemType> map : containerItems) {
+                map.forEach(items::addTo);
+            }
         }
-        //#endif
 
-        return result;
     }
 
     private static List<PrinterBox> getSelectionBoxes(AreaSelection selection) {
