@@ -17,15 +17,18 @@ import fi.dy.masa.malilib.util.ItemType;
 
 @Mixin(MaterialListUtils.class)
 public class MixinMaterialListUtils {
+    //#if MC == 12111
     @SuppressWarnings("deprecation")
+    //#endif
     @WrapOperation(method = "getMaterialList", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/materials/MaterialListUtils;getInventoryItemCounts(Lnet/minecraft/world/Container;)Lit/unimi/dsi/fastutil/objects/Object2IntOpenHashMap;"))
     private static Object2IntOpenHashMap<ItemType> initApplySelectionArea(Container inv, Operation<Object2IntOpenHashMap<ItemType>> original) {
         Object2IntOpenHashMap<ItemType> result = original.call(inv);
         LitematicaUtils.applySelectionArea(result);
         return result;
     }
-
+    //#if MC == 12111
     @SuppressWarnings("deprecation")
+    //#endif
     @WrapOperation(method = "updateAvailableCounts", at = @At(value = "INVOKE", target = "Lfi/dy/masa/litematica/materials/MaterialListUtils;getInventoryItemCounts(Lnet/minecraft/world/Container;)Lit/unimi/dsi/fastutil/objects/Object2IntOpenHashMap;"))
     private static Object2IntOpenHashMap<ItemType> updateApplySelectionArea(Container inv, Operation<Object2IntOpenHashMap<ItemType>> original) {
         Object2IntOpenHashMap<ItemType> result = original.call(inv);

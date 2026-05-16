@@ -180,7 +180,9 @@ public class MemoryUtils {
         }
     }
 
+    //#if MC == 12111
     @SuppressWarnings("deprecation")
+    //#endif
     public static void getSelectionContainerItems(List<PrinterBox> boxes, List<Object2IntOpenHashMap<ItemType>> result) {
         if (boxes == null || result == null || boxes.isEmpty() || client.level == null) {
             return;
@@ -218,7 +220,9 @@ public class MemoryUtils {
         }
     }
 
+    //#if MC == 12111
     @SuppressWarnings("deprecation")
+    //#endif
     private static Object2IntOpenHashMap<ItemType> convertChestTrackerItems(Memory memory) {
         Object2IntOpenHashMap<ItemType> result = new Object2IntOpenHashMap<>();
         if (memory == null || memory.items() == null) {

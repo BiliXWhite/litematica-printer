@@ -99,7 +99,9 @@ public class LitematicaUtils {
         return printerBox.contains(pos);
     }
 
+    //#if MC == 12111
     @SuppressWarnings("deprecation")
+    //#endif
     public static void applySelectionArea(Object2IntOpenHashMap<ItemType> items) {
         if (!Configs.Core.SELECTION_MATERIALS.getBooleanValue()) {
             return;
@@ -120,7 +122,9 @@ public class LitematicaUtils {
      *   <li>Chest Tracker 未加载：直接返回空</li>
      * </ul>
      */
+    //#if MC == 12111
     @SuppressWarnings("deprecation")
+    //#endif
     public static List<Object2IntOpenHashMap<ItemType>> getSelectionContainerItems() {
         List<Object2IntOpenHashMap<ItemType>> result = new ObjectArrayList<>();
         //#if MC >= 12001
