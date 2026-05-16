@@ -13,6 +13,7 @@ import me.aleksilassila.litematica.printer.printer.*;
 import me.aleksilassila.litematica.printer.printer.action.Action;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.printer.action.ClickAction;
+import me.aleksilassila.litematica.printer.printer.MissingMaterialTracker;
 import me.aleksilassila.litematica.printer.utils.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -99,7 +100,12 @@ public class PrintHandler extends ClientPlayerTickHandler {
         Direction side = action.getValidSide(level, blockPos);
         if (side == null) return;
         Item[] reqItems = action.getRequiredItems(ctx.requiredState.getBlock());
-        if (!InventoryUtils.switchToItems(player, reqItems)) return;
+        if (!InventoryUtils.switchToItems(player, reqItems)) {
+            if (reqItems != null && reqItems.length > 0 && reqItems[0] != null) {
+                MissingMaterialTracker.getInstance().recordMissing(reqItems[0], ctx.getRequiredBlockName());
+            }
+            return;
+        }
         boolean useShift;
         if (action.getShift() == null) {
             useShift = (Implementation.isInteractive(level.getBlockState(blockPos.relative(side)).getBlock()) && !(action instanceof ClickAction))

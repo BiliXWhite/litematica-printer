@@ -2,7 +2,13 @@
 所有显著的变更都会记录在这个文件中，遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/) 规范。
 本项目的版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)（主版本.次版本.补丁版本，如 1.2.3）。
 
-### v1.2.3-dev
+#### 2026-5-17 (1.3-beta.3)
+- 将 modid 由 litematica_printer 改为 litematica-printer
+- 支持在HUD中显示打印时缺失的材料
+- 修复破冰防水无法调整含水方块的问题
+- 修复破冰放水不正常工作的问题
+- 修复重生后还会检查更新的问题
+- 修复打印机无法处理告示牌放在箱子上的情况
 
 #### 2026-4-17
 - 优化即时挖掘速度

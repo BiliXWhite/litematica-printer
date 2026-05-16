@@ -3,6 +3,7 @@ package me.aleksilassila.litematica.printer.handler.handlers;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
+import me.aleksilassila.litematica.printer.printer.*;
 import me.aleksilassila.litematica.printer.printer.action.Action;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.utils.InventoryUtils;
@@ -84,6 +85,17 @@ public class FluidHandler extends ClientPlayerTickHandler {
                 return;
             }
             if (!InventoryUtils.switchToItems(player, fillItems.toArray(new Item[0]))) {
+                if (!fillItems.isEmpty() && fillItems.get(0) != null) {
+                    MissingMaterialTracker.getInstance().recordMissing(fillItems.get(0),
+                            //#if MC >= 260100
+                            //$$ fillItems.get(0).getName(fillItems.get(0).getDefaultInstance())
+                            //#elseif MC > 12101
+                            fillItems.get(0).getName()
+                            //#else
+                            //$$ fillItems.get(0).getDescription()
+                            //#endif
+                    );
+                }
                 return;
             }
             Action action = new Action().queueAction(blockPos, Direction.UP, false, player);

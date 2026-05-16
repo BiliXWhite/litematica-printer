@@ -272,5 +272,9 @@
   "litematica-printer.update.failed": "察新失利，請稍後再試。",
   "litematica-printer.update.password": "取章祕碼：%s",
   "litematica-printer.update.recommendation": "強薦升新章，以修潛藏之重弊。",
-  "litematica-printer.update.repository": "典庫："
+  "litematica-printer.update.repository": "典庫：",
+  "litematica-printer.config.missingMaterialHud": "闕料HUD",
+  "litematica-printer.config.missingMaterialHud.desc": "於投影材單之域示闕料HUD疊層",
+  "litematica-printer.hud.missing.title": "§c闕料: §e%d §7類",
+  "litematica-printer.hud.missing.overflow": "§7...尚闕 %d 類"
 }

@@ -8,6 +8,7 @@ import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.printer.zxy.utils.HighlightBlockRenderer;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
+import me.aleksilassila.litematica.printer.render.MissingMaterialHudRenderer;
 import me.aleksilassila.litematica.printer.utils.bedrock.BedrockUtils;
 
 import static me.aleksilassila.litematica.printer.config.Configs.*;
@@ -32,6 +33,8 @@ public class InitHandler implements IInitializationHandler {
         initModConfig();
         initConfigCallback();
         HighlightBlockRenderer.init();  // 高亮显示方块渲染器
+        fi.dy.masa.litematica.render.infohud.InfoHud.getInstance()
+                .addInfoHudRenderer(MissingMaterialHudRenderer.INSTANCE, true);
     }
 
     private void initConfigCallback() {

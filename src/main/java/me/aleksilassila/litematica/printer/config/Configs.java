@@ -178,6 +178,11 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(false)
                 .build();
 
+        // 核心 - 显示缺失材料HUD
+        public static final ConfigBoolean MISSING_MATERIAL_HUD = bool("missingMaterialHud")
+                .defaultValue(true)
+                .build();
+
         // 核心 - 自动禁用打印机
         public static final ConfigBoolean AUTO_DISABLE_PRINTER = bool("printerAutoDisable")
                 .defaultValue(true)
@@ -229,6 +234,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 USE_REACH_DISTANCE,
                 ITERATION_TIME_LIMIT,
                 RENDER_HUD,
+                MISSING_MATERIAL_HUD,
                 LAG_CHECK,
                 LAG_CHECK_MAX,
                 ITERATOR_SHAPE,
