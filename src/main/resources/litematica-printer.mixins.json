@@ -16,6 +16,7 @@
     "printer.litematica.EasyPlaceUtilsAccessor",
     "printer.litematica.InventoryUtilsAccessor",
     "printer.litematica.MixinInventoryUtils",
+    "printer.litematica.MixinMaterialListUtils",
     "printer.malilib.config.MixinConfigBase",
     "printer.malilib.config.MixinIConfigBase",
     "printer.mc.MixinBlockItem",

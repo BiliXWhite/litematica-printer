@@ -241,6 +241,8 @@
   "litematica-printer.config.renderHud.desc": "Display current mode and work progress within range on operation page when printer is working;\nIf §6§lLag Detection§r is enabled, will show prompt when lag is excessive.",
   "litematica-printer.config.renderLayerLimit": "Render Layer Limit",
   "litematica-printer.config.renderLayerLimit.desc": "Limit printer work range to Litematica's currently rendered layer range.",
+  "litematica-printer.config.selectionMaterials": "Selection Materials",
+  "litematica-printer.config.selectionMaterials.desc": "In the Material List, also count items stored in containers within the selected area as already available items. (Requires ChestTracker)",
   "litematica-printer.config.selectionType.litematica.renderLayer": "Projection Render Layer",
   "litematica-printer.config.selectionType.litematica.selection": "Projection Selection",
   "litematica-printer.config.selectionType.litematica.selection.abovePlayer": "Projection Selection (Above Player)",
