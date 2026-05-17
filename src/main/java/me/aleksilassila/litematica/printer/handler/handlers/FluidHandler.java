@@ -6,8 +6,7 @@ import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.printer.*;
 import me.aleksilassila.litematica.printer.printer.action.Action;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
-import me.aleksilassila.litematica.printer.utils.InventoryUtils;
-import me.aleksilassila.litematica.printer.utils.PinYinSearchUtils;
+import me.aleksilassila.litematica.printer.utils.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -15,7 +14,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,6 +76,12 @@ public class FluidHandler extends ClientPlayerTickHandler {
     }
 
     @Override
+    public boolean canProcessPos(BlockPos pos) {
+        FluidState fluidState = level.getBlockState(pos).getFluidState();
+        return fluids.contains(fluidState.getType());
+    }
+
+    @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         FluidState fluidState = level.getBlockState(blockPos).getFluidState();
         if (fluids.contains(fluidState.getType())) {
@@ -103,7 +107,7 @@ public class FluidHandler extends ClientPlayerTickHandler {
             if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook) {
                 skipIteration.set(true);
             } else {
-                setCooldown(blockPos, Fluids.WATER.getTickDelay(level) * 2);
+                setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
             }
         }
     }
