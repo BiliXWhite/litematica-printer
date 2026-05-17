@@ -34,9 +34,6 @@ import fi.dy.masa.malilib.util.ItemType;
 public class LitematicaUtils {
     public static final Minecraft client = Minecraft.getInstance();
 
-    private LitematicaUtils() {
-    }
-
     public static boolean isPositionWithinRange(BlockPos pos) {
         return DataManager.getRenderLayerRange().isPositionWithinRange(pos);
     }

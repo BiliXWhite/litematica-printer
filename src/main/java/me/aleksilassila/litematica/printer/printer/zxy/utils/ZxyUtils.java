@@ -28,6 +28,7 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -43,8 +44,6 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 //$$ import me.aleksilassila.litematica.printer.printer.zxy.memory.MemoryUtils;
 //#endif
 
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.*;
-import static net.minecraft.world.level.block.ShulkerBoxBlock.FACING;
 
 public class ZxyUtils {
     private static final Minecraft client = Minecraft.getInstance();
@@ -76,7 +75,7 @@ public class ZxyUtils {
     }
 
     public static void addInv() {
-        if (printerMemoryAdding && !openIng && OpenInventoryPacket.key == null) {
+        if (printerMemoryAdding && !OpenInventoryPacket.openIng && OpenInventoryPacket.key == null) {
             if (invBlockList.isEmpty()) {
                 printerMemoryAdding = false;
                 MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_ADDED.getName());
@@ -125,11 +124,11 @@ public class ZxyUtils {
                     if ((isInventory && blockState.getMenuProvider(client.level, pos) == null) ||
                             (blockEntity instanceof ShulkerBoxBlockEntity entity &&
                                     //#if MC > 12103
-                                    !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(FACING), 0.0F, 0.5F, pos.getBottomCenter()).move(pos).deflate(1.0E-6)) &&
+                                    !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(ShulkerBoxBlock.FACING), 0.0F, 0.5F, pos.getBottomCenter()).move(pos).deflate(1.0E-6)) &&
                                     //#elseif MC <= 12103 && MC > 12004
-                                    //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(FACING), 0.0F, 0.5F).move(pos).deflate(1.0E-6)) &&
+                                    //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(ShulkerBoxBlock.FACING), 0.0F, 0.5F).move(pos).deflate(1.0E-6)) &&
                                     //#elseif MC <= 12004
-                                    //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(blockState.getValue(FACING), 0.0f, 0.5f).move(pos).deflate(1.0E-6)) &&
+                                    //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(blockState.getValue(ShulkerBoxBlock.FACING), 0.0f, 0.5f).move(pos).deflate(1.0E-6)) &&
                                     //#endif
                                     entity.getAnimationStatus() == ShulkerBoxBlockEntity.AnimationStatus.CLOSED)) {
                         MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_CONTAINER_CANNOT_OPEN.getName());
@@ -208,7 +207,7 @@ public class ZxyUtils {
                 //按下热键后记录看向的容器 开始同步容器 只会触发一次
                 targetBlockInv = new ArrayList<>();
                 targetItemsCount = new HashMap<>();
-                if (client.player != null && (!Configs.Core.CLOUD_INVENTORY.getBooleanValue() || openIng) && !client.player.containerMenu.equals(client.player.inventoryMenu)) {
+                if (client.player != null && (!Configs.Core.CLOUD_INVENTORY.getBooleanValue() || OpenInventoryPacket.openIng) && !client.player.containerMenu.equals(client.player.inventoryMenu)) {
                     for (int i = 0; i < client.player.containerMenu.slots.get(0).container.getContainerSize(); i++) {
                         ItemStack copy = client.player.containerMenu.slots.get(i).getItem().copy();
                         itemsCount(targetItemsCount, copy);
@@ -236,7 +235,7 @@ public class ZxyUtils {
                                         ItemStack.isSameItemSameComponents(player.getKey(), target.getKey()) && target.getValue() <= player.getValue())))
                     return;
 
-                if ((!Configs.Core.CLOUD_INVENTORY.getBooleanValue() || !openIng) && OpenInventoryPacket.key == null) {
+                if ((!Configs.Core.CLOUD_INVENTORY.getBooleanValue() || !OpenInventoryPacket.openIng) && OpenInventoryPacket.key == null) {
                     for (BlockPos pos : syncPosList) {
                         if (!openInv(pos, true)) continue;
                         ModUtils.closeScreen++;
@@ -332,9 +331,9 @@ public class ZxyUtils {
 
     public static void exitGameReSet() {
         SwitchItem.reSet();
-        isRemote = false;
-        clientTry = false;
-        remoteTime = 0;
+        OpenInventoryPacket.isRemote = false;
+        OpenInventoryPacket.clientTry = false;
+        OpenInventoryPacket.remoteTime = 0;
     }
 
     /**

@@ -9,7 +9,6 @@ public class InventoryPacket extends FriendlyByteBuf {
      * Creates a packet byte buf that delegates its operations to the {@code
      * parent} buf.
      *
-     * @param parent the parent, or delegate, buf
      */
     private BlockState blockState = null;
 

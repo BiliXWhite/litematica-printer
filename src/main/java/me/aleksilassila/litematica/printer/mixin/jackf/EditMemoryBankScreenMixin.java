@@ -15,8 +15,6 @@ import red.jackf.chesttracker.impl.gui.screen.EditMemoryBankScreen;
 import red.jackf.chesttracker.impl.gui.screen.MemoryBankView;
 import red.jackf.chesttracker.impl.memory.metadata.Metadata;
 
-import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.PRINTER_MEMORY;
-
 //同步打印机库存搜索距离等设置
 @Mixin(value = EditMemoryBankScreen.class, remap = false)
 public class EditMemoryBankScreenMixin {
@@ -25,7 +23,7 @@ public class EditMemoryBankScreenMixin {
     private void save(Button button, CallbackInfo ci) {
         if (memoryBank.id().contains("-printer")) {
             Metadata metadata = memoryBank.metadata();
-            PRINTER_MEMORY.setMetadata(metadata);
+            MemoryUtils.PRINTER_MEMORY.setMetadata(metadata);
         }
     }
 
