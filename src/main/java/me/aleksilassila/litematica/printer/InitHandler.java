@@ -11,14 +11,12 @@ import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import me.aleksilassila.litematica.printer.render.MissingMaterialHudRenderer;
 import me.aleksilassila.litematica.printer.utils.bedrock.BedrockUtils;
 
-import static me.aleksilassila.litematica.printer.config.Configs.*;
-
 public class InitHandler implements IInitializationHandler {
     private static void initModConfig() {
         // 箱子追踪 (模组没加载的情况下，进行关闭)
         if (!ModUtils.isChestTrackerLoaded()) {
-            Core.AUTO_INVENTORY.setBooleanValue(false);  // 自动设置远程交互
-            Core.CLOUD_INVENTORY.setBooleanValue(false); // 远程交互容器
+            Configs.Core.AUTO_INVENTORY.setBooleanValue(false);  // 自动设置远程交互
+            Configs.Core.CLOUD_INVENTORY.setBooleanValue(false); // 远程交互容器
         }
         //#if MC >= 12001
         if (ModUtils.isChestTrackerLoaded()) {
@@ -38,19 +36,19 @@ public class InitHandler implements IInitializationHandler {
     }
 
     private void initConfigCallback() {
-        Hotkeys.CLOSE_ALL_MODE.getKeybind().setCallback((action, keybind) -> {
+        Configs.Hotkeys.CLOSE_ALL_MODE.getKeybind().setCallback((action, keybind) -> {
             if (keybind.isKeybindHeld()) {
-                Core.MINE.setBooleanValue(false);
-                Core.FLUID.setBooleanValue(false);
-                Core.WORK_SWITCH.setBooleanValue(false);
-                Core.WORK_MODE_TYPE.setOptionListValue(PrintModeType.PRINTER);
+                Configs.Core.MINE.setBooleanValue(false);
+                Configs.Core.FLUID.setBooleanValue(false);
+                Configs.Core.WORK_SWITCH.setBooleanValue(false);
+                Configs.Core.WORK_MODE_TYPE.setOptionListValue(PrintModeType.PRINTER);
                 MessageUtils.setOverlayMessage(MessageUtils.nullToEmpty("已关闭全部模式"));
             }
             return true;
         });
 
         // 工作开关
-        Core.WORK_SWITCH.setValueChangeCallback(b -> {
+        Configs.Core.WORK_SWITCH.setValueChangeCallback(b -> {
             if (!b.getBooleanValue()) {
                 ActionManager.INSTANCE.clearQueue();
                 if (ModUtils.isBedrockMinerLoaded() || ModUtils.isBlockMinerLoaded()) {
@@ -63,7 +61,7 @@ public class InitHandler implements IInitializationHandler {
         });
 
         // 切换模式时, 关闭破基岩
-        Core.WORK_MODE_TYPE.setValueChangeCallback(b -> {
+        Configs.Core.WORK_MODE_TYPE.setValueChangeCallback(b -> {
             if (!b.getOptionListValue().equals(PrintModeType.BEDROCK)) {
                 if (ModUtils.isBedrockMinerLoaded() || ModUtils.isBlockMinerLoaded()) {
                     if (BedrockUtils.isWorking()) {
@@ -75,13 +73,13 @@ public class InitHandler implements IInitializationHandler {
         });
 
         // 特殊设置时，自动刷新界面
-        Core.WORK_MODE.setValueChangeCallback(b -> ConfigUi.refresh());
-        Print.FILL_COMPOSTER.setValueChangeCallback(b -> ConfigUi.refresh());
-        Break.BREAK_LIMITER.setValueChangeCallback(b -> ConfigUi.refresh());
-        Break.BREAK_LIMIT.setValueChangeCallback(b -> ConfigUi.refresh());
-        Mine.EXCAVATE_LIMITER.setValueChangeCallback(b -> ConfigUi.refresh());
-        Mine.EXCAVATE_LIMIT.setValueChangeCallback(b -> ConfigUi.refresh());
-        Fill.FILL_BLOCK_MODE.setValueChangeCallback(b -> ConfigUi.refresh());
-        Core.LAG_CHECK.setValueChangeCallback(b -> ConfigUi.refresh());
+        Configs.Core.WORK_MODE.setValueChangeCallback(b -> ConfigUi.refresh());
+        Configs.Print.FILL_COMPOSTER.setValueChangeCallback(b -> ConfigUi.refresh());
+        Configs.Break.BREAK_LIMITER.setValueChangeCallback(b -> ConfigUi.refresh());
+        Configs.Break.BREAK_LIMIT.setValueChangeCallback(b -> ConfigUi.refresh());
+        Configs.Mine.EXCAVATE_LIMITER.setValueChangeCallback(b -> ConfigUi.refresh());
+        Configs.Mine.EXCAVATE_LIMIT.setValueChangeCallback(b -> ConfigUi.refresh());
+        Configs.Fill.FILL_BLOCK_MODE.setValueChangeCallback(b -> ConfigUi.refresh());
+        Configs.Core.LAG_CHECK.setValueChangeCallback(b -> ConfigUi.refresh());
     }
 }

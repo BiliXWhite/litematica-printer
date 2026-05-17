@@ -123,33 +123,24 @@ public class BlockUtils {
     }
 
     public static Optional<Property<?>> getWallFacingProperty(Direction wallFacing) {
-        switch (wallFacing) {
-            case UP:
-                return Optional.of(wallUpProperty);
-            case NORTH:
-                return Optional.of(wallNorthProperty);
-            case SOUTH:
-                return Optional.of(wallSouthProperty);
-            case WEST:
-                return Optional.of(wallWestProperty);
-            case EAST:
-                return Optional.of(wallEastProperty);
-        }
-        return Optional.empty();
+        return switch (wallFacing) {
+            case UP -> Optional.of(wallUpProperty);
+            case NORTH -> Optional.of(wallNorthProperty);
+            case SOUTH -> Optional.of(wallSouthProperty);
+            case WEST -> Optional.of(wallWestProperty);
+            case EAST -> Optional.of(wallEastProperty);
+            default -> Optional.empty();
+        };
     }
 
     public static Optional<Property<?>> getCrossCollisionBlock(Direction wallFacing) {
-        switch (wallFacing) {
-            case NORTH:
-                return Optional.of(wallNorthProperty);
-            case SOUTH:
-                return Optional.of(wallSouthProperty);
-            case WEST:
-                return Optional.of(wallWestProperty);
-            case EAST:
-                return Optional.of(wallEastProperty);
-        }
-        return Optional.empty();
+        return switch (wallFacing) {
+            case NORTH -> Optional.of(wallNorthProperty);
+            case SOUTH -> Optional.of(wallSouthProperty);
+            case WEST -> Optional.of(wallWestProperty);
+            case EAST -> Optional.of(wallEastProperty);
+            default -> Optional.empty();
+        };
     }
 
     /**

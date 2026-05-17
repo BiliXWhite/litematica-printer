@@ -13,7 +13,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
@@ -36,7 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /*
- * 老兄，千万别动这里，这里是坨超级无敌屎山，强烈不建议改动，我也不知道为什么这么写，你去问宅闲鱼。
+ * 老兄，千万别动这里，这里的导入是坨超级无敌屎山。
  */
 
 //#if MC > 12004
@@ -58,17 +57,13 @@ import red.jackf.chesttracker.api.providers.InteractionTracker;
 //$$ import java.util.Comparator;
 //#endif
 
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.isOpenHandler;
-
 //#if MC > 12004
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.HelloPackage.HELLO_REMOTE_INTERACTIONS_ID;
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.OpenPackage.OPEN_INVENTORY_ID;
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.ReturnPackage.OPEN_RETURN_ID;
 //#endif
 
 //#if MC >= 11904
 import net.minecraft.core.registries.Registries;
+import lombok.NonNull;
 //#else
 //$$ import net.minecraft.core.Registry;
 //#endif
@@ -107,7 +102,7 @@ public class OpenInventoryPacket {
                 buf.writeBlockPos(value.pos);
             }
             @Override
-            public OpenPackage decode(RegistryFriendlyByteBuf buf) {
+            public @NonNull OpenPackage decode(RegistryFriendlyByteBuf buf) {
                 OpenPackage openPackage = new OpenPackage();
                 openPackage.world = buf.readResourceKey(Registries.DIMENSION);
                 openPackage.pos = buf.readBlockPos();
@@ -119,7 +114,7 @@ public class OpenInventoryPacket {
         public OpenPackage() {
         }
         @Override
-        public Type<? extends CustomPacketPayload> type() {
+        public @NonNull Type<? extends CustomPacketPayload> type() {
             return OPEN_INVENTORY_ID;
         }
     }
@@ -128,15 +123,15 @@ public class OpenInventoryPacket {
         public static final Type<HelloPackage> HELLO_REMOTE_INTERACTIONS_ID = new Type<>(HELLO_REMOTE_INTERACTIONS);
         public static final StreamCodec<RegistryFriendlyByteBuf,HelloPackage> CODEC = new StreamCodec<>() {
             @Override
-            public void encode(RegistryFriendlyByteBuf buf, HelloPackage value) {
+            public void encode(@NonNull RegistryFriendlyByteBuf buf, @NonNull HelloPackage value) {
             }
             @Override
-            public HelloPackage decode(RegistryFriendlyByteBuf buf) {
+            public @NonNull HelloPackage decode(@NonNull RegistryFriendlyByteBuf buf) {
                 return new HelloPackage();
             }
         };
         @Override
-        public Type<? extends CustomPacketPayload> type() {
+        public @NonNull Type<? extends CustomPacketPayload> type() {
             return HELLO_REMOTE_INTERACTIONS_ID;
         }
     }
@@ -151,7 +146,7 @@ public class OpenInventoryPacket {
                 buf.writeBoolean(value.isOpen);
             }
             @Override
-            public ReturnPackage decode(RegistryFriendlyByteBuf buf) {
+            public @NonNull ReturnPackage decode(RegistryFriendlyByteBuf buf) {
                 ReturnPackage returnPackage = new ReturnPackage();
                 returnPackage.state = Block.stateById(buf.readInt());
                 returnPackage.isOpen = buf.readBoolean();
@@ -160,7 +155,7 @@ public class OpenInventoryPacket {
         };
 
         @Override
-        public Type<? extends CustomPacketPayload> type() {
+        public @NonNull Type<? extends CustomPacketPayload> type() {
             return OPEN_RETURN_ID;
         }
     }
@@ -168,7 +163,7 @@ public class OpenInventoryPacket {
 
     public static void registerClientReceivePacket() {
         //#if MC > 12004
-        ClientPlayNetworking.registerGlobalReceiver(OPEN_RETURN_ID, (payload, context) -> {
+        ClientPlayNetworking.registerGlobalReceiver(ReturnPackage.OPEN_RETURN_ID, (payload, context) -> {
             try {
                 if (payload instanceof ReturnPackage returnPackage) {
                     boolean isOpen = returnPackage.isOpen;
@@ -179,7 +174,7 @@ public class OpenInventoryPacket {
                 MessageUtils.setOverlayMessage(I18n.INVENTORY_SYNC_DISABLED.getName());
             }
         });
-        ClientPlayNetworking.registerGlobalReceiver(HELLO_REMOTE_INTERACTIONS_ID,(openInventoryPacket,context) -> {
+        ClientPlayNetworking.registerGlobalReceiver(HelloPackage.HELLO_REMOTE_INTERACTIONS_ID,(openInventoryPacket, context) -> {
             isRemote = true;
             client.execute(() -> {
                 if (Configs.Core.AUTO_INVENTORY.getBooleanValue()) {
@@ -212,18 +207,18 @@ public class OpenInventoryPacket {
     }
     public static void init() {
         //#if MC > 12004
-        PayloadTypeRegistry.playC2S().register(OPEN_INVENTORY_ID, OpenPackage.CODEC);
-        PayloadTypeRegistry.playC2S().register(OPEN_RETURN_ID, ReturnPackage.CODEC);
-        PayloadTypeRegistry.playC2S().register(HELLO_REMOTE_INTERACTIONS_ID, HelloPackage.CODEC);
-        PayloadTypeRegistry.playS2C().register(OPEN_INVENTORY_ID, OpenPackage.CODEC);
-        PayloadTypeRegistry.playS2C().register(OPEN_RETURN_ID, ReturnPackage.CODEC);
-        PayloadTypeRegistry.playS2C().register(HELLO_REMOTE_INTERACTIONS_ID, HelloPackage.CODEC);
+        PayloadTypeRegistry.playC2S().register(OpenPackage.OPEN_INVENTORY_ID, OpenPackage.CODEC);
+        PayloadTypeRegistry.playC2S().register(ReturnPackage.OPEN_RETURN_ID, ReturnPackage.CODEC);
+        PayloadTypeRegistry.playC2S().register(HelloPackage.HELLO_REMOTE_INTERACTIONS_ID, HelloPackage.CODEC);
+        PayloadTypeRegistry.playS2C().register(OpenPackage.OPEN_INVENTORY_ID, OpenPackage.CODEC);
+        PayloadTypeRegistry.playS2C().register(ReturnPackage.OPEN_RETURN_ID, ReturnPackage.CODEC);
+        PayloadTypeRegistry.playS2C().register(HelloPackage.HELLO_REMOTE_INTERACTIONS_ID, HelloPackage.CODEC);
         //#endif
     }
 
     public static void registerReceivePacket() {
         //#if MC > 12004
-        ServerPlayNetworking.registerGlobalReceiver(OPEN_INVENTORY_ID, (payload,context) -> {
+        ServerPlayNetworking.registerGlobalReceiver(OpenPackage.OPEN_INVENTORY_ID, (payload, context) -> {
             MinecraftServer server = context.player().level().getServer();
             if (payload instanceof OpenPackage packetByteBuf) {
                 server.execute(() ->
@@ -270,11 +265,11 @@ public class OpenInventoryPacket {
 
         if (!isInv || blockState.isAir() || (blockEntity instanceof ShulkerBoxBlockEntity entity &&
                 //#if MC > 12103
-                !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(BlockStateProperties.FACING), 0.0F, 0.5F, pos.getBottomCenter()).move(pos).deflate(1.0E-6)) &&
+                !world.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(BlockStateProperties.FACING), 0.0F, 0.5F, pos.getBottomCenter()).move(pos).deflate(1.0E-6)) &&
                 //#elseif MC <= 12103 && MC > 12004
-                //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(BlockStateProperties.FACING), 0.0F, 0.5F).move(pos).deflate(1.0E-6)) &&
+                //$$ !world.noCollision(Shulker.getProgressDeltaAabb(1.0F, blockState.getValue(BlockStateProperties.FACING), 0.0F, 0.5F).move(pos).deflate(1.0E-6)) &&
                 //#elseif MC <= 12004
-                //$$ !client.level.noCollision(Shulker.getProgressDeltaAabb(blockState.getValue(BlockStateProperties.FACING), 0.0f, 0.5f).move(pos).deflate(1.0E-6)) &&
+                //$$ !world.noCollision(Shulker.getProgressDeltaAabb(blockState.getValue(BlockStateProperties.FACING), 0.0f, 0.5f).move(pos).deflate(1.0E-6)) &&
                 //#endif
                 entity.getAnimationStatus() == ShulkerBoxBlockEntity.AnimationStatus.CLOSED)) {
             System.out.println("openFail" + pos);
@@ -299,11 +294,11 @@ public class OpenInventoryPacket {
         //$$ InteractionResult r = blockState.use(world, player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false));
         //#endif
 
-        if ((r != null && (!r.equals(InteractionResult.CONSUME)
+        if (!r.equals(InteractionResult.CONSUME)
                 //#if MC > 12101
                 && !r.equals(InteractionResult.SUCCESS)
                 //#endif
-        ))) {
+        ) {
             System.out.println("openFail" + pos);
             openReturn(player, blockState, false);
             return;
@@ -318,8 +313,8 @@ public class OpenInventoryPacket {
         OpenInventoryPacket.key = null;
         //避免箱子追踪重复保存，
         //#if MC >= 12001
-        //$$ //避免箱子追踪胡乱记录，若不清空，则会吧打开容器前右键的方块视为目标容器
-        //$$ InteractionTracker.INSTANCE.clear();
+        //避免箱子追踪胡乱记录，若不清空，则会吧打开容器前右键的方块视为目标容器
+        InteractionTracker.INSTANCE.clear();
         //#endif
         if (client.player != null && !client.player.containerMenu.equals(client.player.inventoryMenu))
             client.player.closeContainer();
@@ -384,7 +379,7 @@ public class OpenInventoryPacket {
             }
             ModUtils.closeScreen--;
             openIng = false;
-            isOpenHandler = false;
+            InventoryUtils.isOpenHandler = false;
             ClientPlayerTickManager.PRINT.setPrinterMemorySync(false);
             key = null;
             pos = null;

@@ -35,9 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static fi.dy.masa.malilib.util.InventoryUtils.*;
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList;
-
 @SuppressWarnings({"DataFlowIssue", "SpellCheckingInspection", "GrazieInspection"})
 public class InventoryUtils {
     private static final Minecraft client = Minecraft.getInstance();
@@ -178,15 +175,15 @@ public class InventoryUtils {
         if (player == null) return false;
 
         //#if MC > 12004
-        boolean b = areStacksEqualIgnoreNbt(stackReference, player.getMainHandItem());
+        boolean b = fi.dy.masa.malilib.util.InventoryUtils.areStacksEqualIgnoreNbt(stackReference, player.getMainHandItem());
         //#else
-        //$$ boolean b = areStacksEqual(stackReference, player.getMainHandItem());
+        //$$ boolean b = fi.dy.masa.malilib.util.InventoryUtils.areStacksEqual(stackReference, player.getMainHandItem());
         //#endif
         if (b) {
             return false;
         }
 
-        int slot = findSlotWithItem(player.inventoryMenu, stackReference, true);
+        int slot = fi.dy.masa.malilib.util.InventoryUtils.findSlotWithItem(player.inventoryMenu, stackReference, true);
         if (slot != -1) {
             ClientPacketListener connection = client.getConnection();
             if (connection == null) {
@@ -276,7 +273,7 @@ public class InventoryUtils {
         Player player = mc.player;
 
         // 1. 检查副手已有该物品，直接返回成功（避免重复操作）
-        boolean isAlreadyInOffhand = areStacksEqual(stack, getOffhandStack(player));
+        boolean isAlreadyInOffhand = fi.dy.masa.malilib.util.InventoryUtils.areStacksEqual(stack, getOffhandStack(player));
         if (isAlreadyInOffhand) {
             return true;
         }
@@ -289,7 +286,7 @@ public class InventoryUtils {
         }
 
         // 3. 生存模式：找到物品所在槽位，交换到副手
-        int sourceSlot = findSlotWithItem(player.inventoryMenu, stack, true);
+        int sourceSlot = fi.dy.masa.malilib.util.InventoryUtils.findSlotWithItem(player.inventoryMenu, stack, true);
         if (sourceSlot == -1) {
             InfoUtils.showGuiOrInGameMessage(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");
             return false;
@@ -413,7 +410,7 @@ public class InventoryUtils {
                 orderlyStoreItem = itemStack;
                 return InventoryUtils.setPickedItemToHand(slot, itemStack, client);
             }
-            lastNeedItemList.add(item);
+            me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils.lastNeedItemList.add(item);
         }
         return false;
     }

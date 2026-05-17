@@ -2,12 +2,6 @@ package me.aleksilassila.litematica.printer.printer.zxy.utils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-
-import com.mojang.blaze3d.pipeline.RenderTarget;
-import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.client.renderer.RenderBuffers;
-import net.minecraft.client.renderer.culling.Frustum;
-
 import fi.dy.masa.malilib.config.options.ConfigColor;
 import fi.dy.masa.malilib.event.RenderEventHandler;
 import fi.dy.masa.malilib.interfaces.IRenderer;
@@ -21,7 +15,6 @@ import java.util.*;
 
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.Tesselator;
-
 
 //#if MC <= 12104
 //$$ import net.minecraft.client.Minecraft;
@@ -38,13 +31,17 @@ import fi.dy.masa.malilib.render.RenderContext;
 
 //#if MC > 12006
 import com.mojang.blaze3d.vertex.MeshData;
-import org.joml.Vector4f;
 //#endif
 
 //#if MC >= 260001
 //$$ import org.joml.Matrix4fc;
 //$$ import com.mojang.blaze3d.buffers.GpuBufferSlice;
 //$$ import net.minecraft.client.renderer.state.level.CameraRenderState;
+//$$ import com.mojang.blaze3d.pipeline.RenderTarget;
+//$$ import net.minecraft.util.profiling.ProfilerFiller;
+//$$ import net.minecraft.client.renderer.RenderBuffers;
+//$$ import net.minecraft.client.renderer.culling.Frustum;
+//$$ import org.joml.Vector4f;
 //#endif
 
 //#if MC <= 12104

@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.mixin.jackf;
 
 //#if MC >= 12001
+import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -9,7 +10,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import red.jackf.chesttracker.impl.memory.MemoryBankAccessImpl;
 import red.jackf.chesttracker.impl.memory.MemoryBankImpl;
-import static me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.PRINTER_MEMORY;
 
 @Mixin(value = MemoryBankAccessImpl.class, remap = false)
 public abstract class MemoryBankAccessMixin{
@@ -21,7 +21,7 @@ public abstract class MemoryBankAccessMixin{
     private void loadOrCreate(String id, String creationName, CallbackInfoReturnable<Boolean> cir) {
         String[] split = id.split("-");
         if ("printer".equals(split[split.length - 1])) {
-            if(PRINTER_MEMORY != null) loaded = PRINTER_MEMORY;
+            if(MemoryUtils.PRINTER_MEMORY != null) loaded = MemoryUtils.PRINTER_MEMORY;
         }
     }
 }

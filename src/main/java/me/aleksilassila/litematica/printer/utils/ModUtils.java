@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Style;
 import org.jetbrains.annotations.Nullable;
+import lombok.NonNull;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -280,10 +281,7 @@ public class ModUtils {
         }
 
         @Override
-        public int compareTo(SemanticVersion other) {
-            if (other == null) {
-                return 1;
-            }
+        public int compareTo(@NonNull SemanticVersion other) {
             // 比较主版本号
             int majorCompare = Integer.compare(this.major, other.major);
             if (majorCompare != 0) {

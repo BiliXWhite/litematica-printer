@@ -42,11 +42,10 @@ import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.SearchItem;
 //#endif
 
 //#if MC >= 12001
-//$$ import red.jackf.chesttracker.api.providers.InteractionTracker;
+import red.jackf.chesttracker.api.providers.InteractionTracker;
 //#endif
 
 import java.util.HashSet;
-import static me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket.openIng;
 
 public class InventoryUtils {
     private static int shulkerCooldown = 0;
@@ -90,7 +89,7 @@ public class InventoryUtils {
     public static boolean isOpenHandler = false;
 
     public static boolean switchItem() {
-        if (!lastNeedItemList.isEmpty() && !isOpenHandler && !openIng && OpenInventoryPacket.key == null) {
+        if (!lastNeedItemList.isEmpty() && !isOpenHandler && !OpenInventoryPacket.openIng && OpenInventoryPacket.key == null) {
             LocalPlayer player = client.player;
             AbstractContainerMenu sc = player.containerMenu;
             if (!player.containerMenu.equals(player.inventoryMenu)) return false;
@@ -216,7 +215,7 @@ public class InventoryUtils {
                         try {
                             shulkerBoxSlot = i;
                             //#if MC >= 12001 
-                            //$$ if (ModUtils.isLoadMod("chesttracker")) InteractionTracker.INSTANCE.clear();
+                            if (ModUtils.isLoadMod("chesttracker")) InteractionTracker.INSTANCE.clear();
                             //#endif
                             BlockUtils.openShulker(stack, shulkerBoxSlot);
                             ModUtils.closeScreen++;
