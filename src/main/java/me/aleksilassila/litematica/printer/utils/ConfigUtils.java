@@ -66,7 +66,7 @@ public class ConfigUtils {
     public static double getEffectiveRange() {
         int configRange = Configs.Core.WORK_RANGE.getIntegerValue();
         if (configRange <= 0) {
-            return PlayerUtils.getInteractionRange(6);
+            return PlayerUtils.getInteractionRange(4.5) + 1;
         }
         return configRange;
     }
