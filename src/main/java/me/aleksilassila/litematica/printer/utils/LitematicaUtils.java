@@ -8,6 +8,8 @@ import fi.dy.masa.litematica.selection.SelectionMode;
 import fi.dy.masa.litematica.util.EasyPlaceProtocol;
 import fi.dy.masa.litematica.util.PlacementHandler;
 import fi.dy.masa.litematica.util.WorldUtils;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.PrinterBox;
 import net.fabricmc.api.EnvType;
@@ -19,15 +21,18 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.*;
 
+//#if MC >= 260000
+//$$ import fi.dy.masa.malilib.util.data.ItemType;
+//#else
+import fi.dy.masa.malilib.util.ItemType;
+//#endif
 //#if MC < 11900
 //$$ import fi.dy.masa.malilib.util.SubChunkPos;
 //#endif
 
-@SuppressWarnings({"BooleanMethodIsAlwaysInverted", "BooleanMethodIsAlwaysInverted"})
 @Environment(EnvType.CLIENT)
 public class LitematicaUtils {
     public static final Minecraft client = Minecraft.getInstance();
-    public static final LitematicaUtils INSTANCE = new LitematicaUtils();
 
     private LitematicaUtils() {
     }
@@ -92,6 +97,60 @@ public class LitematicaUtils {
         if (box == null || box.getPos1() == null || box.getPos2() == null || pos == null) return false;
         PrinterBox printerBox = new PrinterBox(box.getPos1(), box.getPos2());
         return printerBox.contains(pos);
+    }
+
+    /**
+     * 获取当前 Litematica 选区内所有容器方块的物品内容。
+     */
+    //#if MC == 12111
+    @SuppressWarnings("deprecation")
+    //#endif
+    public static void applySelectionArea(Object2IntOpenHashMap<ItemType> items) {
+        if (!Configs.Core.SELECTION_MATERIALS.getBooleanValue()) {
+            return;
+        }
+
+        AreaSelection selection = DataManager.getSelectionManager().getCurrentSelection();
+        if (selection == null) {
+            return;
+        }
+
+        List<PrinterBox> boxes = getSelectionBoxes(selection);
+        if (boxes.isEmpty()) {
+            return;
+        }
+
+        //#if MC >= 12001
+        if (ModUtils.isChestTrackerLoaded()) {
+            List<Object2IntOpenHashMap<ItemType>> containerItems = new ObjectArrayList<>();
+            me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils.getSelectionContainerItems(boxes, containerItems);
+            for (Object2IntOpenHashMap<ItemType> map : containerItems) {
+                map.forEach(items::addTo);
+            }
+        }
+        //#endif
+
+    }
+
+    private static List<PrinterBox> getSelectionBoxes(AreaSelection selection) {
+        if (selection == null) {
+            return Collections.emptyList();
+        }
+
+        if (DataManager.getSelectionManager().getSelectionMode() == SelectionMode.NORMAL) {
+            return selection.getAllSubRegionBoxes().stream().map(LitematicaUtils::toPrinterBox).toList();
+        }
+
+        Box box = selection.getSubRegionBox(DataManager.getSimpleArea().getName());
+        PrinterBox printerBox = toPrinterBox(box);
+        return printerBox != null ? Collections.singletonList(printerBox) : Collections.emptyList();
+    }
+
+    private static PrinterBox toPrinterBox(Box box) {
+        if (box == null || box.getPos1() == null || box.getPos2() == null) {
+            return null;
+        }
+        return new PrinterBox(box.getPos1(), box.getPos2());
     }
 
 }
