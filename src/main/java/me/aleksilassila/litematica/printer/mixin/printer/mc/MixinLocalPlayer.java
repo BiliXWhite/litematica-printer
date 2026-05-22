@@ -6,7 +6,6 @@ import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
 import me.aleksilassila.litematica.printer.printer.BlockPosCooldownManager;
-import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.utils.BreakUtils;
 import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
 import me.aleksilassila.litematica.printer.utils.ModUtils;
@@ -15,7 +14,6 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
-import me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils;
 import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
@@ -29,12 +27,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-
-//#if MC >= 12001 
-import me.aleksilassila.litematica.printer.printer.zxy.chesttracker.MemoryUtils;
-import me.aleksilassila.litematica.printer.printer.zxy.inventory.OpenInventoryPacket;
-import me.aleksilassila.litematica.printer.utils.ModUtils;
-//#endif
 
 @Mixin(LocalPlayer.class)
 public class MixinLocalPlayer extends AbstractClientPlayer {
@@ -67,22 +59,10 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
         updateChecked = true;
     }
 
-    @Inject(at = @At("HEAD"), method = "closeContainer")
-    public void close(CallbackInfo ci) {
-        //#if MC >= 12001
-        if (ModUtils.isChestTrackerLoaded()) {
-            MemoryUtils.saveMemory(this.containerMenu);
-        }
-        OpenInventoryPacket.reSet();
-        //#endif
-    }
-
     @Inject(at = @At("HEAD"), method = "tick")
     public void tick(CallbackInfo ci) {
         ClientPlayerTickManager.updateTickHandlerTime();
         BlockPosCooldownManager.INSTANCE.tick();
-        InventoryUtils.tick();
-        ZxyUtils.tick();
         BreakUtils.INSTANCE.preprocess();
         if (BreakUtils.INSTANCE.isNeedHandle()) {
             BreakUtils.INSTANCE.onTick();

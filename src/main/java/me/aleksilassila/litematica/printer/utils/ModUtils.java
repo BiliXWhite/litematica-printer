@@ -32,14 +32,6 @@ public class ModUtils {
         return FabricLoader.getInstance().isModLoaded(modId);
     }
 
-    public static boolean isChestTrackerLoaded(){
-        return isLoadMod("chesttracker");
-    }
-
-    public static boolean isQuickShulkerLoaded(){
-        return isLoadMod("quickshulker");
-    }
-
     public static boolean isBedrockMinerLoaded() {
         //#if MC >= 11900
         return isLoadMod("bedrockminer");

@@ -89,7 +89,7 @@ public class MissingMaterialHudRenderer implements IInfoHudRenderer
         switch (alignment) {
             case TOP_RIGHT:
             case BOTTOM_RIGHT:
-                posX = (int) (GuiUtils.getScaledWindowWidth() - maxLineLength - xOffset - bgMargin);
+                posX = GuiUtils.getScaledWindowWidth() - maxLineLength - xOffset - bgMargin;
                 break;
             case CENTER:
                 posX = (int) (GuiUtils.getScaledWindowWidth() / 2.0 - maxLineLength / 2.0 - xOffset);
@@ -102,7 +102,7 @@ public class MissingMaterialHudRenderer implements IInfoHudRenderer
         {
             int scaledHeight = GuiUtils.getScaledWindowHeight();
             if (alignment == HudAlignment.BOTTOM_RIGHT || alignment == HudAlignment.BOTTOM_LEFT) {
-                posY = (int) (scaledHeight - posY - contentHeight);
+                posY = scaledHeight - posY - contentHeight;
             } else if (alignment == HudAlignment.CENTER) {
                 posY = (int) (scaledHeight / 2.0 - contentHeight / 2.0 + posY);
             }

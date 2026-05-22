@@ -7,23 +7,27 @@ public class ConfigBuilders {
         return new BooleanHotkeyConfigBuilder(translateKey);
     }
 
-    public static BooleanConfigBuilder bool(String translateKey) {
+    public static BooleanConfigBuilder booleanValue(String translateKey) {
         return new BooleanConfigBuilder(translateKey);
     }
 
-    public static HotkeyConfigBuilder hotkey(String translateKey) {
+    public static HotkeyConfigBuilder hotkeyValue(String translateKey) {
         return new HotkeyConfigBuilder(translateKey);
     }
 
-    public static IntegerConfigBuilder integer(String translateKey) {
+    public static IntegerConfigBuilder integerValue(String translateKey) {
         return new IntegerConfigBuilder(translateKey);
     }
 
-    public static StringListConfigBuilder stringList(String translateKey) {
+    public static FloatConfigBuilder floatValue(String translateKey) {
+        return new FloatConfigBuilder(translateKey);
+    }
+
+    public static StringListConfigBuilder stringListValue(String translateKey) {
         return new StringListConfigBuilder(translateKey);
     }
 
-    public static StringConfigBuilder string(String translateKey) {
+    public static StringConfigBuilder stringValue(String translateKey) {
         return new StringConfigBuilder(translateKey);
     }
 

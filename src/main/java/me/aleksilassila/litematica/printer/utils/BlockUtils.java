@@ -1,10 +1,7 @@
 package me.aleksilassila.litematica.printer.utils;
 
-import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.BlockMatchingType;
-import me.aleksilassila.litematica.printer.enums.QuickShulkerModeType;
 import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
-import net.kyrptonaught.quickshulker.client.ClientUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -12,8 +9,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
@@ -329,26 +324,6 @@ public class BlockUtils {
             rotation += (ROTATION_MAX + 1);
         }
         return rotation;
-    }
-
-    public static void openShulker(ItemStack stack, int shulkerBoxSlot) {
-        if (Configs.Placement.QUICK_SHULKER_MODE.getOptionListValue()
-                == QuickShulkerModeType.CLICK_SLOT) {
-            client.gameMode.handleInventoryMouseClick(
-                    client.player.containerMenu.containerId,
-                    shulkerBoxSlot,
-                    1,
-                    ClickType.PICKUP,
-                    client.player);
-        } else if (Configs.Placement.QUICK_SHULKER_MODE.getOptionListValue()
-                == QuickShulkerModeType.INVOKE) {
-            if (ModUtils.isQuickShulkerLoaded()) {
-                try {
-                    ClientUtil.CheckAndSend(stack, shulkerBoxSlot);
-                } catch (Exception ignored) {
-                }
-            } else MessageUtils.addMessage(MessageUtils.literal("快捷潜影盒模组未加载！"));
-        }
     }
 
     public static boolean canBeClicked(ClientLevel world, BlockPos pos) {

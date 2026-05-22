@@ -1,7 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-import org.gradle.kotlin.dsl.project
-
 plugins {
     id("mod-plugin")
     id("maven-publish")

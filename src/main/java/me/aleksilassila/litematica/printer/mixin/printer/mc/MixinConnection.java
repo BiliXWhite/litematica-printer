@@ -2,7 +2,6 @@ package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
-import me.aleksilassila.litematica.printer.printer.zxy.utils.ZxyUtils;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.PacketUtils;
 import net.fabricmc.api.EnvType;
@@ -29,7 +28,6 @@ public class MixinConnection {
 
     @Inject(method = "disconnect*", at = {@At("HEAD")})
     public void disconnect(Component ignored, CallbackInfo ci) {
-        ZxyUtils.exitGameReSet();    // 退出重置
         if (Configs.Core.AUTO_DISABLE_PRINTER.getBooleanValue() && Configs.Core.WORK_SWITCH.getBooleanValue()) {
             Configs.Core.WORK_SWITCH.setBooleanValue(false);
         }

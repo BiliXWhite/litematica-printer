@@ -13,7 +13,6 @@ import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import fi.dy.masa.malilib.config.ConfigManager;
 import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.enums.*;
-import me.aleksilassila.litematica.printer.utils.ModUtils;
 import me.aleksilassila.litematica.printer.gui.ConfigUi;
 import net.minecraft.world.level.block.Blocks;
 
@@ -37,7 +36,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
     private static final KeybindSettings GUI_NO_ORDER = KeybindSettings.create(KeybindSettings.Context.GUI, KeyAction.PRESS, false, false, false, true);
 
     // 配置页面是否可视(函数式, 动态获取, 全局统一使用)
-    private static final BooleanSupplier isLoadChestTrackerLoaded = ModUtils::isChestTrackerLoaded;
     private static final BooleanSupplier isSingle = () -> Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.SINGLE);
     private static final BooleanSupplier isMulti = () -> Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.MULTI);
 
@@ -121,28 +119,28 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         // 核心 - 工作半径（0 = 自动使用最大可用交互距离）
-        public static final ConfigInteger WORK_RANGE = integer("workRange")
+        public static final ConfigDouble WORK_RANGE = floatValue("workRange")
                 .defaultValue(0)
                 .range(0, 256)
                 .build();
 
         // 核心 - 使用手长距离（已弃用，由工作半径=0自动使用最大交互距离替代）
-        public static final ConfigBoolean USE_REACH_DISTANCE = bool("useReachDistance")
+        public static final ConfigBoolean USE_REACH_DISTANCE = booleanValue("useReachDistance")
                 .defaultValue(true)
                 .build();
 
         // 核心 - 迭代占用时长（毫秒）
-        public static final ConfigInteger ITERATION_TIME_LIMIT = integer("iterationTimeLimit")
+        public static final ConfigInteger ITERATION_TIME_LIMIT = integerValue("iterationTimeLimit")
                 .defaultValue(8)
                 .range(0, 32)
                 .build();
 
         // 核心 - 延迟检测
-        public static final ConfigBoolean LAG_CHECK = bool("printerLagCheck")
+        public static final ConfigBoolean LAG_CHECK = booleanValue("printerLagCheck")
                 .defaultValue(true)
                 .build();
 
-        public static final ConfigInteger LAG_CHECK_MAX = integer("printerLagCheckMax")
+        public static final ConfigInteger LAG_CHECK_MAX = integerValue("printerLagCheckMax")
                 .defaultValue(20)
                 .setVisible(LAG_CHECK::getBooleanValue)
                 .range(20, 1200)
@@ -159,71 +157,43 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         // 核心 - 迭代X轴反向
-        public static final ConfigBoolean X_REVERSE = bool("printerXAxisReverse")
+        public static final ConfigBoolean X_REVERSE = booleanValue("printerXAxisReverse")
                 .defaultValue(false)
                 .build();
 
         // 核心 - 迭代Y轴反向
-        public static final ConfigBoolean Y_REVERSE = bool("printerYAxisReverse")
+        public static final ConfigBoolean Y_REVERSE = booleanValue("printerYAxisReverse")
                 .defaultValue(false)
                 .build();
 
         // 核心 - 迭代Z轴反向
-        public static final ConfigBoolean Z_REVERSE = bool("printerZAxisReverse")
+        public static final ConfigBoolean Z_REVERSE = booleanValue("printerZAxisReverse")
                 .defaultValue(false)
                 .build();
 
         // 核心 - 显示打印机HUD
-        public static final ConfigBoolean RENDER_HUD = bool("renderHud")
+        public static final ConfigBoolean RENDER_HUD = booleanValue("renderHud")
                 .defaultValue(false)
                 .build();
 
         // 核心 - 显示缺失材料HUD
-        public static final ConfigBoolean MISSING_MATERIAL_HUD = bool("missingMaterialHud")
+        public static final ConfigBoolean MISSING_MATERIAL_HUD = booleanValue("missingMaterialHud")
                 .defaultValue(true)
                 .build();
 
         // 核心 - 自动禁用打印机
-        public static final ConfigBoolean AUTO_DISABLE_PRINTER = bool("printerAutoDisable")
+        public static final ConfigBoolean AUTO_DISABLE_PRINTER = booleanValue("printerAutoDisable")
                 .defaultValue(true)
                 .build();
 
         // 核心 - 检查更新
-        public static final ConfigBoolean UPDATE_CHECK = bool("updateCheck")
+        public static final ConfigBoolean UPDATE_CHECK = booleanValue("updateCheck")
                 .defaultValue(true)
                 .build();
 
         // 核心 - 调试输出
-        public static final ConfigBoolean DEBUG_OUTPUT = bool("debugOutput")
+        public static final ConfigBoolean DEBUG_OUTPUT = booleanValue("debugOutput")
                 .defaultValue(false)
-                .build();
-
-        public static final ConfigBoolean SELECTION_MATERIALS = bool("selectionMaterials")
-                .defaultValue(false)
-                .setVisible(isLoadChestTrackerLoaded)
-                .build();
-
-        // 远程交互 - 开关
-        public static final ConfigBoolean CLOUD_INVENTORY = bool("cloudInventory")
-                .defaultValue(false)
-                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪 Mod 加载时显示
-                .build();
-
-        // 远程交互 - 自动设置远程交互
-        public static final ConfigBoolean AUTO_INVENTORY = bool("autoInventory")
-                .defaultValue(false)
-                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪 Mod 加载时显示
-                .build();
-
-        // 远程交互 - 库存白名单
-        public static final ConfigStringList INVENTORY_LIST = stringList("inventoryList")
-                .defaultValue(Blocks.CHEST)
-                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪 Mod 加载时显示
-                .build();
-
-        // 容器同步与打印机添加库存高亮颜色
-        public static final ConfigColor SYNC_INVENTORY_COLOR = color("syncInventoryColor")
-                .defaultValue("#4CFF4CE6")
                 .build();
 
         // 通用配置项列表（按功能分类排序）
@@ -249,63 +219,42 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 Z_REVERSE,
                 AUTO_DISABLE_PRINTER,
                 UPDATE_CHECK,
-                DEBUG_OUTPUT,
-                SELECTION_MATERIALS,
-                CLOUD_INVENTORY,
-                AUTO_INVENTORY,
-                INVENTORY_LIST,
-                SYNC_INVENTORY_COLOR
+                DEBUG_OUTPUT
         );
     }
 
     public static class Placement {
 
         // 使用数据包打印
-        public static final ConfigBoolean PRINT_USE_PACKET = bool("placeUsePacket")
+        public static final ConfigBoolean PRINT_USE_PACKET = booleanValue("placeUsePacket")
                 .defaultValue(false)
                 .build();
 
         // 核心 - 工作间隔
-        public static final ConfigInteger PLACE_INTERVAL = integer("placeInterval")
+        public static final ConfigInteger PLACE_INTERVAL = integerValue("placeInterval")
                 .defaultValue(1)
                 .range(0, 20)
                 .build();
 
         // 每刻放置方块数
-        public static final ConfigInteger PLACE_BLOCKS_PER_TICK = integer("placeBlocksPerTick")
+        public static final ConfigInteger PLACE_BLOCKS_PER_TICK = integerValue("placeBlocksPerTick")
                 .defaultValue(1)
                 .range(0, 256)
                 .build();
 
         // 放置冷却
-        public static final ConfigInteger PLACE_COOLDOWN = integer("placeCooldown")
+        public static final ConfigInteger PLACE_COOLDOWN = integerValue("placeCooldown")
                 .defaultValue(3)
                 .range(0, 64)
                 .build();
 
         // 下落方块检查
-        public static final ConfigBoolean FALLING_CHECK = bool("printFallingBlockCheck")
+        public static final ConfigBoolean FALLING_CHECK = booleanValue("printFallingBlockCheck")
             .defaultValue(true)
             .build();
 
-        // 快捷潜影盒 - 开关
-        public static final ConfigBoolean QUICK_SHULKER = bool("quickShulker")
-                .defaultValue(false)
-                .build();
-
-        // 快捷潜影盒 - 工作模式
-        public static final ConfigOptionList QUICK_SHULKER_MODE = optionList("quickShulkerMode")
-                .defaultValue(QuickShulkerModeType.INVOKE)
-                .build();
-
-        // 快捷潜影盒 - 冷却时间
-        public static final ConfigInteger QUICK_SHULKER_COOLDOWN = integer("quickShulkerCooldown")
-                .defaultValue(10)
-                .range(0, 20)
-                .build();
-
         // 储存管理 - 有序存放
-        public static final ConfigBoolean STORE_ORDERLY = bool("storeOrderly")
+        public static final ConfigBoolean STORE_ORDERLY = booleanValue("storeOrderly")
                 .defaultValue(false)
                 .build();
 
@@ -315,44 +264,41 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 PLACE_BLOCKS_PER_TICK,
                 PLACE_COOLDOWN,
                 FALLING_CHECK,
-                STORE_ORDERLY,
-                QUICK_SHULKER,
-                QUICK_SHULKER_MODE,
-                QUICK_SHULKER_COOLDOWN
+                STORE_ORDERLY
         );
     }
 
     public static class Break {
-        public static final ConfigBoolean BREAK_USE_PACKET = bool("breakUsePacket")
+        public static final ConfigBoolean BREAK_USE_PACKET = booleanValue("breakUsePacket")
                 .defaultValue(false)
                 .build();
 
-        public static final ConfigInteger BREAK_PROGRESS_THRESHOLD = integer("breakProgressThreshold")
+        public static final ConfigInteger BREAK_PROGRESS_THRESHOLD = integerValue("breakProgressThreshold")
                 .defaultValue(100)
                 .range(70, 100)
                 .build();
 
-        public static final ConfigInteger BREAK_INTERVAL = integer("breakInterval")
+        public static final ConfigInteger BREAK_INTERVAL = integerValue("breakInterval")
                 .defaultValue(1)
                 .range(0, 20)
                 .build();
 
-        public static final ConfigInteger BREAK_BLOCKS_PER_TICK = integer("breakBlocksPerTick")
+        public static final ConfigInteger BREAK_BLOCKS_PER_TICK = integerValue("breakBlocksPerTick")
                 .defaultValue(1)
                 .range(0, 256)
                 .build();
 
-        public static final ConfigInteger BREAK_COOLDOWN = integer("breakCooldown")
+        public static final ConfigInteger BREAK_COOLDOWN = integerValue("breakCooldown")
                 .defaultValue(3)
                 .range(0, 64)
                 .build();
 
-        public static final ConfigBoolean BREAK_CHECK_HARDNESS = bool("breakCheckHardness")
+        public static final ConfigBoolean BREAK_CHECK_HARDNESS = booleanValue("breakCheckHardness")
                 .defaultValue(true)
                 .build();
 
         // 即时挖掘
-        public static final ConfigBoolean BREAK_INSTANT_MINE = bool("breakInstantOnSameTick")
+        public static final ConfigBoolean BREAK_INSTANT_MINE = booleanValue("breakInstantOnSameTick")
                 .defaultValue(false)
                 .build();
 
@@ -368,12 +314,12 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         // 白名单
-        public static final ConfigStringList BREAK_WHITELIST = stringList("breakWhitelist")
+        public static final ConfigStringList BREAK_WHITELIST = stringListValue("breakWhitelist")
                 .setVisible(isBreakWhitelist)
                 .build();
 
         // 黑名单
-        public static final ConfigStringList BREAK_BLACKLIST = stringList("breakBlacklist")
+        public static final ConfigStringList BREAK_BLACKLIST = stringListValue("breakBlacklist")
                 .setVisible(isBreakBlacklist)
                 .build();
 
@@ -400,46 +346,46 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         // 投影轻松放置协议
-        public static final ConfigBoolean EASY_PLACE_PROTOCOL = bool("easyPlaceProtocol")
+        public static final ConfigBoolean EASY_PLACE_PROTOCOL = booleanValue("easyPlaceProtocol")
                 .defaultValue(false)
                 .build();
 
         // 凭空放置
-        public static final ConfigBoolean PLACE_IN_AIR = bool("placeInAir")
+        public static final ConfigBoolean PLACE_IN_AIR = booleanValue("placeInAir")
                 .defaultValue(true)
                 .build();
 
         // 跳过含水方块
-        public static final ConfigBoolean SKIP_WATERLOGGED_BLOCK = bool("printSkipWaterlogged")
+        public static final ConfigBoolean SKIP_WATERLOGGED_BLOCK = booleanValue("printSkipWaterlogged")
                 .defaultValue(false)
                 .build();
 
         // 跳过放置
-        public static final ConfigBoolean PRINT_SKIP = bool("printSkip")
+        public static final ConfigBoolean PRINT_SKIP = booleanValue("printSkip")
                 .defaultValue(false)
                 .build();
 
         // 跳过放置名单
-        public static final ConfigStringList PRINT_SKIP_LIST = stringList("printSkipList")
+        public static final ConfigStringList PRINT_SKIP_LIST = stringListValue("printSkipList")
                 .build();
 
         // 始终潜行
-        public static final ConfigBoolean PRINT_FORCED_SNEAK = bool("printForcedSneak")
+        public static final ConfigBoolean PRINT_FORCED_SNEAK = booleanValue("printForcedSneak")
                 .defaultValue(false)
                 .build();
 
         // 覆盖打印
-        public static final ConfigBoolean PRINT_REPLACE = bool("printReplace")
+        public static final ConfigBoolean PRINT_REPLACE = booleanValue("printReplace")
                 .defaultValue(true)
                 .build();
 
         // 覆盖方块列表
-        public static final ConfigStringList REPLACEABLE_LIST = stringList("printReplaceableList")
+        public static final ConfigStringList REPLACEABLE_LIST = stringListValue("printReplaceableList")
                 .defaultValue(Blocks.SNOW, Blocks.LAVA, Blocks.WATER, Blocks.BUBBLE_COLUMN, Blocks.SHORT_GRASS)
                 .build();
 
         // 替换珊瑚
-        public static final ConfigBoolean REPLACE_CORAL = bool("printReplaceCoral")
+        public static final ConfigBoolean REPLACE_CORAL = booleanValue("printReplaceCoral")
                 .defaultValue(false)
                 .build();
 
@@ -449,47 +395,47 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         // 自动去皮
-        public static final ConfigBoolean STRIP_LOGS = bool("printAutoStripLogs")
+        public static final ConfigBoolean STRIP_LOGS = booleanValue("printAutoStripLogs")
                 .defaultValue(false)
                 .build();
 
         // 音符盒自动调音
-        public static final ConfigBoolean NOTE_BLOCK_TUNING = bool("printAutoTuning")
+        public static final ConfigBoolean NOTE_BLOCK_TUNING = booleanValue("printAutoTuning")
                 .defaultValue(true)
                 .build();
 
         // 侦测器安全放置
-        public static final ConfigBoolean SAFELY_OBSERVER = bool("printSafelyObserver")
+        public static final ConfigBoolean SAFELY_OBSERVER = booleanValue("printSafelyObserver")
                 .defaultValue(true)
                 .build();
 
         // 堆肥桶自动填充
-        public static final ConfigBoolean FILL_COMPOSTER = bool("printAutoFillComposter")
+        public static final ConfigBoolean FILL_COMPOSTER = booleanValue("printAutoFillComposter")
                 .defaultValue(false)
                 .build();
 
         // 堆肥桶白名单
-        public static final ConfigStringList FILL_COMPOSTER_WHITELIST = stringList("printAutoFillComposterWhitelist")
+        public static final ConfigStringList FILL_COMPOSTER_WHITELIST = stringListValue("printAutoFillComposterWhitelist")
                 .setVisible(FILL_COMPOSTER::getBooleanValue)
                 .build();
 
         // 农作物催熟
-        public static final ConfigBoolean BONEMEAL_CROPS = bool("printBonemealCrops")
+        public static final ConfigBoolean BONEMEAL_CROPS = booleanValue("printBonemealCrops")
                 .defaultValue(false)
                 .build();
 
         // 破坏错误方块
-        public static final ConfigBoolean BREAK_WRONG_BLOCK = bool("printBreakWrongBlock")
+        public static final ConfigBoolean BREAK_WRONG_BLOCK = booleanValue("printBreakWrongBlock")
                 .defaultValue(false)
                 .build();
 
         // 破坏多余方块
-        public static final ConfigBoolean BREAK_EXTRA_BLOCK = bool("printBreakExtraBlock")
+        public static final ConfigBoolean BREAK_EXTRA_BLOCK = booleanValue("printBreakExtraBlock")
                 .defaultValue(false)
                 .build();
 
         // 破坏错误状态方块（实验性）
-        public static final ConfigBoolean BREAK_WRONG_STATE_BLOCK = bool("printBreakWrongStateBlock")
+        public static final ConfigBoolean BREAK_WRONG_STATE_BLOCK = booleanValue("printBreakWrongStateBlock")
                 .defaultValue(false)
                 .build();
 
@@ -535,12 +481,12 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         // 挖掘白名单
-        public static final ConfigStringList EXCAVATE_WHITELIST = stringList("excavateWhitelist")
+        public static final ConfigStringList EXCAVATE_WHITELIST = stringListValue("excavateWhitelist")
                 .setVisible(isExcavateWhitelist)
                 .build();
 
         // 挖掘黑名单
-        public static final ConfigStringList EXCAVATE_BLACKLIST = stringList("excavateBlacklist")
+        public static final ConfigStringList EXCAVATE_BLACKLIST = stringListValue("excavateBlacklist")
                 .setVisible(isExcavateBlacklist)
                 .build();
 
@@ -565,7 +511,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         // 填充方块名单
-        public static final ConfigStringList FILL_BLOCK_LIST = stringList("fillBlockList")
+        public static final ConfigStringList FILL_BLOCK_LIST = stringListValue("fillBlockList")
                 .defaultValue(Blocks.COBBLESTONE)
                 .setVisible(isBlocklist)
                 .build();
@@ -591,17 +537,17 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .build();
 
         // 填充流动液体
-        public static final ConfigBoolean FILL_FLOWING_FLUID = bool("fluidModeFillFlowing")
+        public static final ConfigBoolean FILL_FLOWING_FLUID = booleanValue("fluidModeFillFlowing")
                 .defaultValue(true)
                 .build();
 
         // 方块名单
-        public static final ConfigStringList FLUID_REPLACE_BLOCK_LIST = stringList("fluidReplaceBlockList")
+        public static final ConfigStringList FLUID_REPLACE_BLOCK_LIST = stringListValue("fluidReplaceBlockList")
                 .defaultValue(Blocks.SAND)
                 .build();
 
         // 液体名单
-        public static final ConfigStringList FLUID_LIST = stringList("fluidList")
+        public static final ConfigStringList FLUID_LIST = stringListValue("fluidList")
                 .defaultValue(Blocks.WATER, Blocks.LAVA)
                 .build();
 
@@ -615,17 +561,17 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
     public static class Hotkeys {
         // 打开设置菜单
-        public static final ConfigHotkey OPEN_SCREEN = hotkey("openScreen")
+        public static final ConfigHotkey OPEN_SCREEN = hotkeyValue("openScreen")
                 .defaultStorageString("Z,Y")
                 .build();
 
         // 关闭全部模式
-        public static final ConfigHotkey CLOSE_ALL_MODE = hotkey("closeAllMode")
+        public static final ConfigHotkey CLOSE_ALL_MODE = hotkeyValue("closeAllMode")
                 .defaultStorageString("LEFT_CONTROL,G")
                 .build();
 
         // 切换模式
-        public static final ConfigHotkey SWITCH_PRINTER_MODE = hotkey("switchPrinterMode")
+        public static final ConfigHotkey SWITCH_PRINTER_MODE = hotkeyValue("switchPrinterMode")
                 .bindConfig(Core.WORK_MODE_TYPE)
                 .setVisible(isSingle) // 仅单模式时显示
                 .build();
@@ -634,45 +580,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         public static final ConfigBooleanHotkeyed BEDROCK = booleanHotkey("bedrock")
                 .defaultValue(false)
                 .setVisible(isMulti) // 仅多模式时显示
-                .build();
-
-        // 同步容器热键
-        public static final ConfigHotkey SYNC_INVENTORY = hotkey("syncInventory")
-                .build();
-
-        // 同步容器开关热键
-        public static final ConfigBooleanHotkeyed SYNC_INVENTORY_CHECK = booleanHotkey("syncInventoryCheck")
-                .defaultValue(false)
-                .build();
-
-        // ========== 远程交互热键 ==========
-
-        // 设置打印机库存热键
-        public static final ConfigHotkey PRINTER_INVENTORY = hotkey("printerInventory")
-                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪 Mod 加载时显示
-                .build();
-
-        // 清空打印机库存热键
-        public static final ConfigHotkey REMOVE_PRINT_INVENTORY = hotkey("removePrintInventory")
-                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪 Mod 加载时显示
-                .build();
-
-        // 上一个箱子
-        public static final ConfigHotkey LAST = hotkey("last")
-                .keybindSettings(GUI_NO_ORDER)
-                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪 Mod 加载时显示
-                .build();
-
-        // 下一个箱子
-        public static final ConfigHotkey NEXT = hotkey("next")
-                .keybindSettings(GUI_NO_ORDER)
-                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪 Mod 加载时显示
-                .build();
-
-        // 删除当前容器
-        public static final ConfigHotkey DELETE = hotkey("delete")
-                .keybindSettings(GUI_NO_ORDER)
-                .setVisible(isLoadChestTrackerLoaded) // 仅箱子追踪 Mod 加载时显示
                 .build();
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
@@ -686,16 +593,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 Core.MINE,                // 挖掘
                 Core.FILL,                    // 填充
                 Core.FLUID,                  // 排流体
-                BEDROCK,                      // 破基岩
-
-                // 远程交互
-                SYNC_INVENTORY,               // 同步容器热键
-                SYNC_INVENTORY_CHECK,         // 同步容器开关热键
-                PRINTER_INVENTORY,            // 设置打印机库存热键
-                REMOVE_PRINT_INVENTORY,       // 清空打印机库存热键
-                LAST,                         // 上一个箱子
-                NEXT,                         // 下一个箱子
-                DELETE                        // 删除当前容器
+                BEDROCK                       // 破基岩
         );
     }
 

@@ -19,22 +19,7 @@ public class I18n {
 
     public static final I18n ICE_CREATIVE_MODE = of("ice.creative_mode");
 
-    public static final I18n INVENTORY_SYNC_ADDED = of("inventory.sync.added");
-    public static final I18n INVENTORY_SYNC_ADDING = of("inventory.sync.adding");
-    public static final I18n INVENTORY_SYNC_CANCELLED = of("inventory.sync.cancelled");
-    public static final I18n INVENTORY_SYNC_COMPLETE = of("inventory.sync.complete");
-    public static final I18n INVENTORY_SYNC_CONTAINER_CANNOT_OPEN = of("inventory.sync.container_cannot_open");
-    public static final I18n INVENTORY_SYNC_NOT_CONTAINER = of("inventory.sync.not_container");
-    public static final I18n INVENTORY_SYNC_TOO_FAR = of("inventory.sync.too_far");
-    public static final I18n INVENTORY_SYNC_REMAINING = of("inventory.sync.remaining");
-    public static final I18n INVENTORY_SYNC_DISABLED = of("inventory.sync.disabled");
-    public static final I18n INVENTORY_SYNC_ENABLED = of("inventory.sync.enabled");
-    public static final I18n INVENTORY_SYNC_CLEARED = of("inventory.sync.cleared");
-
     public static final I18n INVENTORY_BACKPACK_FULL = of("inventory.backpack_full");
-    public static final I18n INVENTORY_RESTORE_FAILED = of("inventory.restore_failed");
-    public static final I18n INVENTORY_SHULKER_PRESELECT = of("inventory.shulker_preselect");
-    public static final I18n INVENTORY_SYNC_OPEN_FAILED = of("inventory.sync.open_failed");
 
     public static final I18n BREWINGSTAND_LOWER = of("brewingstand.lower");
     public static final I18n BREWINGSTAND_RAISE = of("brewingstand.raise");

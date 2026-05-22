@@ -60,11 +60,11 @@ public class ConfigUtils {
     }
 
     public static int getWorkRange() {
-        return Configs.Core.WORK_RANGE.getIntegerValue();
+        return (int) Configs.Core.WORK_RANGE.getDoubleValue();
     }
 
     public static double getEffectiveRange() {
-        int configRange = Configs.Core.WORK_RANGE.getIntegerValue();
+        double configRange = Configs.Core.WORK_RANGE.getDoubleValue();
         if (configRange <= 0) {
             return PlayerUtils.getInteractionRange(4.5) + 1;
         }

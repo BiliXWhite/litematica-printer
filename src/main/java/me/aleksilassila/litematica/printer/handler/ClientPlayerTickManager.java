@@ -7,7 +7,6 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.handler.handlers.*;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.printer.MissingMaterialTracker;
-import me.aleksilassila.litematica.printer.printer.zxy.inventory.InventoryUtils;
 import me.aleksilassila.litematica.printer.utils.BreakUtils;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import net.minecraft.client.Minecraft;
@@ -45,10 +44,6 @@ public static void tick() {
         // 每个 tick 推进一轮迭代周期，自动清除超过一代未更新的缺失标记
         MissingMaterialTracker.getInstance().startCycle();
 
-        if (InventoryUtils.isOpenHandler || InventoryUtils.switchItem() || BreakUtils.INSTANCE.isNeedHandle()) {
-            return;
-        }
-        
         // 检查是否需要等待视角修改
         if (ActionManager.INSTANCE.sendQueue(mc.player).needWaitModifyLook) {
             return;
@@ -66,7 +61,7 @@ public static void tick() {
         for (ClientPlayerTickHandler handler : VALUES) {
             // 非GUI处理器需要进行二次迭代检查，避免资源抢占问题
             if (!(handler instanceof GuiHandler)) {
-                if (InventoryUtils.isOpenHandler || InventoryUtils.switchItem() || BreakUtils.INSTANCE.isNeedHandle()) {
+                if (BreakUtils.INSTANCE.isNeedHandle()) {
                     return;
                 }
                 // 有任务需要修改视角时强制退出
