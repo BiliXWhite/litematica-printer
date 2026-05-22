@@ -42,6 +42,8 @@ jobs:
   changelog:
     runs-on: ubuntu-latest
     continue-on-error: true
+    outputs:
+      tag_name: ${{ steps.release_info_for_changelog.outputs.tag_name }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GH_USERNAME: ${{ secrets.GH_USERNAME }}
@@ -57,9 +59,11 @@ jobs:
           if [ $GITHUB_EVENT_NAME == 'release' ]
           then
               echo "tag_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+              echo "target_commitish=" >> $GITHUB_OUTPUT
           elif [ $GITHUB_EVENT_NAME == 'workflow_dispatch' ]
           then
               echo "tag_name=${{ github.event.inputs.target_release_tag }}" >> $GITHUB_OUTPUT
+              echo "target_commitish=${{ github.sha }}" >> $GITHUB_OUTPUT
           else
               echo 未知 GitHub 事件类型 $GITHUB_EVENT_NAME
               exit 1
@@ -75,7 +79,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.release_info_for_changelog.outputs.tag_name }}
+          target_commitish: ${{ steps.release_info_for_changelog.outputs.target_commitish }}
           body_path: CHANGELOG.md
+          draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -89,7 +95,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          tag: ${{ github.event.inputs.target_release_tag }}
+          tag: ${{ needs.changelog.outputs.tag_name }}
 
   build:
     uses: ./.github/workflows/_step.release_build.yml
