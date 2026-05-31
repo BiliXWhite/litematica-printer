@@ -1,0 +1,21 @@
+{
+  "modmenu.descriptionTranslation.remote-inventory-server": "服务端模组，远程解析容器物品。支持扫描容器 API，管理员可配置交互距离、白名单和黑名单。",
+  "remote-inventory-server.command.distance.set": "最大交互距离已设为 %.1f",
+  "remote-inventory-server.command.distance.get": "当前最大交互距离：%.1f",
+  "remote-inventory-server.command.whitelist.add": "已将 %s 添加到白名单",
+  "remote-inventory-server.command.whitelist.remove": "已将 %s 从白名单移除",
+  "remote-inventory-server.command.whitelist.list": "白名单（%d 项）：%s",
+  "remote-inventory-server.command.whitelist.empty": "白名单为空",
+  "remote-inventory-server.command.whitelist.clear": "白名单已清空",
+  "remote-inventory-server.command.whitelist.enable": "白名单已启用",
+  "remote-inventory-server.command.whitelist.disable": "白名单已禁用",
+  "remote-inventory-server.command.blacklist.add": "已将 %s 添加到黑名单",
+  "remote-inventory-server.command.blacklist.remove": "已将 %s 从黑名单移除",
+  "remote-inventory-server.command.blacklist.list": "黑名单（%d 项）：%s",
+  "remote-inventory-server.command.blacklist.empty": "黑名单为空",
+  "remote-inventory-server.command.blacklist.clear": "黑名单已清空",
+  "remote-inventory-server.command.config.distance": "距离：%.1f",
+  "remote-inventory-server.command.config.whitelist_enabled": "白名单已启用：%s",
+  "remote-inventory-server.command.config.whitelist": "白名单：%s",
+  "remote-inventory-server.command.config.blacklist": "黑名单：%s"
+}

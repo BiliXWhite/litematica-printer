@@ -245,5 +245,17 @@
   "litematica-printer.config.missingMaterialHud": "缺失材料 HUD",
   "litematica-printer.config.missingMaterialHud.desc": "在投影的材料列表區域顯示缺失材料 HUD 疊加層",
   "litematica-printer.hud.missing.title": "§c缺失材料: §e%d §7種",
-  "litematica-printer.hud.missing.overflow": "§7...還有 %d 種"
+  "litematica-printer.hud.missing.overflow": "§7...還有 %d 種",
+  "litematica-printer.config.useRemoteContainer": "使用遠程容器材料",
+  "litematica-printer.config.useRemoteContainer.desc": "當背包缺少材料時，嘗試從投影選區內的容器中獲取材料。需要伺服器安裝 Remote Inventory Server 模組。",
+  "litematica-printer.config.remoteInteractionDistance": "最大互動距離",
+  "litematica-printer.config.remoteInteractionDistance.desc": "玩家與容器之間的最大遠程取物距離，超出此距離的容器將被忽略。",
+  "litematica-printer.config.remoteContainerBlocks": "遠程容器方塊列表",
+  "litematica-printer.config.remoteContainerBlocks.desc": "被識別為容器的方塊 ID 列表。格式：minecraft:chest, minecraft:trapped_chest 等。",
+  "litematica-printer.config.useQuickShulker": "使用快捷界伏盒",
+  "litematica-printer.config.useQuickShulker.desc": "當背包缺少材料但已開啟的界伏盒（透過快捷界伏盒模組）中有該物品時，自動從中取用。",
+  "litematica-printer.config.shulkerSource": "界伏盒來源",
+  "litematica-printer.config.shulkerSource.desc": "選擇界伏盒支援類型：模組（Quick Shulker 客戶端模組）或插件（AxShulkers 伺服器插件）。",
+  "litematica-printer.config.shulkerSource.mod": "模組（Quick Shulker）",
+  "litematica-printer.config.shulkerSource.plugin": "插件（AxShulkers）"
 }

@@ -1,0 +1,21 @@
+{
+  "modmenu.descriptionTranslation.remote-inventory-server": "Server-side mod that resolves container inventory items remotely. Supports scan container API and admin-configurable interaction distance, whitelist, and blacklist.",
+  "remote-inventory-server.command.distance.set": "Max interaction distance set to %.1f",
+  "remote-inventory-server.command.distance.get": "Current max interaction distance: %.1f",
+  "remote-inventory-server.command.whitelist.add": "Added %s to whitelist",
+  "remote-inventory-server.command.whitelist.remove": "Removed %s from whitelist",
+  "remote-inventory-server.command.whitelist.list": "Whitelist (%d): %s",
+  "remote-inventory-server.command.whitelist.empty": "Whitelist is empty",
+  "remote-inventory-server.command.whitelist.clear": "Whitelist cleared",
+  "remote-inventory-server.command.whitelist.enable": "Whitelist enabled",
+  "remote-inventory-server.command.whitelist.disable": "Whitelist disabled",
+  "remote-inventory-server.command.blacklist.add": "Added %s to blacklist",
+  "remote-inventory-server.command.blacklist.remove": "Removed %s from blacklist",
+  "remote-inventory-server.command.blacklist.list": "Blacklist (%d): %s",
+  "remote-inventory-server.command.blacklist.empty": "Blacklist is empty",
+  "remote-inventory-server.command.blacklist.clear": "Blacklist cleared",
+  "remote-inventory-server.command.config.distance": "Distance: %.1f",
+  "remote-inventory-server.command.config.whitelist_enabled": "Whitelist enabled: %s",
+  "remote-inventory-server.command.config.whitelist": "Whitelist: %s",
+  "remote-inventory-server.command.config.blacklist": "Blacklist: %s"
+}

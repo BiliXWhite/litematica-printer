@@ -15,16 +15,18 @@
     "printer.mc.MixinGui",
     "printer.mc.ServerboundMovePlayerPacketAccessor"
   ],
-  "client": [
-    "printer.litematica.gui.MixinLitematicaGuiMainMenu",
-    "printer.malilib.MixinAbstractCraftingMenu",
-    "printer.malilib.MixinGuiStringListEdit",
-    "printer.mc.MixinClientLevel",
-    "printer.mc.MixinClientPacketListener",
-    "printer.mc.MixinGui",
-    "printer.mc.MixinLocalPlayer",
-    "printer.mc.MixinMultiPlayerGameMode"
-  ],
+    "client": [
+        "printer.litematica.gui.MixinLitematicaGuiMainMenu",
+        "printer.malilib.MixinAbstractCraftingMenu",
+        "printer.malilib.MixinGuiStringListEdit",
+        "printer.mc.MixinClientCommonPacketListener",
+        "printer.mc.MixinClientLevel",
+        "printer.mc.MixinClientPacketListener",
+        "printer.mc.MixinGui",
+        "printer.mc.MixinLocalPlayer",
+        "printer.mc.MixinMinecraft",
+        "printer.mc.MixinMultiPlayerGameMode"
+    ],
   "injectors": {
     "defaultRequire": 1
   }

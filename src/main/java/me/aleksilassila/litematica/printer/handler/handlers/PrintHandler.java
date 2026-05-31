@@ -47,10 +47,6 @@ public class PrintHandler extends ClientPlayerTickHandler {
         this.guide = new PlacementGuide(client);
     }
 
-    public SchematicBlockContext getContext() {
-        return ctx;
-    }
-
     @Override
     protected int getTickInterval() {
         return Configs.Placement.PLACE_INTERVAL.getIntegerValue();
@@ -85,31 +81,41 @@ public class PrintHandler extends ClientPlayerTickHandler {
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
-        if (Configs.Placement.FALLING_CHECK.getBooleanValue() && ctx.requiredState.getBlock() instanceof FallingBlock) {
+        if (Configs.Placement.FALLING_CHECK.getBooleanValue()
+                && ctx.requiredState.getBlock() instanceof FallingBlock) {
             BlockPos downPos = blockPos.below();
 
             if (FallingBlock.isFree(level.getBlockState(downPos))) {
-                MessageUtils.setOverlayMessage(I18n.BLOCK_NO_SUPPORT.getName(ctx.getRequiredBlockName().getString()));
+                MessageUtils.setOverlayMessage(
+                        I18n.BLOCK_NO_SUPPORT.getName(ctx.getRequiredBlockName().getString()));
                 return;
             } else if (level.getBlockState(downPos) != ctx.schematic.getBlockState(downPos)) {
-                    MessageUtils.setOverlayMessage(I18n.BLOCK_MISMATCH.getName(ctx.getRequiredBlockName().getString()));
-                    return;
-                }
-
+                MessageUtils.setOverlayMessage(
+                        I18n.BLOCK_MISMATCH.getName(ctx.getRequiredBlockName().getString()));
+                return;
+            }
         }
         Direction side = action.getValidSide(level, blockPos);
         if (side == null) return;
         Item[] reqItems = action.getRequiredItems(ctx.requiredState.getBlock());
         if (!InventoryUtils.switchToItems(player, reqItems)) {
             if (reqItems != null && reqItems.length > 0 && reqItems[0] != null) {
-                MissingMaterialTracker.getInstance().recordMissing(reqItems[0], ctx.getRequiredBlockName());
+                if (Configs.Print.USE_REMOTE_CONTAINER.getBooleanValue()
+                        && RemoteContainerUtils.tryGetItemFromContainers(reqItems[0])) {
+                } else {
+                    MissingMaterialTracker.getInstance()
+                            .recordMissing(reqItems[0], ctx.getRequiredBlockName());
+                }
             }
             return;
         }
         boolean useShift;
         if (action.getShift() == null) {
-            useShift = (Implementation.isInteractive(level.getBlockState(blockPos.relative(side)).getBlock()) && !(action instanceof ClickAction))
-                    || Configs.Print.PRINT_FORCED_SNEAK.getBooleanValue();
+            useShift =
+                    (Implementation.isInteractive(
+                                            level.getBlockState(blockPos.relative(side)).getBlock())
+                                    && !(action instanceof ClickAction))
+                            || Configs.Print.PRINT_FORCED_SNEAK.getBooleanValue();
         } else {
             useShift = action.getShift();
         }

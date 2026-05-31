@@ -245,5 +245,17 @@
   "litematica-printer.config.missingMaterialHud": "闕料HUD",
   "litematica-printer.config.missingMaterialHud.desc": "於投影材單之域示闕料HUD疊層",
   "litematica-printer.hud.missing.title": "§c闕料: §e%d §7類",
-  "litematica-printer.hud.missing.overflow": "§7...尚闕 %d 類"
+  "litematica-printer.hud.missing.overflow": "§7...尚闕 %d 類",
+  "litematica-printer.config.useRemoteContainer": "用遠程容器之材",
+  "litematica-printer.config.useRemoteContainer.desc": "囊中無材時，試取投影選區內容器之物。需伺服器裝 Remote Inventory Server 模組。",
+  "litematica-printer.config.remoteInteractionDistance": "最遠交互之距",
+  "litematica-printer.config.remoteInteractionDistance.desc": "玩家與容器遠程取物之最遠距離，逾此距者不取。",
+  "litematica-printer.config.remoteContainerBlocks": "遠程容器之方塊列表",
+  "litematica-printer.config.remoteContainerBlocks.desc": "識為容器之方塊 ID 列表。格式：minecraft:chest, minecraft:trapped_chest 等。",
+  "litematica-printer.config.useQuickShulker": "用速啟潛影盒",
+  "litematica-printer.config.useQuickShulker.desc": "囊中無材而所啟之潛影盒（經速啟潛影盒模組）中有是物時，自取用之。",
+  "litematica-printer.config.shulkerSource": "潛影盒之源",
+  "litematica-printer.config.shulkerSource.desc": "擇潛影盒之援：模組（Quick Shulker 客端模組）或插件（AxShulkers 伺服器插件）。",
+  "litematica-printer.config.shulkerSource.mod": "模組（Quick Shulker）",
+  "litematica-printer.config.shulkerSource.plugin": "插件（AxShulkers）"
 }

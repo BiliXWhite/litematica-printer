@@ -9,6 +9,7 @@ import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.printer.MissingMaterialTracker;
 import me.aleksilassila.litematica.printer.utils.BreakUtils;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
+import me.aleksilassila.litematica.printer.utils.InventoryUtils;
 import net.minecraft.client.Minecraft;
 
 public class ClientPlayerTickManager {
@@ -33,7 +34,8 @@ public class ClientPlayerTickManager {
 
     private static boolean lastPrinterEnabled = false;
 
-public static void tick() {
+    public static void tick() {
+        InventoryUtils.tick();
         // 打印机从关闭→开启时，重置缺失材料追踪
         boolean printerEnabled = ConfigUtils.isPrinterEnable();
         if (printerEnabled && !lastPrinterEnabled) {

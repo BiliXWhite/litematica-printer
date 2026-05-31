@@ -253,18 +253,12 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
             .defaultValue(true)
             .build();
 
-        // 储存管理 - 有序存放
-        public static final ConfigBoolean STORE_ORDERLY = booleanValue("storeOrderly")
-                .defaultValue(false)
-                .build();
-
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 PRINT_USE_PACKET,
                 PLACE_INTERVAL,
                 PLACE_BLOCKS_PER_TICK,
                 PLACE_COOLDOWN,
-                FALLING_CHECK,
-                STORE_ORDERLY
+                FALLING_CHECK
         );
     }
 
@@ -439,6 +433,44 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(false)
                 .build();
 
+        // 使用远程容器材料
+        public static final ConfigBooleanHotkeyed USE_REMOTE_CONTAINER = booleanHotkey("useRemoteContainer")
+                .defaultValue(false)
+                .build();
+
+        // 远程交互最大距离
+        public static final ConfigDouble REMOTE_INTERACTION_DISTANCE = floatValue("remoteInteractionDistance")
+                .defaultValue(32.0)
+                .range(1.0, 256.0)
+                .useSlider(true)
+                .build();
+
+        // 远程容器方块列表
+        public static final ConfigStringList REMOTE_CONTAINER_BLOCKS = stringListValue("remoteContainerBlocks")
+                .defaultValue("minecraft:chest", "minecraft:trapped_chest", "minecraft:barrel")
+                .build();
+
+        // 使用快捷潜影盒
+        public static final ConfigBoolean USE_QUICK_SHULKER = booleanValue("useQuickShulker")
+                .defaultValue(true)
+                .build();
+
+        // 潜影盒来源
+        public static final ConfigOptionList SHULKER_SOURCE = optionList("shulkerSource")
+                .defaultValue(ShulkerSource.MOD)
+                .build();
+
+        // 潜影盒冷却
+        public static final ConfigInteger SHULKER_COOLDOWN = integerValue("shulkerCooldown")
+                .defaultValue(5)
+                .range(0, 20)
+                .build();
+
+        // 有序存放
+        public static final ConfigBoolean STORE_ORDERLY = booleanValue("storeOrderly")
+                .defaultValue(false)
+                .build();
+
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 PRINT_SELECTION_TYPE,
                 EASY_PLACE_PROTOCOL,
@@ -459,7 +491,14 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 REPLACE_CORAL,
                 FILL_COMPOSTER,
                 FILL_COMPOSTER_WHITELIST,
-                BONEMEAL_CROPS
+                BONEMEAL_CROPS,
+                USE_REMOTE_CONTAINER,
+                REMOTE_INTERACTION_DISTANCE,
+                REMOTE_CONTAINER_BLOCKS,
+                USE_QUICK_SHULKER,
+                SHULKER_SOURCE,
+                SHULKER_COOLDOWN,
+                STORE_ORDERLY
         );
     }
 

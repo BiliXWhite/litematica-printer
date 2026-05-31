@@ -33,9 +33,10 @@ import net.minecraft.network.HashedStack;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
-@SuppressWarnings({"DataFlowIssue", "SpellCheckingInspection", "GrazieInspection"})
 public class InventoryUtils {
     private static final Minecraft client = Minecraft.getInstance();
     private static final int OFFHAND_SLOT_INDEX = 40;
@@ -43,7 +44,19 @@ public class InventoryUtils {
     private static final Map<String, Long> LAST_MESSAGE_SEND_TIME = new ConcurrentHashMap<>();
     @Getter
     @Setter
-    private static ItemStack orderlyStoreItem; //有序存放临时存储
+    private static ItemStack orderlyStoreItem;
+
+    @Getter @Setter
+    private static boolean isOpenHandler;
+    private static int shulkerCooldown;
+    private static int shulkerBoxSlot = -1;
+    private static final Set<Item> lastNeedItemList = new HashSet<>();
+
+    public static void tick() {
+        if (shulkerCooldown > 0) {
+            shulkerCooldown--;
+        }
+    } //有序存放临时存储
 
     public static int getSelectedSlot(Inventory inventory) {
         //#if MC > 12104
@@ -389,37 +402,138 @@ public class InventoryUtils {
         }
         Inventory inventory = player.getInventory();
         boolean isCreativeMode = PlayerUtils.getAbilities(player).instabuild;
-        // 创造模式
         if (isCreativeMode) {
             ItemStack stack = new ItemStack(items[0]);
             return InventoryUtils.setPickedItemToHand(stack, client);
         }
-        // 找到背包中可用的物品
+        // 有序存放：尝试将手持物品放回原位
+        if (Configs.Print.STORE_ORDERLY.getBooleanValue()) {
+            returnItemToOriginalSlot(inventory);
+        }
         for (Item item : items) {
-            int slot = -1;
-            for (int i = 0; i < inventory.getContainerSize(); i++) {
-                ItemStack itemStack = inventory.getItem(i);
-                if (itemStack.getItem().equals(item)) {
-                    slot = i;
-                    break;
-                }
-            }
+            int slot = findItemInInventory(inventory, item);
             if (slot != -1) {
                 ItemStack itemStack = inventory.getItem(slot);
-                orderlyStoreItem = itemStack;
+                orderlyStoreItem = itemStack.copy();
                 return InventoryUtils.setPickedItemToHand(slot, itemStack, client);
+            }
+        }
+        if (Configs.Print.USE_QUICK_SHULKER.getBooleanValue()
+                && QuickShulkerUtils.isLoaded()) {
+            // 没打开，搜索背包里含有目标物品的潜影盒并静默打开
+            if (!isOpenHandler && shulkerCooldown <= 0) {
+                for (Item item : items) {
+                    int shulkerSlot = findShulkerWithItem(player, item);
+                    if (shulkerSlot != -1) {
+                        ItemStack shulkerStack = inventory.getItem(shulkerSlot);
+                        shulkerBoxSlot = shulkerSlot;
+                        lastNeedItemList.clear();
+                        lastNeedItemList.add(item);
+                        ModUtils.closeScreen++;
+                        isOpenHandler = true;
+                        shulkerCooldown = Configs.Print.SHULKER_COOLDOWN.getIntegerValue();
+                        QuickShulkerUtils.openShulker(shulkerStack, shulkerSlot);
+                        return false;
+                    }
+                }
             }
         }
         return false;
     }
 
-    /**
-     * 检查是否能切换到目标物品（配合槽位检查，仅判断不执行切换）
-     *
-     * @param player 本地玩家实例
-     * @param items  目标物品数组（null/空则视为AIR）
-     * @return PickResult 检查结果
-     */
+    private static int findItemInInventory(Inventory inventory, Item item) {
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            if (inventory.getItem(i).getItem().equals(item)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static int findShulkerWithItem(LocalPlayer player, Item target) {
+        // 从背包第9格开始找（跳过热键栏）
+        for (int i = 9; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
+            String id = net.minecraft.core.registries.BuiltInRegistries.ITEM
+                    .getKey(stack.getItem()).toString();
+            if (id.contains("shulker_box") && stack.getCount() == 1) {
+                NonNullList<ItemStack> contents = fi.dy.masa.malilib.util.InventoryUtils
+                        .getStoredItems(stack, -1);
+                if (contents.stream().anyMatch(s -> s.getItem().equals(target))) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    private static void returnItemToOriginalSlot(Inventory inventory) {
+        if (orderlyStoreItem == null || orderlyStoreItem.isEmpty()) return;
+        if (shulkerBoxSlot == -1) return;
+        // 检查背包是否已满
+        if (hasEmptySlot(inventory)) return;
+        int heldSlot = getSelectedSlot(inventory);
+        if (!Inventory.isHotbarSlot(heldSlot)) return;
+        ItemStack held = inventory.getItem(heldSlot);
+        if (held.isEmpty()) return;
+        // 把手持物品放回潜影盒所在槽位
+        if (inventory.getItem(shulkerBoxSlot).isEmpty()) {
+            inventory.setItem(shulkerBoxSlot, held.copy());
+            inventory.setItem(heldSlot, ItemStack.EMPTY);
+            orderlyStoreItem = null;
+        }
+    }
+
+    private static boolean hasEmptySlot(Inventory inventory) {
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            if (!Inventory.isHotbarSlot(i) && inventory.getItem(i).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static void switchFromShulker() {
+        LocalPlayer player = client.player;
+        if (player == null || player.containerMenu.equals(player.inventoryMenu)) {
+            isOpenHandler = false;
+            return;
+        }
+        for (Slot slot : player.containerMenu.slots) {
+            if (!slot.hasItem()) continue;
+            for (Item item : lastNeedItemList) {
+                if (slot.getItem().getItem().equals(item)) {
+                    int hotbarSlot = InventoryUtilsAccessor.getEmptyPickBlockableHotbarSlot(player.getInventory());
+                    if (hotbarSlot == -1) {
+                        hotbarSlot = InventoryUtilsAccessor.getPickBlockTargetSlot(player);
+                    }
+                    if (hotbarSlot != -1) {
+                        fi.dy.masa.malilib.util.InventoryUtils.swapSlots(
+                                player.containerMenu, slot.index, hotbarSlot);
+                        setSelectedSlot(player.getInventory(), hotbarSlot);
+                        // 同步到服务端：点击潜影盒在背包中的槽位来刷新状态
+                        if (shulkerBoxSlot != -1) {
+                            client.gameMode.handleInventoryMouseClick(
+                                    player.containerMenu.containerId,
+                                    shulkerBoxSlot, 0, ClickType.PICKUP, client.player);
+                            client.gameMode.handleInventoryMouseClick(
+                                    player.containerMenu.containerId,
+                                    shulkerBoxSlot, 0, ClickType.PICKUP, client.player);
+                        }
+                    }
+                    player.closeContainer();
+                    shulkerBoxSlot = -1;
+                    isOpenHandler = false;
+                    lastNeedItemList.clear();
+                    return;
+                }
+            }
+        }
+        player.closeContainer();
+        isOpenHandler = false;
+        lastNeedItemList.clear();
+    }
+
     public PickResult checkCanSwitchToItems(LocalPlayer player, Item[] items) {
         if (player == null) {
             return PickResult.FAIL;
@@ -450,22 +564,18 @@ public class InventoryUtils {
         FAIL_NO_PICK_SLOTS_CONFIGURED,
         FAIL_NO_SUITABLE_SLOT_FOUND;
 
-        // 快捷判断：是否是「未配置可拾取槽位」
         public boolean isNoPickSlotsConfigured() {
             return this == FAIL_NO_PICK_SLOTS_CONFIGURED;
         }
 
-        // 快捷判断：是否是「无可用槽位」
         public boolean isNoSuitableSlotFound() {
             return this == FAIL_NO_SUITABLE_SLOT_FOUND;
         }
 
-        // 快捷方法：是否「无可用槽位」（包含两种精准失败类型）
         public boolean isNoAvailableSlot() {
             return isNoPickSlotsConfigured() || isNoSuitableSlotFound();
         }
 
-        // 快捷方法：是否「有可用槽位」（仅SUCCESS表示有）
         public boolean isAvailable() {
             return this == SUCCESS;
         }
