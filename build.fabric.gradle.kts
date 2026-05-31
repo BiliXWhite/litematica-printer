@@ -19,43 +19,8 @@ repositories {
     maven("https://maven.nucleoid.xyz") { name = "Nucleoid" }  // ModMenu依赖 Text Placeholder API
     maven("https://masa.dy.fi/maven") { name = "Masa" }
     maven("https://masa.dy.fi/maven/sakura-ryoko") { name = "SakuraRyoko" }
-    maven("https://maven.shedaniel.me") { name = "Shedaniel" }  // Cloth API/Config 官方源
-    maven("https://maven.isxander.dev/releases") { name = "XanderReleases" }
-    maven("https://maven.jackf.red/releases") { name = "Jackfred" }   // JackFredLib 依赖
-    maven("https://maven.blamejared.com") { name = "BlameJared" }   // Searchables 配置库
     maven("https://maven.kyrptonaught.dev") { name = "Kyrptonaught" }   // KyrptConfig 依赖
-    maven("https://staging.alexiil.uk/maven/") { name = "CottonMC" }   // LibGui 依赖
     maven("https://jitpack.io") { name = "Jitpack" }
-    maven("https://mvnrepository.com/artifact/com.belerweb/pinyin4j") { // 拼音库
-        name = "Pinyin4j"
-        content {
-            includeGroupAndSubgroups("com.belerweb")
-        }
-    }
-
-    // pkg.github.com. needs authentication(system environment)
-    // GH_USERNAME 和 GH_TOKEN 需要在系统环境变量中设置(windows) Github可设置自己用户名 也可以使用默认GITHUB_TOKEN( github-actions[bot] )
-    maven { // JackFredLib ponuing
-        url = uri("https://maven.pkg.github.com/ponuing/JackFredLib")
-        credentials {
-            username = System.getenv("GH_USERNAME")?: "github-actions[bot]"
-            password = System.getenv("GH_TOKEN")?: System.getenv("GITHUB_TOKEN")
-        }
-    }
-    maven { // ChestTracker ponuing
-        url = uri("https://maven.pkg.github.com/ponuing/ChestTracker")
-        credentials {
-            username = System.getenv("GH_USERNAME")?: "github-actions[bot]"
-            password = System.getenv("GH_TOKEN")?: System.getenv("GITHUB_TOKEN")
-        }
-    }
-    maven { // WhereIsIt ponuing
-        url = uri("https://maven.pkg.github.com/ponuing/WhereIsIt")
-        credentials {
-            username = System.getenv("GH_USERNAME")?: "github-actions[bot]"
-            password = System.getenv("GH_TOKEN")?: System.getenv("GITHUB_TOKEN")
-        }
-    }
 }
 
 // https://github.com/FabricMC/fabric-loader/issues/783
@@ -75,18 +40,11 @@ dependencies {
     implementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
     implementation("com.belerweb:pinyin4j:${prop("pinyin_version")}")?.let { include(it) }
     implementation("com.terraformersmc:modmenu:${prop("modmenu")}")
-    implementation("dev.isxander:yet-another-config-lib:${prop("yacl")}")
-    implementation("com.blamejared.searchables:${prop("searchables")}")
 
     // Masa
     implementation("fi.dy.masa.malilib:${prop("malilib")}")
     implementation("fi.dy.masa.litematica:${prop("litematica")}")
     implementation("fi.dy.masa.tweakeroo:${prop("tweakeroo")}")
-
-    // 箱子追踪相关
-    implementation("red.jackf.jackfredlib:jackfredlib:${prop("jackfredlib")}")
-    implementation("red.jackf:chesttracker:${prop("chesttracker")}")
-    implementation("red.jackf:whereisit:${prop("whereisit")}")
 
     // 快捷潜影盒
     val quickshulkerUrl = prop("quickshulker").toString()
