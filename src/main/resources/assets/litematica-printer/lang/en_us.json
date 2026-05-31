@@ -250,7 +250,7 @@
   "litematica-printer.config.useRemoteContainer": "Use Remote Container Materials",
   "litematica-printer.config.useRemoteContainer.desc": "When materials are missing from inventory, attempt to retrieve them from containers within the schematic selection area via the Remote Inventory Server mod installed on the server.",
   "litematica-printer.config.remoteInteractionDistance": "Max Interaction Distance",
-  "litematica-printer.config.remoteInteractionDistance.desc": "Maximum distance from player to container for remote item retrieval. Containers beyond this distance will be ignored.",
+  "litematica-printer.config.remoteInteractionDistance.desc": "Maximum distance from player to container for remote item retrieval. Containers beyond this distance will be ignored. Set to 0 for unlimited distance.",
   "litematica-printer.config.remoteContainerBlocks": "Remote Container Blocks",
   "litematica-printer.config.remoteContainerBlocks.desc": "Block IDs recognized as containers for remote item retrieval. Format: minecraft:chest, minecraft:trapped_chest, etc.",
   "litematica-printer.config.useQuickShulker": "Use Quick Shulker Boxes",

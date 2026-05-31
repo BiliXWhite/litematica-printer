@@ -249,7 +249,7 @@
   "litematica-printer.config.useRemoteContainer": "用遠程容器之材",
   "litematica-printer.config.useRemoteContainer.desc": "囊中無材時，試取投影選區內容器之物。需伺服器裝 Remote Inventory Server 模組。",
   "litematica-printer.config.remoteInteractionDistance": "最遠交互之距",
-  "litematica-printer.config.remoteInteractionDistance.desc": "玩家與容器遠程取物之最遠距離，逾此距者不取。",
+  "litematica-printer.config.remoteInteractionDistance.desc": "玩家與容器遠程取物之最遠距離，逾此距者不取。設為零則無限。",
   "litematica-printer.config.remoteContainerBlocks": "遠程容器之方塊列表",
   "litematica-printer.config.remoteContainerBlocks.desc": "識為容器之方塊 ID 列表。格式：minecraft:chest, minecraft:trapped_chest 等。",
   "litematica-printer.config.useQuickShulker": "用速啟潛影盒",

@@ -438,10 +438,10 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(false)
                 .build();
 
-        // 远程交互最大距离
+        // 远程交互最大距离（0 = 无限）
         public static final ConfigDouble REMOTE_INTERACTION_DISTANCE = floatValue("remoteInteractionDistance")
                 .defaultValue(32.0)
-                .range(1.0, 256.0)
+                .range(0.0, 256.0)
                 .useSlider(true)
                 .build();
 

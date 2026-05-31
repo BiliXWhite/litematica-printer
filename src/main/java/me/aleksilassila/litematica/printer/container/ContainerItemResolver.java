@@ -68,7 +68,8 @@ public class ContainerItemResolver {
 
     private static double getMaxInteractionDistance() {
         try {
-            return Configs.Print.REMOTE_INTERACTION_DISTANCE.getDoubleValue();
+            double distance = Configs.Print.REMOTE_INTERACTION_DISTANCE.getDoubleValue();
+            return distance == 0.0 ? Double.MAX_VALUE : distance;
         } catch (Exception ignored) {
             return 32.0;
         }
