@@ -85,12 +85,16 @@ public class FillHandler extends ClientPlayerTickHandler {
     }
 
     @Override
-    public boolean canProcessPos(BlockPos blockPos) {
+    public boolean canProcessPos(BlockPos pos) {
         if (Configs.Fill.FILL_BLOCK_MODE.getOptionListValue() == FillBlockModeType.HANDHELD) {
-            ItemStack heldStack = player.getMainHandItem(); // 获取主手物品
-            return !heldStack.isEmpty() && heldStack.getCount() > 0;
+            ItemStack heldStack = player.getMainHandItem();
+            if (heldStack.isEmpty() || heldStack.getCount() <= 0) return false;
         }
-        return true;
+        BlockState state = level.getBlockState(pos);
+        if (state.isAir()) return true;
+        if (state.getBlock() instanceof LiquidBlock) return true;
+        if (Configs.Print.REPLACEABLE_LIST.getStrings().stream().anyMatch(s -> PinYinSearchUtils.matchName(s, state))) return true;
+        return false;
     }
 
     @Override
