@@ -88,6 +88,20 @@ public class PlayerUtils {
         return dx * dx + dy * dy + dz * dz <= range * range;
     }
 
+    /** 快速路径：调用方已缓存 eyePos，消除 getEyePosition() 分配 */
+    public static boolean isWithinWorkInteractedEuclideanRange(BlockPos blockPos, Vec3 eyePos, double range) {
+        return isWithinWorkInteractedEuclideanRange(blockPos.getX(), blockPos.getY(), blockPos.getZ(), eyePos, range);
+    }
+
+    /** 最内层：原始 int 参数，消除所有 getter 调用 */
+    public static boolean isWithinWorkInteractedEuclideanRange(int x, int y, int z, Vec3 eyePos, double range) {
+        double rangeSq = range * range;
+        double dx = Math.max(Math.max(x - eyePos.x, eyePos.x - (x + 1)), 0);
+        double dy = Math.max(Math.max(y - eyePos.y, eyePos.y - (y + 1)), 0);
+        double dz = Math.max(Math.max(z - eyePos.z, eyePos.z - (z + 1)), 0);
+        return dx * dx + dy * dy + dz * dz <= rangeSq;
+    }
+
     public static boolean isWithinWorkInteractedManhattanRange(BlockPos blockPos, double range) {
         LocalPlayer player = client.player;
         if (player == null || blockPos == null) return false;
@@ -99,6 +113,22 @@ public class PlayerUtils {
         return dx + dy + dz <= range;
     }
 
+    /** 快速路径：调用方已缓存 eyePos */
+    public static boolean isWithinWorkInteractedManhattanRange(BlockPos blockPos, Vec3 eyePos, double range) {
+        return isWithinWorkInteractedManhattanRange(blockPos.getX(), blockPos.getY(), blockPos.getZ(), eyePos, range);
+    }
+
+    /** 最内层：原始 int 参数 */
+    public static boolean isWithinWorkInteractedManhattanRange(int x, int y, int z, Vec3 eyePos, double range) {
+        int ex = (int) Math.round(eyePos.x);
+        int ey = (int) Math.round(eyePos.y);
+        int ez = (int) Math.round(eyePos.z);
+        int dx = Math.abs(x - ex);
+        int dy = Math.abs(y - ey);
+        int dz = Math.abs(z - ez);
+        return dx + dy + dz <= range;
+    }
+
     public static boolean isWithinWorkInteractedCubeRange(BlockPos blockPos, double range) {
         LocalPlayer player = client.player;
         if (player == null || blockPos == null) return false;
@@ -107,6 +137,22 @@ public class PlayerUtils {
         int dx = Math.abs(blockPos.getX() - eyeBlockPos.getX());
         int dy = Math.abs(blockPos.getY() - eyeBlockPos.getY());
         int dz = Math.abs(blockPos.getZ() - eyeBlockPos.getZ());
+        return dx <= range && dy <= range && dz <= range;
+    }
+
+    /** 快速路径：调用方已缓存 eyePos */
+    public static boolean isWithinWorkInteractedCubeRange(BlockPos blockPos, Vec3 eyePos, double range) {
+        return isWithinWorkInteractedCubeRange(blockPos.getX(), blockPos.getY(), blockPos.getZ(), eyePos, range);
+    }
+
+    /** 最内层：原始 int 参数 */
+    public static boolean isWithinWorkInteractedCubeRange(int x, int y, int z, Vec3 eyePos, double range) {
+        int ex = (int) Math.round(eyePos.x);
+        int ey = (int) Math.round(eyePos.y);
+        int ez = (int) Math.round(eyePos.z);
+        int dx = Math.abs(x - ex);
+        int dy = Math.abs(y - ey);
+        int dz = Math.abs(z - ez);
         return dx <= range && dy <= range && dz <= range;
     }
 
@@ -212,6 +258,17 @@ public class PlayerUtils {
             };
         }
         return isWithinWorkInteractedEuclideanRange(blockPos, effectiveRange);
+    }
+
+    /** 快速路径：调用方已缓存 eyePos，消除 getEyePosition() 分配 + switch 派发 */
+    public static boolean canInteracted(BlockPos blockPos, Vec3 eyePos, double range, RadiusShapeType shapeType) {
+        if (blockPos == null) return false;
+        int x = blockPos.getX(), y = blockPos.getY(), z = blockPos.getZ();
+        return switch (shapeType) {
+            case SPHERE -> isWithinWorkInteractedEuclideanRange(x, y, z, eyePos, range);
+            case OCTAHEDRON -> isWithinWorkInteractedManhattanRange(x, y, z, eyePos, range);
+            case CUBE -> isWithinWorkInteractedCubeRange(x, y, z, eyePos, range);
+        };
     }
 
     public static boolean isPositionInSelectionRange(Player player, @NotNull BlockPos pos, ConfigOptionList selectionTypeConfig) {

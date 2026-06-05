@@ -22,6 +22,7 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
@@ -220,16 +221,21 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         boolean debugMode = Configs.Core.DEBUG_OUTPUT.getBooleanValue();
         boolean needRangeCheck = needsRangeCheck();
         boolean isSchematic = isSchematicHandler();
-    
+
+        // 缓存不变值到循环外，消除每位置的 getEyePosition() Vec3 分配
+        Vec3 eyePos = player.getEyePosition();
+        double effectiveRange = ConfigUtils.getEffectiveRange();
+        RadiusShapeType shapeType = Configs.Core.ITERATOR_SHAPE.getOptionListValue() instanceof RadiusShapeType s ? s : null;
+
         long startTime = timeLimit > 0 ? System.nanoTime() : 0;
         long timeLimitNanos = timeLimit * 1_000_000L;
         int checkInterval = 10;
         int iterCount = 0;
-    
+
         skipIteration.set(false);
         guiQueue.clear();
         renderIndex = 0;
-    
+
         while (cachedIterator.hasNext()) {
             if (timeLimit > 0 && ++iterCount % checkInterval == 0) {
                 if (System.nanoTime() - startTime >= timeLimitNanos) {
@@ -237,16 +243,18 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                     return true;
                 }
             }
-    
+
             if (skipIteration.get() || ActionManager.INSTANCE.needWaitModifyLook) {
                 stopIteration(true);
                 return true;
             }
-    
+
             BlockPos pos = cachedIterator.next();
             if (pos == null) continue;
-    
-            if (!PlayerUtils.canInteracted(pos)) continue;
+
+            if (shapeType != null) {
+                if (!PlayerUtils.canInteracted(pos, eyePos, effectiveRange, shapeType)) continue;
+            } else if (!PlayerUtils.canInteracted(pos)) continue;
     
             if (needRangeCheck) {
                 if (isSchematic ? !LitematicaUtils.isSchematicBlock(pos)

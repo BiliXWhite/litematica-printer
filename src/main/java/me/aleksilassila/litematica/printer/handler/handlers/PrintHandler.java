@@ -21,7 +21,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -41,6 +43,12 @@ public class PrintHandler extends ClientPlayerTickHandler {
     private Action action;
 
     private SchematicBlockContext ctx;
+
+    // canProcessPos 缓存
+    private List<String> lastSkipConfig = Collections.emptyList();
+    private Set<String> skipSet = Collections.emptySet();
+    private Block lastSkipBlock = null;
+    private boolean lastSkipResult = false;
 
     public PrintHandler() {
         super(NAME, PrintModeType.PRINTER, Configs.Core.PRINT, Configs.Print.PRINT_SELECTION_TYPE, true);
@@ -67,12 +75,31 @@ public class PrintHandler extends ClientPlayerTickHandler {
         WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
         if (schematic == null) return false;
         this.ctx = new SchematicBlockContext(client, level, schematic, blockPos);
+
         if (Configs.Print.PRINT_SKIP.getBooleanValue()) {
-            Set<String> skipSet = new HashSet<>(Configs.Print.PRINT_SKIP_LIST.getStrings()); // 转换为 HashSet
-            if (skipSet.stream().anyMatch(s -> PinYinSearchUtils.matchName(s, ctx.requiredState))) {
-                return false;
+            // 缓存 skipSet，避免每次新建 HashSet 和流式匹配开销
+            List<String> currentConfig = Configs.Print.PRINT_SKIP_LIST.getStrings();
+            if (!currentConfig.equals(lastSkipConfig)) {
+                skipSet = new HashSet<>(currentConfig);
+                lastSkipConfig = currentConfig;
+                lastSkipBlock = null; // 强制重新计算缓存
             }
+
+            // 缓存每类方块的 skip 结果，相邻同种方块只做一次拼音匹配
+            Block block = ctx.requiredState.getBlock();
+            if (block != lastSkipBlock) {
+                lastSkipBlock = block;
+                lastSkipResult = false;
+                for (String s : skipSet) {
+                    if (PinYinSearchUtils.matchName(s, ctx.requiredState)) {
+                        lastSkipResult = true;
+                        break;
+                    }
+                }
+            }
+            if (lastSkipResult) return false;
         }
+
         Action action = guide.getAction(ctx);
         if (action == null) return false;
         this.action = action;

@@ -92,66 +92,99 @@ public class PrinterBox implements Iterable<BlockPos> {
     }
 
     private class BoxIterator implements Iterator<BlockPos> {
-        public BlockPos currPos;
+        private int x, y, z;
+        private boolean initialized = false;
 
         @Override
         public boolean hasNext() {
-            if (currPos == null) return true;
-            int x = currPos.getX();
-            int y = currPos.getY();
-            int z = currPos.getZ();
-
-            int targetX = xIncrement ? maxX : minX;
-            int targetY = yIncrement ? maxY : minY;
-            int targetZ = zIncrement ? maxZ : minZ;
-
-            return !(x == targetX && y == targetY && z == targetZ);
+            if (!initialized) return true;
+            int tx = xIncrement ? maxX : minX;
+            int ty = yIncrement ? maxY : minY;
+            int tz = zIncrement ? maxZ : minZ;
+            return !(x == tx && y == ty && z == tz);
         }
 
         @Override
         public BlockPos next() {
-            // 初始化起始位置
-            if (currPos == null) {
-                currPos = new BlockPos(
-                        IterationOrderType.Axis.X.reset(PrinterBox.this),
-                        IterationOrderType.Axis.Y.reset(PrinterBox.this),
-                        IterationOrderType.Axis.Z.reset(PrinterBox.this)
-                );
-                return currPos;
+            if (!initialized) {
+                x = xIncrement ? minX : maxX;
+                y = yIncrement ? minY : maxY;
+                z = zIncrement ? minZ : maxZ;
+                initialized = true;
+                return new BlockPos(x, y, z);
             }
 
-            // 复制当前坐标，避免直接修改原对象
-            int x = currPos.getX();
-            int y = currPos.getY();
-            int z = currPos.getZ();
-
-            // 获取当前迭代模式的轴优先级，通用处理所有轴迭代（无任何switch）
-            for (IterationOrderType.Axis axis : iterationMode.axis) {
-                // 对当前轴执行增量
-                int newValue = axis.increment(PrinterBox.this, axis.getCoord(PrinterBox.this, x, y, z));
-
-                // 检查是否溢出
-                if (axis.isOverflow(PrinterBox.this, newValue)) {
-                    // 溢出则重置当前轴，继续处理下一个轴
-                    switch (axis) {
-                        case X -> x = axis.reset(PrinterBox.this);
-                        case Y -> y = axis.reset(PrinterBox.this);
-                        case Z -> z = axis.reset(PrinterBox.this);
-                    }
-                } else {
-                    // 未溢出则更新当前轴坐标，终止循环
-                    switch (axis) {
-                        case X -> x = newValue;
-                        case Y -> y = newValue;
-                        case Z -> z = newValue;
+            // 根据迭代模式内联展开，消除多态派发
+            switch (iterationMode) {
+                case XYZ:
+                    x += xIncrement ? 1 : -1;
+                    if (xIncrement ? x > maxX : x < minX) {
+                        x = xIncrement ? minX : maxX;
+                        y += yIncrement ? 1 : -1;
+                        if (yIncrement ? y > maxY : y < minY) {
+                            y = yIncrement ? minY : maxY;
+                            z += zIncrement ? 1 : -1;
+                        }
                     }
                     break;
-                }
+                case XZY:
+                    x += xIncrement ? 1 : -1;
+                    if (xIncrement ? x > maxX : x < minX) {
+                        x = xIncrement ? minX : maxX;
+                        z += zIncrement ? 1 : -1;
+                        if (zIncrement ? z > maxZ : z < minZ) {
+                            z = zIncrement ? minZ : maxZ;
+                            y += yIncrement ? 1 : -1;
+                        }
+                    }
+                    break;
+                case YXZ:
+                    y += yIncrement ? 1 : -1;
+                    if (yIncrement ? y > maxY : y < minY) {
+                        y = yIncrement ? minY : maxY;
+                        x += xIncrement ? 1 : -1;
+                        if (xIncrement ? x > maxX : x < minX) {
+                            x = xIncrement ? minX : maxX;
+                            z += zIncrement ? 1 : -1;
+                        }
+                    }
+                    break;
+                case YZX:
+                    y += yIncrement ? 1 : -1;
+                    if (yIncrement ? y > maxY : y < minY) {
+                        y = yIncrement ? minY : maxY;
+                        z += zIncrement ? 1 : -1;
+                        if (zIncrement ? z > maxZ : z < minZ) {
+                            z = zIncrement ? minZ : maxZ;
+                            x += xIncrement ? 1 : -1;
+                        }
+                    }
+                    break;
+                case ZXY:
+                    z += zIncrement ? 1 : -1;
+                    if (zIncrement ? z > maxZ : z < minZ) {
+                        z = zIncrement ? minZ : maxZ;
+                        x += xIncrement ? 1 : -1;
+                        if (xIncrement ? x > maxX : x < minX) {
+                            x = xIncrement ? minX : maxX;
+                            y += yIncrement ? 1 : -1;
+                        }
+                    }
+                    break;
+                case ZYX:
+                    z += zIncrement ? 1 : -1;
+                    if (zIncrement ? z > maxZ : z < minZ) {
+                        z = zIncrement ? minZ : maxZ;
+                        y += yIncrement ? 1 : -1;
+                        if (yIncrement ? y > maxY : y < minY) {
+                            y = yIncrement ? minY : maxY;
+                            x += xIncrement ? 1 : -1;
+                        }
+                    }
+                    break;
             }
 
-            // 更新当前位置并返回
-            currPos = new BlockPos(x, y, z);
-            return currPos;
+            return new BlockPos(x, y, z);
         }
     }
 }
