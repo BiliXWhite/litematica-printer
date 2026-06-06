@@ -136,6 +136,7 @@ public class PrintHandler extends ClientPlayerTickHandler {
         if (side == null) return;
         Item[] reqItems = action.getRequiredItems(ctx.requiredState.getBlock());
         if (!InventoryUtils.switchToItems(player, reqItems)) {
+            setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
             if (reqItems != null && reqItems.length > 0 && reqItems[0] != null) {
                 if (Configs.Print.USE_REMOTE_CONTAINER.getBooleanValue()
                         && RemoteContainerUtils.tryGetItemFromContainers(reqItems[0])) {
