@@ -1,8 +1,11 @@
 package me.aleksilassila.litematica.printer.handler;
 
+import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import fi.dy.masa.malilib.config.options.ConfigOptionList;
+import fi.dy.masa.malilib.util.LayerMode;
+import fi.dy.masa.malilib.util.LayerRange;
 import lombok.Getter;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.*;
@@ -79,6 +82,11 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     private PrinterBox lastBox;
     @Nullable
     private BlockPos lastPos;
+    // Cached layer state for rebuild detection
+    private int lastLayerMin = Integer.MIN_VALUE;
+    private int lastLayerMax = Integer.MIN_VALUE;
+    @Nullable
+    private Direction.Axis lastLayerAxis = null;
 
     private long lastTickTime = -1L;
 
@@ -170,15 +178,28 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         double effectiveRange = ConfigUtils.getEffectiveRange();
         int currentRange = (int) Math.ceil(effectiveRange);
 
+        // Pre-fetch layer state for rebuild detection and box clamping
+        LayerRange layerRange = DataManager.getRenderLayerRange();
+        LayerMode layerMode = layerRange.getLayerMode();
+        Direction.Axis layerAxis = layerRange.getAxis();
+        int layerMin = layerRange.getLayerMin();
+        int layerMax = layerRange.getLayerMax();
+
         boolean needRebuild = box == null
                 || !box.equals(lastBox)
                 || lastPos == null
                 || !lastPos.closerThan(eyePos, effectiveRange * 0.4)
-                || expandRange != currentRange;
+                || expandRange != currentRange
+                || layerMin != lastLayerMin
+                || layerMax != lastLayerMax
+                || layerAxis != lastLayerAxis;
 
         if (needRebuild) {
             lastPos = eyePos;
             expandRange = currentRange;
+            lastLayerMin = layerMin;
+            lastLayerMax = layerMax;
+            lastLayerAxis = layerAxis;
 
             // 直接用 player 精确位置 ±range 算盒子的整数边界，避免 round() 偏移导致边界方块丢失
             int minX = (int) Math.floor(player.getX() - effectiveRange);
@@ -187,6 +208,30 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             int maxY = (int) Math.ceil(player.getEyeY() + effectiveRange);
             int minZ = (int) Math.floor(player.getZ() - effectiveRange);
             int maxZ = (int) Math.ceil(player.getZ() + effectiveRange);
+
+            // Clamp box to the active render layer so we never iterate outside it
+            if (selectionType != null
+                    && selectionType.getOptionListValue() instanceof SelectionType st
+                    && st == SelectionType.LITEMATICA_RENDER_LAYER
+                    && layerMode != LayerMode.ALL) {
+                switch (layerAxis) {
+                    case Y -> { minY = Math.max(minY, layerMin); maxY = Math.min(maxY, layerMax); }
+                    case X -> { minX = Math.max(minX, layerMin); maxX = Math.min(maxX, layerMax); }
+                    case Z -> { minZ = Math.max(minZ, layerMin); maxZ = Math.min(maxZ, layerMax); }
+                }
+            }
+
+            // Clamp Y for above/below-player selection modes
+            if (selectionType != null) {
+                if (selectionType.getOptionListValue() instanceof SelectionType st) {
+                    if (st == SelectionType.LITEMATICA_SELECTION_BELOW_PLAYER) {
+                        maxY = Math.min(maxY, (int) Math.floor(player.getY()));
+                    } else if (st == SelectionType.LITEMATICA_SELECTION_ABOVE_PLAYER) {
+                        minY = Math.max(minY, (int) Math.ceil(player.getY()));
+                    }
+                }
+            }
+
             box = new PrinterBox(minX, minY, minZ, maxX, maxY, maxZ);
             lastBox = box;
             boxRef.set(box);
@@ -195,7 +240,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             box.xIncrement = !Configs.Core.X_REVERSE.getBooleanValue();
             box.yIncrement = !Configs.Core.Y_REVERSE.getBooleanValue();
             box.zIncrement = !Configs.Core.Z_REVERSE.getBooleanValue();
-            
+
             cachedIterator = null;
         }
     }
@@ -277,7 +322,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                 addGuiInfo(gui);
             }
     
-            if (canProcessPos(pos) && !isOnCooldown(pos)) {
+            if (!isOnCooldown(pos) && canProcessPos(pos)) {
                 executeIteration(pos, skipIteration);
     
                 if (skipIteration.get() || (maxExecs > 0 && ++execCount >= maxExecs)) {
