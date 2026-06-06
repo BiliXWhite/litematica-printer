@@ -11,7 +11,10 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public enum BlockMatchingType {
@@ -35,11 +38,20 @@ public enum BlockMatchingType {
      */
     CORRECT;
 
+    // Cached replaceSet — avoids new HashSet allocation on every get() call
+    private static List<String> lastReplaceConfig = Collections.emptyList();
+    private static Set<String> replaceSetCache = Collections.emptySet();
 
+    private static Set<String> getReplaceSet() {
+        List<String> current = Configs.Print.REPLACEABLE_LIST.getStrings();
+        if (!current.equals(lastReplaceConfig)) {
+            replaceSetCache = new HashSet<>(current);
+            lastReplaceConfig = new ArrayList<>(current);
+        }
+        return replaceSetCache;
+    }
 
     public static BlockMatchingType get(BlockState requiredState, BlockState currentState, Property<?>... propertiesToIgnore) {
-        Set<String> replaceSet = new HashSet<>(Configs.Print.REPLACEABLE_LIST.getStrings());
-
         // 如果两个方块状态完全相同，则返回正确状态
         if (requiredState == currentState) {
             return CORRECT;
@@ -60,12 +72,15 @@ public enum BlockMatchingType {
             }
         }
 
-        // 如果启用了替换功能，且当前方块在可替换列表中，则返回缺失方块状态（实际上这会和破坏额外方块打架）
-        if (Configs.Print.PRINT_REPLACE.getBooleanValue() &&
-                replaceSet.stream().anyMatch(string -> !PinYinSearchUtils.matchName(string, requiredState) &&
-                        PinYinSearchUtils.matchName(string, currentState)) && !requiredState.isAir()
-        ) {
-            return MISSING_BLOCK;
+        // 如果启用了替换功能，且当前方块在可替换列表中，则返回缺失方块状态
+        if (Configs.Print.PRINT_REPLACE.getBooleanValue()) {
+            Set<String> replaceSet = getReplaceSet();
+            if (!replaceSet.isEmpty() &&
+                    replaceSet.stream().anyMatch(string -> !PinYinSearchUtils.matchName(string, requiredState) &&
+                            PinYinSearchUtils.matchName(string, currentState)) && !requiredState.isAir()
+            ) {
+                return MISSING_BLOCK;
+            }
         }
 
         // 其他情况返回错误方块状态
@@ -82,4 +97,3 @@ public enum BlockMatchingType {
         return get(requiredState, currentState, propertiesToIgnore);
     }
 }
-

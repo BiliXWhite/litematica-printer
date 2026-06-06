@@ -19,6 +19,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Collections;
@@ -74,7 +75,16 @@ public class PrintHandler extends ClientPlayerTickHandler {
     public boolean canProcessPos(BlockPos blockPos) {
         WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
         if (schematic == null) return false;
-        this.ctx = new SchematicBlockContext(client, level, schematic, blockPos);
+
+        // Fast path: read states once, skip air and already-correct positions
+        // without allocating SchematicBlockContext or running expensive PlacementGuide logic.
+        BlockState required = schematic.getBlockState(blockPos);
+        if (required.isAir()) return false;
+        BlockState current = level.getBlockState(blockPos);
+        // Block state objects are singletons in Minecraft — identity check is safe and O(1)
+        if (required == current) return false;
+
+        this.ctx = new SchematicBlockContext(client, level, schematic, blockPos, current, required);
 
         if (Configs.Print.PRINT_SKIP.getBooleanValue()) {
             // 缓存 skipSet，避免每次新建 HashSet 和流式匹配开销

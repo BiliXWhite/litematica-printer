@@ -40,6 +40,9 @@ public class RemoteContainerUtils {
         final String itemId;
         int scanIndex;
         boolean triedCache;
+        // True while a network request is in-flight — prevents flooding the server
+        // with multiple scan/get requests for the same item in a single iteration.
+        boolean requestPending;
 
         ItemFetchState(String itemId) {
             this.itemId = itemId;
@@ -48,6 +51,7 @@ public class RemoteContainerUtils {
         void reset() {
             triedCache = false;
             scanIndex = 0;
+            requestPending = false;
         }
     }
 
@@ -118,11 +122,17 @@ public class RemoteContainerUtils {
         String itemId = getItemId(item);
         ItemFetchState state = fetchStates.computeIfAbsent(itemId, ItemFetchState::new);
 
+        // If a request is already in-flight for this item, don't send another one.
+        // Without this guard, every block needing the same item triggers a new
+        // server request in the same iteration, flooding the server and causing lag.
+        if (state.requestPending) return true;
+
         if (!state.triedCache) {
             state.triedCache = true;
             ContainerItemCache.SlotRef ref = ContainerItemCache.INSTANCE.findItem(itemId);
             if (ref != null) {
                 pendingRequests.put(ref.pos(), new PendingRequest(itemId, ref.slot()));
+                state.requestPending = true;
                 RemoteInventoryNetwork.sendGetItemRequest(ref.pos(), itemId, ref.slot());
                 return true;
             }
@@ -131,6 +141,7 @@ public class RemoteContainerUtils {
         while (state.scanIndex < containerList.size()) {
             BlockPos pos = containerList.get(state.scanIndex++);
             if (!ContainerItemCache.INSTANCE.isCached(pos)) {
+                state.requestPending = true;
                 RemoteInventoryNetwork.sendScanContainerRequest(pos);
                 return true;
             }
@@ -148,8 +159,10 @@ public class RemoteContainerUtils {
     private static void onScanResult(
             me.aleksilassila.litematica.printer.network.payload.ScanContainerResultPayload payload) {
         ContainerItemCache.INSTANCE.updateContainer(payload.getPos(), payload.getEntries());
+        // Release the pending flag so the next tryGetItemFromContainers call can proceed.
+        // Don't reset scanIndex — let each state continue from where it left off.
         for (ItemFetchState s : fetchStates.values()) {
-            s.reset();
+            s.requestPending = false;
         }
     }
 

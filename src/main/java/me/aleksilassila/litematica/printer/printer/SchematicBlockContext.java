@@ -32,6 +32,15 @@ public class SchematicBlockContext {
         this.requiredState = schematic.getBlockState(blockPos);
     }
 
+    public SchematicBlockContext(Minecraft client, ClientLevel level, WorldSchematic schematic, BlockPos blockPos, BlockState currentState, BlockState requiredState) {
+        this.client = client;
+        this.level = level;
+        this.schematic = schematic;
+        this.blockPos = blockPos;
+        this.currentState = currentState;
+        this.requiredState = requiredState;
+    }
+
     public static <T extends Comparable<T>> Optional<T> getProperty(BlockState blockState, Property<T> property) {
         return BlockUtils.getProperty(blockState, property);
     }
