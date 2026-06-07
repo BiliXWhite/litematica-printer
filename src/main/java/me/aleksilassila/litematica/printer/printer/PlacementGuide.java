@@ -969,6 +969,7 @@ public class PlacementGuide {
                                 WallBlock.class,
                                 IronBarsBlock.class,
                                 PressurePlateBlock.class,
+                                StainedGlassPaneBlock.class
                         };
                 if (printBreakWrongStateBlock && !Arrays.asList(ignored).contains(ctx.requiredState.getBlock().getClass())) {
                     BreakUtils.INSTANCE.add(ctx);
