@@ -480,9 +480,9 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .range(0, 20)
                 .build();
 
-        // 有序存放
-        public static final ConfigBoolean STORE_ORDERLY = booleanValue("storeOrderly")
-                .defaultValue(false)
+        // 背包满时有序放回潜影盒
+        public static final ConfigBoolean RETURN_TO_SHULKER_WHEN_FULL = booleanValue("returnToShulkerWhenFull")
+                .defaultValue(true)
                 .build();
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
@@ -512,7 +512,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 USE_QUICK_SHULKER,
                 SHULKER_SOURCE,
                 SHULKER_COOLDOWN,
-                STORE_ORDERLY
+                RETURN_TO_SHULKER_WHEN_FULL
         );
     }
 
