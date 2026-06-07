@@ -161,14 +161,15 @@ public class BreakUtils {
                         ModUtils.trySwitchToEffectiveTool(pos);
                     }
                 }
-                if (continueDestroyBlock(pos, Direction.DOWN) == BlockBreakResult.IN_PROGRESS) {
+                BlockBreakResult breakResult = continueDestroyBlock(pos, Direction.DOWN);
+                if (breakResult == BlockBreakResult.IN_PROGRESS) {
                     breakPos = pos;
                     break;
+                } else if (breakResult == BlockBreakResult.COMPLETED) {
+                    recentlyBroken.put(pos, 4);
                 }
             }
         } else if (continueDestroyBlock(breakPos, Direction.DOWN) != BlockBreakResult.IN_PROGRESS) {
-            // 破坏完成：记录该位置到最近破坏冷却映射中，延迟1tick
-            // 防止同一tick内打印处理器读到客户端预测的空气状态而错误地重新放置方块
             BlockPos completedPos = breakPos;
             breakPos = null;
             recentlyBroken.put(completedPos, 1);

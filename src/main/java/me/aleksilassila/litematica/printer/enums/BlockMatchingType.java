@@ -52,8 +52,10 @@ public enum BlockMatchingType {
     }
 
     public static BlockMatchingType get(BlockState requiredState, BlockState currentState, Property<?>... propertiesToIgnore) {
-        // 如果两个方块状态完全相同，则返回正确状态
-        if (requiredState == currentState) {
+        // 如果两个方块状态完全相同（包括属性和值），则返回正确状态
+        // 注意：必须使用 equals() 而非 ==，因为 requiredState 来自世界快照（SchematicWorldHandler）
+        // 而 currentState 来自实际世界（Minecraft.getInstance().level），不同 Level 实例的 BlockState 对象不共享
+        if (requiredState.equals(currentState)) {
             return CORRECT;
         }
 
@@ -63,6 +65,8 @@ public enum BlockMatchingType {
             if (!BlockUtils.statesEqualIgnoreProperties(requiredState, currentState, propertiesToIgnore)) {
                 return ERROR_BLOCK_STATE;
             }
+            // 方块类型相同，且允许忽略的属性差异也匹配 → 视为正确
+            return CORRECT;
         }
 
         // 如果原理图中方块不为空，且实际方块为空，则返回缺失方块状态
