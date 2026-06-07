@@ -103,6 +103,7 @@ public class FluidHandler extends ClientPlayerTickHandler {
                 return;
             }
             Action action = new Action().queueAction(blockPos, Direction.UP, false, player);
+            didWorkThisTick = true;
             ActionManager.INSTANCE.setNeedWaitModifyLookFromAction(action.getNeedWaitModifyLook());
             if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook) {
                 skipIteration.set(true);

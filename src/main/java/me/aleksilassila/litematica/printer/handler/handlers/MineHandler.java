@@ -75,6 +75,7 @@ public class MineHandler extends ClientPlayerTickHandler {
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         BlockBreakResult result = BreakUtils.INSTANCE.continueDestroyBlock(blockPos);
+        didWorkThisTick = true;
         if (result == BlockBreakResult.IN_PROGRESS || result == BlockBreakResult.COMPLETED_WAIT) {
             skipIteration.set(true);
         }

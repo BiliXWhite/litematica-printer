@@ -40,6 +40,11 @@ public class GuiHandler extends ClientPlayerTickHandler {
     }
 
     @Override
+    protected boolean shouldProcessQueue() {
+        return false;
+    }
+
+    @Override
     public boolean canProcessPos(BlockPos pos) {
         return super.canProcessPos(pos);
     }

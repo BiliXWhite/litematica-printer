@@ -76,13 +76,14 @@ public class PrintHandler extends ClientPlayerTickHandler {
         WorldSchematic schematic = SchematicWorldHandler.getSchematicWorld();
         if (schematic == null) return false;
 
-        // Fast path: read states once, skip air and already-correct positions
-        // without allocating SchematicBlockContext or running expensive PlacementGuide logic.
         BlockState required = schematic.getBlockState(blockPos);
-        if (required.isAir()) return false;
         BlockState current = level.getBlockState(blockPos);
-        // Block state objects are singletons in Minecraft — identity check is safe and O(1)
-        if (required == current) return false;
+
+        if (required.isAir()) {
+            if (!Configs.Print.BREAK_EXTRA_BLOCK.getBooleanValue() || current.isAir()) return false;
+        } else if (required == current) {
+            return false;
+        }
 
         this.ctx = new SchematicBlockContext(client, level, schematic, blockPos, current, required);
 
@@ -118,6 +119,9 @@ public class PrintHandler extends ClientPlayerTickHandler {
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
+        if (BreakUtils.INSTANCE.isRecentlyBroken(blockPos)) {
+            return;
+        }
         if (Configs.Placement.FALLING_CHECK.getBooleanValue()
                 && ctx.requiredState.getBlock() instanceof FallingBlock) {
             BlockPos downPos = blockPos.below();
@@ -158,6 +162,7 @@ public class PrintHandler extends ClientPlayerTickHandler {
             useShift = action.getShift();
         }
         action.queueAction(blockPos, side, useShift, player);
+        didWorkThisTick = true;
         Vec3 hitModifier = LitematicaUtils.usePrecisionPlacement(blockPos, ctx.requiredState);
         if (hitModifier != null) {
             ActionManager.INSTANCE.hitModifier = hitModifier;

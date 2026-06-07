@@ -48,6 +48,7 @@ public class BedrockHandler extends ClientPlayerTickHandler {
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         BedrockUtils.addToBreakList(blockPos, client.level);
+        didWorkThisTick = true;
         setCooldown(blockPos, 100);
     }
 }

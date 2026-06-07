@@ -11,6 +11,8 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.*;
 import me.aleksilassila.litematica.printer.printer.*;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
+import me.aleksilassila.litematica.printer.printer.OperationQueue;
+import me.aleksilassila.litematica.printer.printer.QueuedOperation;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
 import me.aleksilassila.litematica.printer.utils.PlayerUtils;
@@ -93,6 +95,12 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     @Getter
     private int renderIndex = 0;
 
+    // 扫描状态机
+    @Getter
+    private ScanState scanState = ScanState.FULL;
+    private int idleTicks = 0;
+    protected boolean didWorkThisTick = false;
+
     private int guiCacheTicks;
 
     protected ClientPlayerTickHandler(String id, @Nullable PrintModeType printMode, @Nullable ConfigBoolean enableConfig, @Nullable ConfigOptionList selectionType, boolean useBox) {
@@ -159,9 +167,79 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         // 例如填充和拍流体等需要额外方块的模式，需要提前处理好转换
         preprocess();
 
-        // 执行方块迭代
-        if (!iterateBlocks()) {
-            lastPos = null;
+        // Phase 1: 消费 BlockUpdate 脏坐标 → 生成修复操作
+        OperationQueue.INSTANCE.processDirty();
+
+        // --- Scan State Gate: 惰性 / 部分 / 全量 模式选择 ---
+        if (scanState == ScanState.LAZY) {
+            // shouldProcessQueue()=false 的 handler（如 GUI）不依赖队列判空
+            boolean noQueueWork = !shouldProcessQueue() || OperationQueue.INSTANCE.isEmpty();
+            if (noQueueWork && !RegionTracker.INSTANCE.hasDirtyRegions()) {
+                return;  // 无待处理操作，跳过整个迭代阶段
+            }
+            // BlockUpdate 唤醒了我们 → 按脏区域数量决定重扫粒度
+            int dirtyRegions = RegionTracker.INSTANCE.getDirtyCount();
+            int fullThreshold = Configs.Core.LAZY_DIRTY_WAKE_THRESHOLD.getIntegerValue();
+            if (fullThreshold > 0 && dirtyRegions > 0 && dirtyRegions < fullThreshold) {
+                scanState = ScanState.PARTIAL;
+                cachedIterator = RegionTracker.INSTANCE.createDirtyRegionIterator();
+            } else {
+                scanState = ScanState.FULL;
+                // FULL 全量扫描会覆盖整个 box，清除脏标记避免下个 tick 重复唤醒
+                RegionTracker.INSTANCE.clearAllDirty();
+            }
+        }
+
+        if (scanState == ScanState.PARTIAL && cachedIterator == null) {
+            cachedIterator = RegionTracker.INSTANCE.createDirtyRegionIterator();
+        }
+
+        // Phase 2: 重置状态，然后执行（队列优先 + 迭代扫描）
+        skipIteration.set(false);
+        didWorkThisTick = false;
+
+        int maxExecs = getMaxExecutions();
+
+        // 队列消费：依次 poll 所有操作，当前 handler 能处理的就执行，不能处理的放回队尾
+        // 这保证了 repair op 总能到达正确的 handler，不会被 GUI 等 handler 误消费
+        if (shouldProcessQueue()) {
+            int ops = OperationQueue.INSTANCE.size();
+            for (int i = 0; i < ops && !skipIteration.get(); i++) {
+                QueuedOperation op = OperationQueue.INSTANCE.poll();
+                if (op == null) break;
+                if (!isOnCooldown(op.getPos()) && canProcessPos(op.getPos())) {
+                    executeIteration(op.getPos(), skipIteration);
+                    didWorkThisTick = true;
+                } else {
+                    OperationQueue.INSTANCE.addLast(op);
+                }
+            }
+        }
+
+        if (!skipIteration.get() && !iterateBlocks(maxExecs)) {
+            if (scanState != ScanState.PARTIAL) lastPos = null;
+        }
+
+        // --- 空闲跟踪：无工作 → 计数，稳定后进入惰性 ---
+        // shouldProcessQueue()=false 的 handler 不依赖队列判空（如 GUI），直接走空闲计数
+        if (!didWorkThisTick && (!shouldProcessQueue() || OperationQueue.INSTANCE.isEmpty())) {
+            idleTicks++;
+            int lazyThreshold = Configs.Core.LAZY_ENTER_TICKS.getIntegerValue();
+            if (lazyThreshold > 0 && idleTicks >= lazyThreshold) {
+                scanState = ScanState.LAZY;
+                idleTicks = 0;
+                RegionTracker.INSTANCE.clearAllDirty();
+            }
+        } else {
+            idleTicks = 0;
+        }
+
+        // PARTIAL 扫描完成后直接进入 LAZY：脏区域已在扫描中被 DirtyRegionIterator 逐个 markClean
+        // 任何新的方块变化都会通过 BlockUpdate 重新唤醒 LAZY
+        if (scanState == ScanState.PARTIAL && cachedIterator == null) {
+            scanState = ScanState.LAZY;
+            idleTicks = 0;
+            RegionTracker.INSTANCE.clearAllDirty();
         }
     }
 
@@ -242,14 +320,22 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             box.zIncrement = !Configs.Core.Z_REVERSE.getBooleanValue();
 
             cachedIterator = null;
+            RegionTracker.INSTANCE.rebuild(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
+            scanState = ScanState.FULL;
+            // 仅在玩家移动或配置变更时重置空闲计数；扫描周期自然完成（lastPos == null）不清零，
+            // 否则空闲计数永远达不到惰性阈值
+            if (box != null) { // 非首次初始化
+                boolean playerMoved = lastPos != null && !lastPos.closerThan(eyePos, effectiveRange * 0.4);
+                if (playerMoved || expandRange != currentRange) {
+                    idleTicks = 0;
+                }
+            } else {
+                idleTicks = 0;
+            }
         }
     }
 
-    /**
-     * 执行方块迭代
-     * @return 是否被中断
-     */
-    private boolean iterateBlocks() {
+    private boolean iterateBlocks(int maxExecs) {
         if (boxRef == null || !canExecute()) return false;
     
         PrinterBox box = boxRef.get();
@@ -259,7 +345,6 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             cachedIterator = box.iterator();
         }
     
-        int maxExecs = getMaxExecutions();
         int timeLimit = getIterationTimeLimit();
         int execCount = 0;
     
@@ -302,7 +387,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             } else if (!PlayerUtils.canInteracted(pos)) continue;
     
             if (needRangeCheck) {
-                if (isSchematic ? !LitematicaUtils.isSchematicBlock(pos)
+                if (isSchematic ? !SchematicSnapshot.INSTANCE.contains(pos)
                         : !LitematicaUtils.isWithinSelection1ModeRange(pos)) {
                     continue;
                 }
@@ -324,7 +409,8 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     
             if (!isOnCooldown(pos) && canProcessPos(pos)) {
                 executeIteration(pos, skipIteration);
-    
+                didWorkThisTick = true;
+
                 if (skipIteration.get() || (maxExecs > 0 && ++execCount >= maxExecs)) {
                     stopIteration(true);
                     return true;
@@ -429,6 +515,15 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     }
 
     protected boolean canIterate() {
+        return true;
+    }
+
+    /**
+     * 当前 handler 是否需要处理操作队列中的修复操作。
+     * 仅实际执行方块操作的 handler（PRINT、FILL 等）应返回 true；
+     * GUI handler 仅负责 HUD 渲染，不应消费队列操作。
+     */
+    protected boolean shouldProcessQueue() {
         return true;
     }
 
