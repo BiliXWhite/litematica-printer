@@ -196,6 +196,18 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(false)
                 .build();
 
+        // 惰性扫描 - 进入惰性的空闲 tick 数（0=禁用惰性）
+        public static final ConfigInteger LAZY_ENTER_TICKS = integerValue("lazyEnterTicks")
+                .defaultValue(100)
+                .range(0, 1000)
+                .build();
+
+        // 惰性扫描 - 唤醒时触发的脏区域阈值（低于此值做 PARTIAL 重扫，否则 FULL 重扫）
+        public static final ConfigInteger LAZY_DIRTY_WAKE_THRESHOLD = integerValue("lazyDirtyWakeThreshold")
+                .defaultValue(5)
+                .range(0, 100)
+                .build();
+
         // 通用配置项列表（按功能分类排序）
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 WORK_SWITCH,
@@ -219,7 +231,9 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 Z_REVERSE,
                 AUTO_DISABLE_PRINTER,
                 UPDATE_CHECK,
-                DEBUG_OUTPUT
+                DEBUG_OUTPUT,
+                LAZY_ENTER_TICKS,
+                LAZY_DIRTY_WAKE_THRESHOLD
         );
     }
 

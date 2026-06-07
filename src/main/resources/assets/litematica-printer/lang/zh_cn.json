@@ -260,5 +260,9 @@
   "litematica-printer.config.shulkerSource.mod": "模组（Quick Shulker）",
   "litematica-printer.config.shulkerSource.plugin": "插件（AxShulkers）",
   "litematica-printer.config.shulkerCooldown": "潜影盒冷却",
-  "litematica-printer.config.shulkerCooldown.desc": "两次打开潜影盒之间的冷却时间（游戏刻）。范围：0-20。"
+  "litematica-printer.config.shulkerCooldown.desc": "两次打开潜影盒之间的冷却时间（游戏刻）。范围：0-20。",
+  "litematica-printer.config.lazyEnterTicks": "惰性进入间隔",
+  "litematica-printer.config.lazyEnterTicks.desc": "进入惰性扫描模式前的空闲 tick 数（跳过全量迭代扫描）。\n设为 0 彻底禁用惰性模式。",
+  "litematica-printer.config.lazyDirtyWakeThreshold": "惰性唤醒脏区域阈值",
+  "litematica-printer.config.lazyDirtyWakeThreshold.desc": "从惰性模式唤醒时，若脏子区块数量低于此值，只扫描脏子区块（PARTIAL）；高于此值则全量重扫（FULL）。\n设为 0 始终全量重扫。"
 }

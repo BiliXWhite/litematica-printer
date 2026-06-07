@@ -3,10 +3,12 @@ package me.aleksilassila.litematica.printer.mixin.printer.mc;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
 import me.aleksilassila.litematica.printer.utils.RenderUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.enums.ScanState;
 import me.aleksilassila.litematica.printer.enums.WorkingModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.handler.GuiBlockInfo;
 import me.aleksilassila.litematica.printer.handler.handlers.GuiHandler;
+import me.aleksilassila.litematica.printer.printer.RegionTracker;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
@@ -63,6 +65,9 @@ public abstract class MixinGui {
     private List<String> buildHandlerDebugLines(ClientPlayerTickHandler handler, GuiBlockInfo guiInfo) {
         List<String> lines = new ArrayList<>();
         lines.add("处理类型: " + handler.getId());
+        ScanState state = handler.getScanState();
+        String stateColor = state == ScanState.LAZY ? "§b" : state == ScanState.PARTIAL ? "§e" : "§a";
+        lines.add("扫描状态: " + stateColor + state);
         lines.add("当前位置: " + guiInfo.pos.toShortString());
         if (guiInfo.requiredState != null) {
             lines.add("投影方块: " + guiInfo.requiredState.getBlock().getName().getString());
@@ -262,6 +267,32 @@ public abstract class MixinGui {
         commonLines.add("全局Tick: " + ClientPlayerTickManager.getCurrentHandlerTime());
         commonLines.add("活跃Handler数: " + ClientPlayerTickManager.VALUES.size());
 
+        // 扫描模式 + 脏区域信息
+        boolean allLazy = true;
+        ScanState dominantState = ScanState.FULL;
+        for (ClientPlayerTickHandler handler : ClientPlayerTickManager.VALUES) {
+            ScanState s = handler.getScanState();
+            if (s != ScanState.LAZY) allLazy = false;
+            dominantState = s;
+        }
+        StringBuilder scanLine = new StringBuilder("扫描模式: ");
+        if (allLazy) {
+            scanLine.append("§bLAZY");
+        } else {
+            scanLine.append(dominantState == ScanState.PARTIAL ? "§ePARTIAL" : "§aFULL");
+        }
+        int dirtyTotal = RegionTracker.INSTANCE.getDirtyCount();
+        if (dirtyTotal > 0) {
+            scanLine.append("§r | 脏区域: §c").append(dirtyTotal);
+        }
+        int lazyThreshold = Configs.Core.LAZY_ENTER_TICKS.getIntegerValue();
+        if (lazyThreshold > 0) {
+            scanLine.append("§r | 惰性阈值: ").append(lazyThreshold).append("tick");
+        } else {
+            scanLine.append("§r | §7惰性已禁用");
+        }
+        commonLines.add(scanLine.toString());
+
         Minecraft mc = Minecraft.getInstance();
         int maxWidth = 0;
         for (String line : commonLines) {
@@ -309,10 +340,35 @@ public abstract class MixinGui {
             drawProgressBar(centerX, centerY + 36, 40, 6, progress, new Color(0, 0, 0, 150), new Color(0, 255, 0, 255));
         }
 
+        // 扫描模式指示
+        boolean anyLazy = false;
+        boolean anyPartial = false;
+        for (ClientPlayerTickHandler h : ClientPlayerTickManager.VALUES) {
+            ScanState s = h.getScanState();
+            if (s == ScanState.LAZY) anyLazy = true;
+            else if (s == ScanState.PARTIAL) anyPartial = true;
+        }
+        String scanLabel;
+        Color scanColor;
+        if (anyLazy && !anyPartial) {
+            // 全部 LAZY
+            scanLabel = "扫描: LAZY";
+            scanColor = new Color(100, 200, 255);
+        } else if (anyPartial) {
+            scanLabel = "扫描: PARTIAL";
+            scanColor = new Color(255, 200, 50);
+        } else {
+            scanLabel = "扫描: FULL";
+            scanColor = new Color(100, 255, 100);
+        }
+        RenderUtils.drawString(scanLabel, centerX, centerY + 52, scanColor, true, true);
+
+        int infoY = centerY + 64;
+
         // 模式名称显示
         if (ConfigUtils.isSingleMode()) {
             String modeName = Configs.Core.WORK_MODE_TYPE.getOptionListValue().getDisplayName();
-            RenderUtils.drawString(modeName, centerX, centerY + 52, Color.WHITE, true, true);
+            RenderUtils.drawString(modeName, centerX, infoY, Color.WHITE, true, true);
         } else {
             HashSet<String> modeNames = new HashSet<>();
             for (ClientPlayerTickHandler handler : ClientPlayerTickManager.VALUES) {
@@ -321,7 +377,7 @@ public abstract class MixinGui {
                 }
                 modeNames.add(handler.getEnableConfig().getPrettyName());
             }
-            RenderUtils.drawString(String.join(", ", modeNames), centerX, centerY + 52, Color.WHITE, true, true);
+            RenderUtils.drawString(String.join(", ", modeNames), centerX, infoY, Color.WHITE, true, true);
         }
     }
 

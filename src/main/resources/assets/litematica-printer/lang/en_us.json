@@ -260,5 +260,9 @@
   "litematica-printer.config.shulkerSource.mod": "Mod (Quick Shulker)",
   "litematica-printer.config.shulkerSource.plugin": "Plugin (AxShulkers)",
   "litematica-printer.config.shulkerCooldown": "Shulker Cooldown",
-  "litematica-printer.config.shulkerCooldown.desc": "Cooldown in ticks before another shulker box can be opened. Range: 0-20."
+  "litematica-printer.config.shulkerCooldown.desc": "Cooldown in ticks before another shulker box can be opened. Range: 0-20.",
+  "litematica-printer.config.lazyEnterTicks": "Lazy Enter Ticks",
+  "litematica-printer.config.lazyEnterTicks.desc": "Number of idle ticks before entering lazy scan mode (skips full volume iteration).\nSet to 0 to disable lazy mode entirely.",
+  "litematica-printer.config.lazyDirtyWakeThreshold": "Lazy Dirty Wake Threshold",
+  "litematica-printer.config.lazyDirtyWakeThreshold.desc": "When waking from lazy mode, if dirty sub-chunk count is below this threshold, only scan the dirty sub-chunks (PARTIAL). Above it, perform a full re-scan.\nSet to 0 to always do full re-scan."
 }
