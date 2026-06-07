@@ -33,8 +33,6 @@ import net.minecraft.network.HashedStack;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class InventoryUtils {
@@ -46,17 +44,7 @@ public class InventoryUtils {
     @Setter
     private static ItemStack orderlyStoreItem;
 
-    @Getter @Setter
-    private static boolean isOpenHandler;
-    private static int shulkerCooldown;
-    private static int shulkerBoxSlot = -1;
-    private static final Set<Item> lastNeedItemList = new HashSet<>();
 
-    public static void tick() {
-        if (shulkerCooldown > 0) {
-            shulkerCooldown--;
-        }
-    } //有序存放临时存储
 
     public static int getSelectedSlot(Inventory inventory) {
         //#if MC > 12104
@@ -406,10 +394,6 @@ public class InventoryUtils {
             ItemStack stack = new ItemStack(items[0]);
             return InventoryUtils.setPickedItemToHand(stack, client);
         }
-        // 有序存放：尝试将手持物品放回原位
-        if (Configs.Print.STORE_ORDERLY.getBooleanValue()) {
-            returnItemToOriginalSlot(inventory);
-        }
         for (Item item : items) {
             int slot = findItemInInventory(inventory, item);
             if (slot != -1) {
@@ -418,20 +402,18 @@ public class InventoryUtils {
                 return InventoryUtils.setPickedItemToHand(slot, itemStack, client);
             }
         }
-        if (Configs.Print.USE_QUICK_SHULKER.getBooleanValue()
-                && QuickShulkerUtils.isLoaded()) {
-            // 没打开，搜索背包里含有目标物品的潜影盒并静默打开
-            if (!isOpenHandler && shulkerCooldown <= 0) {
+        if (Configs.Print.USE_QUICK_SHULKER.getBooleanValue()) {
+            if (!QuickShulkerUtils.isOpenHandler() && QuickShulkerUtils.getShulkerCooldown() <= 0) {
                 for (Item item : items) {
-                    int shulkerSlot = findShulkerWithItem(player, item);
+                    int shulkerSlot = QuickShulkerUtils.findShulkerWithItem(player, item);
                     if (shulkerSlot != -1) {
                         ItemStack shulkerStack = inventory.getItem(shulkerSlot);
-                        shulkerBoxSlot = shulkerSlot;
-                        lastNeedItemList.clear();
-                        lastNeedItemList.add(item);
+                        QuickShulkerUtils.setShulkerBoxSlot(shulkerSlot);
+                        QuickShulkerUtils.clearLastNeedItems();
+                        QuickShulkerUtils.addLastNeedItem(item);
                         ModUtils.closeScreen++;
-                        isOpenHandler = true;
-                        shulkerCooldown = Configs.Print.SHULKER_COOLDOWN.getIntegerValue();
+                        QuickShulkerUtils.setOpenHandler(true);
+                        QuickShulkerUtils.setShulkerCooldown(Configs.Print.SHULKER_COOLDOWN.getIntegerValue());
                         QuickShulkerUtils.openShulker(shulkerStack, shulkerSlot);
                         return false;
                     }
@@ -448,90 +430,6 @@ public class InventoryUtils {
             }
         }
         return -1;
-    }
-
-    private static int findShulkerWithItem(LocalPlayer player, Item target) {
-        // 从背包第9格开始找（跳过热键栏）
-        for (int i = 9; i < player.getInventory().getContainerSize(); i++) {
-            ItemStack stack = player.getInventory().getItem(i);
-            String id = net.minecraft.core.registries.BuiltInRegistries.ITEM
-                    .getKey(stack.getItem()).toString();
-            if (id.contains("shulker_box") && stack.getCount() == 1) {
-                NonNullList<ItemStack> contents = fi.dy.masa.malilib.util.InventoryUtils
-                        .getStoredItems(stack, -1);
-                if (contents.stream().anyMatch(s -> s.getItem().equals(target))) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    }
-
-    private static void returnItemToOriginalSlot(Inventory inventory) {
-        if (orderlyStoreItem == null || orderlyStoreItem.isEmpty()) return;
-        if (shulkerBoxSlot == -1) return;
-        // 检查背包是否已满
-        if (hasEmptySlot(inventory)) return;
-        int heldSlot = getSelectedSlot(inventory);
-        if (!Inventory.isHotbarSlot(heldSlot)) return;
-        ItemStack held = inventory.getItem(heldSlot);
-        if (held.isEmpty()) return;
-        // 把手持物品放回潜影盒所在槽位
-        if (inventory.getItem(shulkerBoxSlot).isEmpty()) {
-            inventory.setItem(shulkerBoxSlot, held.copy());
-            inventory.setItem(heldSlot, ItemStack.EMPTY);
-            orderlyStoreItem = null;
-        }
-    }
-
-    private static boolean hasEmptySlot(Inventory inventory) {
-        for (int i = 0; i < inventory.getContainerSize(); i++) {
-            if (!Inventory.isHotbarSlot(i) && inventory.getItem(i).isEmpty()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static void switchFromShulker() {
-        LocalPlayer player = client.player;
-        if (player == null || player.containerMenu.equals(player.inventoryMenu)) {
-            isOpenHandler = false;
-            return;
-        }
-        for (Slot slot : player.containerMenu.slots) {
-            if (!slot.hasItem()) continue;
-            for (Item item : lastNeedItemList) {
-                if (slot.getItem().getItem().equals(item)) {
-                    int hotbarSlot = InventoryUtilsAccessor.getEmptyPickBlockableHotbarSlot(player.getInventory());
-                    if (hotbarSlot == -1) {
-                        hotbarSlot = InventoryUtilsAccessor.getPickBlockTargetSlot(player);
-                    }
-                    if (hotbarSlot != -1) {
-                        fi.dy.masa.malilib.util.InventoryUtils.swapSlots(
-                                player.containerMenu, slot.index, hotbarSlot);
-                        setSelectedSlot(player.getInventory(), hotbarSlot);
-                        // 同步到服务端：点击潜影盒在背包中的槽位来刷新状态
-                        if (shulkerBoxSlot != -1) {
-                            client.gameMode.handleInventoryMouseClick(
-                                    player.containerMenu.containerId,
-                                    shulkerBoxSlot, 0, ClickType.PICKUP, client.player);
-                            client.gameMode.handleInventoryMouseClick(
-                                    player.containerMenu.containerId,
-                                    shulkerBoxSlot, 0, ClickType.PICKUP, client.player);
-                        }
-                    }
-                    player.closeContainer();
-                    shulkerBoxSlot = -1;
-                    isOpenHandler = false;
-                    lastNeedItemList.clear();
-                    return;
-                }
-            }
-        }
-        player.closeContainer();
-        isOpenHandler = false;
-        lastNeedItemList.clear();
     }
 
     public PickResult checkCanSwitchToItems(LocalPlayer player, Item[] items) {
