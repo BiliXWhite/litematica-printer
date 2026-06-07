@@ -47,7 +47,13 @@ public class PlacementGuide {
 
     public @Nullable Action getAction(SchematicBlockContext ctx) {
         BlockMatchingType state = BlockMatchingType.get(ctx);
-        if (!ctx.requiredState.canSurvive(ctx.level, ctx.blockPos) || state == BlockMatchingType.CORRECT) {
+        if (state == BlockMatchingType.CORRECT) return null;
+        // canSurvive 只阻拦放置（MISSING），不阻拦破坏（ERROR_BLOCK 走 BREAK_WRONG_BLOCK）
+        if (state == BlockMatchingType.MISSING_BLOCK && !ctx.requiredState.canSurvive(ctx.level, ctx.blockPos)) return null;
+        // 双格方块（玫瑰丛等）：MISSING 时上半部分由下半部分自动生成，不独立放置
+        if (state == BlockMatchingType.MISSING_BLOCK
+                && ctx.requiredState.getBlock() instanceof DoublePlantBlock
+                && ctx.requiredState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER) {
             return null;
         }
         for (ClassHook hook : ClassHook.values()) {
@@ -55,7 +61,7 @@ public class PlacementGuide {
                 if (clazz != null && clazz.isInstance(ctx.requiredState.getBlock())) {
                     skip.set(false);
                     @Nullable Action action = buildAction(ctx, hook, state, skip);
-                    if (action == null && skip.get()) {   // 珊瑚直接使用了 Block.class, 为了传递性所以只有不为null时进行返回
+                    if (action == null && skip.get()) {   // hook 不处理该方块, 继续尝试下一个
                         continue;
                     }
                     return action;
@@ -307,32 +313,6 @@ public class PlacementGuide {
                         return new Action().setSides(direction);
                     }
                 }
-            }
-            case DEAD_CORAL -> {
-                Block block = ctx.requiredState.getBlock();
-                Identifier blockId1 = BlockUtils.getKey(block);
-                if (!blockId1.toString().contains("coral")) {
-                    skip.set(true); // 使用了Block, 但不是该指南的方块, 让下一个指南进行处理
-                    return null;
-                }
-                Identifier blockId2 = of(blockId1.toString().replace("dead_", ""));
-                boolean isBlock = blockId1.toString().contains("block");
-                List<Item> items = new ArrayList<>();
-                items.add(block.asItem());
-                if (Configs.Print.REPLACE_CORAL.getBooleanValue()) {
-                    if (!blockId1.equals(blockId2)) {
-                        items.add(BlockUtils.getBlock(blockId2).asItem());
-                    }
-                }
-                Item[] itemsArray = items.toArray(new Item[0]);
-
-                Action action = new Action().setItems(itemsArray);
-                if (!isBlock) {
-                    boolean isWallFan = block instanceof BaseCoralWallFanBlock;
-                    Direction facing = isWallFan ? ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite() : Direction.DOWN;
-                    action.setSides(facing).setRequiresSupport();
-                }
-                return action;
             }
             case FIRE -> {
                 if (ctx.requiredState.getBlock() instanceof SoulFireBlock)
@@ -599,8 +579,27 @@ public class PlacementGuide {
                 return null;
             }
             default -> {
-                Action action = new Action();
                 Block block = ctx.requiredState.getBlock();
+                Identifier blockId1 = BlockUtils.getKey(block);
+                if (blockId1.toString().contains("coral")) {
+                    Identifier blockId2 = of(blockId1.toString().replace("dead_", ""));
+                    boolean isBlock = blockId1.toString().contains("block");
+                    List<Item> items = new ArrayList<>();
+                    items.add(block.asItem());
+                    if (Configs.Print.REPLACE_CORAL.getBooleanValue()) {
+                        if (!blockId1.equals(blockId2)) {
+                            items.add(BlockUtils.getBlock(blockId2).asItem());
+                        }
+                    }
+                    Action action = new Action().setItems(items.toArray(new Item[0]));
+                    if (!isBlock) {
+                        boolean isWallFan = block instanceof BaseCoralWallFanBlock;
+                        Direction facing = isWallFan ? ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite() : Direction.DOWN;
+                        action.setSides(facing).setRequiresSupport();
+                    }
+                    return action;
+                }
+                Action action = new Action();
                 if (block instanceof FaceAttachedHorizontalDirectionalBlock) {
                     Direction side = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING);
                     AttachFace face = ctx.requiredState.getValue(BlockStateProperties.ATTACH_FACE);
@@ -710,8 +709,25 @@ public class PlacementGuide {
                 if (ctx.requiredState.getValue(BlockStateProperties.OPEN) != ctx.currentState.getValue(BlockStateProperties.OPEN)) {
                     return new ClickAction();
                 }
-                if (printBreakWrongStateBlock && ctx.requiredState.getValue(DoorBlock.FACING) != ctx.currentState.getValue(DoorBlock.FACING)) {
-                    BreakUtils.INSTANCE.add(ctx);
+                if (printBreakWrongStateBlock) {
+                    boolean facingDiff = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING)
+                            != ctx.currentState.getValue(BlockStateProperties.HORIZONTAL_FACING);
+                    boolean alignDiff = false;
+                    if (ctx.requiredState.hasProperty(TrapDoorBlock.HALF)) {
+                        alignDiff = ctx.requiredState.getValue(TrapDoorBlock.HALF)
+                                != ctx.currentState.getValue(TrapDoorBlock.HALF);
+                    }
+                    if (ctx.requiredState.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)) {
+                        alignDiff |= ctx.requiredState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF)
+                                != ctx.currentState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF);
+                    }
+                    if (ctx.requiredState.hasProperty(DoorBlock.HINGE)) {
+                        alignDiff |= ctx.requiredState.getValue(DoorBlock.HINGE)
+                                != ctx.currentState.getValue(DoorBlock.HINGE);
+                    }
+                    if (facingDiff || alignDiff) {
+                        BreakUtils.INSTANCE.add(ctx);
+                    }
                 }
             }
             case FENCE_GATE -> {
@@ -972,6 +988,7 @@ public class PlacementGuide {
                         return new ClickAction().setItems(Reference.HOE_ITEMS);
                     }
                 }
+                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && BreakUtils.canBreakBlock(ctx.blockPos)) BreakUtils.INSTANCE.add(ctx);
             }
             case DIRT_PATH -> {
                 Block[] soilBlocks = new Block[]{Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.COARSE_DIRT, Blocks.ROOTED_DIRT, Blocks.MYCELIUM, Blocks.PODZOL};
@@ -980,6 +997,7 @@ public class PlacementGuide {
                         return new ClickAction().setItems(Reference.SHOVEL_ITEMS);
                     }
                 }
+                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && BreakUtils.canBreakBlock(ctx.blockPos)) BreakUtils.INSTANCE.add(ctx);
             }
             case FLOWER_POT -> {
                 if (ctx.requiredState.getBlock() instanceof FlowerPotBlock potBlock) {
@@ -988,6 +1006,7 @@ public class PlacementGuide {
                         return new ClickAction().setItem(content.asItem());
                     }
                 }
+                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && BreakUtils.canBreakBlock(ctx.blockPos)) BreakUtils.INSTANCE.add(ctx);
             }
             case CAULDRON -> {
                 if (Arrays.asList(requiredType.classes).contains(ctx.currentState.getBlock().getClass())) {
@@ -1002,6 +1021,7 @@ public class PlacementGuide {
                 if (stripped != null && stripped == ctx.requiredState.getBlock()) {
                     return new ClickAction().setItems(Reference.AXE_ITEMS);
                 }
+                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && BreakUtils.canBreakBlock(ctx.blockPos)) BreakUtils.INSTANCE.add(ctx);
             }
             case SIGN -> {
                 if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && BreakUtils.canBreakBlock(ctx.blockPos)) {
@@ -1030,16 +1050,9 @@ public class PlacementGuide {
                 if (Configs.Print.REPLACE_CORAL.getBooleanValue() && ctx.requiredState.getBlock().getDescriptionId().contains("coral")) {
                     break;
                 }
-                boolean printBreakWrongBlock = Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue();
-                boolean printBreakExtraBlock = Configs.Print.BREAK_EXTRA_BLOCK.getBooleanValue();
-                if (printBreakWrongBlock || printBreakExtraBlock) {
-                    if (BreakUtils.canBreakBlock(ctx.blockPos)) {
-                        if (printBreakWrongBlock && !ctx.requiredState.isAir()) {
-                            BreakUtils.INSTANCE.add(ctx);
-                        } else if (printBreakExtraBlock && ctx.requiredState.isAir()) {
-                            BreakUtils.INSTANCE.add(ctx);
-                        }
-                    }
+                if ((Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue() && !ctx.requiredState.isAir())
+                        || (Configs.Print.BREAK_EXTRA_BLOCK.getBooleanValue() && ctx.requiredState.isAir())) {
+                    if (BreakUtils.canBreakBlock(ctx.blockPos)) BreakUtils.INSTANCE.add(ctx);
                 }
             }
         }
@@ -1125,7 +1138,6 @@ public class PlacementGuide {
         // 其他
         FARMLAND(FarmBlock.class),              // 耕地
         DIRT_PATH(DirtPathBlock.class),         // 土径
-        DEAD_CORAL(Block.class),                // 死珊瑚
         NETHER_PORTAL(NetherPortalBlock.class), // 下界传送门
         SKIP(SkullBlock.class, LiquidBlock.class, BubbleColumnBlock.class, WaterlilyBlock.class), // 跳过
         DEFAULT; // 默认
