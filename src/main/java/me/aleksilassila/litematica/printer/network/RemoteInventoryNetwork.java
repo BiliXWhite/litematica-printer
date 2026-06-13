@@ -15,6 +15,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.core.BlockPos;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 @Environment(EnvType.CLIENT)
@@ -26,7 +27,8 @@ public class RemoteInventoryNetwork {
 
     @FunctionalInterface
     public interface ExchangeResultCallback {
-        void accept(BlockPos pos, RemoteResultType takeResult, int takenCount, int returnedCount);
+        void accept(BlockPos pos, RemoteResultType takeResult, int takenCount, int returnedCount,
+                    List<RemoteExchangeResultPayload.SlotSnapshot> inventoryDelta);
     }
 
     public static void register() {
@@ -45,7 +47,7 @@ public class RemoteInventoryNetwork {
                     context.client().execute(() ->
                         exchangeCallback.accept(payload.getPos(),
                             payload.getTakeResult(), payload.getTakenCount(),
-                            payload.getReturnedCount()));
+                            payload.getReturnedCount(), payload.getInventoryDelta()));
                 }
             });
             ClientPlayNetworking.registerReceiver(ScanContainerResultPayload.TYPE, (payload, context) -> {
