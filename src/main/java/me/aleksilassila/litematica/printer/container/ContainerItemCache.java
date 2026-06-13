@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Environment(EnvType.CLIENT)
 public class ContainerItemCache {
     public static final ContainerItemCache INSTANCE = new ContainerItemCache();
+    private static final long CACHE_TTL_MS = 30_000;
 
     private final Map<String, List<SlotRef>> itemIndex = new ConcurrentHashMap<>();
     private final Map<BlockPos, ContainerSnapshot> containerIndex = new ConcurrentHashMap<>();
@@ -19,6 +20,8 @@ public class ContainerItemCache {
     public record ContainerSnapshot(List<ScanContainerResultPayload.SlotEntry> entries, long timestamp) {}
 
     private ContainerItemCache() {}
+
+    private static long now() { return System.currentTimeMillis(); }
 
     public SlotRef findItem(String itemId) {
         List<SlotRef> refs = itemIndex.get(itemId);
@@ -36,10 +39,10 @@ public class ContainerItemCache {
                 removeSlotRef(e.itemId(), pos, e.slot());
         }
         if (entries.isEmpty()) {
-            containerIndex.put(pos, new ContainerSnapshot(List.of(), 0));
+            containerIndex.put(pos, new ContainerSnapshot(List.of(), now()));
             return;
         }
-        containerIndex.put(pos, new ContainerSnapshot(List.copyOf(entries), 0));
+        containerIndex.put(pos, new ContainerSnapshot(List.copyOf(entries), now()));
         for (ScanContainerResultPayload.SlotEntry e : entries)
             itemIndex.computeIfAbsent(e.itemId(),
                     k -> Collections.synchronizedList(new ArrayList<>()))
@@ -53,7 +56,22 @@ public class ContainerItemCache {
                 removeSlotRef(e.itemId(), pos, e.slot());
     }
 
-    public boolean isCached(BlockPos pos) { return containerIndex.containsKey(pos); }
+    public boolean isCached(BlockPos pos) {
+        ContainerSnapshot snap = containerIndex.get(pos);
+        return snap != null && (now() - snap.timestamp()) < CACHE_TTL_MS;
+    }
+
+    public void invalidateOldest() {
+        BlockPos oldest = null;
+        long oldestTime = Long.MAX_VALUE;
+        for (var e : containerIndex.entrySet()) {
+            if (e.getValue().timestamp() < oldestTime) {
+                oldestTime = e.getValue().timestamp();
+                oldest = e.getKey();
+            }
+        }
+        if (oldest != null) invalidate(oldest);
+    }
     public int getContainerCount() { return containerIndex.size(); }
 
     public void clear() {
@@ -77,7 +95,7 @@ public class ContainerItemCache {
                 updated.add(e);
             }
         }
-        containerIndex.put(pos, new ContainerSnapshot(updated, 0));
+        containerIndex.put(pos, new ContainerSnapshot(updated, now()));
         if (itemId != null) {
             removeSlotRef(itemId, pos, slot);
             if (takenCount < getOriginalCount(snapshot, slot))
@@ -103,7 +121,7 @@ public class ContainerItemCache {
         }
         if (!merged) { invalidate(pos); return; }
 
-        containerIndex.put(pos, new ContainerSnapshot(updated, 0));
+        containerIndex.put(pos, new ContainerSnapshot(updated, now()));
         itemIndex.computeIfAbsent(itemId,
                 k -> Collections.synchronizedList(new ArrayList<>()))
                 .add(new SlotRef(pos, findSlot(updated, itemId)));
@@ -136,10 +154,10 @@ public class ContainerItemCache {
             for (ScanContainerResultPayload.SlotEntry e : old.entries())
                 removeSlotRef(e.itemId(), pos, e.slot());
         if (entries.isEmpty()) {
-            containerIndex.put(pos, new ContainerSnapshot(List.of(), 0));
+            containerIndex.put(pos, new ContainerSnapshot(List.of(), now()));
             return;
         }
-        containerIndex.put(pos, new ContainerSnapshot(List.copyOf(entries), 0));
+        containerIndex.put(pos, new ContainerSnapshot(List.copyOf(entries), now()));
         for (ScanContainerResultPayload.SlotEntry e : entries)
             itemIndex.computeIfAbsent(e.itemId(),
                     k -> Collections.synchronizedList(new ArrayList<>()))
