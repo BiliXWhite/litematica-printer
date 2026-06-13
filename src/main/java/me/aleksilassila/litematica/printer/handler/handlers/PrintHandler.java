@@ -136,6 +136,10 @@ public class PrintHandler extends ClientPlayerTickHandler {
                 return;
             }
         }
+        if (RemoteContainerUtils.hasPendingExchange()) {
+            setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
+            return;
+        }
         Direction side = action.getValidSide(level, blockPos);
         if (side == null) return;
         Item[] reqItems = action.getRequiredItems(ctx.requiredState.getBlock());

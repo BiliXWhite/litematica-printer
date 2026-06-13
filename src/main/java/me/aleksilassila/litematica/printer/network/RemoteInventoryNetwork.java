@@ -4,11 +4,10 @@ package me.aleksilassila.litematica.printer.network;
 import lombok.Setter;
 import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.enums.RemoteResultType;
-import me.aleksilassila.litematica.printer.network.payload.GetItemFromInventoryPayload;
-import me.aleksilassila.litematica.printer.network.payload.GetItemResultPayload;
+import me.aleksilassila.litematica.printer.network.payload.RemoteExchangePayload;
+import me.aleksilassila.litematica.printer.network.payload.RemoteExchangeResultPayload;
 import me.aleksilassila.litematica.printer.network.payload.ScanContainerPayload;
 import me.aleksilassila.litematica.printer.network.payload.ScanContainerResultPayload;
-import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -16,20 +15,24 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.core.BlockPos;
 
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 @Environment(EnvType.CLIENT)
 public class RemoteInventoryNetwork {
     @Setter
-    private static BiConsumer<BlockPos, RemoteResultType> resultCallback;
+    private static ExchangeResultCallback exchangeCallback;
     @Setter
     private static Consumer<ScanContainerResultPayload> scanResultCallback;
 
+    @FunctionalInterface
+    public interface ExchangeResultCallback {
+        void accept(BlockPos pos, RemoteResultType takeResult, int takenCount, int returnedCount);
+    }
+
     public static void register() {
         try {
-            PayloadTypeRegistry.playC2S().register(GetItemFromInventoryPayload.TYPE, GetItemFromInventoryPayload.CODEC);
-            PayloadTypeRegistry.playS2C().register(GetItemResultPayload.TYPE, GetItemResultPayload.CODEC);
+            PayloadTypeRegistry.playC2S().register(RemoteExchangePayload.TYPE, RemoteExchangePayload.CODEC);
+            PayloadTypeRegistry.playS2C().register(RemoteExchangeResultPayload.TYPE, RemoteExchangeResultPayload.CODEC);
             PayloadTypeRegistry.playC2S().register(ScanContainerPayload.TYPE, ScanContainerPayload.CODEC);
             PayloadTypeRegistry.playS2C().register(ScanContainerResultPayload.TYPE, ScanContainerResultPayload.CODEC);
         } catch (IllegalArgumentException ignored) {
@@ -37,10 +40,12 @@ public class RemoteInventoryNetwork {
         }
 
         ClientPlayConnectionEvents.INIT.register((handler, client) -> {
-            ClientPlayNetworking.registerReceiver(GetItemResultPayload.TYPE, (payload, context) -> {
-                if (resultCallback != null) {
+            ClientPlayNetworking.registerReceiver(RemoteExchangeResultPayload.TYPE, (payload, context) -> {
+                if (exchangeCallback != null) {
                     context.client().execute(() ->
-                            resultCallback.accept(payload.getPos(), payload.getResultType()));
+                        exchangeCallback.accept(payload.getPos(),
+                            payload.getTakeResult(), payload.getTakenCount(),
+                            payload.getReturnedCount()));
                 }
             });
             ClientPlayNetworking.registerReceiver(ScanContainerResultPayload.TYPE, (payload, context) -> {
@@ -51,8 +56,13 @@ public class RemoteInventoryNetwork {
         });
     }
 
-    public static void sendGetItemRequest(BlockPos containerPos, String itemId, int slot) {
-        ClientPlayNetworking.send(new GetItemFromInventoryPayload(itemId, containerPos, slot));
+    public static void sendExchange(BlockPos takePos,
+                                     String takeItemId, int takeSlot,
+                                     BlockPos returnPos,
+                                     String returnItemId, int returnCount) {
+        ClientPlayNetworking.send(new RemoteExchangePayload(
+                takePos, takeItemId, takeSlot,
+                returnPos, returnItemId, returnCount));
     }
 
     public static void sendScanContainerRequest(BlockPos containerPos) {
@@ -98,6 +108,7 @@ public class RemoteInventoryNetwork {
 //$$                 (client1, handler1, buf, responseSender) -> {
 //$$                     BlockPos pos = buf.readBlockPos();
 //$$                     RemoteResultType result = RemoteResultType.values()[buf.readVarInt()];
+//$$                     int count = buf.readVarInt();
 //$$                     if (resultCallback != null) {
 //$$                         client1.execute(() -> resultCallback.accept(pos, result));
 //$$                     }
@@ -124,6 +135,9 @@ public class RemoteInventoryNetwork {
 //$$             );
 //$$         });
 //$$     }
+//$$
+//$$     public static void sendExchange(BlockPos takePos, String takeId, int takeSlot,
+//$$                                      BlockPos returnPos, String returnId, int returnCount) {}
 //$$
 //$$     public static void sendGetItemRequest(BlockPos containerPos, String itemId, int slot) {
 //$$         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());

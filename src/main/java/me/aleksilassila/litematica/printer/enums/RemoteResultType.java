@@ -9,5 +9,7 @@ public enum RemoteResultType {
     PLAYER_TOO_FAR,
     NOT_A_CONTAINER,
     INTERNAL_ERROR,
+    INVENTORY_FULL,
+    PARTIAL,
     UNKNOWN
 }

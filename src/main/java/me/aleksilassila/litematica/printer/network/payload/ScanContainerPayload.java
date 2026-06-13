@@ -46,5 +46,5 @@ public class ScanContainerPayload implements CustomPacketPayload {
 }
 //#else
 //$$ package me.aleksilassila.litematica.printer.network.payload;
-//$$ class ScanContainerPayload {}
+//$$ public class ScanContainerPayload {}
 //#endif

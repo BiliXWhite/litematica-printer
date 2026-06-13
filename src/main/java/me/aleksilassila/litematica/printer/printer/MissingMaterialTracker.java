@@ -68,6 +68,10 @@ public class MissingMaterialTracker {
         return missingMap.size();
     }
 
+    public int getGeneration() {
+        return generation;
+    }
+
     public void reset() {
         missingMap.clear();
     }

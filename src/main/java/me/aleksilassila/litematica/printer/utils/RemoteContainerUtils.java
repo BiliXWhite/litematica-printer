@@ -10,12 +10,14 @@ import me.aleksilassila.litematica.printer.enums.RemoteResultType;
 import me.aleksilassila.litematica.printer.network.RemoteInventoryNetwork;
 import me.aleksilassila.litematica.printer.printer.PrinterBox;
 import me.aleksilassila.litematica.printer.container.ContainerItemCache;
+import me.aleksilassila.litematica.printer.container.ContainerReturnTracker;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
@@ -29,75 +31,101 @@ public class RemoteContainerUtils {
     private static final Set<BlockPos> knownContainers = new HashSet<>();
     private static List<BlockPos> containerList = new ArrayList<>();
     private static long lastScan = 0;
-    private static long lastCacheClear = 0;
 
     private static final Map<String, ItemFetchState> fetchStates = new ConcurrentHashMap<>();
-    private static final Map<BlockPos, PendingRequest> pendingRequests = new ConcurrentHashMap<>();
+    private static int exchangeCooldown = 0;
 
-    private record PendingRequest(String itemId, int slot) {}
+    public static boolean hasPendingExchange() {
+        return pendingExchange != null || exchangeCooldown > 0;
+    }
 
     private static class ItemFetchState {
         final String itemId;
         int scanIndex;
         boolean triedCache;
-        // True while a network request is in-flight — prevents flooding the server
-        // with multiple scan/get requests for the same item in a single iteration.
         boolean requestPending;
-
-        ItemFetchState(String itemId) {
-            this.itemId = itemId;
-        }
-
-        void reset() {
-            triedCache = false;
-            scanIndex = 0;
-            requestPending = false;
-        }
+        ItemFetchState(String itemId) { this.itemId = itemId; }
+        void reset() { triedCache = false; scanIndex = 0; requestPending = false; }
     }
 
     public static void init() {
-        RemoteInventoryNetwork.setResultCallback(RemoteContainerUtils::onGetItemResult);
+        //#if MC >= 12005
+        RemoteInventoryNetwork.setExchangeCallback(RemoteContainerUtils::onExchangeResult);
+        //#else
+        //$$ RemoteInventoryNetwork.setResultCallback(RemoteContainerUtils::onGetItemResultLegacy);
+        //#endif
         RemoteInventoryNetwork.setScanResultCallback(RemoteContainerUtils::onScanResult);
     }
 
-    // ──────── 容器扫描 ────────
+    public static void tick() {
+        if (exchangeCooldown > 0) exchangeCooldown--;
+    }
+
+    private record PendingExchange(BlockPos takePos, String takeItemId, int takeSlot,
+                                   BlockPos returnPos, String returnItemId, int returnRequested) {}
+    private static PendingExchange pendingExchange = null;
+
+    //#if MC >= 12005
+    private static void onExchangeResult(BlockPos pos, RemoteResultType takeResult,
+                                          int takenCount, int returnedCount) {
+        PendingExchange pending = pendingExchange;
+        pendingExchange = null;
+        if (pending == null) {
+            for (ItemFetchState s : fetchStates.values()) s.requestPending = false;
+            return;
+        }
+
+        if (returnedCount > 0 && !pending.returnItemId().isEmpty()) {
+            if (returnedCount >= pending.returnRequested())
+                ContainerReturnTracker.INSTANCE.remove(new ContainerReturnTracker.ReturnEntry(
+                        pending.returnPos(), pending.returnItemId(), 0));
+            ContainerItemCache.INSTANCE.recordReturn(pending.returnPos(), pending.returnItemId(), returnedCount);
+        }
+
+        if (takenCount > 0 && !pending.takeItemId().isEmpty()) {
+            ContainerReturnTracker.INSTANCE.track(pending.takePos(), pending.takeItemId());
+            ContainerItemCache.INSTANCE.recordTake(pending.takePos(), pending.takeSlot(), takenCount);
+            if (takeResult == RemoteResultType.SUCCESS)
+                fetchStates.remove(pending.takeItemId());
+        } else if (pending.takeSlot() >= 0 && !pending.takeItemId().isEmpty()
+                && takenCount <= 0
+                && takeResult != RemoteResultType.SUCCESS
+                && takeResult != RemoteResultType.PARTIAL) {
+            ContainerItemCache.INSTANCE.invalidate(pending.takePos());
+        }
+
+        if (pending != null) exchangeCooldown = 2;
+        for (ItemFetchState s : fetchStates.values()) s.requestPending = false;
+    }
+    //#else
+    //$$ private static void onGetItemResultLegacy(BlockPos pos, RemoteResultType result) {}
+    //#endif
 
     public static void scanContainerPos() {
         if (SchematicWorldHandler.getSchematicWorld() == null) return;
-
         knownContainers.clear();
         Level level = mc.level;
         if (level == null) return;
-
         List<PrinterBox> selectionBoxes = getSelectionBoxes();
         if (selectionBoxes.isEmpty()) return;
-
         Set<String> containerBlockIds = resolveContainerBlockIds();
-        for (PrinterBox box : selectionBoxes) {
-            for (BlockPos pos : box) {
-                Block block = level.getBlockState(pos).getBlock();
-                if (containerBlockIds.contains(BuiltInRegistries.BLOCK.getKey(block).toString())) {
+        for (PrinterBox box : selectionBoxes)
+            for (BlockPos pos : box)
+                if (containerBlockIds.contains(BuiltInRegistries.BLOCK.getKey(
+                        level.getBlockState(pos).getBlock()).toString()))
                     knownContainers.add(pos.immutable());
-                }
-            }
-        }
         containerList = new ArrayList<>(knownContainers);
     }
 
     private static List<PrinterBox> getSelectionBoxes() {
         AreaSelection selection = DataManager.getSelectionManager().getCurrentSelection();
         if (selection == null) return Collections.emptyList();
-
-        if (DataManager.getSelectionManager().getSelectionMode() == SelectionMode.NORMAL) {
+        if (DataManager.getSelectionManager().getSelectionMode() == SelectionMode.NORMAL)
             return selection.getAllSubRegionBoxes().stream()
-                    .map(RemoteContainerUtils::toPrinterBox)
-                    .filter(Objects::nonNull)
-                    .toList();
-        }
-
+                    .map(RemoteContainerUtils::toPrinterBox).filter(Objects::nonNull).toList();
         Box box = selection.getSubRegionBox(DataManager.getSimpleArea().getName());
-        PrinterBox pb = toPrinterBox(box);
-        return pb != null ? Collections.singletonList(pb) : Collections.emptyList();
+        PrinterBox printerBox = toPrinterBox(box);
+        return printerBox != null ? List.of(printerBox) : Collections.emptyList();
     }
 
     private static PrinterBox toPrinterBox(Box box) {
@@ -105,35 +133,24 @@ public class RemoteContainerUtils {
         return new PrinterBox(box.getPos1(), box.getPos2());
     }
 
-    // ──────── 核心：缓存优先取物 ────────
-
     public static boolean tryGetItemFromContainers(Item item) {
+        //#if MC < 12005
+        //$$ return false;
+        //#else
         long now = System.currentTimeMillis();
-        if (now - lastScan > 5000) {
-            scanContainerPos();
-            lastScan = now;
-        }
-
-        if (knownContainers.isEmpty()) {
-            scanContainerPos();
-            if (knownContainers.isEmpty()) return false;
-        }
+        if (now - lastScan > 5000) { scanContainerPos(); lastScan = now; }
+        if (knownContainers.isEmpty()) { scanContainerPos(); if (knownContainers.isEmpty()) return false; }
 
         String itemId = getItemId(item);
         ItemFetchState state = fetchStates.computeIfAbsent(itemId, ItemFetchState::new);
-
-        // If a request is already in-flight for this item, don't send another one.
-        // Without this guard, every block needing the same item triggers a new
-        // server request in the same iteration, flooding the server and causing lag.
-        if (state.requestPending) return true;
+        if (state.requestPending || pendingExchange != null || exchangeCooldown > 0) return true;
 
         if (!state.triedCache) {
             state.triedCache = true;
             ContainerItemCache.SlotRef ref = ContainerItemCache.INSTANCE.findItem(itemId);
             if (ref != null) {
-                pendingRequests.put(ref.pos(), new PendingRequest(itemId, ref.slot()));
+                sendExchange(ref.pos(), itemId, ref.slot());
                 state.requestPending = true;
-                RemoteInventoryNetwork.sendGetItemRequest(ref.pos(), itemId, ref.slot());
                 return true;
             }
         }
@@ -147,55 +164,98 @@ public class RemoteContainerUtils {
             }
         }
 
-        // 所有容器都扫描过了，还是没找到，2秒后重置状态等待下一轮扫描
-        if (now - lastCacheClear > 2000) {
-            ContainerItemCache.INSTANCE.clear();
-            lastCacheClear = now;
-        }
         state.reset();
         return false;
+        //#endif
+    }
+
+    private static void sendExchange(BlockPos takePos, String takeItemId, int takeSlot) {
+        BlockPos returnPos = takePos;
+        String returnItemId = "";
+        int returnCount = 0;
+
+        if (mc.player != null && isInventoryFull(mc.player.getInventory())
+                && Configs.Print.RETURN_TO_CONTAINER_WHEN_FULL.getBooleanValue()) {
+            cleanStaleTracker();
+
+            ContainerReturnTracker.ReturnEntry best = null;
+            int bestPass = Integer.MAX_VALUE, bestCount = Integer.MAX_VALUE;
+            for (ContainerReturnTracker.ReturnEntry e : ContainerReturnTracker.INSTANCE.peekAll()) {
+                Item retItem = resolveItem(e.itemId());
+                if (retItem == null) continue;
+                int invCount = countInInventory(retItem);
+                if (invCount <= 0) continue;
+                if (e.pass() < bestPass || (e.pass() == bestPass && invCount < bestCount)) {
+                    bestPass = e.pass(); bestCount = invCount; best = e;
+                }
+            }
+            if (best != null) {
+                returnPos = best.pos(); returnItemId = best.itemId(); returnCount = bestCount;
+            }
+        }
+
+        pendingExchange = new PendingExchange(takePos, takeItemId, takeSlot,
+                returnPos, returnItemId, returnCount);
+        exchangeCooldown = 3;
+        RemoteInventoryNetwork.sendExchange(takePos, takeItemId, takeSlot,
+                returnPos, returnItemId, returnCount);
+    }
+
+    private static void cleanStaleTracker() {
+        List<ContainerReturnTracker.ReturnEntry> toRemove = new ArrayList<>();
+        for (ContainerReturnTracker.ReturnEntry e : ContainerReturnTracker.INSTANCE.peekAll())
+            if (resolveItem(e.itemId()) == null || countInInventory(resolveItem(e.itemId())) <= 0)
+                toRemove.add(e);
+        for (ContainerReturnTracker.ReturnEntry e : toRemove)
+            ContainerReturnTracker.INSTANCE.remove(e);
+    }
+
+    private static int countInInventory(Item item) {
+        if (mc.player == null) return 0;
+        int count = 0;
+        for (int i = 0; i < 36; i++) {
+            ItemStack stack = mc.player.getInventory().getItem(i);
+            if (!stack.isEmpty() && stack.is(item)) count += stack.getCount();
+        }
+        return count;
+    }
+
+    private static boolean isInventoryFull(net.minecraft.world.entity.player.Inventory inv) {
+        for (int i = 0; i < 36; i++) if (inv.getItem(i).isEmpty()) return false;
+        return true;
     }
 
     private static void onScanResult(
             me.aleksilassila.litematica.printer.network.payload.ScanContainerResultPayload payload) {
         ContainerItemCache.INSTANCE.updateContainer(payload.getPos(), payload.getEntries());
-        // Release the pending flag so the next tryGetItemFromContainers call can proceed.
-        // Don't reset scanIndex — let each state continue from where it left off.
-        for (ItemFetchState s : fetchStates.values()) {
-            s.requestPending = false;
-        }
-    }
-
-    private static void onGetItemResult(BlockPos pos, RemoteResultType result) {
-        PendingRequest pending = pendingRequests.remove(pos);
-        if (pending == null) return;
-
-        if (result == RemoteResultType.SUCCESS) {
-            ContainerItemCache.INSTANCE.markSlotUsed(pos, pending.slot());
-            fetchStates.remove(pending.itemId());
-        } else {
-            ContainerItemCache.INSTANCE.invalidate(pos);
-            ItemFetchState state = fetchStates.get(pending.itemId());
-            if (state != null) state.reset();
-        }
+        for (ItemFetchState s : fetchStates.values()) s.requestPending = false;
     }
 
     private static String getItemId(Item item) {
         return BuiltInRegistries.ITEM.getKey(item).toString();
     }
 
+    private static Item resolveItem(String itemId) {
+        //#if MC >= 11903
+        return BuiltInRegistries.ITEM.getOptional(
+        //#else
+        //$$ return net.minecraft.core.Registry.ITEM.getOptional(
+        //#endif
+            //#if MC >= 12105
+            net.minecraft.resources.Identifier.parse(itemId)
+            //#elseif MC >= 12101
+            //$$ net.minecraft.resources.ResourceLocation.parse(itemId)
+            //#else
+            //$$ new net.minecraft.resources.ResourceLocation(itemId)
+            //#endif
+        ).orElse(null);
+    }
+
     private static Set<String> resolveContainerBlockIds() {
         Set<String> ids = new HashSet<>();
-        for (String id : Configs.Print.REMOTE_CONTAINER_BLOCKS.getStrings()) {
-            if (id != null && !id.isEmpty()) {
-                ids.add(id);
-            }
-        }
-        if (ids.isEmpty()) {
-            ids.add("minecraft:chest");
-            ids.add("minecraft:trapped_chest");
-            ids.add("minecraft:barrel");
-        }
+        for (String id : Configs.Print.REMOTE_CONTAINER_BLOCKS.getStrings())
+            if (id != null && !id.isEmpty()) ids.add(id);
+        if (ids.isEmpty()) { ids.add("minecraft:chest"); ids.add("minecraft:trapped_chest"); ids.add("minecraft:barrel"); }
         return ids;
     }
 
