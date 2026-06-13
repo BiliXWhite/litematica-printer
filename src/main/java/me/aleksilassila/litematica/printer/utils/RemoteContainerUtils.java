@@ -8,6 +8,7 @@ import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.RemoteResultType;
 import me.aleksilassila.litematica.printer.network.RemoteInventoryNetwork;
+import me.aleksilassila.litematica.printer.network.payload.RemoteExchangeResultPayload;
 import me.aleksilassila.litematica.printer.printer.PrinterBox;
 import me.aleksilassila.litematica.printer.container.ContainerItemCache;
 import me.aleksilassila.litematica.printer.container.ContainerReturnTracker;
@@ -33,12 +34,13 @@ public class RemoteContainerUtils {
     private static long lastScan = 0;
 
     private static final Map<String, ItemFetchState> fetchStates = new ConcurrentHashMap<>();
-    private static int exchangeCooldown = 0;
 
+    // exchange 期间 PrintHandler 必须跳过所有方块，否则手可能被掏空导致放错
     public static boolean hasPendingExchange() {
-        return pendingExchange != null || exchangeCooldown > 0;
+        return pendingExchange != null;
     }
 
+    // 每种物品的取物进度：先查缓存，缓存 miss 后渐进扫描容器
     private static class ItemFetchState {
         final String itemId;
         int scanIndex;
@@ -58,7 +60,6 @@ public class RemoteContainerUtils {
     }
 
     public static void tick() {
-        if (exchangeCooldown > 0) exchangeCooldown--;
     }
 
     private record PendingExchange(BlockPos takePos, String takeItemId, int takeSlot,
@@ -66,8 +67,10 @@ public class RemoteContainerUtils {
     private static PendingExchange pendingExchange = null;
 
     //#if MC >= 12005
+    // exchange 回包先修正本地背包（消除 stale inventory race），再更新 tracker/缓存
     private static void onExchangeResult(BlockPos pos, RemoteResultType takeResult,
-                                          int takenCount, int returnedCount) {
+                                          int takenCount, int returnedCount,
+                                          List<RemoteExchangeResultPayload.SlotSnapshot> inventoryDelta) {
         PendingExchange pending = pendingExchange;
         pendingExchange = null;
         if (pending == null) {
@@ -75,6 +78,9 @@ public class RemoteContainerUtils {
             return;
         }
 
+        applyInventoryDelta(inventoryDelta);
+
+        // tracker: 全部还回则移除条目；缓存: 记录归还数量
         if (returnedCount > 0 && !pending.returnItemId().isEmpty()) {
             if (returnedCount >= pending.returnRequested())
                 ContainerReturnTracker.INSTANCE.remove(new ContainerReturnTracker.ReturnEntry(
@@ -82,6 +88,7 @@ public class RemoteContainerUtils {
             ContainerItemCache.INSTANCE.recordReturn(pending.returnPos(), pending.returnItemId(), returnedCount);
         }
 
+        // tracker: 全部还回则移除条目；缓存: 记录取物数量
         if (takenCount > 0 && !pending.takeItemId().isEmpty()) {
             ContainerReturnTracker.INSTANCE.track(pending.takePos(), pending.takeItemId());
             ContainerItemCache.INSTANCE.recordTake(pending.takePos(), pending.takeSlot(), takenCount);
@@ -94,7 +101,6 @@ public class RemoteContainerUtils {
             ContainerItemCache.INSTANCE.invalidate(pending.takePos());
         }
 
-        if (pending != null) exchangeCooldown = 2;
         for (ItemFetchState s : fetchStates.values()) s.requestPending = false;
     }
     //#else
@@ -143,7 +149,7 @@ public class RemoteContainerUtils {
 
         String itemId = getItemId(item);
         ItemFetchState state = fetchStates.computeIfAbsent(itemId, ItemFetchState::new);
-        if (state.requestPending || pendingExchange != null || exchangeCooldown > 0) return true;
+        if (state.requestPending || pendingExchange != null) return true;
 
         if (!state.triedCache) {
             state.triedCache = true;
@@ -153,6 +159,7 @@ public class RemoteContainerUtils {
                 state.requestPending = true;
                 return true;
             }
+            ContainerItemCache.INSTANCE.invalidateOldest();
         }
 
         while (state.scanIndex < containerList.size()) {
@@ -174,6 +181,7 @@ public class RemoteContainerUtils {
         String returnItemId = "";
         int returnCount = 0;
 
+        // 背包满时从 tracker 中选最优条目淘汰：pass 越小越旧，invCount 越少越不浪费
         if (mc.player != null && isInventoryFull(mc.player.getInventory())
                 && Configs.Print.RETURN_TO_CONTAINER_WHEN_FULL.getBooleanValue()) {
             cleanStaleTracker();
@@ -196,7 +204,6 @@ public class RemoteContainerUtils {
 
         pendingExchange = new PendingExchange(takePos, takeItemId, takeSlot,
                 returnPos, returnItemId, returnCount);
-        exchangeCooldown = 3;
         RemoteInventoryNetwork.sendExchange(takePos, takeItemId, takeSlot,
                 returnPos, returnItemId, returnCount);
     }
@@ -249,6 +256,24 @@ public class RemoteContainerUtils {
             //$$ new net.minecraft.resources.ResourceLocation(itemId)
             //#endif
         ).orElse(null);
+    }
+
+    // 直接修改 mc.player.inventory 的 slot。服务端在 exchange result 里夹带了变动的 slot 快照，
+    // 这样客户端不用等 vanilla inventory sync，立刻和服务器背包一致，消除 stale inventory race。
+    private static void applyInventoryDelta(List<RemoteExchangeResultPayload.SlotSnapshot> delta) {
+        if (mc.player == null || delta.isEmpty()) return;
+        for (RemoteExchangeResultPayload.SlotSnapshot s : delta) {
+            if (s.slotIndex() < 0 || s.slotIndex() >= 36) continue;
+            if (s.itemId().isEmpty()) {
+                mc.player.getInventory().setItem(s.slotIndex(), ItemStack.EMPTY);
+            } else {
+                Item item = resolveItem(s.itemId());
+                if (item != null) {
+                    mc.player.getInventory().setItem(s.slotIndex(),
+                            new ItemStack(item, Math.max(s.count(), 1)));
+                }
+            }
+        }
     }
 
     private static Set<String> resolveContainerBlockIds() {

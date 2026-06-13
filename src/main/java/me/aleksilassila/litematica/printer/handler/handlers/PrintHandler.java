@@ -147,8 +147,8 @@ public class PrintHandler extends ClientPlayerTickHandler {
             setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
             if (reqItems != null && reqItems.length > 0 && reqItems[0] != null) {
                 if (Configs.Print.USE_REMOTE_CONTAINER.getBooleanValue()
-                        && RemoteContainerUtils.tryGetItemFromContainers(reqItems[0])) {
-                } else {
+                    && RemoteContainerUtils.tryGetItemFromContainers(reqItems[0])) {
+            } else {
                     MissingMaterialTracker.getInstance()
                             .recordMissing(reqItems[0], ctx.getRequiredBlockName());
                 }
