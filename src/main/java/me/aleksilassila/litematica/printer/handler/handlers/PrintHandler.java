@@ -136,22 +136,21 @@ public class PrintHandler extends ClientPlayerTickHandler {
                 return;
             }
         }
+        Item[] reqItems = action.getRequiredItems(ctx.requiredState.getBlock());
         if (RemoteContainerUtils.hasPendingExchange()) {
+            recordMissingMaterial(reqItems);
             setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
             return;
         }
         Direction side = action.getValidSide(level, blockPos);
         if (side == null) return;
-        Item[] reqItems = action.getRequiredItems(ctx.requiredState.getBlock());
         if (!InventoryUtils.switchToItems(player, reqItems)) {
             setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
-            if (reqItems != null && reqItems.length > 0 && reqItems[0] != null) {
-                if (Configs.Print.USE_REMOTE_CONTAINER.getBooleanValue()
-                    && RemoteContainerUtils.tryGetItemFromContainers(reqItems[0])) {
-            } else {
-                    MissingMaterialTracker.getInstance()
-                            .recordMissing(reqItems[0], ctx.getRequiredBlockName());
-                }
+            recordMissingMaterial(reqItems);
+            if (reqItems != null && reqItems.length > 0 && reqItems[0] != null
+                    && !QuickShulkerUtils.isOpenHandler()
+                    && Configs.Print.USE_REMOTE_CONTAINER.getBooleanValue()) {
+                RemoteContainerUtils.tryGetItemFromContainers(reqItems[0]);
             }
             return;
         }
@@ -179,5 +178,12 @@ public class PrintHandler extends ClientPlayerTickHandler {
             skipIteration.set(true);
         }
         setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
+    }
+
+    private void recordMissingMaterial(Item[] reqItems) {
+        if (reqItems != null && reqItems.length > 0 && reqItems[0] != null) {
+            MissingMaterialTracker.getInstance()
+                    .recordMissing(reqItems[0], ctx.getRequiredBlockName());
+        }
     }
 }
