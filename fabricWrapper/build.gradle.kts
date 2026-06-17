@@ -79,8 +79,10 @@ tasks {
 
             val jsonFile = layout.buildDirectory.file("resources/main/fabric.mod.json").get().asFile
             if (jsonFile.exists()) {
+                @Suppress("UNCHECKED_CAST")
                 val json = JsonSlurper().parse(jsonFile) as MutableMap<String, Any>
                 json["jars"] = jars
+                @Suppress("UNCHECKED_CAST")
                 (json["depends"] as? MutableMap<String, Any>)?.put("minecraft", minecraftVersions)
                 jsonFile.writeText(JsonBuilder(json).toPrettyString())
 

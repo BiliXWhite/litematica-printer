@@ -59,7 +59,11 @@ public class LitematicaUtils {
         //#endif
 
         for (SchematicPlacementManager.PlacementPart placementPart : allPlacementsTouchingChunk) {
+            //#if MC >= 260200
+            //$$ if (placementPart.getBox().contains(pos)) {
+            //#else
             if (placementPart.getBox().containsPos(pos)) {
+            //#endif
                 return true;
             }
         }
