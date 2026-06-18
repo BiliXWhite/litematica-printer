@@ -42,6 +42,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-common
 
+      # only build.yml. Obtaining a commit hash makes it easier to find commits
+      - name: Get latest short hash
+        run: echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
       - name: Make gradle wrapper executable
         run: chmod +x ./gradlew
 

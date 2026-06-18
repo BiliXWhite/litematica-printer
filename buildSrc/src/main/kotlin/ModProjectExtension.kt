@@ -70,6 +70,7 @@ private fun getCommitCountNumber(workDir: File = File(".")): Int? {
 
 private fun getFullProjectVersion(modVersion: String): String {
     val commitCount     = getCommitCountNumber()
+    val commitHash      = System.getenv("COMMIT_HASH")
     val isRelease       = System.getenv("IS_THIS_RELEASE")?.toBoolean() == true
     val isPR            = System.getenv("IS_THIS_PR")?.toBoolean() == true
     val isCi            = System.getenv("IS_THIS_CI")?.toBoolean() == true || System.getenv("CI") == "true" || System.getenv("GITHUB_ACTIONS") == "true"
@@ -77,9 +78,9 @@ private fun getFullProjectVersion(modVersion: String): String {
 
     return when {
         isRelease   -> "${modVersion}-${commitCount}-release"
-        isPR        -> "${modVersion}-${commitCount}-pr"
+        isPR        -> "${modVersion}-${commitHash}-${commitCount}-pr"
         else        -> "${modVersion}-${
-            if (isCi) "${commitCount}-ci"
+            if (isCi) "${commitHash}-${commitCount}-ci"
             else "${timestampMillis}-development"
         }"
     }
