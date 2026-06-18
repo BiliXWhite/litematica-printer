@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: '0'
 
       - name: Validate gradle wrapper
         uses: gradle/actions/wrapper-validation@v6
@@ -30,25 +32,40 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: 25
+          java-version: '25'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+      - name: Cache Gradle dependencies
+        id: gradle-cache
+        uses: actions/cache@v5
         with:
-          cache-read-only: true
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ./.gradle
+            ./libs
+          key: ${{ runner.os }}-gradle-common
+          restore-keys: |
+            ${{ runner.os }}-gradle-common
 
-      - name: Build all subprojects
+      - name: Make gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      # If `step: gradle-cache` fails to cache, start downloading dependencies to reduce build failures
+      - name: Download dependencies
+        if: steps.gradle-cache.outputs.cache-hit != 'true'
+        run: ./gradlew dependencies --stacktrace
+
+      - name: Build fabricWrapper subprojects
         run: |
           chmod +x gradlew
           ./gradlew :fabricWrapper:build --stacktrace
-        env:
-          BUILD_RELEASE: true
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v6
+      - name: Capture versionpack artifacts
+        uses: actions/upload-artifact@v7
         with:
-          name: build-artifacts
-          path: fabricWrapper/build/libs/
+          name: Artifacts
+          path: fabricWrapper/build/libs/*.jar
+          archive: false
 
       - name: Collect mod jars
         run: |
@@ -60,7 +77,7 @@ jobs:
           ls -l mod-jars
 
       - name: Upload to Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ inputs.target_release_tag || github.ref_name }}
           files: mod-jars/*
