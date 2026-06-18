@@ -1,18 +1,17 @@
 package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
-import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
-import me.aleksilassila.litematica.printer.utils.RenderUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.enums.ScanState;
 import me.aleksilassila.litematica.printer.enums.WorkingModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
+import me.aleksilassila.litematica.printer.handler.ClientPlayerTickManager;
 import me.aleksilassila.litematica.printer.handler.GuiBlockInfo;
 import me.aleksilassila.litematica.printer.handler.handlers.GuiHandler;
-import me.aleksilassila.litematica.printer.printer.RegionTracker;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
+import me.aleksilassila.litematica.printer.utils.RenderUtils;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.Hud;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,17 +24,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-//#if MC <= 11904
-//$$import com.mojang.blaze3d.vertex.PoseStack;
-//#elseif MC > 12006
-import net.minecraft.client.DeltaTracker;
-//#endif
-
-/**
- * HUD渲染Mixin，负责打印器调试信息和进度条的绘制
- */
-@Mixin(Gui.class)
-public abstract class MixinGui {
+@Mixin(Hud.class)
+public abstract class MixinHud {
     @Unique
     private static final int DEBUG_PADDING = 4;
     @Unique
@@ -65,9 +55,6 @@ public abstract class MixinGui {
     private List<String> buildHandlerDebugLines(ClientPlayerTickHandler handler, GuiBlockInfo guiInfo) {
         List<String> lines = new ArrayList<>();
         lines.add("处理类型: " + handler.getId());
-        ScanState state = handler.getScanState();
-        String stateColor = state == ScanState.LAZY ? "§b" : state == ScanState.PARTIAL ? "§e" : "§a";
-        lines.add("扫描状态: " + stateColor + state);
         lines.add("当前位置: " + guiInfo.pos.toShortString());
         if (guiInfo.requiredState != null) {
             lines.add("投影方块: " + guiInfo.requiredState.getBlock().getName().getString());
@@ -90,22 +77,9 @@ public abstract class MixinGui {
     }
 
     // @formatter:off
-    //#if MC>= 260200
-    //#elseif MC >= 260100
-    //$$ @Inject(method = "extractHotbarAndDecorations", at = @At("TAIL"))
-    //#else
-    @Inject(method = "renderItemHotbar", at = @At("TAIL"))
-    //#endif
+    @Inject(method = "extractHotbarAndDecorations", at = @At("TAIL"))
 
-    //#if MC > 12006
-    private void hookRenderItemHotbar(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-    //#elseif MC >= 12006
-    //$$ private void hookRenderItemHotbar(GuiGraphics guiGraphics, float f, CallbackInfo ci) {
-    //#elseif MC > 11904 && MC < 12006
-    //$$ private void hookRenderItemHotbar(float f, GuiGraphics guiGraphics, CallbackInfo ci) {
-    //#else
-    //$$ private void hookRenderItemHotbar(float f, PoseStack poseStack, CallbackInfo ci) {
-    //#endif
+    private void hookRenderItemHotbar(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null || mc.player.isSpectator() || !ConfigUtils.isPrinterEnable()) {
             return;
@@ -115,11 +89,7 @@ public abstract class MixinGui {
         float scaledHeight = mc.getWindow().getGuiScaledHeight();
 
         // 初始化渲染矩阵
-        //#if MC > 11904
         RenderUtils.initGuiGraphics(guiGraphics);
-        //#else
-        //$$ RenderUtils.initMatrix(poseStack);
-        //#endif
 
         if (Configs.Core.DEBUG_OUTPUT.getBooleanValue()) {
             drawDebugInfo(scaledWidth, scaledHeight);
@@ -268,32 +238,6 @@ public abstract class MixinGui {
         commonLines.add("全局Tick: " + ClientPlayerTickManager.getCurrentHandlerTime());
         commonLines.add("活跃Handler数: " + ClientPlayerTickManager.VALUES.size());
 
-        // 扫描模式 + 脏区域信息
-        boolean allLazy = true;
-        ScanState dominantState = ScanState.FULL;
-        for (ClientPlayerTickHandler handler : ClientPlayerTickManager.VALUES) {
-            ScanState s = handler.getScanState();
-            if (s != ScanState.LAZY) allLazy = false;
-            dominantState = s;
-        }
-        StringBuilder scanLine = new StringBuilder("扫描模式: ");
-        if (allLazy) {
-            scanLine.append("§bLAZY");
-        } else {
-            scanLine.append(dominantState == ScanState.PARTIAL ? "§ePARTIAL" : "§aFULL");
-        }
-        int dirtyTotal = RegionTracker.INSTANCE.getDirtyCount();
-        if (dirtyTotal > 0) {
-            scanLine.append("§r | 脏区域: §c").append(dirtyTotal);
-        }
-        int lazyThreshold = Configs.Core.LAZY_ENTER_TICKS.getIntegerValue();
-        if (lazyThreshold > 0) {
-            scanLine.append("§r | 惰性阈值: ").append(lazyThreshold).append("tick");
-        } else {
-            scanLine.append("§r | §7惰性已禁用");
-        }
-        commonLines.add(scanLine.toString());
-
         Minecraft mc = Minecraft.getInstance();
         int maxWidth = 0;
         for (String line : commonLines) {
@@ -341,35 +285,10 @@ public abstract class MixinGui {
             drawProgressBar(centerX, centerY + 36, 40, 6, progress, new Color(0, 0, 0, 150), new Color(0, 255, 0, 255));
         }
 
-        // 扫描模式指示
-        boolean anyLazy = false;
-        boolean anyPartial = false;
-        for (ClientPlayerTickHandler h : ClientPlayerTickManager.VALUES) {
-            ScanState s = h.getScanState();
-            if (s == ScanState.LAZY) anyLazy = true;
-            else if (s == ScanState.PARTIAL) anyPartial = true;
-        }
-        String scanLabel;
-        Color scanColor;
-        if (anyLazy && !anyPartial) {
-            // 全部 LAZY
-            scanLabel = "扫描: LAZY";
-            scanColor = new Color(100, 200, 255);
-        } else if (anyPartial) {
-            scanLabel = "扫描: PARTIAL";
-            scanColor = new Color(255, 200, 50);
-        } else {
-            scanLabel = "扫描: FULL";
-            scanColor = new Color(100, 255, 100);
-        }
-        RenderUtils.drawString(scanLabel, centerX, centerY + 52, scanColor, true, true);
-
-        int infoY = centerY + 64;
-
         // 模式名称显示
         if (ConfigUtils.isSingleMode()) {
             String modeName = Configs.Core.WORK_MODE_TYPE.getOptionListValue().getDisplayName();
-            RenderUtils.drawString(modeName, centerX, infoY, Color.WHITE, true, true);
+            RenderUtils.drawString(modeName, centerX, centerY + 52, Color.WHITE, true, true);
         } else {
             HashSet<String> modeNames = new HashSet<>();
             for (ClientPlayerTickHandler handler : ClientPlayerTickManager.VALUES) {
@@ -378,7 +297,7 @@ public abstract class MixinGui {
                 }
                 modeNames.add(handler.getEnableConfig().getPrettyName());
             }
-            RenderUtils.drawString(String.join(", ", modeNames), centerX, infoY, Color.WHITE, true, true);
+            RenderUtils.drawString(String.join(", ", modeNames), centerX, centerY + 52, Color.WHITE, true, true);
         }
     }
 
@@ -396,3 +315,4 @@ public abstract class MixinGui {
         }
     }
 }
+
