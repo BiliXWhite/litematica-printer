@@ -1,6 +1,7 @@
 name: build
 on:
   push:
+    branches: ['**'] # stop build tag commits
     paths-ignore: ['*.md']
   workflow_dispatch:
   workflow_call:
