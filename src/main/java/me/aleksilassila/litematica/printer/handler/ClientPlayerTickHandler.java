@@ -95,6 +95,16 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     @Getter
     private int renderIndex = 0;
 
+    // 高亮队列（记录正在处理或已完成但尚在渐隐中的方块）
+    @Getter
+    private final Queue<PendingHighlight> pendingHighlights = new ConcurrentLinkedQueue<>();
+
+    public record PendingHighlight(BlockPos pos, long time, HighlightType type) {
+        public PendingHighlight(BlockPos pos, long time) {
+            this(pos, time, HighlightType.PLACE);
+        }
+    }
+
     // 扫描状态机
     @Getter
     private ScanState scanState = ScanState.FULL;
@@ -149,11 +159,13 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         // 基础检查
         if (!isPrinterEnable()) {
             lastPos = null;
+            pendingHighlights.clear();
             return;
         }
 
         if (!isConfigAllowed()) {
             lastPos = null;
+            pendingHighlights.clear();
             return;
         }
 
@@ -199,9 +211,11 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         didWorkThisTick = false;
 
         int maxExecs = getMaxExecutions();
+        int execCount = 0;
 
         // 队列消费：依次 poll 所有操作，当前 handler 能处理的就执行，不能处理的放回队尾
         // 这保证了 repair op 总能到达正确的 handler，不会被 GUI 等 handler 误消费
+        // 注意：队列操作也计入 execCount，确保不会超过每 tick 最大执行次数
         if (shouldProcessQueue()) {
             int ops = OperationQueue.INSTANCE.size();
             for (int i = 0; i < ops && !skipIteration.get(); i++) {
@@ -210,14 +224,22 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                 if (!isOnCooldown(op.getPos()) && canProcessPos(op.getPos())) {
                     executeIteration(op.getPos(), skipIteration);
                     didWorkThisTick = true;
+                    if (maxExecs > 0 && ++execCount >= maxExecs) {
+                        break;
+                    }
                 } else {
                     OperationQueue.INSTANCE.addLast(op);
                 }
             }
         }
 
-        if (!skipIteration.get() && !iterateBlocks(maxExecs)) {
-            if (scanState != ScanState.PARTIAL) lastPos = null;
+        if (!skipIteration.get()) {
+            int remaining = maxExecs > 0 ? Math.max(0, maxExecs - execCount) : 0;
+            if (remaining > 0 || maxExecs <= 0) {
+                if (!iterateBlocks(remaining)) {
+                    if (scanState != ScanState.PARTIAL) lastPos = null;
+                }
+            }
         }
 
         // --- 空闲跟踪：无工作 → 计数，稳定后进入惰性 ---
@@ -347,6 +369,9 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     
         if (cachedIterator == null) {
             cachedIterator = box.iterator();
+            // 清理已超出渐隐时长的过期条目，保留仍在渐隐中的条目不影响显示
+            long expireCutoff = System.currentTimeMillis() - Configs.Highlight.HIGHLIGHT_FADE_DURATION.getIntegerValue() * 100L;
+            pendingHighlights.removeIf(ph -> ph.time() < expireCutoff);
         }
     
         int timeLimit = getIterationTimeLimit();
@@ -411,9 +436,9 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                 addGuiInfo(gui);
             }
     
-            if (!isOnCooldown(pos) && canProcessPos(pos)) {
-                executeIteration(pos, skipIteration);
-                didWorkThisTick = true;
+                if (!isOnCooldown(pos) && canProcessPos(pos)) {
+                    executeIteration(pos, skipIteration);
+                    didWorkThisTick = true;
 
                 if (skipIteration.get() || (maxExecs > 0 && ++execCount >= maxExecs)) {
                     stopIteration(true);
@@ -428,8 +453,6 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     }
 
     protected void stopIteration(boolean interrupt) {
-        // 如果被打断，保留迭代器状态以便下次继续
-        // 如果完成迭代，cachedIterator 会在 iterateBlocks 中被置 null
     }
 
     protected boolean isSchematicHandler() {
@@ -533,6 +556,20 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
 
     public boolean canProcessPos(BlockPos pos) {
         return true;
+    }
+
+    /**
+     * 获取当前 handler 的默认高亮类型
+     */
+    protected HighlightType getHighlightType() {
+        return HighlightType.PLACE;
+    }
+
+    /**
+     * 添加一个高亮方块到队列
+     */
+    protected void addHighlight(BlockPos pos, HighlightType type) {
+        pendingHighlights.add(new PendingHighlight(pos.immutable(), System.currentTimeMillis(), type));
     }
 
     /**

@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.enums.HighlightType;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.interfaces.Implementation;
@@ -120,6 +121,7 @@ public class PrintHandler extends ClientPlayerTickHandler {
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
         if (BreakUtils.INSTANCE.isRecentlyBroken(blockPos)) {
+            addHighlight(blockPos, HighlightType.FAILED);
             return;
         }
         if (Configs.Placement.FALLING_CHECK.getBooleanValue()
@@ -129,10 +131,12 @@ public class PrintHandler extends ClientPlayerTickHandler {
             if (FallingBlock.isFree(level.getBlockState(downPos))) {
                 MessageUtils.setOverlayMessage(
                         I18n.BLOCK_NO_SUPPORT.getName(ctx.getRequiredBlockName().getString()));
+                addHighlight(blockPos, HighlightType.FAILED);
                 return;
             } else if (level.getBlockState(downPos) != ctx.schematic.getBlockState(downPos)) {
                 MessageUtils.setOverlayMessage(
                         I18n.BLOCK_MISMATCH.getName(ctx.getRequiredBlockName().getString()));
+                addHighlight(blockPos, HighlightType.FAILED);
                 return;
             }
         }
@@ -140,10 +144,14 @@ public class PrintHandler extends ClientPlayerTickHandler {
         if (RemoteContainerUtils.hasPendingExchange()) {
             recordMissingMaterial(reqItems);
             setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
+            addHighlight(blockPos, HighlightType.FAILED);
             return;
         }
         Direction side = action.getValidSide(level, blockPos);
-        if (side == null) return;
+        if (side == null) {
+            addHighlight(blockPos, HighlightType.FAILED);
+            return;
+        }
         if (!InventoryUtils.switchToItems(player, reqItems)) {
             setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
             recordMissingMaterial(reqItems);
@@ -152,6 +160,7 @@ public class PrintHandler extends ClientPlayerTickHandler {
                     && Configs.Print.USE_REMOTE_CONTAINER.getBooleanValue()) {
                 RemoteContainerUtils.tryGetItemFromContainers(reqItems[0]);
             }
+            addHighlight(blockPos, HighlightType.FAILED);
             return;
         }
         boolean useShift;
@@ -178,6 +187,10 @@ public class PrintHandler extends ClientPlayerTickHandler {
             skipIteration.set(true);
         }
         setCooldown(blockPos, ConfigUtils.getPlaceCooldown());
+        if (reqItems != null)
+            addHighlight(blockPos, HighlightType.PLACE);
+        else
+            addHighlight(blockPos, HighlightType.ADJUST);
     }
 
     private void recordMissingMaterial(Item[] reqItems) {

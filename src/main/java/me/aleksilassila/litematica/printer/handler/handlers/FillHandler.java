@@ -4,6 +4,7 @@ import lombok.Getter;
 import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.FillBlockModeType;
+import me.aleksilassila.litematica.printer.enums.HighlightType;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.ClientPlayerTickHandler;
 import me.aleksilassila.litematica.printer.printer.*;
@@ -137,6 +138,7 @@ public class FillHandler extends ClientPlayerTickHandler {
                         .queueAction(blockPos, getPlayerPlacementDirection(), false, player);
             }
             didWorkThisTick = true;
+            addHighlight(blockPos, HighlightType.PLACE);
             ActionManager.INSTANCE.setLook(action.getPlayerLook());
             ActionManager.INSTANCE.setNeedWaitModifyLookFromAction(action.getNeedWaitModifyLook());
             if (ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook){
