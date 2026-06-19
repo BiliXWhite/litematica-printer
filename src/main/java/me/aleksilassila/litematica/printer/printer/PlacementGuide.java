@@ -636,11 +636,11 @@ public class PlacementGuide {
                     Direction facing;
                     if (ctx.requiredState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
                         facing = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING);
+                        if (
                         //#if MC >= 11904
-                        if (block instanceof DecoratedPotBlock
-                                || block instanceof CampfireBlock)
-                            facing = facing.getOpposite();
+                        block instanceof DecoratedPotBlock ||
                         //#endif
+                        block instanceof CampfireBlock) facing = facing.getOpposite();
                         action.setSides(facing).setLookDirection(facing.getOpposite());
                     }
                     if (ctx.requiredState.hasProperty(BlockStateProperties.FACING)) {
