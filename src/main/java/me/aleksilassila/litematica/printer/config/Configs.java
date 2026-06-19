@@ -76,6 +76,19 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         HOTKEYS = ImmutableList.copyOf(hotkeys);
     }
 
+    public static ImmutableList<IConfigBase> All = ImmutableList.<IConfigBase>builder()
+            .addAll(Core.OPTIONS)
+            .addAll(Placement.OPTIONS)
+            .addAll(Break.OPTIONS)
+            .addAll(Hotkeys.OPTIONS)
+            .addAll(Hotkeys.OPTIONS)
+            .addAll(Print.OPTIONS)
+            .addAll(Mine.OPTIONS)
+            .addAll(Fill.OPTIONS)
+            .addAll(Fluid.OPTIONS)
+            .addAll(Highlight.OPTIONS)
+            .build();
+
     public static class Core {
         // 打印状态
         public static final ConfigBooleanHotkeyed WORK_SWITCH = booleanHotkey("workingSwitch")
