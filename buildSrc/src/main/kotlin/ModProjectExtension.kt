@@ -78,9 +78,9 @@ private fun getFullProjectVersion(modVersion: String): String {
 
     return when {
         isRelease   -> modVersion
-        isPR        -> "${modVersion}-${commitHash}-${commitCount}-pr"
+        isPR        -> "${modVersion}-${commitCount}-${commitHash}-pr"
         else        -> "${modVersion}-${
-            if (isCi) "${commitHash}-${commitCount}-ci"
+            if (isCi) "${commitCount}-${commitHash}-ci"
             else "${timestampMillis}-development"
         }"
     }
