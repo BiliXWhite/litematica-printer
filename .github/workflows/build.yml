@@ -61,7 +61,7 @@ jobs:
 
       - name: Build fabricWrapper subproject
         run: ./gradlew :fabricWrapper:build
-        with:
+        env:
           PR_BUILD: ${{ inputs.pr_build }}
 
       - name: Capture versionpack artifacts
