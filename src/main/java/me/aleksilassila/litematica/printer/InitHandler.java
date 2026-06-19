@@ -6,6 +6,8 @@ import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.gui.ConfigUi;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
+import fi.dy.masa.malilib.event.RenderEventHandler;
+import me.aleksilassila.litematica.printer.render.BlockHighlightRenderer;
 import me.aleksilassila.litematica.printer.render.MissingMaterialHudRenderer;
 import me.aleksilassila.litematica.printer.utils.ModUtils;
 import me.aleksilassila.litematica.printer.utils.bedrock.BedrockUtils;
@@ -17,6 +19,8 @@ public class InitHandler implements IInitializationHandler {
         initConfigCallback();
         fi.dy.masa.litematica.render.infohud.InfoHud.getInstance()
                 .addInfoHudRenderer(MissingMaterialHudRenderer.INSTANCE, true);
+
+        RenderEventHandler.getInstance().registerWorldLastRenderer(new BlockHighlightRenderer());
     }
 
     private void initConfigCallback() {
