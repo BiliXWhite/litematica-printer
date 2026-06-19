@@ -4,9 +4,11 @@ on:
     paths-ignore: ['*.md']
   workflow_dispatch:
   workflow_call:
-
-env:
-  IS_THIS_CI: true
+    inputs:
+      pr_build:
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   build:
@@ -59,6 +61,8 @@ jobs:
 
       - name: Build fabricWrapper subproject
         run: ./gradlew :fabricWrapper:build
+        with:
+          PR_BUILD: ${{ inputs.pr_build }}
 
       - name: Capture versionpack artifacts
         uses: actions/upload-artifact@v7
