@@ -32,6 +32,8 @@
   "litematica-printer.config.breakUsePacket.desc": "以發送包絡替代尋常破石之法，可致玄妙加速之效。",
   "litematica-printer.config.breakWhitelist": "自定允採冊",
   "litematica-printer.config.breakWhitelist.desc": "僅採此冊所列之石。格式同禁採冊。",
+  "litematica-printer.config.category.all": "All",
+  "litematica-printer.config.category.all.desc": "All settings",
   "litematica-printer.config.category.bedrock": "§6破基巖",
   "litematica-printer.config.category.bedrock.desc": "鑿基巖模式之設令",
   "litematica-printer.config.category.break": "破石",
