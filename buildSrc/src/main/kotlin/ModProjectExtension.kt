@@ -77,7 +77,7 @@ private fun getFullProjectVersion(modVersion: String): String {
     val timestampMillis = System.currentTimeMillis()
 
     return when {
-        isRelease   -> "${modVersion}-${commitCount}-release"
+        isRelease   -> modVersion
         isPR        -> "${modVersion}-${commitHash}-${commitCount}-pr"
         else        -> "${modVersion}-${
             if (isCi) "${commitHash}-${commitCount}-ci"
