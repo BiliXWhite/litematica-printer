@@ -64,6 +64,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         optionSet.addAll(Mine.OPTIONS);           // 挖掘
         optionSet.addAll(Fill.OPTIONS);           // 填充
         optionSet.addAll(Fluid.OPTIONS);          // 排流体
+        optionSet.addAll(Highlight.OPTIONS);      // 高亮
         OPTIONS = ImmutableList.copyOf(optionSet);
 
         List<IHotkey> hotkeys = new ArrayList<>();
@@ -622,6 +623,61 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 FILL_FLOWING_FLUID,           // 排流体 - 填充流动液体
                 FLUID_REPLACE_BLOCK_LIST,             // 排流体 - 方块名单
                 FLUID_LIST                    // 排流体 - 液体名单
+        );
+    }
+
+    public static class Highlight {
+        // 启用方块高亮
+        public static final ConfigBoolean HIGHLIGHT_ENABLED = booleanValue("highlightEnabled")
+                .defaultValue(false)
+                .build();
+
+        // 成功放置颜色
+        public static final ConfigColor HIGHLIGHT_COLOR_PLACE = color("highlightColorPlace")
+                .defaultValue("#80FFFFFF")
+                .build();
+
+        // 调整颜色（填充/流体）
+        public static final ConfigColor HIGHLIGHT_COLOR_ADJUST = color("highlightColorAdjust")
+                .defaultValue("#8000FF00")
+                .build();
+
+        // 破坏方块颜色
+        public static final ConfigColor HIGHLIGHT_COLOR_BREAK = color("highlightColorBreak")
+                .defaultValue("#80FF0000")
+                .build();
+
+        // 放置失败颜色
+        public static final ConfigColor HIGHLIGHT_COLOR_FAILED = color("highlightColorFailed")
+                .defaultValue("#80808080")
+                .build();
+
+        // 高亮样式
+        public static final ConfigOptionList HIGHLIGHT_STYLE = optionList("highlightStyle")
+                .defaultValue(HighlightStyleType.OUTLINE)
+                .build();
+
+        // 完成后渐隐时长（单位0.1秒，10=1秒）
+        public static final ConfigInteger HIGHLIGHT_FADE_DURATION = integerValue("highlightFadeDuration")
+                .defaultValue(5)
+                .range(1, 100)
+                .useSlider(true)
+                .build();
+
+        // 透视模式（透过方块查看）
+        public static final ConfigBoolean HIGHLIGHT_THROUGH_WALLS = booleanValue("highlightThroughWalls")
+                .defaultValue(false)
+                .build();
+
+        public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
+                HIGHLIGHT_ENABLED,
+                HIGHLIGHT_COLOR_PLACE,
+                HIGHLIGHT_COLOR_ADJUST,
+                HIGHLIGHT_COLOR_BREAK,
+                HIGHLIGHT_COLOR_FAILED,
+                HIGHLIGHT_STYLE,
+                HIGHLIGHT_FADE_DURATION,
+                HIGHLIGHT_THROUGH_WALLS
         );
     }
 

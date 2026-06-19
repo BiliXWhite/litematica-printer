@@ -34,6 +34,16 @@ public class I18n {
     public static final I18n UPDATE_RECOMMENDATION = of("update.recommendation");
     public static final I18n UPDATE_REPOSITORY = of("update.repository");
 
+    public static final I18n HIGHLIGHT_ENABLED = of("highlightEnabled");
+    public static final I18n HIGHLIGHT_COLOR = of("highlightColor");
+    public static final I18n HIGHLIGHT_COLOR_PLACE = of("highlightColorPlace");
+    public static final I18n HIGHLIGHT_COLOR_ADJUST = of("highlightColorAdjust");
+    public static final I18n HIGHLIGHT_COLOR_BREAK = of("highlightColorBreak");
+    public static final I18n HIGHLIGHT_COLOR_FAILED = of("highlightColorFailed");
+    public static final I18n HIGHLIGHT_STYLE = of("highlightStyle");
+    public static final I18n HIGHLIGHT_FADE_DURATION = of("highlightFadeDuration");
+    public static final I18n HIGHLIGHT_THROUGH_WALLS = of("highlightThroughWalls");
+
     private static final String PREFIX_CONFIG = "config";
     private static final String PREFIX_COMMENT = "desc";
 
