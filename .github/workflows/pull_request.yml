@@ -1,0 +1,11 @@
+name: pull_request
+
+on:
+  pull_request:
+
+env:
+  IS_THIS_PR: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
