@@ -33,6 +33,8 @@
   "litematica-printer.config.breakUsePacket.desc": "Use sending mining packets instead of conventional mining logic, which can theoretically speed up mining efficiency.",
   "litematica-printer.config.breakWhitelist": "Custom Whitelist",
   "litematica-printer.config.breakWhitelist.desc": "Only allow mining blocks in this list.\nCan input item ID or translated name in current language, example: §bminecraft:stone§r §bsandstone§r.\nPrefix §b#§r for tag matching, example: §l#minecraft:logs§r.\nInput text and filter conditions simultaneously (separated by English comma), example: §lglazed_terracotta,c§r.\nWhere \"c\" represents contains matching, prioritizing pinyin or direct matching.",
+  "litematica-printer.config.category.all": "All",
+  "litematica-printer.config.category.all.desc": "All settings",
   "litematica-printer.config.category.bedrock": "§6Bedrock Breaking",
   "litematica-printer.config.category.bedrock.desc": "Bedrock mining mode related settings",
   "litematica-printer.config.category.break": "Breaking Blocks",

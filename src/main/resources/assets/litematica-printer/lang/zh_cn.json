@@ -33,6 +33,8 @@
   "litematica-printer.config.breakUsePacket.desc": "用发送挖掘数据包代替常规挖掘逻辑，在玄学上可以加快挖掘效率。",
   "litematica-printer.config.breakWhitelist": "自定义白名单",
   "litematica-printer.config.breakWhitelist.desc": "仅允许挖掘此列表中的方块。\n可输入物品ID或当前语言的翻译名称，示例：§bminecraft:stone§r §b砂岩§r。\n前缀添加§b#§r表示标签匹配，示例：§l#minecraft:logs§r。\n同时输入文本和过滤条件(英文逗号分隔)，示例：§l带釉陶瓦,c§r。\n其中“c”表示包含匹配，优先尝试拼音或直接匹配。",
+  "litematica-printer.config.category.all": "全部",
+  "litematica-printer.config.category.all.desc": "全部设置",
   "litematica-printer.config.category.bedrock": "§6破基岩",
   "litematica-printer.config.category.bedrock.desc": "基岩挖掘模式相关设置",
   "litematica-printer.config.category.break": "破坏方块",

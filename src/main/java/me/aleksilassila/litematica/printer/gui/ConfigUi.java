@@ -75,6 +75,7 @@ public class ConfigUi extends GuiConfigsBase {
     }
 
     public enum Tab {
+        ALL(I18n.of("category.all")),
         CORE(I18n.of("category.core")),
         PLACEMENT(I18n.of("category.placement")),
         BREAK(I18n.of("category.break")),
@@ -101,15 +102,16 @@ public class ConfigUi extends GuiConfigsBase {
 
         public ImmutableList<IConfigBase> getConfigs() {
             return switch (this) {
-                case CORE -> Configs.Core.OPTIONS;
-                case PLACEMENT -> Configs.Placement.OPTIONS;
-                case BREAK -> Configs.Break.OPTIONS;
-                case PRINT -> Configs.Print.OPTIONS;
-                case EXCAVATE -> Configs.Mine.OPTIONS;
-                case FILL -> Configs.Fill.OPTIONS;
-                case FLUID -> Configs.Fluid.OPTIONS;
-                case HIGHLIGHT -> Configs.Highlight.OPTIONS;
-                case HOTKEYS -> Configs.Hotkeys.OPTIONS;
+                case ALL        -> Configs.All;
+                case CORE       -> Configs.Core.OPTIONS;
+                case PLACEMENT  -> Configs.Placement.OPTIONS;
+                case BREAK      -> Configs.Break.OPTIONS;
+                case PRINT      -> Configs.Print.OPTIONS;
+                case EXCAVATE   -> Configs.Mine.OPTIONS;
+                case FILL       -> Configs.Fill.OPTIONS;
+                case FLUID      -> Configs.Fluid.OPTIONS;
+                case HIGHLIGHT  -> Configs.Highlight.OPTIONS;
+                case HOTKEYS    -> Configs.Hotkeys.OPTIONS;
             };
         }
     }

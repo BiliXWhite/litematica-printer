@@ -1,11 +1,15 @@
 name: build
 on:
   push:
+    branches: ['**'] # stop build tag commits
     paths-ignore: ['*.md']
   workflow_dispatch:
-
-env:
-  IS_THIS_CI: true
+  workflow_call:
+    inputs:
+      pr_build:
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   build:
@@ -58,6 +62,8 @@ jobs:
 
       - name: Build fabricWrapper subproject
         run: ./gradlew :fabricWrapper:build
+        env:
+          PR_BUILD: ${{ inputs.pr_build }}
 
       - name: Capture versionpack artifacts
         uses: actions/upload-artifact@v7
