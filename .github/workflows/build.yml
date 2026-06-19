@@ -3,6 +3,7 @@ on:
   push:
     paths-ignore: ['*.md']
   workflow_dispatch:
+  workflow_call:
 
 env:
   IS_THIS_CI: true
