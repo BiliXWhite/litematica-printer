@@ -569,7 +569,10 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
      * 添加一个高亮方块到队列
      */
     protected void addHighlight(BlockPos pos, HighlightType type) {
-        pendingHighlights.add(new PendingHighlight(pos.immutable(), System.currentTimeMillis(), type));
+        BlockPos immutable = pos.immutable();
+        // 如果同一位置已有未完成的高亮，替换为最新的请求
+        pendingHighlights.removeIf(ph -> ph.pos().equals(immutable));
+        pendingHighlights.add(new PendingHighlight(immutable, System.currentTimeMillis(), type));
     }
 
     /**
