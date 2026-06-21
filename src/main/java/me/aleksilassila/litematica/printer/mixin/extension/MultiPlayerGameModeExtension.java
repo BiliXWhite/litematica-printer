@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.mixin_extension;
+package me.aleksilassila.litematica.printer.mixin.extension;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

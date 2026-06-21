@@ -5,7 +5,7 @@ import fi.dy.masa.malilib.config.IConfigNotifiable;
 import fi.dy.masa.malilib.config.IConfigResettable;
 import fi.dy.masa.malilib.config.options.ConfigBase;
 import fi.dy.masa.malilib.util.StringUtils;
-import me.aleksilassila.litematica.printer.mixin_extension.ConfigExtension;
+import me.aleksilassila.litematica.printer.mixin.extension.ConfigExtension;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

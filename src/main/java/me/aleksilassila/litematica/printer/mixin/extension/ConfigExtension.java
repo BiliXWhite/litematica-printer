@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.mixin_extension;
+package me.aleksilassila.litematica.printer.mixin.extension;
 
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.options.ConfigBase;
