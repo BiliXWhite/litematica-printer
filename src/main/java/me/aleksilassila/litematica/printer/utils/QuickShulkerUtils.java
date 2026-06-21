@@ -97,6 +97,11 @@ public class QuickShulkerUtils {
                 break;
             case MOD:
             default:
+                if (!QUICK_SHULKER_LOADED) {
+                    isOpenHandler = false;
+                    shulkerBoxSlot = -1;
+                    return;
+                }
                 openShulkerViaMod(stack, inventorySlot);
                 break;
         }
@@ -247,13 +252,20 @@ public class QuickShulkerUtils {
             Iterator<Item> it = itemsToReturn.iterator();
             while (it.hasNext()) {
                 Item returnItem = it.next();
-                // Find this item anywhere in the player's inventory
-                for (int i = 0; i < inventory.getContainerSize(); i++) {
+                for (int i = 0; i < Math.min(inventory.getContainerSize(), 36); i++) {
                     if (inventory.getItem(i).is(returnItem)) {
                         // Find an empty shulker slot to return it to
                         for (Slot s : container.slots) {
                             if (!s.hasItem()) {
-                                fi.dy.masa.malilib.util.InventoryUtils.swapSlots(container, s.index, i);
+                                int ownSlots = container.slots.size() - 36;
+                                int containerSource;
+                                if (i < 9) {
+                                    containerSource = ownSlots + 27 + i;
+                                } else {
+                                    containerSource = ownSlots + (i - 9);
+                                }
+                                mc.gameMode.handleInventoryMouseClick(container.containerId, containerSource, 0, ClickType.PICKUP, player);
+                                mc.gameMode.handleInventoryMouseClick(container.containerId, s.index, 0, ClickType.PICKUP, player);
                                 it.remove();
                                 break;
                             }
