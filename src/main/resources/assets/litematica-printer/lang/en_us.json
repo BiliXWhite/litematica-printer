@@ -238,7 +238,7 @@
   "litematica-printer.config.workRange.desc": "Printer's maximum work radius centered on player (blocks).\n§a0 (default)§r: Auto-uses player's reach (creative §b6§r, survival §b4.5§r, server-enforced).\n§a> 0§r: Custom override (may exceed server limits).\nThis parameter is associated with §6§lIteration Area Shape§r.",
   "litematica-printer.config.workingSwitch": "Work Switch",
   "litematica-printer.config.workingSwitch.desc": "Global switch for printer.",
-  "litematica-printer.free_notice": "Multilingual translation needs improvement, help us please",
+  "litematica-printer.free_notice": "This mod requires further i18n and l10n. If you do, thank you!",
   "litematica-printer.menu.settings_button": "Printer Settings",
   "litematica-printer.message.toggled": "%s has been toggled to %s",
   "litematica-printer.message.value.off": "Off",
