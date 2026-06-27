@@ -216,12 +216,26 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         // 队列消费：依次 poll 所有操作，当前 handler 能处理的就执行，不能处理的放回队尾
         // 这保证了 repair op 总能到达正确的 handler，不会被 GUI 等 handler 误消费
         // 注意：队列操作也计入 execCount，确保不会超过每 tick 最大执行次数
+        // 注意：队列路径必须与 iterateBlocks() 使用相同的范围检查，
+        // 否则 repair op 会绕过 isSchematicBlock / renderLayer / selectionType 过滤。
         if (shouldProcessQueue()) {
             int ops = OperationQueue.INSTANCE.size();
             for (int i = 0; i < ops && !skipIteration.get(); i++) {
                 QueuedOperation op = OperationQueue.INSTANCE.poll();
                 if (op == null) break;
                 if (!isOnCooldown(op.getPos()) && canProcessPos(op.getPos())) {
+                    // 范围检查（与 iterateBlocks 中的 needRangeCheck 一致）
+                    if (needsRangeCheck()) {
+                        if (isSchematicHandler()
+                                ? !SchematicSnapshot.INSTANCE.contains(op.getPos())
+                                : !LitematicaUtils.isWithinSelection1ModeRange(op.getPos())) {
+                            // 位置不在有效范围/子区域中 — 直接丢弃操作，不放回队尾
+                            continue;
+                        }
+                        if (selectionType != null && !PlayerUtils.isPositionInSelectionRange(player, op.getPos(), selectionType)) {
+                            continue;
+                        }
+                    }
                     executeIteration(op.getPos(), skipIteration);
                     didWorkThisTick = true;
                     if (maxExecs > 0 && ++execCount >= maxExecs) {
@@ -313,7 +327,9 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             int minZ = (int) Math.floor(player.getZ() - effectiveRange);
             int maxZ = (int) Math.ceil(player.getZ() + effectiveRange);
 
-            // Clamp box to the active render layer so we never iterate outside it
+            // Clamp box to the active render layer so we never iterate outside it.
+            // 只有 selectionType = LITEMATICA_RENDER_LAYER 时才裁剪迭代框，
+            // 其他选区类型（LITEMATICA_SELECTION 等）不受渲染层限制。
             if (selectionType != null
                     && selectionType.getOptionListValue() instanceof SelectionType st
                     && st == SelectionType.LITEMATICA_RENDER_LAYER

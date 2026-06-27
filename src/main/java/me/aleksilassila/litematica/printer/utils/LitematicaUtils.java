@@ -1,7 +1,9 @@
 package me.aleksilassila.litematica.printer.utils;
 
 import fi.dy.masa.litematica.data.DataManager;
+import fi.dy.masa.litematica.schematic.placement.SchematicPlacement;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacementManager;
+import fi.dy.masa.litematica.schematic.placement.SubRegionPlacement;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.litematica.selection.Box;
 import fi.dy.masa.litematica.selection.SelectionMode;
@@ -13,6 +15,7 @@ import me.aleksilassila.litematica.printer.printer.PrinterBox;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -45,10 +48,13 @@ public class LitematicaUtils {
         return null;
     }
     /**
-     * 判断位置是否位于当前加载的投影范围内。
+     * 判断位置是否位于当前加载的投影范围内，并且子区域在 Litematica 中是可见的（已启用且渲染已开启）。
+     * <p>
+     * 与 Litematica 自身保持一致：只返回在已启用且渲染已开启的子区域中的方块。
+     * 如果位置属于已禁用或渲染已关闭的子区域，则返回 false。
      *
      * @param pos 要检测的方块位置
-     * @return 如果位置属于图纸结构的一部分，则返回 true，否则返回 false
+     * @return 如果位置属于可见的图纸结构部分，则返回 true，否则返回 false
      */
     public static boolean isSchematicBlock(BlockPos pos) {
         SchematicPlacementManager schematicPlacementManager = DataManager.getSchematicPlacementManager();
@@ -64,10 +70,35 @@ public class LitematicaUtils {
             //#else
             if (placementPart.getBox().containsPos(pos)) {
             //#endif
-                return true;
+                // Litematica 本身已按子区域粒度追踪 PlacementPart。
+                // 检查与该位置对应的子区域是否已启用且渲染已开启。
+                SubRegionPlacement subRegion = getSubRegionForPlacementPart(placementPart);
+                if (subRegion != null && subRegion.isEnabled()) {
+                    //#if MC >= 12100
+                    // RENDERING_ENABLED 要求子区域同时满足 isEnabled() && isRenderingEnabled()
+                    if (subRegion.matchesRequirement(SubRegionPlacement.RequiredEnabled.RENDERING_ENABLED)) {
+                        return true;
+                    }
+                    //#else
+                    //$$ return true;
+                    //#endif
+                } else if (subRegion == null) {
+                    // 找不到子区域信息时回退到旧版行为（通过所有检查）
+                    return true;
+                }
             }
         }
         return false;
+    }
+
+    @Nullable
+    private static SubRegionPlacement getSubRegionForPlacementPart(SchematicPlacementManager.PlacementPart part) {
+        SchematicPlacement placement = part.getPlacement();
+        String subName = part.getSubRegionName();
+        if (placement != null && subName != null) {
+            return placement.getRelativeSubRegionPlacement(subName);
+        }
+        return null;
     }
 
     public static boolean isWithinSelection1ModeRange(BlockPos pos) {
