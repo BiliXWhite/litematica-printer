@@ -295,11 +295,7 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         // Pre-fetch layer state for rebuild detection and box clamping
         LayerRange layerRange = DataManager.getRenderLayerRange();
         LayerMode layerMode = layerRange.getLayerMode();
-        //#if MC >= 260200
-        //$$ Direction.Axis layerAxis = layerRange.getAxis().toVanilla();
-        //#else
         Direction.Axis layerAxis = layerRange.getAxis();
-        //#endif
         int layerMin = layerRange.getLayerMin();
         int layerMax = layerRange.getLayerMax();
 
