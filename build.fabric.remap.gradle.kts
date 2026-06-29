@@ -1,7 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-import groovy.json.JsonSlurper
-
 plugins {
     id("mod-plugin")
     id("maven-publish")
@@ -17,21 +15,20 @@ repositories {
     maven("https://maven.fallenbreath.me/releases") { name = "FallenBreath" }
     maven("https://api.modrinth.com/maven") { name = "Modrinth" }
     maven("https://www.cursemaven.com") { name = "CurseMaven" }
-    maven("https://maven.terraformersmc.com/releases") { name = "TerraformersMC" } // ModMenu 源
-    maven("https://maven.nucleoid.xyz") { name = "Nucleoid" }  // ModMenu依赖 Text Placeholder API
+    maven("https://maven.terraformersmc.com/releases") { name = "TerraformersMC" }
+    maven("https://maven.nucleoid.xyz") { name = "Nucleoid" }
     maven("https://masa.dy.fi/maven") { name = "Masa" }
     maven("https://masa.dy.fi/maven/sakura-ryoko") { name = "SakuraRyoko" }
-    maven("https://maven.kyrptonaught.dev") { name = "Kyrptonaught" }   // KyrptConfig 依赖
+    maven("https://maven.kyrptonaught.dev") { name = "Kyrptonaught" }
     maven("https://jitpack.io") { name = "Jitpack" }
-    maven("https://mvnrepository.com/artifact/com.belerweb/pinyin4j") { // 拼音库
+    maven("https://mvnrepository.com/artifact/com.belerweb/pinyin4j") {
         name = "Pinyin4j"
-        content {
-            includeGroupAndSubgroups("com.belerweb")
-        }
+        content { includeGroupAndSubgroups("com.belerweb") }
     }
+    mavenLocal()
 }
 
-// https://github.com/FabricMC/fabric-loader/issues/783
+// 锁定依赖版本防冲突
 configurations.all {
     resolutionStrategy {
         force("net.fabricmc:fabric-loader:$fabricLoaderVersion")
@@ -51,11 +48,12 @@ dependencies {
 
     modImplementation("com.terraformersmc:modmenu:${prop("modmenu")}")
 
-    if (mcVersionInt >= 12101) {    // use https://masa.dy.fi/maven/sakura-ryoko
+    // 1.21.1+ 用 sakura-ryoko 源, 更低版本走 modrinth
+    if (mcVersionInt >= 12101) {
         modImplementation("fi.dy.masa.malilib:${prop("malilib")}")
         modImplementation("fi.dy.masa.litematica:${prop("litematica")}")
         modImplementation("fi.dy.masa.tweakeroo:${prop("tweakeroo")}")
-    } else { //mcVersionInt < 12101 // use https://api.modrinth.com/maven
+    } else {
         modImplementation("maven.modrinth:malilib:${prop("malilib_dependency")}")
         modImplementation("maven.modrinth:litematica:${prop("litematica_dependency")}")
         modImplementation("maven.modrinth:tweakeroo:${prop("tweakeroo_dependency")}")
@@ -70,15 +68,17 @@ dependencies {
                 modImplementation(files(quickshulkerFile))
             }
         }
-        if (mcVersionInt == 12006) {  // 1.20.6 是 Haocen2004/quickshulker 分支, 所以还是使用之前老版本的依赖
-            modImplementation("net.kyrptonaught:kyrptconfig:${prop("kyrptconfig")}")
-        } else {
             modImplementation("me.fallenbreath:conditional-mixin-fabric:0.6.4")
-        }
     } else {
         modImplementation("curse.maven:quick-shulker-362669:${prop("quick_shulker")}")
+    }
+
+    if (mcVersionInt <= 12006) {
         modImplementation("net.kyrptonaught:kyrptconfig:${prop("kyrptconfig")}")
     }
+
+    // remote-inventory-next - provides remote container protocol support
+    modImplementation("dev.blinkwhite.remoteinventory:remote-inventory-next-${mcVersion}:${prop("remote_inventory_version")}")
 }
 
 loom {
@@ -94,9 +94,9 @@ loom {
     }
 }
 
-
 tasks {
     register<Copy>("buildAndCollect") {
+        description = "构建并收集重映射后的 jar 到 build/libs 目录"
         group = "build"
         from(remapJar.map { it.archiveFile })
         into(rootProject.layout.buildDirectory.file("libs/${project.property("mod_version")}"))
@@ -114,8 +114,6 @@ publishing {
     }
     repositories {
         mavenLocal()
-        maven {
-            url = uri("$rootDir/publish")
-        }
+        maven { url = uri("$rootDir/publish") }
     }
 }

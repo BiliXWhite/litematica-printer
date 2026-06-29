@@ -14,6 +14,7 @@ import fi.dy.masa.malilib.config.ConfigManager;
 import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.enums.*;
 import me.aleksilassila.litematica.printer.gui.ConfigUi;
+import me.aleksilassila.litematica.printer.utils.ModUtils;
 import net.minecraft.world.level.block.Blocks;
 
 import java.io.File;
@@ -48,6 +49,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
     private static final BooleanSupplier isExcavateWhitelist = () -> isExcavateCustom.getAsBoolean() && Mine.EXCAVATE_LIMIT.getOptionListValue().equals(UsageRestriction.ListType.WHITELIST);
     private static final BooleanSupplier isExcavateBlacklist = () -> isExcavateCustom.getAsBoolean() && Mine.EXCAVATE_LIMIT.getOptionListValue().equals(UsageRestriction.ListType.BLACKLIST);
     private static final BooleanSupplier isBlocklist = () -> Fill.FILL_BLOCK_MODE.getOptionListValue().equals(FillBlockModeType.BLOCKLIST);
+    private static final BooleanSupplier isRemoteInventoryLoaded = ModUtils::isRemoteInventoryNextLoaded;
 
 
     public static final ImmutableList<IConfigBase> OPTIONS;
@@ -464,6 +466,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         // 使用远程容器材料
         public static final ConfigBooleanHotkeyed USE_REMOTE_CONTAINER = booleanHotkey("useRemoteContainer")
                 .defaultValue(false)
+                .setVisible(isRemoteInventoryLoaded)
                 .build();
 
         // 远程交互最大距离（0 = 无限）
@@ -471,11 +474,13 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(32.0)
                 .range(0.0, 256.0)
                 .useSlider(true)
+                .setVisible(isRemoteInventoryLoaded)
                 .build();
 
         // 远程容器方块列表
         public static final ConfigStringList REMOTE_CONTAINER_BLOCKS = stringListValue("remoteContainerBlocks")
                 .defaultValue("minecraft:chest", "minecraft:trapped_chest", "minecraft:barrel")
+                .setVisible(isRemoteInventoryLoaded)
                 .build();
 
         // 使用快捷潜影盒
@@ -502,12 +507,14 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         // 背包满时有序放回远程容器
         public static final ConfigBoolean RETURN_TO_CONTAINER_WHEN_FULL = booleanValue("returnToContainerWhenFull")
                 .defaultValue(true)
+                .setVisible(isRemoteInventoryLoaded)
                 .build();
 
         // 远程容器回塞节流（tick）
         public static final ConfigInteger CONTAINER_RETURN_INTERVAL = integerValue("containerReturnInterval")
                 .defaultValue(60)
                 .range(1, 200)
+                .setVisible(isRemoteInventoryLoaded)
                 .build();
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(

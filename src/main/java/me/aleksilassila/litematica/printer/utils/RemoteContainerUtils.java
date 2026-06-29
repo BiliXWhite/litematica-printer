@@ -6,12 +6,13 @@ import fi.dy.masa.litematica.selection.Box;
 import fi.dy.masa.litematica.selection.SelectionMode;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.enums.RemoteResultType;
-import me.aleksilassila.litematica.printer.network.RemoteInventoryNetwork;
-import me.aleksilassila.litematica.printer.network.payload.RemoteExchangeResultPayload;
+import dev.blinkwhite.remoteinventory.client.ContainerItemCache;
+import dev.blinkwhite.remoteinventory.client.ContainerReturnTracker;
+import dev.blinkwhite.remoteinventory.client.RemoteInventoryClient;
+import dev.blinkwhite.remoteinventory.enums.ResultType;
+import dev.blinkwhite.remoteinventory.network.payload.RemoteExchangeResultPayload;
+import dev.blinkwhite.remoteinventory.network.payload.ScanContainerResultPayload;
 import me.aleksilassila.litematica.printer.printer.PrinterBox;
-import me.aleksilassila.litematica.printer.container.ContainerItemCache;
-import me.aleksilassila.litematica.printer.container.ContainerReturnTracker;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -28,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Environment(EnvType.CLIENT)
 public class RemoteContainerUtils {
     private static final Minecraft mc = Minecraft.getInstance();
+    private static final boolean REMOTE_INVENTORY_LOADED = ModUtils.isRemoteInventoryNextLoaded();
 
     private static final Set<BlockPos> knownContainers = new HashSet<>();
     private static List<BlockPos> containerList = new ArrayList<>();
@@ -51,12 +53,15 @@ public class RemoteContainerUtils {
     }
 
     public static void init() {
+        if (!REMOTE_INVENTORY_LOADED) return;
         //#if MC >= 12005
-        RemoteInventoryNetwork.setExchangeCallback(RemoteContainerUtils::onExchangeResult);
+        RemoteInventoryClient.setExchangeCallback(RemoteContainerUtils::onExchangeResult);
+        //#elseif MC >= 12001
+        //$$ RemoteInventoryClient.setExchangeCallback(RemoteContainerUtils::onExchangeResultLegacyNoDelta);
         //#else
-        //$$ RemoteInventoryNetwork.setResultCallback(RemoteContainerUtils::onGetItemResultLegacy);
+        //$$ RemoteInventoryClient.setExchangeCallback(RemoteContainerUtils::onExchangeResultLegacyWithDelta);
         //#endif
-        RemoteInventoryNetwork.setScanResultCallback(RemoteContainerUtils::onScanResult);
+        RemoteInventoryClient.setScanResultCallback(RemoteContainerUtils::onScanResult);
     }
 
     public static void tick() {
@@ -68,7 +73,7 @@ public class RemoteContainerUtils {
 
     //#if MC >= 12005
     // exchange 回包先修正本地背包（消除 stale inventory race），再更新 tracker/缓存
-    private static void onExchangeResult(BlockPos pos, RemoteResultType takeResult,
+    private static void onExchangeResult(BlockPos pos, ResultType takeResult,
                                           int takenCount, int returnedCount,
                                           List<RemoteExchangeResultPayload.SlotSnapshot> inventoryDelta) {
         PendingExchange pending = pendingExchange;
@@ -92,22 +97,25 @@ public class RemoteContainerUtils {
         if (takenCount > 0 && !pending.takeItemId().isEmpty()) {
             ContainerReturnTracker.INSTANCE.track(pending.takePos(), pending.takeItemId());
             ContainerItemCache.INSTANCE.recordTake(pending.takePos(), pending.takeSlot(), takenCount);
-            if (takeResult == RemoteResultType.SUCCESS)
+            if (takeResult == ResultType.SUCCESS)
                 fetchStates.remove(pending.takeItemId());
         } else if (pending.takeSlot() >= 0 && !pending.takeItemId().isEmpty()
                 && takenCount <= 0
-                && takeResult != RemoteResultType.SUCCESS
-                && takeResult != RemoteResultType.PARTIAL) {
+                && takeResult != ResultType.SUCCESS
+                && takeResult != ResultType.PARTIAL) {
             ContainerItemCache.INSTANCE.invalidate(pending.takePos());
         }
 
         for (ItemFetchState s : fetchStates.values()) s.requestPending = false;
     }
+    //#elseif MC >= 12001
+    //$$ private static void onExchangeResultLegacyNoDelta(BlockPos pos, ResultType takeResult, int takenCount, int returnedCount) {}
     //#else
-    //$$ private static void onGetItemResultLegacy(BlockPos pos, RemoteResultType result) {}
+    //$$ private static void onExchangeResultLegacyWithDelta(BlockPos pos, ResultType takeResult, int takenCount, int returnedCount, List<RemoteExchangeResultPayload.SlotSnapshot> inventoryDelta) {}
     //#endif
 
     public static void scanContainerPos() {
+        if (!REMOTE_INVENTORY_LOADED) return;
         if (SchematicWorldHandler.getSchematicWorld() == null) return;
         knownContainers.clear();
         Level level = mc.level;
@@ -140,9 +148,7 @@ public class RemoteContainerUtils {
     }
 
     public static boolean tryGetItemFromContainers(Item item) {
-        //#if MC < 12005
-        //$$ return false;
-        //#else
+        if (!REMOTE_INVENTORY_LOADED) return false;
         long now = System.currentTimeMillis();
         if (now - lastScan > 5000) { scanContainerPos(); lastScan = now; }
         if (knownContainers.isEmpty()) { scanContainerPos(); if (knownContainers.isEmpty()) return false; }
@@ -166,14 +172,13 @@ public class RemoteContainerUtils {
             BlockPos pos = containerList.get(state.scanIndex++);
             if (!ContainerItemCache.INSTANCE.isCached(pos)) {
                 state.requestPending = true;
-                RemoteInventoryNetwork.sendScanContainerRequest(pos);
+                RemoteInventoryClient.sendScanContainerRequest(pos);
                 return true;
             }
         }
 
         state.reset();
         return false;
-        //#endif
     }
 
     private static void sendExchange(BlockPos takePos, String takeItemId, int takeSlot) {
@@ -204,7 +209,7 @@ public class RemoteContainerUtils {
 
         pendingExchange = new PendingExchange(takePos, takeItemId, takeSlot,
                 returnPos, returnItemId, returnCount);
-        RemoteInventoryNetwork.sendExchange(takePos, takeItemId, takeSlot,
+        RemoteInventoryClient.sendExchange(takePos, takeItemId, takeSlot,
                 returnPos, returnItemId, returnCount);
     }
 
@@ -233,8 +238,14 @@ public class RemoteContainerUtils {
     }
 
     private static void onScanResult(
-            me.aleksilassila.litematica.printer.network.payload.ScanContainerResultPayload payload) {
-        ContainerItemCache.INSTANCE.updateContainer(payload.getPos(), payload.getEntries());
+            ScanContainerResultPayload payload) {
+        ContainerItemCache.INSTANCE.updateContainer(
+                //#if MC >= 260102
+                //$$ payload.pos(), payload.entries()
+                //#else
+                payload.getPos(), payload.getEntries()
+                //#endif
+        );
         for (ItemFetchState s : fetchStates.values()) s.requestPending = false;
     }
 
@@ -260,6 +271,7 @@ public class RemoteContainerUtils {
 
     // 直接修改 mc.player.inventory 的 slot。服务端在 exchange result 里夹带了变动的 slot 快照，
     // 这样客户端不用等 vanilla inventory sync，立刻和服务器背包一致，消除 stale inventory race。
+    //#if MC >= 12005
     private static void applyInventoryDelta(List<RemoteExchangeResultPayload.SlotSnapshot> delta) {
         if (mc.player == null || delta.isEmpty()) return;
         for (RemoteExchangeResultPayload.SlotSnapshot s : delta) {
@@ -275,6 +287,7 @@ public class RemoteContainerUtils {
             }
         }
     }
+    //#endif
 
     private static Set<String> resolveContainerBlockIds() {
         Set<String> ids = new HashSet<>();
@@ -285,6 +298,7 @@ public class RemoteContainerUtils {
     }
 
     public static void reset() {
+        if (!REMOTE_INVENTORY_LOADED) return;
         fetchStates.clear();
         ContainerItemCache.INSTANCE.clear();
     }

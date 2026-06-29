@@ -52,6 +52,10 @@ public class ModUtils {
         return isLoadMod("tweakeroo");
     }
 
+    public static boolean isRemoteInventoryNextLoaded() {
+        return isLoadMod("remote-inventory-next");
+    }
+
     private static @Nullable Object tweakToolSwitchEnum;
     private static @Nullable Method trySwitchToEffectiveToolMethod;
     private static @Nullable Method getBooleanValueMethod;

@@ -15,15 +15,16 @@ repositories {
     maven("https://maven.fallenbreath.me/releases") { name = "FallenBreath" }
     maven("https://api.modrinth.com/maven") { name = "Modrinth" }
     maven("https://www.cursemaven.com") { name = "CurseMaven" }
-    maven("https://maven.terraformersmc.com/releases") { name = "TerraformersMC" } // ModMenu 源
-    maven("https://maven.nucleoid.xyz") { name = "Nucleoid" }  // ModMenu依赖 Text Placeholder API
+    maven("https://maven.terraformersmc.com/releases") { name = "TerraformersMC" }
+    maven("https://maven.nucleoid.xyz") { name = "Nucleoid" }
     maven("https://masa.dy.fi/maven") { name = "Masa" }
     maven("https://masa.dy.fi/maven/sakura-ryoko") { name = "SakuraRyoko" }
-    maven("https://maven.kyrptonaught.dev") { name = "Kyrptonaught" }   // KyrptConfig 依赖
+    maven("https://maven.kyrptonaught.dev") { name = "Kyrptonaught" }
     maven("https://jitpack.io") { name = "Jitpack" }
+    mavenLocal()
 }
 
-// https://github.com/FabricMC/fabric-loader/issues/783
+// 锁定依赖版本防冲突
 configurations.all {
     resolutionStrategy {
         force("net.fabricmc:fabric-loader:$fabricLoaderVersion")
@@ -40,6 +41,9 @@ dependencies {
     implementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
     implementation("com.belerweb:pinyin4j:${prop("pinyin_version")}")?.let { include(it) }
     implementation("com.terraformersmc:modmenu:${prop("modmenu")}")
+
+    // 远程容器
+    implementation("dev.blinkwhite.remoteinventory:remote-inventory-next-${mcVersion}:${prop("remote_inventory_version")}")
 
     // Masa
     implementation("fi.dy.masa.malilib:${prop("malilib")}")
@@ -71,6 +75,7 @@ loom {
 
 tasks {
     register<Copy>("buildAndCollect") {
+        description = "Build and collect the jar to the root project build directory"
         group = "build"
         from(jar.map { it.archiveFile })
         into(rootProject.layout.buildDirectory.file("libs/${project.property("mod_version")}"))
