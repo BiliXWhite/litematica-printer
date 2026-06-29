@@ -21,6 +21,13 @@ repositories {
     maven("https://masa.dy.fi/maven/sakura-ryoko") { name = "SakuraRyoko" }
     maven("https://maven.kyrptonaught.dev") { name = "Kyrptonaught" }
     maven("https://jitpack.io") { name = "Jitpack" }
+    maven("https://maven.pkg.github.com/BiliXWhite") {
+        name = "GitHub"
+        credentials {
+            username = System.getenv("GH_USERNAME") ?: ""
+            password = System.getenv("GH_TOKEN") ?: ""
+        }
+    }
     mavenLocal()
 }
 

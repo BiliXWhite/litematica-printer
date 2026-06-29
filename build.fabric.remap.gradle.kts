@@ -25,6 +25,13 @@ repositories {
         name = "Pinyin4j"
         content { includeGroupAndSubgroups("com.belerweb") }
     }
+    maven("https://maven.pkg.github.com/BiliXWhite") {
+        name = "GitHub"
+        credentials {
+            username = System.getenv("GH_USERNAME") ?: ""
+            password = System.getenv("GH_TOKEN") ?: ""
+        }
+    }
     mavenLocal()
 }
 
