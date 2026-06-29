@@ -25,7 +25,7 @@ repositories {
         name = "Pinyin4j"
         content { includeGroupAndSubgroups("com.belerweb") }
     }
-    maven("https://maven.pkg.github.com/BiliXWhite") {
+    maven("https://maven.pkg.github.com/BiliXWhite/remote-inventory-next") {
         name = "GitHub"
         credentials {
             username = System.getenv("GH_USERNAME") ?: ""
