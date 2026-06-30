@@ -256,7 +256,7 @@
   "litematica-printer.config.useRemoteContainer": "Использовать материалы из удалённых контейнеров",
   "litematica-printer.config.useRemoteContainer.desc": "При нехватке материалов в инвентаре пытается получить их из контейнеров в зоне выделения схемы через мод Remote Inventory Server, установленный на сервере.",
   "litematica-printer.config.remoteInteractionDistance": "Максимальная дистанция взаимодействия",
-  "litematica-printer.config.remoteInteractionDistance.desc": "Максимальное расстояние от игрока до контейнера для удалённого получения предметов. Контейнеры за пределами этого расстояния игнорируются. Установите 0 для неограниченного расстояния.",
+  "litematica-printer.config.remoteInteractionDistance.desc": "Максимальное расстояние от игрока до контейнера для удалённого получения предметов. Контейнеры за пределами этого расстояния игнорируются. Установите 0 для неограниченного расстояния.\n§7Подсказка: используйте §f/remoteinv§7 для изменения настроек удалённого взаимодействия.",
   "litematica-printer.config.remoteContainerBlocks": "Блоки удалённых контейнеров",
   "litematica-printer.config.remoteContainerBlocks.desc": "ID блоков, распознаваемых как контейнеры для удалённого получения предметов. Формат: minecraft:chest, minecraft:trapped_chest и т.д.",
   "litematica-printer.config.useQuickShulker": "Использовать Quick Shulker Boxes",
@@ -293,5 +293,8 @@
   "litematica-printer.config.highlightThroughWalls.desc": "Разрешить видимость подсветки сквозь блоки",
   "litematica-printer.config.highlightStyleType.outline": "Контур",
   "litematica-printer.config.highlightStyleType.filled": "Заливка",
-  "litematica-printer.config.highlightStyleType.both": "Оба"
+  "litematica-printer.config.highlightStyleType.both": "Оба",
+  "modmenu.nameTranslation.litematica-printer": "Litematica Printer",
+  "modmenu.descriptionTranslation.litematica-printer": "Расширение для Litematica, добавляющее недостающую функцию принтера, позволяющую автоматически строить по схемам.",
+  "modmenu.summaryTranslation.litematica-printer": "Авто-постройка схем с Litematica"
 }

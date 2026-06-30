@@ -256,7 +256,7 @@
   "litematica-printer.config.useRemoteContainer": "用遠器材",
   "litematica-printer.config.useRemoteContainer.desc": "囊缺材時，從投影選區內之器取。需伺服裝 Remote Inventory Server。",
   "litematica-printer.config.remoteInteractionDistance": "最大交距",
-  "litematica-printer.config.remoteInteractionDistance.desc": "玩家與器之最大遠取距，過此則忽。設0為無限。",
+  "litematica-printer.config.remoteInteractionDistance.desc": "玩家與器之最大遠取距，過此則忽。設0為無限。\n§7提示：可 §f/remoteinv§7 令改遠交互設。",
   "litematica-printer.config.remoteContainerBlocks": "遠器方列表",
   "litematica-printer.config.remoteContainerBlocks.desc": "視為器之方 ID 列表。格式：minecraft:chest, minecraft:trapped_chest 等。",
   "litematica-printer.config.useQuickShulker": "用捷潛影盒",
@@ -293,5 +293,8 @@
   "litematica-printer.config.highlightThroughWalls.desc": "允高亮透方而見",
   "litematica-printer.config.highlightStyleType.outline": "輪廓",
   "litematica-printer.config.highlightStyleType.filled": "填充",
-  "litematica-printer.config.highlightStyleType.both": "兼"
+  "litematica-printer.config.highlightStyleType.both": "兼",
+  "modmenu.nameTranslation.litematica-printer": "投影印機",
+  "modmenu.descriptionTranslation.litematica-printer": "Litematica 之擴展，補全所缺印機之能，可依圖自動營造。",
+  "modmenu.summaryTranslation.litematica-printer": "以 Litematica 自動營造藍圖"
 }

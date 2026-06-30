@@ -256,7 +256,7 @@
   "litematica-printer.config.useRemoteContainer": "使用遠程容器材料",
   "litematica-printer.config.useRemoteContainer.desc": "當背包缺少材料時，嘗試從投影選區內的容器中獲取材料。需要伺服端安裝 Remote Inventory Server 模組。",
   "litematica-printer.config.remoteInteractionDistance": "最大互動距離",
-  "litematica-printer.config.remoteInteractionDistance.desc": "玩家與容器之間的最大遠程取物距離，超出此距離的容器將被忽略。設定為0表示無限距離。",
+  "litematica-printer.config.remoteInteractionDistance.desc": "玩家與容器之間的最大遠程取物距離，超出此距離的容器將被忽略。設定為0表示無限距離。\n§7提示：可使用 §f/remoteinv§7 指令修改遠程互動設定。",
   "litematica-printer.config.remoteContainerBlocks": "遠程容器方塊清單",
   "litematica-printer.config.remoteContainerBlocks.desc": "被識別為容器的方塊 ID 清單。格式：minecraft:chest, minecraft:trapped_chest 等。",
   "litematica-printer.config.useQuickShulker": "使用快捷界伏盒",
@@ -293,5 +293,8 @@
   "litematica-printer.config.highlightThroughWalls.desc": "允許高亮透過方塊顯示",
   "litematica-printer.config.highlightStyleType.outline": "輪廓",
   "litematica-printer.config.highlightStyleType.filled": "填充",
-  "litematica-printer.config.highlightStyleType.both": "兩者"
+  "litematica-printer.config.highlightStyleType.both": "兩者",
+  "modmenu.nameTranslation.litematica-printer": "投影印表機",
+  "modmenu.descriptionTranslation.litematica-printer": "Litematica 的擴展模組，補全了缺失的印表機功能，可以自動按照原理圖建造。",
+  "modmenu.summaryTranslation.litematica-printer": "使用 Litematica 自動建造原理圖"
 }
