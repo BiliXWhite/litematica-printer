@@ -85,7 +85,7 @@ dependencies {
     }
 
     // remote-inventory-next - provides remote container protocol support
-    modImplementation("dev.blinkwhite.remoteinventory:remote-inventory-next-${mcVersion}:${prop("remote_inventory_version")}")
+    modImplementation("dev.blinkwhite.remoteinventory:remote-inventory-next:${prop("remote_inventory_version")}+${mcVersion}")
 }
 
 loom {

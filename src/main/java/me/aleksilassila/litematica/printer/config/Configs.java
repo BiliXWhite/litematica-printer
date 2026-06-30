@@ -539,7 +539,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 FILL_COMPOSTER_WHITELIST,
                 BONEMEAL_CROPS,
                 USE_REMOTE_CONTAINER,
-                REMOTE_INTERACTION_DISTANCE,
                 REMOTE_CONTAINER_BLOCKS,
                 USE_QUICK_SHULKER,
                 SHULKER_SOURCE,

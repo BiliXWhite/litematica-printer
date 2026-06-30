@@ -54,13 +54,7 @@ public class RemoteContainerUtils {
 
     public static void init() {
         if (!REMOTE_INVENTORY_LOADED) return;
-        //#if MC >= 12005
         RemoteInventoryClient.setExchangeCallback(RemoteContainerUtils::onExchangeResult);
-        //#elseif MC >= 12001
-        //$$ RemoteInventoryClient.setExchangeCallback(RemoteContainerUtils::onExchangeResultLegacyNoDelta);
-        //#else
-        //$$ RemoteInventoryClient.setExchangeCallback(RemoteContainerUtils::onExchangeResultLegacyWithDelta);
-        //#endif
         RemoteInventoryClient.setScanResultCallback(RemoteContainerUtils::onScanResult);
     }
 
@@ -71,8 +65,6 @@ public class RemoteContainerUtils {
                                    BlockPos returnPos, String returnItemId, int returnRequested) {}
     private static PendingExchange pendingExchange = null;
 
-    //#if MC >= 12005
-    // exchange 回包先修正本地背包（消除 stale inventory race），再更新 tracker/缓存
     private static void onExchangeResult(BlockPos pos, ResultType takeResult,
                                           int takenCount, int returnedCount,
                                           List<RemoteExchangeResultPayload.SlotSnapshot> inventoryDelta) {
@@ -108,11 +100,6 @@ public class RemoteContainerUtils {
 
         for (ItemFetchState s : fetchStates.values()) s.requestPending = false;
     }
-    //#elseif MC >= 12001
-    //$$ private static void onExchangeResultLegacyNoDelta(BlockPos pos, ResultType takeResult, int takenCount, int returnedCount) {}
-    //#else
-    //$$ private static void onExchangeResultLegacyWithDelta(BlockPos pos, ResultType takeResult, int takenCount, int returnedCount, List<RemoteExchangeResultPayload.SlotSnapshot> inventoryDelta) {}
-    //#endif
 
     public static void scanContainerPos() {
         if (!REMOTE_INVENTORY_LOADED) return;
@@ -240,11 +227,7 @@ public class RemoteContainerUtils {
     private static void onScanResult(
             ScanContainerResultPayload payload) {
         ContainerItemCache.INSTANCE.updateContainer(
-                //#if MC >= 260102
-                //$$ payload.pos(), payload.entries()
-                //#else
-                payload.getPos(), payload.getEntries()
-                //#endif
+                payload.pos(), payload.entries()
         );
         for (ItemFetchState s : fetchStates.values()) s.requestPending = false;
     }
@@ -271,7 +254,6 @@ public class RemoteContainerUtils {
 
     // 直接修改 mc.player.inventory 的 slot。服务端在 exchange result 里夹带了变动的 slot 快照，
     // 这样客户端不用等 vanilla inventory sync，立刻和服务器背包一致，消除 stale inventory race。
-    //#if MC >= 12005
     private static void applyInventoryDelta(List<RemoteExchangeResultPayload.SlotSnapshot> delta) {
         if (mc.player == null || delta.isEmpty()) return;
         for (RemoteExchangeResultPayload.SlotSnapshot s : delta) {
@@ -287,7 +269,6 @@ public class RemoteContainerUtils {
             }
         }
     }
-    //#endif
 
     private static Set<String> resolveContainerBlockIds() {
         Set<String> ids = new HashSet<>();

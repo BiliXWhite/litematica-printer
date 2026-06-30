@@ -50,7 +50,7 @@ dependencies {
     implementation("com.terraformersmc:modmenu:${prop("modmenu")}")
 
     // 远程容器
-    implementation("dev.blinkwhite.remoteinventory:remote-inventory-next-${mcVersion}:${prop("remote_inventory_version")}")
+    implementation("dev.blinkwhite.remoteinventory:remote-inventory-next:${prop("remote_inventory_version")}+${mcVersion}")
 
     // Masa
     implementation("fi.dy.masa.malilib:${prop("malilib")}")
