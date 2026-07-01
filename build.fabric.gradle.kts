@@ -11,6 +11,7 @@ version = fullProjectVersion
 group = modMavenGroup
 
 repositories {
+    mavenLocal()
     maven("https://maven.fabricmc.net") { name = "FabricMC" }
     maven("https://maven.fallenbreath.me/releases") { name = "FallenBreath" }
     maven("https://api.modrinth.com/maven") { name = "Modrinth" }
@@ -28,7 +29,6 @@ repositories {
             password = System.getenv("GH_TOKEN") ?: ""
         }
     }
-    mavenLocal()
 }
 
 // 锁定依赖版本防冲突
