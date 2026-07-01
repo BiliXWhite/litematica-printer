@@ -194,7 +194,7 @@ public class BreakUtils {
     }
 
     public BlockBreakResult continueDestroyBlock(BlockPos blockPos, Direction direction) {
-        return this.continueDestroyBlock(blockPos, direction, !Configs.Break.BREAK_USE_PACKET.getBooleanValue());
+        return this.continueDestroyBlock(blockPos, direction, client.isLocalServer());
     }
 
     public BlockBreakResult continueDestroyBlock(BlockPos blockPos) {
