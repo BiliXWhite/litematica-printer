@@ -42,7 +42,7 @@ public class PlayerUtils {
     public static double getInteractionRange(double defaultRange) {
         //#if MC>=12005
         if (client.player != null) {
-            return client.player.blockInteractionRange();
+            return client.player.blockInteractionRange() + 1;
         }
         //#else
         //$$ if (client.gameMode != null) {
