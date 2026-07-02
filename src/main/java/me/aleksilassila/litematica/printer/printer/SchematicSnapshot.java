@@ -33,8 +33,8 @@ public class SchematicSnapshot {
         refreshIfNeeded();
         if (lastSchematic == null) return false;
 
-        // 始终通过 isSchematicBlock 验证：它会检查子区域的可见性（启用 + 渲染状态切换）。
-        // 不再依赖缓存，因为子区域的可见性可能在任何时候发生变化。
+        // 始终通过 isSchematicBlock 验证：检查子区域是否处于启用状态。
+        // 不依赖缓存，因为子区域的启用状态可能在任何时候发生变化。
         return LitematicaUtils.isSchematicBlock(pos);
     }
 

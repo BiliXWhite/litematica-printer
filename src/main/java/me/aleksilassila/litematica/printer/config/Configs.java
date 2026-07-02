@@ -7,7 +7,6 @@ import fi.dy.masa.malilib.config.*;
 import fi.dy.masa.malilib.config.options.*;
 import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.hotkeys.IHotkey;
-import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import fi.dy.masa.malilib.config.ConfigManager;
@@ -33,8 +32,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
     private static final String FILE_PATH = "./config/" + Reference.MOD_ID + ".json";
     private static final File CONFIG_DIR = new File("./config");
-
-    private static final KeybindSettings GUI_NO_ORDER = KeybindSettings.create(KeybindSettings.Context.GUI, KeyAction.PRESS, false, false, false, true);
 
     // 配置页面是否可视(函数式, 动态获取, 全局统一使用)
     private static final BooleanSupplier isSingle = () -> Core.WORK_MODE.getOptionListValue().equals(WorkingModeType.SINGLE);
@@ -140,11 +137,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .range(0, 256)
                 .build();
 
-        // 核心 - 使用手长距离（已弃用，由工作半径=0自动使用最大交互距离替代）
-        public static final ConfigBoolean USE_REACH_DISTANCE = booleanValue("useReachDistance")
-                .defaultValue(true)
-                .build();
-
         // 核心 - 迭代占用时长（毫秒）
         public static final ConfigInteger ITERATION_TIME_LIMIT = integerValue("iterationTimeLimit")
                 .defaultValue(8)
@@ -234,7 +226,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 FILL,
                 FLUID,
                 WORK_RANGE,
-                USE_REACH_DISTANCE,
                 ITERATION_TIME_LIMIT,
                 RENDER_HUD,
                 MISSING_MATERIAL_HUD,
@@ -466,14 +457,6 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         // 使用远程容器材料
         public static final ConfigBooleanHotkeyed USE_REMOTE_CONTAINER = booleanHotkey("useRemoteContainer")
                 .defaultValue(false)
-                .setVisible(isRemoteInventoryLoaded)
-                .build();
-
-        // 远程交互最大距离（0 = 无限）
-        public static final ConfigDouble REMOTE_INTERACTION_DISTANCE = floatValue("remoteInteractionDistance")
-                .defaultValue(32.0)
-                .range(0.0, 256.0)
-                .useSlider(true)
                 .setVisible(isRemoteInventoryLoaded)
                 .build();
 

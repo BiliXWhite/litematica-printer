@@ -87,8 +87,13 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
     // Cached layer state for rebuild detection
     private int lastLayerMin = Integer.MIN_VALUE;
     private int lastLayerMax = Integer.MIN_VALUE;
+    private int lastLayerSingle = Integer.MIN_VALUE;
+    private int lastLayerAbove = Integer.MIN_VALUE;
+    private int lastLayerBelow = Integer.MIN_VALUE;
     @Nullable
     private Direction.Axis lastLayerAxis = null;
+    @Nullable
+    private LayerMode lastLayerMode = null;
 
     private long lastTickTime = -1L;
 
@@ -298,6 +303,9 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
         Direction.Axis layerAxis = layerRange.getAxis();
         int layerMin = layerRange.getLayerMin();
         int layerMax = layerRange.getLayerMax();
+        int layerSingle = layerRange.getLayerSingle();
+        int layerAbove = layerRange.getLayerAbove();
+        int layerBelow = layerRange.getLayerBelow();
 
         boolean needRebuild = box == null
                 || !box.equals(lastBox)
@@ -306,14 +314,22 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
                 || expandRange != currentRange
                 || layerMin != lastLayerMin
                 || layerMax != lastLayerMax
-                || layerAxis != lastLayerAxis;
+                || layerSingle != lastLayerSingle
+                || layerAbove != lastLayerAbove
+                || layerBelow != lastLayerBelow
+                || layerAxis != lastLayerAxis
+                || layerMode != lastLayerMode;
 
         if (needRebuild) {
             lastPos = eyePos;
             expandRange = currentRange;
             lastLayerMin = layerMin;
             lastLayerMax = layerMax;
+            lastLayerSingle = layerSingle;
+            lastLayerAbove = layerAbove;
+            lastLayerBelow = layerBelow;
             lastLayerAxis = layerAxis;
+            lastLayerMode = layerMode;
 
             // 直接用 player 精确位置 ±range 算盒子的整数边界，避免 round() 偏移导致边界方块丢失
             int minX = (int) Math.floor(player.getX() - effectiveRange);
@@ -327,24 +343,65 @@ public abstract class ClientPlayerTickHandler extends ConfigUtils {
             // 只有 selectionType = LITEMATICA_RENDER_LAYER 时才裁剪迭代框，
             // 其他选区类型（LITEMATICA_SELECTION 等）不受渲染层限制。
             if (selectionType != null
-                    && selectionType.getOptionListValue() instanceof SelectionType st
-                    && st == SelectionType.LITEMATICA_RENDER_LAYER
+                    && selectionType.getOptionListValue() == SelectionType.LITEMATICA_RENDER_LAYER
                     && layerMode != LayerMode.ALL) {
-                switch (layerAxis) {
-                    case Y -> { minY = Math.max(minY, layerMin); maxY = Math.min(maxY, layerMax); }
-                    case X -> { minX = Math.max(minX, layerMin); maxX = Math.min(maxX, layerMax); }
-                    case Z -> { minZ = Math.max(minZ, layerMin); maxZ = Math.min(maxZ, layerMax); }
+                switch (layerMode) {
+                    // 单层：盒子收窄到指定层
+                    case SINGLE_LAYER -> {
+                        switch (layerAxis) {
+                            case Y -> { minY = layerSingle; maxY = layerSingle; }
+                            case X -> { minX = layerSingle; maxX = layerSingle; }
+                            case Z -> { minZ = layerSingle; maxZ = layerSingle; }
+                        }
+                    }
+                    // 范围：夹在 [min, max] 之间
+                    case LAYER_RANGE -> {
+                        switch (layerAxis) {
+                            case Y -> { minY = Math.max(minY, layerMin); maxY = Math.min(maxY, layerMax); }
+                            case X -> { minX = Math.max(minX, layerMin); maxX = Math.min(maxX, layerMax); }
+                            case Z -> { minZ = Math.max(minZ, layerMin); maxZ = Math.min(maxZ, layerMax); }
+                        }
+                    }
+                    // 下方：截断 max
+                    case ALL_BELOW -> {
+                        switch (layerAxis) {
+                            case Y -> { maxY = Math.min(maxY, layerBelow); }
+                            case X -> { maxX = Math.min(maxX, layerBelow); }
+                            case Z -> { maxZ = Math.min(maxZ, layerBelow); }
+                        }
+                    }
+                    // 上方：截断 min
+                    case ALL_ABOVE -> {
+                        switch (layerAxis) {
+                            case Y -> { minY = Math.max(minY, layerAbove); }
+                            case X -> { minX = Math.max(minX, layerAbove); }
+                            case Z -> { minZ = Math.max(minZ, layerAbove); }
+                        }
+                    }
                 }
             }
 
-            // Clamp Y for above/below-player selection modes
-            if (selectionType != null) {
-                if (selectionType.getOptionListValue() instanceof SelectionType st) {
-                    if (st == SelectionType.LITEMATICA_SELECTION_BELOW_PLAYER) {
-                        maxY = Math.min(maxY, (int) Math.floor(player.getY()));
-                    } else if (st == SelectionType.LITEMATICA_SELECTION_ABOVE_PLAYER) {
-                        minY = Math.max(minY, (int) Math.ceil(player.getY()));
+            // 裁剪到选区边界：SELECTION / BELOW_PLAYER / ABOVE_PLAYER 都需要先限定在选区内
+            if (selectionType != null
+                    && selectionType.getOptionListValue() instanceof SelectionType st) {
+                if (st == SelectionType.LITEMATICA_SELECTION
+                        || st == SelectionType.LITEMATICA_SELECTION_BELOW_PLAYER
+                        || st == SelectionType.LITEMATICA_SELECTION_ABOVE_PLAYER) {
+                    PrinterBox selBounds = LitematicaUtils.getSelectionBounds();
+                    if (selBounds != null) {
+                        minX = Math.max(minX, selBounds.minX);
+                        maxX = Math.min(maxX, selBounds.maxX);
+                        minY = Math.max(minY, selBounds.minY);
+                        maxY = Math.min(maxY, selBounds.maxY);
+                        minZ = Math.max(minZ, selBounds.minZ);
+                        maxZ = Math.min(maxZ, selBounds.maxZ);
                     }
+                }
+                // 在选区基础上进一步限制玩家上下
+                if (st == SelectionType.LITEMATICA_SELECTION_BELOW_PLAYER) {
+                    maxY = Math.min(maxY, (int) Math.floor(player.getY()));
+                } else if (st == SelectionType.LITEMATICA_SELECTION_ABOVE_PLAYER) {
+                    minY = Math.max(minY, (int) Math.ceil(player.getY()));
                 }
             }
 

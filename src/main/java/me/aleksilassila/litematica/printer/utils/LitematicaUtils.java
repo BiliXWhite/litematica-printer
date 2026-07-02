@@ -48,13 +48,12 @@ public class LitematicaUtils {
         return null;
     }
     /**
-     * 判断位置是否位于当前加载的投影范围内，并且子区域在 Litematica 中是可见的（已启用且渲染已开启）。
-     * <p>
-     * 与 Litematica 自身保持一致：只返回在已启用且渲染已开启的子区域中的方块。
-     * 如果位置属于已禁用或渲染已关闭的子区域，则返回 false。
+     * 判断位置是否位于当前加载的投影范围内，且子区域处于启用状态。
+     * 仅检查子区域的启用状态，不检查渲染开启状态或渲染层范围。
+     * 渲染层限制由 {@link PlayerUtils#isPositionInSelectionRange} 单独处理。
      *
      * @param pos 要检测的方块位置
-     * @return 如果位置属于可见的图纸结构部分，则返回 true，否则返回 false
+     * @return 如果位置属于已启用的图纸结构部分，则返回 true，否则返回 false
      */
     public static boolean isSchematicBlock(BlockPos pos) {
         SchematicPlacementManager schematicPlacementManager = DataManager.getSchematicPlacementManager();
@@ -70,20 +69,12 @@ public class LitematicaUtils {
             //#else
             if (placementPart.getBox().containsPos(pos)) {
             //#endif
-                // Litematica 本身已按子区域粒度追踪 PlacementPart。
-                // 检查与该位置对应的子区域是否已启用且渲染已开启。
                 SubRegionPlacement subRegion = getSubRegionForPlacementPart(placementPart);
-                if (subRegion != null && subRegion.isEnabled()) {
-                    //#if MC >= 12100
-                    // RENDERING_ENABLED 要求子区域同时满足 isEnabled() && isRenderingEnabled()
-                    if (subRegion.matchesRequirement(SubRegionPlacement.RequiredEnabled.RENDERING_ENABLED)) {
+                if (subRegion != null) {
+                    if (subRegion.isEnabled()) {
                         return true;
                     }
-                    //#else
-                    //$$ return true;
-                    //#endif
-                } else if (subRegion == null) {
-                    // 找不到子区域信息时回退到旧版行为（通过所有检查）
+                } else {
                     return true;
                 }
             }
@@ -118,7 +109,7 @@ public class LitematicaUtils {
         }
     }
 
-    static boolean comparePos(Box box, BlockPos pos) {
+    private static boolean comparePos(Box box, BlockPos pos) {
         if (box == null || box.getPos1() == null || box.getPos2() == null || pos == null) return false;
         PrinterBox printerBox = new PrinterBox(box.getPos1(), box.getPos2());
         return printerBox.contains(pos);
@@ -136,6 +127,33 @@ public class LitematicaUtils {
         Box box = selection.getSubRegionBox(DataManager.getSimpleArea().getName());
         PrinterBox printerBox = toPrinterBox(box);
         return printerBox != null ? Collections.singletonList(printerBox) : Collections.emptyList();
+    }
+
+    /**
+     * 获取当前投影选区的联合边界，用于裁剪迭代盒子。
+     * @return 选区边界，无选区时返回 null
+     */
+    @Nullable
+    public static PrinterBox getSelectionBounds() {
+        AreaSelection selection = DataManager.getSelectionManager().getCurrentSelection();
+        if (selection == null) return null;
+
+        List<PrinterBox> boxes = getSelectionBoxes(selection);
+        if (boxes.isEmpty()) return null;
+
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
+
+        for (PrinterBox box : boxes) {
+            if (box.minX < minX) minX = box.minX;
+            if (box.minY < minY) minY = box.minY;
+            if (box.minZ < minZ) minZ = box.minZ;
+            if (box.maxX > maxX) maxX = box.maxX;
+            if (box.maxY > maxY) maxY = box.maxY;
+            if (box.maxZ > maxZ) maxZ = box.maxZ;
+        }
+
+        return new PrinterBox(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
     private static PrinterBox toPrinterBox(Box box) {
