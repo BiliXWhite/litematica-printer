@@ -4,6 +4,7 @@
   "litematica-printer.bedrock.mod_missing": "未載 Fabric-Bedrock-Miner/Block-Miner 之模，不能破基岩！",
   "litematica-printer.block.mismatch": "方塊 %s 下不合，置而弗為",
   "litematica-printer.block.no_support": "方塊 %s 下無支，置而弗為",
+  "litematica-printer.break.failed": "§c破塊弗成（伺服器未允）。或因防作弊、權不足、或禁地。",
   "litematica-printer.brewingstand.lower": "降煉藥鍋水，須 §l§6%s",
   "litematica-printer.brewingstand.raise": "增煉藥鍋水，須 §l§6%s",
   "litematica-printer.config.bedrock": "破基岩",

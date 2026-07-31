@@ -7,6 +7,7 @@
   "litematica-printer.brewingstand.raise": "增加煉藥鍋內水位需要 §l§6%s",
   "litematica-printer.block.no_support": "方塊 %s 下方無支撐，跳過放置",
   "litematica-printer.block.mismatch": "方塊 %s 下方方塊不相符，跳過放置",
+  "litematica-printer.break.failed": "§c方塊破壞失敗（伺服器未確認）。可能原因：反作弊攔截、權限不足或受保護區域。",
   "litematica-printer.config.bedrock": "破基岩",
   "litematica-printer.config.bedrock.desc": "調用BedrockMiner模組實現基岩挖掘，未安裝該模組則此功能不可用。",
   "litematica-printer.config.bedrockEnabled": "啟用破基岩",

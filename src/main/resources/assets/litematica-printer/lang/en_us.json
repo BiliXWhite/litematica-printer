@@ -4,6 +4,7 @@
   "litematica-printer.bedrock.mod_missing": "Fabric-Bedrock-Miner/Block-Miner mod not installed, cannot break bedrock!",
   "litematica-printer.block.mismatch": "Block %s has mismatched block below, skipping placement",
   "litematica-printer.block.no_support": "Block %s has no support below, skipping placement",
+  "litematica-printer.break.failed": "§cBlock break failed (server rejected). Possible causes: anti-cheat, insufficient permission, or protected region.",
   "litematica-printer.brewingstand.lower": "Lower cauldron water level requires §l§6%s",
   "litematica-printer.brewingstand.raise": "Raise cauldron water level requires §l§6%s",
   "litematica-printer.config.bedrock": "Bedrock Breaking",
