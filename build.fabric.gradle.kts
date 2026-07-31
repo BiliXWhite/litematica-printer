@@ -12,6 +12,7 @@ group = modMavenGroup
 
 repositories {
     mavenLocal()
+    mavenCentral()
     maven("https://maven.fabricmc.net") { name = "FabricMC" }
     maven("https://maven.fallenbreath.me/releases") { name = "FallenBreath" }
     maven("https://api.modrinth.com/maven") { name = "Modrinth" }
