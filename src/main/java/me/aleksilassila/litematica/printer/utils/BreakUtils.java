@@ -3,6 +3,7 @@ package me.aleksilassila.litematica.printer.utils;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import fi.dy.masa.tweakeroo.tweaks.PlacementTweaks;
+import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.MiningFilterType;
 import me.aleksilassila.litematica.printer.mixin.extension.BlockBreakResult;
@@ -30,6 +31,34 @@ public class BreakUtils {
     private final Queue<BlockPos> breakQueue = new LinkedList<>();
     private final Set<BlockPos> breakSet = new HashSet<>(); // O(1) 查询伴侣
     private BlockPos breakPos;
+
+    // === 二次扫描验证机制 ===
+    // 验证队列：记录已"完成"破坏的位置，延迟后检查方块是否真的被破坏
+    private final Map<BlockPos, BreakVerificationEntry> verificationMap = new HashMap<>();
+    // tick 计数器（preprocess 每 tick 递增一次）
+    private long tickCounter = 0;
+    // 提示冷却（避免刷屏）
+    private long lastWarnTick = 0;
+    // 验证延迟（tick）：等待服务器处理破坏包并回传方块更新
+    private static final int VERIFY_DELAY_TICKS = 3;
+    // 最大重试次数（首次破坏 + 1 次重试 = 共 2 次尝试）
+    private static final int MAX_RETRY = 1;
+    // 提示冷却 tick 数
+    private static final int WARN_COOLDOWN_TICKS = 60;
+
+    private static class BreakVerificationEntry {
+        final BlockState originalState;  // 破坏前的方块状态
+        int retryCount;                  // 已重试次数
+        long verifyAtTick;               // 验证时间（tick）
+        boolean pending;                 // true: 等待破坏完成; false: 等待验证
+
+        BreakVerificationEntry(BlockState originalState, int retryCount, long verifyAtTick, boolean pending) {
+            this.originalState = originalState;
+            this.retryCount = retryCount;
+            this.verifyAtTick = verifyAtTick;
+            this.pending = pending;
+        }
+    }
 
     private BreakUtils() {}
 
@@ -78,8 +107,23 @@ public class BreakUtils {
 
     public void add(BlockPos pos) {
         if (pos == null) return;
-        breakQueue.add(pos);
-        breakSet.add(pos);
+        BlockPos immutable = pos.immutable();
+        breakQueue.add(immutable);
+        breakSet.add(immutable);
+        // 记录原始方块状态用于二次扫描验证
+        if (client.level != null) {
+            BreakVerificationEntry existing = verificationMap.get(immutable);
+            if (existing == null) {
+                BlockState state = client.level.getBlockState(immutable);
+                if (!state.isAir()) {
+                    verificationMap.put(immutable, new BreakVerificationEntry(state, 0, Long.MAX_VALUE, true));
+                }
+            } else {
+                // 已有条目（重试场景），标记为等待破坏完成
+                existing.pending = true;
+                existing.verifyAtTick = Long.MAX_VALUE;
+            }
+        }
     }
 
     public void add(SchematicBlockContext ctx) {
@@ -96,6 +140,7 @@ public class BreakUtils {
     }
 
     public void preprocess() {
+        tickCounter++;
         if (!ConfigUtils.isPrinterEnable()) {
             if (!breakQueue.isEmpty()) {
                 breakQueue.clear();
@@ -104,11 +149,23 @@ public class BreakUtils {
             if (breakPos != null) {
                 breakPos = null;
             }
+            // 打印机禁用时清空验证队列
+            if (!verificationMap.isEmpty()) {
+                verificationMap.clear();
+            }
         }
     }
 
     public boolean isNeedHandle() {
-        return !breakQueue.isEmpty() || breakPos != null;
+        if (!breakQueue.isEmpty() || breakPos != null) return true;
+        // 仅当存在"已到验证时间"的条目时才需要处理
+        if (verificationMap.isEmpty()) return false;
+        for (BreakVerificationEntry entry : verificationMap.values()) {
+            if (!entry.pending && tickCounter >= entry.verifyAtTick) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void onTick() {
@@ -117,6 +174,10 @@ public class BreakUtils {
         if (player == null || level == null) {
             return;
         }
+
+        // 优先处理验证队列（二次扫描）
+        processVerification();
+
         if (breakPos == null && breakQueue.isEmpty()) {
             return;
         }
@@ -140,11 +201,79 @@ public class BreakUtils {
                     breakPos = pos;
                     break;
                 } else if (breakResult == BlockBreakResult.COMPLETED) {
+                    onBreakCompleted(pos);
                     break;
+                } else if (breakResult == BlockBreakResult.COMPLETED_WAIT) {
+                    onBreakCompleted(pos);
+                    // COMPLETED_WAIT：继续处理下一个位置
                 }
+                // FAILED：继续处理下一个位置
             }
-        } else if (continueDestroyBlock(breakPos, Direction.DOWN) != BlockBreakResult.IN_PROGRESS) {
-            breakPos = null;
+        } else {
+            BlockBreakResult result = continueDestroyBlock(breakPos, Direction.DOWN);
+            if (result != BlockBreakResult.IN_PROGRESS) {
+                if (result == BlockBreakResult.COMPLETED || result == BlockBreakResult.COMPLETED_WAIT) {
+                    onBreakCompleted(breakPos);
+                }
+                breakPos = null;
+            }
+        }
+    }
+
+    /**
+     * 破坏完成后，设置验证时间，等待二次扫描。
+     */
+    private void onBreakCompleted(BlockPos pos) {
+        if (pos == null) return;
+        BlockPos immutable = pos.immutable();
+        BreakVerificationEntry entry = verificationMap.get(immutable);
+        if (entry != null) {
+            entry.pending = false;
+            entry.verifyAtTick = tickCounter + VERIFY_DELAY_TICKS;
+        }
+    }
+
+    /**
+     * 二次扫描：检查已"完成"破坏的方块是否真的被破坏。
+     * 如果方块仍然存在，则重试破坏；超过最大重试次数则弹出提示。
+     */
+    private void processVerification() {
+        if (verificationMap.isEmpty() || client.level == null) return;
+
+        Iterator<Map.Entry<BlockPos, BreakVerificationEntry>> it = verificationMap.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<BlockPos, BreakVerificationEntry> entry = it.next();
+            BlockPos pos = entry.getKey();
+            BreakVerificationEntry verification = entry.getValue();
+
+            // 等待破坏完成的不处理
+            if (verification.pending) continue;
+            // 还没到验证时间
+            if (tickCounter < verification.verifyAtTick) continue;
+
+            BlockState currentState = client.level.getBlockState(pos);
+            // 检查方块是否仍然是原来的方块（未被破坏）
+            if (currentState.getBlock() == verification.originalState.getBlock()) {
+                // 方块仍然存在，破坏失败
+                if (verification.retryCount < MAX_RETRY) {
+                    // 第二次扫描失败，再次进行破坏
+                    verification.retryCount++;
+                    verification.pending = true;
+                    verification.verifyAtTick = Long.MAX_VALUE;
+                    breakQueue.add(pos.immutable());
+                    breakSet.add(pos.immutable());
+                } else {
+                    // 仍然失败，弹出提示
+                    if (tickCounter - lastWarnTick > WARN_COOLDOWN_TICKS) {
+                        MessageUtils.setOverlayMessage(I18n.BREAK_FAILED_RETRY.getName());
+                        lastWarnTick = tickCounter;
+                    }
+                    it.remove();
+                }
+            } else {
+                // 方块已改变或为空气，破坏成功
+                it.remove();
+            }
         }
     }
 

@@ -125,12 +125,13 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
         }
 
         if (player.getAbilities().instabuild) {
-            PacketUtils.sendPacket(i -> {
-                if (localPrediction) {
-                    destroyBlock(blockPos);
-                }
-                return litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, i);
-            });
+            // 创造模式：仅发送 START_DESTROY_BLOCK，避免调用 destroyBlock 导致重复发送 STOP 包
+            // 先发包，再进行本地预测（destroyBlock 会发送 STOP，这里改用 level.destroyBlock 仅做本地预测）
+            PacketUtils.sendPacket(i -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, i));
+            if (localPrediction) {
+                level.destroyBlock(blockPos, false, player);
+                this.isDestroying = false;
+            }
             return BlockBreakResult.COMPLETED;
         }
 
@@ -140,23 +141,24 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
 
         BlockState blockState = level.getBlockState(blockPos);
         boolean isSolidBlock = !blockState.isAir();
-        
+
         // 空气方块无法破坏
         if (!isSolidBlock) {
             return BlockBreakResult.FAILED;
         }
-        
+
         float destroyProgress = blockState.getDestroyProgress(player, level, blockPos);
 
         if (destroyProgress >= 1.0F ||
                 (Configs.Break.BREAK_INSTANT_MINE.getBooleanValue() && destroyProgress > 0.5F)
         ) {
-            if (localPrediction) {
-                destroyBlock(blockPos);
-            }
-
-
+            // 修复服务器破坏失败：先发 START，再做本地预测（不调用 destroyBlock 避免重复 STOP），最后发 STOP
             PacketUtils.sendPacket(sequence -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
+            if (localPrediction) {
+                // 仅做本地预测，不发送数据包（destroyBlock 会多发一个 STOP）
+                level.destroyBlock(blockPos, false, player);
+                this.isDestroying = false;
+            }
             PacketUtils.sendPacket(sequence -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
             // 保守一点使用0.6,只测试了0.583333这个数值
             if (destroyProgress > 0.6F) {
@@ -195,10 +197,12 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
         }
 
         if (player.getAbilities().instabuild && level.getWorldBorder().isWithinBounds(blockPos)) {
-            PacketUtils.sendPacket(sequence -> {
-                if (localPrediction) destroyBlock(blockPos);
-                return litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, sequence);
-            });
+            // 创造模式：仅发送 START_DESTROY_BLOCK，避免 destroyBlock 重复发送 STOP 包
+            PacketUtils.sendPacket(sequence -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
+            if (localPrediction) {
+                level.destroyBlock(blockPos, false, player);
+                this.isDestroying = false;
+            }
             return BlockBreakResult.COMPLETED;
         }
 
@@ -220,10 +224,11 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
 
             if (completed) {
                 this.isDestroying = false;
-                PacketUtils.sendPacket(sequence -> {
-                    if (localPrediction) destroyBlock(blockPos);
-                    return litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence);
-                });
+                // 修复服务器破坏失败：本地预测改用 level.destroyBlock，避免 destroyBlock 重复发送 STOP 包
+                if (localPrediction) {
+                    level.destroyBlock(blockPos, false, player);
+                }
+                PacketUtils.sendPacket(sequence -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
                 this.destroyProgress = 0.0F;
             }
 

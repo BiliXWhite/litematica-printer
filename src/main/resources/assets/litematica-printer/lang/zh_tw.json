@@ -2,6 +2,7 @@
   "litematica-printer.auto_disable_notice": "印表機已自動關閉",
   "litematica-printer.bedrock.creative_mode": "創造模式無法使用破基岩模式！",
   "litematica-printer.bedrock.mod_missing": "未安裝 Fabric-Bedrock-Miner/Block-Miner 模組，無法破基岩！",
+  "litematica-printer.break.failed_retry": "§c方塊破壞重試後仍失敗，伺服器可能拒絕了破壞請求§r",
   "litematica-printer.ice.creative_mode": "創造模式破壞冰不會產生水！",
   "litematica-printer.brewingstand.lower": "降低煉藥鍋內水位需要 §l§6%s",
   "litematica-printer.brewingstand.raise": "增加煉藥鍋內水位需要 §l§6%s",

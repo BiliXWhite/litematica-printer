@@ -4,6 +4,7 @@
   "litematica-printer.bedrock.mod_missing": "Мод Fabric-Bedrock-Miner/Block-Miner не установлен — разрушение бедрока недоступно!",
   "litematica-printer.block.mismatch": "Блок %s имеет несовместимый блок снизу — размещение пропущено",
   "litematica-printer.block.no_support": "Блок %s не имеет опоры снизу — размещение пропущено",
+  "litematica-printer.break.failed_retry": "§cНе удалось разрушить блок после повтора — сервер мог отклонить запрос§r",
   "litematica-printer.brewingstand.lower": "Для понижения уровня воды в котле требуется §l§6%s",
   "litematica-printer.brewingstand.raise": "Для повышения уровня воды в котле требуется §l§6%s",
   "litematica-printer.config.bedrock": "Разрушение бедрока",
