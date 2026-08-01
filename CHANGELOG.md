@@ -1,5 +1,11 @@
 # Changelog
 
+#### 2026-8-1 (1.3-beta.7)
+
+- **验证队列并行化** — 验证队列不再阻塞挖掘主流程。`ModuleManager` 改用 `isBreaking()` 检查（仅破坏队列/正在破坏时阻塞），验证队列 `pendingVerify` 在后台并行运行，Mine 模式挖掘速度恢复正常
+- **防止重复破坏** — `inQueue()` 现在包含 `pendingVerify` 中的方块，避免对正在验证的方块重复发送破坏包
+- **缩短验证延迟** — `VERIFY_DELAY_TICKS` 10→8，`CONFIRM_DELAY_TICKS` 15→10（不阻塞后可更频繁检查）
+
 #### 2026-7-31 (1.3-beta.6)
 
 - **修复 Mine 模式绕过验证机制** — Mine handler 直接调用 `continueDestroyBlock` 绕过了二次扫描验证，现在 `continueDestroyBlock` 包装方法在破坏完成时自动加入验证队列，确保所有调用路径都受益于验证机制

@@ -70,7 +70,9 @@ public class ModuleManager {
 
         for (Module module : VALUES) {
             if (!(module instanceof GUI)) {
-                if (BreakUtils.INSTANCE.isNeedHandle()) {
+                // 只在 BreakUtils 正在主动破坏（有破坏队列/正在破坏）时阻塞其他模块；
+                // 验证队列 pendingVerify 在后台并行运行，不阻塞 Mine 等模块的挖掘
+                if (BreakUtils.INSTANCE.isBreaking()) {
                     return;
                 }
                 if (ActionManager.INSTANCE.needWaitModifyLook) {

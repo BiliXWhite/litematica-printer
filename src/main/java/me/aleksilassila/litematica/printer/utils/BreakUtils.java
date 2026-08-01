@@ -29,9 +29,9 @@ public class BreakUtils {
     public static final BreakUtils INSTANCE = new BreakUtils();
 
     /** 验证延迟（tick）：等待服务器回包确认方块是否真的被破坏 */
-    private static final int VERIFY_DELAY_TICKS = 10;
+    private static final int VERIFY_DELAY_TICKS = 8;
     /** 二次确认延迟（tick）：本地预测移除方块后，等待服务器可能恢复方块的时间 */
-    private static final int CONFIRM_DELAY_TICKS = 15;
+    private static final int CONFIRM_DELAY_TICKS = 10;
     /** 最大重试次数：超过后视为破坏失败并通知玩家 */
     private static final int MAX_RETRY_COUNT = 3;
     /** 失败提示冷却（tick），避免刷屏 */
@@ -104,7 +104,7 @@ public class BreakUtils {
     }
 
     public boolean inQueue(BlockPos pos) {
-        return breakSet.contains(pos);
+        return breakSet.contains(pos) || pendingVerify.containsKey(pos);
     }
 
     public boolean inQueue(SchematicBlockContext ctx) {
@@ -126,9 +126,15 @@ public class BreakUtils {
         }
     }
 
+    /** 有待处理的工作（破坏队列 / 正在破坏 / 待验证），用于触发 onTick */
     public boolean isNeedHandle() {
-        // 有待破坏方块、正在破坏方块、或有待验证的方块时，都需要处理
         return !breakQueue.isEmpty() || breakPos != null || !pendingVerify.isEmpty();
+    }
+
+    /** 正在主动破坏（有破坏队列或正在破坏），用于阻塞其他模块；
+     *  注意：待验证队列不阻塞，验证在后台并行运行 */
+    public boolean isBreaking() {
+        return !breakQueue.isEmpty() || breakPos != null;
     }
 
     public void onTick() {
