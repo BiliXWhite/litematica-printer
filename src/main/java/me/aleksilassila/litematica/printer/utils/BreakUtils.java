@@ -29,9 +29,11 @@ public class BreakUtils {
     public static final BreakUtils INSTANCE = new BreakUtils();
 
     /** 验证延迟（tick）：等待服务器回包确认方块是否真的被破坏 */
-    private static final int VERIFY_DELAY_TICKS = 5;
+    private static final int VERIFY_DELAY_TICKS = 10;
+    /** 二次确认延迟（tick）：本地预测移除方块后，等待服务器可能恢复方块的时间 */
+    private static final int CONFIRM_DELAY_TICKS = 15;
     /** 最大重试次数：超过后视为破坏失败并通知玩家 */
-    private static final int MAX_RETRY_COUNT = 2;
+    private static final int MAX_RETRY_COUNT = 3;
     /** 失败提示冷却（tick），避免刷屏 */
     private static final long FAILURE_NOTIFY_COOLDOWN = 100;
 
@@ -159,32 +161,21 @@ public class BreakUtils {
                         ModUtils.trySwitchToEffectiveTool(pos);
                     }
                 }
+                // continueDestroyBlock 内部会在破坏完成时自动加入验证队列
                 BlockBreakResult breakResult = continueDestroyBlock(pos, Direction.DOWN);
                 if (breakResult == BlockBreakResult.IN_PROGRESS) {
                     breakPos = pos;
                     break;
-                } else if (breakResult == BlockBreakResult.COMPLETED) {
-                    // 破坏完成，加入验证队列等待服务器确认
-                    queueVerification(pos);
+                } else if (breakResult == BlockBreakResult.COMPLETED || breakResult == BlockBreakResult.COMPLETED_WAIT) {
                     break;
-                } else if (breakResult == BlockBreakResult.COMPLETED_WAIT) {
-                    // 破坏完成但本 tick 不再处理更多，加入验证队列后继续
-                    queueVerification(pos);
-                } else {
-                    // FAILED：破坏失败（无权限/超出边界等），加入验证队列以便重试
-                    queueVerification(pos);
                 }
+                // FAILED：继续尝试下一个方块（已自动加入验证队列）
             }
         } else {
+            // continueDestroyBlock 内部会在破坏完成时自动加入验证队列
             BlockBreakResult result = continueDestroyBlock(breakPos, Direction.DOWN);
             if (result != BlockBreakResult.IN_PROGRESS) {
-                BlockPos completedPos = breakPos;
                 breakPos = null;
-                if (result == BlockBreakResult.COMPLETED
-                        || result == BlockBreakResult.COMPLETED_WAIT
-                        || result == BlockBreakResult.FAILED) {
-                    queueVerification(completedPos);
-                }
             }
         }
     }
@@ -199,6 +190,7 @@ public class BreakUtils {
         VerifyInfo existing = pendingVerify.get(immutable);
         if (existing != null) {
             existing.verifyTick = currentTick + VERIFY_DELAY_TICKS;
+            existing.confirmedOnce = false;
         } else {
             pendingVerify.put(immutable, new VerifyInfo(0, currentTick + VERIFY_DELAY_TICKS));
         }
@@ -207,6 +199,10 @@ public class BreakUtils {
     /**
      * 二次扫描：检查已破坏方块是否真的被服务器移除。
      * 如果方块仍然存在，则重试破坏；超过最大重试次数则通知玩家。
+     *
+     * 二次确认机制：当 localPrediction=true 时，客户端本地预测移除方块使其变为空气，
+     * 但服务器可能并未实际破坏。因此第一次检测到空气时不立即认为验证成功，
+     * 而是推迟 CONFIRM_DELAY_TICKS 后再次检查，确认服务器没有恢复方块。
      */
     private void processVerificationQueue() {
         if (pendingVerify.isEmpty()) return;
@@ -228,7 +224,14 @@ public class BreakUtils {
 
             BlockState state = level.getBlockState(pos);
             if (state.isAir() || state.is(Blocks.CAVE_AIR) || state.is(Blocks.VOID_AIR)) {
-                // 方块已被破坏，验证成功
+                // 方块已被破坏（可能是本地预测移除）
+                // 如果尚未二次确认，推迟验证时间再检查一次，防止服务器恢复方块
+                if (!info.confirmedOnce) {
+                    info.confirmedOnce = true;
+                    info.verifyTick = currentTick + CONFIRM_DELAY_TICKS;
+                    continue;
+                }
+                // 二次确认仍然是空气，验证成功
                 iterator.remove();
             } else {
                 // 方块仍然存在，说明服务器未确认破坏（可能是反作弊拦截/权限不足等）
@@ -265,6 +268,12 @@ public class BreakUtils {
         BlockBreakResult result = gameMode.litematica_printer$continueDestroyBlock(localPrediction, blockPos, direction);
         if (result == BlockBreakResult.IN_PROGRESS) {
             breakPos = blockPos;
+        } else if (result == BlockBreakResult.COMPLETED
+                || result == BlockBreakResult.COMPLETED_WAIT
+                || result == BlockBreakResult.FAILED) {
+            // 破坏完成或失败，自动加入验证队列等待服务器确认
+            // 这确保了 Mine 模式等直接调用 continueDestroyBlock 的地方也能受益于验证机制
+            queueVerification(blockPos);
         }
         return result;
     }
@@ -277,14 +286,16 @@ public class BreakUtils {
         return this.continueDestroyBlock(blockPos, Direction.DOWN);
     }
 
-    /** 验证信息：记录重试次数和验证时间 */
+    /** 验证信息：记录重试次数、验证时间和二次确认状态 */
     private static class VerifyInfo {
         int retryCount;
         long verifyTick;
+        boolean confirmedOnce;
 
         VerifyInfo(int retryCount, long verifyTick) {
             this.retryCount = retryCount;
             this.verifyTick = verifyTick;
+            this.confirmedOnce = false;
         }
     }
 }
