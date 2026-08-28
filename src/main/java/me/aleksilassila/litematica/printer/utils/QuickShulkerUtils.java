@@ -47,9 +47,8 @@ public class QuickShulkerUtils {
     private static final List<TrackedShulker> trackedShulkers = new ArrayList<>();
     private static ReturnRequest activeReturnRequest;
     private static TrackedShulker activeShulker;
+    private static AbstractContainerMenu deferredCloseContainer;
     private static int deferredCloseTicks;
-    private static int deferredCloseRetries;
-    private static final int MAX_DEFERRED_CLOSE_RETRIES = 10;
 
     private QuickShulkerUtils() {}
 
@@ -57,14 +56,13 @@ public class QuickShulkerUtils {
         if (shulkerCooldown > 0) {
             shulkerCooldown--;
         }
-        if (deferredCloseTicks > 0 && --deferredCloseTicks == 0) {
+        if (deferredCloseContainer != null && deferredCloseTicks > 0 && --deferredCloseTicks == 0) {
             LocalPlayer player = mc.player;
-            if (player == null || player.containerMenu.equals(player.inventoryMenu)) {
-                deferredCloseRetries = 0;
-            } else if (player.containerMenu.getCarried().isEmpty()
-                    || ++deferredCloseRetries >= MAX_DEFERRED_CLOSE_RETRIES) {
+            if (player == null || player.containerMenu != deferredCloseContainer) {
+                clearDeferredClose();
+            } else if (deferredCloseContainer.getCarried().isEmpty()) {
                 player.closeContainer();
-                deferredCloseRetries = 0;
+                clearDeferredClose();
             } else {
                 deferredCloseTicks = 1;
             }
@@ -250,6 +248,8 @@ public class QuickShulkerUtils {
      * 背包满时只执行归还；背包未满时执行正常取物。
      */
     public static void switchFromShulker() {
+        if (deferredCloseContainer != null) return;
+
         LocalPlayer player = mc.player;
         if (player == null || player.containerMenu.equals(player.inventoryMenu)) {
             isOpenHandler = false;
@@ -260,8 +260,9 @@ public class QuickShulkerUtils {
         Inventory inventory = player.getInventory();
 
         if (activeReturnRequest != null) {
-            returnItemToShulker(player, container, inventory, activeReturnRequest);
-            finishShulkerOperation(player);
+            boolean inventoryTransferPerformed =
+                    returnItemToShulker(player, container, inventory, activeReturnRequest);
+            finishShulkerOperation(player, container, inventoryTransferPerformed);
             return;
         }
 
@@ -297,23 +298,23 @@ public class QuickShulkerUtils {
                             activeShulker.updateContents(getContainerContents(container, ownSlots));
                             itemsToReturn.addLast(new ReturnRequest(returnItem, activeShulker));
                         }
-                        finishShulkerOperation(null);
+                        finishShulkerOperation(player, container, true);
                     } else {
-                        finishShulkerOperation(player);
+                        finishShulkerOperation(player, container, false);
                     }
                     return;
                 }
             }
         }
 
-        finishShulkerOperation(player);
+        finishShulkerOperation(player, container, false);
     }
 
-    private static void returnItemToShulker(LocalPlayer player, AbstractContainerMenu container,
-                                            Inventory inventory, ReturnRequest returnRequest) {
+    private static boolean returnItemToShulker(LocalPlayer player, AbstractContainerMenu container,
+                                               Inventory inventory, ReturnRequest returnRequest) {
         if (mc.gameMode == null) {
             itemsToReturn.removeFirstOccurrence(returnRequest);
-            return;
+            return false;
         }
 
         int ownSlots = container.slots.size() - 36;
@@ -330,34 +331,40 @@ public class QuickShulkerUtils {
                 if (returnRequest.shulker() != null) {
                     returnRequest.shulker().updateContents(getContainerContents(container, ownSlots));
                 }
-                return;
+                return true;
             }
             // 潜影盒无空位 → 移除失效请求，避免死循环
             itemsToReturn.removeFirstOccurrence(returnRequest);
-            return;
+            return false;
         }
         // 物品已不在背包（已被使用）→ 移除失效请求，避免死循环
         itemsToReturn.removeFirstOccurrence(returnRequest);
+        return false;
     }
 
-    private static void finishShulkerOperation(LocalPlayer player) {
+    private static void finishShulkerOperation(LocalPlayer player, AbstractContainerMenu container,
+                                               boolean inventoryTransferPerformed) {
         boolean wasReturn = activeReturnRequest != null;
-        if (player == null) {
-            deferredCloseTicks = 2;
-            deferredCloseRetries = 0;
-        } else {
+        if (!inventoryTransferPerformed && container.getCarried().isEmpty()) {
             player.closeContainer();
-            deferredCloseTicks = 0;
-            deferredCloseRetries = 0;
+            clearDeferredClose();
+        } else {
+            deferredCloseContainer = container;
+            deferredCloseTicks = inventoryTransferPerformed ? 2 : 1;
         }
         shulkerBoxSlot = -1;
-        isOpenHandler = false;
         activeReturnRequest = null;
         activeShulker = null;
         lastNeedItemList.clear();
         if (itemsToReturn.isEmpty()) trackedShulkers.clear();
         // 回塞完成后立即允许下一次潜影盒操作，避免当前打印位置因冷却被跳过
         if (wasReturn) shulkerCooldown = 0;
+    }
+
+    private static void clearDeferredClose() {
+        deferredCloseContainer = null;
+        deferredCloseTicks = 0;
+        isOpenHandler = false;
     }
 
     /** 在玩家背包（跳过快捷栏）中找到包含目标物品的潜影盒，返回背包槽位索引，未找到返回 -1 */
