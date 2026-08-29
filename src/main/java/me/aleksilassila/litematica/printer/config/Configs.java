@@ -103,6 +103,11 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .range(0, 32)
                 .build();
 
+        // 按方块类型分类（每轮扫描仅处理一种方块）
+        public static final ConfigBoolean CLASSIFY_BY_BLOCK = booleanValue("classifyByBlock")
+                .defaultValue(false)
+                .build();
+
         // 延迟检测
         public static final ConfigBoolean LAG_CHECK = booleanValue("printerLagCheck")
                 .defaultValue(true)
@@ -168,6 +173,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 WORK_SWITCH,
                 WORK_RANGE,
                 ITERATION_TIME_LIMIT,
+                CLASSIFY_BY_BLOCK,
                 RENDER_HUD,
                 MISSING_MATERIAL_HUD,
                 LAG_CHECK,

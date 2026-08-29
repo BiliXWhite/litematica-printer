@@ -19,6 +19,7 @@ public class I18n {
     public static final I18n BEDROCK_NOT_SUPPORT = of("bedrock.not_support");
 
     public static final I18n ICE_CREATIVE_MODE = of("ice.creative_mode");
+    public static final I18n ICE_WATER_TIMEOUT = of("ice.water_timeout");
 
     public static final I18n INVENTORY_BACKPACK_FULL = of("inventory.backpack_full");
 

@@ -91,6 +91,10 @@ public class BreakUtils {
         return breakSet.contains(pos);
     }
 
+    public boolean isBreaking(BlockPos pos) {
+        return pos != null && pos.equals(breakPos);
+    }
+
     public boolean inQueue(SchematicBlockContext ctx) {
         return inQueue(ctx.blockPos);
     }

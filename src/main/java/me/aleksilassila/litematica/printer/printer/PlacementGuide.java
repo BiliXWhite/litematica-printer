@@ -22,8 +22,6 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.piston.PistonBaseBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.*;
-import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.level.material.WaterFluid;
 import net.minecraft.world.level.portal.PortalShape;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -76,24 +74,37 @@ public class PlacementGuide {
     @SuppressWarnings("EnhancedSwitchMigration")
     private @Nullable Action buildAction(SchematicBlockContext ctx, ClassHook requiredType, BlockMatchingType state, AtomicReference<Boolean> skip) {
         // 跳过含水方块
-        if (Configs.Print.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && BlockUtils.isNeedsWater(ctx.requiredState)) {
+        if (Configs.Print.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && BlockUtils.needsWater(ctx.requiredState)) {
             return null;
         }
         if (Configs.Print.PRINT_ICE_FOR_WATER.getBooleanValue()
-                && BlockUtils.isNeedsWater(ctx.requiredState)) {
-            if (!BlockUtils.isPureWaterSource(ctx.currentState) && state == BlockMatchingType.MISSING_BLOCK) {
-                if (mc.gameMode == null) {
+                && BlockUtils.needsWater(ctx.requiredState)) {
+            boolean canGenerateWater = mc.gameMode != null && !mc.gameMode.getPlayerMode().isCreative();
+            switch (IceForWaterFlow.decideBuildAction(
+                    true,
+                    BlockUtils.isWaterSource(ctx.currentState) || BlockUtils.isWaterlogged(ctx.currentState),
+                    ctx.currentState.getBlock() instanceof IceBlock,
+                    state == BlockMatchingType.MISSING_BLOCK,
+                    iceDownCheck(ctx),
+                    canGenerateWater)) {
+                case PLACE_ICE -> {
+                    return new Action().setItem(Items.ICE);
+                }
+                case PLACE_BLOCK -> {
+                    return buildActionMissingBlock(ctx, requiredType, skip);
+                }
+                case QUEUE_ICE_BREAK -> {
+                    if (!BreakUtils.INSTANCE.inQueue(ctx.blockPos)) BreakUtils.INSTANCE.add(ctx.blockPos);
+                    return new Action().setItem(Items.ICE);
+                }
+                case SKIP -> {
+                    // 创造模式：提示后跳过
+                    if (mc.gameMode != null && mc.gameMode.getPlayerMode().isCreative()
+                            && BlockUtils.needsWater(ctx.requiredState)) {
+                        MessageUtils.setOverlayMessage(I18n.ICE_CREATIVE_MODE.getName());
+                    }
                     return null;
                 }
-                var downBlockState = ctx.level.getBlockState(ctx.blockPos.below()).getBlock();
-                if (downBlockState != Blocks.COBWEB && downBlockState != Blocks.BAMBOO_SAPLING && !(downBlockState instanceof LiquidBlock)) {
-                    return null;
-                }
-                if (mc.gameMode.getPlayerMode().isCreative()) {
-                    MessageUtils.setOverlayMessage(I18n.ICE_CREATIVE_MODE.getName());
-                    return null;
-                }
-                return new Action().setItem(Items.ICE);
             }
         }
         Action action;
@@ -112,6 +123,13 @@ public class PlacementGuide {
                 break;
         }
         return action;
+    }
+
+    private boolean iceDownCheck(SchematicBlockContext ctx) {
+        Block downBlockState = ctx.level.getBlockState(ctx.blockPos.below()).getBlock();
+        return downBlockState == Blocks.COBWEB
+                || downBlockState == Blocks.BAMBOO_SAPLING
+                || downBlockState instanceof LiquidBlock;
     }
 
     /*** 缺失方块：实际位置为空，或当前方块在可替换列表中且启用了替换功能 ***/

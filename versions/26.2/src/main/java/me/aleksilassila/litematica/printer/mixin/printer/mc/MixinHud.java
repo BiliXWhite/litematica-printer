@@ -229,11 +229,11 @@ public abstract class MixinHud {
         commonLines.add(MessageUtils.translatable(KEY_GLOBAL_TICK, ModuleManager.getCurrentHandlerTime()).getString());
         commonLines.add(MessageUtils.translatable(KEY_ACTIVE_MODULES, ModuleManager.VALUES.size()).getString());
 
-        ScanState dominantState = ScanState.COLLECT;
+        ScanState currentState = ScanState.RUNNING;
         for (Module m : ModuleManager.VALUES) {
-            dominantState = m.getScanState();
+            currentState = m.getScanState();
         }
-        commonLines.add(MessageUtils.translatable(KEY_SCAN_MODE, dominantState).getString());
+        commonLines.add(MessageUtils.translatable(KEY_SCAN_MODE, currentState).getString());
 
         Minecraft mc = Minecraft.getInstance();
         int maxWidth = 0;

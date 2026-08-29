@@ -1,6 +1,7 @@
 package me.aleksilassila.litematica.printer.config;
 
 import me.aleksilassila.litematica.printer.gui.ConfigUi;
+import me.aleksilassila.litematica.printer.handler.ModuleManager;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import me.aleksilassila.litematica.printer.interfaces.compat.BedrockCompat;
@@ -56,6 +57,7 @@ public class HotkeysCallback {
         // 工作开关
         Configs.Core.WORK_SWITCH.setValueChangeCallback(b -> {
             if (!b.getBooleanValue()) {
+                ModuleManager.PRINT.setWatingForWaterPos(null);
                 ActionManager.INSTANCE.clearQueue();
                 if (BedrockCompat.isAvailable()) {
                     if (BedrockCompat.isWorking()) {

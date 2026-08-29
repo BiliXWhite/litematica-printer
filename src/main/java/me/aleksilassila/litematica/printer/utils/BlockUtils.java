@@ -144,39 +144,20 @@ public class BlockUtils {
      * @param blockState 要判断的方块
      * @return 是否含水（是水）
      */
-    public static boolean isNeedsWater(BlockState blockState) {
-        return isPureWaterSource(blockState)
-                || (blockState.getProperties().contains(BlockStateProperties.WATERLOGGED)
-                        && blockState.getValue(BlockStateProperties.WATERLOGGED))
+    public static boolean needsWater(BlockState blockState) {
+        return isWaterSource(blockState)
+                || isWaterlogged(blockState)
                 || blockState.getBlock() instanceof BubbleColumnBlock
                 || blockState.getBlock() instanceof SeagrassBlock;
     }
 
-    /**
-     * 纯水源判断，不含 waterlogged 方块。
-     * 破冰放水只针对纯水源，含水方块走正常放置逻辑。
-     */
-    public static boolean isPureWaterSource(BlockState blockState) {
+    public static boolean isWaterSource(BlockState blockState) {
         return blockState.is(Blocks.WATER) && blockState.getValue(LiquidBlock.LEVEL) == 0;
     }
 
-    public static boolean isCorrectWaterLevel(BlockState requiredState, BlockState currentState) {
-        // 处理含水方块（如台阶、楼梯等 waterlogged=true）
-        if (currentState.getProperties().contains(BlockStateProperties.WATERLOGGED)) {
-            return requiredState.getProperties().contains(BlockStateProperties.WATERLOGGED)
-                    && currentState.getValue(BlockStateProperties.WATERLOGGED)
-                            .equals(requiredState.getValue(BlockStateProperties.WATERLOGGED));
-        }
-
-        if (!currentState.is(Blocks.WATER)) return false;
-        if (requiredState.is(Blocks.WATER)
-                && currentState
-                        .getValue(LiquidBlock.LEVEL)
-                        .equals(requiredState.getValue(LiquidBlock.LEVEL))) {
-            return true;
-        } else {
-            return currentState.getValue(LiquidBlock.LEVEL) == 0;
-        }
+    public static boolean isWaterlogged(BlockState blockState) {
+        return blockState.getProperties().contains(BlockStateProperties.WATERLOGGED)
+                && blockState.getValue(BlockStateProperties.WATERLOGGED);
     }
 
     public static float getRequiredYaw(Direction playerShouldBeFacing) {

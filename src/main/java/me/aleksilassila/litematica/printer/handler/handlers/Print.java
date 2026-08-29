@@ -19,10 +19,8 @@ import me.aleksilassila.litematica.printer.utils.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.WaterFluid;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,7 +51,15 @@ public class Print extends Module {
     private boolean lastSkipResult = false;
 
     // 等待水产生队列
-    private final List<BlockPos> watingForWaterList = new ArrayList<>();
+    @Getter @Setter
+    private BlockPos watingForWaterPos;
+
+    // 等待水生成的最大tick数：超过仍未出水则警告并关闭打印机
+    private static final int MAX_WAIT_WATER_TICKS = 60;
+    // 等待水ack/冰块放置ack的宽限tick数：期间即使无冰无水也不清除标记，避免重放冰破坏刚生成的水源
+    private static final int WAIT_ACK_GRACE_TICKS = 10;
+    private int watingForWaterTicks;
+    private boolean placingIceForWater;
 
     public Print() {
         super(NAME, Configs.Print.ENABLED, Configs.Print.PRINT_SELECTION_TYPE, true);
@@ -133,27 +139,59 @@ public class Print extends Module {
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
+        placingIceForWater = false;
         if (Configs.Print.PRINT_ICE_FOR_WATER.getBooleanValue()
-            && BlockUtils.isNeedsWater(ctx.requiredState)) {
-            // 破冰后等水生成
-            if (watingForWaterList.contains(blockPos)) {
-                if (BlockUtils.isPureWaterSource(ctx.currentState))
-                    watingForWaterList.remove(blockPos);
-                else {
+                && BlockUtils.needsWater(ctx.requiredState)) {
+            boolean isWaitingHere = watingForWaterPos != null && watingForWaterPos.equals(blockPos);
+            boolean isIce = ctx.currentState.getBlock() instanceof IceBlock;
+            boolean matchesWaterRequest = BlockUtils.isWaterSource(ctx.currentState) || BlockUtils.isWaterlogged(ctx.currentState);
+            // 等待标记过期：连续 WAIT_ACK_GRACE_TICKS 个等待tick内无冰无水且无待挖掘任务（如水被玩家/活塞移除）
+            // 才清除标记。宽限期覆盖冰块放置/破坏后的 ack 往返，避免重放冰破坏刚生成的水源。
+            if (isWaitingHere && !isIce && !matchesWaterRequest && !BreakUtils.INSTANCE.inQueue(blockPos)
+                    && watingForWaterTicks >= WAIT_ACK_GRACE_TICKS) {
+                watingForWaterPos = null;
+                watingForWaterTicks = 0;
+                isWaitingHere = false;
+            }
+            switch (IceForWaterFlow.decide(
+                    true, isWaitingHere, isIce, matchesWaterRequest, watingForWaterTicks, MAX_WAIT_WATER_TICKS)) {
+                case PLACE_BLOCK -> {
+                    if (isWaitingHere) {
+                        watingForWaterPos = null;
+                        watingForWaterTicks = 0;
+                    }
+                    // 水已生成：走下方正常放置流程，放置含水方块（buildAction 已返回对应 Action）
+                }
+                case KEEP_WAITING -> {
+                    if (isIce) {
+                        ensureIceBreakQueued(blockPos);
+                    }
+                    watingForWaterTicks++;
                     enterWaiting(blockPos);
                     skipIteration.set(true);
                     return;
                 }
-            }
-            // 单步阻塞式破冰放水：目标是水且当前是冰才触发
-            if (ctx.currentState.getBlock() instanceof IceBlock) {
-                if (!BreakUtils.INSTANCE.inQueue(blockPos)) {
-                    BreakUtils.INSTANCE.add(blockPos);
-                    watingForWaterList.add(blockPos);
+                case WAIT_TIMEOUT -> {
+                    // 等待 MAX_WAIT_WATER_TICKS tick 仍无水生成：警告并关闭打印机
+                    watingForWaterPos = null;
+                    watingForWaterTicks = 0;
+                    MessageUtils.setOverlayMessage(I18n.ICE_WATER_TIMEOUT.getName());
+                    Configs.Core.WORK_SWITCH.setBooleanValue(false);
+                    return;
                 }
-                enterWaiting(blockPos);
-                skipIteration.set(true);
-                return;
+                case BREAK_ICE_AND_WAIT -> {
+                    ensureIceBreakQueued(blockPos);
+                    watingForWaterPos = blockPos.immutable();
+                    watingForWaterTicks = 0;
+                    enterWaiting(blockPos);
+                    skipIteration.set(true);
+                    return;
+                }
+                case PLACE_ICE -> {
+                    placingIceForWater = true; // 走下方正常放置流程放冰
+                }
+                case SKIP -> {
+                }
             }
         }
         // 下落检查
@@ -212,6 +250,19 @@ public class Print extends Module {
             useShift = action.getShift();
         }
         action.queueAction(blockPos, side, useShift, player);
+        // 放冰完成：入队挖掘并进入等待水生成
+        if (placingIceForWater) {
+            placingIceForWater = false;
+            ActionManager.INSTANCE.setLook(action.getPlayerLook());
+            ActionManager.INSTANCE.setNeedWaitModifyLookFromAction(action.getNeedWaitModifyLook());
+            ActionManager.INSTANCE.sendQueue(player);
+            ensureIceBreakQueued(blockPos);
+            watingForWaterPos = blockPos.immutable();
+            watingForWaterTicks = 0;
+            enterWaiting(blockPos);
+            skipIteration.set(true);
+            return;
+        }
         Vec3 hitModifier = LitematicaUtils.usePrecisionPlacement(blockPos, ctx.requiredState);
         if (hitModifier != null) {
             ActionManager.INSTANCE.hitModifier = hitModifier;
@@ -228,6 +279,20 @@ public class Print extends Module {
             addHighlight(blockPos, HighlightType.PLACE);
         else
             addHighlight(blockPos, HighlightType.ADJUST);
+    }
+
+    @Override
+    public void resetScanState() {
+        super.resetScanState();
+        watingForWaterPos = null;
+        watingForWaterTicks = 0;
+        placingIceForWater = false;
+    }
+
+    private void ensureIceBreakQueued(BlockPos pos) {
+        if (!BreakUtils.INSTANCE.inQueue(pos) && !BreakUtils.INSTANCE.isBreaking(pos)) {
+            BreakUtils.INSTANCE.add(pos);
+        }
     }
 
     private void recordMissingMaterial(Item[] reqItems) {
