@@ -21,6 +21,8 @@ public class I18n {
     public static final I18n ICE_CREATIVE_MODE = of("ice.creative_mode");
     public static final I18n ICE_WATER_TIMEOUT = of("ice.water_timeout");
 
+    public static final I18n SHULKER_SYNC_TIMEOUT = of("shulker.sync_timeout");
+
     public static final I18n INVENTORY_BACKPACK_FULL = of("inventory.backpack_full");
 
     public static final I18n BREWINGSTAND_LOWER = of("brewingstand.lower");

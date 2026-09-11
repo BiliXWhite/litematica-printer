@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
+import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.ShulkerSource;
 import me.aleksilassila.litematica.printer.interfaces.compat.QuickShulkerCompat;
@@ -47,28 +48,49 @@ public class QuickShulkerUtils {
     private static final List<TrackedShulker> trackedShulkers = new ArrayList<>();
     private static ReturnRequest activeReturnRequest;
     private static TrackedShulker activeShulker;
-    private static int deferredCloseTicks;
-    private static int deferredCloseRetries;
-    private static final int MAX_DEFERRED_CLOSE_RETRIES = 10;
+    private static final int OPERATION_TIMEOUT_TICKS = 100;
+    private static int operationTicks;
+    private static LocalPlayer operationPlayer;
+    private static PendingTransfer pendingTransfer;
 
     private QuickShulkerUtils() {}
 
     public static void tick() {
-        if (shulkerCooldown > 0) {
-            shulkerCooldown--;
+        if (operationPlayer != null && operationPlayer != mc.player) {
+            resetOperation();
+            itemsToReturn.clear();
+            trackedShulkers.clear();
         }
-        if (deferredCloseTicks > 0 && --deferredCloseTicks == 0) {
-            LocalPlayer player = mc.player;
-            if (player == null || player.containerMenu.equals(player.inventoryMenu)) {
-                deferredCloseRetries = 0;
-            } else if (player.containerMenu.getCarried().isEmpty()
-                    || ++deferredCloseRetries >= MAX_DEFERRED_CLOSE_RETRIES) {
-                player.closeContainer();
-                deferredCloseRetries = 0;
-            } else {
-                deferredCloseTicks = 1;
+        if (shulkerCooldown > 0) shulkerCooldown--;
+        if (!isOpenHandler) return;
+
+        LocalPlayer player = mc.player;
+        if (pendingTransfer != null && player != null) {
+            if (player.containerMenu != pendingTransfer.container()) {
+                failOperation(player);
+                return;
+            }
+            if (pendingTransfer.isConfirmed(player.getInventory())) {
+                if (activeShulker != null) {
+                    activeShulker.updateContents(getContainerContents(player.containerMenu,
+                            player.containerMenu.slots.size() - 36));
+                }
+                if (activeReturnRequest != null) {
+                    itemsToReturn.removeFirstOccurrence(activeReturnRequest);
+                } else if (activeShulker != null) {
+                    itemsToReturn.addLast(new ReturnRequest(pendingTransfer.item(), activeShulker));
+                }
+                finishShulkerOperation(player);
+                return;
             }
         }
+        if (++operationTicks >= OPERATION_TIMEOUT_TICKS) failOperation(player);
+    }
+
+    private static void failOperation(LocalPlayer player) {
+        Configs.Core.WORK_SWITCH.setBooleanValue(false);
+        MessageUtils.addMessage(I18n.SHULKER_SYNC_TIMEOUT.getName());
+        finishShulkerOperation(player);
     }
 
     public static void addLastNeedItem(Item item) {
@@ -100,7 +122,7 @@ public class QuickShulkerUtils {
             return false;
         }
 
-        if (isOpenHandler || shulkerCooldown > 0) return false;
+        if (isOpenHandler || shulkerCooldown > 0 || player.containerMenu != player.inventoryMenu) return false;
 
         Inventory inventory = player.getInventory();
 
@@ -155,6 +177,8 @@ public class QuickShulkerUtils {
         setShulkerBoxSlot(shulkerSlot);
         ModUtils.closeScreen++;
         setOpenHandler(true);
+        operationPlayer = mc.player;
+        operationTicks = 0;
         setShulkerCooldown(Configs.Print.SHULKER_COOLDOWN.getIntegerValue());
 
         // 按来源打开潜影盒：PLUGIN 走右键模拟，MOD 走 QuickShulker API
@@ -251,113 +275,116 @@ public class QuickShulkerUtils {
      */
     public static void switchFromShulker() {
         LocalPlayer player = mc.player;
-        if (player == null || player.containerMenu.equals(player.inventoryMenu)) {
-            isOpenHandler = false;
-            return;
-        }
+        if (!isOpenHandler || pendingTransfer != null || player == null
+                || player.containerMenu == player.inventoryMenu) return;
 
         AbstractContainerMenu container = player.containerMenu;
         Inventory inventory = player.getInventory();
-
-        if (activeReturnRequest != null) {
-            returnItemToShulker(player, container, inventory, activeReturnRequest);
-            finishShulkerOperation(player);
+        int ownSlots = container.slots.size() - 36;
+        if (!container.getCarried().isEmpty()) {
+            failOperation(player);
             return;
         }
 
-        int ownSlots = container.slots.size() - 36;
-        for (int slotIndex = 0; slotIndex < ownSlots; slotIndex++) {
-            Slot slot = container.slots.get(slotIndex);
-            if (!slot.hasItem()) continue;
-            for (Item item : lastNeedItemList) {
-                if (slot.getItem().getItem().equals(item)) {
-                    Item returnItem = slot.getItem().getItem();
-                    // 找背包空位（优先快捷栏，再主背包）
-                    int emptyInvSlot = -1;
-                    for (int i = 0; i < Math.min(inventory.getContainerSize(), 36); i++) {
-                        if (inventory.getItem(i).isEmpty()) {
-                            emptyInvSlot = i;
-                            break;
-                        }
-                    }
-                    if (emptyInvSlot != -1 && mc.gameMode != null) {
-                        // 背包索引 → 容器槽位索引的转换
-                        int containerTarget;
-                        if (emptyInvSlot < 9) {
-                            // 快捷栏在容器末尾
-                            containerTarget = ownSlots + 27 + emptyInvSlot;
-                        } else {
-                            // 主背包紧接容器自身槽位
-                            containerTarget = ownSlots + (emptyInvSlot - 9);
-                        }
-                        // 先拾取潜影盒槽位，再放到目标槽位
-                        mc.gameMode.handleInventoryMouseClick(container.containerId, slot.index, 0, ClickType.PICKUP, player);
-                        mc.gameMode.handleInventoryMouseClick(container.containerId, containerTarget, 0, ClickType.PICKUP, player);
-                        if (activeShulker != null) {
-                            activeShulker.updateContents(getContainerContents(container, ownSlots));
-                            itemsToReturn.addLast(new ReturnRequest(returnItem, activeShulker));
-                        }
-                        finishShulkerOperation(null);
-                    } else {
-                        finishShulkerOperation(player);
-                    }
+        if (activeReturnRequest != null) {
+            for (int i = 0; i < Math.min(inventory.getContainerSize(), 36); i++) {
+                if (inventory.getItem(i).is(activeReturnRequest.item())) {
+                    beginTransfer(container, i < 9 ? ownSlots + 27 + i : ownSlots + i - 9, inventory);
+                    return;
+                }
+            }
+            itemsToReturn.removeFirstOccurrence(activeReturnRequest);
+        } else {
+            for (int slotIndex = 0; slotIndex < ownSlots; slotIndex++) {
+                ItemStack stack = container.slots.get(slotIndex).getItem();
+                if (!stack.isEmpty() && lastNeedItemList.contains(stack.getItem())) {
+                    beginTransfer(container, slotIndex, inventory);
                     return;
                 }
             }
         }
-
         finishShulkerOperation(player);
     }
 
-    private static void returnItemToShulker(LocalPlayer player, AbstractContainerMenu container,
-                                            Inventory inventory, ReturnRequest returnRequest) {
-        if (mc.gameMode == null) {
-            itemsToReturn.removeFirstOccurrence(returnRequest);
-            return;
-        }
+    private static void beginTransfer(AbstractContainerMenu container, int sourceSlot, Inventory inventory) {
+        ItemStack stack = container.slots.get(sourceSlot).getItem();
+        pendingTransfer = new PendingTransfer(container, sourceSlot, stack.getItem(), stack.getCount(),
+                countItem(inventory, stack.getItem()), countContainerItem(container, stack.getItem()),
+                activeReturnRequest != null);
+        operationTicks = 0;
+        // 使用一次服务端转移，避免两次 PICKUP 之间的鼠标持物状态。
+        quickMoveWithoutPrediction(container, sourceSlot);
+    }
 
-        int ownSlots = container.slots.size() - 36;
+    private static void quickMoveWithoutPrediction(AbstractContainerMenu container, int sourceSlot) {
+        ClientPacketListener connection = mc.getConnection();
+        if (connection == null || mc.player == null) return;
+
+        // 不预测库存变动，让服务端回传变动槽位后再确认取货或回塞。
+        //#if MC >= 12105
+        connection.send(new ServerboundContainerClickPacket(
+                container.containerId, container.getStateId(), Shorts.checkedCast(sourceSlot),
+                (byte) 0, ClickType.QUICK_MOVE, new Int2ObjectOpenHashMap<>(),
+                HashedStack.create(container.getCarried(), connection.decoratedHashOpsGenenerator())));
+        //#else
+        //$$ connection.send(new ServerboundContainerClickPacket(
+        //$$         container.containerId, container.getStateId(), sourceSlot, 0, ClickType.QUICK_MOVE,
+        //$$         container.getCarried().copy(), new Int2ObjectOpenHashMap<>()));
+        //#endif
+    }
+
+    private static int countItem(Inventory inventory, Item item) {
+        int count = 0;
         for (int i = 0; i < Math.min(inventory.getContainerSize(), 36); i++) {
-            if (!inventory.getItem(i).is(returnRequest.item())) continue;
-
-            for (int shulkerSlot = 0; shulkerSlot < ownSlots; shulkerSlot++) {
-                if (container.slots.get(shulkerSlot).hasItem()) continue;
-
-                int containerSource = i < 9 ? ownSlots + 27 + i : ownSlots + i - 9;
-                mc.gameMode.handleInventoryMouseClick(container.containerId, containerSource, 0, ClickType.PICKUP, player);
-                mc.gameMode.handleInventoryMouseClick(container.containerId, shulkerSlot, 0, ClickType.PICKUP, player);
-                itemsToReturn.removeFirstOccurrence(returnRequest);
-                if (returnRequest.shulker() != null) {
-                    returnRequest.shulker().updateContents(getContainerContents(container, ownSlots));
-                }
-                return;
-            }
-            // 潜影盒无空位 → 移除失效请求，避免死循环
-            itemsToReturn.removeFirstOccurrence(returnRequest);
-            return;
+            ItemStack stack = inventory.getItem(i);
+            if (stack.is(item)) count += stack.getCount();
         }
-        // 物品已不在背包（已被使用）→ 移除失效请求，避免死循环
-        itemsToReturn.removeFirstOccurrence(returnRequest);
+        return count;
+    }
+
+    private static int countContainerItem(AbstractContainerMenu container, Item item) {
+        int count = 0;
+        for (int i = 0; i < container.slots.size() - 36; i++) {
+            ItemStack stack = container.slots.get(i).getItem();
+            if (stack.is(item)) count += stack.getCount();
+        }
+        return count;
+    }
+
+    private record PendingTransfer(AbstractContainerMenu container, int sourceSlot, Item item,
+                                   int sourceCount, int inventoryCount, int containerCount, boolean returning) {
+        private boolean isConfirmed(Inventory inventory) {
+            ItemStack source = container.slots.get(sourceSlot).getItem();
+            if (!source.isEmpty() && !source.is(item)) return false;
+            int moved = sourceCount - (source.is(item) ? source.getCount() : 0);
+            int inventoryDelta = countItem(inventory, item) - inventoryCount;
+            int containerDelta = countContainerItem(container, item) - containerCount;
+            return moved > 0 && inventoryDelta == (returning ? -moved : moved)
+                    && containerDelta == -inventoryDelta && container.getCarried().isEmpty();
+        }
     }
 
     private static void finishShulkerOperation(LocalPlayer player) {
         boolean wasReturn = activeReturnRequest != null;
-        if (player == null) {
-            deferredCloseTicks = 2;
-            deferredCloseRetries = 0;
-        } else {
+        if (player != null && player.containerMenu != player.inventoryMenu
+                && (pendingTransfer == null || player.containerMenu == pendingTransfer.container())) {
             player.closeContainer();
-            deferredCloseTicks = 0;
-            deferredCloseRetries = 0;
         }
+        resetOperation();
+        if (itemsToReturn.isEmpty()) trackedShulkers.clear();
+        if (wasReturn) shulkerCooldown = 0;
+    }
+
+    private static void resetOperation() {
         shulkerBoxSlot = -1;
         isOpenHandler = false;
         activeReturnRequest = null;
         activeShulker = null;
+        pendingTransfer = null;
+        operationPlayer = null;
+        operationTicks = 0;
         lastNeedItemList.clear();
-        if (itemsToReturn.isEmpty()) trackedShulkers.clear();
-        // 回塞完成后立即允许下一次潜影盒操作，避免当前打印位置因冷却被跳过
-        if (wasReturn) shulkerCooldown = 0;
+        ModUtils.closeScreen = 0;
     }
 
     /** 在玩家背包（跳过快捷栏）中找到包含目标物品的潜影盒，返回背包槽位索引，未找到返回 -1 */
