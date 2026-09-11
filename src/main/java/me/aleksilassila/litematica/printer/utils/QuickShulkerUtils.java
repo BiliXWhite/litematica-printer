@@ -88,8 +88,13 @@ public class QuickShulkerUtils {
     }
 
     private static void failOperation(LocalPlayer player) {
-        Configs.Core.WORK_SWITCH.setBooleanValue(false);
-        MessageUtils.addMessage(I18n.SHULKER_SYNC_TIMEOUT.getName());
+        // 只有已发出的转移结果未确认时才停机。
+        if (pendingTransfer != null) {
+            Configs.Core.WORK_SWITCH.setBooleanValue(false);
+            MessageUtils.addMessage(I18n.SHULKER_SYNC_TIMEOUT.getName());
+        } else {
+            MessageUtils.addMessage(I18n.SHULKER_TRANSFER_NOT_STARTED.getName());
+        }
         finishShulkerOperation(player);
     }
 
@@ -308,17 +313,21 @@ public class QuickShulkerUtils {
 
     private static void beginTransfer(AbstractContainerMenu container, int sourceSlot, Inventory inventory) {
         ItemStack stack = container.slots.get(sourceSlot).getItem();
-        pendingTransfer = new PendingTransfer(container, sourceSlot, stack.getItem(), stack.getCount(),
+        PendingTransfer transfer = new PendingTransfer(container, sourceSlot, stack.getItem(), stack.getCount(),
                 countItem(inventory, stack.getItem()), countContainerItem(container, stack.getItem()),
                 activeReturnRequest != null);
-        operationTicks = 0;
         // 使用一次服务端转移，避免两次 PICKUP 之间的鼠标持物状态。
-        quickMoveWithoutPrediction(container, sourceSlot);
+        if (quickMoveWithoutPrediction(container, sourceSlot)) {
+            pendingTransfer = transfer;
+            operationTicks = 0;
+        } else {
+            failOperation(mc.player);
+        }
     }
 
-    private static void quickMoveWithoutPrediction(AbstractContainerMenu container, int sourceSlot) {
+    private static boolean quickMoveWithoutPrediction(AbstractContainerMenu container, int sourceSlot) {
         ClientPacketListener connection = mc.getConnection();
-        if (connection == null || mc.player == null) return;
+        if (connection == null || mc.player == null) return false;
 
         // 不预测库存变动，让服务端回传变动槽位后再确认取货或回塞。
         //#if MC >= 12105
@@ -331,6 +340,7 @@ public class QuickShulkerUtils {
         //$$         container.containerId, container.getStateId(), sourceSlot, 0, ClickType.QUICK_MOVE,
         //$$         container.getCarried().copy(), new Int2ObjectOpenHashMap<>()));
         //#endif
+        return true;
     }
 
     private static int countItem(Inventory inventory, Item item) {

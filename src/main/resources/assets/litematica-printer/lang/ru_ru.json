@@ -280,5 +280,6 @@
   "modmenu.descriptionTranslation.litematica-printer": "Расширение для Litematica, добавляющее недостающую функцию принтера, позволяющую автоматически строить по схемам.",
   "modmenu.nameTranslation.litematica-printer": "Litematica Printer",
   "litematica-printer.bedrock.not_support": "Не поддерживается в оригинальной версии Bedrock Miner, используйте версию bunnyi",
-  "litematica-printer.shulker.sync_timeout": "Синхронизация шалкера прервана или превысила время ожидания. Принтер остановлен; проверьте контейнер и инвентарь перед повторным запуском."
+  "litematica-printer.shulker.sync_timeout": "Синхронизация шалкера прервана или превысила время ожидания. Принтер остановлен.",
+  "litematica-printer.shulker.transfer_not_started": "Не удалось начать перенос предметов между шалкером и инвентарём."
 }

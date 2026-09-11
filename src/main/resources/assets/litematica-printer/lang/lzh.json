@@ -281,5 +281,6 @@
   "modmenu.descriptionTranslation.litematica-printer": "Litematica 之擴展，補全所缺印機之能，可依圖自動營造。",
   "modmenu.nameTranslation.litematica-printer": "投影印機",
   "litematica-printer.bedrock.not_support": "暫不支援原版 Bedrock Miner，請用 bunnyi 分支版",
-  "litematica-printer.shulker.sync_timeout": "潛影盒物品同步逾時或中斷，印機已止。請查容器與行囊，再行開啟。"
+  "litematica-printer.shulker.sync_timeout": "潛影盒物品同步逾時或中斷，印機已止。",
+  "litematica-printer.shulker.transfer_not_started": "潛影盒移物未能啟行。"
 }

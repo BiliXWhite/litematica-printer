@@ -22,6 +22,7 @@ public class I18n {
     public static final I18n ICE_WATER_TIMEOUT = of("ice.water_timeout");
 
     public static final I18n SHULKER_SYNC_TIMEOUT = of("shulker.sync_timeout");
+    public static final I18n SHULKER_TRANSFER_NOT_STARTED = of("shulker.transfer_not_started");
 
     public static final I18n INVENTORY_BACKPACK_FULL = of("inventory.backpack_full");
 
