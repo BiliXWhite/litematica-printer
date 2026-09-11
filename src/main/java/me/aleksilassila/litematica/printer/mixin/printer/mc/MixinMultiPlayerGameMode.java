@@ -21,6 +21,9 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @SuppressWarnings("DataFlowIssue")
 @Mixin(value = MultiPlayerGameMode.class, priority = 1020)
@@ -40,6 +43,15 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
     //$$ @Shadow public abstract InteractionResult useItemOn(LocalPlayer player,ClientLevel level, InteractionHand hand, BlockHitResult blockHitResult);
     //#endif
     // @formatter:on
+
+    @Inject(method = "stopDestroyBlock", at = @At("HEAD"), cancellable = true)
+    private void litematica_printer$keepPrinterMining(CallbackInfo ci) {
+        // 未按住攻击键时，原版每 tick 都会取消挖掘；打印机接管的目标需要持续累积进度。
+        if (this.isDestroying && ConfigUtils.isPrinterEnable()
+                && BreakUtils.INSTANCE.isBreaking(this.destroyBlockPos)) {
+            ci.cancel();
+        }
+    }
 
     @Override
     public BlockPos litematica_printer$destroyBlockPos() {
@@ -151,12 +163,10 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
         if (destroyProgress >= 1.0F ||
                 (Configs.Break.BREAK_INSTANT_MINE.getBooleanValue() && destroyProgress > 0.5F)
         ) {
-            if (localPrediction) {
-                destroyBlock(blockPos);
-            }
-
-
-            PacketUtils.sendPacket(sequence -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
+            PacketUtils.sendPacket(sequence -> {
+                if (localPrediction) destroyBlock(blockPos);
+                return litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, sequence);
+            });
             PacketUtils.sendPacket(sequence -> litematica_printer$GetServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
             // 保守一点使用0.6,只测试了0.583333这个数值
             if (destroyProgress > 0.6F) {
@@ -185,7 +195,12 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
     }
 
     @Override
-    public BlockBreakResult litematica_printer$continueDestroyBlock(boolean localPrediction, BlockPos blockPos, Direction direction) {
+    public BlockBreakResult litematica_printer$continueDestroyBlock(boolean requestedPrediction, BlockPos blockPos, Direction direction) {
+        //#if MC > 11802
+        boolean localPrediction = requestedPrediction;
+        //#else
+        //$$ boolean localPrediction = false; // 旧版自定义挖掘不参与原版预测回滚，等待服务端更新。
+        //#endif
         LocalPlayer player = minecraft.player;
         ClientLevel level = minecraft.level;
         MultiPlayerGameMode gameMode = minecraft.gameMode;
@@ -204,11 +219,10 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
 
         if (ModUtils.isTweakerooLoaded() && ModUtils.isToolSwitchEnabled()) {
             ModUtils.trySwitchToEffectiveTool(blockPos);
-        } else {
-            ensureHasSentCarriedItem();
         }
+        ensureHasSentCarriedItem();
 
-        if (this.sameDestroyTarget(blockPos)) {
+        if (this.isDestroying && this.sameDestroyTarget(blockPos)) {
             BlockState blockState = level.getBlockState(blockPos);
             if (blockState.isAir()) {
                 this.isDestroying = false;
