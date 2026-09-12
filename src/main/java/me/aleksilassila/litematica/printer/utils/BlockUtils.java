@@ -148,7 +148,20 @@ public class BlockUtils {
         return isWaterSource(blockState)
                 || isWaterlogged(blockState)
                 || blockState.getBlock() instanceof BubbleColumnBlock
-                || blockState.getBlock() instanceof SeagrassBlock;
+                || blockState.getBlock() instanceof SeagrassBlock
+                || (isLiveCoral(blockState) && !getKeyString(blockState.getBlock()).contains("_block"));
+
+    }
+
+    /**
+     * 判断该方块是否是活珊瑚
+     *
+     * @param blockState 要判断的方块
+     * @return 是否是活珊瑚
+     */
+    public static boolean isLiveCoral(BlockState blockState) {
+        String blockId = getKeyString(blockState.getBlock());
+        return blockId.contains("coral") && !blockId.contains("dead_");
     }
 
     public static boolean isWaterSource(BlockState blockState) {
