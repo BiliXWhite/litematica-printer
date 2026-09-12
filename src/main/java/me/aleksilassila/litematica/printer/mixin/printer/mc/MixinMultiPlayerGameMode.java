@@ -46,7 +46,7 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
 
     @Inject(method = "stopDestroyBlock", at = @At("HEAD"), cancellable = true)
     private void litematica_printer$keepPrinterMining(CallbackInfo ci) {
-        // 未按住攻击键时，原版每 tick 都会取消挖掘；打印机接管的目标需要持续累积进度。
+        // 防止玩家手贱点了一下方块停止挖掘，导致重置进度
         if (this.isDestroying && ConfigUtils.isPrinterEnable()
                 && BreakUtils.INSTANCE.isBreaking(this.destroyBlockPos)) {
             ci.cancel();
@@ -199,7 +199,7 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
         //#if MC > 11802
         boolean localPrediction = requestedPrediction;
         //#else
-        //$$ boolean localPrediction = false; // 旧版自定义挖掘不参与原版预测回滚，等待服务端更新。
+        //$$ boolean localPrediction = false; // 旧版自定义挖掘不参与原版预测回滚，等待服务端更新
         //#endif
         LocalPlayer player = minecraft.player;
         ClientLevel level = minecraft.level;
