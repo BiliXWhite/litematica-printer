@@ -74,7 +74,7 @@ public class PlacementGuide {
     @SuppressWarnings("EnhancedSwitchMigration")
     private @Nullable Action buildAction(SchematicBlockContext ctx, ClassHook requiredType, BlockMatchingType state, AtomicReference<Boolean> skip) {
         // 跳过含水方块
-        if (Configs.Print.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && BlockUtils.needsWater(ctx.requiredState)) {
+        if (Configs.Print.SKIP_WATERLOGGED_BLOCK.getBooleanValue() && (BlockUtils.needsWater(ctx.requiredState) || BlockUtils.isLiveCoral(ctx.requiredState))) {
             return null;
         }
         if (Configs.Print.PRINT_ICE_FOR_WATER.getBooleanValue()
