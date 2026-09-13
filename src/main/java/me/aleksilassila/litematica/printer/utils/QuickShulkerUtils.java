@@ -89,12 +89,9 @@ public class QuickShulkerUtils {
 
     private static void failOperation(LocalPlayer player) {
         // 只有已发出的转移结果未确认时才停机。
-        if (pendingTransfer != null) {
-            Configs.Core.WORK_SWITCH.setBooleanValue(false);
-            MessageUtils.addMessage(I18n.SHULKER_SYNC_TIMEOUT.getName());
-        } else {
-            MessageUtils.addMessage(I18n.SHULKER_TRANSFER_NOT_STARTED.getName());
-        }
+        if (pendingTransfer != null) Configs.Core.WORK_SWITCH.setBooleanValue(false);
+        MessageUtils.addMessage((pendingTransfer != null
+                ? I18n.SHULKER_SYNC_TIMEOUT : I18n.SHULKER_TRANSFER_NOT_STARTED).getName());
         finishShulkerOperation(player);
     }
 
@@ -131,30 +128,16 @@ public class QuickShulkerUtils {
 
         Inventory inventory = player.getInventory();
 
-        if (Configs.Print.RETURN_TO_SHULKER_WHEN_FULL.getBooleanValue()
-                && isInventoryFull(inventory)) {
+        if (isInventoryFull(inventory)) {
             ReturnRequest returnRequest = itemsToReturn.peekFirst();
             if (returnRequest == null) return false;
 
-            int shulkerSlot = findReturnShulker(inventory, returnRequest);
+            boolean exactReturn = Configs.Print.RETURN_TO_SHULKER_WHEN_FULL.getBooleanValue();
+            int shulkerSlot = exactReturn ? findReturnShulker(inventory, returnRequest) : findAnyShulker(player);
             if (shulkerSlot == -1) return false;
 
             activeReturnRequest = returnRequest;
-            activeShulker = returnRequest.shulker();
-            return openSelectedShulker(inventory, shulkerSlot, source);
-        }
-
-        // 不开启精确回塞时，只要有 itemsToReturn 就尝试回塞到任意有空位的潜影盒
-        if (!Configs.Print.RETURN_TO_SHULKER_WHEN_FULL.getBooleanValue()
-                && isInventoryFull(inventory)) {
-            ReturnRequest returnRequest = itemsToReturn.peekFirst();
-            if (returnRequest == null) return false;
-
-            int shulkerSlot = findAnyShulker(player);
-            if (shulkerSlot == -1) return false;
-
-            activeReturnRequest = returnRequest;
-            activeShulker = null;
+            activeShulker = exactReturn ? returnRequest.shulker() : null;
             return openSelectedShulker(inventory, shulkerSlot, source);
         }
 
@@ -312,22 +295,15 @@ public class QuickShulkerUtils {
     }
 
     private static void beginTransfer(AbstractContainerMenu container, int sourceSlot, Inventory inventory) {
+        ClientPacketListener connection = mc.getConnection();
+        if (connection == null || mc.player == null) {
+            failOperation(mc.player);
+            return;
+        }
         ItemStack stack = container.slots.get(sourceSlot).getItem();
         PendingTransfer transfer = new PendingTransfer(container, sourceSlot, stack.getItem(), stack.getCount(),
                 countItem(inventory, stack.getItem()), countContainerItem(container, stack.getItem()),
                 activeReturnRequest != null);
-        // 使用一次服务端转移，避免两次 PICKUP 之间的鼠标持物状态。
-        if (quickMoveWithoutPrediction(container, sourceSlot)) {
-            pendingTransfer = transfer;
-            operationTicks = 0;
-        } else {
-            failOperation(mc.player);
-        }
-    }
-
-    private static boolean quickMoveWithoutPrediction(AbstractContainerMenu container, int sourceSlot) {
-        ClientPacketListener connection = mc.getConnection();
-        if (connection == null || mc.player == null) return false;
 
         // 不预测库存变动，让服务端回传变动槽位后再确认取货或回塞。
         //#if MC >= 12105
@@ -340,7 +316,8 @@ public class QuickShulkerUtils {
         //$$         container.containerId, container.getStateId(), sourceSlot, 0, ClickType.QUICK_MOVE,
         //$$         container.getCarried().copy(), new Int2ObjectOpenHashMap<>()));
         //#endif
-        return true;
+        pendingTransfer = transfer;
+        operationTicks = 0;
     }
 
     private static int countItem(Inventory inventory, Item item) {
