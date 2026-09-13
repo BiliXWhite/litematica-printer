@@ -30,6 +30,7 @@ import net.minecraft.network.HashedStack;
 //#endif
 
 import java.util.*;
+import java.util.function.IntFunction;
 
 public class QuickShulkerUtils {
     private static final Minecraft mc = Minecraft.getInstance();
@@ -274,33 +275,25 @@ public class QuickShulkerUtils {
             return;
         }
 
-        if (activeReturnRequest != null) {
-            for (int i = 0; i < Math.min(inventory.getContainerSize(), 36); i++) {
-                if (inventory.getItem(i).is(activeReturnRequest.item())) {
-                    beginTransfer(container, i < 9 ? ownSlots + 27 + i : ownSlots + i - 9, inventory);
-                    return;
-                }
-            }
-            itemsToReturn.removeFirstOccurrence(activeReturnRequest);
-        } else {
-            for (int slotIndex = 0; slotIndex < ownSlots; slotIndex++) {
-                ItemStack stack = container.slots.get(slotIndex).getItem();
-                if (!stack.isEmpty() && lastNeedItemList.contains(stack.getItem())) {
-                    beginTransfer(container, slotIndex, inventory);
-                    return;
-                }
+        boolean returning = activeReturnRequest != null;
+        int slots = returning ? Math.min(inventory.getContainerSize(), 36) : ownSlots;
+        for (int i = 0; i < slots; i++) {
+            ItemStack stack = returning ? inventory.getItem(i) : container.slots.get(i).getItem();
+            if (returning ? stack.is(activeReturnRequest.item())
+                    : !stack.isEmpty() && lastNeedItemList.contains(stack.getItem())) {
+                int sourceSlot = i;
+                if (returning) sourceSlot = i < 9 ? ownSlots + 27 + i : ownSlots + i - 9;
+                beginTransfer(container, sourceSlot, inventory);
+                return;
             }
         }
+        if (returning) itemsToReturn.removeFirstOccurrence(activeReturnRequest);
         finishShulkerOperation(player);
     }
 
     private static void beginTransfer(AbstractContainerMenu container, int sourceSlot, Inventory inventory) {
         ClientPacketListener connection = mc.getConnection();
-        if (connection == null || mc.player == null) {
-            failOperation(mc.player);
-            return;
-        }
-        if (!container.slots.get(sourceSlot).mayPickup(mc.player)) {
+        if (connection == null || mc.player == null || !container.slots.get(sourceSlot).mayPickup(mc.player)) {
             failOperation(mc.player);
             return;
         }
@@ -313,7 +306,8 @@ public class QuickShulkerUtils {
         }
         ItemStack stack = container.slots.get(sourceSlot).getItem();
         PendingTransfer transfer = new PendingTransfer(container, sourceSlot, stack.getItem(), stack.getCount(),
-                countItem(inventory, stack.getItem()), countContainerItem(container, stack.getItem()),
+                countItems(Math.min(inventory.getContainerSize(), 36), inventory::getItem, stack.getItem()),
+                countItems(container.slots.size() - 36, i -> container.slots.get(i).getItem(), stack.getItem()),
                 activeReturnRequest != null);
 
         // 不预测库存变动，让服务端回传变动槽位后再确认取货或回塞。
@@ -351,19 +345,10 @@ public class QuickShulkerUtils {
         return false;
     }
 
-    private static int countItem(Inventory inventory, Item item) {
+    private static int countItems(int slots, IntFunction<ItemStack> stackAt, Item item) {
         int count = 0;
-        for (int i = 0; i < Math.min(inventory.getContainerSize(), 36); i++) {
-            ItemStack stack = inventory.getItem(i);
-            if (stack.is(item)) count += stack.getCount();
-        }
-        return count;
-    }
-
-    private static int countContainerItem(AbstractContainerMenu container, Item item) {
-        int count = 0;
-        for (int i = 0; i < container.slots.size() - 36; i++) {
-            ItemStack stack = container.slots.get(i).getItem();
+        for (int i = 0; i < slots; i++) {
+            ItemStack stack = stackAt.apply(i);
             if (stack.is(item)) count += stack.getCount();
         }
         return count;
@@ -375,8 +360,8 @@ public class QuickShulkerUtils {
             ItemStack source = container.slots.get(sourceSlot).getItem();
             if (!source.isEmpty() && !source.is(item)) return false;
             int moved = sourceCount - (source.is(item) ? source.getCount() : 0);
-            int inventoryDelta = countItem(inventory, item) - inventoryCount;
-            int containerDelta = countContainerItem(container, item) - containerCount;
+            int inventoryDelta = countItems(Math.min(inventory.getContainerSize(), 36), inventory::getItem, item) - inventoryCount;
+            int containerDelta = countItems(container.slots.size() - 36, i -> container.slots.get(i).getItem(), item) - containerCount;
             return moved > 0 && inventoryDelta == (returning ? -moved : moved)
                     && containerDelta == -inventoryDelta && container.getCarried().isEmpty();
         }
