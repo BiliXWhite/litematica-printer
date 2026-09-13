@@ -90,7 +90,7 @@ public class QuickShulkerUtils {
     private static void failOperation(LocalPlayer player) {
         // 只有已发出的转移结果未确认时才停机。
         if (pendingTransfer != null) Configs.Core.WORK_SWITCH.setBooleanValue(false);
-        MessageUtils.addMessage((pendingTransfer != null
+        MessageUtils.setOverlayMessage((pendingTransfer != null
                 ? I18n.SHULKER_SYNC_TIMEOUT : I18n.SHULKER_TRANSFER_NOT_STARTED).getName());
         finishShulkerOperation(player);
     }
@@ -300,6 +300,17 @@ public class QuickShulkerUtils {
             failOperation(mc.player);
             return;
         }
+        if (!container.slots.get(sourceSlot).mayPickup(mc.player)) {
+            failOperation(mc.player);
+            return;
+        }
+        if (!hasTransferSpace(container, sourceSlot)) {
+            // 未发包，无需等待同步；丢弃无法回塞的请求，避免反复打开同一个满盒。
+            itemsToReturn.removeFirstOccurrence(activeReturnRequest);
+            MessageUtils.setOverlayMessage(I18n.SHULKER_NO_SPACE.getName());
+            finishShulkerOperation(mc.player);
+            return;
+        }
         ItemStack stack = container.slots.get(sourceSlot).getItem();
         PendingTransfer transfer = new PendingTransfer(container, sourceSlot, stack.getItem(), stack.getCount(),
                 countItem(inventory, stack.getItem()), countContainerItem(container, stack.getItem()),
@@ -318,6 +329,26 @@ public class QuickShulkerUtils {
         //#endif
         pendingTransfer = transfer;
         operationTicks = 0;
+    }
+
+    private static boolean hasTransferSpace(AbstractContainerMenu container, int sourceSlot) {
+        ItemStack stack = container.slots.get(sourceSlot).getItem();
+        if (stack.isEmpty()) return false;
+        int ownSlots = container.slots.size() - 36;
+        boolean returning = sourceSlot >= ownSlots;
+        for (int i = returning ? 0 : ownSlots; i < (returning ? ownSlots : container.slots.size()); i++) {
+            Slot slot = container.slots.get(i);
+            ItemStack target = slot.getItem();
+            if (!slot.mayPlace(stack) || target.getCount() >= slot.getMaxStackSize(stack)) continue;
+            if (target.isEmpty() || stack.isStackable() &&
+                    //#if MC >= 12005
+                    ItemStack.isSameItemSameComponents(stack, target)
+                    //#else
+                    //$$ ItemStack.isSameItemSameTags(stack, target)
+                    //#endif
+            ) return true;
+        }
+        return false;
     }
 
     private static int countItem(Inventory inventory, Item item) {

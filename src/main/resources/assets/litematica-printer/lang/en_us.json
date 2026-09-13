@@ -281,6 +281,7 @@
   "modmenu.descriptionTranslation.litematica-printer": "An extension for Litematica that adds the missing printer functionality, allowing you to automatically build schematics.",
   "modmenu.nameTranslation.litematica-printer": "Litematica Printer",
   "litematica-printer.bedrock.not_support": "Not supported in original Bedrock Miner, please use bunnyi port version",
-  "litematica-printer.shulker.sync_timeout": "Shulker inventory synchronization timed out or was interrupted. Printer stopped.",
+  "litematica-printer.shulker.no_space": "No available destination slot for the shulker transfer. Operation skipped; printer remains enabled.",
+  "litematica-printer.shulker.sync_timeout": "Shulker inventory synchronization timed out or was interrupted. Printer stopped. Check your inventory and shulker, then turn the working switch back on.",
   "litematica-printer.shulker.transfer_not_started": "Could not start the shulker item transfer."
 }
