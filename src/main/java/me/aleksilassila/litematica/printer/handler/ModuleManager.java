@@ -38,11 +38,13 @@ public class ModuleManager {
     private static boolean lastPrinterEnabled = false;
 
     public static void tick() {
+        QuickShulkerUtils.tick();
+        if (QuickShulkerUtils.isOpenHandler()) return;
+
         // If TakeItOut is waiting for a server-side shulker extraction, skip
         // all processing so the printer does not interfere.
         if (TakeItOutCompat.isAwaitingItem()) return;
 
-        QuickShulkerUtils.tick();
         if (ModUtils.isRemoteInventoryNextLoaded()) {
             RemoteContainerUtils.tick();
         }
@@ -78,6 +80,7 @@ public class ModuleManager {
                 }
             }
             module.tick();
+            if (QuickShulkerUtils.isOpenHandler()) return;
         }
     }
 

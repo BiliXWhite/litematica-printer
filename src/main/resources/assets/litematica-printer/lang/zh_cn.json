@@ -280,5 +280,8 @@
   "litematica-printer.update.repository": "代码仓库：",
   "modmenu.descriptionTranslation.litematica-printer": "Litematica 的扩展模组，补全了缺失的打印机功能，可以自动按照原理图建造。",
   "modmenu.nameTranslation.litematica-printer": "投影打印机",
-  "litematica-printer.bedrock.not_support": "暂不支持原版 Bedrock Miner，请使用 bunnyi 分支版"
+  "litematica-printer.bedrock.not_support": "暂不支持原版 Bedrock Miner，请使用 bunnyi 分支版",
+  "litematica-printer.shulker.no_space": "潜影盒转移目标无可用槽位，已跳过本次操作，打印机保持开启。",
+  "litematica-printer.shulker.sync_timeout": "潜影盒物品同步超时或被中断，打印机已自动关闭！",
+  "litematica-printer.shulker.transfer_not_started": "未能开始潜影盒物品转移。"
 }
