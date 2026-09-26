@@ -75,15 +75,13 @@ jobs:
 
       - name: Build
         run: |
-          if [ "${{ inputs.publish }}" = "true" ]; then
-            if [ -z "${{ inputs.target_subproject }}" ]; then
-                echo "Building all subprojects"
-                ./gradlew build --stacktrace
-            else
-                args=$(echo "${{ inputs.target_subproject }}" | tr ',' '\n' | sed 's/$/:build/' | paste -sd ' ')
-                echo "Building with arguments=$args"
-                ./gradlew $args --stacktrace
-            fi
+          if [ -z "${{ inputs.target_subproject }}" ]; then
+              echo "Building all subprojects"
+              ./gradlew build --stacktrace
+          else
+              args=$(echo "${{ inputs.target_subproject }}" | tr ',' '\n' | sed 's/$/:build/' | paste -sd ' ')
+              echo "Building with arguments=$args"
+              ./gradlew $args --stacktrace
           fi
         env:
           BUILD_ID: ${{ github.run_number }}
