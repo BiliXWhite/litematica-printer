@@ -28,8 +28,6 @@ on:
 
 env:
   BUILD_TYPE: release
-  GH_USERNAME: ${{ secrets.GH_USERNAME }}
-  GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
 jobs:
   show_action_parameters:
