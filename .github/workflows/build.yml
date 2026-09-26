@@ -28,6 +28,8 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, 'SKIP') }}
     env:
       BUILD_TYPE: ${{ inputs.build_type }}
+      GH_USERNAME: ${{ secrets.GH_USERNAME }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -70,8 +72,6 @@ jobs:
         run: ./gradlew dependencies --stacktrace
         env:
           BUILD_ID: ${{ github.run_number }}
-          GH_USERNAME: ${{ secrets.GH_USERNAME }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Build
         run: |
@@ -87,8 +87,6 @@ jobs:
           fi
         env:
           BUILD_ID: ${{ github.run_number }}
-          GH_USERNAME: ${{ secrets.GH_USERNAME }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Upload artifacts (summary part need)
         uses: actions/upload-artifact@v7

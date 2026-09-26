@@ -5,6 +5,8 @@ on:
 
 env:
   BUILD_TYPE: pr
+  GH_USERNAME: ${{ secrets.GH_USERNAME }}
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
 jobs:
   build:
