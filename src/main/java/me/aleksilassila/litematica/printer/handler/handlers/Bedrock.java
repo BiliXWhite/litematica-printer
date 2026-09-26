@@ -5,7 +5,7 @@ import me.aleksilassila.litematica.printer.utils.ModUtils;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.HighlightType;
 import me.aleksilassila.litematica.printer.handler.Module;
-import me.aleksilassila.litematica.printer.interfaces.compat.BedrockCompat;
+import me.aleksilassila.litematica.printer.compat.BedrockCompat;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Blocks;

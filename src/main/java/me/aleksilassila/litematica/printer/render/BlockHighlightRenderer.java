@@ -61,7 +61,20 @@ public class BlockHighlightRenderer implements IRenderer {
 
     // ===== Render Entry Points =====
 
-    //#if MC >= 260100
+    //#if MC >= 260300
+    //$$ @Override
+    //$$ public void onRenderWorldLast(
+    //$$         RenderTarget renderTarget,
+    //$$         CameraRenderState cameraRenderState,
+    //$$         Frustum frustum,
+    //$$         RenderBuffers renderBuffers,
+    //$$         GpuBufferSlice gpuBufferSlice,
+    //$$         Vector4f vector4f,
+    //$$         ProfilerFiller profiler
+    //$$ ) {
+    //$$     renderInternal(cameraRenderState.pos);
+    //$$ }
+    //#elseif MC >= 260100
     //$$ @Override
     //$$ public void onRenderWorldLast(
     //$$         RenderTarget renderTarget,

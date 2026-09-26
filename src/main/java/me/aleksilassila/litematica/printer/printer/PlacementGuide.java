@@ -7,7 +7,9 @@ import me.aleksilassila.litematica.printer.printer.action.ClickAction;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.BlockMatchingType;
 import me.aleksilassila.litematica.printer.utils.*;
+//#if MC < 260300
 import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
+//#endif
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,8 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("IfCanBeSwitch")
 public class PlacementGuide {
-    @SuppressWarnings("all")
-    protected static final Map<Block, Block> STRIPPED_LOGS = AxeItemAccessor.getStrippedBlocks();
+    protected static final Map<Block, Block> STRIPPED_LOGS = BlockUtils.getStrippedBlocksMap();
     protected static List<String> compostWhitelistCache = new ArrayList<>();      // 缓存堆肥桶白名单的字符串列表（用于判断是否修改）
     protected static Item[] whitelistItemsCache = new Item[0];    // 缓存过滤后的可堆肥物品列表（避免重复计算）
     protected final @NotNull Minecraft mc;

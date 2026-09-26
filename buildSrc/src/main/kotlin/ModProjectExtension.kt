@@ -81,7 +81,7 @@ private fun getFullProjectVersion(modVersion: String): String {
         isPR        -> "${modVersion}-${commitCount}-${commitHash}-pr"
         else        -> "${modVersion}-${
             if (isCi) "${commitCount}-${commitHash}-ci"
-            else "${timestampMillis}-development"
+            else "${timestampMillis}-local"
         }"
     }
 }

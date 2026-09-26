@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.interfaces.compat;
+package me.aleksilassila.litematica.printer.compat;
 
 import me.aleksilassila.litematica.printer.utils.ModUtils;
 import net.minecraft.client.player.LocalPlayer;

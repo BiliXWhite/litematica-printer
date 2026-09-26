@@ -12,7 +12,7 @@ import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.ModUtils;
 import me.aleksilassila.litematica.printer.utils.QuickShulkerUtils;
 import me.aleksilassila.litematica.printer.utils.RemoteContainerUtils;
-import me.aleksilassila.litematica.printer.interfaces.compat.TakeItOutCompat;
+import me.aleksilassila.litematica.printer.compat.TakeItOutCompat;
 import net.minecraft.client.Minecraft;
 
 public class ModuleManager {

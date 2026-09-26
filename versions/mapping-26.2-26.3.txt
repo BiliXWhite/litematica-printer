@@ -1,0 +1,5 @@
+com.mojang.blaze3d.pipeline.RenderPipeline com.mojang.renderpearl.api.pipeline.RenderPipeline
+com.mojang.blaze3d.buffers.GpuBufferSlice com.mojang.renderpearl.api.buffers.GpuBufferSlice
+com.mojang.blaze3d.vertex.VertexFormat com.mojang.renderpearl.api.vertex.VertexFormat
+net.minecraft.world.level.block.RedStoneWireBlock net.minecraft.world.level.block.RedstoneWireBlock
+net.minecraft.world.level.block.DirtPathBlock net.minecraft.world.level.block.PathBlock

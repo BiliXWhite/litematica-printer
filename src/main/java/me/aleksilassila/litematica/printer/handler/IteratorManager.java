@@ -13,7 +13,6 @@ import me.aleksilassila.litematica.printer.utils.PlayerUtils;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Vec3i;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,10 +57,10 @@ public class IteratorManager {
      * 根据玩家位置和配置重建 PrinterBox，返回是否需要重置扫描状态。
      */
     public boolean tryBuildBox(LocalPlayer player, @Nullable Object selectionTypeObj) {
-        BlockPos eyeBP = new BlockPos(new Vec3i(
+        BlockPos eyeBP = new BlockPos(
                 (int) Math.round(player.getX()),
                 (int) Math.round(player.getEyeY()),
-                (int) Math.round(player.getZ())));
+                (int) Math.round(player.getZ()));
 
         double effectiveRange = ConfigUtils.getEffectiveRange();
         int currentRange = (int) Math.ceil(effectiveRange);
