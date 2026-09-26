@@ -24,6 +24,7 @@ val Project.modName get() = propStr("mod_name")
 val Project.modVersion get() = propStr("mod_version")
 val Project.modMavenGroup get() = propStr("mod_maven_group")
 val Project.modArchivesBaseName get() = propStr("mod_archives_base_name")
+val modBuildTypeEnv: String? = System.getenv("BUILD_TYPE")
 
 val Project.modDescription get() = propStrOrNull("mod_description")
 val Project.modHomepage get() = propStrOrNull("mod_homepage")
@@ -51,7 +52,22 @@ val Project.javaVersion
     }
 val Project.mixinJavaVersion get() = "JAVA_${javaVersion}"
 
-val Project.fullProjectVersion: String get() = getFullProjectVersion(modVersion)
+val Project.fullProjectVersion: String get() = getFullProjectVersion(mcVersion, modVersion)
+
+private fun getCommitHash(workDir: File = File(".")): String? {
+    return try {
+        val process = ProcessBuilder("git", "rev-parse", "--short", "HEAD")
+            .directory(workDir)
+            .redirectErrorStream(true)
+            .start()
+        val output = process.inputStream.bufferedReader().readText().trim()
+        val exitCode = process.waitFor()
+        if (exitCode == 0) output else null
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
+}
 
 private fun getCommitCountNumber(workDir: File = File(".")): Int? {
     return try {
@@ -68,22 +84,17 @@ private fun getCommitCountNumber(workDir: File = File(".")): Int? {
     }
 }
 
-private fun getFullProjectVersion(modVersion: String): String {
-    val commitCount     = getCommitCountNumber()
-    val commitHash      = System.getenv("COMMIT_HASH")
-    val isRelease       = System.getenv("IS_THIS_RELEASE")?.toBoolean() == true
-    val isPR            = System.getenv("PR_BUILD")?.toBoolean() == true
-    val isCi            = System.getenv("CI") == "true" || System.getenv("GITHUB_ACTIONS") == "true"
-    val timestampMillis = System.currentTimeMillis()
+val buildType: String? = when (modBuildTypeEnv) {
+    "snapshot"  -> "snapshot"
+    "pr"        -> "pr"
+    "release"   -> "release"
+    else        -> "development"
+}
 
-    return when {
-        isRelease   -> modVersion
-        isPR        -> "${modVersion}-${commitCount}-${commitHash}-pr"
-        else        -> "${modVersion}-${
-            if (isCi) "${commitCount}-${commitHash}-ci"
-            else "${timestampMillis}-development"
-        }"
-    }
+private fun getFullProjectVersion(mcVersion: String?, modVersion: String): String {
+    val commitCount     = getCommitCountNumber()
+    val commitHash      = getCommitHash()
+    return "${modVersion}-mc${mcVersion}-${commitCount}-${commitHash}-${buildType}"
 }
 
 val Project.placeholderProps: Map<String, Any?>

@@ -1,12 +1,23 @@
-name: build
+name: _step.build
 on:
-  push:
-    branches: ['**'] # stop build tag commits
-    paths-ignore: ['*.md']
-  workflow_dispatch:
   workflow_call:
     inputs:
-      pr_build:
+      build_type:
+        type: string
+        required: false
+        default: snapshot
+      target_subproject:
+        description: See release.yml, leave it empty to build all
+        type: string
+        required: false
+        default: ''
+      download_dependencies:
+        description: Download dependencies
+        type: boolean
+        required: false
+        default: false
+      publish:
+        description: Publish mods to Github Packages (Only Release)
         type: boolean
         required: false
         default: false
@@ -16,21 +27,18 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.head_commit.message, 'SKIP') }}
     env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      GH_USERNAME: ${{ secrets.GH_USERNAME }}
+      BUILD_TYPE: ${{ inputs.build_type }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: '0'
+          fetch-depth: 0
+          fetch-tags: true
 
-      - name: Validate gradle wrapper
-        uses: gradle/actions/wrapper-validation@v6
-
-      - name: Setup jdk
+      - name: Setup Java 25
         uses: actions/setup-java@v5
         with:
-          distribution: 'temurin'
+          distribution: 'liberica'
           java-version: '25'
 
       - name: Cache Gradle dependencies
@@ -41,40 +49,97 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
             ./.gradle
-            ./libs
-          key: ${{ runner.os }}-gradle-common
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-common
+            ${{ runner.os }}-gradle-
 
-      # only build.yml. Obtaining a commit hash makes it easier to find commits
-      - name: Get latest short hash
-        run: echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-
-      - name: Make gradle wrapper executable
+      - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
-      # If `step: gradle-cache` fails to cache, start downloading dependencies to reduce build failures
+      - name: Get repo info
+        run: |
+          echo "COMMIT_HASH=$(git rev-parse --short=10 HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_COUNT=$(git rev-list --count HEAD)" >> $GITHUB_ENV
+
       - name: Download dependencies
         if: |
+          inputs.download_dependencies == true || 
           steps.gradle-cache.outputs.cache-hit != 'true' ||
           contains(github.event.head_commit.message, 'DEPS')
         run: ./gradlew dependencies --stacktrace
-
-      - name: Build fabricWrapper subproject
-        run: ./gradlew :fabricWrapper:build
         env:
-          PR_BUILD: ${{ inputs.pr_build }}
+          BUILD_ID: ${{ github.run_number }}
 
-      - name: Capture versionpack artifacts
+      - name: Build
+        run: |
+          if [ "${{ inputs.publish }}" = "true" ]; then
+            if [ -z "${{ inputs.target_subproject }}" ]; then
+                echo "Building all subprojects"
+                ./gradlew build --stacktrace
+            else
+                args=$(echo "${{ inputs.target_subproject }}" | tr ',' '\n' | sed 's/$/:build/' | paste -sd ' ')
+                echo "Building with arguments=$args"
+                ./gradlew $args --stacktrace
+            fi
+          fi
+        env:
+          BUILD_ID: ${{ github.run_number }}
+          GH_USERNAME: ${{ secrets.GH_USERNAME }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Upload artifacts (summary part need)
         uses: actions/upload-artifact@v7
         with:
-          name: Artifacts
+          name: build-artifacts
+          path: versions/*/build/libs/
+
+      - name: Upload multi-version artifacts
+        uses: actions/upload-artifact@v7
+        with:
           path: fabricWrapper/build/libs/*.jar
           archive: false
 
-      # providing individual versions of artifacts。 only build.yml
-      - name: Capture single version artifacts
+      - name: Collect mod jars
+        run: |
+          shopt -s extglob
+          mkdir mod-jars
+          for jar in versions/*/build/libs/!(*-@(dev|sources|shadow)).jar; do
+              cp -p "$jar" mod-jars/
+          done
+          sha256sum mod-jars/*
+          ls -l mod-jars/
+
+      - name: Upload mod jars
         uses: actions/upload-artifact@v7
         with:
-          name: single-version-artifacts
-          path: fabricWrapper/build/tmp/submods/META-INF/jars/*.jar
+          name: litematica-printer-single-version-${{ env.COMMIT_COUNT }}-${{ env.COMMIT_HASH }}-build.${{ github.run_number }}
+          path: mod-jars/
+
+  summary:
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, 'SKIP') }}
+    needs:
+      - build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.12
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: build-artifacts
+          path: build-artifacts
+
+      - name: Make build summary
+        run: |
+          pip install jproperties
+          python .github/workflows/scripts/summary.py
+        env:
+          TARGET_SUBPROJECT: ${{ inputs.target_subproject }}
