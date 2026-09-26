@@ -94,7 +94,11 @@ val buildType: String? = when (modBuildTypeEnv) {
 private fun getFullProjectVersion(mcVersion: String?, modVersion: String): String {
     val commitCount     = getCommitCountNumber()
     val commitHash      = getCommitHash()
-    return "${modVersion}-mc${mcVersion}-${commitCount}-${commitHash}-${buildType}"
+    return if (mcVersion == null) {
+        "${modVersion}-${commitCount}-${commitHash}-${buildType}"
+    } else {
+        "${modVersion}-mc${mcVersion}-${commitCount}-${commitHash}-${buildType}"
+    }
 }
 
 val Project.placeholderProps: Map<String, Any?>
