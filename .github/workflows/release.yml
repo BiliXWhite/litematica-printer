@@ -162,8 +162,8 @@ jobs:
         with:
           tag_name: ${{ steps.release_info.outputs.tag_name }}
           files: |
-            ${{ steps.file_info.outputs.path }}
-            ${{ steps.file_info.outputs.wrapper_path }}
+            versionpack/*.jar
+            single-version/*.jar
           fail_on_unmatched_files: true
           draft: false
           prerelease: false
