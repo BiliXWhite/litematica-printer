@@ -3,12 +3,15 @@
 plugins {
     id("mod-plugin")
     id("maven-publish")
-    id("net.fabricmc.fabric-loom")
+    id("net.fabricmc.fabric-loom-remap")
     id("com.replaymod.preprocess")
 }
 
 version = fullProjectVersion
 group = modMavenGroup
+base {
+    archivesName.set(modArchivesBaseName)
+}
 
 repositories {
     mavenLocal()
@@ -22,6 +25,10 @@ repositories {
     maven("https://masa.dy.fi/maven/sakura-ryoko") { name = "SakuraRyoko" }
     maven("https://maven.kyrptonaught.dev") { name = "Kyrptonaught" }
     maven("https://jitpack.io") { name = "Jitpack" }
+    maven("https://mvnrepository.com/artifact/com.belerweb/pinyin4j") {
+        name = "Pinyin4j"
+        content { includeGroupAndSubgroups("com.belerweb") }
+    }
     maven("https://maven.pkg.github.com/BiliXWhite/remote-inventory-next") {
         name = "GitHub"
         credentials {
@@ -44,27 +51,44 @@ configurations.all {
 
 dependencies {
     minecraft("com.mojang:minecraft:$mcVersion")
-    implementation("net.fabricmc:fabric-loader:$fabricLoaderVersion")
-    implementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
-    implementation("com.belerweb:pinyin4j:${prop("pinyin_version")}")?.let { include(it) }
-    implementation("com.terraformersmc:modmenu:${prop("modmenu")}")
+    mappings(loom.officialMojangMappings())
+    modImplementation("net.fabricmc:fabric-loader:$fabricLoaderVersion")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
+    modImplementation("com.belerweb:pinyin4j:${prop("pinyin_version")}")?.let { include(it) }
 
-    // 远程容器
-    implementation("dev.blinkwhite.remoteinventory:remote-inventory-next:${prop("remote_inventory_version")}+${mcVersion}")
+    modImplementation("com.terraformersmc:modmenu:${prop("modmenu")}")
 
-    // Masa
-    implementation("fi.dy.masa.malilib:${prop("malilib")}")
-    implementation("fi.dy.masa.litematica:${prop("litematica")}")
-    implementation("fi.dy.masa.tweakeroo:${prop("tweakeroo")}")
-
-    // 快捷潜影盒
-    val quickshulkerUrl = prop("quickshulker").toString()
-    if (quickshulkerUrl.isNotEmpty()) {
-        val quickshulkerFile = downloadDependencyMod(quickshulkerUrl)
-        if (quickshulkerFile != null && quickshulkerFile.exists()) {
-            implementation(files(quickshulkerFile))
-        }
+    // 1.21.1+ 用 sakura-ryoko 源, 更低版本走 modrinth
+    if (mcVersionInt >= 12101) {
+        modImplementation("fi.dy.masa.malilib:${prop("malilib")}:${prop("malilib_dependency")}")
+        modImplementation("fi.dy.masa.litematica:${prop("litematica")}:${prop("litematica_dependency")}")
+        modImplementation("fi.dy.masa.tweakeroo:${prop("tweakeroo")}:${prop("tweakeroo_dependency")}")
+    } else {
+        modImplementation("maven.modrinth:malilib:${prop("malilib_dependency")}")
+        modImplementation("maven.modrinth:litematica:${prop("litematica_dependency")}")
+        modImplementation("maven.modrinth:tweakeroo:${prop("tweakeroo_dependency")}")
     }
+
+    // 快捷潜影盒 / AxShulkers
+    if (mcVersionInt >= 12006) {
+        val quickshulkerUrl = prop("quickshulker").toString()
+        if (quickshulkerUrl.isNotEmpty()) {
+            val quickshulkerFile = downloadDependencyMod(quickshulkerUrl)
+            if (quickshulkerFile != null && quickshulkerFile.exists()) {
+                modImplementation(files(quickshulkerFile))
+            }
+        }
+            modImplementation("me.fallenbreath:conditional-mixin-fabric:0.6.4")
+    } else {
+        modImplementation("curse.maven:quick-shulker-362669:${prop("quick_shulker")}")
+    }
+
+    if (mcVersionInt <= 12006) {
+        modImplementation("net.kyrptonaught:kyrptconfig:${prop("kyrptconfig")}")
+    }
+
+    // remote-inventory-next - provides remote container protocol support
+    modImplementation("dev.blinkwhite.remoteinventory:remote-inventory-next:${prop("remote_inventory_version")}+${mcVersion}")
 }
 
 loom {
@@ -82,9 +106,9 @@ loom {
 
 tasks {
     register<Copy>("buildAndCollect") {
-        description = "Build and collect the jar to the root project build directory"
+        description = "构建并收集重映射后的 jar 到 build/libs 目录"
         group = "build"
-        from(jar.map { it.archiveFile })
+        from(remapJar.map { it.archiveFile })
         into(rootProject.layout.buildDirectory.file("libs/${project.property("mod_version")}"))
         dependsOn("build")
     }
@@ -100,8 +124,6 @@ publishing {
     }
     repositories {
         mavenLocal()
-        maven {
-            url = uri("$rootDir/publish")
-        }
+        maven { url = uri("$rootDir/publish") }
     }
 }

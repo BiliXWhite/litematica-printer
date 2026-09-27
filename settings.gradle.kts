@@ -30,9 +30,9 @@ for (version in versions) {
     project(":$version").apply {
         projectDir = file("versions/$version")
         buildFileName = if (parseMcVersionToNumber(version) > 260000) {
-            "../../build.fabric.gradle.kts"
+            "../../build.unobfuscated.gradle.kts"
         } else {
-            "../../build.fabric.remap.gradle.kts"
+            "../../build.obfuscated.gradle.kts"
         }
     }
 }

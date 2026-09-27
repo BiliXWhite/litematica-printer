@@ -56,7 +56,7 @@ val Project.fullProjectVersion: String get() = getFullProjectVersion(mcVersion, 
 
 private fun getCommitHash(workDir: File = File(".")): String? {
     return try {
-        val process = ProcessBuilder("git", "rev-parse", "--short", "HEAD")
+        val process = ProcessBuilder("git", "rev-parse", "--short=10", "HEAD")
             .directory(workDir)
             .redirectErrorStream(true)
             .start()
