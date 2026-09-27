@@ -95,13 +95,11 @@ private fun getFullProjectVersion(mcVersion: String?, modVersion: String): Strin
     val commitCount     = getCommitCountNumber()
     val commitHash      = getCommitHash()
     return if (buildType == "release") {
-        modVersion
+        if (mcVersion == null)  modVersion
+        else                    "${modVersion}-mc${mcVersion}"
     } else {
-        if (mcVersion == null) {
-            "${modVersion}-${commitCount}-${commitHash}-${buildType}"
-        } else {
-            "${modVersion}-mc${mcVersion}-${commitCount}-${commitHash}-${buildType}"
-        }
+        if (mcVersion == null)  "${modVersion}-${commitCount}-${commitHash}-${buildType}"
+        else                    "${modVersion}-mc${mcVersion}-${commitCount}-${commitHash}-${buildType}"
     }
 }
 

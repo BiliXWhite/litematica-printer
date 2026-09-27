@@ -61,7 +61,7 @@ jobs:
 
       - name: Get repo info
         run: |
-          echo "COMMIT_HASH=$(git rev-parse --short=10 HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           echo "COMMIT_COUNT=$(git rev-list --count HEAD)" >> $GITHUB_ENV
 
       - name: Download dependencies
