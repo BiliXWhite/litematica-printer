@@ -1,0 +1,14 @@
+name: Dev Builds
+
+on:
+  push:
+    branches: [ '**' ] # stop build tag commits
+
+env:
+  BUILD_TYPE: snapshot
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      build_type: snapshot

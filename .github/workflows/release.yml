@@ -1,4 +1,10 @@
-name: release
+name: Release
+
+# release: <default> (release title)
+# dispatch (all): Manual release for $target_release_tag
+# dispatch (specified): Manual release for $target_release_tag (subproject: $target_subproject)
+run-name: |-
+  ${{ github.event_name == 'workflow_dispatch' && format('Manual release for {0}{1}', inputs.target_release_tag, inputs.target_subproject && format(' (subproject: {0})', inputs.target_subproject) || '') || '' }}
 
 on:
   release:
@@ -6,81 +12,160 @@ on:
       - published
   workflow_dispatch:
     inputs:
+      target_subproject:
+        description: |-
+          The subproject name(s) of the specified Minecraft version to be released, seperated with ",".
+          By default all subprojects will be released
+        type: string
+        required: false
+        default: ''
       target_release_tag:
-        description: Git tag to attach build artifacts to
+        description: |-
+          The tag of the release you want to append the artifact to.
+          It must be an existing tag, otherwise publishing will fail.
         type: string
         required: true
 
-permissions:
-  contents: write
+env:
+  BUILD_TYPE: release
 
 jobs:
-  build:
+  show_action_parameters:
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      GH_USERNAME: ${{ secrets.GH_USERNAME }}
-      IS_THIS_RELEASE: true
+    steps:
+      - name: Show action parameters
+        run: |
+          cat <<EOF > $GITHUB_STEP_SUMMARY
+          ## Action Parameters
+          - target_subproject: \`${{ github.event.inputs.target_subproject }}\`
+          - target_release_tag: \`${{ github.event.inputs.target_release_tag }}\`
+          EOF
+
+  changelog:
+    runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: '0'
+          fetch-depth: 0
 
-      - name: Validate gradle wrapper
-        uses: gradle/actions/wrapper-validation@v6
-
-      - name: Set up JDK 25
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '25'
-
-      - name: Cache Gradle dependencies
-        id: gradle-cache
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ./.gradle
-            ./libs
-          key: ${{ runner.os }}-gradle-common
-          restore-keys: |
-            ${{ runner.os }}-gradle-common
-
-      - name: Make gradle wrapper executable
-        run: chmod +x ./gradlew
-
-      # If `step: gradle-cache` fails to cache, start downloading dependencies to reduce build failures
-      - name: Download dependencies
-        if: steps.gradle-cache.outputs.cache-hit != 'true'
-        run: ./gradlew dependencies --stacktrace
-
-      - name: Build fabricWrapper subprojects
+      - name: Generate publish related information
+        id: release_info_for_changelog
         run: |
-          chmod +x gradlew
-          ./gradlew :fabricWrapper:build --stacktrace
+          if [ $GITHUB_EVENT_NAME == 'release' ]
+          then
+              # Leave an empty value here, so Kir-Antipov/mc-publish will infer the tag from the action context
+              echo "tag_name=" >> $GITHUB_OUTPUT
+          elif [ $GITHUB_EVENT_NAME == 'workflow_dispatch' ]
+          then
+              echo "tag_name=${{ github.event.inputs.target_release_tag }}" >> $GITHUB_OUTPUT
+          else
+              echo Unknown github event name $GITHUB_EVENT_NAME
+              exit 1
+          fi
 
-      - name: Capture versionpack artifacts
-        uses: actions/upload-artifact@v7
+      - name: Install git-cliff
+        uses: taiki-e/install-action@git-cliff
+
+      - name: Generate changelog
+        run: git-cliff --latest -o CHANGELOG.md
+
+      - name: Upload changelog to release
+        uses: softprops/action-gh-release@v2
         with:
-          name: Artifacts
-          path: fabricWrapper/build/libs/*.jar
-          archive: false
+          tag_name: ${{ steps.release_info_for_changelog.outputs.tag_name }}
+          body_path: CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Collect mod jars
+  # ensure the input release tag is valid
+  validate_release:
+    runs-on: ubuntu-latest
+    needs: changelog
+    steps:
+      - name: Get github release information
+        uses: cardinalby/git-get-release-action@1.2.5
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tag: ${{ github.event.inputs.target_release_tag }}
+
+  build:
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    needs:
+      - validate_release
+    with:
+      build_type: release
+      download_dependencies: true
+      publish: true
+      target_subproject: ${{ github.event.inputs.target_subproject }}
+
+  release:
+    continue-on-error: true
+
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Display context
         run: |
-          shopt -s extglob
-          mkdir mod-jars
-          for jar in fabricWrapper/build/libs/!(*-@(dev|sources|shadow)).jar; do
-              cp -p "$jar" mod-jars/
-          done
-          ls -l mod-jars
+          echo ref_name = ${{ github.ref_name }}
+          echo target_subproject = ${{ github.event.inputs.target_subproject }}
+          echo target_release_tag = ${{ github.event.inputs.target_release_tag }}
 
-      - name: Upload to Release
+      - name: Download single-version artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: single-version
+          path: single-version
+
+      - name: Download versionpack artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: versionpack
+          path: versionpack
+
+      - name: Get github release information
+        id: get_release
+        uses: cardinalby/git-get-release-action@1.2.5
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tag: ${{ github.event.inputs.target_release_tag }}
+
+      - name: Generate publish related information
+        id: release_info
+        run: |
+          if [ $GITHUB_EVENT_NAME == 'release' ]
+          then
+              # 留空，让 action 从上下文推断标签
+              echo "tag_name=" >> $GITHUB_OUTPUT
+          elif [ $GITHUB_EVENT_NAME == 'workflow_dispatch' ]
+          then
+              echo "tag_name=${{ github.event.inputs.target_release_tag }}" >> $GITHUB_OUTPUT
+          else
+              echo Unknown github event name $GITHUB_EVENT_NAME
+              exit 1
+          fi
+
+      - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ inputs.target_release_tag || github.ref_name }}
-          files: mod-jars/*
-          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ steps.release_info.outputs.tag_name }}
+          files: |
+            versionpack/*.jar
+            single-version/*.jar
+          fail_on_unmatched_files: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
