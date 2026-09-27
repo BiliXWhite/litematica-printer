@@ -17,7 +17,7 @@ group = modMavenGroup
 version = fullProjectVersion
 
 base {
-    archivesName.set("$modArchivesBaseName-versionpack")
+    archivesName.set("$modArchivesBaseName-multi")
 }
 
 val fabricSubprojects = rootProject.subprojects.filter { it.name != "fabricWrapper" }

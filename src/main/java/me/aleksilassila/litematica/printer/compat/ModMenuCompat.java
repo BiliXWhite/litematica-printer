@@ -1,4 +1,4 @@
-package me.aleksilassila.litematica.printer.interfaces.compat;
+package me.aleksilassila.litematica.printer.compat;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;

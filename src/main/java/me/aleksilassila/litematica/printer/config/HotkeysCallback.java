@@ -4,7 +4,7 @@ import me.aleksilassila.litematica.printer.gui.ConfigUi;
 import me.aleksilassila.litematica.printer.handler.ModuleManager;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.utils.MessageUtils;
-import me.aleksilassila.litematica.printer.interfaces.compat.BedrockCompat;
+import me.aleksilassila.litematica.printer.compat.BedrockCompat;
 import net.minecraft.client.Minecraft;
 
 // 按键与回调注册

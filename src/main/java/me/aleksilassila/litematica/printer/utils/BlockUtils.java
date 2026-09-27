@@ -374,4 +374,23 @@ public class BlockUtils {
         }
         return true;
     }
+
+    @SuppressWarnings("UnstableApiUsage")
+    public static Map<Block, Block> getStrippedBlocksMap() {
+        //#if MC >= 260300
+        //$$ Map<Block, Block> stripped = new HashMap<>();
+        //$$ for (Block block : net.minecraft.core.registries.BuiltInRegistries.BLOCK) {
+        //$$     String path = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block).getPath();
+        //$$     if (path.startsWith("stripped_")) continue;
+        //$$     Block result = net.minecraft.core.registries.BuiltInRegistries.BLOCK
+        //$$             .getValue(Identifier.withDefaultNamespace("stripped_" + path));
+        //$$     if (result != Blocks.AIR) {
+        //$$         stripped.put(block, result);
+        //$$     }
+        //$$ }
+        //$$ return stripped;
+        //#else
+        return net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor.getStrippedBlocks();
+        //#endif
+    }
 }

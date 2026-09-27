@@ -53,12 +53,18 @@ dependencies {
     implementation("com.terraformersmc:modmenu:${prop("modmenu")}")
 
     // 远程容器
-    implementation("dev.blinkwhite.remoteinventory:remote-inventory-next:${prop("remote_inventory_version")}+${mcVersion}")
+    // 允许单独覆盖远程容器所对应的 MC 版本后缀（部分 MC 版本暂无对应构建时，可复用相邻版本的构建）
+    val remoteInventoryMcSuffix = propOrNull("remote_inventory_mc_suffix")?.toString() ?: mcVersion
+    implementation("dev.blinkwhite.remoteinventory:remote-inventory-next:${prop("remote_inventory_version")}+${remoteInventoryMcSuffix}")
 
     // Masa
     implementation("fi.dy.masa.malilib:${prop("malilib")}:${prop("malilib_dependency")}")
     implementation("fi.dy.masa.litematica:${prop("litematica")}:${prop("litematica_dependency")}")
     implementation("fi.dy.masa.tweakeroo:${prop("tweakeroo")}:${prop("tweakeroo_dependency")}")
+
+    if (mcVersionInt == 260200) {
+        implementation(files("/versions/26.2/libs/tweakermore-v3.33.2-mc26.2.jar"))
+    }
 
     // 快捷潜影盒
     val quickshulkerUrl = prop("quickshulker").toString()

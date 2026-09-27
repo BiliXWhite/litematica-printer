@@ -7,6 +7,9 @@ import me.aleksilassila.litematica.printer.printer.action.ClickAction;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.BlockMatchingType;
 import me.aleksilassila.litematica.printer.utils.*;
+//#if MC < 260300
+import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
+//#endif
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -24,7 +27,6 @@ import net.minecraft.world.level.block.state.properties.*;
 import net.minecraft.world.level.portal.PortalShape;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,40 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("IfCanBeSwitch")
 public class PlacementGuide {
-    @SuppressWarnings("all")
-    protected static final Map<Block, Block> STRIPPED_LOGS = new ImmutableMap.Builder<Block, Block>()
-            .put(Blocks.OAK_WOOD, Blocks.STRIPPED_OAK_WOOD)
-            .put(Blocks.OAK_LOG, Blocks.STRIPPED_OAK_LOG)
-            .put(Blocks.DARK_OAK_WOOD, Blocks.STRIPPED_DARK_OAK_WOOD)
-            .put(Blocks.DARK_OAK_LOG, Blocks.STRIPPED_DARK_OAK_LOG)
-            .put(Blocks.ACACIA_WOOD, Blocks.STRIPPED_ACACIA_WOOD)
-            .put(Blocks.ACACIA_LOG, Blocks.STRIPPED_ACACIA_LOG)
-            .put(Blocks.BIRCH_WOOD, Blocks.STRIPPED_BIRCH_WOOD)
-            .put(Blocks.BIRCH_LOG, Blocks.STRIPPED_BIRCH_LOG)
-            .put(Blocks.JUNGLE_WOOD, Blocks.STRIPPED_JUNGLE_WOOD)
-            .put(Blocks.JUNGLE_LOG, Blocks.STRIPPED_JUNGLE_LOG)
-            .put(Blocks.SPRUCE_WOOD, Blocks.STRIPPED_SPRUCE_WOOD)
-            .put(Blocks.SPRUCE_LOG, Blocks.STRIPPED_SPRUCE_LOG)
-            .put(Blocks.WARPED_STEM, Blocks.STRIPPED_WARPED_STEM)
-            .put(Blocks.WARPED_HYPHAE, Blocks.STRIPPED_WARPED_HYPHAE)
-            .put(Blocks.CRIMSON_STEM, Blocks.STRIPPED_CRIMSON_STEM)
-            .put(Blocks.CRIMSON_HYPHAE, Blocks.STRIPPED_CRIMSON_HYPHAE)
-            //#if MC >= 11900
-            .put(Blocks.MANGROVE_WOOD, Blocks.STRIPPED_MANGROVE_WOOD)
-            .put(Blocks.MANGROVE_LOG, Blocks.STRIPPED_MANGROVE_LOG)
-            //#endif
-            //#if MC >= 11903
-            .put(Blocks.BAMBOO_BLOCK, Blocks.STRIPPED_BAMBOO_BLOCK)
-            //#endif
-            //#if MC >= 11904
-            .put(Blocks.CHERRY_WOOD, Blocks.STRIPPED_CHERRY_WOOD)
-            .put(Blocks.CHERRY_LOG, Blocks.STRIPPED_CHERRY_LOG)
-            //#endif
-            //#if MC >= 12102
-            .put(Blocks.PALE_OAK_WOOD, Blocks.STRIPPED_PALE_OAK_WOOD)
-            .put(Blocks.PALE_OAK_LOG, Blocks.STRIPPED_PALE_OAK_LOG)
-            //#endif
-            .build();
+    protected static final Map<Block, Block> STRIPPED_LOGS = BlockUtils.getStrippedBlocksMap();
     protected static List<String> compostWhitelistCache = new ArrayList<>();      // 缓存堆肥桶白名单的字符串列表（用于判断是否修改）
     protected static Item[] whitelistItemsCache = new Item[0];    // 缓存过滤后的可堆肥物品列表（避免重复计算）
     protected final @NotNull Minecraft mc;

@@ -23,7 +23,7 @@
       "me.aleksilassila.litematica.printer.LitematicaPrinterMod"
     ],
     "modmenu": [
-      "me.aleksilassila.litematica.printer.interfaces.compat.ModMenuCompat"
+      "me.aleksilassila.litematica.printer.compat.ModMenuCompat"
     ]
   },
   "mixins": [
