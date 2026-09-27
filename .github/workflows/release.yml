@@ -141,6 +141,12 @@ jobs:
           name: build-artifacts
           path: build-artifacts
 
+      - name: Download versionpack artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: versionpack
+          path: versionpack
+
       - name: Get github release information
         id: get_release
         uses: cardinalby/git-get-release-action@1.2.5
@@ -183,6 +189,7 @@ jobs:
         run: |
           shopt -s extglob
           FILE_PATHS=$(ls ${{ format('build-artifacts/{0}/build/libs/!(*-@(dev|sources|shadow)).jar', matrix.subproject) }})
+          VERSIONPACK_FILE_PATH=$(ls versionpack/fabricWrapper/build/libs/!(*-@(dev|sources|shadow)).jar)
           if (( ${#FILE_PATHS[@]} != 1 )); then
               echo "Error: Found ${#FILE_PATHS[@]} files, expected exactly 1"
               exit 1
@@ -195,6 +202,7 @@ jobs:
           echo "path=$FILE_PATH" >> $GITHUB_OUTPUT
           echo "name=$FILE_NAME" >> $GITHUB_OUTPUT
           echo "hash=$FILE_HASH" >> $GITHUB_OUTPUT
+          echo "path2=$VERSIONPACK_FILE_PATH" >> $GITHUB_OUTPUT
           cat $GITHUB_OUTPUT
 
       - name: Prepare changelog
@@ -229,7 +237,7 @@ jobs:
           github-tag: ${{ steps.release_info.outputs.tag_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-          files: ${{ steps.file_info.outputs.path }}
+          files: ${{ steps.file_info.outputs.path }} && ${{ steps.file_info.outputs.path2 }}
 
           name: ${{ format('{0} v{1} for mc{2}', steps.properties_g.outputs.mod_name, steps.properties_g.outputs.mod_version, steps.properties_v.outputs.minecraft_version) }}
           version: ${{ format('v{1}-mc{0}', steps.properties_v.outputs.minecraft_version, steps.properties_g.outputs.mod_version) }}

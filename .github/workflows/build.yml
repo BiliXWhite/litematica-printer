@@ -92,13 +92,19 @@ jobs:
           name: build-artifacts
           path: versions/*/build/libs/
 
+      - name: Upload versionpack artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: versionpack
+          path: fabricWrapper/build/libs/
+
       - name: Upload multi-version artifacts
         uses: actions/upload-artifact@v7
         with:
           path: fabricWrapper/build/libs/*.jar
           archive: false
 
-      - name: Collect mod jars
+      - name: Collect mod artifacts
         run: |
           shopt -s extglob
           mkdir mod-jars
@@ -108,7 +114,7 @@ jobs:
           sha256sum mod-jars/*
           ls -l mod-jars/
 
-      - name: Upload mod jars
+      - name: Upload mod artifacts
         uses: actions/upload-artifact@v7
         with:
           name: litematica-printer-single-version-${{ env.COMMIT_COUNT }}-${{ env.COMMIT_HASH }}-build.${{ github.run_number }}
