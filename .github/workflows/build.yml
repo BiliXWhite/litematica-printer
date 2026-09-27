@@ -59,11 +59,6 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
-      - name: Get repo info
-        run: |
-          echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-          echo "COMMIT_COUNT=$(git rev-list --count HEAD)" >> $GITHUB_ENV
-
       - name: Download dependencies
         if: |
           inputs.download_dependencies == true || 
@@ -117,7 +112,7 @@ jobs:
       - name: Upload mod artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: litematica-printer-single-version-${{ env.COMMIT_COUNT }}-${{ env.COMMIT_HASH }}-build.${{ github.run_number }}
+          name: single-version
           path: mod-jars/
 
   summary:

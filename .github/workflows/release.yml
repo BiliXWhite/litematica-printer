@@ -41,11 +41,6 @@ jobs:
           - target_release_tag: \`${{ github.event.inputs.target_release_tag }}\`
           EOF
 
-  matrix_prep:
-    uses: ./.github/workflows/matrix_prep.yml
-    with:
-      target_subproject: ${{ github.event.inputs.target_subproject }}
-
   changelog:
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -111,18 +106,10 @@ jobs:
     continue-on-error: true
 
     needs:
-      - matrix_prep
       - build
     runs-on: ubuntu-latest
-
-    # allow the mod publish step to add asserts to release
-    # https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
     permissions:
       contents: write
-
-    strategy:
-      matrix: ${{ fromJson(needs.matrix_prep.outputs.matrix) }}
-
     steps:
       - uses: actions/checkout@v6
         with:
@@ -135,11 +122,11 @@ jobs:
           echo target_subproject = ${{ github.event.inputs.target_subproject }}
           echo target_release_tag = ${{ github.event.inputs.target_release_tag }}
 
-      - name: Download build artifacts
+      - name: Download single-version artifact
         uses: actions/download-artifact@v8
         with:
-          name: build-artifacts
-          path: build-artifacts
+          name: single-version
+          path: single-version
 
       - name: Download versionpack artifact
         uses: actions/download-artifact@v8
@@ -160,7 +147,7 @@ jobs:
         run: |
           if [ $GITHUB_EVENT_NAME == 'release' ]
           then
-              # Leave an empty value here, so Kir-Antipov/mc-publish will infer the tag from the action context
+              # 留空，让 action 从上下文推断标签
               echo "tag_name=" >> $GITHUB_OUTPUT
           elif [ $GITHUB_EVENT_NAME == 'workflow_dispatch' ]
           then
@@ -170,94 +157,15 @@ jobs:
               exit 1
           fi
 
-      - name: Read common properties
-        id: properties_g
-        uses: BrycensRanch/read-properties-action@v1
+      - name: Publish to GitHub Release
+        uses: softprops/action-gh-release@v3
         with:
-          file: gradle.properties
-          all: true
-
-      - name: Read version-specific properties
-        id: properties_v
-        uses: BrycensRanch/read-properties-action@v1
-        with:
-          file: ${{ format('versions/{0}/gradle.properties', matrix.subproject) }}
-          all: true
-
-      - name: Prepare file information
-        id: file_info
-        run: |
-          shopt -s extglob
-
-          # 主 mod jar
-          FILE_PATHS=( ${{ format('build-artifacts/{0}/build/libs/!(*-@(dev|sources|shadow)).jar', matrix.subproject) }} )
-          if [ ${#FILE_PATHS[@]} -ne 1 ]; then
-              echo "Error: Found ${#FILE_PATHS[@]} main jars, expected exactly 1"
-              exit 1
-          fi
-          FILE_PATH="${FILE_PATHS[0]}"
-          FILE_NAME=$(basename "$FILE_PATH")
-          FILE_HASH=$(sha256sum "$FILE_PATH" | awk '{ print $1 }')
-          echo "path=$FILE_PATH" >> $GITHUB_OUTPUT
-          echo "name=$FILE_NAME" >> $GITHUB_OUTPUT
-          echo "hash=$FILE_HASH" >> $GITHUB_OUTPUT
-
-          # fabricWrapper jar（可选，存在才输出）
-          WRAPPER_PATHS=( versionpack/!(*-@(dev|sources|shadow)).jar )
-          if [ ${#WRAPPER_PATHS[@]} -eq 1 ]; then
-              WRAPPER_PATH="${WRAPPER_PATHS[0]}"
-              WRAPPER_NAME=$(basename "$WRAPPER_PATH")
-              WRAPPER_HASH=$(sha256sum "$WRAPPER_PATH" | awk '{ print $1 }')
-              echo "wrapper_path=$WRAPPER_PATH" >> $GITHUB_OUTPUT
-              echo "wrapper_name=$WRAPPER_NAME" >> $GITHUB_OUTPUT
-              echo "wrapper_hash=$WRAPPER_HASH" >> $GITHUB_OUTPUT
-          else
-              echo "wrapper_path=" >> $GITHUB_OUTPUT
-              echo "wrapper_name=" >> $GITHUB_OUTPUT
-              echo "wrapper_hash=" >> $GITHUB_OUTPUT
-          fi
-
-          cat $GITHUB_OUTPUT
-
-      - name: Prepare changelog
-        uses: actions/github-script@v9
-        id: changelog
-        with:
-          script: return process.env.CHANGELOG
-          result-encoding: string
-        env:
-          CHANGELOG: |-
-            ${{ steps.get_release.outputs.body }}
-
-            -------
-
-            Build Information
-
-            - Main file: `${{ steps.file_info.outputs.name }}`
-              - SHA-256: `${{ steps.file_info.outputs.hash }}`
-            ${{ steps.file_info.outputs.wrapper_name != '' && format('- Wrapper file: `{0}`{1}  - SHA-256: `{2}`', steps.file_info.outputs.wrapper_name, '\n', steps.file_info.outputs.wrapper_hash) || '' }}
-            - Built from: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-      - name: Publish Minecraft Mods
-        uses: Kira-NT/mc-publish@v3.3
-        with:
-          github-tag: ${{ steps.release_info.outputs.tag_name }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
+          tag_name: ${{ steps.release_info.outputs.tag_name }}
           files: |
             ${{ steps.file_info.outputs.path }}
             ${{ steps.file_info.outputs.wrapper_path }}
-
-          name: ${{ format('{0} v{1} for mc{2}', steps.properties_g.outputs.mod_name, steps.properties_g.outputs.mod_version, steps.properties_v.outputs.minecraft_version) }}
-          version: ${{ format('v{1}-mc{0}', steps.properties_v.outputs.minecraft_version, steps.properties_g.outputs.mod_version) }}
-          version-type: release
-
-          loaders: fabric
-          game-versions: ${{ steps.properties_v.outputs.game_versions }}
-          game-version-filter: any
-          dependencies: ''
-
-          github-changelog: ${{ steps.get_release.outputs.body }}
-
-          retry-attempts: 3
-          retry-delay: 10000
+          fail_on_unmatched_files: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
