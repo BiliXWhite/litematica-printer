@@ -141,7 +141,7 @@ jobs:
           name: build-artifacts
           path: build-artifacts
 
-      - name: Download versionpack artifacts
+      - name: Download versionpack artifact
         uses: actions/download-artifact@v8
         with:
           name: versionpack
@@ -188,21 +188,35 @@ jobs:
         id: file_info
         run: |
           shopt -s extglob
-          FILE_PATHS=$(ls ${{ format('build-artifacts/{0}/build/libs/!(*-@(dev|sources|shadow)).jar', matrix.subproject) }})
-          VERSIONPACK_FILE_PATH=$(ls versionpack/!(*-@(dev|sources|shadow)).jar)
-          if (( ${#FILE_PATHS[@]} != 1 )); then
-              echo "Error: Found ${#FILE_PATHS[@]} files, expected exactly 1"
+
+          # 主 mod jar
+          FILE_PATHS=( ${{ format('build-artifacts/{0}/build/libs/!(*-@(dev|sources|shadow)).jar', matrix.subproject) }} )
+          if [ ${#FILE_PATHS[@]} -ne 1 ]; then
+              echo "Error: Found ${#FILE_PATHS[@]} main jars, expected exactly 1"
               exit 1
-          else
-              FILE_PATH=${FILE_PATHS[0]}
           fi
-          
-          FILE_NAME=$(basename $FILE_PATH)
-          FILE_HASH=$(sha256sum $FILE_PATH | awk '{ print $1 }')
+          FILE_PATH="${FILE_PATHS[0]}"
+          FILE_NAME=$(basename "$FILE_PATH")
+          FILE_HASH=$(sha256sum "$FILE_PATH" | awk '{ print $1 }')
           echo "path=$FILE_PATH" >> $GITHUB_OUTPUT
           echo "name=$FILE_NAME" >> $GITHUB_OUTPUT
           echo "hash=$FILE_HASH" >> $GITHUB_OUTPUT
-          echo "path2=$VERSIONPACK_FILE_PATH" >> $GITHUB_OUTPUT
+
+          # fabricWrapper jar（可选，存在才输出）
+          WRAPPER_PATHS=( versionpack/!(*-@(dev|sources|shadow)).jar )
+          if [ ${#WRAPPER_PATHS[@]} -eq 1 ]; then
+              WRAPPER_PATH="${WRAPPER_PATHS[0]}"
+              WRAPPER_NAME=$(basename "$WRAPPER_PATH")
+              WRAPPER_HASH=$(sha256sum "$WRAPPER_PATH" | awk '{ print $1 }')
+              echo "wrapper_path=$WRAPPER_PATH" >> $GITHUB_OUTPUT
+              echo "wrapper_name=$WRAPPER_NAME" >> $GITHUB_OUTPUT
+              echo "wrapper_hash=$WRAPPER_HASH" >> $GITHUB_OUTPUT
+          else
+              echo "wrapper_path=" >> $GITHUB_OUTPUT
+              echo "wrapper_name=" >> $GITHUB_OUTPUT
+              echo "wrapper_hash=" >> $GITHUB_OUTPUT
+          fi
+
           cat $GITHUB_OUTPUT
 
       - name: Prepare changelog
@@ -219,25 +233,20 @@ jobs:
 
             Build Information
 
-            - File name: `${{ steps.file_info.outputs.name }}`
-            - SHA-256: `${{ steps.file_info.outputs.hash }}`
+            - Main file: `${{ steps.file_info.outputs.name }}`
+              - SHA-256: `${{ steps.file_info.outputs.hash }}`
+            ${{ steps.file_info.outputs.wrapper_name != '' && format('- Wrapper file: `{0}`{1}  - SHA-256: `{2}`', steps.file_info.outputs.wrapper_name, '\n', steps.file_info.outputs.wrapper_hash) || '' }}
             - Built from: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
       - name: Publish Minecraft Mods
         uses: Kira-NT/mc-publish@v3.3
         with:
-          # https://modrinth.com/settings/pats
-#          modrinth-id:
-#          modrinth-token: ${{ secrets.MODRINTH_API_TOKEN }}
-
-          # https://legacy.curseforge.com/account/api-tokens
-#          curseforge-id:
-#          curseforge-token: ${{ secrets.CURSEFORGE_API_TOKEN }}
-
           github-tag: ${{ steps.release_info.outputs.tag_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-          files: ${{ steps.file_info.outputs.path }} && ${{ steps.file_info.outputs.path2 }}
+          files: |
+            ${{ steps.file_info.outputs.path }}
+            ${{ steps.file_info.outputs.wrapper_path }}
 
           name: ${{ format('{0} v{1} for mc{2}', steps.properties_g.outputs.mod_name, steps.properties_g.outputs.mod_version, steps.properties_v.outputs.minecraft_version) }}
           version: ${{ format('v{1}-mc{0}', steps.properties_v.outputs.minecraft_version, steps.properties_g.outputs.mod_version) }}
@@ -246,11 +255,9 @@ jobs:
           loaders: fabric
           game-versions: ${{ steps.properties_v.outputs.game_versions }}
           game-version-filter: any
-          dependencies: ''  # declare the dependencies explicitly, so mc-publish won't try to load from fabric.mod.json
+          dependencies: ''
 
           github-changelog: ${{ steps.get_release.outputs.body }}
-#          modrinth-changelog: ${{ steps.changelog.outputs.result }}
-#          curseforge-changelog: ${{ steps.changelog.outputs.result }}
 
           retry-attempts: 3
           retry-delay: 10000
