@@ -189,7 +189,7 @@ jobs:
         run: |
           shopt -s extglob
           FILE_PATHS=$(ls ${{ format('build-artifacts/{0}/build/libs/!(*-@(dev|sources|shadow)).jar', matrix.subproject) }})
-          VERSIONPACK_FILE_PATH=$(ls versionpack/fabricWrapper/build/libs/!(*-@(dev|sources|shadow)).jar)
+          VERSIONPACK_FILE_PATH=$(ls versionpack/!(*-@(dev|sources|shadow)).jar)
           if (( ${#FILE_PATHS[@]} != 1 )); then
               echo "Error: Found ${#FILE_PATHS[@]} files, expected exactly 1"
               exit 1
