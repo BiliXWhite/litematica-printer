@@ -56,7 +56,7 @@ val Project.fullProjectVersion: String get() = getFullProjectVersion(mcVersion, 
 
 private fun getCommitHash(workDir: File = File(".")): String? {
     return try {
-        val process = ProcessBuilder("git", "rev-parse", "--short=10", "HEAD")
+        val process = ProcessBuilder("git", "rev-parse", "--short", "HEAD")
             .directory(workDir)
             .redirectErrorStream(true)
             .start()
@@ -94,10 +94,14 @@ val buildType: String? = when (modBuildTypeEnv) {
 private fun getFullProjectVersion(mcVersion: String?, modVersion: String): String {
     val commitCount     = getCommitCountNumber()
     val commitHash      = getCommitHash()
-    return if (mcVersion == null) {
-        "${modVersion}-${commitCount}-${commitHash}-${buildType}"
+    return if (buildType == "release") {
+        modVersion
     } else {
-        "${modVersion}-mc${mcVersion}-${commitCount}-${commitHash}-${buildType}"
+        if (mcVersion == null) {
+            "${modVersion}-${commitCount}-${commitHash}-${buildType}"
+        } else {
+            "${modVersion}-mc${mcVersion}-${commitCount}-${commitHash}-${buildType}"
+        }
     }
 }
 

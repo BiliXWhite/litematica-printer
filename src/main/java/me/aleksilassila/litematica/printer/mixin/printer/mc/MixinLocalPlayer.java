@@ -7,16 +7,19 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.handler.ModuleManager;
 import me.aleksilassila.litematica.printer.printer.BlockPosCooldownManager;
 import me.aleksilassila.litematica.printer.utils.BreakUtils;
-import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
 import me.aleksilassila.litematica.printer.utils.ModUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
+//#if MC >= 260300
+//$$ import net.minecraft.world.level.block.entity.SignTextSlot;
+//#endif
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -25,6 +28,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -71,9 +78,13 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     }
 
     @Inject(method = "openTextEdit", at = @At("HEAD"), cancellable = true)
-    //#if MC > 11904
-    public void openTextEdit(SignBlockEntity sign, boolean front, CallbackInfo ci) {
-        openEditSignScreen(sign, front, ci);
+    //#if MC >= 260300
+    //$$ public void openTextEdit(final SignBlockEntity sign, final SignTextSlot slot, CallbackInfo ci) {
+    //$$    openEditSignScreen(sign, slot, ci);
+    //$$ }
+    //#elseif MC > 11904
+    public void openTextEdit(SignBlockEntity sign, boolean isFrontText, CallbackInfo ci) {
+        openEditSignScreen(sign, isFrontText, ci);
     }
     //#else
     //$$ public void openTextEdit(SignBlockEntity sign, CallbackInfo ci) {
@@ -81,29 +92,47 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     //$$ }
     //#endif
 
-    public void openEditSignScreen(SignBlockEntity sign, boolean front, CallbackInfo ci) {
+    @Unique
+    //#if MC >= 260300
+    //$$ public void openEditSignScreen(SignBlockEntity sign, final SignTextSlot slot, CallbackInfo ci) {
+    //#else
+    public void openEditSignScreen(SignBlockEntity sign, boolean slot, CallbackInfo ci) {
+        //#endif
         getTargetSignEntity(sign).ifPresent(signBlockEntity ->
         {
-            //#if MC > 11904
-            String line1 = signBlockEntity.getText(front).getMessage(0, false).getString();
-            String line2 = signBlockEntity.getText(front).getMessage(1, false).getString();
-            String line3 = signBlockEntity.getText(front).getMessage(2, false).getString();
-            String line4 = signBlockEntity.getText(front).getMessage(3, false).getString();
+            //#if MC >= 260300
+            //$$ List<Component> components = signBlockEntity.getText(slot).getMessages(false);
+            //$$ String line1 = components.get(0).getString();
+            //$$ String line2 = components.get(1).getString();
+            //$$ String line3 = components.get(2).getString();
+            //$$ String line4 = components.get(3).getString();
+            //$$ List<String> lines = Arrays.asList(line1, line2, line3, line4);
+            //#elseif MC > 11904
+            String line1 = signBlockEntity.getText(slot).getMessage(0, false).getString();
+            String line2 = signBlockEntity.getText(slot).getMessage(1, false).getString();
+            String line3 = signBlockEntity.getText(slot).getMessage(2, false).getString();
+            String line4 = signBlockEntity.getText(slot).getMessage(3, false).getString();
             //#else
             //$$ String line1 = signBlockEntity.getMessage(0, false).getString();
             //$$ String line2 = signBlockEntity.getMessage(1, false).getString();
             //$$ String line3 = signBlockEntity.getMessage(2, false).getString();
             //$$ String line4 = signBlockEntity.getMessage(3, false).getString();
             //#endif
+
+            //#if MC >= 260300
+            //$$ ServerboundSignUpdatePacket packet = new ServerboundSignUpdatePacket(sign.getBlockPos(), lines, slot);
+            //#else
             ServerboundSignUpdatePacket packet = new ServerboundSignUpdatePacket(sign.getBlockPos(),
                     //#if MC > 11904
-                    front,
+                    slot,
                     //#endif
                     line1,
                     line2,
                     line3,
                     line4
             );
+            //#endif
+
             this.connection.send(packet);
             ci.cancel();
         });

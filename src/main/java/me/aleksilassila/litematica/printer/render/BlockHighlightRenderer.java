@@ -65,7 +65,9 @@ public class BlockHighlightRenderer implements IRenderer {
     //$$ @Override
     //$$ public void onRenderWorldLast(
     //$$         RenderTarget renderTarget,
+    //$$         //#if MC < 260300
     //$$         Matrix4fc projMatrix,
+    //$$         //#endif
     //$$         CameraRenderState cameraRenderState,
     //$$         Frustum frustum,
     //$$         RenderBuffers renderBuffers,

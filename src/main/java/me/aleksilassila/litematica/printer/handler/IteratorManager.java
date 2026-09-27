@@ -58,10 +58,11 @@ public class IteratorManager {
      * 根据玩家位置和配置重建 PrinterBox，返回是否需要重置扫描状态。
      */
     public boolean tryBuildBox(LocalPlayer player, @Nullable Object selectionTypeObj) {
-        BlockPos eyeBP = new BlockPos(new Vec3i(
+        BlockPos eyeBP = new BlockPos(
                 (int) Math.round(player.getX()),
                 (int) Math.round(player.getEyeY()),
-                (int) Math.round(player.getZ())));
+                (int) Math.round(player.getZ())
+        );
 
         double effectiveRange = ConfigUtils.getEffectiveRange();
         int currentRange = (int) Math.ceil(effectiveRange);
