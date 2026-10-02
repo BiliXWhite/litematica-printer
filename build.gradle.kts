@@ -7,6 +7,7 @@ plugins {
     // https://github.com/Fallen-Breath/preprocessor
     // https://jitpack.io/#Fallen-Breath/preprocessor
     id("com.replaymod.preprocess") version "c5abb4fb12"
+    id("org.glavo.gradle-wrapper-neo") version "0.2.0"
 }
 
 preprocess {

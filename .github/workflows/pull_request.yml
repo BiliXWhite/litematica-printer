@@ -1,10 +1,13 @@
-name: pull_request
+name: PR Builds
 
 on:
   pull_request:
+
+env:
+  BUILD_TYPE: pr
 
 jobs:
   build:
     uses: ./.github/workflows/build.yml
     with:
-      pr_build: true
+      build_type: pr

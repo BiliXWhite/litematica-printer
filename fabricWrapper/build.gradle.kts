@@ -27,7 +27,7 @@ fabricSubprojects.forEach {
 }
 
 tasks {
-    val collectSubModules by registering {
+    val collectSubModules = register<Task>("collectSubModules") {
         description = "Collect all submodules into a single jar"
         val destDir = layout.buildDirectory.dir("tmp/submods/META-INF/jars")
 

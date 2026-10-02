@@ -60,7 +60,8 @@ public class IteratorManager {
         BlockPos eyeBP = new BlockPos(
                 (int) Math.round(player.getX()),
                 (int) Math.round(player.getEyeY()),
-                (int) Math.round(player.getZ()));
+                (int) Math.round(player.getZ())
+        );
 
         double effectiveRange = ConfigUtils.getEffectiveRange();
         int currentRange = (int) Math.ceil(effectiveRange);

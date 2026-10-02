@@ -8,10 +8,6 @@ repositories {
     gradlePluginPortal()
 }
 
-kotlin {
-    jvmToolchain(21)
-}
-
 gradlePlugin {
     plugins {
         register("mod-plugin") {

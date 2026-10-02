@@ -35,6 +35,7 @@ public class LitematicaUtils {
         return DataManager.getRenderLayerRange().isPositionWithinRange(pos);
     }
 
+    @SuppressWarnings("deprecation")
     public static Vec3 usePrecisionPlacement(BlockPos pos, BlockState stateSchematic) {
         if (Configs.Print.EASY_PLACE_PROTOCOL.getBooleanValue()) {
             EasyPlaceProtocol protocol = PlacementHandler.getEffectiveProtocolVersion();
