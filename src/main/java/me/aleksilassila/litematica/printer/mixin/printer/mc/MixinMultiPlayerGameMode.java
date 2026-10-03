@@ -60,6 +60,7 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
     public InteractionResult litematica_printer$useItemOn(boolean localPrediction, InteractionHand hand, BlockHitResult blockHit) {
         if (localPrediction) {
             //#if MC > 11802
+            this.minecraft.player.swing(hand);
             return useItemOn(minecraft.player, hand, blockHit);
             //#else
             //$$ return useItemOn(minecraft.player, minecraft.level, hand, blockHit);
@@ -70,6 +71,7 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
             return InteractionResult.FAIL;
         }
         //#if MC > 11802
+        this.minecraft.player.swing(hand);
         litematica_printer$startPrediction((sequence) -> new ServerboundUseItemOnPacket(hand, blockHit, sequence));
         //#else
         //$$ litematica_printer$startPrediction((sequence) -> new ServerboundUseItemOnPacket(hand, blockHit));
