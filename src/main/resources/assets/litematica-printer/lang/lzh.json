@@ -207,7 +207,7 @@
   "litematica-printer.config.printSkipWaterlogged": "跳含水塊",
   "litematica-printer.config.printSkipWaterlogged.desc": "印時跳含水方塊。",
   "litematica-printer.config.printerAutoDisable": "自關印機",
-  "litematica-printer.config.printerAutoDisable.desc": "玩家死時自關印機，免重生誤動。",
+  "litematica-printer.config.printerAutoDisable.desc": "玩家死或易維度時自關印機，免重生或易維度後誤動。",
   "litematica-printer.config.printerIteratorMode": "遍序",
   "litematica-printer.config.printerIteratorMode.desc": "印時遍方之序：\n§dXYZ§r：先 X，後 Y，末 Z\n§dXZY§r：先 X，後 Z，末 Y\n§dYXZ§r：先 Y，後 X，末 Z\n§dYZX§r：先 Y，後 Z，末 X\n§dZXY§r：先 Z，後 X，末 Y\n§dZYX§r：先 Z，後 Y，末 X",
   "litematica-printer.config.printerIteratorShape": "工作形",

@@ -207,7 +207,7 @@
   "litematica-printer.config.printSkipWaterlogged": "Skip Waterlogged Blocks",
   "litematica-printer.config.printSkipWaterlogged.desc": "Skip waterlogged blocks during printing.",
   "litematica-printer.config.printerAutoDisable": "Auto Disable Printer",
-  "litematica-printer.config.printerAutoDisable.desc": "Automatically disable printer when player dies to avoid misoperations after respawning.",
+  "litematica-printer.config.printerAutoDisable.desc": "Automatically disable printer when player dies or changes dimension to avoid misoperations after respawning or switching dimensions.",
   "litematica-printer.config.printerIteratorMode": "Iteration Order",
   "litematica-printer.config.printerIteratorMode.desc": "Block iteration order during printing:\n§dXYZ§r: X axis first, then Y axis, finally Z axis\n§dXZY§r: X axis first, then Z axis, finally Y axis\n§dYXZ§r: Y axis first, then X axis, finally Z axis\n§dYZX§r: Y axis first, then Z axis, finally X axis\n§dZXY§r: Z axis first, then X axis, finally Y axis\n§dZYX§r: Z axis first, then Y axis, finally X axis",
   "litematica-printer.config.printerIteratorShape": "Work Area Shape",

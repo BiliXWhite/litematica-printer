@@ -207,7 +207,7 @@
   "litematica-printer.config.printSkipWaterlogged": "Пропускать блоки с водой",
   "litematica-printer.config.printSkipWaterlogged.desc": "Пропускать блоки, залитые водой, при печати.",
   "litematica-printer.config.printerAutoDisable": "Автоотключение принтера",
-  "litematica-printer.config.printerAutoDisable.desc": "Автоматически отключать принтер при гибели игрока во избежание ошибочных действий после возрождения.",
+  "litematica-printer.config.printerAutoDisable.desc": "Автоматически отключать принтер при гибели игрока или смене измерения во избежание ошибочных действий после возрождения или перехода в другое измерение.",
   "litematica-printer.config.printerIteratorMode": "Порядок обхода",
   "litematica-printer.config.printerIteratorMode.desc": "Порядок обхода блоков при печати:\n§dXYZ§r: Сначала ось X, затем Y, затем Z\n§dXZY§r: Сначала X, затем Z, затем Y\n§dYXZ§r: Сначала Y, затем X, затем Z\n§dYZX§r: Сначала Y, затем Z, затем X\n§dZXY§r: Сначала Z, затем X, затем Y\n§dZYX§r: Сначала Z, затем Y, затем X",
   "litematica-printer.config.printerIteratorShape": "Форма рабочей зоны",

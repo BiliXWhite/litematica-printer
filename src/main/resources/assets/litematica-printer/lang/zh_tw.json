@@ -178,7 +178,7 @@
   "litematica-printer.config.printSkipWaterlogged": "跳過含水方塊",
   "litematica-printer.config.printSkipWaterlogged.desc": "列印時跳過含水方塊。",
   "litematica-printer.config.printerAutoDisable": "自動關閉印表機",
-  "litematica-printer.config.printerAutoDisable.desc": "當玩家死亡時自動關閉印表機，避免重生後印表機誤操作。",
+  "litematica-printer.config.printerAutoDisable.desc": "當玩家死亡或切換維度時自動關閉印表機，避免重生或切換維度後印表機誤操作。",
   "litematica-printer.config.printerIteratorMode": "遍歷順序",
   "litematica-printer.config.printerIteratorMode.desc": "列印時遍歷方塊的順序：\n§dXYZ§r：先X軸，後Y軸，最後Z軸\n§dXZY§r：先X軸，後Z軸，最後Y軸\n§dYXZ§r：先Y軸，後X軸，最後Z軸\n§dYZX§r：先Y軸，後Z軸，最後X軸\n§dZXY§r：先Z軸，後X軸，最後Y軸\n§dZYX§r：先Z軸，後Y軸，最後X軸",
   "litematica-printer.config.printerIteratorShape": "工作範圍形狀",
