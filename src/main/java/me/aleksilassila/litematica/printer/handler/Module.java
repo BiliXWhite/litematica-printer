@@ -11,6 +11,7 @@ import me.aleksilassila.litematica.printer.utils.BreakUtils;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
 import me.aleksilassila.litematica.printer.utils.PlayerUtils;
+import me.aleksilassila.litematica.printer.utils.QuickShulkerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -174,7 +175,7 @@ public abstract class Module extends ConfigUtils {
             }
 
             while (true) {
-                if (timeLimitExceeded.get()) return;
+                if (timeLimitExceeded.get() || QuickShulkerUtils.isOpenHandler()) return;
                 if (skipIteration.get() || ActionManager.INSTANCE.needWaitModifyLook) return;
 
                 BlockPos pos = iteratorManager.next();

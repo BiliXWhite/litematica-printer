@@ -116,6 +116,7 @@ public class BreakUtils {
     }
 
     public void onTick() {
+        if (QuickShulkerUtils.isOpenHandler()) return;
         LocalPlayer player = client.player;
         ClientLevel level = client.level;
         if (player == null || level == null) {

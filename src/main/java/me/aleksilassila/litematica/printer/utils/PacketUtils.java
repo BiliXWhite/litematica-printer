@@ -1,5 +1,6 @@
 package me.aleksilassila.litematica.printer.utils;
 
+import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.mixin.printer.mc.ServerboundMovePlayerPacketAccessor;
 import me.aleksilassila.litematica.printer.mixin.extension.MultiPlayerGameModeExtension;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
@@ -50,6 +51,10 @@ public class PacketUtils {
         return packet instanceof ServerboundMovePlayerPacket.Rot;
     }
 
+    public static boolean isPosRotPacket(Packet<?> packet) {
+        return packet instanceof ServerboundMovePlayerPacket.PosRot;
+    }
+
     public static boolean isMovePlayerPacket(Packet<?> packet) {
         return packet instanceof ServerboundMovePlayerPacket;
     }
@@ -66,15 +71,18 @@ public class PacketUtils {
                     , ((ServerboundMovePlayerPacketAccessor) packet).getHorizontalCollision()
                     //#endif
             );
+        } else if (isPosRotPacket(packet)) {
+            double x = ((ServerboundMovePlayerPacketAccessor) packet).getX();
+            double y = ((ServerboundMovePlayerPacketAccessor) packet).getY();
+            double z = ((ServerboundMovePlayerPacketAccessor) packet).getZ();
+            return new ServerboundMovePlayerPacket.PosRot(x, y, z, playerLook.yaw(), playerLook.pitch(), onGround
+                    //#if MC > 12101
+                    , ((ServerboundMovePlayerPacketAccessor) packet).getHorizontalCollision()
+                    //#endif
+            );
         }
-        double x = ((ServerboundMovePlayerPacketAccessor) packet).getX();
-        double y = ((ServerboundMovePlayerPacketAccessor) packet).getY();
-        double z = ((ServerboundMovePlayerPacketAccessor) packet).getZ();
-        return new ServerboundMovePlayerPacket.PosRot(x, y, z, playerLook.yaw(), playerLook.pitch(), onGround
-                //#if MC > 12101
-                , ((ServerboundMovePlayerPacketAccessor) packet).getHorizontalCollision()
-                //#endif
-        );
+        Reference.LOGGER.warn("PacketUtils.getFixedPacket: Unknown packet type: {}", packet.getClass().getName());
+        return packet;
     }
 
     public interface SequenceExtension {
