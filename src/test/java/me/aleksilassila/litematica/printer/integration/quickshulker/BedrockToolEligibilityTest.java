@@ -1,4 +1,4 @@
-//#if MC == 11802 || MC == 260100 || MC == 260300
+//#if MC == 11802 || MC == 12006 || MC == 12101 || MC == 260100 || MC == 260300
 package me.aleksilassila.litematica.printer.integration.quickshulker;
 
 import me.aleksilassila.litematica.printer.handler.handlers.bedrock.BedrockBreaker;
@@ -18,12 +18,16 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-//#if MC >= 260100
+//#if MC > 12006
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.registries.VanillaRegistries;
+//#endif
+//#if MC >= 260100
 import net.minecraft.world.entity.EntityEquipment;
 //#endif
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.TagKey;
@@ -70,7 +74,7 @@ class BedrockToolEligibilityTest {
 
     static class Connection extends ClientPacketListener {
         List<Packet<?>> packets;
-        //#if MC >= 260100
+        //#if MC >= 12006
         Connection() { super(null, null, null); }
         //#else
         //$$ Connection() { super(null, null, null, null, null); }
@@ -90,26 +94,41 @@ class BedrockToolEligibilityTest {
         Abilities abilities;
         @Override public Inventory getInventory() { return inventory; }
         @Override public Abilities getAbilities() { return abilities; }
-        @Override public ItemStack getMainHandItem() { return inventory.getItem(0); }
+        @Override public ItemStack getMainHandItem() { return inventory.getItem(InventoryUtils.getSelectedSlot(inventory)); }
         boolean submerged;
         boolean airborne;
         boolean aquaAffinity;
+        double breakSpeed;
         MobEffectInstance haste;
-        //#if MC >= 260100
+        //#if MC >= 12006
         @Override public boolean onGround() { return !airborne; }
-        @Override public boolean hasEffect(Holder<MobEffect> effect) { return effect.equals(MobEffects.HASTE) && haste != null; }
-        @Override public MobEffectInstance getEffect(Holder<MobEffect> effect) { return effect.equals(MobEffects.HASTE) ? haste : null; }
-        @Override public double getAttributeValue(Holder<Attribute> attribute) { return 1; }
-        @Override public AttributeInstance getAttribute(Holder<Attribute> attribute) {
-            var instance = new AttributeInstance(attribute, ignored -> {});
-            if (attribute.equals(Attributes.SUBMERGED_MINING_SPEED) && aquaAffinity) instance.setBaseValue(1);
-            return instance;
-        }
         //#else
         //$$ @Override public boolean isOnGround() { return !airborne; }
+        //#endif
+        //#if MC >= 260100
+        @Override public boolean hasEffect(Holder<MobEffect> effect) { return effect.equals(MobEffects.HASTE) && haste != null; }
+        @Override public MobEffectInstance getEffect(Holder<MobEffect> effect) { return effect.equals(MobEffects.HASTE) ? haste : null; }
+        //#elseif MC >= 12006
+        //$$ @Override public boolean hasEffect(Holder<MobEffect> effect) { return effect.equals(MobEffects.DIG_SPEED) && haste != null; }
+        //$$ @Override public MobEffectInstance getEffect(Holder<MobEffect> effect) { return effect.equals(MobEffects.DIG_SPEED) ? haste : null; }
+        //#else
         //$$ @Override public boolean hasEffect(MobEffect effect) { return effect == MobEffects.DIG_SPEED && haste != null; }
         //$$ @Override public MobEffectInstance getEffect(MobEffect effect) { return effect == MobEffects.DIG_SPEED ? haste : null; }
+        //#endif
+        //#if MC >= 12006
+        @Override public double getAttributeValue(Holder<Attribute> attribute) { return attribute.equals(Attributes.BLOCK_BREAK_SPEED) ? breakSpeed : 1; }
+        @Override public AttributeInstance getAttribute(Holder<Attribute> attribute) {
+            var instance = new AttributeInstance(attribute, ignored -> {});
+            if (attribute.equals(Attributes.BLOCK_BREAK_SPEED)) instance.setBaseValue(breakSpeed);
+            //#if MC > 12006
+            if (attribute.equals(Attributes.SUBMERGED_MINING_SPEED) && aquaAffinity) instance.setBaseValue(1);
+            //#endif
+            return instance;
+        }
+        //#endif
+        //#if MC <= 12006
         //$$ @Override public ItemStack getItemBySlot(net.minecraft.world.entity.EquipmentSlot slot) {
+        //$$     if (slot == net.minecraft.world.entity.EquipmentSlot.MAINHAND) return getMainHandItem();
         //$$     if (slot != net.minecraft.world.entity.EquipmentSlot.HEAD || !aquaAffinity) return ItemStack.EMPTY;
         //$$     var helmet = new ItemStack(Items.DIAMOND_HELMET);
         //$$     helmet.enchant(Enchantments.AQUA_AFFINITY, 1);
@@ -122,9 +141,11 @@ class BedrockToolEligibilityTest {
     static class MiningLevel extends ClientLevel implements NetworkUtils.SequenceExtension {
         //#if MC >= 260100
         MiningLevel() { super(null, null, null, null, 0, 0, null, false, 0L, 0); }
-        @Override public net.minecraft.world.flag.FeatureFlagSet enabledFeatures() { return net.minecraft.world.flag.FeatureFlags.VANILLA_SET; }
         //#else
         //$$ MiningLevel() { super(null, null, null, null, 0, 0, null, null, false, 0L); }
+        //#endif
+        //#if MC >= 12006
+        @Override public net.minecraft.world.flag.FeatureFlagSet enabledFeatures() { return net.minecraft.world.flag.FeatureFlags.VANILLA_SET; }
         //#endif
         @Override public BlockState getBlockState(BlockPos pos) {
             return pos.equals(BlockPos.ZERO) ? Blocks.BEDROCK.defaultBlockState()
@@ -157,7 +178,9 @@ class BedrockToolEligibilityTest {
             //#else
             //$$ player.inventory = new Inventory(player);
             //#endif
+            set(player, net.minecraft.world.entity.player.Player.class, "inventory", player.inventory);
             player.abilities = new Abilities();
+            player.breakSpeed = 1;
             connection.packets = new ArrayList<>();
             set(player, LocalPlayer.class, "connection", connection);
             client.player = player;
@@ -195,9 +218,11 @@ class BedrockToolEligibilityTest {
             //#if MC >= 260300
             //$$ tool.enchant(VanillaRegistries.createWorldLookup().lookupOrThrow(Registries.ENCHANTMENT)
             //$$         .getOrThrow(Enchantments.EFFICIENCY), efficiency);
-            //#elseif MC >= 260100
+            //#elseif MC > 12006
             tool.enchant(VanillaRegistries.createLookup().lookupOrThrow(Registries.ENCHANTMENT)
                     .getOrThrow(Enchantments.EFFICIENCY), efficiency);
+            //#elseif MC == 12006
+            //$$ tool.enchant(Enchantments.EFFICIENCY, efficiency);
             //#else
             //$$ tool.enchant(Enchantments.BLOCK_EFFICIENCY, efficiency);
             //#endif
@@ -225,6 +250,12 @@ class BedrockToolEligibilityTest {
             var method = BedrockBreaker.class.getDeclaredMethod("prepareCriticalTool", BlockPos.class, BlockState.class);
             method.setAccessible(true);
             return (boolean) method.invoke(null, PISTON, level.getBlockState(PISTON));
+        }
+
+        void sendBreakPackets() throws Exception {
+            var method = BedrockBreaker.class.getDeclaredMethod("sendCriticalBreakPackets", BlockPos.class, Direction.class);
+            method.setAccessible(true);
+            method.invoke(null, PISTON, Direction.DOWN);
         }
 
         void assertBundleBlocked() throws Exception {
@@ -350,5 +381,70 @@ class BedrockToolEligibilityTest {
             f.assertBundleBlocked();
         }
     }
+
+    @Test void hotbarSelectionPacketPrecedesBothBreakPacketsWithoutWaitingForReply() throws Exception {
+        try (var f = new Fixture(5)) {
+            f.player.inventory.setItem(2, f.player.inventory.getItem(0));
+            f.player.inventory.setItem(0, new ItemStack(Items.STICK));
+            assertTrue(f.ready());
+            assertEquals(2, InventoryUtils.getSelectedSlot(f.player.inventory));
+            f.sendBreakPackets();
+            // Capture outbound packets without delivering any server acknowledgement.
+            // A delayed connection must still carry selection before START and STOP.
+            assertEquals(3, f.connection.packets.size());
+            assertEquals(2, assertInstanceOf(ServerboundSetCarriedItemPacket.class, f.connection.packets.get(0)).getSlot());
+            assertEquals(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
+                    assertInstanceOf(ServerboundPlayerActionPacket.class, f.connection.packets.get(1)).getAction());
+            assertEquals(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK,
+                    assertInstanceOf(ServerboundPlayerActionPacket.class, f.connection.packets.get(2)).getAction());
+        }
+    }
+
+    @Test void delayedInventoryCorrectionCannotReuseEarlierEligibility() throws Exception {
+        try (var f = new Fixture(5)) {
+            assertTrue(f.ready());
+            f.tick = 20;
+            f.player.inventory.setItem(0, f.tool(4));
+            assertFalse(f.ready());
+            f.assertBundleBlocked();
+            f.player.inventory.setItem(0, f.tool(5));
+            assertTrue(f.ready());
+        }
+    }
+
+    @Test void enteringWaterWhileToolSwitchSettlesIsRecheckedAfterWait() throws Exception {
+        try (var f = new Fixture(5)) {
+            f.guard.markSwitchIfNeeded(f.player.getMainHandItem());
+            assertFalse(f.ready());
+            f.player.submerged = true;
+            f.tick = 1;
+            assertFalse(f.guard.isWaiting());
+            assertFalse(f.ready());
+            f.assertBundleBlocked();
+        }
+    }
+
+    //#if MC >= 12006
+    @Test void increasedBlockBreakAttributeCanMakeEfficiencyFourEligible() throws Exception {
+        try (var f = new Fixture(4)) {
+            f.player.breakSpeed = 2;
+            //#if MC == 12006
+            //$$ assertTrue(f.player.getDestroySpeed(Blocks.PISTON.defaultBlockState()) / 1.5F / 30 >= 0.7F,
+            //$$         "The vanilla Player calculation already accepts this tool");
+            //#endif
+            assertTrue(f.admitted());
+            assertTrue(f.ready());
+        }
+    }
+
+    @Test void loweredBlockBreakAttributeBeforeExecutionBlocksBundle() throws Exception {
+        try (var f = new Fixture(5)) {
+            assertTrue(f.ready());
+            f.player.breakSpeed = 0.5;
+            assertFalse(f.ready());
+            f.assertBundleBlocked();
+        }
+    }
+    //#endif
 }
 //#endif

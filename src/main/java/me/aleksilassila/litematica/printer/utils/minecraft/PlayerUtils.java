@@ -176,8 +176,10 @@ public class PlayerUtils {
             }
             f *= g;
         }
-        //#if MC > 12006
+        //#if MC >= 12006
         f *= (float) player.getAttributeValue(Attributes.BLOCK_BREAK_SPEED);
+        //#endif
+        //#if MC > 12006
         if (player.isEyeInFluid(FluidTags.WATER)) {
             AttributeInstance submergedMiningSpeed = player.getAttribute(Attributes.SUBMERGED_MINING_SPEED);
             if (submergedMiningSpeed != null) {
