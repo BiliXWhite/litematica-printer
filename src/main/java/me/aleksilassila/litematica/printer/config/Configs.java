@@ -631,6 +631,11 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .defaultValue(false)
                 .build();
 
+        public static final ConfigStringList MINE_TRENCH_FILL_BLOCK_LIST = stringList("mineTrenchFillBlockList")
+                .defaultValue(Blocks.SAND)
+                .setVisible(MINE_TRENCH_MODE::getBooleanValue)
+                .build();
+
         // 挖掘模式限制器
         public static final ConfigOptionList EXCAVATE_LIMITER = optionList("excavateLimiter")
                 .defaultValue(ExcavateListMode.CUSTOM)
@@ -655,6 +660,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 MINE_SELECTION_TYPE,          // 挖掘 - 选区类型
                 MINE_TRENCH_MODE,             // 挖掘 - 挖沟模式
+                MINE_TRENCH_FILL_BLOCK_LIST,  // 挖掘 - 挖沟填充方块
                 EXCAVATE_LIMITER,             // 挖掘 - 挖掘模式限制器
                 EXCAVATE_LIMIT,               // 挖掘 - 挖掘模式限制
                 EXCAVATE_WHITELIST,           // 挖掘 - 挖掘白名单

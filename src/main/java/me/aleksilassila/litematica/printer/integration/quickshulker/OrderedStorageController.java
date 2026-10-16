@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 final class OrderedStorageController {
+    private int automatedContainerId = -1;
     private static final int RESTORE_TIMEOUT_TICKS = 40;
     private static final int PRESSURE_TRIGGER_FREE_SLOTS = 4;
     private static final int PRESSURE_TARGET_FREE_SLOTS = 8;
@@ -25,12 +26,14 @@ final class OrderedStorageController {
     private static final int RECENT_USE_PROTECTION_TICKS = 40;
     private static final int IDLE_RESTORE_DELAY_TICKS = 100;
     private final Minecraft client;
+    private final QuickShulkerContainerSession containerSession;
     private final Supplier<Set<Item>> neededItems;
     private final List<OrderedStorageEntry> trackedItems = new ArrayList<>();
     private final RestoreSession<OrderedStorageEntry> restoreSession = new RestoreSession<>();
 
-    OrderedStorageController(Minecraft client, Supplier<Set<Item>> neededItems) {
+    OrderedStorageController(Minecraft client, Supplier<Set<Item>> neededItems, QuickShulkerContainerSession containerSession) {
         this.client = client;
+        this.containerSession = containerSession;
         this.neededItems = neededItems;
     }
 
@@ -188,13 +191,17 @@ final class OrderedStorageController {
     /**
      * Restore to the original inner slot first, then matching partial stacks, then empty slots.
      */
+    public void onContainerOpen(int containerId) {
+        if (isWaitingForRestoreContainer()) this.automatedContainerId = containerId;
+    }
+
     public void restorePendingItem() {
         if (!this.isWaitingForRestoreContainer() || client.player == null || client.gameMode == null) {
             return;
         }
         LocalPlayer player = client.player;
         AbstractContainerMenu menu = player.containerMenu;
-        if (menu.equals(player.inventoryMenu)) {
+        if (menu.equals(player.inventoryMenu) || menu.containerId != automatedContainerId || !menu.getCarried().isEmpty()) {
             return;
         }
 
@@ -253,13 +260,16 @@ final class OrderedStorageController {
         }
         LocalPlayer player = client.player;
         retryPendingRestore();
+        ShulkerUtils.recoverFailedOpen();
         ModLoadUtils.closeScreen = 0;
-        if (player != null && !player.containerMenu.equals(player.inventoryMenu)) {
+        if (player != null && !player.containerMenu.equals(player.inventoryMenu)
+                && player.containerMenu.containerId == automatedContainerId) {
             player.closeContainer();
         }
     }
 
     public void reset() {
+        this.automatedContainerId = -1;
         this.trackedItems.clear();
         this.restoreSession.reset();
     }
@@ -339,7 +349,11 @@ final class OrderedStorageController {
         }
         pendingRestore.shulkerInventoryMenuSlot = shulkerMenuSlot;
         ItemStack shulkerStack = player.inventoryMenu.slots.get(shulkerMenuSlot).getItem();
+        this.containerSession.begin(shulkerStack,
+                me.aleksilassila.litematica.printer.config.Configs.Placement.QUICK_SHULKER_MODE.getOptionListValue()
+                        == me.aleksilassila.litematica.printer.enums.QuickShulkerModeType.CLICK_SLOT);
         if (!ShulkerUtils.openShulker(shulkerStack, shulkerMenuSlot)) {
+            this.containerSession.reset();
             retryPendingRestore();
             return;
         }

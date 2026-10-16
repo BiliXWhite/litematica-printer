@@ -2,6 +2,7 @@ package me.aleksilassila.litematica.printer.utils.mods;
 
 import net.fabricmc.loader.api.FabricLoader;
 import me.aleksilassila.litematica.printer.Reference;
+import me.aleksilassila.litematica.printer.integration.inventory.MaterialRequest;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.player.Inventory;
@@ -110,6 +111,10 @@ public final class TakeItOutUtils {
     }
 
     public static boolean tryRequestItem(Item item) {
+        return tryRequestItem(item, false);
+    }
+
+    public static boolean tryRequestItem(Item item, boolean emptyShulkerOnly) {
         if (item == null || !isAutoTakeoutEnabled()) {
             return false;
         }
@@ -121,7 +126,37 @@ public final class TakeItOutUtils {
         if (required.isEmpty()) {
             return false;
         }
-        return tryRequestFromInventoryShulker(required) || tryRequestFromWorldContainers(required);
+        return tryRequestFromInventoryShulker(required, emptyShulkerOnly)
+                || tryRequestFromWorldContainers(emptyShulkerOnly ? emptyWorldContainerRequest(required) : required);
+    }
+
+    private static ItemStack emptyWorldContainerRequest(ItemStack required) {
+        // Refresh asynchronously so a missing/stale variant can recover on the next attempt,
+        // even when render-only inventory tracking and the material list UI are disabled.
+        requestAvailableItemsRefresh();
+        try {
+            Object entries = Class.forName(CLIENT_CLASS).getField("WORLD_CONTAINER_ITEMS").get(null);
+            if (entries instanceof Iterable<?> iterable) return selectEmptyShulkerRequest(required, iterable);
+        } catch (ClassNotFoundException | NoSuchFieldException ignored) {
+            // Older versions without the material cache can still request an ordinary empty box.
+        } catch (ReflectiveOperationException | LinkageError exception) {
+            logApiFailure("选择远程空潜影盒", exception);
+        }
+        return singleStack(required);
+    }
+
+    static ItemStack selectEmptyShulkerRequest(ItemStack required, Iterable<?> entries) throws ReflectiveOperationException {
+        for (Object entry : entries) {
+            if (entry == null) continue;
+            Object stackValue = entry.getClass().getMethod("stack").invoke(entry);
+            Object countValue = entry.getClass().getMethod("count").invoke(entry);
+            if (stackValue instanceof ItemStack stack && countValue instanceof Integer count
+                    && count > 0 && stack.is(required.getItem()) && MaterialRequest.isEmptyShulker(stack)) {
+                // Take It Out matches shulker components exactly on the server, including names.
+                return singleStack(stack);
+            }
+        }
+        return singleStack(required);
     }
 
     public static void resetPending() {
@@ -170,7 +205,7 @@ public final class TakeItOutUtils {
         }
     }
 
-    private static boolean tryRequestFromInventoryShulker(ItemStack required) {
+    private static boolean tryRequestFromInventoryShulker(ItemStack required, boolean emptyShulkerOnly) {
         if (client.player == null) {
             return false;
         }
@@ -181,7 +216,7 @@ public final class TakeItOutUtils {
             if (!isSingleShulker(shulker)) {
                 continue;
             }
-            int innerSlot = findStoredItemSlot(shulker, required.getItem());
+            int innerSlot = findStoredItemSlot(shulker, required.getItem(), emptyShulkerOnly);
             if (innerSlot == -1) {
                 continue;
             }
@@ -311,11 +346,11 @@ public final class TakeItOutUtils {
                 && blockItem.getBlock() instanceof ShulkerBoxBlock;
     }
 
-    private static int findStoredItemSlot(ItemStack shulker, Item item) {
+    private static int findStoredItemSlot(ItemStack shulker, Item item, boolean emptyShulkerOnly) {
         NonNullList<ItemStack> storedItems = fi.dy.masa.malilib.util.InventoryUtils.getStoredItems(shulker, -1);
         for (int slot = 0; slot < storedItems.size(); slot++) {
             ItemStack stack = storedItems.get(slot);
-            if (!stack.isEmpty() && stack.is(item)) {
+            if (!stack.isEmpty() && stack.is(item) && (!emptyShulkerOnly || MaterialRequest.isEmptyShulker(stack))) {
                 return slot;
             }
         }

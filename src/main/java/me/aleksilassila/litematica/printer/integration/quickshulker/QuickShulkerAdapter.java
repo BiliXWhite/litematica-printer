@@ -37,14 +37,21 @@ public final class QuickShulkerAdapter implements InventoryProvider, RuntimeComp
     }
 
     @Override
+    public long pendingTimeoutTicks() {
+        // Open, clear an occupied hotbar slot, extract, plus cancellation/recovery margin.
+        return 160L;
+    }
+
+    @Override
     public MaterialReservation request(MaterialRequest request) {
+        if (this.requests.isCancelling()) return new MaterialReservation(request.token(), MaterialReservation.State.PENDING);
         if (!Configs.Placement.QUICK_SHULKER.getBooleanValue()) {
             return new MaterialReservation(request.token(), MaterialReservation.State.UNAVAILABLE);
         }
         if (!this.acquireResources()) {
             return new MaterialReservation(request.token(), MaterialReservation.State.PENDING);
         }
-        this.requests.requestItems(request.acceptedItems());
+        this.requests.requestItems(request.acceptedItems(), request.emptyShulkerOnly());
         this.attemptedToken = request.token();
         // Resolve the queued lookup immediately. A non-empty requested-item set only means that
         // we still need to search the carried shulker boxes; it does not mean that an inventory
@@ -65,6 +72,9 @@ public final class QuickShulkerAdapter implements InventoryProvider, RuntimeComp
         if (!Configs.Placement.QUICK_SHULKER.getBooleanValue()) {
             this.reset();
             return new MaterialReservation(request.token(), MaterialReservation.State.UNAVAILABLE);
+        }
+        if (this.requests.hasPendingSwitchRequest()) {
+            return new MaterialReservation(request.token(), MaterialReservation.State.PENDING);
         }
         Item availableItem = findAvailableItem(request);
         if (availableItem != null) {
@@ -121,8 +131,8 @@ public final class QuickShulkerAdapter implements InventoryProvider, RuntimeComp
         return this.requests.shouldSuppressContainerScreen(containerId);
     }
 
-    public void onContainerOpen(int containerId) {
-        this.requests.onContainerOpen(containerId);
+    public void onContainerOpen(int containerId, net.minecraft.world.inventory.MenuType<?> type) {
+        this.requests.onContainerOpen(containerId, type);
     }
 
     public void allowExternalRequest() {
@@ -139,6 +149,12 @@ public final class QuickShulkerAdapter implements InventoryProvider, RuntimeComp
 
     @Override
     public void tick() {
+        if (this.requests.isCancelling()) {
+            if (!this.acquireResources()) return;
+            this.requests.tickCancellation();
+            this.synchronizeResources();
+            return;
+        }
         // A manual container must never be affected after the printer has been disabled.
         // Clear the automation session before the screen guard can observe stale state.
         if (!Configs.Placement.QUICK_SHULKER.getBooleanValue()
@@ -146,12 +162,26 @@ public final class QuickShulkerAdapter implements InventoryProvider, RuntimeComp
             this.reset();
             return;
         }
+        // Maintenance must acquire the same lease before it can send a container click.
+        if (!this.acquireResources()) return;
         this.requests.tick();
         this.requests.switchItem();
         this.synchronizeResources();
     }
 
-    public void onInventoryContent() {
+    public void onSlotUpdate(int containerId, int slot, net.minecraft.world.item.ItemStack stack) {
+        this.requests.onSlotUpdate(containerId, slot, stack);
+    }
+
+    public void onInventoryContent(int containerId, java.util.List<net.minecraft.world.item.ItemStack> items,
+                                   net.minecraft.world.item.ItemStack carried) {
+        if (this.requests.isCancelling()) {
+            this.requests.finishCancellation(containerId, items.size());
+            this.synchronizeResources();
+            return;
+        }
+        if (!Configs.Placement.QUICK_SHULKER.getBooleanValue()) return;
+        if (!this.requests.confirmContainer(containerId, items, carried)) return;
         if (this.requests.isOpenHandler()) {
             this.requests.switchInv();
         }
@@ -170,11 +200,16 @@ public final class QuickShulkerAdapter implements InventoryProvider, RuntimeComp
         this.requests.resetRuntime();
         this.attemptedToken = 0L;
         this.externalRequestActive = false;
-        this.releaseResources();
+        if (this.requests.isCancelling()) this.acquireResources();
+        else this.releaseResources();
     }
 
     @Override
     public void onEpochChanged(RuntimeEvent.EpochChanged event) {
+        // The action broker has discarded its leases at this epoch boundary.
+        this.resourcesAcquired = false;
+        if ("client_scope_changed".equals(event.reason())) this.requests.discardForClientScopeChange();
+        me.aleksilassila.litematica.printer.utils.mods.ShulkerUtils.onRuntimeReset(event.reason());
         this.reset();
     }
 
@@ -208,7 +243,7 @@ public final class QuickShulkerAdapter implements InventoryProvider, RuntimeComp
 
     private static Item findAvailableItem(MaterialRequest request) {
         for (Item item : request.acceptedItems()) {
-            if (InventoryUtils.playerHasItemInInventory(Minecraft.getInstance().player, item)) {
+            if (InventoryUtils.playerHasItemInInventory(Minecraft.getInstance().player, item, request::acceptsStack)) {
                 return item;
             }
         }

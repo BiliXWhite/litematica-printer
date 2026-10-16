@@ -23,8 +23,7 @@ public class NetworkUtils {
 
     public static void sendPacket(PredictiveAction packetCreator) {
         if (client.level instanceof SequenceExtension sequenceExtension) {
-            int currentSequence = sequenceExtension.litematica_printer3$getSequence();
-            Packet<ServerGamePacketListener> packet = packetCreator.predict(currentSequence);
+            Packet<ServerGamePacketListener> packet = sequenceExtension.litematica_printer3$predict(packetCreator);
             NetworkUtils.sendPacket(packet);
         }
     }
@@ -74,8 +73,8 @@ public class NetworkUtils {
     }
 
     public interface SequenceExtension {
-        default int litematica_printer3$getSequence() {
-            return 0;
+        default Packet<ServerGamePacketListener> litematica_printer3$predict(PredictiveAction action) {
+            return action.predict(0);
         }
     }
 }

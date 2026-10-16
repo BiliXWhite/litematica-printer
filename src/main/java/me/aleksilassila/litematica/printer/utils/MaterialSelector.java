@@ -89,6 +89,11 @@ public final class MaterialSelector {
             return false;
         }
 
+        if (!PlayerUtils.getAbilities(player).instabuild
+                && MaterialRequest.isEmptyShulker(creativeFallback)
+                && predicate.test(creativeFallback)) {
+            RuntimeAccess.get().materialRequests().requestEmptyShulker(creativeFallback.getItem());
+        }
         return PlayerUtils.getAbilities(player).instabuild
                 && creativeFallback != null
                 && predicate.test(creativeFallback)

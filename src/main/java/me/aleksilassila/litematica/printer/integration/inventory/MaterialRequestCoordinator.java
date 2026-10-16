@@ -46,12 +46,22 @@ public final class MaterialRequestCoordinator implements RuntimeComponent {
             Item preferredItem,
             MaterialRequest.Source source
     ) {
+        return request(acceptedItems, preferredItem, source, false);
+    }
+
+    public MaterialReservation requestEmptyShulker(Item item) {
+        return request(List.of(item), item, MaterialRequest.Source.PRINT, true);
+    }
+
+    private MaterialReservation request(List<Item> acceptedItems, Item preferredItem,
+                                        MaterialRequest.Source source, boolean emptyShulkerOnly) {
         MaterialRequest requested = new MaterialRequest(
                 this.nextToken,
                 acceptedItems,
                 preferredItem,
                 1,
-                source
+                source,
+                emptyShulkerOnly
         );
         if (this.active != null && !sameRequirement(this.active.request, requested)) {
             MaterialReservation current = this.advance();
@@ -65,7 +75,8 @@ public final class MaterialRequestCoordinator implements RuntimeComponent {
                     acceptedItems,
                     preferredItem,
                     1,
-                    source
+                    source,
+                    emptyShulkerOnly
             );
             this.active = new ActiveRequest(request, 0, false, this.tick);
         }
@@ -151,6 +162,7 @@ public final class MaterialRequestCoordinator implements RuntimeComponent {
 
     private static boolean sameRequirement(MaterialRequest left, MaterialRequest right) {
         return left.source() == right.source()
+                && left.emptyShulkerOnly() == right.emptyShulkerOnly()
                 && left.minimumCount() == right.minimumCount()
                 && left.preferredItem() == right.preferredItem()
                 && left.acceptedItems().equals(right.acceptedItems());

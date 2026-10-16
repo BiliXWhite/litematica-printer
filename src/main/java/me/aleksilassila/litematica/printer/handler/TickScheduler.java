@@ -54,7 +54,7 @@ final class TickScheduler implements RuntimeComponent {
         }
         boolean lagPaused = this.pauseForLagCheck();
         boolean inventoryBusy = !lagPaused && this.pauseForInventoryState("shared_precheck");
-        if (!lagPaused) {
+        if (!lagPaused && !inventoryBusy) {
             this.advancePendingLookQueue(mc);
         }
         TickContext context = TickContext.capture();
@@ -131,7 +131,9 @@ final class TickScheduler implements RuntimeComponent {
         boolean inventoryLease = this.runtime.actionBroker().isResourceHeld(ResourceLease.INVENTORY);
         boolean containerLease = this.runtime.actionBroker().isResourceHeld(ResourceLease.CONTAINER);
         boolean inventorySwitchPending = this.runtime.inventorySwitchGuard().isWaiting();
-        if (shouldPauseActions(inventoryLease || inventorySwitchPending, containerLease)) {
+        boolean carrying = Minecraft.getInstance().player != null
+                && !Minecraft.getInstance().player.containerMenu.getCarried().isEmpty();
+        if (shouldPauseActions(inventoryLease || inventorySwitchPending || carrying, containerLease)) {
             this.pause(reasonPrefix + " inventoryLease=" + inventoryLease
                     + " containerLease=" + containerLease
                     + " inventorySwitchPending=" + inventorySwitchPending);

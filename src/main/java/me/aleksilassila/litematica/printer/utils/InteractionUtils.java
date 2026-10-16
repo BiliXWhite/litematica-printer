@@ -28,6 +28,7 @@ import java.util.*;
 import me.aleksilassila.litematica.printer.core.runtime.RuntimeComponent;
 import me.aleksilassila.litematica.printer.core.runtime.RuntimeEvent;
 import me.aleksilassila.litematica.printer.runtime.RuntimeAccess;
+import me.aleksilassila.litematica.printer.core.action.ResourceLease;
 
 @SuppressWarnings({"DataFlowIssue", "BooleanMethodIsAlwaysInverted"})
 @Environment(EnvType.CLIENT)
@@ -101,6 +102,12 @@ public final class InteractionUtils implements RuntimeComponent {
 
     @Override public void onEpochChanged(RuntimeEvent.EpochChanged event) { this.resetRuntime(); }
 
+    static boolean canAdvanceBreakQueue(java.util.function.Predicate<ResourceLease> held,
+                                        boolean switching, boolean carrying) {
+        return !switching && !carrying && !held.test(ResourceLease.MAIN_HAND)
+                && !held.test(ResourceLease.INVENTORY) && !held.test(ResourceLease.CONTAINER);
+    }
+
     public void onTick() {
         LocalPlayer player = client.player;
         ClientLevel level = client.level;
@@ -108,6 +115,11 @@ public final class InteractionUtils implements RuntimeComponent {
             return;
         }
         if (this.breakState.isLocked()) {
+            return;
+        }
+        if (!canAdvanceBreakQueue(RuntimeAccess.get().actionBroker()::isResourceHeld,
+                RuntimeAccess.get().inventorySwitchGuard().isWaiting(),
+                !player.containerMenu.getCarried().isEmpty())) {
             return;
         }
         if (this.breakState.activePos() == null && !this.breakState.hasQueued()) {

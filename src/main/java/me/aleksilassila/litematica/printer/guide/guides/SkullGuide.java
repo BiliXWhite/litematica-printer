@@ -9,7 +9,6 @@ import me.aleksilassila.litematica.printer.utils.minecraft.DirectionUtils;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.SkullBlock;
 import net.minecraft.world.level.block.WallSkullBlock;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 /**
  * 头颅
@@ -22,7 +21,7 @@ public class SkullGuide extends Guide {
 
     @Override
     protected Result onBuildActionMissingBlock(BlockMatchResult state) {
-        Direction facing = getProperty(requiredState, BlockStateProperties.FACING).orElse(null);
+        Direction facing = getProperty(requiredState, WallSkullBlock.FACING).orElse(null);
 
         if (requiredBlock instanceof SkullBlock) {
             int rotation = getProperty(requiredState, SkullBlock.ROTATION).orElseThrow();

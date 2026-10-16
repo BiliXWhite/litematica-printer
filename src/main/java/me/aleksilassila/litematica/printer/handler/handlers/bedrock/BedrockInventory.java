@@ -203,11 +203,18 @@ public final class BedrockInventory {
     private static boolean canInstantMinePiston(LocalPlayer player) {
         Inventory inventory = player.getInventory();
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
-            if (getBlockBreakingSpeed(player, Blocks.PISTON.defaultBlockState(), inventory.getItem(slot)) > 20.0F) {
+            if (canBreakInCriticalBundle(player, Blocks.PISTON.defaultBlockState(), inventory.getItem(slot))) {
                 return true;
             }
         }
         return false;
+    }
+
+    static boolean canBreakInCriticalBundle(LocalPlayer player, BlockState state, ItemStack stack) {
+        // START followed by STOP in the same server tick must reach the server's 0.7 STOP threshold.
+        // Use actual progress so water, being airborne, effects and block hardness all count.
+        return isAllowedBedrockTool(stack, state)
+                && PlayerUtils.getDestroyProgress(player, state, stack) >= 0.7F;
     }
 
     private static float getBlockBreakingSpeed(LocalPlayer player, BlockState blockState, ItemStack itemStack) {

@@ -109,23 +109,32 @@ public final class QuickShulkerBridge {
         return RuntimeAccess.get().quickShulkerAdapter().shouldSuppressContainerScreen(containerId);
     }
 
-    public static void onContainerOpen(int containerId) {
+    public static void onContainerOpen(int containerId, net.minecraft.world.inventory.MenuType<?> type) {
         if (Configs.Placement.QUICK_SHULKER.getBooleanValue()) {
-            RuntimeAccess.get().quickShulkerAdapter().onContainerOpen(containerId);
+            RuntimeAccess.get().quickShulkerAdapter().onContainerOpen(containerId, type);
         }
     }
 
     public static void onTick() {
-        if (!Configs.Placement.QUICK_SHULKER.getBooleanValue()) {
-            return;
-        }
+        // An already-sent click can be acknowledged after either feature switch is turned off.
+        ShulkerUtils.tickRecovery();
         RuntimeAccess.get().quickShulkerAdapter().tick();
     }
 
-    public static void onInventoryContent() {
-        if (Configs.Placement.QUICK_SHULKER.getBooleanValue()) {
-            RuntimeAccess.get().quickShulkerAdapter().onInventoryContent();
+    public static void onSlotUpdate(int containerId, int slot, ItemStack stack) {
+        ShulkerUtils.onSlotUpdate(containerId, slot, stack);
+        if (me.aleksilassila.litematica.printer.integration.quickshulker.QuickShulkerDiagnostics.enabled()) {
+            me.aleksilassila.litematica.printer.integration.quickshulker.QuickShulkerDiagnostics.log(
+                    "server-slot menu=" + containerId + " slot=" + slot + " stack="
+                    + me.aleksilassila.litematica.printer.integration.quickshulker.QuickShulkerDiagnostics.stack(stack));
         }
+        if (Configs.Placement.QUICK_SHULKER.getBooleanValue()) {
+            RuntimeAccess.get().quickShulkerAdapter().onSlotUpdate(containerId, slot, stack);
+        }
+    }
+
+    public static void onInventoryContent(int containerId, java.util.List<ItemStack> items, ItemStack carried) {
+        RuntimeAccess.get().quickShulkerAdapter().onInventoryContent(containerId, items, carried);
     }
 
     public static void onMainHandUse(LocalPlayer player) {

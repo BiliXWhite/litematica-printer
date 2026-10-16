@@ -1,9 +1,12 @@
 package me.aleksilassila.litematica.printer.mixin.printer.mc;
 
 import me.aleksilassila.litematica.printer.runtime.ClientBlockUpdateRouter;
+import me.aleksilassila.litematica.printer.utils.minecraft.PredictiveAction;
 import me.aleksilassila.litematica.printer.utils.minecraft.NetworkUtils;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ServerGamePacketListener;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Final;
@@ -22,9 +25,9 @@ public abstract class MixinClientLevel implements NetworkUtils.SequenceExtension
     private net.minecraft.client.multiplayer.prediction.BlockStatePredictionHandler blockStatePredictionHandler;
 
     @Override
-    public int litematica_printer3$getSequence() {
+    public Packet<ServerGamePacketListener> litematica_printer3$predict(PredictiveAction action) {
         try (net.minecraft.client.multiplayer.prediction.BlockStatePredictionHandler pendingUpdateManager = this.blockStatePredictionHandler.startPredicting()) {
-            return pendingUpdateManager.currentSequence();
+            return action.predict(pendingUpdateManager.currentSequence());
         }
     }
 

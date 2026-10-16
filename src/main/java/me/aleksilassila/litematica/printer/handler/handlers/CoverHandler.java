@@ -21,6 +21,7 @@ import me.aleksilassila.litematica.printer.utils.InventoryUtils;
 import me.aleksilassila.litematica.printer.utils.RegistryFilterResolver;
 import me.aleksilassila.litematica.printer.utils.minecraft.BlockUtils;
 import me.aleksilassila.litematica.printer.utils.minecraft.MessageUtils;
+import me.aleksilassila.litematica.printer.utils.minecraft.PlayerUtils;
 import me.aleksilassila.litematica.printer.utils.minecraft.SpawnCheckUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -237,6 +238,15 @@ public final class CoverHandler extends FeatureModuleBase {
         BlockPos support = pos.below();
         if (!PrinterUtils.canBeClicked(this.level, support) || BlockUtils.isReplaceable(this.level.getBlockState(support))) {
             this.hudStats.recordDeferred(HudStatsManager.Mode.COVER, HudStatus.NO_VALID_FACE);
+            this.retryTargets.add(pos.immutable());
+            this.setIterationConsumedEffectiveExecution(false);
+            return;
+        }
+
+        double interactionRange = PlayerUtils.getPlayerBlockInteractionRange();
+        Vec3 hitPos = Vec3.atCenterOf(support).add(0.0D, 0.5D, 0.0D);
+        if (!this.canReachIterationPosition(pos)
+                || this.player.getEyePosition().distanceToSqr(hitPos) > interactionRange * interactionRange) {
             this.retryTargets.add(pos.immutable());
             this.setIterationConsumedEffectiveExecution(false);
             return;

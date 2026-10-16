@@ -7,9 +7,16 @@ import me.aleksilassila.litematica.printer.utils.minecraft.NetworkUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ClientboundContainerSetContentPacket;
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
+import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket;
+import me.aleksilassila.litematica.printer.integration.quickshulker.QuickShulkerDiagnostics;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
 import net.minecraft.world.inventory.MenuType;
+//#if MC >= 12103
+import net.minecraft.network.protocol.game.ClientboundSetCursorItemPacket;
+//#endif
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -19,9 +26,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ClientPacketListener.class)
 public abstract class MixinClientPacketListener {
 
-    @Inject(at = @At("HEAD"), method = "handleOpenScreen")
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/MenuScreens;create(Lnet/minecraft/world/inventory/MenuType;Lnet/minecraft/client/Minecraft;ILnet/minecraft/network/chat/Component;)V"), method = "handleOpenScreen")
     private void printer$trackQuickShulkerContainerOpen(ClientboundOpenScreenPacket packet, CallbackInfo ci) {
-        QuickShulkerBridge.onContainerOpen(packet.getContainerId());
+        QuickShulkerBridge.onContainerOpen(packet.getContainerId(), packet.getType());
     }
 
     @Inject(
@@ -56,12 +63,42 @@ public abstract class MixinClientPacketListener {
         //#else
         //$$ int containerId = packet.getContainerId();
         //#endif
+        //#if MC >= 12105
+        var items = packet.items();
+        var carried = packet.carriedItem();
+        //#else
+        //$$ var items = packet.getItems();
+        //$$ var carried = packet.getCarriedItem();
+        //#endif
+        for (int slot = 0; slot < items.size(); slot++) {
+            QuickShulkerBridge.onSlotUpdate(containerId, slot, items.get(slot));
+        }
+        if (client.player != null && containerId == client.player.containerMenu.containerId) {
+            QuickShulkerBridge.onSlotUpdate(-1, -1, carried);
+        }
         ChestTrackerBridge.onContainerContent(containerId);
-        if (client.player == null
-                || client.player.containerMenu == client.player.inventoryMenu
-                || containerId != client.player.containerMenu.containerId) {
+        if (client.player == null || containerId != client.player.containerMenu.containerId) {
             return;
         }
-        QuickShulkerBridge.onInventoryContent();
+        QuickShulkerBridge.onInventoryContent(containerId, items, carried);
+    }
+    @Inject(at = @At("TAIL"), method = "handleContainerSetSlot")
+    private void printer$confirmQuickShulkerSlot(ClientboundContainerSetSlotPacket packet, CallbackInfo ci) {
+        QuickShulkerBridge.onSlotUpdate(packet.getContainerId(), packet.getSlot(), packet.getItem());
+    }
+    //#if MC >= 12103
+    @Inject(at = @At("TAIL"), method = "handleSetCursorItem")
+    private void printer$trackCursor(ClientboundSetCursorItemPacket packet, CallbackInfo ci) {
+        QuickShulkerBridge.onSlotUpdate(-1, -1, packet.contents());
+    }
+    //#endif
+    @Inject(at = @At("TAIL"), method = "handleBlockUpdate")
+    private void printer$logBlockReply(ClientboundBlockUpdatePacket packet, CallbackInfo ci) {
+        QuickShulkerDiagnostics.blockReply(packet.getPos(), packet.getBlockState());
+    }
+
+    @Inject(at = @At("TAIL"), method = "handleChunkBlocksUpdate")
+    private void printer$logSectionReply(ClientboundSectionBlocksUpdatePacket packet, CallbackInfo ci) {
+        if (QuickShulkerDiagnostics.enabled()) packet.runUpdates(QuickShulkerDiagnostics::blockReply);
     }
 }

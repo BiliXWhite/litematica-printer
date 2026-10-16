@@ -221,6 +221,8 @@ public class ActionManager {
                 if (reserveAllowance <= 0) {
                     break;
                 }
+                me.aleksilassila.litematica.printer.integration.quickshulker.QuickShulkerDiagnostics.placement(
+                        player, click.target, click.side, click.expectedItems);
                 boolean interactionAccepted = gameModeExtension.litematica_printer$useItemOn(
                         true,
                         InteractionHand.MAIN_HAND,

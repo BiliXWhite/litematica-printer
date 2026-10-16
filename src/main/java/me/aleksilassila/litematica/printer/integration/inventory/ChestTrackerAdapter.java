@@ -105,7 +105,7 @@ public final class ChestTrackerAdapter implements InventoryProvider, RuntimeComp
         LocalPlayer player = this.client.player;
         if (player == null || this.client.level == null) return unavailable(request);
         for (Item item : request.acceptedItems()) {
-            if (InventoryUtils.playerHasItemInInventory(player, item)) {
+            if (InventoryUtils.playerHasItemInInventory(player, item, request::acceptsStack)) {
                 return MaterialReservation.available(request, item);
             }
         }
@@ -145,7 +145,7 @@ public final class ChestTrackerAdapter implements InventoryProvider, RuntimeComp
         }
         if (waitForRestoreContent(this.phase)) return pending(request);
         for (Item item : request.acceptedItems()) {
-            if (InventoryUtils.playerHasItemInInventory(this.client.player, item)) {
+            if (InventoryUtils.playerHasItemInInventory(this.client.player, item, request::acceptsStack)) {
                 if (this.nestedReturn.hasSource() && !this.nestedReturn.isRestoring()) {
                     beginNestedRestore();
                     if (this.activeRequest != null) return pending(request);
@@ -515,6 +515,7 @@ public final class ChestTrackerAdapter implements InventoryProvider, RuntimeComp
 
     private boolean matches(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return false;
+        if (this.activeRequest != null && !this.activeRequest.acceptsStack(stack)) return false;
         return this.exactMatch
                 ? ItemStack.isSameItemSameComponents(stack, this.requestedStack)
                 : this.requestedItems.contains(stack.getItem());
@@ -524,8 +525,7 @@ public final class ChestTrackerAdapter implements InventoryProvider, RuntimeComp
         if (this.client.player == null || this.requestedItem == null) return false;
         for (int slot = 0; slot < Math.min(36, this.client.player.getInventory().getContainerSize()); slot++) {
             ItemStack stack = this.client.player.getInventory().getItem(slot);
-            if (!stack.isEmpty() && this.requestedItems.contains(stack.getItem())
-                    && (!this.exactMatch || ItemStack.isSameItemSameComponents(stack, this.requestedStack))) {
+            if (matches(stack)) {
                 return true;
             }
         }

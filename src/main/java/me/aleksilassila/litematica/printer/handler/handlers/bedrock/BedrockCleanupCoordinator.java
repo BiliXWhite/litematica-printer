@@ -200,7 +200,8 @@ final class BedrockCleanupCoordinator {
                 this.cleanupGraceUntil.remove(pos);
                 continue;
             }
-            if (!state.isAir() && BedrockTargetBlocks.isCleanupResidue(state)) {
+            if (BedrockEnvironment.canInteract(pos)
+                    && !state.isAir() && BedrockTargetBlocks.isCleanupResidue(state)) {
                 pressure += pressureWeight(state);
             }
         }

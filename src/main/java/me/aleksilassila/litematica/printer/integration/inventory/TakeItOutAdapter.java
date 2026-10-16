@@ -39,7 +39,7 @@ public final class TakeItOutAdapter implements InventoryProvider {
             return MaterialReservation.available(request, availableItem);
         }
         for (Item item : request.acceptedItems()) {
-            if (TakeItOutUtils.tryRequestItem(item)) {
+            if (TakeItOutUtils.tryRequestItem(item, request.emptyShulkerOnly())) {
                 this.activeToken = request.token();
                 this.requestedItem = item;
                 return pending(request);
@@ -67,7 +67,10 @@ public final class TakeItOutAdapter implements InventoryProvider {
         }
         if (this.activeToken == request.token()
                 && this.requestedItem != null
-                && TakeItOutUtils.isAwaitingItem(this.requestedItem)) {
+                // Take It Out clears awaitingStack for any same-type local stack, including a
+                // filled box. Only actual empty-box availability or the coordinator's bounded
+                // timeout can finish this stricter request after it has been accepted.
+                && (request.emptyShulkerOnly() || TakeItOutUtils.isAwaitingItem(this.requestedItem))) {
             return pending(request);
         }
         this.releaseResources();
@@ -116,7 +119,7 @@ public final class TakeItOutAdapter implements InventoryProvider {
 
     private static Item findAvailableItem(MaterialRequest request) {
         for (Item item : request.acceptedItems()) {
-            if (InventoryUtils.playerHasItemInInventory(Minecraft.getInstance().player, item)) {
+            if (InventoryUtils.playerHasItemInInventory(Minecraft.getInstance().player, item, request::acceptsStack)) {
                 return item;
             }
         }

@@ -27,7 +27,7 @@ public final class BedrockBreaker {
     }
 
     public static boolean breakBlock(BlockPos pos, Direction direction, boolean predictRemoval) {
-        if (CLIENT.level == null || CLIENT.player == null) {
+        if (CLIENT.level == null || CLIENT.player == null || !BedrockEnvironment.canInteract(pos)) {
             return false;
         }
         var state = CLIENT.level.getBlockState(pos);
@@ -76,7 +76,8 @@ public final class BedrockBreaker {
             return false;
         }
         return RuntimeAccess.get().toolSwitchService().prepareForBreak(pistonPos, pistonState, false)
-                == ToolPreparationResult.READY;
+                == ToolPreparationResult.READY
+                && BedrockInventory.canBreakInCriticalBundle(CLIENT.player, pistonState, CLIENT.player.getMainHandItem());
     }
 
     static void sendCriticalBreakPackets(BlockPos pos, Direction direction) {

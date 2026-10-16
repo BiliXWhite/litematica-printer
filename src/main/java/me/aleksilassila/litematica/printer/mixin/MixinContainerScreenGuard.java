@@ -34,11 +34,6 @@ public abstract class MixinContainerScreenGuard {
             ci.cancel();
             return;
         }
-        if (QuickShulkerInvocationPolicy.shouldSuppressScreen(ModLoadUtils.closeScreen, containerScreen)) {
-            ModLoadUtils.closeScreen = QuickShulkerInvocationPolicy.consumeScreenToken(ModLoadUtils.closeScreen);
-            ci.cancel();
-            return;
-        }
         if (containerScreen && ChestTrackerBridge.shouldSuppressContainerScreen()) {
             ci.cancel();
         }

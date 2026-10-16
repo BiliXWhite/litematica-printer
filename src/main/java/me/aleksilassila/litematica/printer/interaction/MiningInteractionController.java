@@ -102,10 +102,7 @@ public final class MiningInteractionController {
                 }
                 continue;
             }
-            int elapsed = (int) (this.clientTick() - entry.startTick);
-            if (state.getDestroyProgress(player, level, pos) * elapsed >= 1.0F) {
-                this.port.destroyBlock(pos);
-                this.feedback.removePending(pos);
+            if (!this.feedback.hasPending(pos)) {
                 iterator.remove();
                 this.clearDestroyProgress(player, pos);
             }
@@ -223,7 +220,6 @@ public final class MiningInteractionController {
             MineDebugLog.write("mine break completed pos=" + MineDebugLog.pos(pos) + " path=air_or_liquid");
             return BlockBreakResult.COMPLETED;
         }
-        this.completeDelayedIfReady(player, level);
         if (!level.getWorldBorder().isWithinBounds(pos)) {
             MineDebugLog.write("mine break failed pos=" + MineDebugLog.pos(pos) + " reason=out_of_world_border");
             return BlockBreakResult.FAILED;
@@ -295,13 +291,12 @@ public final class MiningInteractionController {
             return BlockBreakResult.COMPLETED;
         }
         if (!localPrediction) {
-            // Server-authoritative callers (e.g. bedrock cleanup): send same-tick START+STOP and let
-            // the server's failedToMine slot auto-break. The client never removes locally and waits
-            // for the server S2C update. Re-sends on the same pos do NOT reset the failedToMine
-            // timer (server sets it once), so the retry loop converges. This must stay out of the
-            // hold-OPEN path: cleanup processes several positions per tick and would otherwise abort
-            // its own hold.
+            // Server-authoritative callers (e.g. bedrock cleanup) need START before STOP so the
+            // server tracks this position and can finish a slower break. The client waits for the
+            // server update instead of removing the block locally. Cleanup handles several positions
+            // per tick, so it cannot hold one mining session open across ticks.
             long startTick = this.clientTick();
+            this.send(Action.START_DESTROY_BLOCK, pos, direction);
             NetworkUtils.sendPacket(sequence -> {
                 this.pendingDelayedDestroys.put(pos.immutable(),
                         new DelayedDestroyEntry(pos.immutable(), false, startTick));
@@ -339,23 +334,6 @@ public final class MiningInteractionController {
         this.pendingDelayedDestroys.put(pos.immutable(),
                 new DelayedDestroyEntry(pos.immutable(), localPrediction, startTick));
         this.feedback.addPending(pos, startTick);
-    }
-
-    private void completeDelayedIfReady(LocalPlayer player, ClientLevel level) {
-        Iterator<Map.Entry<BlockPos, DelayedDestroyEntry>> iterator = this.pendingDelayedDestroys.entrySet().iterator();
-        while (iterator.hasNext()) {
-            DelayedDestroyEntry entry = iterator.next().getValue();
-            if (!entry.localPrediction) continue;
-            BlockState state = level.getBlockState(entry.pos);
-            int elapsed = (int) (this.clientTick() - entry.startTick);
-            if (state.getDestroyProgress(player, level, entry.pos) * elapsed < 1.0F) continue;
-            this.port.destroyBlock(entry.pos);
-            MineDebugLog.write("mine break delayed_completed pos=" + MineDebugLog.pos(entry.pos)
-                    + " elapsedTicks=" + elapsed);
-            this.feedback.removePending(entry.pos);
-            iterator.remove();
-            this.clearDestroyProgress(player, entry.pos);
-        }
     }
 
     private int pendingDestroyTimeout(

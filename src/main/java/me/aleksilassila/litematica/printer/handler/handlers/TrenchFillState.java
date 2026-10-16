@@ -52,10 +52,6 @@ final class TrenchFillState {
         return this.waterloggedTargets.contains(pos);
     }
 
-    BlockPos firstWaterloggedTarget() {
-        return this.waterloggedTargets.iterator().next();
-    }
-
     boolean hasWaterloggedTargets() {
         return !this.waterloggedTargets.isEmpty();
     }
@@ -64,12 +60,28 @@ final class TrenchFillState {
         return !this.inFlight.containsKey(pos) && this.retryAt.getOrDefault(pos, Long.MIN_VALUE) <= now;
     }
 
-    List<BlockPos> readyFillTargets(long now, Predicate<BlockPos> isFluid) {
+    List<BlockPos> readyWaterloggedTargets(Predicate<BlockPos> reachable) {
         List<BlockPos> ready = new ArrayList<>();
-        for (BlockPos pos : this.fillTargets) {
-            if (this.canAttempt(pos, now) && isFluid.test(pos)) ready.add(pos);
+        for (BlockPos pos : this.waterloggedTargets) {
+            if (reachable.test(pos)) ready.add(pos);
         }
         return ready;
+    }
+
+    List<BlockPos> readyFillTargets(long now, Predicate<BlockPos> isFluid,
+                                    Predicate<BlockPos> reachable) {
+        List<BlockPos> ready = new ArrayList<>();
+        for (BlockPos pos : this.fillTargets) {
+            if (this.canAttempt(pos, now) && isFluid.test(pos) && reachable.test(pos)) ready.add(pos);
+        }
+        return ready;
+    }
+
+    boolean canSend(long now, int interval, int limit, boolean globalAvailable) {
+        if (limit > 0 && this.sentThisTick >= limit) return false;
+        if (this.sentThisTick > 0) return true;
+        return (interval <= 0 || this.lastSentTick == Long.MIN_VALUE
+                || now - this.lastSentTick >= interval) && globalAvailable;
     }
 
     void updateTargets(List<PrinterBox> sourceBoxes, Set<BlockPos> discovered,

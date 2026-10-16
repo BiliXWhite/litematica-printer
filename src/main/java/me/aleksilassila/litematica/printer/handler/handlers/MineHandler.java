@@ -4,6 +4,8 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.ExcavateListMode;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
 import me.aleksilassila.litematica.printer.handler.FeatureModuleBase;
+import me.aleksilassila.litematica.printer.handler.HudStatsManager;
+import me.aleksilassila.litematica.printer.handler.HudStatus;
 import me.aleksilassila.litematica.printer.handler.TickContext;
 import me.aleksilassila.litematica.printer.core.runtime.RuntimeEvent;
 import me.aleksilassila.litematica.printer.handler.scan.ScanIntent;
@@ -15,15 +17,18 @@ import me.aleksilassila.litematica.printer.printer.action.ActionPort;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import me.aleksilassila.litematica.printer.utils.InventoryUtils;
+import me.aleksilassila.litematica.printer.utils.RegistryFilterResolver;
 import me.aleksilassila.litematica.printer.integration.tweakeroo.TweakerooAdapter;
 import me.aleksilassila.litematica.printer.utils.minecraft.BlockUtils;
+import me.aleksilassila.litematica.printer.utils.minecraft.PlayerUtils;
 import me.aleksilassila.litematica.printer.runtime.PrinterRuntime;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -46,6 +51,8 @@ public class MineHandler extends FeatureModuleBase {
     private final MineCandidateQueue candidates = new MineCandidateQueue();
     private final Map<BlockPos, BlockState> candidateStates = new HashMap<>();
     private final TrenchFillState trenchFill = new TrenchFillState();
+    private List<String> trenchFillFilters;
+    private Item[] trenchFillItems = new Item[0];
     @Nullable
     private BlockPos activeMinePos;
 
@@ -108,10 +115,12 @@ public class MineHandler extends FeatureModuleBase {
     protected Iterable<BlockPos> getIterationPositions(PrinterBox playerInteractionBox) {
         if (this.hasTrenchFillWork()) {
             if (this.trenchFill.hasWaterloggedTargets()) {
-                return List.of(this.trenchFill.firstWaterloggedTarget());
+                List<BlockPos> waterlogged = this.trenchFill.readyWaterloggedTargets(this::canReachTrenchTarget);
+                if (!waterlogged.isEmpty()) return waterlogged;
             }
             List<BlockPos> fillPositions = this.trenchFill.readyFillTargets(
-                    this.level.getGameTime(), pos -> this.isFluid(this.level.getBlockState(pos)));
+                    this.level.getGameTime(), pos -> this.isFluid(this.level.getBlockState(pos)),
+                    this::canReachTrenchTarget);
             if (!fillPositions.isEmpty()) {
                 Iterable<BlockPos> minePositions = this.candidates.isEmpty()
                         ? this.getMineScanPositions(playerInteractionBox)
@@ -174,6 +183,8 @@ public class MineHandler extends FeatureModuleBase {
         this.candidateStates.clear();
         this.activeMinePos = null;
         this.trenchFill.clear();
+        this.trenchFillFilters = null;
+        this.trenchFillItems = new Item[0];
         this.analyzer.reset();
         this.toolSession.reset();
     }
@@ -413,32 +424,47 @@ public class MineHandler extends FeatureModuleBase {
                 pos -> this.isFluid(this.level.getBlockState(pos)));
     }
 
+    private void refreshTrenchFillMaterials() {
+        List<String> filters = Configs.Mine.MINE_TRENCH_FILL_BLOCK_LIST.getStrings();
+        if (!filters.equals(this.trenchFillFilters)) {
+            this.trenchFillFilters = new ArrayList<>(filters);
+            this.trenchFillItems = RegistryFilterResolver.resolveItems(filters).stream()
+                    .filter(item -> item instanceof BlockItem)
+                    .distinct()
+                    .toArray(Item[]::new);
+        }
+    }
+
     private void executeTrenchFill(BlockPos pos, AtomicReference<Boolean> skipIteration) {
         if (this.level == null || this.player == null || !this.isFluid(this.level.getBlockState(pos))) {
             this.trenchFill.removeFillTarget(pos);
             return;
         }
-        int placementLimit = Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue();
-        if (placementLimit > 0 && this.trenchFill.sentThisTick() >= placementLimit) {
-            skipIteration.set(true);
-            return;
-        }
+        if (!this.canReachTrenchTarget(pos)) return;
         long now = this.level.getGameTime();
-        int placementInterval = this.placementRateController.effectiveIntervalTicks();
-        if (placementInterval > 0 && this.trenchFill.lastSentTick() != Long.MIN_VALUE
-                && now - this.trenchFill.lastSentTick() < placementInterval) {
+        if (!this.trenchFill.canSend(now,
+                this.placementRateController.effectiveIntervalTicks(),
+                Configs.Placement.PLACE_BLOCKS_PER_TICK.getIntegerValue(),
+                this.placementRateController.canSend(now))) {
             skipIteration.set(true);
             return;
         }
-        if (!this.placementRateController.canSend(now)) {
-            skipIteration.set(true);
-            return;
-        }
-        if (!InventoryUtils.switchToItems(this.player, new Item[]{Items.SAND})) {
+        this.refreshTrenchFillMaterials();
+        if (this.trenchFillItems.length == 0) {
+            this.hudStats.recordStatus(HudStatsManager.Mode.MINE,
+                    this.trenchFillFilters.isEmpty() ? HudStatus.FILL_LIST_EMPTY : HudStatus.LIST_NO_MATCH);
             this.deferTrenchFill(pos, now + 20L);
             skipIteration.set(true);
             return;
         }
+        if (!InventoryUtils.switchToItems(this.player, this.trenchFillItems)) {
+            this.hudStats.recordStatus(HudStatsManager.Mode.MINE, HudStatus.MISSING_FILL_MATERIAL);
+            this.missingMaterials.recordMissing(this.trenchFillItems, null, null, now);
+            this.deferTrenchFill(pos, now + 20L);
+            skipIteration.set(true);
+            return;
+        }
+        this.missingMaterials.resolve(this.trenchFillItems, null);
         Direction supportDirection = this.findTrenchSupport(pos);
         if (supportDirection == null) {
             this.deferTrenchFill(pos, now + 10L);
@@ -451,7 +477,7 @@ public class MineHandler extends FeatureModuleBase {
                 net.minecraft.world.phys.Vec3.ZERO,
                 false,
                 1,
-                new Item[]{Items.SAND},
+                this.trenchFillItems,
                 ActionPort.ActionSource.FILL)) {
             this.deferTrenchFill(pos, now + 2L);
             skipIteration.set(true);
@@ -480,6 +506,10 @@ public class MineHandler extends FeatureModuleBase {
     private void executeTrenchWaterloggedBreak(BlockPos pos, AtomicReference<Boolean> skipIteration) {
         if (this.level == null || !this.isWaterlogged(this.level.getBlockState(pos))) {
             this.trenchFill.removeWaterloggedTarget(pos);
+            return;
+        }
+        if (!this.canReachTrenchTarget(pos)) {
+            skipIteration.set(true);
             return;
         }
         if (this.activeMinePos != null && !this.activeMinePos.equals(pos)) {
@@ -531,11 +561,27 @@ public class MineHandler extends FeatureModuleBase {
         for (Direction direction : order) {
             BlockPos support = pos.relative(direction);
             BlockState state = this.level.getBlockState(support);
-            if (!BlockUtils.isReplaceable(state) && PrinterUtils.canBeClicked(this.level, support)) {
+            if (!BlockUtils.isReplaceable(state) && PrinterUtils.canBeClicked(this.level, support)
+                    && this.canReachTrenchSupport(support, direction.getOpposite())) {
                 return direction;
             }
         }
         return null;
+    }
+
+    private boolean canReachTrenchTarget(BlockPos pos) {
+        return this.player != null && this.canReachIterationPosition(pos)
+                && PlayerUtils.isWithinBlockInteractionRange(this.player, pos, 0.0D);
+    }
+
+    private boolean canReachTrenchSupport(BlockPos support, Direction clickedFace) {
+        if (this.player == null) return false;
+        Vec3 faceCenter = Vec3.atCenterOf(support).add(
+                clickedFace.getStepX() * 0.5D,
+                clickedFace.getStepY() * 0.5D,
+                clickedFace.getStepZ() * 0.5D);
+        double range = PlayerUtils.getPlayerBlockInteractionRange();
+        return this.player.getEyePosition().distanceToSqr(faceCenter) <= range * range;
     }
 
     private boolean isFluid(BlockState state) {

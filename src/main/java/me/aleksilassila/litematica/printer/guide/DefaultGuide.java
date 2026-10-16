@@ -27,6 +27,11 @@ public class DefaultGuide extends Guide {
     @Override
     protected Result onBuildActionMissingBlock(BlockMatchResult state) {
         Action action = new Action();
+        if (requiredBlock instanceof ShulkerBoxBlock) {
+            action.setRequiredStackPredicate(stack -> stack.getItem() == requiredBlock.asItem()
+                    && fi.dy.masa.malilib.util.InventoryUtils.getStoredItems(stack, -1).stream().allMatch(net.minecraft.world.item.ItemStack::isEmpty));
+            action.setRequiredCreativeStack(new net.minecraft.world.item.ItemStack(requiredBlock.asItem()));
+        }
 
         // 获取属性
         Direction facing = getProperty(requiredState, BlockStateProperties.FACING)

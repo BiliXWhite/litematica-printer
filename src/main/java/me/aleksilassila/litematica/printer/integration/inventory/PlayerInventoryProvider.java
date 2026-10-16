@@ -31,7 +31,7 @@ public final class PlayerInventoryProvider implements InventoryProvider {
             int count = 0;
             for (int slot = 0; slot < size; slot++) {
                 ItemStack stack = inventory.getItem(slot);
-                if (stack.is(acceptedItem)) {
+                if (stack.is(acceptedItem) && request.acceptsStack(stack)) {
                     count += stack.getCount();
                     if (count >= request.minimumCount()) {
                         return MaterialReservation.available(request, acceptedItem);
