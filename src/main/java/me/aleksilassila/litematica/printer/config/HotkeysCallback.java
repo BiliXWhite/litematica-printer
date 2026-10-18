@@ -24,6 +24,10 @@ public class HotkeysCallback {
             return true;
         }
 
+        if (key == Configs.Hotkeys.SYNC_INVENTORY.getKeybind()) {
+            me.aleksilassila.litematica.printer.runtime.RuntimeAccess.get().containerSync().toggle();
+            return true;
+        }
         if (key == Configs.Hotkeys.CACHE_SELECTION_CONTAINERS.getKeybind()) {
             int added = ChestTrackerBridge.addSelectionToCache();
             me.aleksilassila.litematica.printer.utils.minecraft.MessageUtils.setOverlayMessage(

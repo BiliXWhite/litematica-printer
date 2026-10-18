@@ -70,6 +70,10 @@ Dependency versions must match the Minecraft version being launched.
 
 ### Inventory integrations
 
+- Container sync: bind **Sync Containers**, enable the master work switch, select an empty main-hand slot and point at a template chest, barrel or shulker box. Matching containers in the Litematica area selection are filled slot by slot; double chests count as one container. Move within normal interaction range of each target.
+- Materials come from your inventory; surplus returns there. Missing items or storage space pauses the task; press the hotkey to retry after resolving it. Pressing the hotkey while running or disabling the master switch cancels after the current transfer settles. Main hand, armor, offhand and protected hotbar slots are excluded. Remote retrieval integrations are not required.
+- If the server forcibly closes a container during transfer, synchronization waits for a full inventory confirmation before pausing. The server handles the carried stack; vanilla may drop items that cannot fit in your inventory.
+
 - Quick Shulker material retrieval and ordered return.
 - Take It Out remote material retrieval on supported versions.
 - Chest Tracker retrieval from containers explicitly cached inside the active Litematica selection on supported versions.

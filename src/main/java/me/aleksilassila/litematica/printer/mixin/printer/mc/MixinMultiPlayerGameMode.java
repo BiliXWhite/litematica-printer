@@ -58,6 +58,15 @@ public abstract class MixinMultiPlayerGameMode implements MultiPlayerGameModeExt
         return this.litematica_printer$mining;
     }
 
+    //#if MC >= 260100
+    @Inject(method = "handleContainerInput", at = @At("HEAD"), cancellable = true)
+    //#else
+    //$$ @Inject(method = "handleInventoryMouseClick", at = @At("HEAD"), cancellable = true)
+    //#endif
+    private void printer$guardContainerSyncInput(CallbackInfo ci) {
+        if (RuntimeAccess.get().containerSync().guardManualInput()) ci.cancel();
+    }
+
     @Inject(method = "tick", at = @At("HEAD"))
     private void litematica_printer$tickMiningController(CallbackInfo ci) {
         this.litematica_printer$controller().tick();

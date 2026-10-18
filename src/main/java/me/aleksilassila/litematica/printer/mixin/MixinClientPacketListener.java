@@ -29,6 +29,7 @@ public abstract class MixinClientPacketListener {
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/MenuScreens;create(Lnet/minecraft/world/inventory/MenuType;Lnet/minecraft/client/Minecraft;ILnet/minecraft/network/chat/Component;)V"), method = "handleOpenScreen")
     private void printer$trackQuickShulkerContainerOpen(ClientboundOpenScreenPacket packet, CallbackInfo ci) {
         QuickShulkerBridge.onContainerOpen(packet.getContainerId(), packet.getType());
+        RuntimeAccess.get().containerSync().opened(packet.getContainerId(), packet.getType());
     }
 
     @Inject(
@@ -81,6 +82,11 @@ public abstract class MixinClientPacketListener {
             return;
         }
         QuickShulkerBridge.onInventoryContent(containerId, items, carried);
+        //#if MC >= 12105
+        RuntimeAccess.get().containerSync().content(containerId, packet.stateId(), items, carried);
+        //#else
+        //$$ RuntimeAccess.get().containerSync().content(containerId, packet.getStateId(), items, carried);
+        //#endif
     }
     @Inject(at = @At("TAIL"), method = "handleContainerSetSlot")
     private void printer$confirmQuickShulkerSlot(ClientboundContainerSetSlotPacket packet, CallbackInfo ci) {

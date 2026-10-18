@@ -760,6 +760,9 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
     }
 
     public static class Hotkeys {
+        public static final ConfigHotkey SYNC_INVENTORY = hotkey("syncInventory")
+                .defaultStorageString("")
+                .build();
         // 打开设置菜单
         public static final ConfigHotkey OPEN_SCREEN = hotkey("openScreen")
                 .defaultStorageString("Z,Y")
@@ -795,6 +798,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 OPEN_SCREEN,                  // 打开设置菜单
+                SYNC_INVENTORY,
                 Core.WORK_SWITCH,
                 CLOSE_ALL_MODE,               // 关闭全部模式
                 SWITCH_PRINTER_MODE,          // 切换模式

@@ -23,6 +23,11 @@ public final class QuickShulkerClicks {
         send(menu, -1, -1, 0, ContainerInput.PICKUP);
     }
 
+    /** One click and one authoritative full reply, avoiding a second in-flight snapshot request. */
+    public static void sendWithFullSync(AbstractContainerMenu menu, int slot, int button, ContainerInput type) {
+        send(menu, -1, slot, button, type);
+    }
+
     private static void send(AbstractContainerMenu menu, int stateId, int slot, int button, ContainerInput type) {
         var connection = Minecraft.getInstance().getConnection();
         if (connection == null) return;

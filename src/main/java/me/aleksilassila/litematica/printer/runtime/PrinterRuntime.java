@@ -65,6 +65,7 @@ public final class PrinterRuntime {
     private final TweakerooAdapter tweakeroo;
     private final ToolSwitchService toolSwitchService;
     private final StrippableBlockPort strippableBlocks;
+    private final me.aleksilassila.litematica.printer.integration.containersync.ContainerSyncController containerSync;
 
     public PrinterRuntime() {
         Minecraft client = Minecraft.getInstance();
@@ -102,11 +103,17 @@ public final class PrinterRuntime {
         this.scope.register(this.quickShulkerAdapter);
         this.chestTrackerAdapter = new ChestTrackerAdapter(this.actionBroker);
         this.scope.register(this.chestTrackerAdapter);
+        this.containerSync = new me.aleksilassila.litematica.printer.integration.containersync.ContainerSyncController(this);
+        this.scope.register(this.containerSync);
         this.modules = new FeatureModuleSet(this);
     }
 
     public RuntimeEpoch epoch() {
         return this.epoch;
+    }
+
+    public me.aleksilassila.litematica.printer.integration.containersync.ContainerSyncController containerSync() {
+        return this.containerSync;
     }
 
     public long currentTick() {
@@ -227,6 +234,7 @@ public final class PrinterRuntime {
         }
 
         this.cooldownUtils.tick();
+        this.containerSync.tick();
         QuickShulkerBridge.onTick();
         this.chestTrackerAdapter.tick();
         if (this.materialRequests != null) {
