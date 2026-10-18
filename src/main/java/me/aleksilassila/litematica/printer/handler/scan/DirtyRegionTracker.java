@@ -58,6 +58,16 @@ public final class DirtyRegionTracker {
         }
     }
 
+    public synchronized void markChunkDirty(int chunkX, int chunkZ, int minY, int maxY) {
+        for (int sectionY = sectionCoord(minY); sectionY <= sectionCoord(maxY); sectionY++) {
+            this.markDirtyRegion(chunkX, sectionY, chunkZ);
+            this.markDirtyRegion(chunkX - 1, sectionY, chunkZ);
+            this.markDirtyRegion(chunkX + 1, sectionY, chunkZ);
+            this.markDirtyRegion(chunkX, sectionY, chunkZ - 1);
+            this.markDirtyRegion(chunkX, sectionY, chunkZ + 1);
+        }
+    }
+
     public synchronized DirtySnapshot snapshotAfter(long lastSeenVersion, @Nullable PrinterBox bounds) {
         long snapshotVersion = this.version;
         if (snapshotVersion <= lastSeenVersion) {

@@ -120,6 +120,16 @@ public final class ScanCache {
         this.sessions.invalidate(pos);
     }
 
+    public void invalidateChunk(int chunkX, int chunkZ, int minY, int maxY) {
+        if (minY > maxY) {
+            return;
+        }
+        this.snapshotRevision++;
+        this.snapshots.invalidateChunk(chunkX, chunkZ, minY, maxY);
+        this.dirtyRegions.markChunkDirty(chunkX, chunkZ, minY, maxY);
+        this.sessions.invalidateChunk(chunkX, chunkZ);
+    }
+
     public long dirtyVersion() {
         return this.dirtyRegions.currentVersion();
     }

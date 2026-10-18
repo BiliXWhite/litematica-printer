@@ -39,6 +39,7 @@
     "minecraft": "${minecraft_dependency}",
     "malilib": ">=${malilib}",
     "litematica": ">=${litematica}",
+    "fabric-api": "*",
     "fabric-content-registries-v0": "*"
   },
   "custom": {

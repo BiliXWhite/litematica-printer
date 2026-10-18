@@ -5,6 +5,7 @@ import me.aleksilassila.litematica.printer.runtime.PrinterRuntime;
 import me.aleksilassila.litematica.printer.runtime.RuntimeAccess;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 public class LitematicaPrinterMod implements ModInitializer, ClientModInitializer {
@@ -17,6 +18,8 @@ public class LitematicaPrinterMod implements ModInitializer, ClientModInitialize
         PrinterRuntime runtime = new PrinterRuntime();
         RuntimeAccess.install(runtime);
         ClientTickEvents.END_CLIENT_TICK.register(runtime::tick);
+        ClientChunkEvents.CHUNK_LOAD.register(runtime.scanEngine()::invalidateChunk);
+        ClientChunkEvents.CHUNK_UNLOAD.register(runtime.scanEngine()::invalidateChunk);
         InitializationHandler.getInstance().registerInitializationHandler(new InitHandler());
     }
 }

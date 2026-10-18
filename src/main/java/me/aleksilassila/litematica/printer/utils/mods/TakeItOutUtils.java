@@ -311,7 +311,8 @@ public final class TakeItOutUtils {
         }
     }
 
-    private static ItemStack getAwaitingStack() {
+    /** Returns the mod-owned object so the adapter can identify the request it actually sent. */
+    public static ItemStack getAwaitingStack() {
         if (!isLoaded()) {
             return ItemStack.EMPTY;
         }

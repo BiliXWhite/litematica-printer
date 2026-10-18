@@ -16,6 +16,11 @@ public interface InventoryProvider {
         return 80L;
     }
 
+    /** External work must finish before this provider can send the current request. */
+    default boolean isWaitingToStart() {
+        return false;
+    }
+
     /** Whether a pending request must pause the whole printer while it owns resources. */
     default boolean blocksPrinterWhilePending() {
         return true;

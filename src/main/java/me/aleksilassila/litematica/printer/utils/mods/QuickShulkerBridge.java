@@ -66,10 +66,7 @@ public final class QuickShulkerBridge {
         }
 
         MaterialReservation reservation = requestItem(item, MaterialRequest.Source.PICK_BLOCK);
-        return PickBlockRequestPolicy.shouldConsume(
-                reservation.state(),
-                TakeItOutUtils.isLoaded()
-        );
+        return PickBlockRequestPolicy.shouldConsume(reservation.state());
     }
 
     public static boolean handlePickBlock(LocalPlayer player, ItemStack stack) {

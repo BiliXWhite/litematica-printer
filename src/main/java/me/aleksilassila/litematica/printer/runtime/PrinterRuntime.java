@@ -31,6 +31,8 @@ import me.aleksilassila.litematica.printer.interaction.ToolSwitchService;
 import me.aleksilassila.litematica.printer.interaction.StrippableBlockPort;
 import me.aleksilassila.litematica.printer.integration.inventory.StrippableBlockAdapter;
 import net.minecraft.client.Minecraft;
+import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.guide.guides.RailGuide;
 import java.util.List;
 
 /**
@@ -43,6 +45,7 @@ public final class PrinterRuntime {
     private RuntimeEpoch epoch = RuntimeEpoch.INITIAL;
     private Object levelIdentity;
     private Object connectionIdentity;
+    private Object disconnectedConnection;
     private long currentTick = Long.MIN_VALUE;
     private boolean resetting;
     private MaterialRequestCoordinator materialRequests;
@@ -244,6 +247,24 @@ public final class PrinterRuntime {
         this.interactionUtils.preprocess();
         this.interactionUtils.onTick();
         this.modules.tick();
+    }
+
+    /** Connection mixins also run for LAN peers and on Netty threads. Resolve ownership on the client thread. */
+    public void onConnectionDisconnected(Object sourceConnection) {
+        Minecraft client = this.client();
+        client.execute(() -> {
+            var listener = client.getConnection();
+            if (listener == null || listener.getConnection() != sourceConnection
+                    || this.disconnectedConnection == sourceConnection) {
+                return;
+            }
+            this.disconnectedConnection = sourceConnection;
+            this.reset("disconnect");
+            RailGuide.clearRepairState();
+            if (Configs.Core.AUTO_DISABLE_PRINTER.getBooleanValue() && Configs.Core.WORK_SWITCH.getBooleanValue()) {
+                Configs.Core.WORK_SWITCH.setBooleanValue(false);
+            }
+        });
     }
 
     public void reset(String reason) {

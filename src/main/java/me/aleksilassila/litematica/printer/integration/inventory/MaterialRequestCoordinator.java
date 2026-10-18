@@ -141,6 +141,13 @@ public final class MaterialRequestCoordinator implements RuntimeComponent {
                 this.active = null;
                 return result;
             }
+            if (result.state() == MaterialReservation.State.PENDING && provider.isWaitingToStart()) {
+                this.active = this.active.waitingToStart();
+                return result;
+            }
+            if (this.active.providerStartedTick < 0L) {
+                this.active = this.active.startedAt(this.tick);
+            }
             long timeoutTicks = Math.max(1L, provider.pendingTimeoutTicks());
             if (result.state() == MaterialReservation.State.PENDING
                     && this.tick - this.active.providerStartedTick <= timeoutTicks) {
@@ -176,6 +183,10 @@ public final class MaterialRequestCoordinator implements RuntimeComponent {
     ) {
         ActiveRequest startedAt(long tick) {
             return new ActiveRequest(this.request, this.providerIndex, true, tick);
+        }
+
+        ActiveRequest waitingToStart() {
+            return new ActiveRequest(this.request, this.providerIndex, true, -1L);
         }
 
         ActiveRequest nextProvider(long tick) {

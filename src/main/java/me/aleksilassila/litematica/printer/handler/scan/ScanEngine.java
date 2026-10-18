@@ -5,6 +5,8 @@ import me.aleksilassila.litematica.printer.printer.PrinterBox;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -47,6 +49,22 @@ public final class ScanEngine implements RuntimeComponent {
 
     public void invalidate(BlockPos pos) {
         this.cache.invalidate(pos);
+    }
+
+    public void invalidateChunk(ClientLevel level, LevelChunk chunk) {
+        if (level == null || chunk == null || this.runtime.client().level != level) {
+            return;
+        }
+        ChunkPos pos = chunk.getPos();
+        //#if MC >= 260100
+        int chunkX = pos.x();
+        int chunkZ = pos.z();
+        //#else
+        //$$ int chunkX = pos.x;
+        //$$ int chunkZ = pos.z;
+        //#endif
+        int minY = level.getMinY();
+        this.cache.invalidateChunk(chunkX, chunkZ, minY, minY + level.getHeight() - 1);
     }
 
     public long dirtyVersion() {

@@ -172,6 +172,22 @@ final class SectionScanSession {
         return ScanGeometry.containsAny(this.sourceBoxes, pos);
     }
 
+    boolean intersectsChunkAndNeighbors(int chunkX, int chunkZ) {
+        int minX = chunkX << 4;
+        int minZ = chunkZ << 4;
+        int maxX = minX + 15;
+        int maxZ = minZ + 15;
+        for (PrinterBox box : this.sourceBoxes) {
+            boolean overlapsX = box.minX <= maxX && box.maxX >= minX;
+            boolean overlapsZ = box.minZ <= maxZ && box.maxZ >= minZ;
+            if ((overlapsX && box.minZ <= maxZ + 1 && box.maxZ >= minZ - 1)
+                    || (overlapsZ && box.minX <= maxX + 1 && box.maxX >= minX - 1)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     void invalidate(BlockPos pos) {
         this.chunkCandidateCache.invalidate(
                 ScanGeometry.sectionCoord(pos.getX()),

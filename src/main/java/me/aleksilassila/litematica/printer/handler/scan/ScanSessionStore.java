@@ -42,6 +42,17 @@ final class ScanSessionStore implements AutoCloseable {
         }
     }
 
+    void invalidateChunk(int chunkX, int chunkZ) {
+        Iterator<SectionScanSession> iterator = this.sessions.values().iterator();
+        while (iterator.hasNext()) {
+            SectionScanSession session = iterator.next();
+            if (session.intersectsChunkAndNeighbors(chunkX, chunkZ)) {
+                session.close();
+                iterator.remove();
+            }
+        }
+    }
+
     void resetOwner(String ownerKey) {
         if (ownerKey == null || ownerKey.isBlank()) return;
         String prefix = ownerKey + ":";

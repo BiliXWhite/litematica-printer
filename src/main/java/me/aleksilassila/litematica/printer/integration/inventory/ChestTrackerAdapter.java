@@ -85,6 +85,9 @@ public final class ChestTrackerAdapter implements InventoryProvider, RuntimeComp
     private final NestedShulkerReturn nestedReturn = new NestedShulkerReturn();
     private boolean suppressContainerScreen;
     private int expectedContainerId = -1;
+    private AbstractContainerMenu ownedMenu;
+    private Object ownedConnection;
+    private Object ownedLevel;
 
     public ChestTrackerAdapter(ActionPort actionBroker) {
         this.client = Minecraft.getInstance();
@@ -190,10 +193,18 @@ public final class ChestTrackerAdapter implements InventoryProvider, RuntimeComp
     }
 
     public void onContainerOpen(int containerId) {
+        LocalPlayer player = this.client.player;
         if (this.activeRequest != null
                 && (this.phase == Phase.WAITING_CONTENT || this.phase == Phase.RESTORE_WAIT_CONTENT)
-                && this.suppressContainerScreen) {
+                && this.suppressContainerScreen
+                && player != null
+                && player.containerMenu != player.inventoryMenu
+                && player.containerMenu.containerId == containerId) {
+            // The packet callback runs after vanilla assigns the new menu, even when its screen is hidden.
             this.expectedContainerId = containerId;
+            this.ownedMenu = player.containerMenu;
+            this.ownedConnection = this.client.getConnection();
+            this.ownedLevel = this.client.level;
         }
     }
 
@@ -487,9 +498,15 @@ public final class ChestTrackerAdapter implements InventoryProvider, RuntimeComp
     }
 
     private void closeContainer() {
-        if (this.client.player != null && this.client.player.containerMenu != this.client.player.inventoryMenu) {
+        if (this.ownedMenu != null
+                && this.client.player != null
+                && this.client.player.containerMenu == this.ownedMenu
+                && this.ownedMenu != this.client.player.inventoryMenu
+                && this.client.getConnection() == this.ownedConnection
+                && this.client.level == this.ownedLevel) {
             this.client.player.closeContainer();
         }
+        clearOwnedMenu();
         this.actionBroker.releaseOwner(LEASE_OWNER + "_take");
         this.actionBroker.releaseOwner(LEASE_OWNER);
         this.resourcesAcquired = false;
@@ -498,11 +515,18 @@ public final class ChestTrackerAdapter implements InventoryProvider, RuntimeComp
     }
 
     private void releaseResources() {
+        clearOwnedMenu();
         if (this.dispatchAcquired) this.actionBroker.releaseOwner(DISPATCH_LEASE_OWNER);
         this.actionBroker.releaseOwner(LEASE_OWNER + "_take");
         this.actionBroker.releaseOwner(LEASE_OWNER);
         this.dispatchAcquired = false;
         this.resourcesAcquired = false;
+    }
+
+    private void clearOwnedMenu() {
+        this.ownedMenu = null;
+        this.ownedConnection = null;
+        this.ownedLevel = null;
     }
 
     private boolean failedRecently(Item item) {

@@ -5,10 +5,7 @@ public final class PickBlockRequestPolicy {
     private PickBlockRequestPolicy() {
     }
 
-    public static boolean shouldConsume(
-            MaterialReservation.State state,
-            boolean takeItOutLoaded
-    ) {
-        return state != MaterialReservation.State.UNAVAILABLE || takeItOutLoaded;
+    public static boolean shouldConsume(MaterialReservation.State state) {
+        return state != MaterialReservation.State.UNAVAILABLE;
     }
 }

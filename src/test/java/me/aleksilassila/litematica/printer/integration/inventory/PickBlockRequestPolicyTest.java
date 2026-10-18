@@ -9,24 +9,17 @@ class PickBlockRequestPolicyTest {
     @Test
     void activeProviderConsumesTheInput() {
         assertTrue(PickBlockRequestPolicy.shouldConsume(
-                MaterialReservation.State.PENDING,
-                false
+                MaterialReservation.State.PENDING
         ));
         assertTrue(PickBlockRequestPolicy.shouldConsume(
-                MaterialReservation.State.AVAILABLE,
-                false
+                MaterialReservation.State.AVAILABLE
         ));
     }
 
     @Test
-    void takeItOutNativeHookIsSuppressedAfterUnifiedChainMisses() {
-        assertTrue(PickBlockRequestPolicy.shouldConsume(
-                MaterialReservation.State.UNAVAILABLE,
-                true
-        ));
+    void unavailableProviderLeavesInputForNativeHooksEvenWhenTakeItOutIsInstalled() {
         assertFalse(PickBlockRequestPolicy.shouldConsume(
-                MaterialReservation.State.UNAVAILABLE,
-                false
+                MaterialReservation.State.UNAVAILABLE
         ));
     }
 }

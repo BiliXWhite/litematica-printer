@@ -32,6 +32,17 @@ final class SectionSnapshotStore {
         for (Direction direction : DIRECTIONS) this.invalidateCell(pos.relative(direction));
     }
 
+    void invalidateChunk(int chunkX, int chunkZ, int minY, int maxY) {
+        for (int sectionY = ScanGeometry.sectionCoord(minY); sectionY <= ScanGeometry.sectionCoord(maxY); sectionY++) {
+            this.sections.remove(ScanGeometry.sectionKey(chunkX, sectionY, chunkZ));
+            // Only the touching face of an adjacent chunk can depend on the replaced blocks.
+            this.invalidateFace(chunkX - 1, sectionY, chunkZ, true, 15);
+            this.invalidateFace(chunkX + 1, sectionY, chunkZ, true, 0);
+            this.invalidateFace(chunkX, sectionY, chunkZ - 1, false, 15);
+            this.invalidateFace(chunkX, sectionY, chunkZ + 1, false, 0);
+        }
+    }
+
     void clear() {
         this.sections.clear();
     }
@@ -57,6 +68,17 @@ final class SectionSnapshotStore {
         );
         MutableSection section = this.sections.get(key);
         if (section != null) section.invalidate(index(pos));
+    }
+
+    private void invalidateFace(int sectionX, int sectionY, int sectionZ, boolean xFace, int localCoord) {
+        MutableSection section = this.sections.get(ScanGeometry.sectionKey(sectionX, sectionY, sectionZ));
+        if (section == null) return;
+        for (int y = 0; y < 16; y++) {
+            for (int other = 0; other < 16; other++) {
+                int index = xFace ? y << 8 | other << 4 | localCoord : y << 8 | localCoord << 4 | other;
+                section.invalidate(index);
+            }
+        }
     }
 
     private static int cacheSlot(ScanIntent intent, boolean breakExtraBlocks) {

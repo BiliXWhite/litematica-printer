@@ -13,13 +13,29 @@ import java.util.EnumSet;
 public final class TakeItOutAdapter implements InventoryProvider {
     private static final String LEASE_OWNER = "take_it_out";
     private final ActionPort actionBroker;
+    private final TakeItOutPort takeItOut;
     private boolean resourcesAcquired;
     private long activeToken;
     private Item requestedItem;
     private int acquireRetries;
+    private boolean waitingForExternal;
+    private ItemStack ownedPending = ItemStack.EMPTY;
+    private Object requestConnection;
+    private Object requestLevel;
 
     public TakeItOutAdapter(ActionPort actionBroker) {
+        this(actionBroker, new TakeItOutPort() {
+            @Override public ItemStack awaitingStack() { return TakeItOutUtils.getAwaitingStack(); }
+            @Override public boolean tryRequestItem(Item item, boolean emptyShulkerOnly) {
+                return TakeItOutUtils.tryRequestItem(item, emptyShulkerOnly);
+            }
+            @Override public void resetPending() { TakeItOutUtils.resetPending(); }
+        });
+    }
+
+    public TakeItOutAdapter(ActionPort actionBroker, TakeItOutPort takeItOut) {
         this.actionBroker = actionBroker;
+        this.takeItOut = takeItOut;
     }
 
     @Override
@@ -32,6 +48,11 @@ public final class TakeItOutAdapter implements InventoryProvider {
         if (!this.acquireResources()) {
             return pending(request);
         }
+        if (!this.takeItOut.awaitingStack().isEmpty()) {
+            this.waitingForExternal = true;
+            return pending(request);
+        }
+        this.waitingForExternal = false;
         Item availableItem = findAvailableItem(request);
         if (availableItem != null) {
             selectCompletedPickBlockItem(request, availableItem);
@@ -39,9 +60,12 @@ public final class TakeItOutAdapter implements InventoryProvider {
             return MaterialReservation.available(request, availableItem);
         }
         for (Item item : request.acceptedItems()) {
-            if (TakeItOutUtils.tryRequestItem(item, request.emptyShulkerOnly())) {
+            if (this.takeItOut.tryRequestItem(item, request.emptyShulkerOnly())) {
                 this.activeToken = request.token();
                 this.requestedItem = item;
+                this.ownedPending = this.takeItOut.awaitingStack();
+                this.requestConnection = Minecraft.getInstance().getConnection();
+                this.requestLevel = Minecraft.getInstance().level;
                 return pending(request);
             }
         }
@@ -51,6 +75,13 @@ public final class TakeItOutAdapter implements InventoryProvider {
 
     @Override
     public MaterialReservation status(MaterialRequest request) {
+        if (this.waitingForExternal) {
+            if (!this.takeItOut.awaitingStack().isEmpty()) {
+                return pending(request);
+            }
+            this.waitingForExternal = false;
+            return this.request(request);
+        }
         Item availableItem = findAvailableItem(request);
         if (availableItem != null) {
             selectCompletedPickBlockItem(request, availableItem);
@@ -70,7 +101,7 @@ public final class TakeItOutAdapter implements InventoryProvider {
                 // Take It Out clears awaitingStack for any same-type local stack, including a
                 // filled box. Only actual empty-box availability or the coordinator's bounded
                 // timeout can finish this stricter request after it has been accepted.
-                && (request.emptyShulkerOnly() || TakeItOutUtils.isAwaitingItem(this.requestedItem))) {
+                && (request.emptyShulkerOnly() || this.takeItOut.isAwaitingItem(this.requestedItem))) {
             return pending(request);
         }
         this.releaseResources();
@@ -78,11 +109,19 @@ public final class TakeItOutAdapter implements InventoryProvider {
     }
 
     @Override
+    public boolean isWaitingToStart() {
+        return this.waitingForExternal;
+    }
+
+    @Override
     public void reset() {
-        TakeItOutUtils.resetPending();
-        this.activeToken = 0L;
-        this.requestedItem = null;
-        this.acquireRetries = 0;
+        Minecraft client = Minecraft.getInstance();
+        if (!this.ownedPending.isEmpty()
+                && this.takeItOut.awaitingStack() == this.ownedPending
+                && client.getConnection() == this.requestConnection
+                && client.level == this.requestLevel) {
+            this.takeItOut.resetPending();
+        }
         this.releaseResources();
     }
 
@@ -107,14 +146,17 @@ public final class TakeItOutAdapter implements InventoryProvider {
     }
 
     private void releaseResources() {
-        if (!this.resourcesAcquired) {
-            return;
+        if (this.resourcesAcquired) {
+            this.actionBroker.releaseOwner(LEASE_OWNER);
         }
-        this.actionBroker.releaseOwner(LEASE_OWNER);
         this.resourcesAcquired = false;
         this.activeToken = 0L;
         this.requestedItem = null;
         this.acquireRetries = 0;
+        this.waitingForExternal = false;
+        this.ownedPending = ItemStack.EMPTY;
+        this.requestConnection = null;
+        this.requestLevel = null;
     }
 
     private static Item findAvailableItem(MaterialRequest request) {
