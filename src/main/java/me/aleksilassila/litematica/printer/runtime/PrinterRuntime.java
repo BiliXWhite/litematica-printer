@@ -19,6 +19,7 @@ import me.aleksilassila.litematica.printer.utils.InteractionUtils;
 import me.aleksilassila.litematica.printer.utils.InventorySwitchGuard;
 import me.aleksilassila.litematica.printer.utils.InventoryMessageCooldown;
 import me.aleksilassila.litematica.printer.utils.mods.QuickShulkerBridge;
+import me.aleksilassila.litematica.printer.integration.inventory.InventoryProvider;
 import me.aleksilassila.litematica.printer.integration.inventory.MaterialRequestCoordinator;
 import me.aleksilassila.litematica.printer.integration.inventory.PlayerInventoryProvider;
 import me.aleksilassila.litematica.printer.integration.inventory.ChestTrackerAdapter;
@@ -30,9 +31,14 @@ import me.aleksilassila.litematica.printer.handler.handlers.bedrock.BedrockEngin
 import me.aleksilassila.litematica.printer.interaction.ToolSwitchService;
 import me.aleksilassila.litematica.printer.interaction.StrippableBlockPort;
 import me.aleksilassila.litematica.printer.integration.inventory.StrippableBlockAdapter;
+//#if MC >= 12111
+import me.aleksilassila.litematica.printer.integration.voidwarehouse.VoidWarehouseRestockAdapter;
+//#endif
 import net.minecraft.client.Minecraft;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.guide.guides.RailGuide;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -215,12 +221,15 @@ public final class PrinterRuntime {
         if (this.materialRequests == null) {
             // Behavioral contract: one request walks this list once and stops at the first
             // AVAILABLE/PENDING provider. Changing the order changes user-visible pickup priority.
-            this.materialRequests = new MaterialRequestCoordinator(List.of(
-                    new PlayerInventoryProvider(Minecraft.getInstance()),
-                    new TakeItOutAdapter(this.actionBroker),
-                    this.quickShulkerAdapter,
-                    this.chestTrackerAdapter
-            ));
+            List<InventoryProvider> providers = new ArrayList<>();
+            providers.add(new PlayerInventoryProvider(Minecraft.getInstance()));
+            providers.add(new TakeItOutAdapter(this.actionBroker));
+            //#if MC >= 12111
+            providers.add(new VoidWarehouseRestockAdapter());
+            //#endif
+            providers.add(this.quickShulkerAdapter);
+            providers.add(this.chestTrackerAdapter);
+            this.materialRequests = new MaterialRequestCoordinator(List.copyOf(providers));
             this.scope.register(this.materialRequests);
         }
         return this.materialRequests;
