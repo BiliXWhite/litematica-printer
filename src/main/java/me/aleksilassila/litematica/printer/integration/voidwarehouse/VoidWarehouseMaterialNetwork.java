@@ -8,6 +8,7 @@ import fi.dy.masa.litematica.materials.MaterialListBase;
 import fi.dy.masa.litematica.materials.MaterialListEntry;
 import fi.dy.masa.litematica.materials.MaterialListHudRenderer;
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.mixin.printer.malilib.GuiListBaseAccessor;
 import neko.voidwarehouse.restock.PrinterQueryPayload;
 import neko.voidwarehouse.restock.PrinterQueryResultPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -190,7 +191,7 @@ public final class VoidWarehouseMaterialNetwork {
         if (ids.isEmpty()) {
             // 材料列表是空的（还没算完 / 换了空气投影）：清掉旧快照，
             // 否则上一个投影的库存会继续挂在界面上。
-            VoidWarehouseMaterialCache.get().clear();
+            clearMaterialCache();
             return;
         }
 
@@ -299,14 +300,15 @@ public final class VoidWarehouseMaterialNetwork {
         if (payload.status() == PrinterQueryResultPayload.RULE_OFF) {
             // 服主没开规则：退避到一分钟一次，中途开了也能自动恢复。
             rejectedUntilTick = currentTick() + REJECT_BACKOFF_TICKS;
-            VoidWarehouseMaterialCache.get().clear();
+            clearMaterialCache();
             return;
         }
         if (payload.status() != PrinterQueryResultPayload.OK) {
-            VoidWarehouseMaterialCache.get().clear();
+            clearMaterialCache();
             return;
         }
         VoidWarehouseMaterialCache.get().apply(payload.itemIds(), payload.amounts());
+        refreshMaterialLists();
     }
 
     /** 回到「什么都没问过」的状态，并抹掉快照。 */
@@ -315,7 +317,32 @@ public final class VoidWarehouseMaterialNetwork {
         latestNonce = 0;
         lastRequestTick = 0L;
         rejectedUntilTick = 0L;
+        clearMaterialCache();
+    }
+
+    private static void clearMaterialCache() {
+        boolean hadSnapshot = VoidWarehouseMaterialCache.get().isReady();
         VoidWarehouseMaterialCache.get().clear();
+        if (hadSnapshot) refreshMaterialLists();
+    }
+
+    /** Both the Fabric receiver and tick callback run on the client thread. */
+    private static void refreshMaterialLists() {
+        MaterialListBase list = DataManager.getMaterialList();
+        // hideAvailable removes entries from this candidate list; restore them when stock falls.
+        // refreshPreFilteredList preserves the user's explicitly ignored entries.
+        if (list != null) list.refreshPreFilteredList();
+        Minecraft client = Minecraft.getInstance();
+        //#if MC > 260100
+        //$$ var screen = client.gui.screen();
+        //#else
+        var screen = client.screen;
+        //#endif
+        if (screen instanceof GuiMaterialList gui) {
+            if (gui.getMaterialList() != list) gui.getMaterialList().refreshPreFilteredList();
+            var browser = ((GuiListBaseAccessor) gui).litematicaPrinter$getListWidget();
+            if (browser != null) browser.refreshEntries();
+        }
     }
 
     private static long currentTick() {

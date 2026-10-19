@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
+import java.util.Set;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.SimpleRemapper;
@@ -21,17 +22,24 @@ final class MaterialListTestLoader extends ClassLoader {
     private static final String MIXINS = "me/aleksilassila/litematica/printer/mixin/printer/litematica/";
     private static final String CALLBACK = "org/spongepowered/asm/mixin/injection/callback/CallbackInfoReturnable";
 
-    MaterialListTestLoader() { super(MaterialListTestLoader.class.getClassLoader()); }
+    private final Set<String> additionalClasses;
+
+    MaterialListTestLoader(String... additionalClasses) {
+        super(MaterialListTestLoader.class.getClassLoader());
+        this.additionalClasses = Set.of(additionalClasses);
+    }
 
     @Override protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        if (!name.startsWith(PREFIX) && !name.equals(WIDGET)) return super.loadClass(name, resolve);
+        if (!name.startsWith(PREFIX) && !name.equals(WIDGET) && !additionalClasses.contains(name)) {
+            return super.loadClass(name, resolve);
+        }
         synchronized (getClassLoadingLock(name)) {
             var result = findLoadedClass(name);
             if (result == null) {
                 try {
                     var target = read(name.replace('.', '/') + ".class");
                     String simple = name.substring(name.lastIndexOf('.') + 1);
-                    if (name.equals(WIDGET)) keepHoverCountCalculation(target);
+                    if (name.equals(WIDGET) && additionalClasses.isEmpty()) keepHoverCountCalculation(target);
                     if (simple.equals("MaterialListEntry") || simple.equals("MaterialListSorter") || name.equals(WIDGET)) {
                         var mixin = read(MIXINS + "Mixin" + simple + ".class");
                         if (mixin != null) apply(target, mixin);

@@ -14,6 +14,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Checks compiled injection selectors against the actual dependency shipped for each MC version. */
 class VoidWarehouseMixinContractTest {
+    @org.junit.jupiter.api.Test
+    void browserAccessorMatchesTheActualMalilibField() throws Exception {
+        var target = read("fi/dy/masa/malilib/gui/GuiListBase");
+        var accessor = read("me/aleksilassila/litematica/printer/mixin/printer/malilib/GuiListBaseAccessor");
+        var method = accessor.methods.stream().filter(m -> m.name.equals("litematicaPrinter$getListWidget")).findFirst().orElseThrow();
+        var annotation = annotations(method.visibleAnnotations, method.invisibleAnnotations).stream()
+                .filter(a -> a.desc.endsWith("/Accessor;")).findFirst().orElseThrow();
+        assertTrue(target.fields.stream().anyMatch(f -> f.name.equals(value(annotation, "value"))
+                && method.desc.equals("()" + f.desc)), "Accessor must match the real widget field and return type");
+    }
+
     @ParameterizedTest @ValueSource(strings = {"MaterialListEntry", "MaterialListSorter", "MaterialListHudRenderer", "WidgetMaterialListEntry"})
     @SuppressWarnings("unchecked")
     void allShadowFieldsAndInjectionPointsExistInThisDependency(String simpleName) throws Exception {
