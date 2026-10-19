@@ -5,6 +5,7 @@ import me.aleksilassila.litematica.printer.integration.inventory.MaterialReserva
 import me.aleksilassila.litematica.printer.integration.inventory.PickBlockRequestPolicy;
 import me.aleksilassila.litematica.printer.integration.quickshulker.QuickShulkerInvocationPolicy;
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.core.action.ResourceLease;
 import me.aleksilassila.litematica.printer.runtime.RuntimeAccess;
 import me.aleksilassila.litematica.printer.utils.InventoryUtils;
 import net.minecraft.client.Minecraft;
@@ -66,7 +67,11 @@ public final class QuickShulkerBridge {
         }
 
         MaterialReservation reservation = requestItem(item, MaterialRequest.Source.PICK_BLOCK);
-        return PickBlockRequestPolicy.shouldConsume(reservation.state());
+        var broker = RuntimeAccess.get().actionBroker();
+        return PickBlockRequestPolicy.shouldConsume(reservation.state())
+                || broker.isResourceHeld(ResourceLease.INVENTORY)
+                || broker.isResourceHeld(ResourceLease.CONTAINER)
+                || broker.isResourceHeld(ResourceLease.MAIN_HAND);
     }
 
     public static boolean handlePickBlock(LocalPlayer player, ItemStack stack) {
