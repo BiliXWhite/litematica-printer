@@ -13,6 +13,7 @@
     "MixinClientPacketListener",
     "MixinContainerScreenGuard",
     "MixinMinecraftManualUse",
+    "MixinMinecraftMiningInput",
     "MixinMinecraftPickBlock",
     ${beacon_client_mixins}
     "printer.mc.MixinClientLevel",

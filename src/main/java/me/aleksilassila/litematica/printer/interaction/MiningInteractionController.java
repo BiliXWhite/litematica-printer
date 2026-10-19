@@ -123,6 +123,10 @@ public final class MiningInteractionController {
             return BlockBreakResult.COMPLETED;
         }
         if (!level.getWorldBorder().isWithinBounds(pos)) return BlockBreakResult.FAILED;
+        // A tool/config change must not let the fast path bypass an outstanding confirmation.
+        if (this.pendingDelayedDestroys.containsKey(pos) || this.feedback.hasPending(pos)) {
+            return BlockBreakResult.IN_PROGRESS;
+        }
         if (this.port.isInventorySwitchPending()) {
             return BlockBreakResult.IN_PROGRESS;
         }
@@ -150,15 +154,17 @@ public final class MiningInteractionController {
             }
         }
         if (fast) {
+            boolean delayed = delayedConfirmation(false);
             if (this.port.isDestroying()) this.resetDestroyState(player, this.port.destroyPos());
             this.feedback.resetHitSound();
             this.feedback.playHitSound(player, level, state, pos, true);
             if (progress >= 0.7F) {
                 this.feedback.playBreakSound(pos, state);
             }
+            if (delayed) this.queuePendingDestroy(pos, true);
             this.send(Action.START_DESTROY_BLOCK, pos, direction);
             if (!player.getAbilities().instabuild) {
-                if (progress >= 1.0F) {
+                if (progress >= 1.0F && !delayed) {
                     NetworkUtils.sendPacket(sequence -> {
                         this.port.destroyBlock(pos);
                         return this.port.actionPacket(Action.STOP_DESTROY_BLOCK, pos, direction, sequence);
@@ -172,14 +178,11 @@ public final class MiningInteractionController {
                 }
             }
             this.feedback.resetHitSound();
+            if (delayed) return BlockBreakResult.COMPLETED_WAIT;
             return player.getAbilities().instabuild || progress >= 1.0F
                     ? BlockBreakResult.COMPLETED
                     : BlockBreakResult.COMPLETED_WAIT;
         }
-        if (this.pendingDelayedDestroys.containsKey(pos)) {
-            return BlockBreakResult.IN_PROGRESS;
-        }
-        if (this.feedback.hasPending(pos)) return BlockBreakResult.IN_PROGRESS;
         BlockBreakResult result = this.continueDestroy(true, pos, direction, false, allowToolSwitch, true);
         if (result == BlockBreakResult.FAILED) return result;
         return this.pendingDelayedDestroys.containsKey(pos) || this.feedback.hasPending(pos)
@@ -245,7 +248,7 @@ public final class MiningInteractionController {
             return this.port.isDestroying() ? BlockBreakResult.IN_PROGRESS : BlockBreakResult.COMPLETED;
         }
         if (this.port.isDestroying() && !pos.equals(this.port.destroyPos())) this.abortPrevious(player, pos, direction);
-        if (pos.equals(this.port.destroyPos())) {
+        if (this.port.isDestroying() && pos.equals(this.port.destroyPos())) {
             this.port.destroyProgress(this.port.destroyProgress() + state.getDestroyProgress(player, level, pos));
             if (manualSound) this.feedback.playHitSound(player, level, state, pos, false);
             if (localEffects) level.destroyBlockProgress(player.getId(), pos, this.destroyStage());

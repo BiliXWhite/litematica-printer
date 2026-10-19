@@ -10,6 +10,7 @@ import me.aleksilassila.litematica.printer.handler.TickContext;
 import me.aleksilassila.litematica.printer.core.runtime.RuntimeEvent;
 import me.aleksilassila.litematica.printer.handler.scan.ScanIntent;
 import me.aleksilassila.litematica.printer.mixin_extension.BlockBreakResult;
+import me.aleksilassila.litematica.printer.interaction.MiningInteractionPort;
 import me.aleksilassila.litematica.printer.printer.PrinterBox;
 import me.aleksilassila.litematica.printer.printer.PlayerLook;
 import me.aleksilassila.litematica.printer.printer.PrinterUtils;
@@ -84,6 +85,15 @@ public class MineHandler extends FeatureModuleBase {
     public int getRetryQueueSize() {
         return this.candidates.size() + this.trenchFill.targetCount()
                 + (this.activeMinePos == null ? 0 : 1);
+    }
+
+    public boolean shouldKeepMiningOnIdleInput() {
+        return ConfigUtils.isEnable() && ConfigUtils.isMineMode() && this.activeMinePos != null
+                && this.mc != null && this.level != null && this.player != null && this.connection != null
+                && this.mc.level == this.level && this.mc.player == this.player
+                && this.mc.getConnection() == this.connection && this.mc.gameMode == this.gameMode
+                && this.gameMode instanceof MiningInteractionPort port
+                && port.isDestroying() && port.matchesDestroyTarget(this.activeMinePos);
     }
 
     private boolean mineRestriction(BlockState blockState) {
