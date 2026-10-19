@@ -16,6 +16,7 @@ import me.aleksilassila.litematica.printer.mixin.printer.litematica.MixinWidgetM
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,6 +35,96 @@ class VoidWarehouseMaterialConsumersTest {
     }
 
     @AfterEach void clearCache() { VoidWarehouseMaterialCache.get().clear(); }
+
+    @Test void hugeWarehouseWithPositiveInventoryDoesNotReappearAsMissing() throws Exception {
+        VoidWarehouseMaterialCache.get().apply(List.of("minecraft:stone"), List.of(Long.MAX_VALUE));
+        var loader = new MaterialListTestLoader();
+        var entry = entry(loader, 100, 100, 0, 64);
+        var list = list(loader, entry, 2);
+        assertEquals(Integer.MAX_VALUE, entry.getClass().getMethod("getCountAvailable").invoke(entry));
+        list.getClass().getMethod("recreateFilteredList").invoke(list);
+        assertEquals(0, ((List<?>) field(list, "materialListFiltered", null)).size());
+    }
+
+    @Test void equalCollectionGapsKeepNativeNameTieBreaking() throws Exception {
+        VoidWarehouseMaterialCache.get().apply(List.of(), List.of());
+        var loader = new MaterialListTestLoader();
+        var first = entry(loader, 100, 100, 0, 60);
+        var second = entry(loader, 80, 80, 0, 40);
+        var list = list(loader, first, 1);
+        var criteria = loader.loadClass("fi.dy.masa.litematica.materials.MaterialListBase$SortCriteria");
+        field(list, "sortCriteria", criteria.getField("COUNT_MISSING").get(null));
+        var sorter = loader.loadClass("fi.dy.masa.litematica.materials.MaterialListSorter")
+                .getConstructor(loader.loadClass("fi.dy.masa.litematica.materials.MaterialListBase")).newInstance(list);
+        var compare = sorter.getClass().getMethod("compare", first.getClass(), first.getClass());
+        assertEquals(0, compare.invoke(sorter, first, second));
+        field(list, "reverse", true);
+        assertEquals(0, compare.invoke(sorter, first, second));
+    }
+
+    @ParameterizedTest @CsvSource({
+            "1,0,0,60", "1,20,20,20", "1,20,40,0", "1,20,100,0",
+            "2,20,20,88", "2,20,107,1", "2,20,108,0", "2,20,200,0",
+            "1,64,9223372036854775807,0", "2,64,9223372036854775807,0"
+    })
+    void hoverDetailsShowCollectionGapAndFallBackAfterCacheClear(int multiplier, int inventory, long warehouse,
+                                                                int gap) throws Exception {
+        VoidWarehouseMaterialCache.get().apply(List.of("minecraft:stone"), List.of(warehouse));
+        var loader = new MaterialListTestLoader();
+        var entry = entry(loader, 64, 60, 20, inventory);
+        var list = list(loader, entry, multiplier);
+        var unsafeField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe"); unsafeField.setAccessible(true);
+        var widget = ((sun.misc.Unsafe) unsafeField.get(null)).allocateInstance(
+                loader.loadClass("fi.dy.masa.litematica.gui.widgets.WidgetMaterialListEntry"));
+        field(widget, "entry", entry);
+        field(widget, "materialList", list);
+        var hover = widget.getClass().getMethod("postRenderHovered");
+        assertArrayEquals(new int[] {64 * multiplier, gap}, (int[]) hover.invoke(widget));
+        assertEquals(60, entry.getClass().getMethod("getCountMissing").invoke(entry), "World demand stays unchanged");
+        VoidWarehouseMaterialCache.get().clear();
+        assertArrayEquals(new int[] {64 * multiplier, multiplier == 1 ? 60 : 128}, (int[]) hover.invoke(widget));
+    }
+
+    @ParameterizedTest @CsvSource({
+            "1,100,100,80,80,1", "2,100,100,80,80,1",
+            "1,100,20,60,60,1", "2,100,20,60,60,-1"
+    })
+    void missingSortUsesDisplayedGapWithMultiplierAndBothDirections(int multiplier, int total, int missing,
+                                                                   int otherTotal, int otherMissing, int sign) throws Exception {
+        VoidWarehouseMaterialCache.get().apply(List.of("minecraft:stone"), List.of(60L));
+        var loader = new MaterialListTestLoader();
+        var first = entry(loader, total, missing, 0, 0);
+        var second = first.getClass().getConstructor(ItemStack.class, int.class, int.class, int.class, int.class)
+                .newInstance(new ItemStack(Items.DIRT), otherTotal, otherMissing, 0, 0);
+        var list = list(loader, first, multiplier);
+        var criteria = loader.loadClass("fi.dy.masa.litematica.materials.MaterialListBase$SortCriteria");
+        field(list, "sortCriteria", criteria.getField("COUNT_MISSING").get(null));
+        var sorter = loader.loadClass("fi.dy.masa.litematica.materials.MaterialListSorter")
+                .getConstructor(loader.loadClass("fi.dy.masa.litematica.materials.MaterialListBase")).newInstance(list);
+        var compare = sorter.getClass().getMethod("compare", first.getClass(), first.getClass());
+        assertEquals(sign, Integer.signum((int) compare.invoke(sorter, first, second)));
+        assertEquals(-sign, Integer.signum((int) compare.invoke(sorter, second, first)));
+        field(list, "reverse", true);
+        assertEquals(-sign, Integer.signum((int) compare.invoke(sorter, first, second)));
+        field(list, "reverse", false);
+        VoidWarehouseMaterialCache.get().clear();
+        assertEquals(missing > otherMissing ? -1 : 1, Integer.signum((int) compare.invoke(sorter, first, second)));
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"COUNT_TOTAL", "COUNT_AVAILABLE", "NAME"})
+    void otherSortCriteriaRetainNativeOrdering(String sort) throws Exception {
+        VoidWarehouseMaterialCache.get().apply(List.of(), List.of());
+        var loader = new MaterialListTestLoader();
+        var first = entry(loader, 100, 100, 0, 60);
+        var second = entry(loader, 80, 80, 0, 0);
+        var list = list(loader, first, 2);
+        var criteria = loader.loadClass("fi.dy.masa.litematica.materials.MaterialListBase$SortCriteria");
+        field(list, "sortCriteria", criteria.getField(sort).get(null));
+        var sorter = loader.loadClass("fi.dy.masa.litematica.materials.MaterialListSorter")
+                .getConstructor(loader.loadClass("fi.dy.masa.litematica.materials.MaterialListBase")).newInstance(list);
+        var compare = sorter.getClass().getMethod("compare", first.getClass(), first.getClass());
+        assertEquals(sort.equals("NAME") ? 0 : -1, compare.invoke(sorter, first, second));
+    }
 
     static Object field(Object instance, String name, Object value) throws Exception {
         Class<?> type = instance.getClass();
@@ -87,7 +178,7 @@ class VoidWarehouseMaterialConsumersTest {
         assertEquals(100, entry.getClass().getMethod("getCountAvailable").invoke(entry));
     }
 
-    @ParameterizedTest @CsvSource({"1,0,60", "1,40,20", "1,60,0", "2,40,88", "2,127,1", "2,128,0", "2,200,0"})
+    @ParameterizedTest @CsvSource({"1,0,60", "1,40,20", "1,60,0", "2,40,88", "2,127,1", "2,128,0", "2,200,0", "2,2147483647,0"})
     void displayedGapAndColorUseTheActualMultiplierExactlyOnce(int multiplier, int available, int gap) throws Exception {
         VoidWarehouseMaterialCache.get().apply(List.of(), List.of());
         var entry = new MaterialListEntry(new ItemStack(Items.STONE), 64, 60, 0, available);

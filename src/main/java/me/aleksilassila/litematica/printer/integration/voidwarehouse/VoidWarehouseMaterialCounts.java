@@ -41,10 +41,11 @@ public final class VoidWarehouseMaterialCounts {
         if (warehouseAmount <= 0) {
             return (int) Math.min(base, Integer.MAX_VALUE);
         }
-        // 用 long 相加再夹紧：仓库的量可以到 Long.MAX_VALUE，直接 int 相加会环绕成负数，
-        // 界面上就成了「已有 -2147483648 个」。
-        long total = base + warehouseAmount;
-        return total >= Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) total;
+        // 仓库可能已经是 Long.MAX_VALUE，必须先判断饱和，避免加上背包数量后 long 也溢出。
+        if (warehouseAmount >= Integer.MAX_VALUE - base) {
+            return Integer.MAX_VALUE;
+        }
+        return (int) (base + warehouseAmount);
     }
 
     /**

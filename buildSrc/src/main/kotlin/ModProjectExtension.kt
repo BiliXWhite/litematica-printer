@@ -110,6 +110,7 @@ val Project.placeholderProps: Map<String, Any?>
         // 保留 missing 的施工需求语义，只在 GUI/HUD 显示收集缺口。
         "void_warehouse_litematica_mixins" to if (mcVersionInt >= 12111) {
             "\"printer.litematica.MixinMaterialListEntry\",\n" +
+                    "    \"printer.litematica.MixinMaterialListSorter\",\n" +
                     "    \"printer.litematica.MixinMaterialListHudRenderer\",\n" +
                     "    \"printer.litematica.MixinWidgetMaterialListEntry\","
         } else {

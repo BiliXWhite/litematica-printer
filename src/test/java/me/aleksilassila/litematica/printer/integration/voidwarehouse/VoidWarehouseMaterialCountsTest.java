@@ -2,6 +2,8 @@ package me.aleksilassila.litematica.printer.integration.voidwarehouse;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -13,6 +15,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * 全是「不测就一定会有人踩」的地方。</p>
  */
 class VoidWarehouseMaterialCountsTest {
+
+    @ParameterizedTest
+    @CsvSource({
+            "1,9223372036854775807,2147483647",
+            "64,9223372036854775807,2147483647",
+            "2147483647,9223372036854775807,2147483647",
+            "64,2147483582,2147483646",
+            "64,2147483583,2147483647",
+            "64,2147483584,2147483647"
+    })
+    void positiveInventorySaturatesBeforeAddingWarehouseStock(int inventory, long warehouse, int expected) {
+        assertEquals(expected, VoidWarehouseMaterialCounts.merge(inventory, warehouse));
+    }
 
     @Test
     @DisplayName("仓库没有这种材料时，原样返回背包数量（功能等价于没装）")

@@ -20,13 +20,13 @@ public abstract class MixinWidgetMaterialListEntry {
     @Shadow @Final private MaterialListEntry entry;
     @Shadow @Final private MaterialListBase materialList;
 
-    @Redirect(method = "render", at = @At(value = "INVOKE",
+    @Redirect(method = {"render", "postRenderHovered"}, at = @At(value = "INVOKE",
             target = "Lfi/dy/masa/litematica/materials/MaterialListBase;getMultiplier()I"), remap = false)
     private int litematicaPrinter$useCollectionGap(MaterialListBase list) {
         return VoidWarehouseMaterialCache.get().isReady() ? 1 : list.getMultiplier();
     }
 
-    @Redirect(method = "render", at = @At(value = "INVOKE",
+    @Redirect(method = {"render", "postRenderHovered"}, at = @At(value = "INVOKE",
             target = "Lfi/dy/masa/litematica/materials/MaterialListEntry;getCountTotal()I"), remap = false)
     private int litematicaPrinter$scaledTotal(MaterialListEntry entry) {
         return VoidWarehouseMaterialCache.get().isReady()
@@ -34,7 +34,7 @@ public abstract class MixinWidgetMaterialListEntry {
                 : entry.getCountTotal();
     }
 
-    @Redirect(method = "render", at = @At(value = "INVOKE",
+    @Redirect(method = {"render", "postRenderHovered"}, at = @At(value = "INVOKE",
             target = "Lfi/dy/masa/litematica/materials/MaterialListEntry;getCountMissing()I"), remap = false)
     private int litematicaPrinter$collectionGap(MaterialListEntry entry) {
         return VoidWarehouseMaterialCache.get().isReady()

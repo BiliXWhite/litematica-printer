@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Checks compiled injection selectors against the actual dependency shipped for each MC version. */
 class VoidWarehouseMixinContractTest {
-    @ParameterizedTest @ValueSource(strings = {"MaterialListEntry", "MaterialListHudRenderer", "WidgetMaterialListEntry"})
+    @ParameterizedTest @ValueSource(strings = {"MaterialListEntry", "MaterialListSorter", "MaterialListHudRenderer", "WidgetMaterialListEntry"})
     @SuppressWarnings("unchecked")
     void allShadowFieldsAndInjectionPointsExistInThisDependency(String simpleName) throws Exception {
         String targetName = "fi/dy/masa/litematica/" + (simpleName.startsWith("Widget") ? "gui/widgets/" : "materials/") + simpleName;
