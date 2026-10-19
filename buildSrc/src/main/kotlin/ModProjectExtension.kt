@@ -103,6 +103,21 @@ val Project.placeholderProps: Map<String, Any?>
         } else {
             ""
         },
+        // 虚空仓库的库存查询只在 1.21.11+ 存在（服务端 carpet-Neko-Addition 也只支持这几个版本）。
+        // 老版本上这四个混入类整个被 //#if 剔掉，这里必须同步留空 ——
+        // mixins.json 不做预处理，写死一个不存在的类名会让 Mixin 在启动阶段直接报错。
+        //
+        // 后三个是「缺失数量」改成净值之后必须跟着修的消费者：Litematica 原版所有判断都建立在
+        // 「missing = 需求、available = 持有」这条不变式上，改了其中一侧就必须把拿这两个数比较的
+        // 地方一起改掉。理由分别写在这三个类自己的 javadoc 里。
+        "void_warehouse_litematica_mixins" to if (mcVersionInt >= 12111) {
+            "\"printer.litematica.MixinMaterialListEntry\",\n" +
+                    "    \"printer.litematica.MixinMaterialListBase\",\n" +
+                    "    \"printer.litematica.MixinMaterialListHudRenderer\",\n" +
+                    "    \"printer.litematica.MixinWidgetMaterialListEntry\","
+        } else {
+            ""
+        },
         "malilib" to malilib,
         "litematica" to litematica
     ).filterValues { it != null }.mapValues { it.value!! }

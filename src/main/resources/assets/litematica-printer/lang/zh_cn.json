@@ -219,6 +219,8 @@
   "litematica-printer.config.remoteTake.desc": "安装 Chest Tracker 时，只从明确加入当前 Litematica 投影选区的容器中自动取出缺少材料。缓存按世界和维度隔离并保存在本地；Chest Tracker 物品列表右键取物也只使用此允许列表。混合潜影盒在可能时会归还原箱槽位。",
   "litematica-printer.config.voidWarehouseRestock": "虚空仓库补货",
   "litematica-printer.config.voidWarehouseRestock.desc": "建造缺料时向服务端的虚空仓库（carpet-Neko-Addition）请求一组材料，不再依赖背包潜影盒。\n仅在服务端安装 carpet-Neko-Addition 且同时开启 §bvoidWarehouse§r 与 §bvoidWarehouseRestock§r 两条 Carpet 规则时生效；服务端未开启时会立刻判定缺料，不会反复请求。",
+  "litematica-printer.config.voidWarehouseMaterialList": "材料列表计入虚空仓库库存",
+  "litematica-printer.config.voidWarehouseMaterialList.desc": "材料列表里的「已有数量」= 玩家背包 + 虚空仓库，缺料清单因此只会剩下仓库里也拿不到的材料，一眼就能看出还需要去收集什么。\n与补货共用同一条服务端能力：需要服务端安装 carpet-Neko-Addition 且同时开启 §bvoidWarehouse§r 与 §bvoidWarehouseRestock§r 两条 Carpet 规则。\n仅在材料列表界面或材料信息 HUD 打开时每 5 秒查询一次；服务端未开启时自动退避到每分钟一次，中途开启也能自动恢复。",
   "litematica-printer.config.cacheSelectionContainers": "缓存投影选区容器",
   "litematica-printer.config.cacheSelectionContainers.desc": "快捷键：将当前 Litematica AreaSelection 内 Chest Tracker 已记录的容器加入本地远程取物允许列表。",
   "litematica-printer.config.clearContainerCache": "清空容器缓存",

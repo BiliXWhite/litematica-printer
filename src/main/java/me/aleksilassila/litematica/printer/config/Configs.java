@@ -247,6 +247,11 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
         public static final ConfigBoolean VOID_WAREHOUSE_RESTOCK = bool("voidWarehouseRestock")
                 .defaultValue(true)
                 .build();
+
+        // 虚空仓库库存：材料列表里的「已有数量」把仓库库存也算进去
+        public static final ConfigBoolean VOID_WAREHOUSE_MATERIAL_LIST = bool("voidWarehouseMaterialList")
+                .defaultValue(true)
+                .build();
         //#endif
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
@@ -260,6 +265,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 Placement.STORE_ORDERLY,
                 //#if MC >= 12111
                 VOID_WAREHOUSE_RESTOCK,
+                VOID_WAREHOUSE_MATERIAL_LIST,
                 //#endif
                 REMOTE_TAKE
         );

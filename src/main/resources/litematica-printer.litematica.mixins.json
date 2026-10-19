@@ -7,6 +7,7 @@
     "printer.litematica.EasyPlaceUtilsAccessor",
     "printer.litematica.InventoryUtilsAccessor",
     "printer.litematica.MixinInventoryUtils",
+    ${void_warehouse_litematica_mixins}
     "printer.litematica.MixinChunkRendererSchematicVbo",
     "printer.litematica.MixinChunkRenderDispatcherSchematic"
   ],
