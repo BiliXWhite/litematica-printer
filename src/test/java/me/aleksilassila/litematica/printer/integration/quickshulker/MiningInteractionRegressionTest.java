@@ -6,6 +6,8 @@ import me.aleksilassila.litematica.printer.interaction.*;
 import me.aleksilassila.litematica.printer.integration.tweakeroo.TweakerooToolSwitchPort;
 import me.aleksilassila.litematica.printer.mixin.printer.mc.MixinClientLevel;
 import me.aleksilassila.litematica.printer.utils.InventorySwitchGuard;
+import me.aleksilassila.litematica.printer.utils.InteractionUtils;
+import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
 import me.aleksilassila.litematica.printer.utils.minecraft.NetworkUtils;
 import me.aleksilassila.litematica.printer.utils.minecraft.PredictiveAction;
 import net.minecraft.client.Minecraft;
@@ -35,6 +37,8 @@ import me.aleksilassila.litematica.printer.mixin_extension.*;
 import me.aleksilassila.litematica.printer.runtime.*;
 import me.aleksilassila.litematica.printer.handler.*;
 import me.aleksilassila.litematica.printer.handler.handlers.MineHandler;
+import me.aleksilassila.litematica.printer.handler.handlers.PrintHandler;
+import me.aleksilassila.litematica.printer.handler.handlers.print.*;
 import me.aleksilassila.litematica.printer.enums.*;
 import me.aleksilassila.litematica.printer.core.runtime.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -69,9 +73,12 @@ class MiningInteractionRegressionTest {
         float speed;
         Abilities abilities;
         Inventory inventory;
+        ItemStack held;
         @Override public Abilities getAbilities() { return abilities; }
         @Override public Inventory getInventory() { return inventory; }
-        @Override public ItemStack getMainHandItem() { return ItemStack.EMPTY; }
+        @Override public ItemStack getMainHandItem() { return held; }
+        @Override public boolean blockActionRestricted(net.minecraft.world.level.Level level, BlockPos pos,
+                net.minecraft.world.level.GameType mode) { return false; }
         @Override public float getDestroySpeed(BlockState state) { return speed; }
         @Override public boolean hasCorrectToolForDrops(BlockState state) { return true; }
         @Override public void resetAttackStrengthTicker() { }
@@ -122,6 +129,9 @@ class MiningInteractionRegressionTest {
         @Override public WorldBorder getWorldBorder() { return border; }
         @Override public long getGameTime() { return tick; }
         @Override public void destroyBlockProgress(int id, BlockPos pos, int stage) { }
+        //#if MC >= 260300
+        //$$ @Override public void addBreakingBlockEffects(BlockPos pos, Direction direction, boolean sound) { }
+        //#endif
         //#if MC > 11802
         @Override public void syncBlockState(BlockPos pos, BlockState authoritative, Vec3 oldPosition) { state = authoritative; }
         //#endif
@@ -153,7 +163,15 @@ class MiningInteractionRegressionTest {
         public boolean isDestroying() { return destroying; }
         public void isDestroying(boolean d) { destroying = d; }
         public boolean destroyBlock(BlockPos p) { localDestroys++; ((Level) client.level).predictDestroy(p); return true; }
-        public boolean matchesDestroyTarget(BlockPos p) { return pos.equals(p); }
+        public boolean matchesDestroyTarget(BlockPos p) {
+            try {
+                set(client.gameMode, MultiPlayerGameMode.class, "destroyBlockPos", pos);
+                set(client.gameMode, MultiPlayerGameMode.class, "destroyingItem", item);
+                var method = MultiPlayerGameMode.class.getDeclaredMethod("sameDestroyTarget", BlockPos.class);
+                method.setAccessible(true);
+                return (boolean) method.invoke(client.gameMode, p);
+            } catch (Exception e) { throw new AssertionError(e); }
+        }
         public boolean isInventorySwitchPending() { return false; }
         public void ensureCarriedItemSent() { }
         public ServerboundPlayerActionPacket actionPacket(ServerboundPlayerActionPacket.Action a, BlockPos p, Direction d, int s) {
@@ -195,10 +213,12 @@ class MiningInteractionRegressionTest {
     static class Fixture implements AutoCloseable {
         final Object oldClient = get(null, Minecraft.class, "instance");
         final Object oldNetworkClient = get(null, NetworkUtils.class, "client");
+        final Object oldInteractionClient = get(null, InteractionUtils.class, "client");
         final Object oldRuntime = get(null, RuntimeAccess.class, "current");
         final boolean oldDelayed = Configs.Break.BREAK_USE_DELAYED_DESTROY.getBooleanValue();
         final boolean oldAutoTool = Configs.Break.BREAK_AUTO_TOOL.getBooleanValue();
         final boolean oldWork = Configs.Core.WORK_SWITCH.getBooleanValue();
+        final boolean oldIceForWater = Configs.Print.PRINT_ICE_FOR_WATER.getBooleanValue();
         final Object oldMode = Configs.Core.WORK_MODE.getOptionListValue();
         final Object oldType = Configs.Core.WORK_MODE_TYPE.getOptionListValue();
         Minecraft client = alloc(Minecraft.class);
@@ -208,6 +228,9 @@ class MiningInteractionRegressionTest {
         Port port = new Port();
         MiningInteractionController controller;
         MineHandler mineHandler = alloc(MineHandler.class);
+        PrintHandler printHandler = alloc(PrintHandler.class);
+        InteractionUtils interactions = new InteractionUtils();
+        PrintWorkflowScheduler workflows = new PrintWorkflowScheduler(() -> level.tick, null);
         RuntimeScope scope = new RuntimeScope();
         Fixture(float delta, boolean delayed) throws Exception {
             Configs.Break.BREAK_USE_DELAYED_DESTROY.setBooleanValue(delayed);
@@ -216,6 +239,7 @@ class MiningInteractionRegressionTest {
             Configs.Core.WORK_MODE.setOptionListValue(WorkingModeType.SINGLE);
             Configs.Core.WORK_MODE_TYPE.setOptionListValue(PrintModeType.MINE);
             player.speed = delta * 45;
+            player.held = ItemStack.EMPTY;
             player.setId(42);
             player.abilities = new Abilities();
             //#if MC >= 260100
@@ -231,6 +255,7 @@ class MiningInteractionRegressionTest {
             level.player = player;
             //#if MC > 11802
             level.predictions = new BlockStatePredictionHandler();
+            set(level, ClientLevel.class, "blockStatePredictionHandler", level.predictions);
             //#endif
             level.bridge = new PredictionBridge();
             //#if MC > 11802
@@ -247,10 +272,12 @@ class MiningInteractionRegressionTest {
             client.gameMode = gameMode;
             set(client.gameMode, MultiPlayerGameMode.class, "minecraft", client);
             set(client.gameMode, MultiPlayerGameMode.class, "connection", connection);
+            set(client.gameMode, MultiPlayerGameMode.class, "localPlayerMode", net.minecraft.world.level.GameType.SURVIVAL);
             set(client, Minecraft.class, "soundManager", alloc(Sounds.class));
             set(client, Minecraft.class, "tutorial", alloc(Tutorial.class));
             set(null, Minecraft.class, "instance", client);
             set(null, NetworkUtils.class, "client", client);
+            set(null, InteractionUtils.class, "client", client);
             var tweakeroo = (TweakerooToolSwitchPort) Proxy.newProxyInstance(getClass().getClassLoader(),
                     new Class<?>[]{TweakerooToolSwitchPort.class}, (p,m,a) -> m.getReturnType() == boolean.class ? false : null);
             port.client = client;
@@ -264,7 +291,10 @@ class MiningInteractionRegressionTest {
             var runtime = alloc(PrinterRuntime.class);
             var modules = alloc(FeatureModuleSet.class);
             set(modules, FeatureModuleSet.class, "mine", mineHandler);
+            set(modules, FeatureModuleSet.class, "print", printHandler);
+            set(printHandler, PrintHandler.class, "printTasks", workflows);
             set(runtime, PrinterRuntime.class, "modules", modules);
+            set(runtime, PrinterRuntime.class, "interactionUtils", interactions);
             RuntimeAccess.install(runtime);
             for (var name : List.of("mc", "level", "player", "connection", "gameMode")) {
                 Object value = switch (name) {
@@ -275,6 +305,7 @@ class MiningInteractionRegressionTest {
                     default -> client.gameMode;
                 };
                 set(mineHandler, FeatureModuleBase.class, name, value);
+                set(printHandler, FeatureModuleBase.class, name, value);
             }
         }
         BlockBreakResult mine() { return controller.continueForMine(TARGET, Direction.DOWN, false); }
@@ -291,6 +322,7 @@ class MiningInteractionRegressionTest {
                 next.bridge = new PredictionBridge();
                 //#if MC > 11802
                 next.predictions = new BlockStatePredictionHandler();
+                set(next, ClientLevel.class, "blockStatePredictionHandler", next.predictions);
                 set(next.bridge, MixinClientLevel.class, "blockStatePredictionHandler", next.predictions);
                 //#endif
                 client.level = next;
@@ -314,21 +346,65 @@ class MiningInteractionRegressionTest {
             if (!ci.isCancelled()) vanillaCancel();
         }
         void vanillaCancel() throws Exception {
+            copyToVanilla();
+            client.gameMode.stopDestroyBlock();
+            copyFromVanilla();
+        }
+        void vanillaStart(BlockPos pos) throws Exception {
+            copyToVanilla();
+            client.gameMode.startDestroyBlock(pos, Direction.DOWN);
+            copyFromVanilla();
+        }
+        void vanillaContinue(BlockPos pos) throws Exception {
+            copyToVanilla();
+            client.gameMode.continueDestroyBlock(pos, Direction.DOWN);
+            copyFromVanilla();
+        }
+        void copyToVanilla() throws Exception {
             set(client.gameMode, MultiPlayerGameMode.class, "destroyBlockPos", port.pos);
             set(client.gameMode, MultiPlayerGameMode.class, "destroyProgress", port.progress);
             set(client.gameMode, MultiPlayerGameMode.class, "isDestroying", port.destroying);
-            client.gameMode.stopDestroyBlock();
+            set(client.gameMode, MultiPlayerGameMode.class, "destroyingItem", port.item);
+        }
+        void copyFromVanilla() throws Exception {
             port.pos = (BlockPos) get(client.gameMode, MultiPlayerGameMode.class, "destroyBlockPos");
             port.progress = (float) get(client.gameMode, MultiPlayerGameMode.class, "destroyProgress");
             port.destroying = (boolean) get(client.gameMode, MultiPlayerGameMode.class, "isDestroying");
+            port.item = (ItemStack) get(client.gameMode, MultiPlayerGameMode.class, "destroyingItem");
+        }
+        WaterPrintTask waterTask(boolean ice) throws Exception {
+            Configs.Core.WORK_MODE_TYPE.setOptionListValue(PrintModeType.PRINTER);
+            Configs.Print.PRINT_ICE_FOR_WATER.setBooleanValue(true);
+            if (ice) {
+                level.state = Blocks.ICE.defaultBlockState();
+                player.speed = 0.2f * 15;
+            }
+            var ctor = WaterPrintTask.class.getDeclaredConstructor(BlockPos.class, java.util.function.LongSupplier.class);
+            ctor.setAccessible(true);
+            WaterPrintTask task = ctor.newInstance(TARGET, (java.util.function.LongSupplier) () -> level.tick);
+            @SuppressWarnings("unchecked")
+            var tasks = (Map<BlockPos, PrintTask>) get(workflows, PrintWorkflowScheduler.class, "tasks");
+            tasks.put(TARGET, task);
+            return task;
+        }
+        void advanceWaterTask(WaterPrintTask task) throws Exception {
+            var context = alloc(SchematicBlockContext.class);
+            set(context, SchematicBlockContext.class, "client", client);
+            set(context, SchematicBlockContext.class, "level", level);
+            set(context, SchematicBlockContext.class, "blockPos", TARGET);
+            set(context, SchematicBlockContext.class, "currentState", level.state);
+            set(context, SchematicBlockContext.class, "requiredState", Blocks.WATER.defaultBlockState());
+            task.buildAction(context);
         }
         @Override public void close() throws Exception {
             set(null, Minecraft.class, "instance", oldClient);
             set(null, NetworkUtils.class, "client", oldNetworkClient);
+            set(null, InteractionUtils.class, "client", oldInteractionClient);
             set(null, RuntimeAccess.class, "current", oldRuntime);
             Configs.Break.BREAK_USE_DELAYED_DESTROY.setBooleanValue(oldDelayed);
             Configs.Break.BREAK_AUTO_TOOL.setBooleanValue(oldAutoTool);
             Configs.Core.WORK_SWITCH.setBooleanValue(oldWork);
+            Configs.Print.PRINT_ICE_FOR_WATER.setBooleanValue(oldIceForWater);
             Configs.Core.WORK_MODE.setOptionListValue((fi.dy.masa.malilib.config.IConfigOptionListEntry) oldMode);
             Configs.Core.WORK_MODE_TYPE.setOptionListValue((fi.dy.masa.malilib.config.IConfigOptionListEntry) oldType);
         }
@@ -393,6 +469,28 @@ class MiningInteractionRegressionTest {
         }
     }
 
+    @Test void solidServerReplyDoesNotConfirmADelayedFastBreakOrBlockManualMiningElsewhere() throws Exception {
+        try (var f = new Fixture(1.2f, true)) {
+            f.mine();
+            f.controller.confirmServerBlockUpdate(TARGET);
+            assertTrue(f.controller.isPendingDelayedDestroy(TARGET));
+            f.player.speed = 0.2f * 45;
+            f.vanillaStart(TARGET.east());
+            f.vanillaContinue(TARGET.east());
+            f.idleInput(false);
+            assertFalse(f.port.destroying);
+            assertTrue(f.controller.isPendingDelayedDestroy(TARGET));
+            assertEquals(List.of(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
+                    ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK,
+                    ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
+                    ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK), actions(f));
+            assertEquals(0, f.port.localDestroys);
+            f.level.state = Blocks.AIR.defaultBlockState();
+            f.controller.confirmServerBlockUpdate(TARGET);
+            assertFalse(f.controller.isPendingDelayedDestroy(TARGET));
+        }
+    }
+
     @Test void explicitVanillaCancellationRestartsWithStartInsteadOfResumingOldProgress() throws Exception {
         try (var f = new Fixture(0.2f, false)) {
             f.mine(); f.level.tick++; f.mine();
@@ -418,6 +516,171 @@ class MiningInteractionRegressionTest {
             assertEquals(List.of(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
                     ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK), actions(f));
             assertFalse(f.level.state.isAir());
+        }
+    }
+
+    @Test void printRemovalAlsoSurvivesIdleInputAndFinishesSlowMining() throws Exception {
+        try (var f = new Fixture(0.2f, true)) {
+            Configs.Core.WORK_MODE_TYPE.setOptionListValue(PrintModeType.PRINTER);
+            f.interactions.continueDestroyBlock(TARGET);
+            for (int tick = 0; tick < 20 && !f.controller.isPendingDelayedDestroy(TARGET); tick++) {
+                f.level.tick++; f.idleInput(false);
+                f.interactions.continueDestroyBlock(TARGET);
+            }
+            assertTrue(f.controller.isPendingDelayedDestroy(TARGET),
+                    "The shared print removal path must not loop START/ABORT on idle input");
+            assertEquals(List.of(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
+                    ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK), actions(f));
+            assertFalse(f.level.state.isAir());
+        }
+    }
+
+    @ParameterizedTest @ValueSource(booleans = {false, true})
+    void waterWorkflowUntrackedMiningAlsoSurvivesIdleInput(boolean ice) throws Exception {
+        try (var f = new Fixture(0.2f, true)) {
+            var task = f.waterTask(ice);
+            f.advanceWaterTask(task);
+            assertFalse(f.interactions.hasActiveDestroyTarget(), "Water workflow owns its own target");
+            for (int tick = 0; tick < 20 && !f.controller.isPendingDelayedDestroy(TARGET); tick++) {
+                f.level.tick++; f.idleInput(false); f.advanceWaterTask(task);
+            }
+            assertTrue(f.controller.isPendingDelayedDestroy(TARGET),
+                    "Water removal and ice breaking must not restart on every idle tick");
+            assertEquals(List.of(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
+                    ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK), actions(f));
+            assertFalse(f.level.state.isAir());
+        }
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"mine", "print", "disabled"})
+    void manualMiningWithoutAnAutomaticOwnerStillStopsOnRelease(String mode) throws Exception {
+        try (var f = new Fixture(0.2f, true)) {
+            Configs.Core.WORK_MODE_TYPE.setOptionListValue(mode.equals("mine") ? PrintModeType.MINE : PrintModeType.PRINTER);
+            Configs.Core.WORK_SWITCH.setBooleanValue(!mode.equals("disabled"));
+            f.vanillaStart(TARGET);
+            f.vanillaContinue(TARGET);
+            assertTrue(f.port.destroying);
+            assertTrue(f.port.progress > 0);
+            f.idleInput(false);
+            assertFalse(f.port.destroying);
+            assertEquals(List.of(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
+                    ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK), actions(f));
+            assertEquals(0, f.port.localDestroys);
+        }
+    }
+
+    @ParameterizedTest @ValueSource(booleans = {false, true})
+    void manualTargetChangeAndReleaseAreNotCapturedByTheOldAutomaticTarget(boolean printing) throws Exception {
+        try (var f = new Fixture(0.2f, true)) {
+            if (printing) {
+                Configs.Core.WORK_MODE_TYPE.setOptionListValue(PrintModeType.PRINTER);
+                f.interactions.continueDestroyBlock(TARGET);
+            } else {
+                f.mine(); f.activeTarget(TARGET);
+            }
+            f.vanillaStart(TARGET.east());
+            f.vanillaContinue(TARGET.east());
+            f.idleInput(false);
+            assertFalse(f.port.destroying);
+            assertEquals(List.of(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
+                    ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK,
+                    ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
+                    ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK), actions(f));
+            assertEquals(TARGET.east(), f.connection.packets.get(3).getPos());
+            assertEquals(0, f.port.localDestroys);
+        }
+    }
+
+    @ParameterizedTest @ValueSource(booleans = {false, true})
+    void changingTheHeldItemCancelsTheOldSessionBeforeAutomaticRestart(boolean printing) throws Exception {
+        try (var f = new Fixture(0.2f, true)) {
+            if (printing) {
+                Configs.Core.WORK_MODE_TYPE.setOptionListValue(PrintModeType.PRINTER);
+                f.interactions.continueDestroyBlock(TARGET);
+            } else {
+                f.mine(); f.activeTarget(TARGET);
+            }
+            f.player.held = new ItemStack(net.minecraft.world.item.Items.STONE_PICKAXE);
+            f.idleInput(false);
+            assertFalse(f.port.destroying);
+            if (printing) f.interactions.continueDestroyBlock(TARGET);
+            else f.mine();
+            assertEquals(List.of(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
+                    ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK,
+                    ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK), actions(f));
+            assertEquals(0.2f, f.port.progress, 0.0001f);
+            assertFalse(f.level.state.isAir());
+        }
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"work", "mode", "queue", "connection", "world", "player", "game_mode"})
+    void printIdleProtectionEndsWhenItsOwnerOrClientScopeChanges(String change) throws Exception {
+        try (var f = new Fixture(0.2f, true)) {
+            Configs.Core.WORK_MODE_TYPE.setOptionListValue(PrintModeType.PRINTER);
+            f.interactions.continueDestroyBlock(TARGET);
+            assertTrue(f.printHandler.shouldKeepMiningOnIdleInput());
+            switch (change) {
+                case "work" -> Configs.Core.WORK_SWITCH.setBooleanValue(false);
+                case "mode" -> Configs.Core.WORK_MODE_TYPE.setOptionListValue(PrintModeType.MINE);
+                case "queue" -> f.interactions.resetRuntime();
+                case "connection" -> f.switchServer(false);
+                case "world" -> f.switchServer(true);
+                case "player" -> f.client.player = null;
+                case "game_mode" -> f.client.gameMode = null;
+            }
+            assertFalse(f.printHandler.shouldKeepMiningOnIdleInput());
+            if (List.of("work", "mode", "queue").contains(change)) {
+                f.idleInput(false);
+                assertFalse(f.port.destroying);
+                assertEquals(ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK,
+                        actions(f).get(actions(f).size() - 1));
+            }
+        }
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"removed", "waiting", "disabled"})
+    void waterWorkflowOnlyProtectsItsLiveBreakingStage(String change) throws Exception {
+        try (var f = new Fixture(0.2f, true)) {
+            var task = f.waterTask(false);
+            f.advanceWaterTask(task);
+            assertTrue(f.printHandler.shouldKeepMiningOnIdleInput());
+            switch (change) {
+                case "removed" -> f.workflows.clear();
+                case "waiting" -> set(task, WaterPrintTask.class, "stage", WaterTaskStage.WAIT_REMOVE_CONFIRM);
+                case "disabled" -> Configs.Print.PRINT_ICE_FOR_WATER.setBooleanValue(false);
+            }
+            f.idleInput(false);
+            assertFalse(f.port.destroying);
+            assertEquals(List.of(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
+                    ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK), actions(f));
+        }
+    }
+
+    @ParameterizedTest @ValueSource(booleans = {false, true})
+    void printCancellationRestartsButDisableAndScopeResetDoNotResend(boolean water) throws Exception {
+        try (var f = new Fixture(0.2f, true)) {
+            var task = water ? f.waterTask(false) : null;
+            Configs.Core.WORK_MODE_TYPE.setOptionListValue(PrintModeType.PRINTER);
+            if (water) f.advanceWaterTask(task);
+            else f.interactions.continueDestroyBlock(TARGET);
+            f.vanillaCancel();
+            if (water) f.advanceWaterTask(task);
+            else f.interactions.continueDestroyBlock(TARGET);
+            assertEquals(0.2f, f.port.progress, 0.0001f);
+            assertEquals(List.of(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
+                    ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK,
+                    ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK), actions(f));
+            Configs.Core.WORK_SWITCH.setBooleanValue(false);
+            f.idleInput(false);
+            f.epoch("work_switch_disabled");
+            int sent = f.connection.packets.size();
+            for (int tick = 0; tick < 100; tick++) { f.level.tick++; f.controller.tick(); f.idleInput(false); }
+            assertEquals(sent, f.connection.packets.size());
+            f.switchServer(true);
+            f.epoch("client_scope_changed");
+            f.idleInput(false);
+            assertTrue(f.connection.packets.isEmpty());
+            assertEquals(0, f.port.localDestroys);
         }
     }
 

@@ -55,6 +55,11 @@ public final class WaterPrintTask implements PrintTask {
         return this.stage;
     }
 
+    boolean isBreaking() {
+        return Configs.Print.PRINT_ICE_FOR_WATER.getBooleanValue()
+                && (this.stage == WaterTaskStage.REMOVE_EXISTING || this.stage == WaterTaskStage.BREAK_ICE);
+    }
+
     @Override
     public boolean shouldKeep(ClientLevel level, WorldSchematic schematic) {
         if (!Configs.Print.PRINT_ICE_FOR_WATER.getBooleanValue()) {

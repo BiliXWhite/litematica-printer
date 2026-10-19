@@ -172,6 +172,10 @@ public final class InteractionUtils implements RuntimeComponent {
         return this.breakState.activePos() != null;
     }
 
+    public boolean isActiveDestroyTarget(BlockPos pos) {
+        return pos != null && pos.equals(this.breakState.activePos());
+    }
+
     public void suppressQueuedBreaks(int ticks) {
         this.breakState.suppress(ticks);
     }

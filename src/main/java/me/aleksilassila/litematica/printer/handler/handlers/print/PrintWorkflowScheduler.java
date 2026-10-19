@@ -99,6 +99,10 @@ public final class PrintWorkflowScheduler {
         return pos != null && this.tasks.containsKey(pos);
     }
 
+    public boolean isBreakingTaskPos(@Nullable BlockPos pos) {
+        return pos != null && this.tasks.get(pos) instanceof WaterPrintTask water && water.isBreaking();
+    }
+
     public PrintTaskBuildResult buildAction(SchematicBlockContext context) {
         PrintTask task = this.tasks.get(context.blockPos);
         if (task == null) {

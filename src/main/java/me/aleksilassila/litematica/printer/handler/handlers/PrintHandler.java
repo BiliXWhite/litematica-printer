@@ -4,6 +4,7 @@ import com.google.common.collect.Iterables;
 import fi.dy.masa.litematica.world.WorldSchematic;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.PrintModeType;
+import me.aleksilassila.litematica.printer.interaction.MiningInteractionPort;
 import me.aleksilassila.litematica.printer.guide.Guides;
 import me.aleksilassila.litematica.printer.handler.HudStatsManager;
 import me.aleksilassila.litematica.printer.handler.FeatureModuleBase;
@@ -74,6 +75,17 @@ public class PrintHandler extends FeatureModuleBase {
 
     public SchematicBlockContext getContext() {
         return ctx;
+    }
+
+    public boolean shouldKeepMiningOnIdleInput() {
+        return ConfigUtils.isEnable() && ConfigUtils.isPrintMode()
+                && this.mc != null && this.level != null && this.player != null && this.connection != null
+                && this.mc.level == this.level && this.mc.player == this.player
+                && this.mc.getConnection() == this.connection && this.mc.gameMode == this.gameMode
+                && this.gameMode instanceof MiningInteractionPort port
+                && port.isDestroying() && port.matchesDestroyTarget(port.destroyPos())
+                && (InteractionUtils.getRuntime().isActiveDestroyTarget(port.destroyPos())
+                    || this.printTasks.isBreakingTaskPos(port.destroyPos()));
     }
 
     @Override
