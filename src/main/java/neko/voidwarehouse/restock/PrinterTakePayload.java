@@ -40,12 +40,9 @@ import java.util.List;
  * 的全部意义。</p>
  *
  * <h2>纯客户端环境（多人服务器）怎么办</h2>
- * <p>对面服务器没装 {@code carpet-Neko-Addition} 时，{@code SERVERBOUND_PLAY} 表里
- * 根本没有 {@code carpet_neko_addition:printer_take} 这个 key，{@code writeCap} 会
- * 退到原版的 {@code DiscardedPayload} 兜底（它 encode 是空实现）——
- * <b>不会崩，但包内容是丢的</b>。所以发之前必须先问
- * {@code ClientPlayNetworking.canSend}（见 {@code VoidWarehouseRestockNetwork#isSupported}），
- * 对面不支持就干脆不发。</p>
+ * <p>客户端必须自行注册 C2S codec，远端服务端的注册表不会传到本地。
+ * 发送前还要通过 {@code ClientPlayNetworking.canSend} 检查对端的通道支持；
+ * 本地能够编码并不表示远端能够接收。</p>
  *
  * <h2>关于 {@code MAX_CANDIDATES}</h2>
  * <p>{@code ByteBufCodecs.list(n)} 在解码时会按 {@code n} 限长，这个值两端必须一致，

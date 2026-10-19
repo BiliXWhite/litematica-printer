@@ -5,8 +5,8 @@ package me.aleksilassila.litematica.printer.integration.voidwarehouse;
  * {@link #netGap} 算出「缺失数量」。
  *
  * <h2>为什么单独一个类</h2>
- * <p>真正的注入点是两个 Mixin（{@code MaterialListEntry#getCountAvailable} 与
- * {@code #getCountMissing}），而 Mixin 在单元测试里<b>不会生效</b>（没有 Fabric 的加载期织入）。
+ * <p>已有数量由 {@code MaterialListEntry#getCountAvailable} 注入，收集缺口只在 GUI/HUD 计算。
+ * 普通单元测试没有 Fabric 的加载期织入。
  * 把判断逻辑挪到这里，注入点就退化成「拿返回值、算一下、塞回去」三行胶水，
  * 而所有真正会出错的边界（溢出、负数、仓库没数据）都能被普通 JUnit 直接咬住。</p>
  *
@@ -19,6 +19,12 @@ package me.aleksilassila.litematica.printer.integration.voidwarehouse;
 public final class VoidWarehouseMaterialCounts {
 
     private VoidWarehouseMaterialCounts() {
+    }
+
+    /** Multiplier 1 uses unfinished world blocks; larger multipliers request complete copies. */
+    public static int demand(int total, int missing, int multiplier) {
+        return multiplier == 1 ? missing
+                : (int) Math.min(Integer.MAX_VALUE, Math.max(0L, (long) total * multiplier));
     }
 
     /**

@@ -42,11 +42,9 @@ import java.util.Set;
  * <p>另有一次<b>超时</b>：请求发出去 {@value #RESPONSE_TIMEOUT_TICKS} tick 没等到回执就放弃，
  * 免得一次丢包把刷新永久卡死（{@code pending} 再也出不来）。</p>
  *
- * <h2>C2S 为什么这次要自己注册</h2>
- * <p>取货通道那边客户端没注册，靠的是「单人存档里服务端模组同进程、已经帮它注册过了」。
- * 那在<b>专用服务器</b>上不成立（两个进程，客户端那张表是空的），
- * 而 Fabric 的 API 文档写得很清楚：「{@code ClientPlayNetworking} 发出的包必须<b>两端</b>都注册」。
- * 所以这里两个方向都注册，并且都写成幂等形式（单人环境下服务端已经注册过，
+ * <h2>C2S 为什么要自己注册</h2>
+ * <p>查询与取货通道都必须在客户端注册编码器，专用服务器的注册表不会传到本地。
+ * 这里两个方向都注册，并且都写成幂等形式（单人环境下服务端已经注册过，
  * {@code register} 撞名会抛 {@code IllegalArgumentException}，吞掉即可）。</p>
  */
 public final class VoidWarehouseMaterialNetwork {

@@ -2,6 +2,8 @@ package me.aleksilassila.litematica.printer.integration.voidwarehouse;
 
 //#if MC >= 12111
 import me.aleksilassila.litematica.printer.config.Configs;
+import me.aleksilassila.litematica.printer.core.action.ResourceLease;
+import me.aleksilassila.litematica.printer.printer.action.ActionPort;
 import me.aleksilassila.litematica.printer.integration.inventory.InventoryProvider;
 import me.aleksilassila.litematica.printer.integration.inventory.MaterialRequest;
 import me.aleksilassila.litematica.printer.integration.inventory.MaterialReservation;
@@ -15,6 +17,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -38,10 +41,8 @@ import java.util.List;
  * <p>服务端回 {@code OK} 只说明它发货了，还要经过一次背包同步才会到客户端手上。
  * 以回执为准会出现「判定成功但手上还是空的」，下一步放置必然失败。</p>
  *
- * <h2>为什么不抢租约</h2>
- * <p>这条路径全程不开容器、不点屏幕，东西由服务端直接塞进背包，
- * 客户端这一侧没有任何需要占用主手或背包的操作，因此不申请 {@code ResourceLease}，
- * 同时 {@code blocksPrinterWhilePending} 返回 false，等货期间打印继续。</p>
+ * <p>从发出补货请求到收到背包更新、完成选取期间持有库存租约，
+ * 避免与容器搬运或其他补料组件交叉操作。等待别的组件释放租约不消耗响应超时。</p>
  */
 public final class VoidWarehouseRestockAdapter implements InventoryProvider {
 
@@ -54,14 +55,31 @@ public final class VoidWarehouseRestockAdapter implements InventoryProvider {
      * 5 秒足够让「真的去补货」这件事完成。</p>
      */
     private static final long FAILED_COOLDOWN_TICKS = 100L;
+    private static final String LEASE_OWNER = "void_warehouse";
 
     private final Minecraft client = Minecraft.getInstance();
+    private final ActionPort actionBroker;
+    private final VoidWarehouseRestockPort network;
 
     private MaterialRequest activeRequest;
     private int activeNonce;
 
     private Item lastFailedItem;
     private long lastFailedTick = Long.MIN_VALUE;
+
+    public VoidWarehouseRestockAdapter(ActionPort actionBroker) {
+        this(actionBroker, new VoidWarehouseRestockPort() {
+            @Override public boolean isSupported() { return VoidWarehouseRestockNetwork.isSupported(); }
+            @Override public int requestTake(List<String> candidates) { return VoidWarehouseRestockNetwork.requestTake(candidates); }
+            @Override public int statusOf(int nonce) { return VoidWarehouseRestockNetwork.statusOf(nonce); }
+            @Override public void forget() { VoidWarehouseRestockNetwork.forget(); }
+        });
+    }
+
+    public VoidWarehouseRestockAdapter(ActionPort actionBroker, VoidWarehouseRestockPort network) {
+        this.actionBroker = actionBroker;
+        this.network = network;
+    }
 
     @Override
     public String id() {
@@ -71,18 +89,27 @@ public final class VoidWarehouseRestockAdapter implements InventoryProvider {
     @Override
     public MaterialReservation request(MaterialRequest request) {
         if (!enabled(request)) {
+            finish();
             return unavailable(request);
+        }
+        this.activeRequest = request;
+        if (!acquireResources()) {
+            return pending(request);
         }
         Item availableItem = findAvailableItem(request);
         if (availableItem != null) {
+            selectCompletedPickBlockItem(request, availableItem);
+            finish();
             return MaterialReservation.available(request, availableItem);
         }
         List<String> candidates = candidatesOf(request);
         if (candidates.isEmpty()) {
+            finish();
             return unavailable(request);
         }
-        int nonce = VoidWarehouseRestockNetwork.requestTake(candidates);
+        int nonce = this.network.requestTake(candidates);
         if (nonce == 0) {
+            finish();
             return unavailable(request);
         }
         this.activeRequest = request;
@@ -95,13 +122,24 @@ public final class VoidWarehouseRestockAdapter implements InventoryProvider {
         if (this.activeRequest == null || this.activeRequest.token() != request.token()) {
             return unavailable(request);
         }
+        if (!Configs.Special.VOID_WAREHOUSE_RESTOCK.getBooleanValue()
+                || this.client.player == null || this.client.level == null) {
+            finish();
+            return unavailable(request);
+        }
+        if (this.activeNonce == 0) {
+            return request(request);
+        }
+        if (!acquireResources()) {
+            return pending(request);
+        }
         Item availableItem = findAvailableItem(request);
         if (availableItem != null) {
             selectCompletedPickBlockItem(request, availableItem);
             finish();
             return MaterialReservation.available(request, availableItem);
         }
-        int status = VoidWarehouseRestockNetwork.statusOf(this.activeNonce);
+        int status = this.network.statusOf(this.activeNonce);
         if (status == PrinterTakeResultPayload.NONE) {
             // 还没等到回执，继续等；真超时由 coordinator 负责
             return pending(request);
@@ -122,14 +160,19 @@ public final class VoidWarehouseRestockAdapter implements InventoryProvider {
 
     @Override
     public boolean blocksPrinterWhilePending() {
-        return false;
+        return true;
+    }
+
+    @Override
+    public boolean isWaitingToStart() {
+        return this.activeRequest != null && this.activeNonce == 0;
     }
 
     @Override
     public void reset() {
-        this.activeRequest = null;
-        this.activeNonce = 0;
-        VoidWarehouseRestockNetwork.forget();
+        finish();
+        this.lastFailedItem = null;
+        this.lastFailedTick = Long.MIN_VALUE;
     }
 
     /**
@@ -146,7 +189,7 @@ public final class VoidWarehouseRestockAdapter implements InventoryProvider {
         if (failedRecently(request)) {
             return false;
         }
-        return VoidWarehouseRestockNetwork.isSupported();
+        return this.network.isSupported();
     }
 
     private boolean failedRecently(MaterialRequest request) {
@@ -163,14 +206,22 @@ public final class VoidWarehouseRestockAdapter implements InventoryProvider {
     }
 
     private void finish() {
+        this.actionBroker.releaseOwner(LEASE_OWNER);
         this.activeRequest = null;
         this.activeNonce = 0;
-        VoidWarehouseRestockNetwork.forget();
+        this.network.forget();
+    }
+
+    private boolean acquireResources() {
+        return this.client.player != null
+                && this.client.player.containerMenu == this.client.player.inventoryMenu
+                && this.actionBroker.tryAcquire(LEASE_OWNER,
+                        EnumSet.of(ResourceLease.INVENTORY, ResourceLease.CONTAINER, ResourceLease.MAIN_HAND), 0L);
     }
 
     private Item findAvailableItem(MaterialRequest request) {
         for (Item item : request.acceptedItems()) {
-            if (InventoryUtils.playerHasItemInInventory(this.client.player, item)) {
+            if (InventoryUtils.playerHasItemInInventory(this.client.player, item, request::acceptsStack)) {
                 return item;
             }
         }

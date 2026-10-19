@@ -28,10 +28,8 @@ import java.util.List;
  * {@code ClassCastException} —— 那条路已经彻底废弃。</p>
  *
  * <h2>为什么要先问 {@code canSend}</h2>
- * <p>对端没装服务端模组时，C2S 表里没有这条通道，{@code writeCap} 会退到原版
- * {@code DiscardedPayload} 兜底（encode 是空实现）—— 不会崩，但候选清单会整个丢掉，
- * 白等一场。Fabric 在做完 configuration 阶段的通道同步之后就能回答「对面收不收」，
- * 所以每次请求前先问一句，不支持就直接按「缺料」处理。</p>
+ * <p>本地注册 codec 只负责编码；{@code canSend} 检查的是远端是否接受这个通道。
+ * 两者缺一不可，不能依赖单人环境中服务端模组顺带注册的 codec。</p>
  *
  * <h2>回执怎么存</h2>
  * <p>只保留<b>最新的一对</b>（nonce + 状态）。打印机同时只会有一个未完成的材料请求，
@@ -62,17 +60,27 @@ public final class VoidWarehouseRestockNetwork {
         if (initialized) {
             return;
         }
-        initialized = true;
+        registerTakePayload();
         registerResultReceiver();
+        initialized = true;
+    }
+
+    private static void registerTakePayload() {
+        try {
+            //#if MC >= 260100
+            PayloadTypeRegistry.serverboundPlay().register(PrinterTakePayload.TYPE, PrinterTakePayload.CODEC);
+            //#else
+            //$$ PayloadTypeRegistry.playC2S().register(PrinterTakePayload.TYPE, PrinterTakePayload.CODEC);
+            //#endif
+        } catch (IllegalArgumentException alreadyRegisteredByServerMod) {
+            // Integrated servers share this registry and the identical payload class.
+        }
     }
 
     /**
      * 注册「服务端 → 客户端」的回执通道。
      *
-     * <p><b>C2S 那条不用注册</b>：发送不查注册表，编码查的
-     * {@code SERVERBOUND_PLAY} 表同进程时就是服务端填好的那张。
-     * 这里只处理 S2C —— 客户端是<b>解包方</b>，不在自己的
-     * {@code CLIENTBOUND_PLAY} 表里登记就解不出来。</p>
+     * <p>C2S 与 S2C 都在客户端注册；这里登记回执的解码器和接收器。</p>
      *
      * <h2>为什么要先查表再注册</h2>
      * <p>服务端模组（{@code environment="*"}）在单人环境下也会初始化，

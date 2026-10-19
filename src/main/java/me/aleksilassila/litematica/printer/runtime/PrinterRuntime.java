@@ -225,7 +225,7 @@ public final class PrinterRuntime {
             providers.add(new PlayerInventoryProvider(Minecraft.getInstance()));
             providers.add(new TakeItOutAdapter(this.actionBroker));
             //#if MC >= 12111
-            providers.add(new VoidWarehouseRestockAdapter());
+            providers.add(new VoidWarehouseRestockAdapter(this.actionBroker));
             //#endif
             providers.add(this.quickShulkerAdapter);
             providers.add(this.chestTrackerAdapter);
