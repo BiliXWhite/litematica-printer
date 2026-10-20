@@ -132,6 +132,11 @@ public class HighlightBlockRenderer implements IRenderer {
             //#endif
         }
 
+        //#if MC == 12105
+        // This version uses a global fog value shared with later world renderers.
+        //$$ FogParameters previousFog = RenderSystem.getShaderFog();
+        //$$ try {
+        //#endif
         //#if MC > 12104
             //#if MC > 12105
             RenderSystem.setShaderFog(RenderSystem.getShaderFog());
@@ -153,12 +158,13 @@ public class HighlightBlockRenderer implements IRenderer {
 
         //#if MC > 12006
             //#if MC > 12104
+                // drawPost() closes the render pass, not this context's buffers or allocator.
                 //#if MC == 12105
-                //$$ RenderContext ctx = new RenderContext(MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT, BufferUsage.STATIC_WRITE);
+                //$$ try (RenderContext ctx = new RenderContext(MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT, BufferUsage.STATIC_WRITE)) {
                 //#elseif MC > 260100
-                //$$ RenderContext ctx = new RenderContext(() -> threadName, MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT, 0);
+                //$$ try (RenderContext ctx = new RenderContext(() -> threadName, MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT, 0)) {
                 //#else
-                RenderContext ctx = new RenderContext(() -> threadName, MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT);
+                try (RenderContext ctx = new RenderContext(() -> threadName, MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT)) {
                 //#endif
             BufferBuilder buffer = ctx.getBuilder();
             //#else
@@ -181,9 +187,10 @@ public class HighlightBlockRenderer implements IRenderer {
                 //#if MC > 12006
                 meshData = buffer.buildOrThrow();
                     //#if MC > 12104
-                    ctx.upload(meshData, true);
-                    ctx.startResorting(meshData, ctx.createVertexSorter(fi.dy.masa.malilib.render.RenderUtils.camPos()));
-                    meshData.close();
+                    try (meshData) {
+                        ctx.upload(meshData, true);
+                        ctx.startResorting(meshData, ctx.createVertexSorter(fi.dy.masa.malilib.render.RenderUtils.camPos()));
+                    }
                     ctx.drawPost();
                     //#else
                     //$$ BufferUploader.drawWithShader(meshData);
@@ -198,7 +205,16 @@ public class HighlightBlockRenderer implements IRenderer {
         }
 
         //#if MC > 12104
+        } catch (Exception e) {
+            logRenderFailure(e);
+        }
+        //#if MC == 12105
+        //$$ } finally {
+        //$$     RenderSystem.setShaderFog(previousFog);
+        //$$ }
+        //#else
         RenderSystem.setShaderFog(RenderSystem.getShaderFog());
+        //#endif
         //#else
         //$$ RenderSystem.enableCull();
         //$$ RenderSystem.disableBlend();
