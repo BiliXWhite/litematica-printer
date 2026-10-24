@@ -80,32 +80,25 @@ public class PlacementGuide {
         }
         if (Configs.Print.PRINT_ICE_FOR_WATER.getBooleanValue()
                 && BlockUtils.needsWater(ctx.requiredState)) {
-            boolean canGenerateWater = mc.gameMode != null && !mc.gameMode.getPlayerMode().isCreative();
-            switch (IceForWaterFlow.decideBuildAction(
-                    true,
-                    BlockUtils.isWaterSource(ctx.currentState) || BlockUtils.isWaterlogged(ctx.currentState),
-                    ctx.currentState.getBlock() instanceof IceBlock,
-                    state == BlockMatchingType.MISSING_BLOCK,
-                    iceDownCheck(ctx),
-                    canGenerateWater)) {
-                case PLACE_ICE -> {
-                    return new Action().setItem(Items.ICE);
-                }
-                case PLACE_BLOCK -> {
-                    return buildActionMissingBlock(ctx, requiredType, skip);
-                }
-                case QUEUE_ICE_BREAK -> {
-                    if (!BreakUtils.INSTANCE.inQueue(ctx.blockPos)) BreakUtils.INSTANCE.add(ctx.blockPos);
-                    return new Action().setItem(Items.ICE);
-                }
-                case SKIP -> {
-                    // 创造模式：提示后跳过
-                    if (mc.gameMode != null && mc.gameMode.getPlayerMode().isCreative()
-                            && BlockUtils.needsWater(ctx.requiredState)) {
+            // 已有水：直接放置含水方块
+            if (BlockUtils.isWaterSource(ctx.currentState) || BlockUtils.isWaterlogged(ctx.currentState)) {
+                return buildActionMissingBlock(ctx, requiredType, skip);
+            }
+            // 已是冰：入队挖掘，并返回占位 Action 保证 canProcessPos 通过
+            if (ctx.currentState.getBlock() instanceof IceBlock) {
+                if (!BreakUtils.INSTANCE.inQueue(ctx.blockPos)) BreakUtils.INSTANCE.add(ctx.blockPos);
+                return new Action().setItem(Items.ICE);
+            }
+            // 空位：仅在生存模式且下方能形成水时放冰
+            if (state == BlockMatchingType.MISSING_BLOCK) {
+                boolean canGenerateWater = mc.gameMode != null && !mc.gameMode.getPlayerMode().isCreative();
+                if (!canGenerateWater || iceBelowBlocked(ctx)) {
+                    if (mc.gameMode != null && mc.gameMode.getPlayerMode().isCreative()) {
                         MessageUtils.setOverlayMessage(I18n.ICE_CREATIVE_MODE.getName());
                     }
                     return null;
                 }
+                return new Action().setItem(Items.ICE);
             }
         }
         Action action;
@@ -126,11 +119,12 @@ public class PlacementGuide {
         return action;
     }
 
-    private boolean iceDownCheck(SchematicBlockContext ctx) {
-        Block downBlockState = ctx.level.getBlockState(ctx.blockPos.below()).getBlock();
-        return downBlockState == Blocks.COBWEB
-                || downBlockState == Blocks.BAMBOO_SAPLING
-                || downBlockState instanceof LiquidBlock;
+    /** 冰下方为普通可阻挡方块时，破坏后无法形成水源 */
+    private boolean iceBelowBlocked(SchematicBlockContext ctx) {
+        Block below = ctx.level.getBlockState(ctx.blockPos.below()).getBlock();
+        return below != Blocks.COBWEB
+                && below != Blocks.BAMBOO_SAPLING
+                && !(below instanceof LiquidBlock);
     }
 
     /*** 缺失方块：实际位置为空，或当前方块在可替换列表中且启用了替换功能 ***/

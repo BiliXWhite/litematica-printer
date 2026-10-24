@@ -59,7 +59,6 @@ public class Print extends Module {
     // 等待水ack/冰块放置ack的宽限tick数：期间即使无冰无水也不清除标记，避免重放冰破坏刚生成的水源
     private static final int WAIT_ACK_GRACE_TICKS = 10;
     private int watingForWaterTicks;
-    private boolean placingIceForWater;
 
     public Print() {
         super(NAME, Configs.Print.ENABLED, Configs.Print.PRINT_SELECTION_TYPE, true);
@@ -139,33 +138,26 @@ public class Print extends Module {
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
-        placingIceForWater = false;
+        boolean placingIceForWater = false;
         if (Configs.Print.PRINT_ICE_FOR_WATER.getBooleanValue()
                 && BlockUtils.needsWater(ctx.requiredState)) {
             boolean isWaitingHere = watingForWaterPos != null && watingForWaterPos.equals(blockPos);
             boolean isIce = ctx.currentState.getBlock() instanceof IceBlock;
-            boolean matchesWaterRequest = BlockUtils.isWaterSource(ctx.currentState) || BlockUtils.isWaterlogged(ctx.currentState);
+            boolean waterReady = BlockUtils.isWaterSource(ctx.currentState) || BlockUtils.isWaterlogged(ctx.currentState);
             // 等待标记过期：连续 WAIT_ACK_GRACE_TICKS 个等待tick内无冰无水且无待挖掘任务（如水被玩家/活塞移除）
             // 才清除标记。宽限期覆盖冰块放置/破坏后的 ack 往返，避免重放冰破坏刚生成的水源。
-            if (isWaitingHere && !isIce && !matchesWaterRequest && !BreakUtils.INSTANCE.inQueue(blockPos)
+            if (isWaitingHere && !isIce && !waterReady && !BreakUtils.INSTANCE.inQueue(blockPos)
                     && watingForWaterTicks >= WAIT_ACK_GRACE_TICKS) {
-                watingForWaterPos = null;
-                watingForWaterTicks = 0;
+                clearWaterWait();
                 isWaitingHere = false;
             }
-            switch (IceForWaterFlow.decide(
-                    true, isWaitingHere, isIce, matchesWaterRequest, watingForWaterTicks, MAX_WAIT_WATER_TICKS)) {
+            switch (IceForWaterFlow.decide(isWaitingHere, isIce, waterReady, watingForWaterTicks, MAX_WAIT_WATER_TICKS)) {
                 case PLACE_BLOCK -> {
-                    if (isWaitingHere) {
-                        watingForWaterPos = null;
-                        watingForWaterTicks = 0;
-                    }
                     // 水已生成：走下方正常放置流程，放置含水方块（buildAction 已返回对应 Action）
+                    if (isWaitingHere) clearWaterWait();
                 }
                 case KEEP_WAITING -> {
-                    if (isIce) {
-                        ensureIceBreakQueued(blockPos);
-                    }
+                    if (isIce) ensureIceBreakQueued(blockPos);
                     watingForWaterTicks++;
                     enterWaiting(blockPos);
                     skipIteration.set(true);
@@ -173,25 +165,17 @@ public class Print extends Module {
                 }
                 case WAIT_TIMEOUT -> {
                     // 等待 MAX_WAIT_WATER_TICKS tick 仍无水生成：警告并关闭打印机
-                    watingForWaterPos = null;
-                    watingForWaterTicks = 0;
+                    clearWaterWait();
                     MessageUtils.setOverlayMessage(I18n.ICE_WATER_TIMEOUT.getName());
                     Configs.Core.WORK_SWITCH.setBooleanValue(false);
                     return;
                 }
                 case BREAK_ICE_AND_WAIT -> {
-                    ensureIceBreakQueued(blockPos);
-                    watingForWaterPos = blockPos.immutable();
-                    watingForWaterTicks = 0;
-                    enterWaiting(blockPos);
+                    queueIceBreakAndWait(blockPos);
                     skipIteration.set(true);
                     return;
                 }
-                case PLACE_ICE -> {
-                    placingIceForWater = true; // 走下方正常放置流程放冰
-                }
-                case SKIP -> {
-                }
+                case PLACE_ICE -> placingIceForWater = true; // 走下方正常放置流程放冰
             }
         }
         // 下落检查
@@ -252,14 +236,10 @@ public class Print extends Module {
         action.queueAction(blockPos, side, useShift, player);
         // 放冰完成：入队挖掘并进入等待水生成
         if (placingIceForWater) {
-            placingIceForWater = false;
             ActionManager.INSTANCE.setLook(action.getPlayerLook());
             ActionManager.INSTANCE.setNeedWaitModifyLookFromAction(action.getNeedWaitModifyLook());
             ActionManager.INSTANCE.sendQueue(player);
-            ensureIceBreakQueued(blockPos);
-            watingForWaterPos = blockPos.immutable();
-            watingForWaterTicks = 0;
-            enterWaiting(blockPos);
+            queueIceBreakAndWait(blockPos);
             skipIteration.set(true);
             return;
         }
@@ -284,9 +264,19 @@ public class Print extends Module {
     @Override
     public void resetScanState() {
         super.resetScanState();
+        clearWaterWait();
+    }
+
+    private void queueIceBreakAndWait(BlockPos pos) {
+        ensureIceBreakQueued(pos);
+        watingForWaterPos = pos.immutable();
+        watingForWaterTicks = 0;
+        enterWaiting(pos);
+    }
+
+    private void clearWaterWait() {
         watingForWaterPos = null;
         watingForWaterTicks = 0;
-        placingIceForWater = false;
     }
 
     private void ensureIceBreakQueued(BlockPos pos) {
