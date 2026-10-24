@@ -7,6 +7,8 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.handler.handlers.*;
 import me.aleksilassila.litematica.printer.printer.ActionManager;
 import me.aleksilassila.litematica.printer.printer.MissingMaterialTracker;
+import me.aleksilassila.litematica.printer.search.SearchScheduler;
+import me.aleksilassila.litematica.printer.search.SearchSpec;
 import me.aleksilassila.litematica.printer.utils.BreakUtils;
 import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.ModUtils;
@@ -14,6 +16,9 @@ import me.aleksilassila.litematica.printer.utils.QuickShulkerUtils;
 import me.aleksilassila.litematica.printer.utils.RemoteContainerUtils;
 import me.aleksilassila.litematica.printer.compat.TakeItOutCompat;
 import net.minecraft.client.Minecraft;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ModuleManager {
     public static final Minecraft mc = Minecraft.getInstance();
@@ -56,6 +61,18 @@ public class ModuleManager {
             }
         }
         lastPrinterEnabled = printerEnabled;
+
+        // 后台异步搜索：工作池空闲时提交新一轮扫描，主线程随后从队列消费
+        if (printerEnabled && !SearchScheduler.INSTANCE.isBusy()) {
+            List<SearchSpec> specs = new ArrayList<>();
+            for (Module module : VALUES) {
+                SearchSpec spec = module.buildSearchSpec();
+                if (spec != null) specs.add(spec);
+            }
+            if (!specs.isEmpty()) {
+                SearchScheduler.INSTANCE.submit(specs, Configs.Core.SEARCH_THREADS.getIntegerValue());
+            }
+        }
 
         MissingMaterialTracker.getInstance().startCycle();
 

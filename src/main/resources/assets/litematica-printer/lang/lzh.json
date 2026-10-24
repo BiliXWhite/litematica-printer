@@ -134,6 +134,8 @@
   "litematica-printer.config.iterationOrder.yzx": "Y→Z→X",
   "litematica-printer.config.iterationOrder.zxy": "Z→X→Y",
   "litematica-printer.config.iterationOrder.zyx": "Z→Y→X",
+  "litematica-printer.config.searchThreads": "後臺搜尋執行緒數",
+  "litematica-printer.config.searchThreads.desc": "後臺非同步掃描方塊所使用的工作執行緒數。\n執行緒越多掃描越快，但會佔用更多 CPU。",
   "litematica-printer.config.iterationTimeLimit": "迭代時限",
   "litematica-printer.config.iterationTimeLimit.desc": "每遊戲刻迭代方塊之最長時(毫秒)。\n設0則不限。\n預10毫秒衡效速，可調。",
   "litematica-printer.config.classifyByBlock": "按類分塊",

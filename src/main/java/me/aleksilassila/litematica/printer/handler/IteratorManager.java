@@ -238,6 +238,23 @@ public class IteratorManager {
         return box != null;
     }
 
+    // 当前扫描框使用的形状过滤
+    @Nullable
+    public RadiusShapeType getShapeType() {
+        return shapeType;
+    }
+
+    // 构建扫描框时捕获的玩家眼睛坐标
+    @Nullable
+    public Vec3 getEyePos() {
+        return eyePos;
+    }
+
+    // 构建扫描框时捕获的有效工作半径
+    public double getEffectiveRange() {
+        return effectiveRange;
+    }
+
     /**
      * 使用脏区域迭代器替换当前迭代器（用于 PARTIAL 模式）。
      */

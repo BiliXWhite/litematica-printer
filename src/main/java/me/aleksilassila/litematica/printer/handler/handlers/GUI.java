@@ -9,8 +9,10 @@ import me.aleksilassila.litematica.printer.enums.BlockMatchingType;
 import me.aleksilassila.litematica.printer.handler.Module;
 import me.aleksilassila.litematica.printer.handler.ModuleManager;
 import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
+import me.aleksilassila.litematica.printer.search.SearchSpec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.LiquidBlock;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
@@ -42,6 +44,12 @@ public class GUI extends Module {
     @Override
     protected boolean needsAreaCheck() {
         return false;
+    }
+
+    // GUI 统计模块自行在主线程分批扫描，不参与异步搜索
+    @Override
+    public @Nullable SearchSpec buildSearchSpec() {
+        return null;
     }
 
     @Override

@@ -271,7 +271,7 @@ public class Print extends Module {
         ActionManager.INSTANCE.setLook(action.getPlayerLook());
         ActionManager.INSTANCE.setNeedWaitModifyLookFromAction(action.getNeedWaitModifyLook());
         boolean needWait = ActionManager.INSTANCE.sendQueue(player).needWaitModifyLook;
-        if (needWait || hitModifier != null) {
+        if (needWait) {
             skipIteration.set(true);
         }
         setCooldown(blockPos, ConfigUtils.getPlaceCooldown());

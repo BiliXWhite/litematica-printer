@@ -134,6 +134,8 @@
   "litematica-printer.config.iterationOrder.yzx": "Y→Z→X",
   "litematica-printer.config.iterationOrder.zxy": "Z→X→Y",
   "litematica-printer.config.iterationOrder.zyx": "Z→Y→X",
+  "litematica-printer.config.searchThreads": "Search Threads",
+  "litematica-printer.config.searchThreads.desc": "Number of background worker threads used for asynchronous block scanning.\nMore threads scan faster but use more CPU.",
   "litematica-printer.config.iterationTimeLimit": "Iteration Time Limit",
   "litematica-printer.config.iterationTimeLimit.desc": "Maximum time for block iteration per game tick (milliseconds).\nSet to 0 to disable.\nDefault 10 ms balances performance and speed, adjust as needed.",
   "litematica-printer.config.classifyByBlock": "Classify by Block Type",

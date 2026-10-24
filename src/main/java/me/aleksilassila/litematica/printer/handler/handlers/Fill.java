@@ -34,7 +34,8 @@ public class Fill extends Module {
 
     // 可替换列表缓存，避免每位置都做拼音转换
     private List<String> replaceableCache = new ArrayList<>();
-    private final Map<Block, Boolean> replaceableMatchCache = new HashMap<>();
+    // 可能被后台搜索线程读取，使用并发 Map
+    private final Map<Block, Boolean> replaceableMatchCache = new java.util.concurrent.ConcurrentHashMap<>();
 
     public Fill() {
         super(NAME, Configs.Fill.ENABLED, Configs.Fill.FILL_SELECTION_TYPE, true);

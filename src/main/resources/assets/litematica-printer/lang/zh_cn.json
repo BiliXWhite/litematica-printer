@@ -134,6 +134,8 @@
   "litematica-printer.config.iterationOrder.yzx": "Y→Z→X",
   "litematica-printer.config.iterationOrder.zxy": "Z→X→Y",
   "litematica-printer.config.iterationOrder.zyx": "Z→Y→X",
+  "litematica-printer.config.searchThreads": "后台搜索线程数",
+  "litematica-printer.config.searchThreads.desc": "后台异步扫描方块使用的工作线程数。\n线程越多扫描越快，但会占用更多 CPU。",
   "litematica-printer.config.iterationTimeLimit": "迭代时长限制",
   "litematica-printer.config.iterationTimeLimit.desc": "每游戏刻迭代方块的最大时长（毫秒）。\n设为 0 时禁用时间限制。\n默认值 10 毫秒可平衡性能与速度，可根据需求调整。",
   "litematica-printer.config.classifyByBlock": "按方块类型分类",

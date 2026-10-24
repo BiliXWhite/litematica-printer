@@ -103,6 +103,12 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 .range(0, 32)
                 .build();
 
+        // 后台搜索线程数
+        public static final ConfigInteger SEARCH_THREADS = integerValue("searchThreads")
+                .defaultValue(2)
+                .range(1, 8)
+                .build();
+
         // 按方块类型分类（每轮扫描仅处理一种方块）
         public static final ConfigBoolean CLASSIFY_BY_BLOCK = booleanValue("classifyByBlock")
                 .defaultValue(false)
@@ -173,6 +179,7 @@ public class Configs extends ConfigBuilders implements IConfigHandler {
                 WORK_SWITCH,
                 WORK_RANGE,
                 ITERATION_TIME_LIMIT,
+                SEARCH_THREADS,
                 CLASSIFY_BY_BLOCK,
                 RENDER_HUD,
                 MISSING_MATERIAL_HUD,

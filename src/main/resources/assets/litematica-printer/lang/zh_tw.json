@@ -207,6 +207,8 @@
   "litematica-printer.config.containerReturnInterval.desc": "回塞操作之間的冷卻時間（遊戲刻）。較高值減少網路開銷但增加回塞延遲。",
   "litematica-printer.config.updateCheck": "檢查更新",
   "litematica-printer.config.updateCheck.desc": "首次進入世界時，自動檢查模組更新。",
+  "litematica-printer.config.searchThreads": "後台搜尋執行緒數",
+  "litematica-printer.config.searchThreads.desc": "後台非同步掃描方塊使用的工作執行緒數。\n執行緒越多掃描越快，但會佔用更多 CPU。",
   "litematica-printer.config.iterationTimeLimit": "迭代時長限制",
   "litematica-printer.config.iterationTimeLimit.desc": "每遊戲刻迭代方塊的最大時長（毫秒）。\n設為 0 時停用時間限制。\n預設值 10 毫秒可平衡效能與速度，可根據需求調整。",
   "litematica-printer.config.classifyByBlock": "按方塊類型分類",

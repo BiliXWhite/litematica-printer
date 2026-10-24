@@ -25,7 +25,8 @@ public class FluidRemoval extends Module {
     private List<Item> fillItems = new ArrayList<>();
 
     private List<String> fluidBlocks = new ArrayList<>();
-    private List<net.minecraft.world.level.material.Fluid> fluids = List.of(new net.minecraft.world.level.material.Fluid[0]);
+    // 可能被后台搜索线程读取，主线程只在 preprocess 中整体替换引用
+    private volatile List<net.minecraft.world.level.material.Fluid> fluids = List.of(new net.minecraft.world.level.material.Fluid[0]);
 
     public FluidRemoval() {
         super(NAME, Configs.Fluid.ENABLED, Configs.Fluid.FLUID_SELECTION_TYPE, true);

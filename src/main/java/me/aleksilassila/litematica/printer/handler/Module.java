@@ -12,6 +12,10 @@ import me.aleksilassila.litematica.printer.utils.ConfigUtils;
 import me.aleksilassila.litematica.printer.utils.LitematicaUtils;
 import me.aleksilassila.litematica.printer.utils.PlayerUtils;
 import me.aleksilassila.litematica.printer.utils.QuickShulkerUtils;
+import me.aleksilassila.litematica.printer.search.ScanTarget;
+import me.aleksilassila.litematica.printer.search.SearchScheduler;
+import me.aleksilassila.litematica.printer.search.SearchSpec;
+import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -34,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-public abstract class Module extends ConfigUtils {
+public abstract class Module extends ConfigUtils implements ScanTarget {
     private static final ScheduledExecutorService TIMEOUT_SCHEDULER =
             Executors.newSingleThreadScheduledExecutor(r -> {
                 Thread t = new Thread(r, "Printer-TimeoutGuard");
@@ -128,6 +132,8 @@ public abstract class Module extends ConfigUtils {
             waitingPos = null;
             currentCycleItem = null;
             iteratorManager.reset();
+            // 扫描框变化，丢弃上一轮未消费的候选
+            SearchScheduler.INSTANCE.clear(id);
         }
 
         preprocess();
@@ -143,11 +149,15 @@ public abstract class Module extends ConfigUtils {
         // 远离工作区时提前退出，避免空跑卡顿
         if (needsAreaCheck() && !isPlayerRangeInWorkArea()) return;
 
-        iterateBlocks(remainingExecs);
+        drainCandidates(remainingExecs);
     }
 
-    private void iterateBlocks(int maxExecs) {
+    // 每 tick 最多检查的候选位置数，时间限制被关闭时的兜底
+    private static final int MAX_CANDIDATE_CHECKS_PER_TICK = 8192;
+
+    private void drainCandidates(int maxExecs) {
         int execCount = 0;
+        int examined = 0;
         int timeLimitMs = getIterationTimeLimit();
 
         skipIteration.set(false);
@@ -177,8 +187,10 @@ public abstract class Module extends ConfigUtils {
             while (true) {
                 if (timeLimitExceeded.get() || QuickShulkerUtils.isOpenHandler()) return;
                 if (skipIteration.get() || ActionManager.INSTANCE.needWaitModifyLook) return;
+                if (++examined > MAX_CANDIDATE_CHECKS_PER_TICK) return;
 
-                BlockPos pos = iteratorManager.next();
+                // 消费后台搜索线程产出的候选位置
+                BlockPos pos = SearchScheduler.INSTANCE.poll(id);
                 if (pos == null) {
                     currentCycleItem = null; // 一轮扫描耗尽，重置方块分类
                     return;
@@ -260,6 +272,38 @@ public abstract class Module extends ConfigUtils {
         waitingPos = null;
         currentCycleItem = null;
         iteratorManager.reset();
+        SearchScheduler.INSTANCE.clear(id);
+    }
+
+    // 构造本模块当前一轮的不可变扫描描述，返回 null 表示无需扫描
+    @Nullable
+    public SearchSpec buildSearchSpec() {
+        if (box == null) return null;
+        if (!isConfigAllowed()) return null;
+        if (!canIterate()) return null;
+
+        PrinterBox currentBox = iteratorManager.getBox();
+        if (currentBox == null) return null;
+        if (needSchematic && SchematicWorldHandler.getSchematicWorld() == null) return null;
+
+        return new SearchSpec(
+                id,
+                currentBox,
+                iteratorManager.getShapeType(),
+                iteratorManager.getEyePos(),
+                iteratorManager.getEffectiveRange(),
+                this);
+    }
+
+    // 工作线程粗筛，精确判断（cooldown、canProcessPos）仍在主线程
+    @Override
+    public boolean isCandidatePos(BlockPos pos) {
+        return !isCorrectBlock(pos);
+    }
+
+    @Override
+    public boolean isInWorkspace(BlockPos pos) {
+        return !needsAreaCheck() || isPosInWorkspace(pos);
     }
 
     @Nullable
