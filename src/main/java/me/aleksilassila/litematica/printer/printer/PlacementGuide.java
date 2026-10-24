@@ -8,7 +8,6 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.BlockMatchingType;
 import me.aleksilassila.litematica.printer.utils.*;
 //#if MC < 260300
-import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
 //#endif
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -91,8 +90,8 @@ public class PlacementGuide {
             }
             // 空位：仅在生存模式且下方能形成水时放冰
             if (state == BlockMatchingType.MISSING_BLOCK) {
-                boolean canGenerateWater = mc.gameMode != null && !mc.gameMode.getPlayerMode().isCreative();
-                if (!canGenerateWater || iceBelowBlocked(ctx)) {
+                boolean isCreative = mc.gameMode != null && !mc.gameMode.getPlayerMode().isCreative();
+                if (!isCreative || !canGenerateWater(ctx)) {
                     if (mc.gameMode != null && mc.gameMode.getPlayerMode().isCreative()) {
                         MessageUtils.setOverlayMessage(I18n.ICE_CREATIVE_MODE.getName());
                     }
@@ -119,12 +118,13 @@ public class PlacementGuide {
         return action;
     }
 
-    /** 冰下方为普通可阻挡方块时，破坏后无法形成水源 */
-    private boolean iceBelowBlocked(SchematicBlockContext ctx) {
+    /** 冰下方为普通可阻挡方块时，破坏后才能形成水源 */
+    private boolean canGenerateWater(SchematicBlockContext ctx) {
         Block below = ctx.level.getBlockState(ctx.blockPos.below()).getBlock();
-        return below != Blocks.COBWEB
+        return (below != Blocks.COBWEB
                 && below != Blocks.BAMBOO_SAPLING
-                && !(below instanceof LiquidBlock);
+                && below != Blocks.AIR)
+                || below instanceof LiquidBlock;
     }
 
     /*** 缺失方块：实际位置为空，或当前方块在可替换列表中且启用了替换功能 ***/
