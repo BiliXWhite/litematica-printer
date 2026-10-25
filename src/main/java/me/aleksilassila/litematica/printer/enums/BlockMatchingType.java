@@ -4,7 +4,7 @@ import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.printer.SchematicBlockContext;
 import me.aleksilassila.litematica.printer.utils.BlockUtils;
-import me.aleksilassila.litematica.printer.utils.PinYinSearchUtils;
+import me.aleksilassila.litematica.printer.utils.MatchUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Blocks;
@@ -80,8 +80,8 @@ public enum BlockMatchingType {
         if (Configs.Print.PRINT_REPLACE.getBooleanValue()) {
             Set<String> replaceSet = getReplaceSet();
             if (!replaceSet.isEmpty() &&
-                    replaceSet.stream().anyMatch(string -> !PinYinSearchUtils.matchName(string, requiredState) &&
-                            PinYinSearchUtils.matchName(string, currentState)) && !requiredState.isAir()
+                    replaceSet.stream().anyMatch(string -> !MatchUtils.matches(string, requiredState) &&
+                            MatchUtils.matches(string, currentState)) && !requiredState.isAir()
             ) {
                 return MISSING_BLOCK;
             }

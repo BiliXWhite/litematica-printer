@@ -6,7 +6,7 @@ import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetListBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetListEntryBase;
 
-import me.aleksilassila.litematica.printer.utils.PinYinSearchUtils;
+import me.aleksilassila.litematica.printer.utils.MatchUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -34,7 +34,7 @@ public abstract class MixinAbstractCraftingMenu<TYPE, WIDGET extends WidgetListE
                     cir.setReturnValue(true);
                     return;
                 }
-                for (String s2 : PinYinSearchUtils.getPinYin(fullName).stream().distinct().toList()) {
+                for (String s2 : MatchUtils.getPinyin(fullName).stream().distinct().toList()) {
                     if (s2.contains(filterText)) {
                         cir.setReturnValue(true);
                     }

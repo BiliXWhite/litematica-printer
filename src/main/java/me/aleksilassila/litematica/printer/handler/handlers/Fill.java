@@ -32,10 +32,10 @@ public class Fill extends Module {
     @Getter
     private Item[] fillModeItemList = new Item[0];
 
-    // 可替换列表缓存，避免每位置都做拼音转换
+    // 可替换列表缓存，避免每个方块位置都重复匹配
     private List<String> replaceableCache = new ArrayList<>();
     // 可能被后台搜索线程读取，使用并发 Map
-    private final Map<Block, Boolean> replaceableMatchCache = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<BlockState, Boolean> replaceableMatchCache = new java.util.concurrent.ConcurrentHashMap<>();
 
     public Fill() {
         super(NAME, Configs.Fill.ENABLED, Configs.Fill.FILL_SELECTION_TYPE, true);
@@ -67,7 +67,7 @@ public class Fill extends Module {
                     for (String itemName : fillCacheBlocklist) {
                         items.addAll(BuiltInRegistries.ITEM
                                 .stream()
-                                .filter(item -> PinYinSearchUtils.matchName(itemName, new ItemStack(item)))
+                                .filter(item -> MatchUtils.matches(itemName, new ItemStack(item)))
                                 .toList()
                         );
                     }
@@ -80,7 +80,7 @@ public class Fill extends Module {
                     if (!heldStack.isEmpty() && heldStack.getCount() > 0) {
                         Item heldItem = heldStack.getItem();
                         List<String> blacklist = Configs.Fill.FILL_HANDHELD_BLACKLIST.getStrings();
-                        if (!blacklist.isEmpty() && blacklist.stream().anyMatch(s -> PinYinSearchUtils.matchName(s, heldStack))) {
+                        if (!blacklist.isEmpty() && blacklist.stream().anyMatch(s -> MatchUtils.matches(s, heldStack))) {
                             fillModeItemList = new Item[0];
                         } else {
                             fillModeItemList = new Item[]{heldItem};
@@ -93,9 +93,6 @@ public class Fill extends Module {
         }
     }
 
-    /**
-     * 缓存版可替换判断：同种方块只做一次拼音匹配
-     */
     private boolean isReplaceable(BlockState state) {
         List<String> current = Configs.Print.REPLACEABLE_LIST.getStrings();
         if (!current.equals(replaceableCache)) {
@@ -103,8 +100,8 @@ public class Fill extends Module {
             replaceableMatchCache.clear();
         }
         if (current.isEmpty()) return false;
-        return replaceableMatchCache.computeIfAbsent(state.getBlock(),
-                block -> current.stream().anyMatch(s -> PinYinSearchUtils.matchName(s, state)));
+        return replaceableMatchCache.computeIfAbsent(state,
+                blockState -> current.stream().anyMatch(s -> MatchUtils.matches(s, blockState)));
     }
 
     @Override

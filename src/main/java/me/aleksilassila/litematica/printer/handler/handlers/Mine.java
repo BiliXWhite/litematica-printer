@@ -11,7 +11,7 @@ import me.aleksilassila.litematica.printer.printer.BlockPosCooldownManager;
 import me.aleksilassila.litematica.printer.mixin.extension.BlockBreakResult;
 import me.aleksilassila.litematica.printer.utils.BreakUtils;
 import me.aleksilassila.litematica.printer.utils.ModUtils;
-import me.aleksilassila.litematica.printer.utils.PinYinSearchUtils;
+import me.aleksilassila.litematica.printer.utils.MatchUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -33,10 +33,10 @@ public class Mine extends Module {
             UsageRestriction.ListType listType = PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
                 return fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> PinYinSearchUtils.matchBlockName(string, blockState));
+                        .noneMatch(string -> MatchUtils.matches(string, blockState));
             } else if (listType == UsageRestriction.ListType.WHITELIST) {
                 return fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> PinYinSearchUtils.matchBlockName(string, blockState));
+                        .anyMatch(string -> MatchUtils.matches(string, blockState));
             } else {
                 return true;
             }
@@ -44,10 +44,10 @@ public class Mine extends Module {
             IConfigOptionListEntry optionListValue = Configs.Mine.EXCAVATE_LIMIT.getOptionListValue();
             if (optionListValue == UsageRestriction.ListType.BLACKLIST) {
                 return Configs.Mine.EXCAVATE_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> PinYinSearchUtils.matchBlockName(string, blockState));
+                        .noneMatch(string -> MatchUtils.matches(string, blockState));
             } else if (optionListValue == UsageRestriction.ListType.WHITELIST) {
                 return Configs.Mine.EXCAVATE_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> PinYinSearchUtils.matchBlockName(string, blockState));
+                        .anyMatch(string -> MatchUtils.matches(string, blockState));
             } else {
                 return true;
             }

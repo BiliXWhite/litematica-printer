@@ -51,7 +51,7 @@ public class FluidRemoval extends Module {
             if (!fileBlocks.isEmpty()) {
                 fillItems = new ArrayList<>();
                 for (String itemName : fillBlocks) {
-                    List<Item> list = BuiltInRegistries.ITEM.stream().filter(item -> PinYinSearchUtils.matchName(itemName, new ItemStack(item))).toList();
+                    List<Item> list = BuiltInRegistries.ITEM.stream().filter(item -> MatchUtils.matches(itemName, new ItemStack(item))).toList();
                     fillItems.addAll(list);
                 }
             }
@@ -63,7 +63,7 @@ public class FluidRemoval extends Module {
             if (!fluidBlocks.isEmpty()) {
                 fluids = new ArrayList<>();
                 for (String itemName : this.fluidBlocks) {
-                    List<net.minecraft.world.level.material.Fluid> list = BuiltInRegistries.FLUID.stream().filter(item -> PinYinSearchUtils.matchName(itemName, item.defaultFluidState().createLegacyBlock())).toList();
+                    List<net.minecraft.world.level.material.Fluid> list = BuiltInRegistries.FLUID.stream().filter(item -> MatchUtils.matches(itemName, item.defaultFluidState().createLegacyBlock())).toList();
                     fluids.addAll(list);
                 }
             }

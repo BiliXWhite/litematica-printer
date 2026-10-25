@@ -47,7 +47,7 @@ public class Print extends Module {
     // canProcessPos 缓存
     private List<String> lastSkipConfig = Collections.emptyList();
     private Set<String> skipSet = Collections.emptySet();
-    private Block lastSkipBlock = null;
+    private BlockState lastSkipState = null;
     private boolean lastSkipResult = false;
 
     // 等待水产生队列
@@ -96,15 +96,15 @@ public class Print extends Module {
             if (!currentConfig.equals(lastSkipConfig)) {
                 skipSet = new HashSet<>(currentConfig);
                 lastSkipConfig = currentConfig;
-                lastSkipBlock = null;
+                lastSkipState = null;
             }
 
-            Block block = ctx.requiredState.getBlock();
-            if (block != lastSkipBlock) {
-                lastSkipBlock = block;
+            BlockState requiredState = ctx.requiredState;
+            if (!requiredState.equals(lastSkipState)) {
+                lastSkipState = requiredState;
                 lastSkipResult = false;
                 for (String s : skipSet) {
-                    if (PinYinSearchUtils.matchName(s, ctx.requiredState)) {
+                    if (MatchUtils.matches(s, ctx.requiredState)) {
                         lastSkipResult = true;
                         break;
                     }

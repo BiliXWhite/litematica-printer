@@ -55,10 +55,10 @@ public class BreakUtils {
             UsageRestriction.ListType listType = PlacementTweaks.BLOCK_TYPE_BREAK_RESTRICTION.getListType();
             if (listType == UsageRestriction.ListType.BLACKLIST) {
                 return fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> PinYinSearchUtils.matchBlockName(string, blockState));
+                        .noneMatch(string -> MatchUtils.matches(string, blockState));
             } else if (listType == UsageRestriction.ListType.WHITELIST) {
                 return fi.dy.masa.tweakeroo.config.Configs.Lists.BLOCK_TYPE_BREAK_RESTRICTION_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> PinYinSearchUtils.matchBlockName(string, blockState));
+                        .anyMatch(string -> MatchUtils.matches(string, blockState));
             } else {
                 return true;
             }
@@ -66,10 +66,10 @@ public class BreakUtils {
             IConfigOptionListEntry optionListValue = Configs.Break.BREAK_LIMIT.getOptionListValue();
             if (optionListValue == UsageRestriction.ListType.BLACKLIST) {
                 return Configs.Break.BREAK_BLACKLIST.getStrings().stream()
-                        .noneMatch(string -> PinYinSearchUtils.matchBlockName(string, blockState));
+                        .noneMatch(string -> MatchUtils.matches(string, blockState));
             } else if (optionListValue == UsageRestriction.ListType.WHITELIST) {
                 return Configs.Break.BREAK_WHITELIST.getStrings().stream()
-                        .anyMatch(string -> PinYinSearchUtils.matchBlockName(string, blockState));
+                        .anyMatch(string -> MatchUtils.matches(string, blockState));
             } else {
                 return true;
             }

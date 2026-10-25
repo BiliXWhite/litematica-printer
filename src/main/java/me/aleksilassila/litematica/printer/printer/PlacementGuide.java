@@ -943,7 +943,7 @@ public class PlacementGuide {
                     List<Item> whitelistItems = new ArrayList<>();
                     for (Item item : Reference.COMPOSTABLE_ITEMS) {
                         for (String rule : whitelist) {
-                            if (PinYinSearchUtils.matchName(rule, new ItemStack(item))) {
+                            if (MatchUtils.matches(rule, new ItemStack(item))) {
                                 whitelistItems.add(item);
                                 break;
                             }
