@@ -44,6 +44,11 @@ public class Action {
         }
     }
 
+    public Action setLook(PlayerLook look) {
+        this.playerLook = look;
+        return this;
+    }
+
     public Action setLookRotation(int lookRotation) {
         this.playerLook = new PlayerLook(lookRotation);
         return this;

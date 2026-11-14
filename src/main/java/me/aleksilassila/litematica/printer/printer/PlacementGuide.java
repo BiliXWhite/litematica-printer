@@ -4,12 +4,14 @@ import me.aleksilassila.litematica.printer.I18n;
 import me.aleksilassila.litematica.printer.Reference;
 import me.aleksilassila.litematica.printer.printer.action.Action;
 import me.aleksilassila.litematica.printer.printer.action.ClickAction;
+import me.aleksilassila.litematica.printer.printer.action.LilyPadAction;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.BlockMatchingType;
 import me.aleksilassila.litematica.printer.utils.*;
 //#if MC < 260300
 //#endif
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.FrontAndTop;
@@ -19,12 +21,16 @@ import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.piston.PistonBaseBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.*;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.portal.PortalShape;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -130,6 +136,82 @@ public class PlacementGuide {
     /*** 缺失方块：实际位置为空，或当前方块在可替换列表中且启用了替换功能 ***/
     private @Nullable Action buildActionMissingBlock(SchematicBlockContext ctx, ClassHook requiredType, AtomicReference<Boolean> skip) {
         switch (requiredType) {
+            case TALL_GRASS -> {
+                // 高草/高蕨在生存中无对应物品，先放矮方块，再骨粉催熟
+                if (!isTallGrassOrFern(ctx.requiredState)) {
+                    skip.set(true);
+                    return null;
+                }
+                boolean isTallGrass = ctx.requiredState.getBlock() == Blocks.TALL_GRASS;
+                //#if MC >= 12003
+                Block smallBlock = isTallGrass ? Blocks.SHORT_GRASS : Blocks.FERN;
+                Item smallItem = isTallGrass ? Items.SHORT_GRASS : Items.FERN;
+                //#else
+                //$$ Block smallBlock = isTallGrass ? Blocks.GRASS : Blocks.FERN;
+                //$$ Item smallItem = isTallGrass ? Items.GRASS : Items.FERN;
+                //#endif
+                // 对应的矮方块已存在（如矮草在覆盖列表中，会被判定为 MISSING），改为骨粉催熟
+                if (ctx.currentState.getBlock() == smallBlock) {
+                    return new ClickAction().setItem(Items.BONE_MEAL);
+                }
+                return new Action()
+                        .setItem(smallItem)
+                        .setSides(Direction.DOWN)
+                        .setRequiresSupport();
+            }
+            case KELP -> {
+                // kelp_plant（茎）和 kelp（顶部）都通过放置海带物品来生成
+                return new Action()
+                        .setItem(Items.KELP)
+                        .setSides(Direction.DOWN)
+                        .setRequiresSupport();
+            }
+            case SMALL_DRIPLEAF -> {
+                Direction facing = ctx.requiredState.getValue(SmallDripleafBlock.FACING);
+                return new Action()
+                        .setSides(Direction.DOWN)
+                        .setLookDirection(facing.getOpposite())
+                        .setNeedWaitModifyLook()
+                        .setRequiresSupport();
+            }
+            case TURTLE_EGG -> {
+                // 首次放置：从下方点击支撑面
+                return new Action()
+                        .setSides(Direction.DOWN)
+                        .setRequiresSupport();
+            }
+            case SEAGRASS -> {
+                // 高海草上半部分由下半部分生长出来，不单独放置
+                if (ctx.requiredState.getBlock() instanceof TallSeagrassBlock
+                        && ctx.requiredState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER) {
+                    return null;
+                }
+                // 目标位置为空/水：先放普通海草
+                return new Action()
+                        .setItem(Items.SEAGRASS)
+                        .setSides(Direction.DOWN)
+                        .setRequiresSupport();
+            }
+            case LILY_PAD -> {
+                // 睡莲必须放在水上：先确认睡莲下方那格水已经存在，否则跳过
+                BlockPos waterPos = ctx.blockPos.below();
+                if (!BlockUtils.isWaterSource(ctx.level.getBlockState(waterPos))) {
+                    return null;
+                }
+                // 把视线从眼睛指向睡莲中心（不是简单的朝下），再射线确认目视命中的就是睡莲下方那格水
+                LocalPlayer player = ctx.client.player;
+                if (player == null) return null;
+                Vec3 eye = player.getEyePosition();
+                Vec3 target = Vec3.atCenterOf(ctx.blockPos);
+                PlayerLook look = getLookAt(eye, target);
+                if (!isLookingAtWater(ctx, player, look, waterPos)) {
+                    return null;
+                }
+                return new LilyPadAction()
+                        .setItem(Items.LILY_PAD)
+                        .setSides(Direction.DOWN)
+                        .setLook(look);
+            }
             case TORCH -> {
                 Direction lookDirection = ctx.getRequiredStateProperty(WallTorchBlock.FACING).orElse(Direction.UP).getOpposite();
                 return new Action().setSides(lookDirection).setLookDirection(lookDirection).setRequiresSupport();
@@ -210,35 +292,36 @@ public class PlacementGuide {
             case CHEST -> {
                 Direction facing = ctx.requiredState.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
                 ChestType type = ctx.requiredState.getValue(BlockStateProperties.CHEST_TYPE);
-                Map<Direction, Vec3> noChestSides = new HashMap<>();
 
-                for (Direction side : Direction.values()) {
-                    if (ctx.level.getBlockState(ctx.blockPos.relative(side)).getBlock() instanceof ChestBlock) {
-                        continue;
-                    }
-                    noChestSides.put(side, Vec3.ZERO);
-                }
-
+                // 单箱子：潜行对着下表面，面向对应方向放置
                 if (type == ChestType.SINGLE) {
-                    for (Direction side : BlockStateProperties.HORIZONTAL_FACING.getPossibleValues()) {
-                        if (!noChestSides.containsKey(side)) {
-                            return new Action().setLookDirection(facing).setShift();
-                        }
-                        return new Action().setSides(noChestSides).setLookDirection(facing);
-                    }
-                } else {
-                    Direction chestFacing = facing;
-                    if (type == ChestType.LEFT) {
-                        chestFacing = facing.getCounterClockWise();
-                    } else if (type == ChestType.RIGHT) {
-                        chestFacing = facing.getClockWise();
-                    }
-                    if (ctx.level.getBlockState(ctx.blockPos.relative(chestFacing)).getBlock() instanceof ChestBlock) {
-                        return new Action().setSides(Map.of(chestFacing, Vec3.ZERO)).setLookDirection(facing).setShift(false);
-                    } else {
-                        return new Action().setSides(noChestSides).setLookDirection(facing).setShift();
-                    }
+                    return new Action()
+                            .setSides(Direction.DOWN)
+                            .setLookDirection(facing)
+                            .setShift(true);
                 }
+
+                // 多箱子：先算另一只箱子应该在哪个方向
+                Direction chestFacing = facing;
+                if (type == ChestType.LEFT) {
+                    chestFacing = facing.getCounterClockWise();
+                } else if (type == ChestType.RIGHT) {
+                    chestFacing = facing.getClockWise();
+                }
+
+                // 另一只箱子已经放置：对着那只箱子的侧面，潜行放置
+                if (ctx.level.getBlockState(ctx.blockPos.relative(chestFacing)).getBlock() instanceof ChestBlock) {
+                    return new Action()
+                            .setSides(chestFacing)
+                            .setLookDirection(chestFacing)
+                            .setShift(true);
+                }
+
+                // 另一只箱子还没放置：潜行对着下表面，面向对应方向放置
+                return new Action()
+                        .setSides(Direction.DOWN)
+                        .setLookDirection(facing)
+                        .setShift(true);
             }
             case BED -> {
                 if (ctx.requiredState.getValue(BedBlock.PART) == BedPart.FOOT)
@@ -310,7 +393,11 @@ public class PlacementGuide {
                 for (Direction direction : Direction.values()) {
                     if (direction == Direction.DOWN && ctx.requiredState.getBlock() == Blocks.VINE) continue;
                     if ((Boolean) BlockUtils.getPropertyByName(ctx.requiredState, direction.name())) {
-                        return new Action().setSides(direction);
+                        return new Action()
+                                .setSides(direction)
+                                .setLookDirection(direction)
+                                .setNeedWaitModifyLook()
+                                .setRequiresSupport();
                     }
                 }
             }
@@ -437,7 +524,11 @@ public class PlacementGuide {
             }
             case TRIPWIRE_HOOK -> {
                 Direction facing = ctx.requiredState.getValue(TripWireHookBlock.FACING);
-                return new Action().setSides(facing);
+                Direction lookDirection = facing.getOpposite();
+                return new Action()
+                        .setSides(lookDirection)
+                        .setLookDirection(lookDirection)
+                        .setRequiresSupport();
             }
             case RAIL -> {
                 Action action = new Action();
@@ -492,20 +583,21 @@ public class PlacementGuide {
                     return new Action()
                             .setSides(Direction.DOWN)
                             .setLookRotation(rotation)
+                            .setShift()
                             .setRequiresSupport();
                 }
-                // 墙告示牌：保留原有4方向逻辑
+                // 墙告示牌
                 if (signBlock instanceof WallSignBlock) {
                     Direction facing = ctx.requiredState.getValue(WallSignBlock.FACING);
                     return new Action()
                             .setSides(facing.getOpposite())
                             .setLookDirection(facing.getOpposite())
+                            .setShift()
                             .setRequiresSupport();
                 }
-                // 天花板悬挂告示牌处理逻辑
+                // 天花板悬挂告示牌
                 //#if MC >= 12002
                 if (signBlock instanceof WallHangingSignBlock) {
-                    //TODO: 视乎方向还是有点问题, 待处理
                     Direction facing = ctx.requiredState.getValue(WallHangingSignBlock.FACING);
                     List<Direction> sides = new ArrayList<>();
                     if (facing.getAxis() == Direction.Axis.X) {
@@ -517,13 +609,14 @@ public class PlacementGuide {
                     }
                     return new Action()
                             .setSides(sides.toArray(new Direction[0]))
-                            .setLookDirection(facing.getOpposite()).setRequiresSupport();
+                            .setLookDirection(facing.getOpposite())
+                            .setShift()
+                            .setRequiresSupport();
                 }
                 if (signBlock instanceof CeilingHangingSignBlock) {
                     int rotation = ctx.requiredState.getValue(CeilingHangingSignBlock.ROTATION);
-                    boolean attachFace = ctx.requiredState.getValue(CeilingHangingSignBlock.ATTACHED);
                     return new Action()
-                            .setShift(attachFace)
+                            .setShift(true)
                             .setSides(Direction.UP)
                             .setLookRotation(rotation)
                             .setRequiresSupport();
@@ -582,6 +675,26 @@ public class PlacementGuide {
                 Block block = ctx.requiredState.getBlock();
                 Identifier blockId1 = BlockUtils.getKey(block);
                 if (blockId1.toString().contains("coral")) {
+                    boolean isLiveCoral = !blockId1.toString().contains("dead_");
+
+                    // 活珊瑚需要水环境：当前位置是水，或相邻有含水方块
+                    // 否则即使没开启 SKIP_WATERLOGGED_BLOCK 也不放
+                    if (isLiveCoral) {
+                        boolean hasWater = BlockUtils.isWaterSource(ctx.currentState)
+                                || BlockUtils.isWaterlogged(ctx.currentState);
+                        if (!hasWater) {
+                            for (Direction dir : Direction.values()) {
+                                if (BlockUtils.isWaterlogged(ctx.level.getBlockState(ctx.blockPos.relative(dir)))) {
+                                    hasWater = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!hasWater) {
+                            return null;
+                        }
+                    }
+
                     Identifier blockId2 = of(blockId1.toString().replace("dead_", ""));
                     boolean isBlock = blockId1.toString().contains("block");
                     List<Item> items = new ArrayList<>();
@@ -624,6 +737,9 @@ public class PlacementGuide {
                             //#else
                             //$$ PinkPetalsBlock
                             //#endif
+                        //#endif
+                        //#if MC >= 12105
+                        || block instanceof LeafLitterBlock
                         //#endif
                         // @formatter:on
                 ) {
@@ -680,6 +796,71 @@ public class PlacementGuide {
         boolean printBreakWrongStateBlock = Configs.Print.BREAK_WRONG_STATE_BLOCK.getBooleanValue();
 
         switch (requiredType) {
+            case TALL_GRASS -> {
+                if (!isTallGrassOrFern(ctx.requiredState)) {
+                    skip.set(true);
+                    return null;
+                }
+                // 高草/高蕨只有 HALF 属性，状态不一致无法通过点击修正，只能破坏
+                if (printBreakWrongStateBlock) {
+                    BreakUtils.INSTANCE.add(ctx);
+                }
+            }
+            case WEEPING_VINES -> {
+                if (ctx.requiredState.getBlock() instanceof WeepingVinesBlock
+                        && ctx.currentState.getBlock() instanceof WeepingVinesBlock) {
+                    int requiredAge = ctx.requiredState.getValue(WeepingVinesBlock.AGE);
+                    int currentAge = ctx.currentState.getValue(WeepingVinesBlock.AGE);
+                    if (requiredAge == 25 && currentAge < 25) {
+                        return new ClickAction().setItem(Items.SHEARS);
+                    }
+                }
+            }
+            case TWISTING_VINES -> {
+                if (ctx.requiredState.getBlock() instanceof TwistingVinesBlock
+                        && ctx.currentState.getBlock() instanceof TwistingVinesBlock) {
+                    int requiredAge = ctx.requiredState.getValue(TwistingVinesBlock.AGE);
+                    int currentAge = ctx.currentState.getValue(TwistingVinesBlock.AGE);
+                    if (requiredAge == 25 && currentAge < 25) {
+                        return new ClickAction().setItem(Items.SHEARS);
+                    }
+                }
+            }
+            case CAVE_VINES -> {
+                if (ctx.requiredState.getBlock() instanceof CaveVinesBlock
+                        && ctx.currentState.getBlock() instanceof CaveVinesBlock) {
+                    int requiredAge = ctx.requiredState.getValue(CaveVinesBlock.AGE);
+                    int currentAge = ctx.currentState.getValue(CaveVinesBlock.AGE);
+                    if (requiredAge == 25 && currentAge < 25) {
+                        return new ClickAction().setItem(Items.SHEARS);
+                    }
+                }
+            }
+            case KELP -> {
+                // 顶部 kelp：投影要求 age=25，当前是 kelp 但 age 不足 → 用剪刀右键阻止生长
+                if (ctx.requiredState.getBlock() instanceof KelpBlock
+                        && ctx.currentState.getBlock() instanceof KelpBlock) {
+                    int requiredAge = ctx.requiredState.getValue(KelpBlock.AGE);
+                    int currentAge = ctx.currentState.getValue(KelpBlock.AGE);
+                    if (requiredAge == 25 && currentAge < 25) {
+                        return new ClickAction().setItem(Items.SHEARS);
+                    }
+                }
+            }
+            case TURTLE_EGG -> {
+                if (!(ctx.currentState.getBlock() instanceof TurtleEggBlock)) return null;
+
+                int currentEggs = ctx.currentState.getValue(TurtleEggBlock.EGGS);
+                int requiredEggs = ctx.requiredState.getValue(TurtleEggBlock.EGGS);
+
+                // 当前蛋数少于目标 → 点击放置更多蛋
+                if (currentEggs < requiredEggs) {
+                    return new ClickAction().setItem(Items.TURTLE_EGG);
+                }
+
+                // 当前蛋数 >= 目标，或 HATCH 状态不对：无法通过点击修正，跳过
+                return null;
+            }
             case SLAB -> {
                 if (ctx.requiredState.getValue(SlabBlock.TYPE) == SlabType.DOUBLE) {
                     Direction requiredHalf = ctx.currentState.getValue(SlabBlock.TYPE) == SlabType.BOTTOM ? Direction.DOWN : Direction.UP;
@@ -870,6 +1051,16 @@ public class PlacementGuide {
                 }
             }
             //#endif
+            //#if MC >= 12105
+            case LEAF_LITTER -> {
+                if (ctx.currentState.getValue(BlockStateProperties.SEGMENT_AMOUNT) <= ctx.requiredState.getValue(BlockStateProperties.SEGMENT_AMOUNT)) {
+                    return new ClickAction().setItem(ctx.requiredState.getBlock().asItem());
+                }
+                if (printBreakWrongStateBlock) {
+                    BreakUtils.INSTANCE.add(ctx);
+                }
+            }
+            //#endif
             case RED_STONE_WIRE -> {
                 // 在Java版中，对于没有连接到任何红石元件的十字形的红石线，可以按使用键使其变为点状，从而不与任何方向连接，再按一次可以恢复。
                 boolean allNoneRequired = ctx.requiredState.getValue(RedStoneWireBlock.NORTH) == RedstoneSide.NONE &&
@@ -890,7 +1081,10 @@ public class PlacementGuide {
                 for (Direction direction : Direction.values()) {
                     if (direction == Direction.DOWN) continue;
                     if ((Boolean) BlockUtils.getPropertyByName(ctx.requiredState, direction.name())) {
-                        return new Action().setSides(direction).setLookDirection(direction);
+                        return new Action()
+                                .setSides(direction)
+                                .setLookDirection(direction)
+                                .setNeedWaitModifyLook();
                     }
                 }
                 if (printBreakWrongStateBlock) {
@@ -1038,6 +1232,52 @@ public class PlacementGuide {
                     }
                 }
             }
+            case SEAGRASS -> {
+                // 目标是高海草的下半部分，当前是普通海草 → 用骨粉催熟
+                if (ctx.requiredState.getBlock() instanceof TallSeagrassBlock
+                        && ctx.requiredState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER
+                        && ctx.currentState.getBlock() instanceof SeagrassBlock) {
+                    return new ClickAction().setItem(Items.BONE_MEAL);
+                }
+                // 其他错误方块走默认破坏逻辑
+                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue()
+                        && BreakUtils.canBreakBlock(ctx.blockPos)) {
+                    BreakUtils.INSTANCE.add(ctx);
+                }
+            }
+            case LILY_PAD -> {
+                // 睡莲位置被其他方块占用 → 走默认破坏逻辑
+                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue()
+                        && BreakUtils.canBreakBlock(ctx.blockPos)) {
+                    BreakUtils.INSTANCE.add(ctx);
+                }
+            }
+            case TALL_GRASS -> {
+                if (!isTallGrassOrFern(ctx.requiredState)) {
+                    skip.set(true);
+                    return null;
+                }
+                // 目标下半部分是高草/高蕨，当前是对应的矮方块 → 骨粉催熟
+                boolean isLower = ctx.requiredState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER;
+                boolean isTallGrass = ctx.requiredState.getBlock() == Blocks.TALL_GRASS;
+
+                //#if MC >= 12003
+                Block smallBlock = isTallGrass ? Blocks.SHORT_GRASS : Blocks.FERN;
+                //#else
+                //$$ Block smallBlock = isTallGrass ? Blocks.GRASS : Blocks.FERN;
+                //#endif
+                boolean isSmallCorrect = ctx.currentState.getBlock() == smallBlock;
+
+                if (isLower && isSmallCorrect) {
+                    return new ClickAction().setItem(Items.BONE_MEAL);
+                }
+
+                // 其他错误方块走默认破坏逻辑
+                if (Configs.Print.BREAK_WRONG_BLOCK.getBooleanValue()
+                        && BreakUtils.canBreakBlock(ctx.blockPos)) {
+                    BreakUtils.INSTANCE.add(ctx);
+                }
+            }
             case CROPS -> {
                 String requiredBlockKey = BlockUtils.getKeyString(ctx.requiredState.getBlock());
                 String currentBlockKey = BlockUtils.getKeyString(ctx.currentState.getBlock());
@@ -1062,6 +1302,7 @@ public class PlacementGuide {
 
     enum ClassHook {
         // 放置
+        TALL_GRASS(DoublePlantBlock.class),     // 高草/高蕨（TallGrassBlock 实为矮草/蕨）
         TORCH(
                 //#if MC > 12002
                 BaseTorchBlock.class
@@ -1103,10 +1344,21 @@ public class PlacementGuide {
         BANNER(AbstractBannerBlock.class),      // 旗帜
         SKULL(AbstractSkullBlock.class),        // 头颅
         CROPS(AttachedStemBlock.class, StemBlock.class, CropBlock.class, BeetrootBlock.class),          // 农作物(茎)
+        TURTLE_EGG(TurtleEggBlock.class),                                                               // 海龟蛋
+        SEAGRASS(SeagrassBlock.class, TallSeagrassBlock.class),                                         // 海草 / 高海草
+        KELP(KelpBlock.class, KelpPlantBlock.class),                                                    // 海带
+        LILY_PAD(
+                //#if MC >= 260100
+                //$$ LilyPadBlock.class
+                //#else
+                WaterlilyBlock.class
+                //#endif
+        ),                                                                                              // 睡莲
 
         // 点击
         FLOWER_POT(FlowerPotBlock.class),               // 花盆
         BIG_DRIPLEAF_STEM(BigDripleafStemBlock.class),  // 大垂叶茎
+        SMALL_DRIPLEAF(SmallDripleafBlock.class),       // 小垂滴叶
         CAVE_VINES(CaveVinesBlock.class, CaveVinesPlantBlock.class),                // 洞穴藤蔓
         WEEPING_VINES(WeepingVinesBlock.class, WeepingVinesPlantBlock.class),       // 垂泪藤
         TWISTING_VINES(TwistingVinesBlock.class, TwistingVinesPlantBlock.class),    // 缠怨藤
@@ -1126,6 +1378,9 @@ public class PlacementGuide {
                 //#endif
         ), // 花簇（ojng你看看你这是什么抽象命名）
         //#endif
+        //#if MC >= 12105
+        LEAF_LITTER(LeafLitterBlock.class),             // 落叶堆
+        //#endif
         VINES(VineBlock.class),                         // 藤蔓
         GLOW_LICHEN(GlowLichenBlock.class),             // 发光地衣
         FIRE(FireBlock.class, SoulFireBlock.class),     // 火，灵魂火
@@ -1140,7 +1395,7 @@ public class PlacementGuide {
         FARMLAND(FarmBlock.class),              // 耕地
         DIRT_PATH(DirtPathBlock.class),         // 土径
         NETHER_PORTAL(NetherPortalBlock.class), // 下界传送门
-        SKIP(SkullBlock.class, LiquidBlock.class, BubbleColumnBlock.class, WaterlilyBlock.class), // 跳过
+        SKIP(SkullBlock.class, LiquidBlock.class, BubbleColumnBlock.class), // 跳过
         DEFAULT; // 默认
 
         private final Class<?>[] classes;
@@ -1148,6 +1403,33 @@ public class PlacementGuide {
         ClassHook(Class<?>... classes) {
             this.classes = classes;
         }
+    }
+
+    // 计算从眼睛看向目标点的视角（yaw/pitch）
+    private static PlayerLook getLookAt(Vec3 eye, Vec3 target) {
+        Vec3 delta = target.subtract(eye);
+        double horizontal = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
+        float yaw = horizontal < 1.0E-4 ? 0.0F : (float) Math.toDegrees(Math.atan2(-delta.x, delta.z));
+        float pitch = (float) -Math.toDegrees(Math.atan2(delta.y, horizontal));
+        return new PlayerLook(yaw, pitch);
+    }
+
+    // 用给定视角从眼睛射线检测，模拟服务端 PlaceOnWaterBlockItem 的判定（OUTLINE + SOURCE_ONLY），
+    // 确认视线第一条命中的水源就是睡莲下方那格水
+    private static boolean isLookingAtWater(SchematicBlockContext ctx, LocalPlayer player, PlayerLook look, BlockPos waterPos) {
+        Vec3 eye = player.getEyePosition();
+        Vec3 view = Vec3.directionFromRotation(look.pitch(), look.yaw());
+        Vec3 end = eye.add(view.scale(PlayerUtils.getInteractionRange(4.5)));
+        BlockHitResult hit = ctx.level.clip(new ClipContext(
+                eye, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.SOURCE_ONLY, player));
+        return hit.getType() == HitResult.Type.BLOCK
+                && hit.getBlockPos().equals(waterPos)
+                && ctx.level.getFluidState(waterPos).getType() == Fluids.WATER;
+    }
+
+    // 判断是否为需要“先放矮方块再骨粉催熟”的高草/高蕨
+    private static boolean isTallGrassOrFern(BlockState state) {
+        return state.getBlock() == Blocks.TALL_GRASS || state.getBlock() == Blocks.LARGE_FERN;
     }
 
     // 辅助方法：获取物品名称（版本适配）

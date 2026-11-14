@@ -4,7 +4,6 @@
   "package": "me.aleksilassila.litematica.printer.mixin.printer",
   "compatibilityLevel": "${compatibility_level}",
   "mixins": [
-    "litematica.EasyPlaceUtilsAccessor",
     "litematica.InventoryUtilsAccessor",
     "litematica.MixinInventoryUtils",
     "litematica.MixinMaterialListUtils",

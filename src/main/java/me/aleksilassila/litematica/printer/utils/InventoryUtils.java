@@ -11,7 +11,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import me.aleksilassila.litematica.printer.config.Configs;
-import me.aleksilassila.litematica.printer.mixin.printer.litematica.EasyPlaceUtilsAccessor;
+import me.aleksilassila.litematica.printer.compat.LitematicaCompat;
 import me.aleksilassila.litematica.printer.mixin.printer.litematica.InventoryUtilsAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -162,7 +162,7 @@ public class InventoryUtils {
                 client.gameMode.handleCreativeModeItemAdd(client.player.getMainHandItem(), 36 + hotbarSlot);
                 return true;
             }
-            EasyPlaceUtilsAccessor.callSetEasyPlaceLastPickBlockTime();
+            LitematicaCompat.setEasyPlaceLastPickBlockTime();
             return swapItemToMainHand(stack.copy(), mc);
         } else {
             showMessageWithCooldown(Message.MessageType.WARNING, "litematica.message.warn.pickblock.no_suitable_slot_found");
