@@ -79,6 +79,8 @@ public class Mine extends Module {
 
     @Override
     protected void executeIteration(BlockPos blockPos, AtomicReference<Boolean> skipIteration) {
+        // 挖掘可能在多个tick内持续，期间渲染层/选区变化时必须停止
+        BreakUtils.INSTANCE.setSelectionValidity(() -> isPosInConfiguredSelection(blockPos));
         BlockBreakResult result = BreakUtils.INSTANCE.continueDestroyBlock(blockPos);
         addHighlight(blockPos, HighlightType.BREAK);
         if (result == BlockBreakResult.IN_PROGRESS || result == BlockBreakResult.COMPLETED_WAIT) {

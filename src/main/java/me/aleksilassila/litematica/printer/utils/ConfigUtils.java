@@ -1,10 +1,15 @@
 package me.aleksilassila.litematica.printer.utils;
 
+import fi.dy.masa.malilib.config.options.ConfigOptionList;
 import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.enums.FillModeFacingType;
+import me.aleksilassila.litematica.printer.enums.SelectionType;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ConfigUtils {
     @NotNull
@@ -52,6 +57,20 @@ public class ConfigUtils {
             return PlayerUtils.getInteractionRange(4.5);
         }
         return configRange;
+    }
+
+    public static boolean isPositionInSelectionRange(@Nullable LocalPlayer player, @Nullable BlockPos pos,
+                                                     @Nullable ConfigOptionList selectionConfig) {
+        if (pos == null) return false;
+        // 渲染层在扫描框构建时对所有模块生效，因此异步候选也必须全局复查
+        if (!LitematicaUtils.isPositionWithinRange(pos)) return false;
+        if (selectionConfig == null) return true;
+        if (!(selectionConfig.getOptionListValue() instanceof SelectionType selectionType)) return true;
+        return switch (selectionType) {
+            case LITEMATICA_SELECTION, LITEMATICA_RENDER_LAYER -> true;
+            case LITEMATICA_SELECTION_BELOW_PLAYER -> player != null && pos.getY() <= Math.floor(player.getY());
+            case LITEMATICA_SELECTION_ABOVE_PLAYER -> player != null && pos.getY() >= Math.ceil(player.getY());
+        };
     }
 
     public static Direction getFillModeFacing() {

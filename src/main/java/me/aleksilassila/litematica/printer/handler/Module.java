@@ -176,8 +176,8 @@ public abstract class Module extends ConfigUtils implements ScanTarget {
                 BlockPos pos = waitingPos;
                 waitingPos = null;
                 scanState = ScanState.RUNNING;
-                if (pos != null && needsWork(pos)) {
-                    executeIteration(pos, skipIteration);
+                if (pos != null && isPosInWorkspace(pos) && needsWork(pos)) {
+                    executeCandidate(pos, skipIteration);
                     execCount++;
                     if (maxExecs > 0 && execCount >= maxExecs) return;
                 }
@@ -202,7 +202,7 @@ public abstract class Module extends ConfigUtils implements ScanTarget {
                 if (needsWork(pos)) {
                     // 按方块分类：一轮扫描仅处理一种方块类型（可选开关）
                     if (!Configs.Core.CLASSIFY_BY_BLOCK.getBooleanValue() || isCycleItemMatch(pos)) {
-                        executeIteration(pos, skipIteration);
+                        executeCandidate(pos, skipIteration);
                         executed = true;
                         if (maxExecs > 0 && ++execCount >= maxExecs) return;
                     }
@@ -253,13 +253,27 @@ public abstract class Module extends ConfigUtils implements ScanTarget {
     }
 
     private boolean needsWork(BlockPos pos) {
-        return !isOnCooldown(pos) && canProcessPos(pos) && !isCorrectBlock(pos);
+        return !isOnCooldown(pos)
+                && isPosInConfiguredSelection(pos)
+                && PlayerUtils.canInteracted(pos)
+                && canProcessPos(pos)
+                && !isCorrectBlock(pos);
     }
 
     private boolean isPosInWorkspace(BlockPos pos) {
-        return needSchematic
+        return isPosInConfiguredSelection(pos)
+                && (needSchematic
                 ? LitematicaUtils.isSchematicBlock(pos)
-                : LitematicaUtils.inSelection(pos);
+                : LitematicaUtils.inSelection(pos));
+    }
+
+    protected boolean isPosInConfiguredSelection(BlockPos pos) {
+        return ConfigUtils.isPositionInSelectionRange(mc == null ? null : mc.player, pos, selectionType);
+    }
+
+    private void executeCandidate(BlockPos pos, AtomicReference<Boolean> skipIteration) {
+        ActionManager.INSTANCE.setQueueValidity(() -> isPosInConfiguredSelection(pos));
+        executeIteration(pos, skipIteration);
     }
 
     @Nullable

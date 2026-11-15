@@ -95,11 +95,15 @@ public class PlayerUtils {
 
     /** 最内层：原始 int 参数，消除所有 getter 调用 */
     public static boolean isWithinWorkInteractedEuclideanRange(int x, int y, int z, Vec3 eyePos, double range) {
-        double rangeSq = range * range;
+        return squaredDistanceToBlock(x, y, z, eyePos) <= range * range;
+    }
+
+    /** 方块碰撞箱到眼睛位置的最短距离平方 */
+    private static double squaredDistanceToBlock(int x, int y, int z, Vec3 eyePos) {
         double dx = Math.max(Math.max(x - eyePos.x, eyePos.x - (x + 1)), 0);
         double dy = Math.max(Math.max(y - eyePos.y, eyePos.y - (y + 1)), 0);
         double dz = Math.max(Math.max(z - eyePos.z, eyePos.z - (z + 1)), 0);
-        return dx * dx + dy * dy + dz * dz <= rangeSq;
+        return dx * dx + dy * dy + dz * dz;
     }
 
     public static boolean isWithinWorkInteractedManhattanRange(BlockPos blockPos, double range) {
@@ -247,23 +251,23 @@ public class PlayerUtils {
     }
 
     public static boolean canInteracted(BlockPos blockPos) {
-        if (ConfigUtils.client.player == null || blockPos == null) return false;
+        LocalPlayer player = ConfigUtils.client.player;
+        if (player == null || blockPos == null) return false;
 
-        double effectiveRange = ConfigUtils.getEffectiveRange();
-        if (Configs.Core.ITERATOR_SHAPE.getOptionListValue() instanceof RadiusShapeType radiusShapeType) {
-            return switch (radiusShapeType) {
-                case SPHERE -> isWithinWorkInteractedEuclideanRange(blockPos, effectiveRange);
-                case OCTAHEDRON -> isWithinWorkInteractedManhattanRange(blockPos, effectiveRange);
-                case CUBE -> isWithinWorkInteractedCubeRange(blockPos, effectiveRange);
-            };
-        }
-        return isWithinWorkInteractedEuclideanRange(blockPos, effectiveRange);
+        RadiusShapeType shapeType = Configs.Core.ITERATOR_SHAPE.getOptionListValue() instanceof RadiusShapeType type
+                ? type : RadiusShapeType.SPHERE;
+        return canInteracted(blockPos, player.getEyePosition(), ConfigUtils.getEffectiveRange(), shapeType);
     }
 
     /** 快速路径：调用方已缓存 eyePos，消除 getEyePosition() 分配 + switch 派发 */
     public static boolean canInteracted(BlockPos blockPos, Vec3 eyePos, double range, RadiusShapeType shapeType) {
         if (blockPos == null) return false;
         int x = blockPos.getX(), y = blockPos.getY(), z = blockPos.getZ();
+        if (Configs.Core.WORK_RANGE.getDoubleValue() <= 0) {
+            // 自动范围保留服务端容差，但任何区域形状都不能超出实际球形交互距离。
+            if (squaredDistanceToBlock(x, y, z, eyePos) >= range * range) return false;
+            if (shapeType == RadiusShapeType.SPHERE) return true;
+        }
         return switch (shapeType) {
             case SPHERE -> isWithinWorkInteractedEuclideanRange(x, y, z, eyePos, range);
             case OCTAHEDRON -> isWithinWorkInteractedManhattanRange(x, y, z, eyePos, range);

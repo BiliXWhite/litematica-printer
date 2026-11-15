@@ -66,6 +66,12 @@ public class IteratorManager {
         double effectiveRange = ConfigUtils.getEffectiveRange();
         int currentRange = (int) Math.ceil(effectiveRange);
 
+        // 扫描框可以复用，但可达性必须使用本次更新的玩家位置和配置
+        // 否则玩家移动不到 0.4 倍范围时，仍会拿旧眼睛坐标判断手长
+        this.shapeType = Configs.Core.ITERATOR_SHAPE.getOptionListValue() instanceof RadiusShapeType s ? s : null;
+        this.eyePos = player.getEyePosition();
+        this.effectiveRange = effectiveRange;
+
         LayerRange layerRange = DataManager.getRenderLayerRange();
         LayerMode layerMode = layerRange.getLayerMode();
         Direction.Axis layerAxis = layerRange.getAxis();
@@ -159,10 +165,6 @@ public class IteratorManager {
             box.xIncrement = !Configs.Core.X_REVERSE.getBooleanValue();
             box.yIncrement = !Configs.Core.Y_REVERSE.getBooleanValue();
             box.zIncrement = !Configs.Core.Z_REVERSE.getBooleanValue();
-
-            this.shapeType = Configs.Core.ITERATOR_SHAPE.getOptionListValue() instanceof RadiusShapeType s ? s : null;
-            this.eyePos = player.getEyePosition();
-            this.effectiveRange = effectiveRange;
 
             cachedIterator = null;
             dirtyIterator = true;

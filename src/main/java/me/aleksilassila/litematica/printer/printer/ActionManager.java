@@ -6,6 +6,7 @@ import me.aleksilassila.litematica.printer.config.Configs;
 import me.aleksilassila.litematica.printer.mixin.extension.MultiPlayerGameModeExtension;
 import me.aleksilassila.litematica.printer.utils.BlockUtils;
 import me.aleksilassila.litematica.printer.utils.PacketUtils;
+import me.aleksilassila.litematica.printer.utils.PlayerUtils;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -15,6 +16,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.function.BooleanSupplier;
 
 //#if MC > 12105
 import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
@@ -36,6 +39,8 @@ public class ActionManager {
     public PlayerLook look;
     public boolean needWaitModifyLook = false;
     private boolean actionRequiresWaitModifyLook = false;
+    @Nullable
+    private BooleanSupplier queueValidity = null;
 
     private ActionManager() {
     }
@@ -55,6 +60,12 @@ public class ActionManager {
 
     public ActionManager sendQueue(LocalPlayer player) {
         if (target == null || side == null || hitModifier == null) {
+            clearQueue();
+            return this;
+        }
+        // 发送前重新检查能否交互到
+        if (!PlayerUtils.canInteracted(target)
+                || (queueValidity != null && !queueValidity.getAsBoolean())) {
             clearQueue();
             return this;
         }
@@ -116,6 +127,11 @@ public class ActionManager {
         this.actionRequiresWaitModifyLook = needWaitModifyLook;
     }
 
+    /** 由模块提供：延迟发送的动作是否仍属于模块当前的有效选区。 */
+    public void setQueueValidity(@Nullable BooleanSupplier validity) {
+        this.queueValidity = validity;
+    }
+
     public void setShift(LocalPlayer player, boolean shift) {
         //#if MC > 12105
         Input input = new Input(player.input.keyPresses.forward(), player.input.keyPresses.backward(), player.input.keyPresses.left(), player.input.keyPresses.right(), player.input.keyPresses.jump(), shift, player.input.keyPresses.sprint());
@@ -136,5 +152,6 @@ public class ActionManager {
         this.needWaitModifyLook = false;
         this.actionRequiresWaitModifyLook = false;
         this.look = null;
+        this.queueValidity = null;
     }
 }
